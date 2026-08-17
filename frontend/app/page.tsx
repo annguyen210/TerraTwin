@@ -13,7 +13,10 @@ import {
   type ModuleInfo,
   type TerraScore,
 } from "@/lib/api";
+import type { HeatmapResult } from "@/lib/api";
 import Account from "@/components/Account";
+import Alerts from "@/components/Alerts";
+import Heatmap from "@/components/Heatmap";
 import ResultsPanel from "@/components/ResultsPanel";
 import Copilot from "@/components/Copilot";
 import Backtest from "@/components/Backtest";
@@ -72,6 +75,7 @@ export default function Home() {
   const [flyTo, setFlyTo] = useState<{ lat: number; lon: number; key: number } | null>(null);
   const [tab, setTab] = useState<"detail" | "overview">("detail");
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [heat, setHeat] = useState<HeatmapResult | null>(null);
 
   useEffect(() => {
     getModules()
@@ -160,6 +164,7 @@ export default function Home() {
             </div>
           ))}
         <Account user={user} onAuth={setUser} />
+        <Alerts user={user} />
         <Portfolio
           user={user}
           coord={coord}
@@ -171,7 +176,7 @@ export default function Home() {
       </aside>
 
       <section className="mapwrap">
-        <MapView onPick={onPick} flyTo={flyTo} />
+        <MapView onPick={onPick} flyTo={flyTo} heat={heat} />
       </section>
 
       <aside className="results">
@@ -227,6 +232,14 @@ export default function Home() {
             {result && <ResultsPanel a={result} />}
             {coord && result && (
               <WhatIf moduleId={active} lat={coord.lat} lon={coord.lon} />
+            )}
+            {coord && result && (
+              <Heatmap
+                moduleId={active}
+                lat={coord.lat}
+                lon={coord.lon}
+                onResult={setHeat}
+              />
             )}
             {coord && result && (
               <Insights moduleId={active} lat={coord.lat} lon={coord.lon} />

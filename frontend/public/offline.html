@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TerraTwin — Mất kết nối</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #0e1720;
+        color: #e7eef3;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        padding: 24px;
+      }
+      .box {
+        max-width: 420px;
+        text-align: center;
+      }
+      h1 {
+        font-size: 20px;
+        margin: 0 0 10px;
+      }
+      p {
+        color: #9fb2bf;
+        line-height: 1.6;
+        font-size: 14px;
+      }
+      b {
+        color: #5fcb8e;
+      }
+      button {
+        margin-top: 18px;
+        background: #5fcb8e;
+        border: none;
+        color: #08131a;
+        border-radius: 6px;
+        padding: 9px 18px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <h1>◵ Mất kết nối mạng</h1>
+      <p>
+        TerraTwin cần mạng để lấy dữ liệu thời tiết và vệ tinh mới nhất.
+      </p>
+      <p>
+        Ứng dụng <b>cố ý không lưu cảnh báo cũ để dùng lại khi offline</b> —
+        đưa ra một cảnh báo thiên tai đã lỗi thời còn nguy hiểm hơn là báo mất mạng.
+      </p>
+      <button onclick="location.reload()">Thử lại</button>
+    </div>
+  </body>
+</html>

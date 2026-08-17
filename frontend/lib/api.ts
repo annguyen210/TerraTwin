@@ -447,6 +447,84 @@ export function deletePlot(id: number) {
     "Không xóa được thửa đất");
 }
 
+// ---- C06 Heatmap ----
+export type HeatCell = {
+  lat: number;
+  lon: number;
+  value: number | null;
+  risk: string;
+};
+
+export type HeatmapResult = {
+  module_id: string;
+  module_name: string;
+  unit: string;
+  center: { lat: number; lon: number };
+  radius_km: number;
+  side: number;
+  cells: HeatCell[];
+  cell_dlat: number;
+  cell_dlon: number;
+  calibrated: boolean;
+  safe: number;
+  warning: number;
+  n_danger: number;
+  n_warning: number;
+  hottest: HeatCell | null;
+  headline: string;
+  cached: boolean;
+  caveat: string;
+  method: string;
+};
+
+export function runHeatmap(
+  moduleId: string,
+  lat: number,
+  lon: number,
+  side = 7,
+  radiusKm = 8,
+) {
+  return postJson<HeatmapResult>(
+    `/api/heatmap/${moduleId}?side=${side}&radius_km=${radiusKm}`,
+    { lat, lon },
+    "Không dựng được bản đồ nhiệt",
+  );
+}
+
+// ---- C05 Proactive Radar ----
+export type AlertRow = {
+  id: number;
+  plot_id: number | null;
+  module_id: string;
+  risk_level: string;
+  headline: string;
+  recommendation: string;
+  created_at: string;
+  acknowledged: boolean;
+};
+
+export type RadarRun = {
+  plots_scanned: number;
+  new_alerts: number;
+  dedup_window_hours?: number;
+  message?: string;
+};
+
+export function runRadar() {
+  return authed<RadarRun>("/api/radar/run", { method: "POST" },
+    "Không chạy được rà soát");
+}
+
+export function listAlerts(unreadOnly = false) {
+  return authed<AlertRow[]>(`/api/alerts?unread_only=${unreadOnly}`,
+    { method: "GET" }, "Không tải được cảnh báo");
+}
+
+export function ackAlert(id: number) {
+  return authed<AlertRow>(`/api/alerts/${id}/ack`, { method: "POST" },
+    "Không đánh dấu được");
+}
+
 async function postJson<T>(path: string, body: unknown, err: string): Promise<T> {
   const r = await fetch(`${BASE}${path}`, {
     method: "POST",

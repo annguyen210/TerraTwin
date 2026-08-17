@@ -94,6 +94,16 @@ không mất khi xóa trình duyệt, và phân tách theo từng người dùng
 | `GET/POST /api/keys` · `DELETE /api/keys/{id}` | Khóa Twin API (C12) |
 | `POST /api/datasets` · `POST /api/datasets/{id}/score` | Tải CSV/GeoJSON của bạn lên, chấm rủi ro hàng loạt (C11) |
 | `POST /api/radar/run` · `GET /api/alerts` | Quét lại mọi thửa đã lưu, sinh cảnh báo mới (C05/S08) |
+| `POST /api/heatmap/{id}` | Lưới rủi ro quanh thửa (C06) |
+
+### Cài lên điện thoại (PWA)
+
+Mở `http://…` trên điện thoại → menu trình duyệt → **Thêm vào màn hình chính**.
+Ứng dụng chạy toàn màn hình như app thật, có icon riêng.
+
+Service worker **cố ý KHÔNG cache phản hồi `/api/`** — đây là hệ thống cảnh báo
+thiên tai, phục vụ lại một cảnh báo cũ còn nguy hiểm hơn là báo mất mạng. Chỉ
+vỏ ứng dụng được cache; mất mạng thì hiện trang offline giải thích rõ lý do.
 
 **Twin API cho bên thứ ba:** tạo khóa rồi gọi mọi endpoint bằng header
 `X-API-Key: tt_…` thay cho JWT. Khóa chỉ lưu **hash** — lộ database vẫn không

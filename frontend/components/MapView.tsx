@@ -28,12 +28,27 @@ function centroid(pts: Pt[]): Pt {
   ];
 }
 
+type Heat = {
+  cells: { lat: number; lon: number; value: number | null; risk: string }[];
+  cell_dlat: number;
+  cell_dlon: number;
+} | null;
+
+const RISK_FILL: Record<string, string> = {
+  safe: "#2E9E67",
+  warning: "#B07A2E",
+  danger: "#C2412E",
+  unknown: "#5a6b73",
+};
+
 export default function MapView({
   onPick,
   flyTo,
+  heat,
 }: {
   onPick: (lat: number, lon: number, areaHa?: number) => void;
   flyTo?: { lat: number; lon: number; key: number } | null;
+  heat?: Heat;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -105,6 +120,20 @@ export default function MapView({
     });
     map.addControl(new maplibregl.NavigationControl(), "top-right");
     map.on("load", () => {
+      // Lớp bản đồ nhiệt nằm DƯỚI các lớp vẽ tay để không che điểm người dùng chọn.
+      map.addSource("heat", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+      map.addLayer({
+        id: "heat-fill",
+        type: "fill",
+        source: "heat",
+        paint: { "fill-color": ["get", "color"], "fill-opacity": 0.45 },
+      });
+      map.addLayer({
+        id: "heat-line",
+        type: "line",
+        source: "heat",
+        paint: { "line-color": ["get", "color"], "line-width": 0.5, "line-opacity": 0.6 },
+      });
       map.addSource("dpoly", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
       map.addLayer({ id: "dpoly-fill", type: "fill", source: "dpoly", paint: { "fill-color": "#5fcb8e", "fill-opacity": 0.25 } });
       map.addLayer({ id: "dpoly-line", type: "line", source: "dpoly", paint: { "line-color": "#5fcb8e", "line-width": 2 } });
@@ -121,6 +150,44 @@ export default function MapView({
       mapRef.current = null;
     };
   }, []);
+
+  // Vẽ lưới bản đồ nhiệt: mỗi ô là một ô vuông quanh tâm ô.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const draw = () => {
+      const src = map.getSource("heat") as maplibregl.GeoJSONSource | undefined;
+      if (!src) return;
+      if (!heat || heat.cells.length === 0) {
+        src.setData({ type: "FeatureCollection", features: [] } as any);
+        return;
+      }
+      const hy = heat.cell_dlat / 2;
+      const hx = heat.cell_dlon / 2;
+      src.setData({
+        type: "FeatureCollection",
+        features: heat.cells.map((c) => ({
+          type: "Feature",
+          properties: {
+            color: RISK_FILL[c.risk] ?? RISK_FILL.unknown,
+            value: c.value ?? -1,
+          },
+          geometry: {
+            type: "Polygon",
+            coordinates: [[
+              [c.lon - hx, c.lat - hy],
+              [c.lon + hx, c.lat - hy],
+              [c.lon + hx, c.lat + hy],
+              [c.lon - hx, c.lat + hy],
+              [c.lon - hx, c.lat - hy],
+            ]],
+          },
+        })),
+      } as any);
+    };
+    if (map.isStyleLoaded()) draw();
+    else map.once("load", draw);
+  }, [heat]);
 
   // Bay tới thửa đã lưu khi tải lại từ danh mục.
   useEffect(() => {

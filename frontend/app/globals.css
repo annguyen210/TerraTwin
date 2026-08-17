@@ -1122,3 +1122,181 @@ body {
   line-height: 1.45;
   margin: 2px 0;
 }
+
+/* ---- C06 Bản đồ nhiệt ---- */
+.heat {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.heat-head {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.heat-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.heat-controls label {
+  flex: 1;
+  font-size: 11px;
+  color: var(--dim);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.heat-controls select {
+  background: rgba(132, 162, 178, 0.1);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: var(--text);
+  padding: 5px;
+  font-size: 12px;
+  font-family: inherit;
+}
+.heat-actions {
+  display: flex;
+  gap: 6px;
+}
+.heat-actions button {
+  flex: 1;
+  background: rgba(95, 203, 142, 0.14);
+  border: 1px solid var(--terra);
+  color: var(--terra);
+  border-radius: 6px;
+  padding: 7px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.heat-actions button.ghost {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--dim);
+}
+.heat-actions button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.heat-line {
+  font-size: 12.5px;
+  line-height: 1.5;
+  margin: 8px 0 6px;
+}
+.heat-legend {
+  display: flex;
+  gap: 12px;
+  font-size: 10.5px;
+  color: var(--dim);
+  margin-bottom: 6px;
+}
+.heat-legend i {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.heat-warn {
+  font-size: 11px;
+  color: #d9a441;
+  line-height: 1.45;
+}
+.heat-caveat {
+  font-size: 10.5px;
+  color: var(--dim);
+  line-height: 1.5;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+/* ---- C05 Rà soát chủ động ---- */
+.alerts {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.al-head {
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.al-badge {
+  background: #C2412E;
+  color: #fff;
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.al-sub,
+.al-empty,
+.al-note {
+  font-size: 10.5px;
+  color: var(--dim);
+  line-height: 1.5;
+  margin: 5px 0;
+}
+.al-note {
+  color: var(--terra);
+}
+.al-run {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 6px;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+.al-run:hover:not(:disabled) {
+  border-color: var(--terra);
+  color: var(--terra);
+}
+.al-run:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.al-item {
+  border-left: 3px solid #5a6b73;
+  padding: 6px 0 6px 9px;
+  margin-top: 7px;
+  background: rgba(132, 162, 178, 0.05);
+}
+.al-item.done {
+  opacity: 0.5;
+}
+.al-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.al-when {
+  font-size: 10px;
+  color: var(--dim);
+}
+.al-ack {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--dim);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 10px;
+  cursor: pointer;
+}
+.al-title {
+  font-size: 11.5px;
+  line-height: 1.45;
+  margin-top: 2px;
+}
+.al-rec {
+  font-size: 10.5px;
+  color: var(--dim);
+  line-height: 1.45;
+  margin-top: 2px;
+}
