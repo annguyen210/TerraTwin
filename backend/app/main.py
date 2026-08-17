@@ -27,8 +27,8 @@ from app.schemas import (
     TerraScoreResult, WhatIfResult,
 )
 from app.services import (
-    anomaly, backtest, copilot, explain, goalseek, hazard, heatmap, scan,
-    terrascore, timemachine, whatif,
+    anomaly, backtest, copilot, explain, goalseek, hazard, heatmap, llm, scan,
+    terrascore, timemachine, whatif, whatif_nlp,
 )
 from app.services.twin import build_twin
 from app import auth
@@ -185,6 +185,28 @@ def heatmap_endpoint(module_id: str, location: Location,
 def anomaly_endpoint(location: Location, years: int = 10) -> dict:
     """C10 Anomaly — tuần tới có bất thường so với khí hậu nền cùng kỳ không."""
     return anomaly.run(location.lat, location.lon, years=max(3, min(years, 30)))
+
+
+class AskRequest(BaseModel):
+    question: str
+    location: Location
+    module_id: str = "flood"
+
+
+@app.post("/api/ask")
+def ask_endpoint(req: AskRequest) -> dict:
+    """C03 What-If NLP — hỏi bằng lời, chạy mô phỏng thật.
+
+    Câu hỏi chỉ dùng để CHỌN THAM SỐ; con số do mô hình vật lý tính.
+    """
+    return whatif_nlp.ask(req.question, req.location.lat, req.location.lon,
+                          req.module_id)
+
+
+@app.get("/api/llm")
+def llm_status() -> dict:
+    """Cấu hình LLM hiện tại (không bao giờ trả về khóa)."""
+    return llm.info()
 
 
 @app.post("/api/copilot", response_model=CopilotAnswer)

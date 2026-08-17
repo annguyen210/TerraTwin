@@ -95,6 +95,26 @@ không mất khi xóa trình duyệt, và phân tách theo từng người dùng
 | `POST /api/datasets` · `POST /api/datasets/{id}/score` | Tải CSV/GeoJSON của bạn lên, chấm rủi ro hàng loạt (C11) |
 | `POST /api/radar/run` · `GET /api/alerts` | Quét lại mọi thửa đã lưu, sinh cảnh báo mới (C05/S08) |
 | `POST /api/heatmap/{id}` | Lưới rủi ro quanh thửa (C06) |
+| `POST /api/ask` · `GET /api/llm` | Hỏi What-If bằng lời (C03) · trạng thái LLM |
+
+### Trợ lý LLM — cắm key nào cũng chạy
+
+TerraTwin **không phụ thuộc một nhà cung cấp AI nào**. Đặt `TERRATWIN_LLM_API_KEY`
+(và `TERRATWIN_LLM_BASE_URL` nếu không dùng OpenAI) là xong — hỗ trợ **OpenAI ·
+Gemini · DeepSeek · Groq · OpenRouter · Together · xAI · Qwen · Mistral ·
+Anthropic**, và cả **Ollama chạy trên máy** (miễn phí, không cần key). Xem
+[.env.example](.env.example) để có sẵn URL từng nhà cung cấp.
+
+**Không có key vẫn dùng được đầy đủ** — chỉ khác ở phần diễn đạt:
+
+| Tính năng | Không key | Có key |
+|---|---|---|
+| 🗣️ **C03 What-If bằng lời** | Bộ luật tiếng Việt bắt các mẫu hỏi thông dụng ("mưa gấp đôi", "giảm 60%", "nóng thêm 3 độ") — có dấu hoặc không dấu | Hiểu thêm câu hỏi tự do |
+| 💬 Copilot | Trả lời bám sát dữ liệu module | Diễn đạt tự nhiên hơn |
+
+> **Ranh giới quan trọng:** LLM **chỉ được dịch câu hỏi thành tham số mô phỏng**.
+> Mọi con số đều do mô hình vật lý tính trên nền thời tiết thật — có test chứng
+> minh rằng một LLM cố tình trả về con số bịa cũng **không** chèn được vào kết quả.
 
 ### Cài lên điện thoại (PWA)
 
@@ -141,7 +161,7 @@ terratwin/
 │       │                         #   goalseek, timemachine, anomaly,
 │       │                         #   backtest, copilot, twin
 │       └── modules/              # base + util + 14 module + registry
-│   └── tests/                    # pytest (114 test, offline & tất định)
+│   └── tests/                    # pytest (147 test, offline & tất định)
 ├── frontend/                     # Next.js 14 + MapLibre
 │   └── components/               # MapView, ResultsPanel, Overview, WhatIf,
 │                                 #   Backtest, Portfolio, Copilot
@@ -178,7 +198,7 @@ npm run dev -- -p 1825      # http://localhost:1825
 ```bash
 cd backend
 pip install -r requirements-dev.txt
-pytest                      # 114 test, chạy offline & tất định
+pytest                      # 147 test, chạy offline & tất định
 ```
 
 ---

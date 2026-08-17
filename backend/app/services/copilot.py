@@ -1,17 +1,14 @@
-"""Trợ lý (copilot) — gắn LLM THẬT (Anthropic) nếu có ANTHROPIC_API_KEY,
-nếu không thì trả lời rule-based (vẫn bám dữ liệu module + TerraScore).
+"""Trợ lý (copilot) — dùng LLM THẬT nếu đã cấu hình, không thì rule-based.
 
-Bật LLM: đặt biến môi trường ANTHROPIC_API_KEY (và tùy chọn ANTHROPIC_MODEL).
+KHÔNG phụ thuộc nhà cung cấp: cắm key của OpenAI, Gemini, DeepSeek, Groq,
+OpenRouter, Anthropic, hay máy chủ cục bộ (Ollama) đều chạy — xem services/llm.py.
+Chưa có key thì vẫn trả lời được, chỉ là bám sát dữ liệu module thay vì diễn đạt
+tự nhiên.
 """
 from __future__ import annotations
 
-import json
-import os
-import urllib.request
-
 from app.schemas import CopilotAnswer, Location
-
-_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001")
+from app.services import llm
 
 
 def _route(question: str) -> list[str]:
@@ -31,29 +28,11 @@ def _route(question: str) -> list[str]:
     return ["salinity", "drought", "flood"]
 
 
-def _call_llm(prompt: str):
-    key = os.environ.get("ANTHROPIC_API_KEY")
-    if not key:
-        return None
-    try:
-        body = json.dumps({
-            "model": _MODEL,
-            "max_tokens": 600,
-            "messages": [{"role": "user", "content": prompt}],
-        }).encode("utf-8")
-        req = urllib.request.Request(
-            "https://api.anthropic.com/v1/messages", data=body,
-            headers={
-                "x-api-key": key,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-        )
-        with urllib.request.urlopen(req, timeout=30) as r:
-            d = json.loads(r.read().decode("utf-8"))
-        return d["content"][0]["text"]
-    except Exception:
-        return None
+_SYSTEM = (
+    "Bạn là trợ lý nông nghiệp/đất đai của TerraTwin. Trả lời NGẮN GỌN, rõ ràng "
+    "bằng tiếng Việt, CHỈ dựa trên dữ liệu được cung cấp. Tuyệt đối không bịa "
+    "thêm số liệu. Nếu dữ liệu không đủ để trả lời, hãy nói thẳng là chưa đủ."
+)
 
 
 def answer(question: str, loc: Location) -> CopilotAnswer:
@@ -73,17 +52,16 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
     facts_txt = "\n".join(facts)
 
     prompt = (
-        "Bạn là trợ lý nông nghiệp/đất đai của TerraTwin. Trả lời NGẮN GỌN, rõ ràng bằng "
-        f"tiếng Việt, CHỈ dựa trên dữ liệu sau về vị trí ({loc.lat:.4f}, {loc.lon:.4f}). "
-        "Không bịa thêm số liệu.\n\n"
-        f"Dữ liệu hiện có:\n{facts_txt}\n\n"
+        f"Dữ liệu về vị trí ({loc.lat:.4f}, {loc.lon:.4f}):\n{facts_txt}\n\n"
         f"Câu hỏi của người dùng: {question}\n\nTrả lời:"
     )
 
-    llm = _call_llm(prompt)
-    if llm:
-        return CopilotAnswer(answer=llm.strip(), used_modules=routes, llm=True)
+    text = llm.complete(prompt, system=_SYSTEM, max_tokens=600)
+    if text:
+        return CopilotAnswer(answer=text, used_modules=routes, llm=True)
 
     ans = (f"TerraScore {ts.score}/100 (hạng {ts.grade}). {ts.summary}\n{facts_txt}\n\n"
-           "[Đang dùng trợ lý rule-based. Đặt ANTHROPIC_API_KEY để bật trả lời bằng LLM thật.]")
+           "[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY (+ TERRATWIN_LLM_BASE_URL "
+           "nếu không dùng OpenAI) để bật trả lời bằng LLM — hỗ trợ OpenAI, Gemini, "
+           "DeepSeek, Groq, OpenRouter, Anthropic, Ollama…]")
     return CopilotAnswer(answer=ans, used_modules=routes, llm=False)
