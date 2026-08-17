@@ -153,6 +153,41 @@ Bật LLM: đặt `ANTHROPIC_API_KEY` trước khi chạy backend.
 
 # PHẦN III — THẬT vs LỘ TRÌNH & LÀM TIẾP
 
+## 25b. Tiến độ 26 LUỒNG — thực tế & lộ trình (2026-08-17, đợt 3)
+
+**Đã có, chạy thật (8/26):**
+S01 TerraScore · **S02 Counterfactual Time Machine** · **S03 Goal-Seek** ·
+S06 Backtest/Replay · **S07 Causal Explain** · C02 Parallel Futures ·
+C08 Multi-Twin Portfolio · **C10 Anomaly** *(in đậm = mới đợt này)*.
+Nửa phần: C01 Twin Builder (stub in-memory), C12 Twin API (REST đủ, chưa auth/SDK).
+
+**4 luồng mới đợt này** — tất cả chạy trên nguồn dữ liệu đã có, qua lõi chung
+`services/hazard.py` (gộp phần trước đây lặp giữa whatif.py và backtest.py):
+- **S07 Causal Explain** — mô hình là hàm thuần nên leave-one-out cho đóng góp
+  CHÍNH XÁC, không cần xấp xỉ SHAP. Ví dụ thật (Quảng Nam): đỉnh 95.8 điểm =
+  lượng mưa 58.2% + địa hình trũng 41.8%.
+- **S03 Goal-Seek** — tìm kiếm nhị phân 40 vòng đảo ngược mô hình. Phát hiện và
+  xử lý được ca suy biến: khi nền địa hình đã ≥ ngưỡng thì "giảm 100% mưa" là
+  vô nghĩa → báo thẳng "giảm mưa một mình không đủ" + đề xuất phương án KẾT HỢP.
+- **S02 Time Machine** — analog ensemble 10 năm ERA5 thật. Quảng Nam: 7/10 năm
+  cùng kỳ vượt ngưỡng nguy hiểm → xác suất ~70%, P10 48.9 / P50 89.2 / P90 100.
+  Truy ngược được từng năm (2020 và 2022 đều đạt đỉnh 100 — khớp backtest).
+- **C10 Anomaly** — z-score so khí hậu nền cùng kỳ 10 năm. Bến Tre: nhiệt độ tối
+  đa 32.1°C, z=+2.25, cao hơn 100% số năm cùng kỳ.
+
+**Còn lại 18 luồng, chia theo thứ CHẶN chúng (không phải theo độ khó code):**
+| Nhóm | Luồng | Chặn bởi |
+|---|---|---|
+| Cần **database + đăng nhập** | C01 (thật), C05 Proactive Radar, C11 BYO-Data, C12 (auth/SDK), S08 Autonomous Agent | 1 lần dựng DB mở hết |
+| Cần **API key ảnh Sentinel** | C04 Time-Lapse, C07 Carbon MRV (+ 6 module đang ⏳) | Tài khoản Copernicus — chỉ chủ dự án đăng ký được |
+| Cần **LLM key** (đã có hook) | C03 What-If NLP, C09 Field Mode | `ANTHROPIC_API_KEY` |
+| Cần **grid sampling** (code được, tốn quota) | C06 Risk & Yield Heatmaps, S04 Twin Genome | Nhiều lệnh gọi Open-Meteo → nên có cache/DB trước |
+| Cần **dataset gán nhãn / GPU / pháp lý / nhiều người dùng** | S05 Federated, S09 Model Engine, S10 Generative Vision, U01–U04 | Nhiều tháng, cần tiền và người dùng thật |
+
+> Kết luận trung thực: 26/26 là **lộ trình**, không phải một lần commit. Nhóm cuối
+> không có đường code tắt — S05 Federated Learning cần nhiều bên triển khai thật,
+> U02 Marketplace cần thanh toán và pháp lý.
+
 ## 26. Trạng thái THẬT vs LỘ TRÌNH (quan trọng khi đi thi — đừng nói quá)
 **Đã có, chạy thật:** 14 module ra kết quả · 7 module dữ liệu thật · TerraScore · Copilot (fallback+LLM-ready) · vẽ vùng · bản đồ · API đầy đủ.
 **CHƯA có (lộ trình):** ảnh Sentinel thật (CV) · huấn luyện model + dataset · database thật · các luồng "wow" còn lại (Twin Genome, Federated Learning, Marketplace, Generative Vision, Autonomous Agent, Causal Explain, Twin API).

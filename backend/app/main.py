@@ -22,10 +22,15 @@ from app.schemas import (
     Assessment, CopilotAnswer, Location, ModuleInfo, ScanResult,
     TerraScoreResult, WhatIfResult,
 )
-from app.services import backtest, copilot, scan, terrascore, whatif
+from app.services import (
+    anomaly, backtest, copilot, explain, goalseek, hazard, scan, terrascore,
+    timemachine, whatif,
+)
 from app.services.twin import build_twin
 
-app = FastAPI(title="TerraTwin API", version="0.3.0")
+app = FastAPI(title="TerraTwin API", version="0.4.0")
+
+_HAZARD_ONLY = f"Chỉ áp dụng cho module hiểm họa thời tiết: {', '.join(hazard.IDS)}"
 
 _origins_env = os.environ.get("TERRATWIN_CORS", "*").strip()
 _ORIGINS = ["*"] if _origins_env in ("", "*") else [o.strip() for o in _origins_env.split(",")]
@@ -109,6 +114,45 @@ def whatif_endpoint(module_id: str, location: Location) -> WhatIfResult:
             detail=f"Module '{module_id}' chưa hỗ trợ what-if (chỉ: drought, flood, wildfire, landslide)",
         )
     return result
+
+
+@app.post("/api/explain/{module_id}")
+def explain_endpoint(module_id: str, location: Location) -> dict:
+    """S07 Causal Explain — VÌ SAO chỉ số cao: phân rã đóng góp từng yếu tố
+    bằng leave-one-out chính xác trên chính mô hình cảnh báo."""
+    result = explain.explain(module_id, location.lat, location.lon)
+    if result is None:
+        raise HTTPException(status_code=404, detail=_HAZARD_ONLY)
+    return result
+
+
+@app.post("/api/goalseek/{module_id}")
+def goalseek_endpoint(module_id: str, location: Location,
+                      target: float | None = None) -> dict:
+    """S03 Goal-Seek — mô phỏng ngược: cần điều kiện gì để an toàn, hoặc
+    hiện còn chịu được bao nhiêu trước khi vượt ngưỡng."""
+    result = goalseek.run(module_id, location.lat, location.lon, target)
+    if result is None:
+        raise HTTPException(status_code=404, detail=_HAZARD_ONLY)
+    return result
+
+
+@app.post("/api/timemachine/{module_id}")
+def timemachine_endpoint(module_id: str, location: Location,
+                         years: int = 10) -> dict:
+    """S02 Counterfactual Time Machine — xác suất vượt ngưỡng suy từ analog
+    ensemble: cùng cửa sổ lịch của N năm THẬT (ERA5) tại chính toạ độ này."""
+    result = timemachine.run(module_id, location.lat, location.lon,
+                             years=max(3, min(years, 30)))
+    if result is None:
+        raise HTTPException(status_code=404, detail=_HAZARD_ONLY)
+    return result
+
+
+@app.post("/api/anomaly")
+def anomaly_endpoint(location: Location, years: int = 10) -> dict:
+    """C10 Anomaly — tuần tới có bất thường so với khí hậu nền cùng kỳ không."""
+    return anomaly.run(location.lat, location.lon, years=max(3, min(years, 30)))
 
 
 @app.post("/api/copilot", response_model=CopilotAnswer)

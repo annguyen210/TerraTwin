@@ -23,7 +23,18 @@ Mỗi kết quả gắn cờ rõ ràng 🛰️ **Dữ liệu thật** hoặc �
 > áp ngưỡng mặn của cây lúa. Mô hình có **mùa vụ**: đỉnh ~15/3 (mùa khô, sông cạn),
 > đáy ~15/9 (lũ đẩy mặn ra biển) — tỉ lệ khô/mưa ở Bến Tre ≈ **6,2×**.
 
-**Tính năng thật đã có:** TerraScore (chỉ chấm từ hiểm họa dữ liệu thật) · Quét toàn cảnh 14 module · **Backtest lịch sử ERA5** (đo lead time 4 thiên tai VN có thật) · **What-If / Parallel Futures** (mô phỏng tham số trên nền thời tiết thật) · Danh mục thửa đất + xuất báo cáo · Copilot (rule-based, bật LLM nếu có key) · bản đồ nền ảnh vệ tinh thật.
+**Tính năng thật đã có:** TerraScore (chỉ chấm từ hiểm họa dữ liệu thật) · Quét toàn cảnh 14 module · **Backtest lịch sử ERA5** (đo lead time 4 thiên tai VN có thật) · **What-If / Parallel Futures** · **Causal Explain** · **Goal-Seek** · **Time Machine** · **Anomaly** · Danh mục thửa đất + xuất báo cáo · Copilot (rule-based, bật LLM nếu có key) · bản đồ nền ảnh vệ tinh thật.
+
+### Phân tích sâu — 4 luồng nâng cao (mới)
+
+| Luồng | Trả lời câu hỏi | Cách làm |
+|---|---|---|
+| 🧠 **S07 Causal Explain** | *Vì sao chỉ số cao?* | Mô hình là hàm thuần → tắt từng yếu tố, chạy lại, chênh lệch **chính là** đóng góp. Leave-one-out chính xác, không xấp xỉ kiểu SHAP |
+| 🎯 **S03 Goal-Seek** | *Cần gì để an toàn? Còn chịu được bao nhiêu?* | Tìm kiếm nhị phân 40 vòng đảo ngược chính mô hình cảnh báo; có phương án **kết hợp** khi không đòn bẩy đơn lẻ nào đủ |
+| ⏳ **S02 Time Machine** | *Xác suất vượt ngưỡng là bao nhiêu?* | **Analog ensemble**: cùng cửa sổ lịch của 10 năm THẬT (ERA5) tại chính toạ độ đó — mỗi con số truy ngược được về một năm có thật, không có phân phối giả định |
+| 📈 **C10 Anomaly** | *Tuần này có bất thường không?* | z-score so với khí hậu nền ERA5 cùng ngày/tháng, 10 năm, tại chính toạ độ đó |
+
+Cả 4 đều đi qua lõi chung `services/hazard.py` nên chạy **đúng mô hình** đang dùng cho dự báo — không có model thứ hai lệch pha.
 
 ---
 
@@ -37,7 +48,7 @@ terratwin/
 │       ├── services/             # realdata, datasources, terrascore, scan,
 │       │                         #   whatif, backtest, copilot, twin
 │       └── modules/              # base + util + 14 module + registry
-│   └── tests/                    # pytest (32 test, offline & tất định)
+│   └── tests/                    # pytest (50 test, offline & tất định)
 ├── frontend/                     # Next.js 14 + MapLibre
 │   └── components/               # MapView, ResultsPanel, Overview, WhatIf,
 │                                 #   Backtest, Portfolio, Copilot
@@ -74,7 +85,7 @@ npm run dev -- -p 1825      # http://localhost:1825
 ```bash
 cd backend
 pip install -r requirements-dev.txt
-pytest                      # 32 test, chạy offline & tất định
+pytest                      # 50 test, chạy offline & tất định
 ```
 
 ---
@@ -88,7 +99,10 @@ pytest                      # 32 test, chạy offline & tất định
 | `NEXT_PUBLIC_API` | URL backend cho frontend | `http://localhost:8000` |
 
 ## API (cổng 8000)
-`GET /api/health` · `GET /api/modules` · `POST /api/assess/{id}` · `POST /api/terrascore` · `POST /api/scan` · `POST /api/whatif/{id}` · `POST /api/copilot` · `GET /api/backtest[/{event}]` · `/docs`
+`GET /api/health` · `GET /api/modules` · `POST /api/assess/{id}` · `POST /api/terrascore` · `POST /api/scan` · `POST /api/whatif/{id}` · `POST /api/explain/{id}` · `POST /api/goalseek/{id}` · `POST /api/timemachine/{id}` · `POST /api/anomaly` · `POST /api/copilot` · `POST /api/twin` · `GET /api/backtest[/{event}]` · `/docs`
+
+> 4 endpoint `explain` / `goalseek` / `timemachine` / `whatif` chỉ nhận module hiểm
+> họa thời tiết: `drought`, `flood`, `wildfire`, `landslide` (khác → HTTP 404).
 
 ## Thêm module mới
 1. Tạo lớp con `TwinModule` trong `backend/app/modules/`, viết `assess()`.

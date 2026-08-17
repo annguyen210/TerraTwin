@@ -231,6 +231,143 @@ export async function runWhatIf(
   return r.json();
 }
 
+// ---- S07 Causal Explain ----
+export type ExplainFactor = {
+  factor: string;
+  peak_without: number;
+  contribution: number;
+  share_pct: number;
+  note: string;
+};
+
+export type ExplainResult = {
+  module_id: string;
+  module_name: string;
+  unit: string;
+  available: boolean;
+  message?: string;
+  peak?: number;
+  peak_date?: string | null;
+  terrain?: string;
+  headline?: string;
+  factors: ExplainFactor[];
+  wettest_day?: { date: string; precip_mm: number };
+  method?: string;
+};
+
+// ---- S03 Goal-Seek ----
+export type GoalLever = {
+  lever: string;
+  kind: string;
+  feasible: boolean;
+  answer: string;
+  value: number | null;
+};
+
+export type GoalSeekResult = {
+  module_id: string;
+  module_name: string;
+  unit: string;
+  available: boolean;
+  message?: string;
+  current_peak?: number;
+  target?: number;
+  safe_now?: boolean;
+  headline?: string;
+  levers: GoalLever[];
+  combined?: { answer: string } | null;
+  method?: string;
+};
+
+// ---- S02 Time Machine ----
+export type TimeMachineMember = {
+  year: number;
+  peak: number;
+  rain_total_mm: number;
+  danger: boolean;
+  warning: boolean;
+};
+
+export type TimeMachineResult = {
+  module_id: string;
+  module_name: string;
+  unit: string;
+  available: boolean;
+  message?: string;
+  years?: number;
+  from_year?: number;
+  to_year?: number;
+  prob_danger_pct?: number;
+  prob_warning_pct?: number;
+  p10?: number;
+  p50?: number;
+  p90?: number;
+  current_peak?: number | null;
+  current_rank_pct?: number | null;
+  worst_year?: { year: number; peak: number; rain_total_mm: number };
+  best_year?: { year: number; peak: number; rain_total_mm: number };
+  headline?: string;
+  members: TimeMachineMember[];
+  threshold_warning?: number;
+  method?: string;
+};
+
+// ---- C10 Anomaly ----
+export type AnomalyMetric = {
+  key: string;
+  label: string;
+  unit: string;
+  current: number;
+  normal_mean: number;
+  normal_std: number;
+  z_score: number | null;
+  percentile: number;
+  level: string;
+  verdict: string;
+  alert: boolean;
+};
+
+export type AnomalyResult = {
+  available: boolean;
+  message?: string;
+  years?: number;
+  from_year?: number;
+  to_year?: number;
+  headline?: string;
+  metrics: AnomalyMetric[];
+  method?: string;
+};
+
+async function postJson<T>(path: string, body: unknown, err: string): Promise<T> {
+  const r = await fetch(`${BASE}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error(await errMessage(r, err));
+  return r.json();
+}
+
+export function runExplain(moduleId: string, lat: number, lon: number) {
+  return postJson<ExplainResult>(`/api/explain/${moduleId}`, { lat, lon },
+    "Không phân tích được nguyên nhân");
+}
+
+export function runGoalSeek(moduleId: string, lat: number, lon: number) {
+  return postJson<GoalSeekResult>(`/api/goalseek/${moduleId}`, { lat, lon },
+    "Không chạy được mô phỏng ngược");
+}
+
+export function runTimeMachine(moduleId: string, lat: number, lon: number) {
+  return postJson<TimeMachineResult>(`/api/timemachine/${moduleId}`, { lat, lon },
+    "Không chạy được cỗ máy thời gian");
+}
+
+export function runAnomaly(lat: number, lon: number) {
+  return postJson<AnomalyResult>("/api/anomaly", { lat, lon },
+    "Không so sánh được với khí hậu nền");
+}
+
 export async function getBacktests(): Promise<BacktestEvent[]> {
   const r = await fetch(`${BASE}/api/backtest`);
   if (!r.ok) throw new Error("Không tải được danh sách backtest");

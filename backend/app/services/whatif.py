@@ -14,17 +14,12 @@ from app.schemas import (
     Location, ScenarioPoint, ScenarioResult, WhatIfResult,
 )
 from app.services import datasources as ds
+from app.services import hazard
 from app.services import realdata
 
-# safe/warning dùng chung cho 4 module chỉ số (0–100)
-SAFE, WARNING = 40.0, 70.0
-
-_META = {
-    "drought": ("Cảnh báo hạn & thiếu nước", "%"),
-    "flood": ("Cảnh báo lũ/ngập sớm", "điểm"),
-    "wildfire": ("Cảnh báo nguy cơ cháy rừng", "điểm"),
-    "landslide": ("Cảnh báo sạt lở", "điểm"),
-}
+# Ngưỡng & metadata lấy từ lõi hiểm họa dùng chung (hazard.py)
+SAFE, WARNING = hazard.SAFE, hazard.WARNING
+_META = hazard.META
 
 # Bốn tương lai song song. rain = nhân lượng mưa, temp = cộng vào nhiệt độ tối đa.
 SCENARIOS = [
@@ -35,33 +30,8 @@ SCENARIOS = [
 ]
 
 
-def _transform(rows, rain_mult: float, temp_delta: float):
-    out = []
-    for r in rows:
-        out.append({
-            "day": r["day"], "date": r["date"],
-            "precip": max(0.0, r["precip"] * rain_mult),
-            "et0": r["et0"],
-            "tmax": r["tmax"] + temp_delta,
-        })
-    return out
-
-
-def _index(module_id: str, lat: float, lon: float, rows):
-    if module_id == "drought":
-        return ds.drought_index(rows)
-    if module_id == "flood":
-        return ds.flood_index(rows, ds.elevation_proxy(lat, lon))
-    if module_id == "wildfire":
-        return ds.wildfire_index(rows)
-    if module_id == "landslide":
-        slope, _ = ds.slope_context(lat, lon)
-        return ds.landslide_index(rows, slope)
-    return []
-
-
 def available(module_id: str) -> bool:
-    return module_id in _META
+    return hazard.supports(module_id)
 
 
 def run(module_id: str, loc: Location) -> WhatIfResult | None:
@@ -82,7 +52,8 @@ def run(module_id: str, loc: Location) -> WhatIfResult | None:
 
     scenarios: list[ScenarioResult] = []
     for label, rain, temp in SCENARIOS:
-        series = _index(module_id, loc.lat, loc.lon, _transform(rows, rain, temp))
+        series = hazard.index_series(
+            module_id, loc.lat, loc.lon, hazard.transform(rows, rain, temp))
         pts = [ScenarioPoint(day=d, date=dt, value=v, risk=risk_of(v, SAFE, WARNING))
                for (d, dt, v) in series]
         peak = max((p.value for p in pts), default=0.0)

@@ -807,3 +807,170 @@ body {
     height: auto;
   }
 }
+
+/* ---- Phân tích sâu (S07 Explain · S03 Goal-Seek · S02 Time Machine · C10 Anomaly) ---- */
+.insights {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.in-head-row {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.in-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+.in-tabs button {
+  background: transparent;
+  color: var(--dim);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.in-tabs button:hover {
+  color: var(--text);
+}
+.in-tabs button.on {
+  background: rgba(95, 203, 142, 0.14);
+  border-color: var(--terra);
+  color: var(--terra);
+}
+.in-head {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0 0 10px;
+}
+.in-empty,
+.in-foot,
+.in-method {
+  font-size: 11px;
+  color: var(--dim);
+  line-height: 1.5;
+}
+.in-method {
+  margin-top: 8px;
+  font-style: italic;
+  opacity: 0.75;
+}
+
+/* Explain */
+.in-factor {
+  margin-bottom: 10px;
+}
+.in-factor-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+.in-track {
+  height: 6px;
+  background: rgba(132, 162, 178, 0.14);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.in-fill {
+  height: 100%;
+  background: var(--terra);
+}
+.in-note {
+  font-size: 10.5px;
+  color: var(--dim);
+  margin-top: 3px;
+  line-height: 1.45;
+}
+
+/* Goal-Seek */
+.in-lever {
+  border-left: 3px solid var(--terra);
+  padding: 6px 0 6px 9px;
+  margin-bottom: 8px;
+  background: rgba(132, 162, 178, 0.05);
+}
+.in-lever-top {
+  font-size: 12px;
+  font-weight: 600;
+}
+.in-lever-ans {
+  font-size: 11.5px;
+  color: var(--dim);
+  line-height: 1.5;
+  margin-top: 2px;
+}
+
+/* Time Machine */
+.in-prob {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.in-prob-big {
+  font-size: 30px;
+  font-weight: 800;
+  color: #C2412E;
+  line-height: 1;
+}
+.in-prob-txt {
+  font-size: 12px;
+  line-height: 1.45;
+}
+.in-prob-txt small {
+  color: var(--dim);
+  font-size: 10.5px;
+}
+.in-years {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 76px;
+}
+.in-year {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+.in-year-track {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+.in-year-bar {
+  width: 100%;
+  border-radius: 2px 2px 0 0;
+  min-height: 2px;
+}
+.in-year-lbl {
+  font-size: 9.5px;
+  color: var(--dim);
+  margin-top: 3px;
+}
+
+/* Anomaly */
+.in-metric {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+.in-metric:last-of-type {
+  border-bottom: none;
+}
+.in-metric-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.in-metric-sub {
+  font-size: 10.5px;
+  color: var(--dim);
+  margin-top: 2px;
+}

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from app.services import datasources as ds
+from app.services import hazard
 from app.services import realdata
 
 DANGER = 70.0  # ngưỡng 'nguy hiểm' dùng chung cho lũ/sạt lở/hạn
@@ -47,17 +47,8 @@ EVENTS = {
 
 def _index_for(module: str, lat: float, lon: float, rows):
     """Chạy đúng mô hình chỉ số của module trên chuỗi dữ liệu (lịch sử)."""
-    if module == "flood":
-        elev = ds.elevation_proxy(lat, lon)
-        return ds.flood_index(rows, elev), f"cao độ ~{elev} m"
-    if module == "landslide":
-        slope, _ = ds.slope_context(lat, lon)
-        return ds.landslide_index(rows, slope), f"độ dốc ~{slope}°"
-    if module == "drought":
-        return ds.drought_index(rows), "chỉ số thiếu ẩm (ET₀ − mưa)"
-    if module == "wildfire":
-        return ds.wildfire_index(rows), "nhiệt & khô hạn"
-    return [], ""
+    _, note = hazard.terrain(module, lat, lon)
+    return hazard.index_series(module, lat, lon, rows), note
 
 
 def run_event(event_id: str) -> dict | None:
