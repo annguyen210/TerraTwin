@@ -14,9 +14,14 @@ Mỗi kết quả gắn cờ rõ ràng 🛰️ **Dữ liệu thật** hoặc �
 
 | Nhóm | Module | Nguồn |
 |---|---|---|
-| ✅ Dữ liệu thật (7) | hạn, cháy rừng, lũ/ngập, sạt lở, rủi ro mua đất, bảo hiểm tham số, điện mặt trời | Open-Meteo (mưa/ET₀/nhiệt/cao độ/**độ dốc DEM**), NASA POWER |
-| 🌊 Ước lượng vật lý (1) | xâm nhập mặn | mô hình khoảng-cách-bờ-biển + cao độ + triều (**chờ hiệu chỉnh MRC**) |
-| 🧪 Chờ ảnh Sentinel (6) | sâu bệnh, năng suất, carbon, ao nuôi, thiệt hại bão, xây dựng trái phép | kiến trúc sẵn sàng — KHÔNG bịa số khi chưa có ảnh |
+| 🛰️ Dữ liệu thật (7) | hạn, cháy rừng, lũ/ngập, sạt lở, rủi ro mua đất, bảo hiểm tham số, điện mặt trời | Open-Meteo (mưa/ET₀/nhiệt/cao độ/**độ dốc DEM**), NASA POWER |
+| 🧪 Ước lượng vật lý (1) | xâm nhập mặn | bờ biển VN (34 điểm) + cao độ DEM + **chu kỳ mùa khô/mùa lũ** + triều (**chờ hiệu chỉnh MRC**) |
+| ⏳ Chờ ảnh Sentinel (6) | sâu bệnh, năng suất, carbon, ao nuôi, thiệt hại bão, xây dựng trái phép | kiến trúc sẵn sàng — KHÔNG bịa số khi chưa có ảnh |
+
+> **Phạm vi module Mặn:** xâm nhập mặn *nông nghiệp* ở **ĐBSCL** và **ĐB sông Hồng**.
+> Ngoài hai vùng đó (Đà Nẵng, Nha Trang, Hạ Long…) module trả `out_of_scope` thay vì
+> áp ngưỡng mặn của cây lúa. Mô hình có **mùa vụ**: đỉnh ~15/3 (mùa khô, sông cạn),
+> đáy ~15/9 (lũ đẩy mặn ra biển) — tỉ lệ khô/mưa ở Bến Tre ≈ **6,2×**.
 
 **Tính năng thật đã có:** TerraScore (chỉ chấm từ hiểm họa dữ liệu thật) · Quét toàn cảnh 14 module · **Backtest lịch sử ERA5** (đo lead time 4 thiên tai VN có thật) · **What-If / Parallel Futures** (mô phỏng tham số trên nền thời tiết thật) · Danh mục thửa đất + xuất báo cáo · Copilot (rule-based, bật LLM nếu có key) · bản đồ nền ảnh vệ tinh thật.
 
@@ -32,10 +37,11 @@ terratwin/
 │       ├── services/             # realdata, datasources, terrascore, scan,
 │       │                         #   whatif, backtest, copilot, twin
 │       └── modules/              # base + util + 14 module + registry
-│   └── tests/                    # pytest (26 test, chạy offline)
+│   └── tests/                    # pytest (32 test, offline & tất định)
 ├── frontend/                     # Next.js 14 + MapLibre
 │   └── components/               # MapView, ResultsPanel, Overview, WhatIf,
 │                                 #   Backtest, Portfolio, Copilot
+├── .github/workflows/ci.yml      # CI: pytest + tsc + next build
 └── docker-compose.yml
 ```
 Mô hình chỉ số (`flood_index`/`drought_index`/`landslide_index`/`wildfire_index`) là **hàm thuần dùng chung** cho cả forecast, what-if và backtest — đây là lý do backtest kiểm chứng được đúng model đang chạy.
@@ -68,7 +74,7 @@ npm run dev -- -p 1825      # http://localhost:1825
 ```bash
 cd backend
 pip install -r requirements-dev.txt
-pytest                      # 26 test, chạy offline
+pytest                      # 32 test, chạy offline & tất định
 ```
 
 ---

@@ -4,7 +4,6 @@ from __future__ import annotations
 from typing import Callable
 
 from app.schemas import Assessment, ForecastPoint, Location
-from app.services import datasources as ds
 
 
 def risk_of(v: float, safe: float, warning: float) -> str:
@@ -70,13 +69,3 @@ def assessment_from_series(module, loc: Location, series_data, unit: str,
         confidence=confidence, confidence_low=lo, confidence_high=hi, is_real=is_real,
         forecast=fc, data_sources=data_sources or module.data_sources,
     )
-
-
-def forecast_assessment(module, loc: Location, base: float, key: str, unit: str,
-                        safe: float, warning: float, texts: Callable, detail: str,
-                        amp: float = 0.2, trend: float = 0.03,
-                        confidence: float = 0.63) -> Assessment:
-    """Dạng MẪU (tổng hợp) — dùng cho module chưa có nguồn dữ liệu thật."""
-    return assessment_from_series(
-        module, loc, ds.series(loc.lat, loc.lon, key, base, amp=amp, trend=trend),
-        unit, safe, warning, texts, detail, confidence=confidence, is_real=False)

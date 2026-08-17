@@ -80,7 +80,7 @@ Thắng thi: demo choáng + kỹ thuật sâu + tác động lớn + moat. Thác
 
 | # | Module | Làm gì | Nguồn | Trạng thái |
 |---|--------|--------|-------|-----------|
-| 1 | Xâm nhập mặn | Dự báo mặn 7 ngày + đóng cống | Bờ biển VN + cao độ thật + triều | 🌊 ƯỚC LƯỢNG VẬT LÝ (chờ MRC) |
+| 1 | Xâm nhập mặn | Dự báo mặn 7 ngày + đóng cống | Bờ biển VN (34 điểm) + cao độ DEM thật + **mùa vụ khô/lũ** + triều | 🧪 ƯỚC LƯỢNG VẬT LÝ, **giới hạn ĐBSCL + ĐBSH** (chờ MRC) |
 | 2 | Hạn & thiếu nước | Chỉ số thiếu ẩm 7 ngày | **Open-Meteo mưa+ET₀** | ✅ THẬT |
 | 3 | Sâu bệnh sớm | Chỉ số bất thường cây | Cần Sentinel-2 | ⏳ CHỜ DỮ LIỆU (không bịa số) |
 | 4 | Năng suất & thu hoạch | Ước lượng năng suất | Cần Sentinel | ⏳ CHỜ DỮ LIỆU |
@@ -100,6 +100,22 @@ Thắng thi: demo choáng + kỹ thuật sâu + tác động lớn + moat. Thác
 > **Chuẩn hóa 2026-08-17 (sau review):** đã sửa 5 lỗi P0 — (1) module Mặn hết báo động giả nội địa (31.4%→4.3%, dùng đường bờ biển VN + cao độ thật, bỏ offset hash); (2) validate toạ độ/diện tích (ngoài VN → HTTP 422); (3) TerraScore chỉ chấm từ hiểm họa dữ liệu thật; (4) 6 module chờ Sentinel nói thật thay vì bịa "PHÁT HIỆN…"; (5) gộp scan+terrascore (warm ~10 ms). Thêm: 26 pytest (offline), Dockerfile+compose, CORS/rate-limit theo env, git, README/LICENSE/.env.example.
 > Cập nhật: độ dốc nay lấy THẬT từ DEM Open-Meteo (4 hướng) → sạt lở & rủi ro
 > mua đất chính xác hơn; **đồng bằng không còn bị báo sạt lở sai** (bug đã sửa).
+>
+> **Chuẩn hóa vòng 2 (2026-08-17, sau review #2) — 2 lỗi MIỀN CHUYÊN MÔN:**
+> **(A) Mùa vụ.** Xâm nhập mặn là hiện tượng MÙA KHÔ (đỉnh tháng 2–4); bản trước
+> không có yếu tố mùa nên giữa tháng 8 (đỉnh mùa mưa, Mekong xả lũ) vẫn báo Bến Tre
+> 4,87 g/L kèm lệnh "ĐÓNG CỐNG". Nay thêm hệ số mùa hình cos (đỉnh 15/3 = 1,00 ·
+> 17/8 = 0,17 · 15/9 = 0,12) → Bến Tre tháng 8 còn **0,71 g/L "an toàn"**, tháng 3
+> **4,39 g/L "nguy hiểm"** — tỉ lệ khô/mưa **6,2×**. ĐBSCL bị báo nguy hiểm giữa
+> mùa mưa: **7/7 → 0/7**.
+> **(B) Phạm vi vùng.** Ngưỡng mặn của cây lúa từng bị áp cho mọi điểm ven biển →
+> trung tâm Đà Nẵng 7,88 g/L, Phan Thiết 9,27 g/L kèm khuyến nghị "báo hợp tác xã".
+> Nay module chỉ chấm trong **ĐBSCL + ĐB sông Hồng**; ngoài vùng trả
+> `status=out_of_scope`, `risk=unknown`, không forecast. Ven biển ngoài đồng bằng:
+> **0/6 → 6/6 đúng "ngoài phạm vi"**. Nội địa báo sai (kể cả đỉnh mùa khô): **0/16**.
+> Kèm: 32 pytest (thêm 6 test mùa vụ/phạm vi, tất định nhờ tham số `today`),
+> CI GitHub Actions (pytest + tsc + next build), dọn dead code
+> (`forecast_assessment`, `PlannedModule`, `slope_proxy`, `get_twin`).
 
 ## 20. TerraScore · Copilot · Polygon · Badge thật/mẫu · Backtest (đã có)
 - **TerraScore:** điểm 0–100 + hạng A–D, gộp rủi ro 5 module hiểm họa; kèm **tỉ lệ % hiểm họa dùng dữ liệu thật**.
@@ -147,7 +163,7 @@ Bật LLM: đặt `ANTHROPIC_API_KEY` trước khi chạy backend.
 > - **Quét toàn cảnh** — chạy cả 14 module + cảnh báo ưu tiên trong 1 lần.
 
 ## 27. Checklist — tối ưu + ra thị trường + đi thi
-**Chính xác hơn:** ① cắm dữ liệu mặn thật (MRC/trạm tỉnh) · ~~② backtest~~ **✅ ĐÃ LÀM: backtest 4 thiên tai lịch sử thật (Huế/Quảng Nam/Trà Leng/Bến Tre), có số lead time** · ③ cảnh báo qua Zalo/email.
+**Chính xác hơn:** ① cắm dữ liệu mặn thật (MRC/trạm tỉnh) để **hiệu chỉnh hệ số mùa + biên độ** đang dùng · ~~② backtest~~ **✅ ĐÃ LÀM: backtest 4 thiên tai lịch sử thật (Huế 5đ/Quảng Nam 5đ/Trà Leng 8đ/Bến Tre 10đ lead time, verify khớp)** · ③ cảnh báo qua Zalo/email.
 **Ra thị trường:** ④ đăng nhập + lưu vùng người dùng (cần database PostGIS) · ⑤ deploy cloud (backend Render/Fly, frontend Vercel) · ⑥ phỏng vấn 5–7 người dùng thật (nông dân/HTX/cán bộ) xác nhận nhu cầu & ai trả tiền.
 **Đi thi:** ⑦ demo kịch bản: điểm ĐBSCL trũng + đang mưa → module Lũ "nguy cơ cao" (dữ liệu thật) · ⑧ nhấn điểm mạnh thật (dữ liệu thật + kiến trúc mở rộng + bản địa hóa VN), KHÔNG khoe thứ chưa có · ⑨ trình bày lộ trình 2 Phase (Phase 1: Sentinel + backtest; Phase 2: model training + database + tính năng wow).
 

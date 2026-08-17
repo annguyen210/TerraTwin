@@ -2,9 +2,7 @@
 from __future__ import annotations
 
 from app.modules.base import TwinModule
-from app.modules.util import (
-    assessment_from_series, forecast_assessment, need_data_assessment,
-)
+from app.modules.util import assessment_from_series, need_data_assessment
 from app.schemas import Assessment, Location
 from app.services import datasources as ds
 

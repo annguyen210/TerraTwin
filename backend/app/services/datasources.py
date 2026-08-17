@@ -48,9 +48,9 @@ def distance_to_coast_km(lat: float, lon: float) -> float:
     return round(min(_haversine_km(lat, lon, cla, clo) for cla, clo in _COASTLINE), 1)
 
 
-def _dates(n: int = 7):
-    today = date.today()
-    return [(i, (today + timedelta(days=i)).isoformat()) for i in range(n)]
+def _dates(n: int = 7, start: date | None = None):
+    start = start or date.today()
+    return [(i, (start + timedelta(days=i)).isoformat()) for i in range(n)]
 
 
 def series(lat: float, lon: float, key: str, base: float,
@@ -84,11 +84,6 @@ def slope_context(lat: float, lon: float):
     return mock, False
 
 
-def slope_proxy(lat: float, lon: float) -> float:
-    """Độ dốc (độ) — dùng DEM thật nếu có, fallback mẫu."""
-    return slope_context(lat, lon)[0]
-
-
 def solar_radiation(lat: float, lon: float):
     """(giá trị, is_real). Bức xạ kWh/m²/ngày."""
     real = realdata.solar_annual(lat, lon)
@@ -97,24 +92,73 @@ def solar_radiation(lat: float, lon: float):
     return round(4.2 + _seed_key(lat, lon, "solar") * 1.3, 2), False
 
 
-# ---------- Độ mặn: ƯỚC LƯỢNG VẬT LÝ theo bờ biển + triều (chờ hiệu chỉnh MRC) ----------
-# KHÔNG dùng offset ngẫu nhiên. Mặn suy giảm theo khoảng cách bờ biển gần nhất
-# (hàm mũ) và dao động theo triều. Xa biển ~0 → không báo động giả nội địa.
+# ---------- Độ mặn: ƯỚC LƯỢNG VẬT LÝ theo bờ biển + cao độ + MÙA VỤ + triều ----------
+# KHÔNG dùng offset ngẫu nhiên. Ba yếu tố vật lý, đều giải thích được:
+#   - khoảng cách bờ biển gần nhất (suy giảm mũ, e-fold ~30 km)
+#   - cao độ thật: nước mặn không leo cao; >25 m coi như không ảnh hưởng
+#   - MÙA VỤ: xâm nhập mặn là hiện tượng MÙA KHÔ (sông cạn, mặn đẩy sâu vào),
+#     đỉnh ~giữa tháng 3; mùa lũ (tháng 9) nước ngọt đẩy mặn ra biển.
+# Chờ hiệu chỉnh bằng số đo trạm MRC/thủy văn tỉnh.
 
-def get_salinity_context(lat: float, lon: float) -> dict:
+# Vùng đồng bằng có xâm nhập mặn NÔNG NGHIỆP thật sự (bbox thô).
+# Ngoài các vùng này, gần biển = nước mặn tự nhiên, KHÔNG phải "xâm nhập mặn
+# vào ruộng lúa" → module trả 'ngoài phạm vi' thay vì áp ngưỡng lúa cho
+# trung tâm Đà Nẵng / bãi biển Nha Trang.
+_SALINITY_ZONES = [
+    # (tên, lat_min, lat_max, lon_min, lon_max)
+    ("Đồng bằng sông Cửu Long", 8.40, 11.05, 104.40, 106.85),
+    ("Đồng bằng sông Hồng", 19.90, 21.20, 105.70, 106.90),
+]
+
+# Đỉnh mùa mặn ~15/3 (ngày thứ 74). Đáy ~giữa tháng 9.
+_SALINITY_PEAK_DOY = 74
+_SALINITY_FLOOR = 0.12   # mùa lũ vẫn còn nền mặn nhẹ sát cửa sông
+
+
+def salinity_zone(lat: float, lon: float) -> str | None:
+    """Tên vùng đồng bằng nhiễm mặn nông nghiệp, hoặc None nếu ngoài phạm vi."""
+    for name, la0, la1, lo0, lo1 in _SALINITY_ZONES:
+        if la0 <= lat <= la1 and lo0 <= lon <= lo1:
+            return name
+    return None
+
+
+def salinity_season_factor(d: date) -> float:
+    """Hệ số mùa vụ 0.12–1.0 theo ngày trong năm (đỉnh mùa khô ~15/3)."""
+    doy = d.timetuple().tm_yday
+    phase = (doy - _SALINITY_PEAK_DOY) / 365.25 * 2 * math.pi
+    return _SALINITY_FLOOR + (1.0 - _SALINITY_FLOOR) * (0.5 + 0.5 * math.cos(phase))
+
+
+def get_salinity_context(lat: float, lon: float, today: date | None = None) -> dict:
+    """Ngữ cảnh mặn 7 ngày. `today` cho phép ghim ngày (test/backtest tất định)."""
+    today = today or date.today()
     dist = distance_to_coast_km(lat, lon)
     elev = elevation_proxy(lat, lon)   # cao độ THẬT (Open-Meteo)
-    # Xâm nhập mặn = hiện tượng vùng THẤP ven biển. Hai yếu tố vật lý:
-    #  - khoảng cách bờ biển (suy giảm mũ, e-fold ~30 km)
-    #  - cao độ: nước mặn không leo cao; >25 m coi như không ảnh hưởng.
+    zone = salinity_zone(lat, lon)
+
     dist_factor = math.exp(-dist / 30.0)
     elev_factor = max(0.0, min(1.0, (25.0 - elev) / 25.0))
     base = 8.0 * dist_factor * elev_factor
+
     out = []
-    for d, dt in _dates(7):
+    for d, dt in _dates(7, today):
+        season = salinity_season_factor(today + timedelta(days=d))
         tide = 1.0 + 0.35 * math.sin((d / 7.0) * 2 * math.pi)
-        out.append((d, dt, round(base * tide * (1.0 + 0.04 * d), 2)))
-    return {"distance_to_coast_km": dist, "elevation_m": elev, "series": out}
+        out.append((d, dt, round(base * season * tide, 2)))
+
+    return {
+        "distance_to_coast_km": dist,
+        "elevation_m": elev,
+        "zone": zone,
+        "season_factor": round(salinity_season_factor(today), 2),
+        "series": out,
+    }
+
+
+def salinity_peak(lat: float, lon: float, today: date | None = None) -> float:
+    """Đỉnh độ mặn dự báo 7 ngày (g/L) — tiện cho test & kiểm chứng nhanh."""
+    return max(v for _, _, v in get_salinity_context(lat, lon, today)["series"])
 
 
 # ---------- Chỉ số THUẦN từ chuỗi thời tiết (dùng chung: dự báo + backtest) ----------

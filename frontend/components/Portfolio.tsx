@@ -163,7 +163,13 @@ function buildReportHtml(scan: any, area?: number): string {
             m.risk_level as string
           ] ?? "—"
         }</td>
-        <td>${m.is_real ? "🛰️ Dữ liệu thật" : "🧪 Mô hình mẫu"}</td>
+        <td>${
+          m.is_real
+            ? "🛰️ Dữ liệu thật"
+            : m.risk_level === "unknown"
+              ? "⏳ Chưa đưa số"
+              : "🧪 Ước lượng vật lý"
+        }</td>
         <td>${esc(m.headline)}</td>
       </tr>`,
     )
@@ -197,6 +203,8 @@ function buildReportHtml(scan: any, area?: number): string {
   <table><thead><tr><th>Module</th><th>Mức</th><th>Nguồn</th><th>Nhận định</th></tr></thead>
   <tbody>${rows}</tbody></table>
   <p class="foot">Nguồn dữ liệu thật: Open-Meteo (dự báo + lịch sử ERA5), NASA POWER, DEM Open-Meteo.
-  Module gắn 🧪 là mô hình mẫu (chờ ảnh Sentinel/khảo sát). Kết quả kèm sai số, không đảm bảo 100%.</p>
+  🧪 = ước lượng vật lý có tham số giải thích được, chờ hiệu chỉnh bằng số đo thực địa.
+  ⏳ = chưa đưa con số (chờ ảnh Sentinel, hoặc vị trí ngoài phạm vi vùng của mô-đun).
+  Kết quả kèm sai số, không đảm bảo 100%.</p>
   </body></html>`;
 }

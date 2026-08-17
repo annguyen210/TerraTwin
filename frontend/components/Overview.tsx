@@ -83,7 +83,8 @@ export default function Overview({
           </div>
 
           <div className="ov-grid-head">
-            Toàn bộ 14 module · 🛰️ dữ liệu thật · 🧪 ước lượng · ⏳ chờ dữ liệu (Sentinel)
+            Toàn bộ 14 module · 🛰️ dữ liệu thật · 🧪 ước lượng vật lý · ⏳ chưa
+            đưa số (chờ ảnh Sentinel / ngoài phạm vi vùng)
           </div>
           <div className="ov-grid">
             {data.modules.map((m) => (

@@ -22,7 +22,3 @@ def build_twin(location: Location) -> dict:
     }
     _TWINS[twin_id] = twin
     return twin
-
-
-def get_twin(twin_id: str) -> dict | None:
-    return _TWINS.get(twin_id)

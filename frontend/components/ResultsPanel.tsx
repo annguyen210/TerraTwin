@@ -48,8 +48,10 @@ export default function ResultsPanel({ a }: { a: Assessment }) {
           <span className="databadge real">🛰️ Dữ liệu thật</span>
         ) : a.status === "need_data" ? (
           <span className="databadge need">⏳ Chờ dữ liệu</span>
+        ) : a.status === "out_of_scope" ? (
+          <span className="databadge need">🚫 Ngoài phạm vi</span>
         ) : (
-          <span className="databadge model">🧪 Ước lượng</span>
+          <span className="databadge model">🧪 Ước lượng vật lý</span>
         )}
       </div>
       <h2>{a.module_name}</h2>
@@ -112,7 +114,7 @@ export default function ResultsPanel({ a }: { a: Assessment }) {
             </>
           )}
           {" · "}
-          {a.is_real ? "dựa trên dữ liệu thật" : "mô hình minh họa"}
+          {a.is_real ? "dựa trên dữ liệu thật" : "ước lượng vật lý, chờ hiệu chỉnh"}
         </p>
       )}
       <p className="src">Nguồn: {a.data_sources.join(" · ")}</p>
