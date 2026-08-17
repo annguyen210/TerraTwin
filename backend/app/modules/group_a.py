@@ -5,6 +5,7 @@ from app.modules.base import TwinModule
 from app.modules.util import assessment_from_series, need_data_assessment
 from app.schemas import Assessment, Location
 from app.services import datasources as ds
+from app.services import hazard
 
 
 class DroughtModule(TwinModule):
@@ -14,7 +15,7 @@ class DroughtModule(TwinModule):
     description = "Dự báo vùng ruộng sắp thiếu nước để chủ động điều tiết."
 
     def assess(self, loc: Location) -> Assessment:
-        s, real = ds.drought_series(loc.lat, loc.lon)
+        s, real, calibrated = hazard.module_series(self.id, loc.lat, loc.lon)
 
         def texts(lvl, pk, fd):
             if fd:
@@ -25,8 +26,8 @@ class DroughtModule(TwinModule):
                         "Theo dõi độ ẩm, lên lịch tưới tiết kiệm.")
             return (f"Đủ ẩm trong 7 ngày — đỉnh {pk.value}%", "Chưa cần can thiệp.")
 
-        detail = ("Chỉ số thiếu ẩm tính từ mưa & bốc thoát hơi ET₀ THẬT (Open-Meteo)."
-                  if real else "Chỉ số thiếu ẩm (mẫu).") + " <40 an toàn · 40–70 cảnh báo · ≥70 nghiêm trọng."
+        detail = ("Chỉ số thiếu ẩm tính từ mưa & bốc thoát hơi ET₀ THẬT (Open-Meteo). "
+                  if real else "Chỉ số thiếu ẩm (mẫu). ") + hazard.scale_note(real, calibrated)
         src = ["Open-Meteo: lượng mưa & ET₀ (dữ liệu thật)"] if real else self.data_sources
         return assessment_from_series(self, loc, s, "%", 40, 70, texts, detail,
                                       confidence=0.78 if real else 0.6, is_real=real, data_sources=src)
@@ -39,7 +40,7 @@ class WildfireModule(TwinModule):
     description = "Vùng khô dễ cháy + phát hiện điểm nóng sớm."
 
     def assess(self, loc: Location) -> Assessment:
-        s, real = ds.wildfire_series(loc.lat, loc.lon)
+        s, real, calibrated = hazard.module_series(self.id, loc.lat, loc.lon)
 
         def texts(lvl, pk, fd):
             if fd:
@@ -50,8 +51,8 @@ class WildfireModule(TwinModule):
                         "Cảnh báo người dân, hạn chế nguồn lửa.")
             return (f"Nguy cơ cháy thấp (chỉ số {pk.value})", "Duy trì theo dõi thường lệ.")
 
-        detail = ("Chỉ số nguy cơ cháy từ nhiệt độ & khô hạn THẬT (Open-Meteo)."
-                  if real else "Chỉ số nguy cơ cháy (mẫu).") + " <40 thấp · 40–70 trung bình · ≥70 cao."
+        detail = ("Chỉ số nguy cơ cháy từ nhiệt độ & khô hạn THẬT (Open-Meteo). "
+                  if real else "Chỉ số nguy cơ cháy (mẫu). ") + hazard.scale_note(real, calibrated)
         src = ["Open-Meteo: nhiệt độ & lượng mưa (dữ liệu thật)"] if real else self.data_sources
         return assessment_from_series(self, loc, s, "điểm", 40, 70, texts, detail,
                                       confidence=0.75 if real else 0.6, is_real=real, data_sources=src)

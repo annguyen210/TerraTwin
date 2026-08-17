@@ -21,13 +21,14 @@ from pydantic import BaseModel
 from app.db import init_db
 from app.modules.registry import get_module, list_modules
 from app.routes_account import router as account_router
+from app.routes_data import router as data_router
 from app.schemas import (
     Assessment, CopilotAnswer, Location, ModuleInfo, ScanResult,
     TerraScoreResult, WhatIfResult,
 )
 from app.services import (
-    anomaly, backtest, copilot, explain, goalseek, hazard, scan, terrascore,
-    timemachine, whatif,
+    anomaly, backtest, copilot, explain, goalseek, hazard, heatmap, scan,
+    terrascore, timemachine, whatif,
 )
 from app.services.twin import build_twin
 from app import auth
@@ -81,6 +82,7 @@ async def rate_limit(request: Request, call_next):
 
 
 app.include_router(account_router)
+app.include_router(data_router)
 
 
 class CopilotRequest(BaseModel):
@@ -162,6 +164,18 @@ def timemachine_endpoint(module_id: str, location: Location,
     ensemble: cùng cửa sổ lịch của N năm THẬT (ERA5) tại chính toạ độ này."""
     result = timemachine.run(module_id, location.lat, location.lon,
                              years=max(3, min(years, 30)))
+    if result is None:
+        raise HTTPException(status_code=404, detail=_HAZARD_ONLY)
+    return result
+
+
+@app.post("/api/heatmap/{module_id}")
+def heatmap_endpoint(module_id: str, location: Location,
+                     radius_km: float = 8.0, side: int = 7) -> dict:
+    """C06 Risk Heatmap — lưới rủi ro quanh thửa đất, chạy đúng mô hình cảnh báo
+    trên từng ô. Cả lưới chỉ tốn 1–2 lượt gọi nhờ truy vấn đa toạ độ."""
+    result = heatmap.build(module_id, location.lat, location.lon,
+                           radius_km=radius_km, side=side)
     if result is None:
         raise HTTPException(status_code=404, detail=_HAZARD_ONLY)
     return result

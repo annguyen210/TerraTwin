@@ -90,6 +90,73 @@ def weather_7d(lat: float, lon: float):
     return rows
 
 
+def weather_multi(points: list[tuple[float, float]]):
+    """Dự báo 7 ngày cho NHIỀU điểm trong MỘT lần gọi.
+
+    Open-Meteo nhận danh sách toạ độ phân tách bằng dấu phẩy — 49 điểm chỉ tốn
+    ~0,4 s và một lượt gọi. Đây là thứ khiến bản đồ nhiệt (C06) khả thi mà không
+    đốt hết hạn mức. Trả list (cùng thứ tự với `points`) gồm list dict hoặc None.
+    """
+    if not points:
+        return []
+    lat_q = ",".join(f"{la:.4f}" for la, _ in points)
+    lon_q = ",".join(f"{lo:.4f}" for _, lo in points)
+    url = (
+        "https://api.open-meteo.com/v1/forecast"
+        f"?latitude={lat_q}&longitude={lon_q}"
+        "&daily=precipitation_sum,et0_fao_evapotranspiration,temperature_2m_max"
+        "&forecast_days=7&timezone=auto"
+    )
+    d = _get(url, timeout=25.0)
+    if d is None:
+        return [None] * len(points)
+    # Một điểm → Open-Meteo trả object; nhiều điểm → trả mảng.
+    items = d if isinstance(d, list) else [d]
+    out = []
+    for i in range(len(points)):
+        item = items[i] if i < len(items) else None
+        out.append(_rows_from_daily(item))
+    return out
+
+
+def _rows_from_daily(item):
+    """Chuyển một phần tử phản hồi Open-Meteo thành list dict, hoặc None."""
+    if not item or "daily" not in item:
+        return None
+    dd = item["daily"]
+    try:
+        times = dd["time"]
+        precip = [_num(v) for v in dd.get("precipitation_sum", [])]
+        et0 = [_num(v) for v in dd.get("et0_fao_evapotranspiration", [])]
+        tmax = [_num(v) for v in dd.get("temperature_2m_max", [])]
+    except (KeyError, TypeError):
+        return None
+    if not times or len([p for p in precip if p is not None]) < max(1, len(times) // 2):
+        return None
+    return [
+        {"day": i, "date": times[i],
+         "precip": precip[i] if i < len(precip) and precip[i] is not None else 0.0,
+         "et0": et0[i] if i < len(et0) and et0[i] is not None else 0.0,
+         "tmax": tmax[i] if i < len(tmax) and tmax[i] is not None else 0.0}
+        for i in range(len(times))
+    ]
+
+
+def elevation_multi(points: list[tuple[float, float]]):
+    """Cao độ cho nhiều điểm trong một lần gọi. Trả list float|None."""
+    if not points:
+        return []
+    lat_q = ",".join(f"{la:.5f}" for la, _ in points)
+    lon_q = ",".join(f"{lo:.5f}" for _, lo in points)
+    d = _get(f"https://api.open-meteo.com/v1/elevation?latitude={lat_q}&longitude={lon_q}",
+             timeout=20.0)
+    try:
+        vals = [float(x) for x in d["elevation"]]
+    except (KeyError, TypeError, ValueError):
+        return [None] * len(points)
+    return [vals[i] if i < len(vals) else None for i in range(len(points))]
+
+
 def elevation_m(lat: float, lon: float):
     d = _get(f"https://api.open-meteo.com/v1/elevation?latitude={lat}&longitude={lon}")
     try:

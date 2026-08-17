@@ -5,6 +5,7 @@ from app.modules.base import TwinModule
 from app.modules.util import assessment_from_series, need_data_assessment
 from app.schemas import Assessment, Location
 from app.services import datasources as ds
+from app.services import hazard
 
 
 class FloodModule(TwinModule):
@@ -15,7 +16,7 @@ class FloodModule(TwinModule):
     description = "Vùng dân cư nào sắp ngập, sâu bao nhiêu, khi nào."
 
     def assess(self, loc: Location) -> Assessment:
-        s, real = ds.flood_series(loc.lat, loc.lon)
+        s, real, calibrated = hazard.module_series(self.id, loc.lat, loc.lon)
         elev = ds.elevation_proxy(loc.lat, loc.lon)
         river = ds.river_discharge_context(loc.lat, loc.lon)
 
@@ -42,7 +43,7 @@ class FloodModule(TwinModule):
             base += (f" Lưu lượng sông GloFAS: nay {river['now_m3s']} m³/s, đỉnh "
                      f"{river['peak_m3s']} m³/s ngày {river['peak_date']} — gấp "
                      f"{river['ratio']}× trung bình khí hậu ({river['mean_m3s']} m³/s).")
-        detail = base + " <40 thấp · 40–70 cảnh báo · ≥70 cao."
+        detail = base + " " + hazard.scale_note(real, calibrated)
 
         src = ["Open-Meteo: lượng mưa (thật)", f"Cao độ {elev} m (Open-Meteo)"] if real else list(self.data_sources)
         metrics: dict[str, float] = {}
@@ -70,7 +71,7 @@ class LandslideModule(TwinModule):
     description = "Vùng núi có nguy cơ sạt lở sau mưa lớn."
 
     def assess(self, loc: Location) -> Assessment:
-        s, real = ds.landslide_series(loc.lat, loc.lon)
+        s, real, calibrated = hazard.module_series(self.id, loc.lat, loc.lon)
         slope, slope_real = ds.slope_context(loc.lat, loc.lon)
 
         def texts(lvl, pk, fd):
@@ -88,8 +89,8 @@ class LandslideModule(TwinModule):
         slope_txt = f"độ dốc THẬT ~{slope}° (DEM Open-Meteo)" if slope_real else f"độ dốc ~{slope}° (ước lượng)"
         detail = ((f"Kết hợp lượng mưa THẬT (Open-Meteo) + {slope_txt}." if real
                    else f"Chỉ số sạt lở (mẫu), {slope_txt}.")
-                  + " Sạt lở cần địa hình dốc — đồng bằng phẳng gần như không rủi ro."
-                  + " <40 thấp · 40–70 trung bình · ≥70 cao.")
+                  + " Sạt lở cần địa hình dốc — đồng bằng phẳng gần như không rủi ro. "
+                  + hazard.scale_note(real, calibrated))
         src = ["Open-Meteo: lượng mưa (thật)", slope_txt] if real else self.data_sources
         return assessment_from_series(self, loc, s, "điểm", 40, 70, texts, detail,
                                       confidence=0.7 if real else 0.6, is_real=real, data_sources=src)

@@ -92,6 +92,8 @@ không mất khi xóa trình duyệt, và phân tách theo từng người dùng
 | `POST /api/auth/register` · `POST /api/auth/login` · `GET /api/auth/me` | Tài khoản |
 | `GET/POST /api/plots` · `DELETE /api/plots/{id}` | Danh mục thửa đất |
 | `GET/POST /api/keys` · `DELETE /api/keys/{id}` | Khóa Twin API (C12) |
+| `POST /api/datasets` · `POST /api/datasets/{id}/score` | Tải CSV/GeoJSON của bạn lên, chấm rủi ro hàng loạt (C11) |
+| `POST /api/radar/run` · `GET /api/alerts` | Quét lại mọi thửa đã lưu, sinh cảnh báo mới (C05/S08) |
 
 **Twin API cho bên thứ ba:** tạo khóa rồi gọi mọi endpoint bằng header
 `X-API-Key: tt_…` thay cho JWT. Khóa chỉ lưu **hash** — lộ database vẫn không
@@ -129,7 +131,7 @@ terratwin/
 │       │                         #   goalseek, timemachine, anomaly,
 │       │                         #   backtest, copilot, twin
 │       └── modules/              # base + util + 14 module + registry
-│   └── tests/                    # pytest (93 test, offline & tất định)
+│   └── tests/                    # pytest (114 test, offline & tất định)
 ├── frontend/                     # Next.js 14 + MapLibre
 │   └── components/               # MapView, ResultsPanel, Overview, WhatIf,
 │                                 #   Backtest, Portfolio, Copilot
@@ -166,7 +168,7 @@ npm run dev -- -p 1825      # http://localhost:1825
 ```bash
 cd backend
 pip install -r requirements-dev.txt
-pytest                      # 93 test, chạy offline & tất định
+pytest                      # 114 test, chạy offline & tất định
 ```
 
 ---
