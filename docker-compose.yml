@@ -1,0 +1,21 @@
+# TerraTwin — chạy full stack: docker compose up --build
+# Backend: http://localhost:8000/docs  ·  Frontend: http://localhost:1825
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - TERRATWIN_CORS=http://localhost:1825
+      - TERRATWIN_RATE_LIMIT=120
+      # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}   # bỏ ghi chú để bật Copilot LLM
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "1825:1825"
+    depends_on:
+      - backend
+    # Trình duyệt gọi backend qua cổng host 8000 (mặc định trong lib/api.ts).
+    restart: unless-stopped
