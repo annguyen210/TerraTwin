@@ -123,7 +123,43 @@ Thắng thi: demo choáng + kỹ thuật sâu + tác động lớn + moat. Thác
 - **Vẽ vùng:** bấm nhiều điểm → tính tâm + diện tích (ha) → phân tích theo vùng.
 - **Badge minh bạch:** mỗi kết quả gắn cờ 🛰️ *Dữ liệu thật* hoặc 🧪 *Mô hình mẫu*, kèm **khoảng tin cậy** (không hứa 100%).
 - **Bản đồ nền ẢNH VỆ TINH THẬT** (ESRI World Imagery) — thấy tận thửa đất, không cần key.
-- **Backtest "biết trước" (MỚI):** chạy đúng mô hình cảnh báo trên **dữ liệu thời tiết lịch sử THẬT** (Open-Meteo Archive/ERA5) cho 4 thiên tai có thật ở VN → đo model báo trước mấy ngày. Kết quả kiểm chứng: Lũ Huế 2020 (trước 5 ngày) · Lũ Quảng Nam 2022 (5 ngày) · Sạt lở Trà Leng 2020 (8 ngày) · Hạn–mặn Bến Tre 2020 (10 ngày).
+- **Backtest "biết trước":** chạy đúng mô hình cảnh báo trên **dữ liệu thời tiết lịch sử THẬT** (Open-Meteo Archive/ERA5) cho 4 thiên tai có thật ở VN, nay công bố **hai tầng kèm tỉ lệ báo động** (xem §20b): Huế 2020 cảnh báo trước 4 ngày · Quảng Nam 2022 trước 4 ngày · Trà Leng 2020 trước 8 ngày · Bến Tre 2020 trước 12 ngày; FAR ~10% (cảnh báo) và ~3% (nguy hiểm).
+
+## 20b. HIỆU CHUẨN & ĐỘ CHÍNH XÁC (đợt 4 — quan trọng nhất khi đi thi)
+
+**Bệnh:** backtest cũ chỉ đo POD trên 4 sự kiện nổi tiếng, **không đo FAR**. Một
+model luôn hét "nguy hiểm" cũng đạt 4/4. Đo thật trên trọn năm 2022, cửa sổ trượt
+7 ngày, ngưỡng 70: **Huế 164/358 ngày = 45,8%**, **Quảng Nam 217/358 = 60,6%**.
+Nguyên nhân: `flood_index = min(100, …)` **bão hòa** — P90 = P95 = P98 = 100,0.
+Chỉ số đã thoái hóa thành bộ dò nhị phân "gần đây có mưa không".
+
+**Cách sửa** (`services/calibration.py`) — hai tầng:
+1. **Động lực vật lý thô, không chặn trần** → giữ nguyên dải biến thiên.
+2. **Quy về phân vi khí hậu 10 năm của CHÍNH điểm đó** (ERA5), ánh xạ phi tuyến
+   P0–P90→0–40 · P90–P97→40–70 · P97–P100→70–100.
+3. **Chốt tuyệt đối**: phân vi cao mà động lực vật lý quá nhỏ vẫn là an toàn —
+   tránh "cực đoan so với hư không" ở vùng khô.
+4. Offline không lấy được khí hậu nền → tự lùi về thang tuyệt đối và **gắn cờ
+   chưa hiệu chuẩn**, không im lặng.
+
+**Kết quả:** FAR **45,8% / 60,6% → 3,0%** (giảm ~15–20 lần), vẫn bắt đủ 4/4 sự kiện.
+
+| Sự kiện | Cảnh báo (P90) | Nguy hiểm (P97) |
+|---|---|---|
+| Lũ Huế 10/2020 | trước **4 ngày** | trước 3 ngày |
+| Lũ Quảng Nam 10/2022 | trước **4 ngày** | trước 0 ngày |
+| Sạt lở Trà Leng 10/2020 | trước **8 ngày** | trước 0 ngày |
+| Hạn–mặn Bến Tre 2020 | trước **12 ngày** | trước 12 ngày |
+| **Tỉ lệ báo động** | **~10%** | **~3%** |
+
+> Đánh đổi đã ý thức: lead time ngắn hơn bản cũ một chút (5/5/8/10 → 4/4/8/12 ở
+> mức cảnh báo) nhưng đổi lại **ít báo động giả hơn 15–20 lần**. Bản cũ có lead
+> đẹp hơn chỉ vì nó báo động quanh năm. **Khi thuyết trình, luôn đọc lead time
+> KÈM tỉ lệ báo động** — đó là điều phân biệt sản phẩm thật với demo.
+
+> Vì sao đây là moat: ngưỡng được hiệu chuẩn theo khí hậu **từng thửa đất**, dựng
+> từ 10 năm ERA5 tại chính toạ độ đó. Đối thủ dùng ngưỡng hằng số toàn quốc sẽ
+> hoặc bỏ sót vùng khô, hoặc báo động giả ở vùng mưa.
 - **Quét toàn cảnh thửa đất (MỚI, C bậc breadth):** 1 lần bấm → chạy cả 14 module + **danh sách cảnh báo ưu tiên CHỈ từ dữ liệu thật** (không báo động giả từ module mẫu) + lưới rủi ro 14 module. Endpoint `/api/scan`.
 - **Kịch bản song song / What-If (MỚI, ~C02 Parallel Futures):** cho 4 module hiểm họa thời tiết (hạn/lũ/cháy/sạt lở), mô phỏng 4 "tương lai song song" (mưa +50% / gấp đôi / khô hạn) **trên nền thời tiết THẬT** — mô phỏng tham số minh bạch, không phải AI hộp đen. Endpoint `/api/whatif/{id}`.
 - **Danh mục thửa đất + Báo cáo (MỚI, ~C08 Portfolio):** lưu & so sánh nhiều mảnh đất (localStorage, chưa cần DB/đăng nhập), xuất **báo cáo in được** (TerraScore + 14 module + cảnh báo) — phục vụ dòng doanh thu Báo cáo Carbon/ESG.

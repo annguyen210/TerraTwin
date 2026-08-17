@@ -52,9 +52,18 @@ _TERRAIN = {
 }
 
 
-def _terrain_off_series(module_id: str, rows, neutral: float):
-    """Chạy lại mô hình với giá trị địa hình 'vô hại'."""
+def _terrain_off_series(module_id: str, lat: float, lon: float,
+                        rows, neutral: float):
+    """Chạy lại mô hình với giá trị địa hình 'vô hại'.
+
+    Phải đi qua cùng tầng hiệu chuẩn như baseline, nếu không phần chênh lệch
+    sẽ là chênh giữa hai thang đo khác nhau chứ không phải đóng góp thật.
+    """
+    from app.services import calibration
     from app.services import datasources as ds
+    s, ok = calibration.calibrated_with_terrain(module_id, lat, lon, rows, neutral)
+    if ok and s:
+        return s
     if module_id == "flood":
         return ds.flood_index(rows, neutral)
     if module_id == "landslide":
@@ -98,7 +107,7 @@ def explain(module_id: str, lat: float, lon: float) -> dict | None:
     # 2) Yếu tố địa hình (chỉ lũ & sạt lở)
     if module_id in _TERRAIN:
         label, neutral, note = _TERRAIN[module_id]
-        peak_wo = hazard.peak_of(_terrain_off_series(module_id, rows, neutral))
+        peak_wo = hazard.peak_of(_terrain_off_series(module_id, lat, lon, rows, neutral))
         factors.append({
             "factor": label,
             "peak_without": round(peak_wo, 1),

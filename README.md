@@ -38,6 +38,45 @@ Cả 4 đều đi qua lõi chung `services/hazard.py` nên chạy **đúng mô h
 
 ---
 
+## Độ chính xác — công bố cả hai chiều
+
+Lead time một mình là **vô nghĩa**: một model luôn hét "nguy hiểm" cũng bắt trúng
+mọi thảm họa nổi tiếng. Vì vậy TerraTwin công bố lead time **kèm tỉ lệ báo động**.
+
+**Bệnh đã tìm ra và đã sửa.** Thang tuyệt đối cũ bão hòa ở vùng mưa nhiều
+(`min(100, …)` chạm trần), khiến mức nguy hiểm nổ gần như quanh năm:
+
+| Điểm | Module | Tỉ lệ báo NGUY HIỂM (năm 2022) | Sau hiệu chuẩn |
+|---|---|---|---|
+| Huế | flood | **45,8%** | **3,0%** |
+| Quảng Nam | flood | **60,6%** | **3,0%** |
+| Trà Leng | landslide | 13,7% | 3,0% |
+| Bến Tre | drought | 0,0% | 3,0% |
+
+**Cách sửa** (`services/calibration.py`): tách động lực vật lý thô (không chặn trần)
+khỏi việc chấm điểm, rồi quy về **phân vi so với khí hậu 10 năm của chính điểm đó**
+(ERA5), ánh xạ về thang 0–100 quen thuộc — P90→40, P97→70. Tỉ lệ báo động vì thế
+là **thuộc tính thiết kế**, không phải may rủi. Kèm **chốt tuyệt đối**: phân vi cao
+mà động lực vật lý quá nhỏ thì vẫn an toàn (tránh "cực đoan so với hư không" ở
+vùng khô). Đây chính là moat §13: ngưỡng bản địa hóa tới từng thửa.
+
+**Kết quả kiểm chứng trên 4 thiên tai VN có thật** (Open-Meteo Archive / ERA5):
+
+| Sự kiện | Cảnh báo (P90) | Nguy hiểm (P97) |
+|---|---|---|
+| Lũ lịch sử Huế 10/2020 | báo trước **4 ngày** | trước 3 ngày |
+| Lũ Quảng Nam – Đà Nẵng 10/2022 | báo trước **4 ngày** | trước 0 ngày |
+| Sạt lở Trà Leng 10/2020 | báo trước **8 ngày** | trước 0 ngày |
+| Hạn – mặn Bến Tre mùa khô 2020 | báo trước **12 ngày** | trước 12 ngày |
+| **Tỉ lệ báo động** | **~10%** số cửa sổ | **~3%** |
+
+> Hai tầng có vai trò khác nhau: **Cảnh báo** cho lead time để chuẩn bị;
+> **Nguy hiểm** nổ sát sự kiện, nghĩa là "hành động ngay". So với bản trước
+> (lead 5/5/8/10 nhưng báo động 46–61% số ngày), bản này lead ngắn hơn chút
+> nhưng **ít báo động giả hơn ~15–20 lần** — và mọi con số đều kiểm chứng lại được.
+
+---
+
 ## Kiến trúc: 1 Lõi + 14 Module
 ```
 terratwin/
@@ -48,7 +87,7 @@ terratwin/
 │       ├── services/             # realdata, datasources, terrascore, scan,
 │       │                         #   whatif, backtest, copilot, twin
 │       └── modules/              # base + util + 14 module + registry
-│   └── tests/                    # pytest (50 test, offline & tất định)
+│   └── tests/                    # pytest (63 test, offline & tất định)
 ├── frontend/                     # Next.js 14 + MapLibre
 │   └── components/               # MapView, ResultsPanel, Overview, WhatIf,
 │                                 #   Backtest, Portfolio, Copilot
@@ -85,7 +124,7 @@ npm run dev -- -p 1825      # http://localhost:1825
 ```bash
 cd backend
 pip install -r requirements-dev.txt
-pytest                      # 50 test, chạy offline & tất định
+pytest                      # 63 test, chạy offline & tất định
 ```
 
 ---

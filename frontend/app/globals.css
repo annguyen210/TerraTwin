@@ -974,3 +974,25 @@ body {
   color: var(--dim);
   margin-top: 2px;
 }
+
+/* ---- Backtest: hai tầng cảnh báo + tỉ lệ báo động ---- */
+.bt-tiers {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+.bt-far {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 8px 0;
+  font-size: 11.5px;
+  background: rgba(132, 162, 178, 0.06);
+}
+.bt-far-note {
+  color: var(--dim);
+  font-size: 10.5px;
+  line-height: 1.45;
+  margin-top: 4px;
+}

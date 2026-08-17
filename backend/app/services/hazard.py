@@ -44,8 +44,9 @@ def terrain(module_id: str, lat: float, lon: float) -> tuple[float | None, str]:
     return None, "nhiệt & khô hạn"
 
 
-def index_series(module_id: str, lat: float, lon: float, rows):
-    """Chạy đúng mô hình chỉ số của module trên chuỗi rows đã cho."""
+def index_series_absolute(module_id: str, lat: float, lon: float, rows):
+    """Thang TUYỆT ĐỐI (bản gốc). Bão hòa ở vùng mưa nhiều → chỉ dùng làm
+    phương án lùi khi không lấy được khí hậu nền. Giữ lại để so sánh & test."""
     if module_id == "drought":
         return ds.drought_index(rows)
     if module_id == "flood":
@@ -56,6 +57,21 @@ def index_series(module_id: str, lat: float, lon: float, rows):
         slope, _ = ds.slope_context(lat, lon)
         return ds.landslide_index(rows, slope)
     return []
+
+
+def index_series_calibrated(module_id: str, lat: float, lon: float, rows):
+    """(series, is_calibrated). Ưu tiên thang ĐÃ HIỆU CHUẨN theo khí hậu điểm đó;
+    tự lùi về thang tuyệt đối khi offline."""
+    from app.services import calibration     # tránh import vòng
+    s, ok = calibration.calibrated_series(module_id, lat, lon, rows)
+    if ok and s:
+        return s, True
+    return index_series_absolute(module_id, lat, lon, rows), False
+
+
+def index_series(module_id: str, lat: float, lon: float, rows):
+    """Chỉ số dùng chung cho mọi luồng — đã hiệu chuẩn nếu có thể."""
+    return index_series_calibrated(module_id, lat, lon, rows)[0]
 
 
 def peak_of(series) -> float:

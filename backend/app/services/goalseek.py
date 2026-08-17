@@ -32,6 +32,17 @@ def _peak_at_rain(module_id, lat, lon, rows, mult: float) -> float:
     )
 
 
+def _peak_at_terrain(module_id, lat, lon, rows, terrain: float) -> float:
+    """Đỉnh khi ép giá trị địa hình — cùng tầng hiệu chuẩn với baseline."""
+    from app.services import calibration
+    s, ok = calibration.calibrated_with_terrain(module_id, lat, lon, rows, terrain)
+    if ok and s:
+        return hazard.peak_of(s)
+    if module_id == "flood":
+        return hazard.peak_of(ds.flood_index(rows, terrain))
+    return hazard.peak_of(ds.landslide_index(rows, terrain))
+
+
 def _solve(fn, lo: float, hi: float, target: float, rising: bool) -> float | None:
     """Tìm x trong [lo,hi] sao cho fn(x) ≈ target. `rising`: fn tăng theo x."""
     flo, fhi = fn(lo), fn(hi)
@@ -110,7 +121,7 @@ def run(module_id: str, lat: float, lon: float,
     # --- Đòn bẩy 2: ĐỊA HÌNH (hành động được: tôn nền / chọn lô khác) ---
     if module_id == "flood":
         elev_now = ds.elevation_proxy(lat, lon)
-        f_elev = lambda e: hazard.peak_of(ds.flood_index(rows, e))
+        f_elev = lambda e: _peak_at_terrain("flood", lat, lon, rows, e)
         x = _solve(f_elev, elev_now, elev_now + 60.0, target, rising=False)
         if x is None:
             levers.append({
@@ -132,7 +143,7 @@ def run(module_id: str, lat: float, lon: float,
 
     if module_id == "landslide":
         slope_now, _ = ds.slope_context(lat, lon)
-        f_slope = lambda s: hazard.peak_of(ds.landslide_index(rows, s))
+        f_slope = lambda s: _peak_at_terrain("landslide", lat, lon, rows, s)
         x = _solve(f_slope, 0.0, max(slope_now, 1.0), target, rising=True)
         if x is None:
             levers.append({
@@ -155,8 +166,8 @@ def run(module_id: str, lat: float, lon: float,
         elev_now = ds.elevation_proxy(lat, lon)
         for extra in (1.0, 2.0, 3.0, 5.0, 8.0):
             e = elev_now + extra
-            f = lambda m: hazard.peak_of(
-                ds.flood_index(hazard.transform(rows, rain_mult=m), e))
+            f = lambda m: _peak_at_terrain(
+                "flood", lat, lon, hazard.transform(rows, rain_mult=m), e)
             if f(0.0) >= target:
                 continue
             x = _solve(f, 0.0, 1.0, target, rising=True)

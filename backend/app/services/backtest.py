@@ -11,10 +11,15 @@ from __future__ import annotations
 
 from datetime import date
 
+from app.services import calibration
 from app.services import hazard
 from app.services import realdata
 
-DANGER = 70.0  # ngưỡng 'nguy hiểm' dùng chung cho lũ/sạt lở/hạn
+# Hai tầng cảnh báo sau khi hiệu chuẩn theo khí hậu từng điểm:
+#   CẢNH BÁO (40 ≈ phân vi 90, nổ ~10% số cửa sổ) → "chuẩn bị", cho lead time dài
+#   NGUY HIỂM (70 ≈ phân vi 97, nổ ~3%)           → "hành động ngay", nổ sát sự kiện
+WARNING = 40.0
+DANGER = 70.0
 
 # Các sự kiện thiên tai THẬT, có tài liệu, ở Việt Nam.
 EVENTS = {
@@ -65,33 +70,62 @@ def run_event(event_id: str) -> dict | None:
 
     series, terrain = _index_for(ev["module"], ev["lat"], ev["lon"], rows)
     points = [{"date": dt, "value": v, "precip": rows[i]["precip"],
-               "danger": v >= DANGER} for i, (_, dt, v) in enumerate(series)]
+               "warning": v >= WARNING, "danger": v >= DANGER}
+              for i, (_, dt, v) in enumerate(series)]
 
-    first_danger = next((p for p in points if p["danger"]), None)
     ev_date = date.fromisoformat(ev["event_date"])
-    lead_days = None
-    if first_danger:
-        lead_days = (ev_date - date.fromisoformat(first_danger["date"])).days
+
+    def _lead(flag: str):
+        p = next((p for p in points if p[flag]), None)
+        if p is None:
+            return None, None
+        return p, (ev_date - date.fromisoformat(p["date"])).days
+
+    first_warning, lead_warning = _lead("warning")
+    first_danger, lead_days = _lead("danger")
+
+    # TỈ LỆ BÁO ĐỘNG: lead time một mình là vô nghĩa nếu model hét cả năm.
+    # Một model luôn báo "nguy hiểm" cũng đạt 4/4 trên các sự kiện nổi tiếng.
+    far = calibration.alarm_rate(ev["module"], ev["lat"], ev["lon"], threshold=DANGER)
+    far_warn = calibration.alarm_rate(ev["module"], ev["lat"], ev["lon"], threshold=WARNING)
 
     peak = max(points, key=lambda p: p["value"]) if points else None
-    if first_danger and lead_days is not None and lead_days >= 0:
-        verdict = (f"✅ Model vượt ngưỡng nguy hiểm ngày {first_danger['date']}, "
-                   f"tức BÁO TRƯỚC {lead_days} ngày so với sự kiện {ev['event_date']}.")
+    if lead_warning is not None and lead_warning >= 0:
+        verdict = (f"✅ Mức CẢNH BÁO bật ngày {first_warning['date']} — báo trước "
+                   f"{lead_warning} ngày so với sự kiện {ev['event_date']}")
+        if lead_days is not None and lead_days >= 0:
+            verdict += f"; mức NGUY HIỂM bật trước {lead_days} ngày"
+        verdict += "."
+        if far and far_warn:
+            verdict += (f" Tại điểm này ngưỡng cảnh báo chỉ nổ "
+                        f"{far_warn['alarm_rate_pct']}% và ngưỡng nguy hiểm "
+                        f"{far['alarm_rate_pct']}% số cửa sổ trong 10 năm — "
+                        "không phải báo bừa.")
         success = True
-    elif first_danger:
-        verdict = (f"⚠️ Model chỉ vượt ngưỡng ngày {first_danger['date']}, "
-                   f"sau mốc sự kiện {ev['event_date']} ({-lead_days} ngày).")
+    elif first_warning:
+        verdict = (f"⚠️ Chỉ bật cảnh báo ngày {first_warning['date']}, sau mốc sự "
+                   f"kiện {ev['event_date']} ({-lead_warning} ngày).")
         success = False
     else:
-        verdict = "❌ Model không vượt ngưỡng nguy hiểm trong cửa sổ này."
+        verdict = "❌ Model không vượt ngưỡng cảnh báo trong cửa sổ này."
         success = False
 
     return {
         "event_id": event_id, "label": ev["label"], "module": ev["module"],
         "note": ev["note"], "available": True, "location": {"lat": ev["lat"], "lon": ev["lon"]},
-        "event_date": ev["event_date"], "terrain": terrain, "threshold": DANGER,
-        "lead_days": lead_days, "success": success, "verdict": verdict,
-        "peak": peak, "first_danger": first_danger, "series": points,
+        "event_date": ev["event_date"], "terrain": terrain,
+        "threshold": DANGER, "threshold_warning": WARNING,
+        "lead_days": lead_days, "lead_days_warning": lead_warning,
+        "success": success, "verdict": verdict,
+        "peak": peak, "first_danger": first_danger, "first_warning": first_warning,
+        "series": points,
+        "alarm_rate": far, "alarm_rate_warning": far_warn,
+        "honesty_note": ("Lead time chỉ có nghĩa khi đi kèm tỉ lệ báo động — một "
+                         "model luôn hét 'nguy hiểm' cũng đạt 4/4 trên các sự kiện "
+                         "nổi tiếng. `alarm_rate` là % cửa sổ 7 ngày trong 10 năm mà "
+                         "model vượt ngưỡng tại CHÍNH điểm này. Trước hiệu chuẩn, "
+                         "mức nguy hiểm nổ 46–61% số ngày ở miền Trung; sau hiệu "
+                         "chuẩn theo phân vi khí hậu còn ~3%."),
         "data_source": "Open-Meteo Archive (ERA5) — dữ liệu thời tiết lịch sử thật",
     }
 

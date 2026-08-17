@@ -74,7 +74,15 @@ export type BacktestPoint = {
   date: string;
   value: number;
   precip: number;
+  warning?: boolean;
   danger: boolean;
+};
+
+export type AlarmRate = {
+  windows: number;
+  alarms: number;
+  alarm_rate_pct: number;
+  threshold: number;
 };
 
 export type BacktestResult = {
@@ -88,12 +96,18 @@ export type BacktestResult = {
   event_date?: string;
   terrain?: string;
   threshold?: number;
+  threshold_warning?: number;
   lead_days?: number | null;
+  lead_days_warning?: number | null;
   success?: boolean;
   verdict?: string;
   peak?: BacktestPoint;
   first_danger?: BacktestPoint | null;
+  first_warning?: BacktestPoint | null;
   series?: BacktestPoint[];
+  alarm_rate?: AlarmRate | null;
+  alarm_rate_warning?: AlarmRate | null;
+  honesty_note?: string;
   data_source?: string;
 };
 
