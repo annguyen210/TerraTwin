@@ -9,29 +9,58 @@ from app.services import datasources as ds
 
 class FloodModule(TwinModule):
     id = "flood"; name = "Cảnh báo lũ/ngập sớm"; group = "B"; icon = "🌊"; status = "active"
-    data_sources = ["Open-Meteo: lượng mưa", "Cao độ (Open-Meteo)"]
+    data_sources = ["Open-Meteo: lượng mưa", "Cao độ DEM (Open-Meteo)",
+                    "GloFAS: lưu lượng sông (Open-Meteo Flood API)"]
     users = ["Người dân", "Chính quyền", "Cứu hộ"]
     description = "Vùng dân cư nào sắp ngập, sâu bao nhiêu, khi nào."
 
     def assess(self, loc: Location) -> Assessment:
         s, real = ds.flood_series(loc.lat, loc.lon)
         elev = ds.elevation_proxy(loc.lat, loc.lon)
+        river = ds.river_discharge_context(loc.lat, loc.lon)
 
         def texts(lvl, pk, fd):
             if fd:
-                return (f"NGUY CƠ NGẬP CAO từ ~{fd.date} (chỉ số {fd.value})",
-                        "Kê cao tài sản, sẵn sàng sơ tán; theo dõi thông báo địa phương.")
-            if lvl == "warning":
-                return (f"Có nguy cơ ngập (chỉ số {pk.value})",
-                        "Chuẩn bị phương án thoát nước, theo dõi mưa.")
-            return (f"Ít nguy cơ ngập (chỉ số {pk.value})", "Chưa cần hành động.")
+                head = f"NGUY CƠ NGẬP CAO từ ~{fd.date} (chỉ số {fd.value})"
+                rec = "Kê cao tài sản, sẵn sàng sơ tán; theo dõi thông báo địa phương."
+            elif lvl == "warning":
+                head = f"Có nguy cơ ngập (chỉ số {pk.value})"
+                rec = "Chuẩn bị phương án thoát nước, theo dõi mưa."
+            else:
+                head = f"Ít nguy cơ ngập (chỉ số {pk.value})"
+                rec = "Chưa cần hành động."
+            # Đối chứng độc lập bằng lưu lượng sông thật
+            if river and river["level"] != "safe":
+                head += f" · lưu lượng sông gấp {river['ratio']}× bình thường"
+                if river["level"] == "danger":
+                    rec = ("Sông đang lên rất mạnh — " + rec[0].lower() + rec[1:])
+            return head, rec
 
-        detail = ((f"Chỉ số ngập từ lượng mưa THẬT (Open-Meteo), cao độ ~{elev} m." if real
-                   else f"Chỉ số ngập (mẫu), cao độ ~{elev} m.")
-                  + " <40 thấp · 40–70 cảnh báo · ≥70 cao.")
-        src = ["Open-Meteo: lượng mưa (thật)", f"Cao độ {elev} m (Open-Meteo)"] if real else self.data_sources
-        return assessment_from_series(self, loc, s, "điểm", 40, 70, texts, detail,
-                                      confidence=0.75 if real else 0.6, is_real=real, data_sources=src)
+        base = (f"Chỉ số ngập từ lượng mưa THẬT (Open-Meteo), cao độ ~{elev} m." if real
+                else f"Chỉ số ngập (mẫu), cao độ ~{elev} m.")
+        if river:
+            base += (f" Lưu lượng sông GloFAS: nay {river['now_m3s']} m³/s, đỉnh "
+                     f"{river['peak_m3s']} m³/s ngày {river['peak_date']} — gấp "
+                     f"{river['ratio']}× trung bình khí hậu ({river['mean_m3s']} m³/s).")
+        detail = base + " <40 thấp · 40–70 cảnh báo · ≥70 cao."
+
+        src = ["Open-Meteo: lượng mưa (thật)", f"Cao độ {elev} m (Open-Meteo)"] if real else list(self.data_sources)
+        metrics: dict[str, float] = {}
+        conf = 0.75 if real else 0.6
+        if river:
+            src.append("GloFAS: lưu lượng sông (thật)")
+            metrics = {"luu_luong_hien_tai_m3s": river["now_m3s"],
+                       "luu_luong_dinh_m3s": river["peak_m3s"],
+                       "luu_luong_tb_m3s": river["mean_m3s"],
+                       "ty_so_so_binh_thuong": river["ratio"]}
+            # Hai nguồn độc lập cùng chỉ một hướng ⇒ tin cậy hơn.
+            if real:
+                conf = min(0.88, conf + 0.08)
+
+        a = assessment_from_series(self, loc, s, "điểm", 40, 70, texts, detail,
+                                   confidence=conf, is_real=real, data_sources=src)
+        a.metrics = metrics
+        return a
 
 
 class LandslideModule(TwinModule):

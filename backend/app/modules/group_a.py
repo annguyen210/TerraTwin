@@ -73,17 +73,69 @@ class PestModule(TwinModule):
 
 
 class AquacultureModule(TwinModule):
-    id = "aquaculture"; name = "Cảnh báo môi trường ao nuôi"; group = "A"; icon = "🦐"; status = "preview"
-    data_sources = ["Sentinel-2 (chỉ số nước, cần key)", "Thời tiết"]
+    """Ngưỡng nhiệt cho tôm sú/thẻ chân trắng ĐBSCL:
+    tối ưu 28–32°C · >33°C stress nhiệt (giảm ăn, dễ bệnh) · <25°C chậm lớn.
+    Sóng lớn đe dọa lồng bè và làm xáo trộn tầng nước ao ven biển.
+    """
+    id = "aquaculture"; name = "Cảnh báo môi trường ao nuôi"; group = "A"; icon = "🦐"; status = "active"
+    data_sources = ["Open-Meteo Marine: nhiệt mặt nước & sóng",
+                    "Open-Meteo: nhiệt không khí",
+                    "Sentinel-2 độ đục/tảo (cần key — lộ trình)"]
     users = ["Hộ/DN nuôi thủy sản"]
-    description = "Chất lượng nước/thời tiết ảnh hưởng tôm cá → cảnh báo sớm."
+    description = "Nhiệt nước/sóng ảnh hưởng tôm cá → cảnh báo sớm."
+
+    HOT, VERY_HOT, COLD = 32.0, 33.5, 25.0
 
     def assess(self, loc: Location) -> Assessment:
-        return need_data_assessment(
-            self, loc,
-            needs="chỉ số chất lượng nước từ Sentinel-2",
-            will_do="theo dõi độ đục/tảo/nhiệt mặt nước ao nuôi để cảnh báo môi trường xấu",
-            next_step="Đang trong lộ trình tích hợp ảnh Sentinel-2.")
+        marine = ds.marine_context(loc.lat, loc.lon)
+        if marine is None:
+            return need_data_assessment(
+                self, loc,
+                needs="dữ liệu nhiệt mặt nước (chỉ có ở vùng biển/ven biển)",
+                will_do="theo dõi nhiệt nước, sóng và độ đục để cảnh báo môi trường ao xấu",
+                next_step=("Vị trí này nằm sâu trong đất liền nên không có dữ liệu "
+                           "biển. Với ao nội đồng cần cảm biến tại ao (lộ trình)."))
+
+        sst, wave = marine["sst_max"], marine["wave_max"]
+        if sst >= self.VERY_HOT:
+            lvl = "danger"
+            head = f"Nước quá NÓNG — đỉnh {sst}°C (ngưỡng stress {self.VERY_HOT}°C)"
+            rec = ("Giảm cho ăn, tăng sục khí, nâng mực nước ao; hoãn thả giống "
+                   "tới khi nhiệt hạ.")
+        elif sst >= self.HOT:
+            lvl = "warning"
+            head = f"Nước ấm cần chú ý — đỉnh {sst}°C"
+            rec = "Theo dõi oxy hòa tan lúc rạng sáng, chuẩn bị quạt nước."
+        elif sst <= self.COLD:
+            lvl = "warning"
+            head = f"Nước lạnh — chỉ {sst}°C, tôm chậm lớn"
+            rec = "Giữ mực nước sâu, giảm thay nước, cân nhắc lùi lịch thả giống."
+        else:
+            lvl = "safe"
+            head = f"Nhiệt nước thuận lợi — đỉnh {sst}°C (tối ưu 28–32°C)"
+            rec = "Duy trì chăm sóc bình thường."
+
+        if wave is not None and wave >= 2.0:
+            head += f" · sóng cao {wave} m"
+            rec += " Sóng lớn — gia cố lồng bè, kiểm tra bờ ao."
+            if lvl == "safe":
+                lvl = "warning"
+
+        metrics = {"nhiet_mat_nuoc_max_c": sst}
+        if wave is not None:
+            metrics["song_cao_max_m"] = wave
+
+        return Assessment(
+            module_id=self.id, module_name=self.name, location=loc, status="ok",
+            risk_level=lvl, headline=head,
+            detail=(f"Nhiệt mặt nước & sóng THẬT 7 ngày (Open-Meteo Marine). "
+                    f"Ngưỡng tôm: tối ưu 28–32°C, stress ≥{self.VERY_HOT}°C, "
+                    f"chậm lớn ≤{self.COLD}°C. Độ đục/tảo cần ảnh Sentinel — "
+                    "chưa tích hợp nên chưa đưa vào đánh giá."),
+            recommendation=rec, confidence=0.72, confidence_low=0.64,
+            confidence_high=0.8, is_real=True, metrics=metrics,
+            forecast=marine["forecast"],
+            data_sources=["Open-Meteo Marine: nhiệt mặt nước & sóng (thật)"])
 
 
 class YieldModule(TwinModule):

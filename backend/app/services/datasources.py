@@ -250,6 +250,67 @@ def landslide_series(lat: float, lon: float):
     return series(lat, lon, "slide", max(2.0, base), amp=0.3, trend=0.02), False
 
 
+def river_discharge_context(lat: float, lon: float):
+    """Dị thường lưu lượng sông (GloFAS). Trả dict hoặc None.
+
+    Tỉ số discharge/mean do chính API cung cấp nên đã chuẩn hoá theo con sông đó:
+    ratio 1.0 = bình thường, ≥2 = cao rõ rệt, ≥3 = rất cao.
+    Mưa là NGUYÊN NHÂN, lưu lượng sông mới là thứ trực tiếp gây ngập — nên đây
+    là tín hiệu đối chứng độc lập cho module Lũ.
+    """
+    rows = realdata.river_discharge_7d(lat, lon)
+    if not rows:
+        return None
+    pairs = [(r["discharge"], r["mean"], r["date"]) for r in rows
+             if r["discharge"] is not None and r["mean"] not in (None, 0)]
+    if not pairs:
+        return None
+    peak_q, peak_mean, peak_date = max(pairs, key=lambda p: p[0] / p[1])
+    now_q = pairs[0][0]
+    ratio = peak_q / peak_mean
+    level = "danger" if ratio >= 3.0 else "warning" if ratio >= 2.0 else "safe"
+    return {
+        "now_m3s": round(now_q, 1),
+        "peak_m3s": round(peak_q, 1),
+        "mean_m3s": round(peak_mean, 1),
+        "ratio": round(ratio, 2),
+        "peak_date": peak_date,
+        "level": level,
+    }
+
+
+def marine_context(lat: float, lon: float):
+    """Nhiệt mặt nước & sóng 7 ngày. None nếu điểm không phải vùng nước."""
+    from app.schemas import ForecastPoint
+
+    rows = realdata.marine_7d(lat, lon)
+    if not rows:
+        return None
+    ssts = [(r["date"], r["sst"]) for r in rows if r["sst"] is not None]
+    if not ssts:
+        return None
+    waves = [r["wave"] for r in rows if r["wave"] is not None]
+
+    def _risk(v: float) -> str:
+        if v >= 33.5 or v <= 24.0:
+            return "danger"
+        if v >= 32.0 or v <= 25.0:
+            return "warning"
+        return "safe"
+
+    forecast = [
+        ForecastPoint(day=i, date=r["date"], value=round(r["sst"], 1),
+                      unit="°C", risk=_risk(r["sst"]))
+        for i, r in enumerate(rows) if r["sst"] is not None
+    ]
+    return {
+        "sst_max": round(max(v for _, v in ssts), 1),
+        "sst_min": round(min(v for _, v in ssts), 1),
+        "wave_max": round(max(waves), 2) if waves else None,
+        "forecast": forecast,
+    }
+
+
 def recent_precip_total(lat: float, lon: float):
     w = realdata.weather_7d(lat, lon)
     if w:

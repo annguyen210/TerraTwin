@@ -86,8 +86,8 @@ Thắng thi: demo choáng + kỹ thuật sâu + tác động lớn + moat. Thác
 | 4 | Năng suất & thu hoạch | Ước lượng năng suất | Cần Sentinel | ⏳ CHỜ DỮ LIỆU |
 | 5 | Carbon rừng | tCO₂/ha + giá trị | Cần Sentinel | ⏳ CHỜ DỮ LIỆU |
 | 6 | Cháy rừng | Nguy cơ cháy 7 ngày | **Open-Meteo nhiệt+mưa** | ✅ THẬT |
-| 7 | Ao nuôi thủy sản | Rủi ro môi trường ao | Cần Sentinel | ⏳ CHỜ DỮ LIỆU |
-| 8 | Lũ/ngập sớm | Chỉ số ngập 7 ngày | **Open-Meteo mưa+cao độ** | ✅ THẬT |
+| 7 | Ao nuôi thủy sản | Nhiệt nước & sóng 7 ngày, ngưỡng tôm | **Open-Meteo Marine (SST + sóng)** | ✅ THẬT (ao nội đồng: chờ cảm biến) |
+| 8 | Lũ/ngập sớm | Chỉ số ngập 7 ngày + lưu lượng sông | **Open-Meteo mưa+cao độ + GloFAS lưu lượng sông** | ✅ THẬT (2 nguồn độc lập) |
 | 9 | Sạt lở | Nguy cơ sạt lở 7 ngày | **Open-Meteo mưa + độ dốc THẬT (DEM 4 hướng)** | ✅ THẬT |
 | 10 | Thiệt hại sau bão | % thiệt hại | Cần Sentinel | ⏳ CHỜ DỮ LIỆU |
 | 11 | Rủi ro mua đất | Điểm an toàn 0–100 | **Cao độ+dốc+mưa THẬT** | ✅ THẬT |
@@ -95,7 +95,21 @@ Thắng thi: demo choáng + kỹ thuật sâu + tác động lớn + moat. Thác
 | 13 | Bảo hiểm tham số | Kích hoạt chi trả | **Open-Meteo (hạn)** | ✅ THẬT |
 | 14 | Điện mặt trời | Bức xạ + sản lượng | **NASA POWER** | ✅ THẬT |
 
-**7 module dữ liệu THẬT · 1 ước lượng vật lý (mặn) · 6 chờ ảnh Sentinel (nói thật "chưa đủ dữ liệu", KHÔNG bịa số).**
+**8 module dữ liệu THẬT · 1 ước lượng vật lý (mặn) · 5 chờ ảnh Sentinel (nói thật "chưa đủ dữ liệu", KHÔNG bịa số).**
+
+> **Đợt 5 — thêm 2 nguồn thật miễn phí, không cần key:**
+> **(1) GloFAS lưu lượng sông** (Open-Meteo Flood API) cho module Lũ. Mưa là
+> nguyên nhân, lưu lượng sông mới là thứ trực tiếp gây ngập — đây là tín hiệu
+> đối chứng ĐỘC LẬP. API trả sẵn trung bình khí hậu nên tỉ số `discharge/mean`
+> đã chuẩn hoá theo từng con sông (≥2× đáng chú ý, ≥3× rất cao). Hai nguồn độc
+> lập cùng chỉ một hướng ⇒ độ tin cậy 0,75 → 0,83. Ví dụ thật Quảng Nam:
+> lưu lượng nay 152 m³/s, đỉnh 637 m³/s ngày 22/8 — nhưng chỉ gấp 1,13× trung
+> bình khí hậu, tức là *cao nhưng bình thường với mùa này*. Chính con số ấy giúp
+> tránh hoảng loạn không cần thiết.
+> **(2) Open-Meteo Marine** (nhiệt mặt nước, sóng) đưa module **Ao nuôi** từ ⏳
+> lên dữ liệu THẬT, ngưỡng tôm sú/thẻ chân trắng: tối ưu 28–32 °C · stress
+> ≥33,5 °C · chậm lớn ≤25 °C · sóng ≥2 m đe dọa lồng bè. Ao nội đồng (Đà Lạt…)
+> không có dữ liệu biển → vẫn trả `need_data`, KHÔNG bịa số.
 
 > **Chuẩn hóa 2026-08-17 (sau review):** đã sửa 5 lỗi P0 — (1) module Mặn hết báo động giả nội địa (31.4%→4.3%, dùng đường bờ biển VN + cao độ thật, bỏ offset hash); (2) validate toạ độ/diện tích (ngoài VN → HTTP 422); (3) TerraScore chỉ chấm từ hiểm họa dữ liệu thật; (4) 6 module chờ Sentinel nói thật thay vì bịa "PHÁT HIỆN…"; (5) gộp scan+terrascore (warm ~10 ms). Thêm: 26 pytest (offline), Dockerfile+compose, CORS/rate-limit theo env, git, README/LICENSE/.env.example.
 > Cập nhật: độ dốc nay lấy THẬT từ DEM Open-Meteo (4 hướng) → sạt lở & rủi ro

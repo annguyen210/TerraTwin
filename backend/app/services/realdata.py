@@ -155,6 +155,77 @@ def historical_weather(lat: float, lon: float, start: str, end: str):
         return None
 
 
+def river_discharge_7d(lat: float, lon: float):
+    """Lưu lượng sông THẬT 7 ngày (GloFAS qua Open-Meteo Flood API, không cần key).
+
+    Trả list dict {day, date, discharge, mean} hoặc None. `mean` là trung bình
+    khí hậu của chính đoạn sông đó — nên tỉ số discharge/mean đã là dị thường
+    chuẩn hoá sẵn, không cần tự dựng khí hậu nền.
+
+    Đây là tín hiệu lũ mà cơ quan phòng chống thiên tai thực sự dùng: mưa mới
+    là nguyên nhân, lưu lượng sông mới là thứ gây ngập.
+    """
+    url = (
+        "https://flood-api.open-meteo.com/v1/flood"
+        f"?latitude={lat}&longitude={lon}"
+        "&daily=river_discharge,river_discharge_mean&forecast_days=7"
+    )
+    d = _get(url, timeout=12.0)
+    if not d or "daily" not in d:
+        return None
+    dd = d["daily"]
+    try:
+        times = dd["time"]
+        cur = [_num(v) for v in dd.get("river_discharge", [])]
+        mean = [_num(v) for v in dd.get("river_discharge_mean", [])]
+    except (KeyError, TypeError):
+        _bust(url)
+        return None
+    if not times or not any(v is not None for v in cur):
+        _bust(url)
+        return None
+    return [
+        {"day": i, "date": times[i],
+         "discharge": cur[i] if i < len(cur) else None,
+         "mean": mean[i] if i < len(mean) else None}
+        for i in range(len(times))
+    ]
+
+
+def marine_7d(lat: float, lon: float):
+    """Nhiệt mặt nước & sóng THẬT 7 ngày (Open-Meteo Marine API, không cần key).
+
+    Chỉ có dữ liệu ở điểm biển/ven biển; sâu trong đất liền trả None.
+    Trả list dict {day, date, sst, wave} hoặc None.
+    """
+    url = (
+        "https://marine-api.open-meteo.com/v1/marine"
+        f"?latitude={lat}&longitude={lon}"
+        "&daily=sea_surface_temperature_max,wave_height_max&forecast_days=7"
+    )
+    d = _get(url, timeout=12.0)
+    if not d or "daily" not in d:
+        return None
+    dd = d["daily"]
+    try:
+        times = dd["time"]
+        sst = [_num(v) for v in dd.get("sea_surface_temperature_max", [])]
+        wave = [_num(v) for v in dd.get("wave_height_max", [])]
+    except (KeyError, TypeError):
+        _bust(url)
+        return None
+    # Không có nhiệt mặt nước ⇒ điểm này không phải vùng nước → coi như không hỗ trợ.
+    if not times or not any(v is not None for v in sst):
+        _bust(url)
+        return None
+    return [
+        {"day": i, "date": times[i],
+         "sst": sst[i] if i < len(sst) else None,
+         "wave": wave[i] if i < len(wave) else None}
+        for i in range(len(times))
+    ]
+
+
 def solar_annual(lat: float, lon: float):
     """Bức xạ mặt trời trung bình năm (kWh/m²/ngày) từ NASA POWER."""
     url = (

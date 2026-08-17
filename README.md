@@ -14,9 +14,13 @@ Mỗi kết quả gắn cờ rõ ràng 🛰️ **Dữ liệu thật** hoặc �
 
 | Nhóm | Module | Nguồn |
 |---|---|---|
-| 🛰️ Dữ liệu thật (7) | hạn, cháy rừng, lũ/ngập, sạt lở, rủi ro mua đất, bảo hiểm tham số, điện mặt trời | Open-Meteo (mưa/ET₀/nhiệt/cao độ/**độ dốc DEM**), NASA POWER |
+| 🛰️ Dữ liệu thật (8) | hạn, cháy rừng, **lũ/ngập**, sạt lở, rủi ro mua đất, bảo hiểm tham số, điện mặt trời, **ao nuôi** | Open-Meteo (mưa/ET₀/nhiệt/cao độ/**độ dốc DEM**), **GloFAS lưu lượng sông**, **Open-Meteo Marine**, NASA POWER |
 | 🧪 Ước lượng vật lý (1) | xâm nhập mặn | bờ biển VN (34 điểm) + cao độ DEM + **chu kỳ mùa khô/mùa lũ** + triều (**chờ hiệu chỉnh MRC**) |
-| ⏳ Chờ ảnh Sentinel (6) | sâu bệnh, năng suất, carbon, ao nuôi, thiệt hại bão, xây dựng trái phép | kiến trúc sẵn sàng — KHÔNG bịa số khi chưa có ảnh |
+| ⏳ Chờ ảnh Sentinel (5) | sâu bệnh, năng suất, carbon, thiệt hại bão, xây dựng trái phép | kiến trúc sẵn sàng — KHÔNG bịa số khi chưa có ảnh |
+
+**Hai nguồn thật mới (miễn phí, không cần API key):**
+- **GloFAS lưu lượng sông** (Open-Meteo Flood API) — mưa là *nguyên nhân*, lưu lượng sông mới là thứ trực tiếp gây ngập. Đây là tín hiệu đối chứng **độc lập** cho module Lũ; API trả sẵn cả trung bình khí hậu nên tỉ số `discharge/mean` đã chuẩn hoá theo từng con sông. Hai nguồn độc lập cùng chỉ một hướng ⇒ độ tin cậy 0,75 → 0,83.
+- **Open-Meteo Marine** — nhiệt mặt nước & sóng, đưa module **Ao nuôi** từ ⏳ lên dữ liệu thật, dùng ngưỡng tôm sú/thẻ chân trắng (tối ưu 28–32 °C · stress ≥33,5 °C · chậm lớn ≤25 °C · sóng ≥2 m đe dọa lồng bè). Ao nội đồng không có dữ liệu biển → vẫn báo thật là chưa đủ dữ liệu, không bịa số.
 
 > **Phạm vi module Mặn:** xâm nhập mặn *nông nghiệp* ở **ĐBSCL** và **ĐB sông Hồng**.
 > Ngoài hai vùng đó (Đà Nẵng, Nha Trang, Hạ Long…) module trả `out_of_scope` thay vì
@@ -87,7 +91,7 @@ terratwin/
 │       ├── services/             # realdata, datasources, terrascore, scan,
 │       │                         #   whatif, backtest, copilot, twin
 │       └── modules/              # base + util + 14 module + registry
-│   └── tests/                    # pytest (63 test, offline & tất định)
+│   └── tests/                    # pytest (73 test, offline & tất định)
 ├── frontend/                     # Next.js 14 + MapLibre
 │   └── components/               # MapView, ResultsPanel, Overview, WhatIf,
 │                                 #   Backtest, Portfolio, Copilot
@@ -124,7 +128,7 @@ npm run dev -- -p 1825      # http://localhost:1825
 ```bash
 cd backend
 pip install -r requirements-dev.txt
-pytest                      # 63 test, chạy offline & tất định
+pytest                      # 73 test, chạy offline & tất định
 ```
 
 ---
