@@ -157,9 +157,14 @@ export default function Home() {
         {loading && <p className="hint">Đang phân tích…</p>}
         {err && (
           <p className="err">
+            {err.includes("Việt Nam") ? "🗺️ " : "⚠️ "}
             {err}
-            <br />
-            <small>Backend đã chạy chưa? (http://localhost:8000)</small>
+            {!err.includes("Việt Nam") && (
+              <>
+                <br />
+                <small>Backend đã chạy chưa? (http://localhost:8000)</small>
+              </>
+            )}
           </p>
         )}
         {!loading && !err && !result && (

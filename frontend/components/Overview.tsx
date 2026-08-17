@@ -83,7 +83,7 @@ export default function Overview({
           </div>
 
           <div className="ov-grid-head">
-            Toàn bộ 14 module · 🛰️ dùng dữ liệu thật · 🧪 mô hình mẫu
+            Toàn bộ 14 module · 🛰️ dữ liệu thật · 🧪 ước lượng · ⏳ chờ dữ liệu (Sentinel)
           </div>
           <div className="ov-grid">
             {data.modules.map((m) => (
@@ -102,7 +102,9 @@ export default function Overview({
                 >
                   {RISK_LABEL[m.risk_level]}
                 </span>
-                <span className="ov-tile-src">{m.is_real ? "🛰️" : "🧪"}</span>
+                <span className="ov-tile-src">
+                  {m.is_real ? "🛰️" : m.risk_level === "unknown" ? "⏳" : "🧪"}
+                </span>
               </button>
             ))}
           </div>

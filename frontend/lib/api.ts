@@ -1,5 +1,21 @@
 const BASE = process.env.NEXT_PUBLIC_API ?? "http://localhost:8000";
 
+// Trích thông điệp lỗi dễ hiểu từ phản hồi FastAPI:
+//  - HTTPException  → { detail: "..." }
+//  - Lỗi validate   → { detail: [{ msg, loc }] }  (vd toạ độ ngoài Việt Nam)
+async function errMessage(r: Response, fallback: string): Promise<string> {
+  try {
+    const d = await r.json();
+    if (typeof d?.detail === "string") return d.detail;
+    if (Array.isArray(d?.detail) && d.detail[0]?.msg) {
+      return d.detail[0].msg.replace(/^Value error,\s*/, "");
+    }
+  } catch {
+    /* ignore */
+  }
+  return fallback;
+}
+
 export type ModuleInfo = {
   id: string;
   name: string;
@@ -106,7 +122,7 @@ export async function assess(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  if (!r.ok) throw new Error("Không lấy được đánh giá");
+  if (!r.ok) throw new Error(await errMessage(r, "Không lấy được đánh giá"));
   return r.json();
 }
 
@@ -116,7 +132,7 @@ export async function getTerraScore(lat: number, lon: number): Promise<TerraScor
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ lat, lon }),
   });
-  if (!r.ok) throw new Error("Không lấy được TerraScore");
+  if (!r.ok) throw new Error(await errMessage(r, "Không lấy được TerraScore"));
   return r.json();
 }
 
@@ -197,7 +213,7 @@ export async function scanAll(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  if (!r.ok) throw new Error("Không quét được toàn cảnh");
+  if (!r.ok) throw new Error(await errMessage(r, "Không quét được toàn cảnh"));
   return r.json();
 }
 
@@ -211,7 +227,7 @@ export async function runWhatIf(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ lat, lon }),
   });
-  if (!r.ok) throw new Error("Không chạy được kịch bản what-if");
+  if (!r.ok) throw new Error(await errMessage(r, "Không chạy được kịch bản what-if"));
   return r.json();
 }
 

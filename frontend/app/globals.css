@@ -363,6 +363,11 @@ body {
   border-color: rgba(201, 162, 75, 0.5);
   background: rgba(201, 162, 75, 0.1);
 }
+.databadge.need {
+  color: #8fa6b3;
+  border-color: rgba(143, 166, 179, 0.5);
+  background: rgba(143, 166, 179, 0.1);
+}
 .terra-real {
   font-size: 11px;
   color: var(--terra);

@@ -80,22 +80,24 @@ Thắng thi: demo choáng + kỹ thuật sâu + tác động lớn + moat. Thác
 
 | # | Module | Làm gì | Nguồn | Trạng thái |
 |---|--------|--------|-------|-----------|
-| 1 | Xâm nhập mặn | Dự báo mặn 7 ngày + đóng cống | Mô hình (biển+triều) | ⚠️ MẪU (cần MRC) |
+| 1 | Xâm nhập mặn | Dự báo mặn 7 ngày + đóng cống | Bờ biển VN + cao độ thật + triều | 🌊 ƯỚC LƯỢNG VẬT LÝ (chờ MRC) |
 | 2 | Hạn & thiếu nước | Chỉ số thiếu ẩm 7 ngày | **Open-Meteo mưa+ET₀** | ✅ THẬT |
-| 3 | Sâu bệnh sớm | Chỉ số bất thường cây | Cần Sentinel-2 | ⚠️ MẪU |
-| 4 | Năng suất & thu hoạch | Ước lượng năng suất | Cần Sentinel | ⚠️ MẪU |
-| 5 | Carbon rừng | tCO₂/ha + giá trị | Cần Sentinel | ⚠️ MẪU |
+| 3 | Sâu bệnh sớm | Chỉ số bất thường cây | Cần Sentinel-2 | ⏳ CHỜ DỮ LIỆU (không bịa số) |
+| 4 | Năng suất & thu hoạch | Ước lượng năng suất | Cần Sentinel | ⏳ CHỜ DỮ LIỆU |
+| 5 | Carbon rừng | tCO₂/ha + giá trị | Cần Sentinel | ⏳ CHỜ DỮ LIỆU |
 | 6 | Cháy rừng | Nguy cơ cháy 7 ngày | **Open-Meteo nhiệt+mưa** | ✅ THẬT |
-| 7 | Ao nuôi thủy sản | Rủi ro môi trường ao | Cần Sentinel | ⚠️ MẪU |
+| 7 | Ao nuôi thủy sản | Rủi ro môi trường ao | Cần Sentinel | ⏳ CHỜ DỮ LIỆU |
 | 8 | Lũ/ngập sớm | Chỉ số ngập 7 ngày | **Open-Meteo mưa+cao độ** | ✅ THẬT |
 | 9 | Sạt lở | Nguy cơ sạt lở 7 ngày | **Open-Meteo mưa + độ dốc THẬT (DEM 4 hướng)** | ✅ THẬT |
-| 10 | Thiệt hại sau bão | % thiệt hại | Cần Sentinel | ⚠️ MẪU |
-| 11 | Rủi ro mua đất | Điểm an toàn 0–100 | **Cao độ+mưa THẬT** | ✅ THẬT (phần) |
-| 12 | Xây dựng trái phép | Phát hiện thay đổi | Cần Sentinel | ⚠️ MẪU |
+| 10 | Thiệt hại sau bão | % thiệt hại | Cần Sentinel | ⏳ CHỜ DỮ LIỆU |
+| 11 | Rủi ro mua đất | Điểm an toàn 0–100 | **Cao độ+dốc+mưa THẬT** | ✅ THẬT |
+| 12 | Xây dựng trái phép | Phát hiện thay đổi | Cần Sentinel | ⏳ CHỜ DỮ LIỆU |
 | 13 | Bảo hiểm tham số | Kích hoạt chi trả | **Open-Meteo (hạn)** | ✅ THẬT |
 | 14 | Điện mặt trời | Bức xạ + sản lượng | **NASA POWER** | ✅ THẬT |
 
-**7 module chạy dữ liệu THẬT · 7 module còn mẫu (chờ ảnh Sentinel + key).**
+**7 module dữ liệu THẬT · 1 ước lượng vật lý (mặn) · 6 chờ ảnh Sentinel (nói thật "chưa đủ dữ liệu", KHÔNG bịa số).**
+
+> **Chuẩn hóa 2026-08-17 (sau review):** đã sửa 5 lỗi P0 — (1) module Mặn hết báo động giả nội địa (31.4%→4.3%, dùng đường bờ biển VN + cao độ thật, bỏ offset hash); (2) validate toạ độ/diện tích (ngoài VN → HTTP 422); (3) TerraScore chỉ chấm từ hiểm họa dữ liệu thật; (4) 6 module chờ Sentinel nói thật thay vì bịa "PHÁT HIỆN…"; (5) gộp scan+terrascore (warm ~10 ms). Thêm: 26 pytest (offline), Dockerfile+compose, CORS/rate-limit theo env, git, README/LICENSE/.env.example.
 > Cập nhật: độ dốc nay lấy THẬT từ DEM Open-Meteo (4 hướng) → sạt lở & rủi ro
 > mua đất chính xác hơn; **đồng bằng không còn bị báo sạt lở sai** (bug đã sửa).
 

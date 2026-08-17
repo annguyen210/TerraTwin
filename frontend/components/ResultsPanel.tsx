@@ -44,9 +44,13 @@ export default function ResultsPanel({ a }: { a: Assessment }) {
         <span className="riskbadge" style={{ background: r.color }}>
           {r.label}
         </span>
-        <span className={`databadge ${a.is_real ? "real" : "model"}`}>
-          {a.is_real ? "🛰️ Dữ liệu thật" : "🧪 Mô hình mẫu"}
-        </span>
+        {a.is_real ? (
+          <span className="databadge real">🛰️ Dữ liệu thật</span>
+        ) : a.status === "need_data" ? (
+          <span className="databadge need">⏳ Chờ dữ liệu</span>
+        ) : (
+          <span className="databadge model">🧪 Ước lượng</span>
+        )}
       </div>
       <h2>{a.module_name}</h2>
       <p className="headline">{a.headline}</p>
