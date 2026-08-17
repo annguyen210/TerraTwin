@@ -81,6 +81,38 @@ vùng khô). Đây chính là moat §13: ngưỡng bản địa hóa tới từn
 
 ---
 
+## Tài khoản & dữ liệu người dùng
+
+Đăng ký/đăng nhập bằng email + mật khẩu (bcrypt có salt, JWT). **Danh mục thửa
+đất nay nằm trong database, không còn localStorage** — đồng bộ đa thiết bị,
+không mất khi xóa trình duyệt, và phân tách theo từng người dùng nên bán được B2B.
+
+| Endpoint | Việc |
+|---|---|
+| `POST /api/auth/register` · `POST /api/auth/login` · `GET /api/auth/me` | Tài khoản |
+| `GET/POST /api/plots` · `DELETE /api/plots/{id}` | Danh mục thửa đất |
+| `GET/POST /api/keys` · `DELETE /api/keys/{id}` | Khóa Twin API (C12) |
+
+**Twin API cho bên thứ ba:** tạo khóa rồi gọi mọi endpoint bằng header
+`X-API-Key: tt_…` thay cho JWT. Khóa chỉ lưu **hash** — lộ database vẫn không
+dùng lại được; bản rõ chỉ hiện đúng một lần lúc tạo; thu hồi có hiệu lực ngay.
+
+**Đã xử lý trong phần bảo mật:**
+- Mật khẩu băm bcrypt, không bao giờ lưu bản rõ; mật khẩu >72 byte được SHA-256
+  trước khi băm để bcrypt không cắt cụt (nếu không, hai mật khẩu dài khác nhau
+  có thể đăng nhập lẫn cho nhau).
+- Đăng nhập sai trả **cùng một thông báo** cho email không tồn tại và mật khẩu
+  sai — không để dò xem email nào đã đăng ký.
+- Thao tác lên tài nguyên của người khác trả **404 chứ không phải 403** — không
+  xác nhận ID đó có tồn tại.
+- Secret JWT lấy từ `TERRATWIN_SECRET`; thiếu thì sinh ngẫu nhiên mỗi lần chạy
+  và **in cảnh báo**, thay vì hardcode một giá trị mặc định.
+
+> Database mặc định là SQLite (chạy ngay, không cần cài gì). Đổi sang PostgreSQL
+> chỉ bằng `TERRATWIN_DATABASE_URL` — code không đổi.
+
+---
+
 ## Kiến trúc: 1 Lõi + 14 Module
 ```
 terratwin/
@@ -88,10 +120,16 @@ terratwin/
 │   └── app/
 │       ├── main.py               # API + CORS/rate-limit theo env
 │       ├── schemas.py            # kiểu dữ liệu + validate Location
-│       ├── services/             # realdata, datasources, terrascore, scan,
-│       │                         #   whatif, backtest, copilot, twin
+│       ├── db.py                 # SQLAlchemy: users, plots, api_keys,
+│       │                         #   datasets, kv_cache, alerts
+│       ├── auth.py               # bcrypt + JWT + API key
+│       ├── routes_account.py     # đăng ký/đăng nhập, thửa đất, khóa API
+│       ├── services/             # realdata, datasources, calibration, hazard,
+│       │                         #   terrascore, scan, whatif, explain,
+│       │                         #   goalseek, timemachine, anomaly,
+│       │                         #   backtest, copilot, twin
 │       └── modules/              # base + util + 14 module + registry
-│   └── tests/                    # pytest (73 test, offline & tất định)
+│   └── tests/                    # pytest (93 test, offline & tất định)
 ├── frontend/                     # Next.js 14 + MapLibre
 │   └── components/               # MapView, ResultsPanel, Overview, WhatIf,
 │                                 #   Backtest, Portfolio, Copilot
@@ -128,7 +166,7 @@ npm run dev -- -p 1825      # http://localhost:1825
 ```bash
 cd backend
 pip install -r requirements-dev.txt
-pytest                      # 73 test, chạy offline & tất định
+pytest                      # 93 test, chạy offline & tất định
 ```
 
 ---
@@ -138,6 +176,9 @@ pytest                      # 73 test, chạy offline & tất định
 |---|---|---|
 | `TERRATWIN_CORS` | origin cho CORS (phân tách dấu phẩy) | `*` |
 | `TERRATWIN_RATE_LIMIT` | request/phút mỗi IP (0 = tắt) | `120` |
+| `TERRATWIN_SECRET` | **bắt buộc khi deploy** — khóa ký JWT | (ngẫu nhiên mỗi lần chạy + cảnh báo) |
+| `TERRATWIN_TOKEN_HOURS` | hạn token đăng nhập | `72` |
+| `TERRATWIN_DATABASE_URL` | chuỗi kết nối database | `sqlite:///./terratwin.db` |
 | `ANTHROPIC_API_KEY` | bật Copilot LLM thật | (trống → rule-based) |
 | `NEXT_PUBLIC_API` | URL backend cho frontend | `http://localhost:8000` |
 
@@ -152,8 +193,12 @@ pytest                      # 73 test, chạy offline & tất định
 2. Đăng ký ở `registry.py`. Frontend tự hiện.
 
 ## Lộ trình
-- **Đã có:** 7 module dữ liệu thật + backtest + what-if + portfolio + báo cáo.
-- **Tiếp theo (ra thị trường):** database + đăng nhập (lưu vùng đa thiết bị) · tích hợp ảnh Sentinel (bật 6 module còn lại) · cắm dữ liệu mặn MRC · deploy cloud · cảnh báo Zalo/email.
+- **Đã có:** 8 module dữ liệu thật · hiệu chuẩn theo khí hậu từng điểm (FAR ~3%) ·
+  backtest hai tầng · what-if · explain · goal-seek · time machine · anomaly ·
+  **database + đăng nhập** · danh mục thửa đất trên máy chủ · Twin API key.
+- **Tiếp theo:** tích hợp ảnh Sentinel (bật 5 module còn lại) · cắm dữ liệu mặn
+  MRC để hiệu chỉnh module Mặn · heatmap & Twin Genome (dùng `kv_cache` đã dựng) ·
+  Proactive Radar gửi cảnh báo Zalo/email (bảng `alerts` đã dựng) · deploy cloud.
 
 ## License
 MIT — xem [LICENSE](LICENSE).

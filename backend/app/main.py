@@ -11,13 +11,16 @@ from __future__ import annotations
 import os
 import time
 from collections import defaultdict, deque
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from app.db import init_db
 from app.modules.registry import get_module, list_modules
+from app.routes_account import router as account_router
 from app.schemas import (
     Assessment, CopilotAnswer, Location, ModuleInfo, ScanResult,
     TerraScoreResult, WhatIfResult,
@@ -27,8 +30,20 @@ from app.services import (
     timemachine, whatif,
 )
 from app.services.twin import build_twin
+from app import auth
 
-app = FastAPI(title="TerraTwin API", version="0.4.0")
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    init_db()
+    if not auth.SECRET_FROM_ENV:
+        # Không hardcode secret. Cảnh báo rõ để production không quên đặt.
+        print("[TerraTwin] CẢNH BÁO: chưa đặt TERRATWIN_SECRET — dùng secret ngẫu "
+              "nhiên, mọi token sẽ mất hiệu lực khi restart. Đặt biến này trước "
+              "khi triển khai thật.")
+    yield
+
+
+app = FastAPI(title="TerraTwin API", version="0.5.0", lifespan=lifespan)
 
 _HAZARD_ONLY = f"Chỉ áp dụng cho module hiểm họa thời tiết: {', '.join(hazard.IDS)}"
 
@@ -63,6 +78,9 @@ async def rate_limit(request: Request, call_next):
             )
         dq.append(now)
     return await call_next(request)
+
+
+app.include_router(account_router)
 
 
 class CopilotRequest(BaseModel):

@@ -4,12 +4,16 @@ import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import {
   assess,
+  fetchMe,
   getModules,
   getTerraScore,
+  getToken,
   type Assessment,
+  type AuthUser,
   type ModuleInfo,
   type TerraScore,
 } from "@/lib/api";
+import Account from "@/components/Account";
 import ResultsPanel from "@/components/ResultsPanel";
 import Copilot from "@/components/Copilot";
 import Backtest from "@/components/Backtest";
@@ -67,11 +71,20 @@ export default function Home() {
   const [err, setErr] = useState<string | null>(null);
   const [flyTo, setFlyTo] = useState<{ lat: number; lon: number; key: number } | null>(null);
   const [tab, setTab] = useState<"detail" | "overview">("detail");
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
     getModules()
       .then(setModules)
       .catch((e) => setErr(e.message));
+  }, []);
+
+  // Khôi phục phiên đăng nhập nếu token còn hiệu lực.
+  useEffect(() => {
+    if (!getToken()) return;
+    fetchMe()
+      .then(setUser)
+      .catch(() => setUser(null));
   }, []);
 
   const run = useCallback(
@@ -146,7 +159,14 @@ export default function Home() {
               ))}
             </div>
           ))}
-        <Portfolio coord={coord} area={area} terra={terra} onLoad={loadPlot} />
+        <Account user={user} onAuth={setUser} />
+        <Portfolio
+          user={user}
+          coord={coord}
+          area={area}
+          terra={terra}
+          onLoad={loadPlot}
+        />
         <p className="foot">14 module · dữ liệu thật: Open-Meteo + NASA POWER</p>
       </aside>
 

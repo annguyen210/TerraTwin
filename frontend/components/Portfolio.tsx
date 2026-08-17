@@ -1,20 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { scanAll, type TerraScore } from "@/lib/api";
+import { useCallback, useEffect, useState } from "react";
+import {
+  deletePlot,
+  listPlots,
+  savePlot,
+  scanAll,
+  type AuthUser,
+  type ServerPlot,
+  type TerraScore,
+} from "@/lib/api";
 
-type Plot = {
-  id: string;
-  name: string;
-  lat: number;
-  lon: number;
-  area?: number;
-  score: number;
-  grade: string;
-  savedAt: string;
-};
-
-const KEY = "terratwin_portfolio";
 const GRADE_COLOR: Record<string, string> = {
   A: "#2E9E67",
   B: "#3aa0a0",
@@ -22,63 +18,70 @@ const GRADE_COLOR: Record<string, string> = {
   D: "#C2412E",
 };
 
-function load(): Plot[] {
-  if (typeof window === "undefined") return [];
-  try {
-    return JSON.parse(localStorage.getItem(KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function save(plots: Plot[]) {
-  localStorage.setItem(KEY, JSON.stringify(plots));
-}
-
 export default function Portfolio({
+  user,
   coord,
   area,
   terra,
   onLoad,
 }: {
+  user: AuthUser | null;
   coord: { lat: number; lon: number } | null;
   area?: number;
   terra: TerraScore | null;
   onLoad: (lat: number, lon: number) => void;
 }) {
-  const [plots, setPlots] = useState<Plot[]>([]);
+  const [plots, setPlots] = useState<ServerPlot[]>([]);
   const [exporting, setExporting] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    if (!user) {
+      setPlots([]);
+      return;
+    }
+    try {
+      setPlots(await listPlots());
+      setErr(null);
+    } catch (e) {
+      setErr((e as Error).message);
+    }
+  }, [user]);
 
   useEffect(() => {
-    setPlots(load());
-  }, []);
+    refresh();
+  }, [refresh]);
 
-  function addCurrent() {
+  async function addCurrent() {
     if (!coord || !terra) return;
     const name =
       window.prompt(
         "Tên thửa đất:",
         `Thửa (${coord.lat.toFixed(3)}, ${coord.lon.toFixed(3)})`,
       ) || `Thửa (${coord.lat.toFixed(3)}, ${coord.lon.toFixed(3)})`;
-    const p: Plot = {
-      id: Date.now().toString(36),
-      name,
-      lat: coord.lat,
-      lon: coord.lon,
-      area,
-      score: terra.score,
-      grade: terra.grade,
-      savedAt: new Date().toISOString(),
-    };
-    const next = [p, ...plots.filter((x) => !(x.lat === p.lat && x.lon === p.lon))];
-    setPlots(next);
-    save(next);
+    setBusy(true);
+    setErr(null);
+    try {
+      await savePlot(name, coord.lat, coord.lon, area, terra.score, terra.grade);
+      await refresh();
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
   }
 
-  function remove(id: string) {
-    const next = plots.filter((p) => p.id !== id);
-    setPlots(next);
-    save(next);
+  async function remove(id: number) {
+    setBusy(true);
+    try {
+      await deletePlot(id);
+      await refresh();
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function exportReport() {
@@ -100,14 +103,13 @@ export default function Portfolio({
     }
   }
 
-  const sorted = [...plots].sort((a, b) => b.score - a.score);
-
   return (
     <div className="portfolio">
       <div className="pf-head">📁 Danh mục thửa đất</div>
+
       {coord && (
         <div className="pf-actions">
-          <button onClick={addCurrent} disabled={!terra}>
+          <button onClick={addCurrent} disabled={!terra || !user || busy}>
             💾 Lưu thửa đang xem
           </button>
           <button className="ghost" onClick={exportReport} disabled={exporting}>
@@ -115,30 +117,46 @@ export default function Portfolio({
           </button>
         </div>
       )}
-      {plots.length === 0 && (
+
+      {err && <p className="pf-err">{err}</p>}
+
+      {!user && (
+        <p className="pf-empty">
+          Đăng nhập để lưu thửa đất — dữ liệu nằm trên máy chủ nên đồng bộ mọi
+          thiết bị, không mất khi xóa trình duyệt.
+        </p>
+      )}
+
+      {user && plots.length === 0 && (
         <p className="pf-empty">
           Chưa lưu thửa nào. Phân tích một vị trí rồi bấm “Lưu thửa đang xem” để
           so sánh nhiều mảnh đất.
         </p>
       )}
-      {sorted.map((p) => (
+
+      {plots.map((p) => (
         <div key={p.id} className="pf-item">
           <button className="pf-load" onClick={() => onLoad(p.lat, p.lon)}>
             <span
               className="pf-grade"
-              style={{ background: GRADE_COLOR[p.grade] ?? "#5a6b73" }}
+              style={{ background: GRADE_COLOR[p.grade ?? ""] ?? "#5a6b73" }}
             >
-              {p.grade}
+              {p.grade ?? "—"}
             </span>
             <span className="pf-info">
               <span className="pf-name">{p.name}</span>
               <span className="pf-meta">
-                {p.score}/100 · {p.lat.toFixed(3)}, {p.lon.toFixed(3)}
-                {p.area ? ` · ${p.area} ha` : ""}
+                {p.score ?? "—"}/100 · {p.lat.toFixed(3)}, {p.lon.toFixed(3)}
+                {p.area_ha ? ` · ${p.area_ha} ha` : ""}
               </span>
             </span>
           </button>
-          <button className="pf-del" onClick={() => remove(p.id)} title="Xóa">
+          <button
+            className="pf-del"
+            onClick={() => remove(p.id)}
+            disabled={busy}
+            title="Xóa"
+          >
             ✕
           </button>
         </div>
@@ -202,7 +220,8 @@ function buildReportHtml(scan: any, area?: number): string {
   <h3>Toàn bộ 14 module</h3>
   <table><thead><tr><th>Module</th><th>Mức</th><th>Nguồn</th><th>Nhận định</th></tr></thead>
   <tbody>${rows}</tbody></table>
-  <p class="foot">Nguồn dữ liệu thật: Open-Meteo (dự báo + lịch sử ERA5), NASA POWER, DEM Open-Meteo.
+  <p class="foot">Nguồn dữ liệu thật: Open-Meteo (dự báo + lịch sử ERA5), GloFAS lưu lượng sông,
+  Open-Meteo Marine, NASA POWER, DEM Open-Meteo.
   🧪 = ước lượng vật lý có tham số giải thích được, chờ hiệu chỉnh bằng số đo thực địa.
   ⏳ = chưa đưa con số (chờ ảnh Sentinel, hoặc vị trí ngoài phạm vi vùng của mô-đun).
   Kết quả kèm sai số, không đảm bảo 100%.</p>

@@ -352,6 +352,101 @@ export type AnomalyResult = {
   method?: string;
 };
 
+// ---- Tài khoản & thửa đất (thay localStorage) ----
+export type AuthUser = { id: number; email: string; name: string };
+export type TokenResponse = { access_token: string; user: AuthUser };
+
+export type ServerPlot = {
+  id: number;
+  name: string;
+  lat: number;
+  lon: number;
+  area_ha: number | null;
+  score: number | null;
+  grade: string | null;
+  created_at: string;
+};
+
+const TOKEN_KEY = "terratwin_token";
+
+export function getToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function setToken(t: string | null) {
+  if (typeof window === "undefined") return;
+  if (t) localStorage.setItem(TOKEN_KEY, t);
+  else localStorage.removeItem(TOKEN_KEY);
+}
+
+function authHeaders(): Record<string, string> {
+  const t = getToken();
+  return t ? { Authorization: `Bearer ${t}` } : {};
+}
+
+async function authed<T>(
+  path: string,
+  init: RequestInit,
+  err: string,
+): Promise<T> {
+  const r = await fetch(`${BASE}${path}`, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
+      ...(init.headers as Record<string, string> | undefined),
+    },
+  });
+  if (r.status === 401) {
+    setToken(null);
+    throw new Error("Phiên đăng nhập đã hết hạn — vui lòng đăng nhập lại.");
+  }
+  if (!r.ok) throw new Error(await errMessage(r, err));
+  return r.status === 204 ? (undefined as T) : r.json();
+}
+
+export function register(email: string, password: string, name: string) {
+  return authed<TokenResponse>("/api/auth/register",
+    { method: "POST", body: JSON.stringify({ email, password, name }) },
+    "Không đăng ký được");
+}
+
+export function login(email: string, password: string) {
+  return authed<TokenResponse>("/api/auth/login",
+    { method: "POST", body: JSON.stringify({ email, password }) },
+    "Không đăng nhập được");
+}
+
+export function fetchMe() {
+  return authed<AuthUser>("/api/auth/me", { method: "GET" }, "Không lấy được tài khoản");
+}
+
+export function listPlots() {
+  return authed<ServerPlot[]>("/api/plots", { method: "GET" },
+    "Không tải được danh mục thửa đất");
+}
+
+export function savePlot(
+  name: string,
+  lat: number,
+  lon: number,
+  areaHa?: number,
+  score?: number,
+  grade?: string,
+) {
+  const location: Record<string, number> = { lat, lon };
+  if (areaHa != null) location.area_ha = areaHa;
+  return authed<ServerPlot>("/api/plots",
+    { method: "POST", body: JSON.stringify({ name, location, score, grade }) },
+    "Không lưu được thửa đất");
+}
+
+export function deletePlot(id: number) {
+  return authed<void>(`/api/plots/${id}`, { method: "DELETE" },
+    "Không xóa được thửa đất");
+}
+
 async function postJson<T>(path: string, body: unknown, err: string): Promise<T> {
   const r = await fetch(`${BASE}${path}`, {
     method: "POST",

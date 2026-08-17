@@ -1,3 +1,12 @@
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
 pydantic==2.9.2
+
+# Database + xác thực
+SQLAlchemy==2.0.36
+PyJWT==2.9.0
+bcrypt==4.2.0
+email-validator==2.2.0
+
+# PostgreSQL cho production (SQLite là mặc định, không cần gì thêm):
+# psycopg[binary]==3.2.3
