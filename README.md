@@ -97,6 +97,9 @@ không mất khi xóa trình duyệt, và phân tách theo từng người dùng
 | `POST /api/heatmap/{id}` | Lưới rủi ro quanh thửa (C06) |
 | `POST /api/ask` · `GET /api/llm` | Hỏi What-If bằng lời (C03) · trạng thái LLM |
 | `POST /api/genome` · `POST /api/genome/warm` | Tìm vùng "song sinh" (S04) |
+| `POST /api/twin` · `GET/POST /api/twins` | Dựng & lưu bản sao số đầy đủ (C01) |
+| `GET/POST /api/channels` · `POST /api/channels/{id}/test` | Kênh nhận cảnh báo: webhook, email (U01) |
+| `GET /api/roadmap` | **Trạng thái thật của 26 luồng** — sinh từ mã nguồn |
 
 ### 🧬 S04 Twin Genome — tìm vùng giống thửa của bạn
 
@@ -183,7 +186,7 @@ terratwin/
 │       │                         #   goalseek, timemachine, anomaly,
 │       │                         #   backtest, copilot, twin
 │       └── modules/              # base + util + 14 module + registry
-│   └── tests/                    # pytest (161 test, offline & tất định)
+│   └── tests/                    # pytest (186 test, offline & tất định)
 ├── frontend/                     # Next.js 14 + MapLibre
 │   └── components/               # MapView, ResultsPanel, Overview, WhatIf,
 │                                 #   Backtest, Portfolio, Copilot
@@ -220,7 +223,7 @@ npm run dev -- -p 1825      # http://localhost:1825
 ```bash
 cd backend
 pip install -r requirements-dev.txt
-pytest                      # 161 test, chạy offline & tất định
+pytest                      # 186 test, chạy offline & tất định
 ```
 
 ---
@@ -246,13 +249,38 @@ pytest                      # 161 test, chạy offline & tất định
 1. Tạo lớp con `TwinModule` trong `backend/app/modules/`, viết `assess()`.
 2. Đăng ký ở `registry.py`. Frontend tự hiện.
 
-## Lộ trình
-- **Đã có:** 8 module dữ liệu thật · hiệu chuẩn theo khí hậu từng điểm (FAR ~3%) ·
-  backtest hai tầng · what-if · explain · goal-seek · time machine · anomaly ·
-  **database + đăng nhập** · danh mục thửa đất trên máy chủ · Twin API key.
-- **Tiếp theo:** tích hợp ảnh Sentinel (bật 5 module còn lại) · cắm dữ liệu mặn
-  MRC để hiệu chỉnh module Mặn · heatmap & Twin Genome (dùng `kv_cache` đã dựng) ·
-  Proactive Radar gửi cảnh báo Zalo/email (bảng `alerts` đã dựng) · deploy cloud.
+## Lộ trình — 26 luồng, nói thật
+
+`GET /api/roadmap` trả trạng thái sinh **từ mã nguồn**, nên không thể lệch với
+phần mềm. Tóm tắt:
+
+| | Số luồng | Gồm |
+|---|---|---|
+| ✅ **Chạy thật** | **16** | S01 · S02 · S03 · S04 · S06 · S07 · C01 · C02 · C03 · C05 · C06 · C08 · C10 · C11 · C12 · U01 |
+| 🟡 Một phần | **2** | S08 (thiếu bộ hẹn giờ chạy nền) · C09 (giọng nói xong, ảnh lá cần model vision) |
+| ⛔ Bị chặn | **8** | S05 · S09 · S10 · C04 · C07 · U02 · U03 · U04 |
+
+Ngoài 26 luồng còn có phần nền không nằm trong bảng: database, đăng nhập, khóa
+API, PWA cài được lên điện thoại, hiệu chuẩn theo khí hậu từng điểm.
+
+**Thứ đang chặn 6 luồng cuối — không phải việc code:**
+
+| Luồng | Chặn bởi |
+|---|---|
+| C04 Time-Lapse · C07 Carbon MRV | **Ảnh Sentinel** — tài khoản Copernicus miễn phí, nhưng phải chủ dự án đăng ký. Mở khoá luôn cả 5 module đang ⏳ |
+| S05 Federated Learning | Cần **nhiều bên triển khai thật** mới có gì để federate |
+| S09 Model Engine · S10 Generative Vision | Cần **dataset gán nhãn thực địa + GPU** |
+| U02 Marketplace | Cần **cổng thanh toán và pháp lý** |
+| U03 · U04 | Cần **thiết bị IoT ngoài đồng** |
+
+> Chúng tôi chọn nói thật thay vì dựng endpoint rỗng cho đủ số. Một
+> `/api/marketplace` không thanh toán được, hay một `/api/federated/aggregate`
+> không ai gửi dữ liệu tới, chỉ là con số đẹp trên slide — và giám khảo bấm thử
+> là lộ ngay.
+
+**Triển khai:** xem [DEPLOY.md](DEPLOY.md) — Render một cú bấm, Docker, hoặc Fly+Vercel.
+
+**SDK:** [`sdk/python/terratwin.py`](sdk/python/terratwin.py) — một file, không phụ thuộc gói ngoài.
 
 ## License
 MIT — xem [LICENSE](LICENSE).

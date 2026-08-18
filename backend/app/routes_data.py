@@ -18,8 +18,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import auth
-from app.db import Alert, Dataset, Plot, User, get_session
+from app.db import Alert, Dataset, NotifyChannel, Plot, Twin, User, get_session
 from app.schemas import VN_LAT_MAX, VN_LAT_MIN, VN_LON_MAX, VN_LON_MIN, Location
+from app.services import notify, twin as twin_svc
 
 router = APIRouter(tags=["data"])
 
@@ -244,14 +245,181 @@ def run_radar(user: User = Depends(auth.current_user),
             db.add(a)
             created.append(a)
     db.commit()
+
+    payload = [{"plot_id": a.plot_id, "module_id": a.module_id,
+                "risk_level": a.risk_level, "headline": a.headline,
+                "recommendation": a.recommendation} for a in created]
+
+    # U01 — đưa cảnh báo ra khỏi phần mềm. Gửi hỏng không được làm hỏng lượt quét.
+    channels = db.execute(
+        select(NotifyChannel).where(NotifyChannel.user_id == user.id,
+                                    NotifyChannel.enabled == 1)).scalars().all()
+    delivery = notify.dispatch(channels, payload)
+    db.commit()
+
     return {
         "plots_scanned": len(plots),
         "new_alerts": len(created),
         "dedup_window_hours": _DEDUP_HOURS,
-        "alerts": [{"plot_id": a.plot_id, "module_id": a.module_id,
-                    "risk_level": a.risk_level, "headline": a.headline,
-                    "recommendation": a.recommendation} for a in created],
+        "alerts": payload,
+        "delivery": delivery,
     }
+
+
+# ---------- C01 Twin Builder ----------
+
+class TwinIn(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    location: Location
+    plot_id: int | None = None
+
+
+class TwinSummary(BaseModel):
+    id: int
+    name: str
+    lat: float
+    lon: float
+    area_ha: float | None
+    score: int | None
+    grade: str | None
+    built_at: datetime
+
+
+@router.post("/api/twins", status_code=201)
+def create_twin(body: TwinIn, user: User = Depends(auth.current_user),
+                db: Session = Depends(get_session)) -> dict:
+    """Dựng Twin đầy đủ rồi LƯU LẠI — ảnh chụp tại thời điểm dựng."""
+    layers = twin_svc.build_layers(body.location)
+    ts = layers.get("terrascore") or {}
+    t = Twin(user_id=user.id, plot_id=body.plot_id, name=body.name,
+             lat=body.location.lat, lon=body.location.lon,
+             area_ha=body.location.area_ha,
+             layers=twin_svc.to_json(layers),
+             score=ts.get("score"), grade=ts.get("grade"))
+    db.add(t)
+    db.commit()
+    db.refresh(t)
+    return {"id": t.id, "name": t.name, "lat": t.lat, "lon": t.lon,
+            "area_ha": t.area_ha, "score": t.score, "grade": t.grade,
+            "built_at": t.built_at, "persisted": True, "layers": layers}
+
+
+@router.get("/api/twins", response_model=list[TwinSummary])
+def list_twins(user: User = Depends(auth.current_user),
+               db: Session = Depends(get_session)) -> list[TwinSummary]:
+    rows = db.execute(
+        select(Twin).where(Twin.user_id == user.id)
+        .order_by(Twin.built_at.desc())).scalars().all()
+    return [TwinSummary(id=t.id, name=t.name, lat=t.lat, lon=t.lon,
+                        area_ha=t.area_ha, score=t.score, grade=t.grade,
+                        built_at=t.built_at) for t in rows]
+
+
+@router.get("/api/twins/{twin_id}")
+def get_twin(twin_id: int, user: User = Depends(auth.current_user),
+             db: Session = Depends(get_session)) -> dict:
+    t = db.get(Twin, twin_id)
+    if t is None or t.user_id != user.id:
+        raise HTTPException(404, "Không tìm thấy Twin.")
+    return {"id": t.id, "name": t.name, "lat": t.lat, "lon": t.lon,
+            "area_ha": t.area_ha, "score": t.score, "grade": t.grade,
+            "built_at": t.built_at, "persisted": True,
+            "layers": twin_svc.from_json(t.layers)}
+
+
+@router.delete("/api/twins/{twin_id}", status_code=204,
+               response_class=Response, response_model=None)
+def delete_twin(twin_id: int, user: User = Depends(auth.current_user),
+                db: Session = Depends(get_session)):
+    t = db.get(Twin, twin_id)
+    if t is None or t.user_id != user.id:
+        raise HTTPException(404, "Không tìm thấy Twin.")
+    db.delete(t)
+    db.commit()
+
+
+# ---------- U01 Kênh gửi cảnh báo ----------
+
+class ChannelIn(BaseModel):
+    kind: str = Field(pattern="^(webhook|email)$")
+    target: str = Field(min_length=3, max_length=500)
+    min_level: str = Field(default="warning", pattern="^(warning|danger)$")
+
+
+class ChannelOut(BaseModel):
+    id: int
+    kind: str
+    target: str
+    min_level: str
+    enabled: bool
+    created_at: datetime
+    last_sent_at: datetime | None
+    last_error: str | None
+
+
+def _ch_out(c: NotifyChannel) -> ChannelOut:
+    return ChannelOut(id=c.id, kind=c.kind, target=c.target,
+                      min_level=c.min_level, enabled=bool(c.enabled),
+                      created_at=c.created_at, last_sent_at=c.last_sent_at,
+                      last_error=c.last_error)
+
+
+@router.get("/api/channels", response_model=list[ChannelOut])
+def list_channels(user: User = Depends(auth.current_user),
+                  db: Session = Depends(get_session)) -> list[ChannelOut]:
+    rows = db.execute(
+        select(NotifyChannel).where(NotifyChannel.user_id == user.id)
+        .order_by(NotifyChannel.created_at.desc())).scalars().all()
+    return [_ch_out(c) for c in rows]
+
+
+@router.post("/api/channels", response_model=ChannelOut, status_code=201)
+def create_channel(body: ChannelIn, user: User = Depends(auth.current_user),
+                   db: Session = Depends(get_session)) -> ChannelOut:
+    if body.kind == "webhook":
+        # Chặn ngay lúc tạo, không đợi tới lúc gửi.
+        err = notify.validate_webhook(body.target)
+        if err:
+            raise HTTPException(422, err)
+    elif "@" not in body.target:
+        raise HTTPException(422, "Địa chỉ email không hợp lệ.")
+
+    c = NotifyChannel(user_id=user.id, kind=body.kind, target=body.target,
+                      min_level=body.min_level)
+    db.add(c)
+    db.commit()
+    db.refresh(c)
+    return _ch_out(c)
+
+
+@router.delete("/api/channels/{channel_id}", status_code=204,
+               response_class=Response, response_model=None)
+def delete_channel(channel_id: int, user: User = Depends(auth.current_user),
+                   db: Session = Depends(get_session)):
+    c = db.get(NotifyChannel, channel_id)
+    if c is None or c.user_id != user.id:
+        raise HTTPException(404, "Không tìm thấy kênh.")
+    db.delete(c)
+    db.commit()
+
+
+@router.post("/api/channels/{channel_id}/test")
+def test_channel(channel_id: int, user: User = Depends(auth.current_user),
+                 db: Session = Depends(get_session)) -> dict:
+    """Gửi thử một cảnh báo giả — để người dùng biết kênh có chạy không."""
+    c = db.get(NotifyChannel, channel_id)
+    if c is None or c.user_id != user.id:
+        raise HTTPException(404, "Không tìm thấy kênh.")
+    demo = [{
+        "plot_id": None, "module_id": "test", "risk_level": "danger",
+        "headline": "[GỬI THỬ] Đây là cảnh báo mẫu từ TerraTwin.",
+        "recommendation": "Không cần làm gì — chỉ để kiểm tra kênh nhận được.",
+    }]
+    res = notify.dispatch([c], demo)
+    db.commit()
+    ok = res["sent"] > 0
+    return {"ok": ok, "detail": res["results"][0] if res["results"] else None,
+            "smtp_configured": notify.smtp_configured()}
 
 
 @router.get("/api/alerts", response_model=list[AlertOut])

@@ -491,6 +491,38 @@ export function runHeatmap(
   );
 }
 
+// ---- C03 / C09 hỏi bằng lời ----
+export type AskResult = {
+  understood: boolean;
+  available?: boolean;
+  question: string;
+  message?: string;
+  module_id?: string;
+  module_name?: string;
+  unit?: string;
+  rain_mult?: number;
+  temp_delta?: number;
+  parsed_by?: string;
+  baseline_peak?: number;
+  scenario_peak?: number;
+  delta?: number;
+  risk_level?: string;
+  headline?: string;
+  method?: string;
+  llm_available?: boolean;
+};
+
+export function runAsk(
+  question: string,
+  lat: number,
+  lon: number,
+  moduleId = "flood",
+) {
+  return postJson<AskResult>("/api/ask",
+    { question, location: { lat, lon }, module_id: moduleId },
+    "Không hỏi được");
+}
+
 // ---- C05 Proactive Radar ----
 export type AlertRow = {
   id: number;

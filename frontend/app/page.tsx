@@ -16,6 +16,7 @@ import {
 import type { HeatmapResult } from "@/lib/api";
 import Account from "@/components/Account";
 import Alerts from "@/components/Alerts";
+import FieldMode from "@/components/FieldMode";
 import Heatmap from "@/components/Heatmap";
 import ResultsPanel from "@/components/ResultsPanel";
 import Copilot from "@/components/Copilot";
@@ -232,6 +233,9 @@ export default function Home() {
             {result && <ResultsPanel a={result} />}
             {coord && result && (
               <WhatIf moduleId={active} lat={coord.lat} lon={coord.lon} />
+            )}
+            {coord && result && (
+              <FieldMode moduleId={active} lat={coord.lat} lon={coord.lon} />
             )}
             {coord && result && (
               <Heatmap

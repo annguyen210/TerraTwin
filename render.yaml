@@ -1,0 +1,61 @@
+# Deploy TerraTwin lên Render — https://render.com
+#
+# Cách dùng:
+#   1. Đẩy repo này lên GitHub.
+#   2. Render → New → Blueprint → chọn repo. Render đọc file này và dựng đủ
+#      backend + frontend + database.
+#   3. Sau khi dựng xong, mở service `terratwin-api` → Environment và đặt
+#      TERRATWIN_CORS bằng đúng URL frontend Render cấp cho bạn.
+#
+# TERRATWIN_SECRET được Render sinh ngẫu nhiên và giữ cố định — KHÔNG đặt tay,
+# nếu đổi thì mọi người dùng bị đăng xuất.
+
+databases:
+  - name: terratwin-db
+    databaseName: terratwin
+    plan: free          # đủ cho thử nghiệm; lên trả phí khi có người dùng thật
+
+services:
+  - type: web
+    name: terratwin-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt psycopg[binary]==3.2.3
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: TERRATWIN_DATABASE_URL
+        fromDatabase:
+          name: terratwin-db
+          property: connectionString
+      - key: TERRATWIN_SECRET
+        generateValue: true          # sinh một lần, giữ cố định
+      - key: TERRATWIN_TOKEN_HOURS
+        value: "72"
+      - key: TERRATWIN_RATE_LIMIT
+        value: "120"
+      - key: TERRATWIN_TRUST_PROXY
+        value: "1"                   # BẮT BUỘC: Render đứng sau proxy
+      - key: TERRATWIN_CORS
+        sync: false                  # điền URL frontend sau khi dựng xong
+      # Tuỳ chọn — bật trợ lý LLM. Nhà cung cấp nào cũng được.
+      - key: TERRATWIN_LLM_API_KEY
+        sync: false
+      - key: TERRATWIN_LLM_BASE_URL
+        sync: false
+      - key: TERRATWIN_LLM_MODEL
+        sync: false
+
+  - type: web
+    name: terratwin-web
+    runtime: node
+    plan: free
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start -- -p $PORT
+    envVars:
+      - key: NEXT_PUBLIC_API
+        sync: false                  # điền URL của terratwin-api sau khi dựng
+      - key: NODE_ENV
+        value: production

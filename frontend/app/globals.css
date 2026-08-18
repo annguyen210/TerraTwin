@@ -1300,3 +1300,130 @@ body {
   line-height: 1.45;
   margin-top: 2px;
 }
+
+/* ---- C09 Chế độ ngoài đồng ---- */
+.field {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.fm-head {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.fm-row {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+.fm-mic {
+  flex: none;
+  width: 38px;
+  background: rgba(132, 162, 178, 0.1);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 16px;
+  cursor: pointer;
+}
+.fm-mic.on {
+  background: rgba(194, 65, 46, 0.22);
+  border-color: #C2412E;
+  animation: fm-pulse 1.2s ease-in-out infinite;
+}
+@keyframes fm-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.fm-mic:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.fm-row input {
+  flex: 1;
+  min-width: 0;
+  background: rgba(132, 162, 178, 0.08);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 7px 9px;
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+}
+.fm-row input:focus {
+  outline: none;
+  border-color: var(--terra);
+}
+.fm-go {
+  flex: none;
+  background: var(--terra);
+  border: none;
+  color: #08131a;
+  border-radius: 6px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.fm-go:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.fm-examples {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+.fm-examples button {
+  text-align: left;
+  background: transparent;
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+  color: var(--dim);
+  padding: 5px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.fm-examples button:hover {
+  color: var(--terra);
+  border-color: var(--terra);
+}
+.fm-note,
+.fm-method {
+  font-size: 10.5px;
+  color: var(--dim);
+  line-height: 1.5;
+  margin: 7px 0 0;
+}
+.fm-method {
+  font-style: italic;
+  opacity: 0.8;
+}
+.fm-answer {
+  margin-top: 10px;
+}
+.fm-headline {
+  font-size: 12.5px;
+  line-height: 1.5;
+  margin: 0 0 8px;
+}
+.fm-bars {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--dim);
+}
+.fm-bars b {
+  color: var(--text);
+  font-size: 14px;
+}
+.fm-arrow {
+  color: var(--dim);
+}
+.fm-scen.danger b { color: #C2412E; }
+.fm-scen.warning b { color: #B07A2E; }
+.fm-scen.safe b { color: #2E9E67; }

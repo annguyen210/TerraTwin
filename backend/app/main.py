@@ -28,9 +28,9 @@ from app.schemas import (
 )
 from app.services import (
     anomaly, backtest, copilot, explain, genome, goalseek, hazard, heatmap, llm,
-    scan, terrascore, timemachine, whatif, whatif_nlp,
+    roadmap, scan, terrascore, timemachine, whatif, whatif_nlp,
 )
-from app.services.twin import build_twin
+from app.services import twin as twin_service
 from app import auth
 
 @asynccontextmanager
@@ -63,11 +63,29 @@ app.add_middleware(
 _RATE = int(os.environ.get("TERRATWIN_RATE_LIMIT", "120"))
 _HITS: dict[str, deque] = defaultdict(deque)
 
+# Sau reverse proxy (Render, nginx, Cloudflare), request.client.host là IP của
+# PROXY — nghĩa là mọi người dùng dùng chung một hạn mức và app sập ngay khi có
+# vài người vào cùng lúc. Đặt TERRATWIN_TRUST_PROXY=1 khi thực sự đứng sau proxy
+# để đọc X-Forwarded-For. KHÔNG bật mặc định: nếu app phơi trực tiếp ra Internet,
+# tin XFF cho phép client tự bịa IP và né hoàn toàn giới hạn.
+_TRUST_PROXY = os.environ.get("TERRATWIN_TRUST_PROXY", "").strip() in ("1", "true", "yes")
+
+
+def _client_ip(request: Request) -> str:
+    if _TRUST_PROXY:
+        xff = request.headers.get("x-forwarded-for")
+        if xff:
+            return xff.split(",")[0].strip()
+        real = request.headers.get("x-real-ip")
+        if real:
+            return real.strip()
+    return request.client.host if request.client else "unknown"
+
 
 @app.middleware("http")
 async def rate_limit(request: Request, call_next):
     if _RATE > 0 and request.url.path.startswith("/api/"):
-        ip = request.client.host if request.client else "unknown"
+        ip = _client_ip(request)
         now = time.time()
         dq = _HITS[ip]
         while dq and now - dq[0] > 60.0:
@@ -95,14 +113,24 @@ def health() -> dict:
     return {"status": "ok", "service": "terratwin", "modules": len(list_modules())}
 
 
+@app.get("/api/roadmap")
+def roadmap_status() -> dict:
+    """Trạng thái thật của 26 luồng tính năng — sinh từ mã nguồn, không viết tay."""
+    return roadmap.status()
+
+
 @app.get("/api/modules", response_model=list[ModuleInfo])
 def modules() -> list[ModuleInfo]:
     return list_modules()
 
 
 @app.post("/api/twin")
-def create_twin(location: Location) -> dict:
-    return build_twin(location)
+def build_twin_endpoint(location: Location) -> dict:
+    """C01 Twin Builder — dựng bản sao số đầy đủ (không lưu).
+
+    Muốn lưu lại thì đăng nhập và dùng POST /api/twins.
+    """
+    return twin_service.build(location)
 
 
 @app.post("/api/assess/{module_id}", response_model=Assessment)

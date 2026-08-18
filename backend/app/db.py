@@ -76,6 +76,47 @@ class Plot(Base):
     )
 
 
+class Twin(Base):
+    """C01 Twin Builder — bản sao số của một thửa đất, đã dựng và lưu lại.
+
+    Khác `Plot` (chỉ là toạ độ đã lưu): Twin chứa TẤT CẢ các lớp dữ liệu đã
+    dựng tại một thời điểm — địa hình, khí hậu, hiểm họa, TerraScore — nên xem
+    lại được nguyên trạng mà không phải gọi lại toàn bộ API.
+    """
+    __tablename__ = "twins"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    plot_id: Mapped[int | None] = mapped_column(
+        ForeignKey("plots.id", ondelete="SET NULL"), nullable=True)
+    name: Mapped[str] = mapped_column(String(200))
+    lat: Mapped[float] = mapped_column(Float)
+    lon: Mapped[float] = mapped_column(Float)
+    area_ha: Mapped[float | None] = mapped_column(Float, nullable=True)
+    layers: Mapped[str] = mapped_column(Text)          # JSON các lớp đã dựng
+    score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    grade: Mapped[str | None] = mapped_column(String(4), nullable=True)
+    built_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
+
+
+class NotifyChannel(Base):
+    """U01 Action & Automation — nơi gửi cảnh báo tới."""
+    __tablename__ = "notify_channels"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    kind: Mapped[str] = mapped_column(String(16))       # webhook | email
+    target: Mapped[str] = mapped_column(String(500))    # URL hoặc địa chỉ email
+    # Chỉ gửi khi mức rủi ro đạt ngưỡng này trở lên.
+    min_level: Mapped[str] = mapped_column(String(16), default="warning")
+    enabled: Mapped[int] = mapped_column(Integer, default=1)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    last_sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
 class ApiKey(Base):
     """C12 Twin API — khóa để bên thứ ba gọi API thay cho JWT."""
     __tablename__ = "api_keys"
