@@ -90,6 +90,48 @@ def weather_7d(lat: float, lon: float):
     return rows
 
 
+# Open-Meteo chỉ nhận tối đa 100 toạ độ mỗi lần gọi; quá số này API trả lỗi và
+# ta sẽ mất TOÀN BỘ lô. Mọi hàm *_multi vì thế phải tự chia lô bên trong —
+# bên gọi không cần biết giới hạn này.
+_MAX_POINTS = 100
+
+
+def _chunks(points: list, size: int = _MAX_POINTS):
+    for i in range(0, len(points), size):
+        yield points[i:i + size]
+
+
+def historical_weather_multi(points: list[tuple[float, float]],
+                             start: str, end: str):
+    """Thời tiết lịch sử (ERA5) cho NHIỀU điểm trong MỘT lần gọi.
+
+    Archive API cũng nhận danh sách toạ độ, nên dựng được bộ gen khí hậu cho cả
+    lưới toàn quốc mà không phải gọi hàng trăm lượt. Trả list (cùng thứ tự với
+    `points`) gồm list dict hoặc None.
+    """
+    if not points:
+        return []
+    out = []
+    for chunk in _chunks(points):
+        lat_q = ",".join(f"{la:.4f}" for la, _ in chunk)
+        lon_q = ",".join(f"{lo:.4f}" for _, lo in chunk)
+        url = (
+            "https://archive-api.open-meteo.com/v1/archive"
+            f"?latitude={lat_q}&longitude={lon_q}"
+            f"&start_date={start}&end_date={end}"
+            "&daily=precipitation_sum,et0_fao_evapotranspiration,temperature_2m_max"
+            "&timezone=auto"
+        )
+        d = _get(url, timeout=120.0)
+        if d is None:
+            out.extend([None] * len(chunk))
+            continue
+        items = d if isinstance(d, list) else [d]
+        out.extend(_rows_from_daily(items[i] if i < len(items) else None)
+                   for i in range(len(chunk)))
+    return out
+
+
 def weather_multi(points: list[tuple[float, float]]):
     """Dự báo 7 ngày cho NHIỀU điểm trong MỘT lần gọi.
 
@@ -99,23 +141,24 @@ def weather_multi(points: list[tuple[float, float]]):
     """
     if not points:
         return []
-    lat_q = ",".join(f"{la:.4f}" for la, _ in points)
-    lon_q = ",".join(f"{lo:.4f}" for _, lo in points)
-    url = (
-        "https://api.open-meteo.com/v1/forecast"
-        f"?latitude={lat_q}&longitude={lon_q}"
-        "&daily=precipitation_sum,et0_fao_evapotranspiration,temperature_2m_max"
-        "&forecast_days=7&timezone=auto"
-    )
-    d = _get(url, timeout=25.0)
-    if d is None:
-        return [None] * len(points)
-    # Một điểm → Open-Meteo trả object; nhiều điểm → trả mảng.
-    items = d if isinstance(d, list) else [d]
     out = []
-    for i in range(len(points)):
-        item = items[i] if i < len(items) else None
-        out.append(_rows_from_daily(item))
+    for chunk in _chunks(points):
+        lat_q = ",".join(f"{la:.4f}" for la, _ in chunk)
+        lon_q = ",".join(f"{lo:.4f}" for _, lo in chunk)
+        url = (
+            "https://api.open-meteo.com/v1/forecast"
+            f"?latitude={lat_q}&longitude={lon_q}"
+            "&daily=precipitation_sum,et0_fao_evapotranspiration,temperature_2m_max"
+            "&forecast_days=7&timezone=auto"
+        )
+        d = _get(url, timeout=25.0)
+        if d is None:
+            out.extend([None] * len(chunk))
+            continue
+        # Một điểm → Open-Meteo trả object; nhiều điểm → trả mảng.
+        items = d if isinstance(d, list) else [d]
+        out.extend(_rows_from_daily(items[i] if i < len(items) else None)
+                   for i in range(len(chunk)))
     return out
 
 
@@ -146,15 +189,20 @@ def elevation_multi(points: list[tuple[float, float]]):
     """Cao độ cho nhiều điểm trong một lần gọi. Trả list float|None."""
     if not points:
         return []
-    lat_q = ",".join(f"{la:.5f}" for la, _ in points)
-    lon_q = ",".join(f"{lo:.5f}" for _, lo in points)
-    d = _get(f"https://api.open-meteo.com/v1/elevation?latitude={lat_q}&longitude={lon_q}",
-             timeout=20.0)
-    try:
-        vals = [float(x) for x in d["elevation"]]
-    except (KeyError, TypeError, ValueError):
-        return [None] * len(points)
-    return [vals[i] if i < len(vals) else None for i in range(len(points))]
+    out: list[float | None] = []
+    for chunk in _chunks(points):
+        lat_q = ",".join(f"{la:.5f}" for la, _ in chunk)
+        lon_q = ",".join(f"{lo:.5f}" for _, lo in chunk)
+        d = _get(
+            f"https://api.open-meteo.com/v1/elevation?latitude={lat_q}&longitude={lon_q}",
+            timeout=20.0)
+        try:
+            vals = [float(x) for x in d["elevation"]]
+        except (KeyError, TypeError, ValueError):
+            out.extend([None] * len(chunk))
+            continue
+        out.extend(vals[i] if i < len(vals) else None for i in range(len(chunk)))
+    return out
 
 
 def elevation_m(lat: float, lon: float):

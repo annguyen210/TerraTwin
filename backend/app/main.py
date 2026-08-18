@@ -27,8 +27,8 @@ from app.schemas import (
     TerraScoreResult, WhatIfResult,
 )
 from app.services import (
-    anomaly, backtest, copilot, explain, goalseek, hazard, heatmap, llm, scan,
-    terrascore, timemachine, whatif, whatif_nlp,
+    anomaly, backtest, copilot, explain, genome, goalseek, hazard, heatmap, llm,
+    scan, terrascore, timemachine, whatif, whatif_nlp,
 )
 from app.services.twin import build_twin
 from app import auth
@@ -185,6 +185,23 @@ def heatmap_endpoint(module_id: str, location: Location,
 def anomaly_endpoint(location: Location, years: int = 10) -> dict:
     """C10 Anomaly — tuần tới có bất thường so với khí hậu nền cùng kỳ không."""
     return anomaly.run(location.lat, location.lon, years=max(3, min(years, 30)))
+
+
+@app.post("/api/genome")
+def genome_endpoint(location: Location, k: int = 5) -> dict:
+    """S04 Twin Genome — tìm những vùng có 'bộ gen' đất đai giống thửa của bạn.
+
+    Lần gọi đầu tiên phải dựng lưới tham chiếu toàn quốc (~1–2 phút); sau đó
+    lấy từ cache 30 ngày. Gọi trước /api/genome/warm để dựng sẵn.
+    """
+    return genome.find_twins(location.lat, location.lon, k=k)
+
+
+@app.post("/api/genome/warm")
+def genome_warm(force: bool = False) -> dict:
+    """Dựng sẵn lưới tham chiếu để lần hỏi đầu của người dùng không phải chờ."""
+    ref = genome.build_reference(force=force)
+    return {k: v for k, v in ref.items() if k != "cells"}
 
 
 class AskRequest(BaseModel):

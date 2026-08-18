@@ -96,6 +96,28 @@ không mất khi xóa trình duyệt, và phân tách theo từng người dùng
 | `POST /api/radar/run` · `GET /api/alerts` | Quét lại mọi thửa đã lưu, sinh cảnh báo mới (C05/S08) |
 | `POST /api/heatmap/{id}` | Lưới rủi ro quanh thửa (C06) |
 | `POST /api/ask` · `GET /api/llm` | Hỏi What-If bằng lời (C03) · trạng thái LLM |
+| `POST /api/genome` · `POST /api/genome/warm` | Tìm vùng "song sinh" (S04) |
+
+### 🧬 S04 Twin Genome — tìm vùng giống thửa của bạn
+
+Mỗi vị trí có một **bộ gen** 7 đặc trưng đo được: cao độ · độ dốc · cách biển ·
+mưa cả năm · tỉ lệ mưa mùa khô · nhiệt tối đa · **biên độ nhiệt mùa**. Lưới tham
+chiếu 180 ô đất liền phủ Việt Nam, dựng từ ERA5 — chuẩn hoá rồi tìm láng giềng
+gần nhất.
+
+> Bến Tre (6 m, biên độ 4,8 °C) → khớp Kiên Giang 1 m · Bạc Liêu 1 m · Cần Thơ 6 m
+> Sa Pa (1563 m, biên độ **11,2 °C**) → khớp núi phía Bắc, **không** phải Đà Lạt
+
+Đặc trưng **biên độ nhiệt mùa** là thứ phân biệt Bắc/Nam: Sa Pa và Đà Lạt cao gần
+bằng nhau nhưng biên độ 11,2 °C so với 5,5 °C, nên thuật toán không lẫn.
+
+Cao độ · độ dốc · cách biển được **log-hoá** trước khi chuẩn hoá. Nếu không, trên
+thang 0–3000 m thì 6 m và 52 m gần như bằng nhau — trong khi với nông dân ĐBSCL
+đó là khác biệt sống còn về ngập.
+
+> ⚠️ Lưới ~0,75° (≈80 km) nên tìm được **vùng** tương đồng, không phải thửa giống
+> hệt. Khí hậu lấy từ **một năm tham chiếu (2023)**, không phải chuẩn 30 năm.
+> Lần dựng lưới đầu mất ~2–3 phút; gọi `POST /api/genome/warm` để dựng sẵn (cache 30 ngày).
 
 ### Trợ lý LLM — cắm key nào cũng chạy
 
@@ -161,7 +183,7 @@ terratwin/
 │       │                         #   goalseek, timemachine, anomaly,
 │       │                         #   backtest, copilot, twin
 │       └── modules/              # base + util + 14 module + registry
-│   └── tests/                    # pytest (147 test, offline & tất định)
+│   └── tests/                    # pytest (161 test, offline & tất định)
 ├── frontend/                     # Next.js 14 + MapLibre
 │   └── components/               # MapView, ResultsPanel, Overview, WhatIf,
 │                                 #   Backtest, Portfolio, Copilot
@@ -198,7 +220,7 @@ npm run dev -- -p 1825      # http://localhost:1825
 ```bash
 cd backend
 pip install -r requirements-dev.txt
-pytest                      # 147 test, chạy offline & tất định
+pytest                      # 161 test, chạy offline & tất định
 ```
 
 ---
