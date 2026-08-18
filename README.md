@@ -186,7 +186,7 @@ terratwin/
 │       │                         #   goalseek, timemachine, anomaly,
 │       │                         #   backtest, copilot, twin
 │       └── modules/              # base + util + 14 module + registry
-│   └── tests/                    # pytest (186 test, offline & tất định)
+│   └── tests/                    # pytest (217 test, offline & tất định)
 ├── frontend/                     # Next.js 14 + MapLibre
 │   └── components/               # MapView, ResultsPanel, Overview, WhatIf,
 │                                 #   Backtest, Portfolio, Copilot
@@ -223,7 +223,7 @@ npm run dev -- -p 1825      # http://localhost:1825
 ```bash
 cd backend
 pip install -r requirements-dev.txt
-pytest                      # 186 test, chạy offline & tất định
+pytest                      # 217 test, chạy offline & tất định
 ```
 
 ---
@@ -249,36 +249,54 @@ pytest                      # 186 test, chạy offline & tất định
 1. Tạo lớp con `TwinModule` trong `backend/app/modules/`, viết `assess()`.
 2. Đăng ký ở `registry.py`. Frontend tự hiện.
 
-## Lộ trình — 26 luồng, nói thật
+## Lộ trình — 24/26 luồng chạy thật
 
 `GET /api/roadmap` trả trạng thái sinh **từ mã nguồn**, nên không thể lệch với
-phần mềm. Tóm tắt:
+phần mềm.
 
-| | Số luồng | Gồm |
+| | Số luồng | |
 |---|---|---|
-| ✅ **Chạy thật** | **16** | S01 · S02 · S03 · S04 · S06 · S07 · C01 · C02 · C03 · C05 · C06 · C08 · C10 · C11 · C12 · U01 |
-| 🟡 Một phần | **2** | S08 (thiếu bộ hẹn giờ chạy nền) · C09 (giọng nói xong, ảnh lá cần model vision) |
-| ⛔ Bị chặn | **8** | S05 · S09 · S10 · C04 · C07 · U02 · U03 · U04 |
+| ✅ **Chạy thật** | **24** | Signature 9/10 · Cốt lõi 11/12 · Nâng cấp 4/4 |
+| ⛔ Bị chặn | **2** | S10 Generative Vision · C07 Carbon MRV |
 
-Ngoài 26 luồng còn có phần nền không nằm trong bảng: database, đăng nhập, khóa
-API, PWA cài được lên điện thoại, hiệu chuẩn theo khí hậu từng điểm.
+### Xương sống học hỏi — thứ khiến phần mềm khá lên theo thời gian
 
-**Thứ đang chặn 6 luồng cuối — không phải việc code:**
+```
+quan sát thực địa (S05) → chấm điểm mô hình (S09) → hiệu chỉnh ngưỡng
+      ↑                                                      ↓
+xác nhận kết quả (U04) ←──── khuyến nghị ←──── cảnh báo chính xác hơn
+```
+
+- **S05 Federated Learning** — nông dân gửi "hôm 12/10 ruộng tôi ngập thật".
+  Quan sát **thô không rời tài khoản người gửi**; chỉ chia sẻ *một con số* hiệu
+  chỉnh cho mỗi vùng 0,5°, và chỉ khi đã đủ 3 quan sát. Dịch chuyển chặn trong
+  ±15 điểm để một nhóm nhỏ quan sát sai không phá được mô hình.
+- **S09 Model Engine** — chấm mô hình bằng **POD · FAR · CSI · bias** trên quan
+  sát thật, chỉ ra vùng nào đang lệch và lệch hướng nào.
+- **U04 Closed-Loop** — cơ cấu chấp hành là **con người**: khuyến nghị → xác
+  nhận đã làm → đối chiếu kết quả → nạp lại hiệu chuẩn.
+- **U02 Chợ tri thức** — ghép theo Twin Genome: kinh nghiệm từ vùng cùng bộ gen
+  đất đáng học hơn lời khuyên chung chung. Không thanh toán nên không vướng pháp lý.
+- **C04 Time-Lapse** — diễn biến rủi ro khí hậu qua 10 năm ERA5, kèm xu thế.
+- **U03 Design Studio** — sinh phương án canh tác cụ thể; mỗi điểm cộng/trừ kèm
+  lý do truy được về con số gốc.
+
+### 2 luồng còn bị chặn — cùng một nguyên nhân
 
 | Luồng | Chặn bởi |
 |---|---|
-| C04 Time-Lapse · C07 Carbon MRV | **Ảnh Sentinel** — tài khoản Copernicus miễn phí, nhưng phải chủ dự án đăng ký. Mở khoá luôn cả 5 module đang ⏳ |
-| S05 Federated Learning | Cần **nhiều bên triển khai thật** mới có gì để federate |
-| S09 Model Engine · S10 Generative Vision | Cần **dataset gán nhãn thực địa + GPU** |
-| U02 Marketplace | Cần **cổng thanh toán và pháp lý** |
-| U03 · U04 | Cần **thiết bị IoT ngoài đồng** |
+| **S10** Generative Vision | Ảnh Sentinel + GPU + model đã huấn luyện. Thiếu cả ba thì làm giả chỉ tạo ra ảnh *trông như* vệ tinh mà không phải vệ tinh — nguy hiểm hơn là không có |
+| **C07** Carbon MRV | Sinh khối cần ảnh Sentinel + khảo sát thực địa. Con số carbon có hệ quả **tài chính và pháp lý** — đây là luồng duy nhất mà làm giả gây thiệt hại tiền thật |
 
-> Chúng tôi chọn nói thật thay vì dựng endpoint rỗng cho đủ số. Một
-> `/api/marketplace` không thanh toán được, hay một `/api/federated/aggregate`
-> không ai gửi dữ liệu tới, chỉ là con số đẹp trên slide — và giám khảo bấm thử
-> là lộ ngay.
+Cả hai mở khoá bằng **một tài khoản Copernicus miễn phí**, và cũng bật luôn 5
+module đang ⏳.
 
-**Triển khai:** xem [DEPLOY.md](DEPLOY.md) — Render một cú bấm, Docker, hoặc Fly+Vercel.
+> **Một điều đã học khi làm:** ban đầu 8 luồng bị xếp "bị chặn" vì mỗi luồng bị
+> gán vào *một công nghệ cụ thể*. Xét lại theo **mục đích** thì 6 trong số đó có
+> bản thật, hữu ích, làm được bằng dữ liệu đã có. Hỏi "luồng này để làm gì cho
+> người dùng" trước khi hỏi "nó cần công nghệ gì".
+
+**Triển khai:** [DEPLOY.md](DEPLOY.md) — Render một cú bấm, Docker, hoặc Fly+Vercel.
 
 **SDK:** [`sdk/python/terratwin.py`](sdk/python/terratwin.py) — một file, không phụ thuộc gói ngoài.
 

@@ -22,13 +22,15 @@ from app.db import init_db
 from app.modules.registry import get_module, list_modules
 from app.routes_account import router as account_router
 from app.routes_data import router as data_router
+from app.routes_learn import router as learn_router
 from app.schemas import (
     Assessment, CopilotAnswer, Location, ModuleInfo, ScanResult,
     TerraScoreResult, WhatIfResult,
 )
 from app.services import (
     anomaly, backtest, copilot, explain, genome, goalseek, hazard, heatmap, llm,
-    roadmap, scan, terrascore, timemachine, whatif, whatif_nlp,
+    design, roadmap, scan, terrascore, timelapse, timemachine, whatif,
+    whatif_nlp,
 )
 from app.services import twin as twin_service
 from app import auth
@@ -101,6 +103,7 @@ async def rate_limit(request: Request, call_next):
 
 app.include_router(account_router)
 app.include_router(data_router)
+app.include_router(learn_router)
 
 
 class CopilotRequest(BaseModel):
@@ -213,6 +216,26 @@ def heatmap_endpoint(module_id: str, location: Location,
 def anomaly_endpoint(location: Location, years: int = 10) -> dict:
     """C10 Anomaly — tuần tới có bất thường so với khí hậu nền cùng kỳ không."""
     return anomaly.run(location.lat, location.lon, years=max(3, min(years, 30)))
+
+
+@app.post("/api/timelapse/{module_id}")
+def timelapse_endpoint(module_id: str, location: Location,
+                       years: int = 10) -> dict:
+    """C04 Time-Lapse — rủi ro của thửa này đã đổi thế nào qua các năm.
+
+    Đây là time-lapse của RỦI RO KHÍ HẬU từ ERA5, không phải phát hiện thay đổi
+    bề mặt trên ảnh vệ tinh (cái đó cần Sentinel).
+    """
+    result = timelapse.build(module_id, location.lat, location.lon, years=years)
+    if result is None:
+        raise HTTPException(status_code=404, detail=_HAZARD_ONLY)
+    return result
+
+
+@app.post("/api/design")
+def design_endpoint(location: Location) -> dict:
+    """U03 Design Studio — sinh phương án canh tác cụ thể cho thửa đất."""
+    return design.generate(location)
 
 
 @app.post("/api/genome")

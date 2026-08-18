@@ -117,6 +117,88 @@ class NotifyChannel(Base):
     last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
+class Observation(Base):
+    """S05 Federated Learning — quan sát THỰC ĐỊA do người dùng gửi.
+
+    Đây là moat của TerraTwin. Mô hình chạy trên dữ liệu vệ tinh mở mà ai cũng
+    có; thứ không ai copy được là "hôm 12/10 ruộng tôi ngập thật". Mỗi quan sát
+    là một điểm ground-truth để hiệu chỉnh ngưỡng cho vùng đó.
+
+    "Federated" ở đây có nghĩa cụ thể: quan sát THÔ gắn với tài khoản người gửi
+    và không bao giờ lộ ra ngoài. Thứ được chia sẻ giữa mọi người chỉ là con số
+    hiệu chỉnh tổng hợp theo vùng — xem services/federated.py.
+    """
+    __tablename__ = "observations"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    plot_id: Mapped[int | None] = mapped_column(
+        ForeignKey("plots.id", ondelete="SET NULL"), nullable=True)
+    lat: Mapped[float] = mapped_column(Float)
+    lon: Mapped[float] = mapped_column(Float)
+    module_id: Mapped[str] = mapped_column(String(48), index=True)
+    # Ngày sự kiện xảy ra ngoài đồng (không phải ngày gửi).
+    observed_on: Mapped[str] = mapped_column(String(10), index=True)
+    # occurred = có xảy ra thật; none = model báo nhưng KHÔNG xảy ra (báo động giả)
+    outcome: Mapped[str] = mapped_column(String(16))
+    severity: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    note: Mapped[str] = mapped_column(Text, default="")
+    # Chỉ số model tính cho chính ngày đó — chốt lại lúc gửi để chấm điểm sau.
+    model_index: Mapped[float | None] = mapped_column(Float, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
+
+
+class ActionLog(Base):
+    """U04 Autonomous Closed-Loop — vòng khép kín với NGƯỜI là cơ cấu chấp hành.
+
+    Không có van bơm IoT, nhưng vòng vẫn đóng được: hệ thống khuyến nghị →
+    người xác nhận đã làm → hệ thống đối chiếu kết quả về sau. Mắt xích thường
+    bị bỏ qua chính là mắt xích cuối: hầu hết phần mềm cảnh báo không bao giờ
+    biết lời khuyên của nó có ai làm theo không, và có hiệu quả không.
+    """
+    __tablename__ = "action_logs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    alert_id: Mapped[int | None] = mapped_column(
+        ForeignKey("alerts.id", ondelete="SET NULL"), nullable=True)
+    plot_id: Mapped[int | None] = mapped_column(
+        ForeignKey("plots.id", ondelete="SET NULL"), nullable=True)
+    module_id: Mapped[str] = mapped_column(String(48))
+    recommendation: Mapped[str] = mapped_column(Text)
+    # done = đã làm theo · skipped = bỏ qua · other = làm cách khác
+    status: Mapped[str] = mapped_column(String(16), default="done")
+    note: Mapped[str] = mapped_column(Text, default="")
+    acted_on: Mapped[str] = mapped_column(String(10))
+    # Kết quả đối chiếu về sau, do người dùng xác nhận.
+    outcome: Mapped[str | None] = mapped_column(String(24), nullable=True)
+    outcome_note: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
+
+
+class KnowledgeNote(Base):
+    """U02 Marketplace — chợ TRI THỨC, không phải chợ tiền.
+
+    Ghép theo Twin Genome: kinh nghiệm của người có bộ gen đất giống bạn đáng
+    học hơn kinh nghiệm chung chung. Không thanh toán nên không vướng pháp lý.
+    """
+    __tablename__ = "knowledge_notes"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    lat: Mapped[float] = mapped_column(Float)
+    lon: Mapped[float] = mapped_column(Float)
+    title: Mapped[str] = mapped_column(String(200))
+    body: Mapped[str] = mapped_column(Text)
+    topic: Mapped[str] = mapped_column(String(48), index=True)
+    author_name: Mapped[str] = mapped_column(String(120), default="")
+    helpful_count: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
+
+
 class ApiKey(Base):
     """C12 Twin API — khóa để bên thứ ba gọi API thay cho JWT."""
     __tablename__ = "api_keys"
