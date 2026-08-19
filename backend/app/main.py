@@ -9,6 +9,7 @@ Cấu hình qua biến môi trường (xem .env.example):
 from __future__ import annotations
 
 import os
+import sys
 import time
 from collections import defaultdict, deque
 from contextlib import asynccontextmanager
@@ -29,21 +30,100 @@ from app.schemas import (
 )
 from app.services import (
     anomaly, backtest, copilot, explain, genome, goalseek, hazard, heatmap, llm,
-    design, roadmap, scan, terrascore, timelapse, timemachine, whatif,
-    whatif_nlp,
+    design, mrv, roadmap, scan, sentinel, terrascore, timelapse, timemachine,
+    whatif, whatif_nlp,
 )
 from app.services import twin as twin_service
 from app import auth
 
+
+def log(msg: str) -> None:
+    """In log an toàn với mọi bảng mã console.
+
+    KHÔNG dùng print() thẳng cho chuỗi tiếng Việt. Console Windows mặc định là
+    cp1252/cp437; print("chủ động") ở đó ném UnicodeEncodeError, và nếu câu lệnh
+    đó nằm trong lifespan thì APP KHÔNG KHỞI ĐỘNG ĐƯỢC — sập vì một dòng log.
+    Đã dính đúng lỗi này một lần, nên chặn ở một chỗ duy nhất.
+    """
+    try:
+        print(msg, flush=True)
+    except UnicodeEncodeError:
+        enc = (getattr(sys.stdout, "encoding", None) or "ascii")
+        sys.stdout.buffer.write(msg.encode(enc, "replace") + b"\n")
+        sys.stdout.flush()
+
+
+# Bộ hẹn giờ nền cho C05 Proactive Radar.
+# 0 = tắt (dùng khi chạy nhiều worker hoặc đã có cron ngoài gọi /api/radar/run).
+_RADAR_INTERVAL_H = float(os.environ.get("TERRATWIN_RADAR_INTERVAL_H", "6") or 0)
+
+
+async def _radar_loop() -> None:
+    """Quét định kỳ cho mọi người dùng.
+
+    Chờ TRƯỚC rồi mới quét: khi Render/Fly khởi động lại container (chuyện xảy
+    ra thường xuyên trên gói miễn phí) ta không muốn mỗi lần restart lại nã một
+    loạt request vào Open-Meteo.
+    """
+    import asyncio
+
+    from app.db import SessionLocal
+    from app.services import radar as radar_svc
+
+    interval = _RADAR_INTERVAL_H * 3600.0
+    while True:
+        try:
+            await asyncio.sleep(interval)
+        except asyncio.CancelledError:
+            return
+        try:
+            # Quét chạm mạng và database nên đẩy sang luồng phụ, không chặn
+            # vòng lặp sự kiện đang phục vụ người dùng.
+            def _sweep() -> dict:
+                db = SessionLocal()
+                try:
+                    return radar_svc.sweep_all(db)
+                finally:
+                    db.close()
+
+            r = await asyncio.to_thread(_sweep)
+            if r["new_alerts"]:
+                log(f"[TerraTwin] Rà soát nền: {r['users_scanned']} tài khoản · "
+                      f"{r['plots_scanned']} thửa · {r['new_alerts']} cảnh báo mới "
+                      f"· gửi {r['notifications_sent']} (lỗi {r['notifications_failed']}).")
+        except asyncio.CancelledError:
+            return
+        except Exception as e:      # nền hỏng không được kéo sập API
+            log(f"[TerraTwin] Rà soát nền lỗi: {type(e).__name__}: {e}")
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    import asyncio
+
     init_db()
     if not auth.SECRET_FROM_ENV:
         # Không hardcode secret. Cảnh báo rõ để production không quên đặt.
-        print("[TerraTwin] CẢNH BÁO: chưa đặt TERRATWIN_SECRET — dùng secret ngẫu "
+        log("[TerraTwin] CẢNH BÁO: chưa đặt TERRATWIN_SECRET — dùng secret ngẫu "
               "nhiên, mọi token sẽ mất hiệu lực khi restart. Đặt biến này trước "
               "khi triển khai thật.")
-    yield
+
+    task = None
+    if _RADAR_INTERVAL_H > 0:
+        task = asyncio.create_task(_radar_loop())
+        log(f"[TerraTwin] Rà soát chủ động: tự chạy mỗi {_RADAR_INTERVAL_H} giờ.")
+    else:
+        log("[TerraTwin] Rà soát chủ động: bộ hẹn giờ nội bộ TẮT — cảnh báo chỉ "
+              "sinh khi có người gọi /api/radar/run.")
+    try:
+        yield
+    finally:
+        if task is not None:
+            task.cancel()
+            try:
+                await task
+            except (asyncio.CancelledError, Exception):
+                pass
 
 
 app = FastAPI(title="TerraTwin API", version="0.5.0", lifespan=lifespan)
@@ -236,6 +316,35 @@ def timelapse_endpoint(module_id: str, location: Location,
 def design_endpoint(location: Location) -> dict:
     """U03 Design Studio — sinh phương án canh tác cụ thể cho thửa đất."""
     return design.generate(location)
+
+
+@app.get("/api/satellite")
+def satellite_status() -> dict:
+    """Ảnh vệ tinh đã nối chưa — và nếu chưa thì thiếu chính xác thứ gì."""
+    s = sentinel.status()
+    s["unlocks"] = ["pest", "yield", "carbon", "storm_damage", "illegal_build"]
+    return s
+
+
+class MrvRequest(BaseModel):
+    location: Location
+    project_name: str = ""
+    # Hệ số sinh khối địa phương (tấn chất khô/ha) từ khảo sát ô mẫu. Có thì báo
+    # cáo lên Tier 2; không có thì dùng mặc định IPCC Tier 1.
+    agb_t_ha: float | None = None
+
+
+@app.post("/api/mrv")
+def mrv_endpoint(req: MrvRequest) -> dict:
+    """C07 — Báo cáo MRV carbon/ESG, có mã băm chống sửa."""
+    return mrv.build(req.location.lat, req.location.lon,
+                     agb_t_ha=req.agb_t_ha, project_name=req.project_name)
+
+
+@app.post("/api/mrv/verify")
+def mrv_verify(report: dict) -> dict:
+    """Kiểm tra một báo cáo MRV còn nguyên vẹn hay đã bị sửa sau khi lập."""
+    return mrv.verify(report)
 
 
 @app.post("/api/genome")

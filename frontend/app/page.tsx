@@ -25,8 +25,26 @@ import Overview from "@/components/Overview";
 import WhatIf from "@/components/WhatIf";
 import Insights from "@/components/Insights";
 import Portfolio from "@/components/Portfolio";
+import TimeLapse from "@/components/TimeLapse";
+import Genome from "@/components/Genome";
+import DesignStudio from "@/components/DesignStudio";
+import Knowledge from "@/components/Knowledge";
+import Feedback from "@/components/Feedback";
+import Mrv from "@/components/Mrv";
+import Workspace from "@/components/Workspace";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
+
+// Sáu luồng "xem sâu" gắn với một thửa cụ thể. Gom vào một dãy nút thay vì đổ
+// hết ra: mỗi cái tốn từ vài giây tới hai phút để chạy, mở tất cả cùng lúc vừa
+// chậm vừa đốt hạn mức của các nguồn dữ liệu miễn phí.
+const DEEP = [
+  { id: "timelapse", icon: "⏳", label: "Tua 10 năm", flow: "C04 Time-Lapse" },
+  { id: "genome", icon: "🧬", label: "Vùng giống", flow: "S04 Twin Genome" },
+  { id: "design", icon: "🎨", label: "Trồng gì", flow: "U03 Design Studio" },
+  { id: "knowledge", icon: "🤝", label: "Kinh nghiệm", flow: "U02 Marketplace" },
+  { id: "mrv", icon: "🌲", label: "Carbon", flow: "C07 MRV" },
+] as const;
 
 const GROUPS: Record<string, string> = {
   A: "Nhóm A · Quang học",
@@ -77,6 +95,12 @@ export default function Home() {
   const [tab, setTab] = useState<"detail" | "overview">("detail");
   const [user, setUser] = useState<AuthUser | null>(null);
   const [heat, setHeat] = useState<HeatmapResult | null>(null);
+  const [workspace, setWorkspace] = useState(false);
+  // Cột phải hẹp nên KHÔNG đổ hết mọi luồng ra cùng lúc: mở đủ thứ một lúc thì
+  // người dùng phải cuộn qua sáu bảng mới thấy được kết quả module đang xem.
+  const [deep, setDeep] = useState<
+    "none" | "timelapse" | "genome" | "design" | "knowledge" | "mrv"
+  >("none");
 
   useEffect(() => {
     getModules()
@@ -173,6 +197,11 @@ export default function Home() {
           terra={terra}
           onLoad={loadPlot}
         />
+        <button className="ws-open" onClick={() => setWorkspace(true)}>
+          ⚙️ Khu làm việc
+          <small>Twin đã lưu · dữ liệu · kênh cảnh báo · khoá API · vòng học</small>
+        </button>
+
         <p className="foot">14 module · dữ liệu thật: Open-Meteo + NASA POWER</p>
       </aside>
 
@@ -248,12 +277,65 @@ export default function Home() {
             {coord && result && (
               <Insights moduleId={active} lat={coord.lat} lon={coord.lon} />
             )}
+
+            {coord && result && (
+              <Feedback
+                moduleId={active}
+                moduleName={result.module_name}
+                recommendation={result.recommendation}
+                lat={coord.lat}
+                lon={coord.lon}
+                user={user}
+              />
+            )}
+
+            {coord && result && (
+              <div className="deep">
+                <div className="deep-h">Xem sâu hơn về thửa này</div>
+                <div className="deep-tabs">
+                  {DEEP.map((d) => (
+                    <button
+                      key={d.id}
+                      className={deep === d.id ? "on" : ""}
+                      onClick={() => setDeep(deep === d.id ? "none" : d.id)}
+                      title={d.flow}
+                    >
+                      {d.icon} {d.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {coord && deep === "timelapse" && (
+              <TimeLapse moduleId={active} lat={coord.lat} lon={coord.lon} />
+            )}
+            {coord && deep === "genome" && (
+              <Genome lat={coord.lat} lon={coord.lon} />
+            )}
+            {coord && deep === "design" && (
+              <DesignStudio lat={coord.lat} lon={coord.lon} />
+            )}
+            {coord && deep === "knowledge" && (
+              <Knowledge lat={coord.lat} lon={coord.lon} user={user} />
+            )}
+            {coord && deep === "mrv" && <Mrv lat={coord.lat} lon={coord.lon} />}
+
             {coord && <Copilot lat={coord.lat} lon={coord.lon} />}
           </>
         )}
 
         <Backtest />
       </aside>
+
+      {workspace && (
+        <Workspace
+          user={user}
+          coord={coord}
+          area={area}
+          onClose={() => setWorkspace(false)}
+        />
+      )}
     </main>
   );
 }

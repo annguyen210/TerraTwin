@@ -85,10 +85,20 @@ class TerraScoreResult(BaseModel):
     real_data_ratio: float = 0.0   # tỉ lệ hiểm họa được đánh giá bằng dữ liệu thật
 
 
+class KnowledgeCitation(BaseModel):
+    """Một ghi chép thực địa đã được dùng làm ngữ cảnh cho câu trả lời."""
+    id: int
+    title: str
+    author_name: str
+    similarity_pct: float
+    distance_km: float
+
+
 class CopilotAnswer(BaseModel):
     answer: str
     used_modules: list[str] = []
     llm: bool = False
+    knowledge_used: list[KnowledgeCitation] = []
 
 
 class ScanModule(BaseModel):

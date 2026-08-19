@@ -45,10 +45,12 @@ FLOWS = [
      "vùng nào đang lệch. Phần HUẤN LUYỆN lại cần GPU và dataset gán nhãn lớn — "
      "chưa có, nhưng không đo được thì huấn luyện chỉ là tiêu tiền trong bóng tối."),
     ("S10", "Generative Vision", "signature", "blocked",
-     "Siêu phân giải và ảnh tổng hợp cần ảnh Sentinel + GPU + model đã huấn "
-     "luyện. Thiếu cả ba thì không có phiên bản nào trung thực — làm giả ở đây "
-     "chỉ tạo ra ảnh trông như vệ tinh mà không phải vệ tinh, thứ nguy hiểm hơn "
-     "là không có."),
+     "Ảnh Sentinel đã có (từ bản này), nhưng siêu phân giải bằng diffusion còn "
+     "thiếu HAI thứ chưa mua được bằng công sức: GPU để suy luận và một model "
+     "đã huấn luyện trên ảnh viễn thám. Không làm bản giả: một tấm ảnh 'siêu "
+     "phân giải' do model bịa ra trông y hệt ảnh vệ tinh thật nhưng chi tiết "
+     "trong đó là do model tưởng tượng — dùng nó để kết luận về đất đai còn "
+     "nguy hiểm hơn là không có ảnh."),
 
     # ----- Cốt lõi (12) -----
     ("C01", "Twin Builder", "core", "done",
@@ -58,17 +60,19 @@ FLOWS = [
     ("C03", "What-If NLP", "core", "done",
      "Bộ luật tiếng Việt (không cần key) + LLM cho câu hỏi tự do."),
     ("C04", "Time-Lapse / Change Detection", "core", "done",
-     "Time-lapse diễn biến RỦI RO KHÍ HẬU qua 10 năm ERA5, kèm xu thế xấu đi "
-     "hay tốt lên. Phát hiện thay đổi BỀ MẶT trên ảnh (mất rừng, xây dựng mới) "
-     "vẫn cần ảnh Sentinel hai kỳ."),
+     "Hai nửa đều có: time-lapse RỦI RO KHÍ HẬU qua 10 năm ERA5 (chạy không cần "
+     "khóa), và phát hiện thay đổi BỀ MẶT hai kỳ trên ảnh Sentinel-2 — mất thảm "
+     "thực vật (NDVI) và bề mặt xây dựng mới (NDBI + NDVI cùng đổi)."),
     ("C05", "Proactive Radar", "core", "done",
      "Quét lại mọi thửa đã lưu, chống trùng 12 giờ, tự gửi qua kênh đã cấu hình."),
     ("C06", "Risk & Yield Heatmaps", "core", "done",
      "Lưới tới 11×11 quanh thửa, vẽ trực tiếp lên bản đồ."),
-    ("C07", "Carbon / ESG MRV", "core", "blocked",
-     "Ước lượng sinh khối để ra con số tCO₂/ha cần ảnh Sentinel + khảo sát thực "
-     "địa. Con số carbon có hệ quả tài chính và pháp lý nên tuyệt đối không mô "
-     "phỏng — đây là luồng duy nhất mà làm giả có thể gây thiệt hại tiền thật."),
+    ("C07", "Carbon / ESG MRV", "core", "done",
+     "Đo che phủ tán THẬT theo từng pixel Sentinel-2 (histogram NDVI, nội suy "
+     "ngưỡng), rồi ước lượng tCO₂ bằng hệ số IPCC 2006 Tier 1 — có công bố bậc, "
+     "dải sai số ±50%, và mã băm SHA-256 để người nhận tự kiểm báo cáo có bị sửa "
+     "hay không. Ghi rõ ĐÂY KHÔNG PHẢI số liệu đủ chuẩn phát hành tín chỉ và "
+     "liệt kê đúng các bước còn thiếu để lên chuẩn đó.", "satellite"),
     ("C08", "Multi-Twin Portfolio", "core", "done",
      "Danh mục thửa đất trong database, đồng bộ đa thiết bị."),
     ("C09", "Field Mode (giọng nói + ảnh)", "core", "done",
@@ -104,24 +108,64 @@ _TIER_NAMES = {"signature": "Signature (độc quyền)",
 
 
 def status() -> dict:
-    flows = [{"id": i, "name": n, "tier": t, "tier_name": _TIER_NAMES[t],
-              "status": s, "note": note}
-             for i, n, t, s, note in FLOWS]
+    """Trạng thái 26 luồng, phản ánh ĐÚNG bản đang chạy.
+
+    Phân biệt hai thứ hay bị trộn lẫn:
+      status = "done"        — mã đã viết, có test, không bịa số
+      awaiting_config = True — mã đã xong nhưng deployment này thiếu khóa nên
+                               người dùng chưa dùng được
+
+    Gộp hai cái đó vào một chữ "xong" là cách một bảng trạng thái bắt đầu nói dối.
+    """
+    from app.services import sentinel
+
+    sat = sentinel.configured()
+
+    flows = []
+    for row in FLOWS:
+        i, n, t, st, note = row[:5]
+        requires = row[5] if len(row) > 5 else None
+        waiting = requires == "satellite" and not sat
+        flows.append({
+            "id": i, "name": n, "tier": t, "tier_name": _TIER_NAMES[t],
+            "status": st, "note": note, "requires": requires,
+            "awaiting_config": waiting,
+            "awaiting_note": ("Mã đã xong và có test, nhưng deployment này chưa "
+                              "có khóa Copernicus nên luồng trả 'chưa đủ dữ liệu' "
+                              "thay vì kết quả." if waiting else None),
+        })
+
     counts = {k: sum(1 for f in flows if f["status"] == k)
               for k in ("done", "partial", "blocked")}
+    waiting_n = sum(1 for f in flows if f["awaiting_config"])
+    live = counts["done"] - waiting_n
+
     by_tier = {}
     for t, label in _TIER_NAMES.items():
         sub = [f for f in flows if f["tier"] == t]
-        by_tier[t] = {"name": label, "total": len(sub),
-                      "done": sum(1 for f in sub if f["status"] == "done")}
+        by_tier[t] = {
+            "name": label, "total": len(sub),
+            "done": sum(1 for f in sub if f["status"] == "done"),
+            "live": sum(1 for f in sub
+                        if f["status"] == "done" and not f["awaiting_config"]),
+        }
+
+    head = (f"{counts['done']}/{len(flows)} luồng đã viết xong · "
+            f"{counts['partial']} một phần · {counts['blocked']} đang bị chặn")
+    if waiting_n:
+        head += (f" · {waiting_n} luồng chờ khóa Copernicus "
+                 f"(đang chạy thật: {live}/{len(flows)})")
+
     return {
         "total": len(flows), **counts, "flows": flows, "by_tier": by_tier,
-        "headline": (f"{counts['done']}/{len(flows)} luồng chạy thật · "
-                     f"{counts['partial']} một phần · {counts['blocked']} đang bị chặn"),
+        "live": live, "awaiting_config": waiting_n,
+        "satellite_configured": sat,
+        "headline": head,
         "honesty_note": (
             "Bảng này sinh từ mã nguồn, không viết tay, nên không thể lệch với "
-            "phần mềm. Hai luồng còn bị chặn đều cần ảnh vệ tinh Sentinel — thứ "
-            "chỉ mở được bằng tài khoản Copernicus. Chúng tôi không dựng endpoint "
-            "rỗng để đếm cho đủ 26: một con số carbon bịa có thể gây thiệt hại "
-            "tiền thật, và một tấm ảnh 'siêu phân giải' bịa còn tệ hơn không có."),
+            "phần mềm. Luồng còn bị chặn thiếu GPU và một model diffusion đã "
+            "huấn luyện — hai thứ không mua được bằng công sức viết code. Chúng "
+            "tôi không dựng endpoint rỗng để đếm cho đủ 26: một con số carbon bịa "
+            "có thể gây thiệt hại tiền thật, và một tấm ảnh 'siêu phân giải' do "
+            "model tưởng tượng ra còn nguy hiểm hơn là không có ảnh."),
     }

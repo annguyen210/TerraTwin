@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 from app.modules.base import TwinModule
-from app.modules.util import assessment_from_series, need_data_assessment
+from app.modules.util import (
+    _needs_sentinel, _next_sentinel, assessment_from_series, need_data_assessment,
+)
 from app.schemas import Assessment, Location
 from app.services import datasources as ds
-from app.services import hazard
+from app.services import hazard, optical, sentinel
 
 
 class FloodModule(TwinModule):
@@ -97,18 +99,41 @@ class LandslideModule(TwinModule):
 
 
 class StormDamageModule(TwinModule):
-    id = "storm_damage"; name = "Bản đồ thiệt hại sau bão"; group = "B"; icon = "🌪️"; status = "preview"
-    data_sources = ["Ảnh vệ tinh trước/sau (change detection, cần key)"]
+    id = "storm_damage"; name = "Bản đồ thiệt hại sau bão"; group = "B"; icon = "🌪️"
+    status = "active" if sentinel.configured() else "preview"
+    data_sources = ["Sentinel-2 NDVI hai kỳ (Copernicus)"]
     users = ["Cứu trợ", "Bảo hiểm", "Nhà nước"]
-    description = "Khoanh vùng thiệt hại trong vài giờ để cứu trợ/bồi thường."
+    description = "So ảnh hai kỳ để đo mất thảm thực vật đột ngột."
 
     def assess(self, loc: Location) -> Assessment:
-        return need_data_assessment(
-            self, loc,
-            needs="ảnh vệ tinh trước & sau bão (change detection)",
-            will_do="khoanh vùng thiệt hại và ước tính % diện tích ảnh hưởng phục vụ "
-                    "cứu trợ/bồi thường",
-            next_step="Đang trong lộ trình tích hợp ảnh Sentinel-1/2 hai kỳ.")
+        r = optical.vegetation_loss(loc.lat, loc.lon)
+        if r is None:
+            return need_data_assessment(
+                self, loc,
+                needs=_needs_sentinel("ảnh Sentinel-2 hai kỳ trước & sau"),
+                will_do="đo mức mất thảm thực vật giữa hai kỳ để làm căn cứ cứu trợ "
+                        "và hồ sơ bồi thường",
+                next_step=_next_sentinel())
+
+        head = (f"{r['verdict'].capitalize()} — NDVI {r['before']['mean']} → "
+                f"{r['after']['mean']} ({r['delta']:+.3f})")
+        if r["possible_causes"]:
+            rec = ("Đối chiếu với việc bạn biết đã xảy ra trên thửa ("
+                   + ", ".join(r["possible_causes"]) + "). Nếu là thiên tai, ảnh "
+                   "hai kỳ này dùng được làm chứng cứ ban đầu cho hồ sơ bồi thường.")
+        else:
+            rec = "Chưa thấy mất thảm thực vật bất thường giữa hai kỳ."
+        return Assessment(
+            module_id=self.id, module_name=self.name, location=loc, status="ok",
+            risk_level=r["level"], headline=head,
+            detail=(f"Trước: {r['before_cover']}. Sau: {r['after_cover']}. "
+                    f"{r['method']} {r['caveat']}"),
+            recommendation=rec, confidence=0.72, confidence_low=0.62,
+            confidence_high=0.8, is_real=True,
+            metrics={"ndvi_truoc": r["before"]["mean"],
+                     "ndvi_sau": r["after"]["mean"],
+                     "thay_doi": r["delta"]},
+            data_sources=[sentinel.source_note("NDVI")])
 
 
 class LandRiskModule(TwinModule):
@@ -148,15 +173,34 @@ class LandRiskModule(TwinModule):
 
 
 class IllegalBuildModule(TwinModule):
-    id = "illegal_build"; name = "Giám sát xây dựng trái phép"; group = "B"; icon = "🏗️"; status = "preview"
-    data_sources = ["Change detection ảnh vệ tinh (cần key)"]
+    id = "illegal_build"; name = "Giám sát xây dựng trái phép"; group = "B"; icon = "🏗️"
+    status = "active" if sentinel.configured() else "preview"
+    data_sources = ["Sentinel-2 NDBI + NDVI, hai kỳ cách nhau 1 năm (Copernicus)"]
     users = ["Quản lý đô thị", "Địa chính"]
-    description = "Tự phát hiện công trình mới bất thường / lấn chiếm."
+    description = "Bề mặt cứng mới xuất hiện so với cùng kỳ năm trước."
 
     def assess(self, loc: Location) -> Assessment:
-        return need_data_assessment(
-            self, loc,
-            needs="ảnh vệ tinh 2 kỳ (change detection)",
-            will_do="phát hiện công trình/bề mặt mới xuất hiện giữa hai thời điểm để "
-                    "đối chiếu giấy phép (kết quả có hệ quả pháp lý nên KHÔNG mô phỏng)",
-            next_step="Đang trong lộ trình tích hợp change detection ảnh Sentinel.")
+        r = optical.new_construction(loc.lat, loc.lon)
+        if r is None:
+            return need_data_assessment(
+                self, loc,
+                needs=_needs_sentinel("ảnh Sentinel-2 hai kỳ cách nhau một năm"),
+                will_do="đối chiếu NDBI và NDVI giữa hai kỳ để chỉ ra chỗ có bề mặt "
+                        "cứng mới, làm đầu mối đi kiểm tra hồ sơ",
+                next_step=_next_sentinel())
+
+        head = (f"{r['verdict'].capitalize()} — NDBI {r['ndbi']['delta']:+.3f}, "
+                f"NDVI {r['ndvi']['delta']:+.3f} so cùng kỳ năm trước")
+        rec = ("Có đầu mối để đi kiểm tra thực địa và tra hồ sơ địa chính. "
+               "Phần mềm KHÔNG kết luận công trình có phép hay không."
+               if r["both_signals"] else
+               "Chưa có đầu mối đủ mạnh để đi kiểm tra.")
+        return Assessment(
+            module_id=self.id, module_name=self.name, location=loc, status="ok",
+            risk_level=r["level"], headline=head,
+            detail=f"{r['method']} {r['caveat']}",
+            recommendation=rec, confidence=0.65, confidence_low=0.54,
+            confidence_high=0.74, is_real=True,
+            metrics={"ndbi_thay_doi": r["ndbi"]["delta"],
+                     "ndvi_thay_doi": r["ndvi"]["delta"]},
+            data_sources=[sentinel.source_note("NDBI"), sentinel.source_note("NDVI")])

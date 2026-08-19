@@ -10,7 +10,7 @@ from __future__ import annotations
 import csv
 import io
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, Field
@@ -18,15 +18,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import auth
-from app.db import Alert, Dataset, NotifyChannel, Plot, Twin, User, get_session
+from app.db import Alert, Dataset, NotifyChannel, Twin, User, get_session
 from app.schemas import VN_LAT_MAX, VN_LAT_MIN, VN_LON_MAX, VN_LON_MIN, Location
-from app.services import notify, twin as twin_svc
+from app.services import notify, radar, twin as twin_svc
 
 router = APIRouter(tags=["data"])
 
 _MAX_ROWS = 2000
 _MAX_BYTES = 2_000_000
-_DEDUP_HOURS = 12       # cùng một cảnh báo trong 12 h thì không ghi lại
 
 
 # ---------- Kiểu dữ liệu ----------
@@ -212,58 +211,10 @@ def run_radar(user: User = Depends(auth.current_user),
               db: Session = Depends(get_session)) -> dict:
     """Quét lại mọi thửa đã lưu, ghi CẢNH BÁO MỚI.
 
-    Chống spam: cùng (thửa, module, mức) đã ghi trong 12 h thì bỏ qua, nên chạy
-    định kỳ cũng không sinh trùng — điều kiện cần trước khi nối Zalo/email.
+    Logic nằm ở services/radar.py vì bộ hẹn giờ nền cũng gọi đúng logic đó —
+    không được để hai bản khác nhau rồi lệch nhau.
     """
-    from app.services import scan as scan_svc
-
-    plots = db.execute(select(Plot).where(Plot.user_id == user.id)).scalars().all()
-    if not plots:
-        return {"plots_scanned": 0, "new_alerts": 0, "alerts": [],
-                "message": "Chưa có thửa nào được lưu. Lưu thửa rồi chạy lại."}
-
-    since = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=_DEDUP_HOURS)
-    created = []
-    for p in plots:
-        try:
-            result = scan_svc.scan(Location(lat=p.lat, lon=p.lon, area_ha=p.area_ha))
-        except Exception:
-            continue
-        for m in result.alerts:            # scan.alerts đã lọc chỉ dữ liệu thật
-            dup = db.execute(
-                select(Alert).where(
-                    Alert.user_id == user.id, Alert.plot_id == p.id,
-                    Alert.module_id == m.id, Alert.risk_level == m.risk_level,
-                    Alert.created_at >= since)
-            ).scalar_one_or_none()
-            if dup:
-                continue
-            a = Alert(user_id=user.id, plot_id=p.id, module_id=m.id,
-                      risk_level=m.risk_level,
-                      headline=f"{p.name}: {m.headline}",
-                      recommendation=m.recommendation)
-            db.add(a)
-            created.append(a)
-    db.commit()
-
-    payload = [{"plot_id": a.plot_id, "module_id": a.module_id,
-                "risk_level": a.risk_level, "headline": a.headline,
-                "recommendation": a.recommendation} for a in created]
-
-    # U01 — đưa cảnh báo ra khỏi phần mềm. Gửi hỏng không được làm hỏng lượt quét.
-    channels = db.execute(
-        select(NotifyChannel).where(NotifyChannel.user_id == user.id,
-                                    NotifyChannel.enabled == 1)).scalars().all()
-    delivery = notify.dispatch(channels, payload)
-    db.commit()
-
-    return {
-        "plots_scanned": len(plots),
-        "new_alerts": len(created),
-        "dedup_window_hours": _DEDUP_HOURS,
-        "alerts": payload,
-        "delivery": delivery,
-    }
+    return radar.sweep_user(user.id, db)
 
 
 # ---------- C01 Twin Builder ----------

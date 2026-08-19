@@ -12,3 +12,7 @@ os.environ["TERRATWIN_RATE_LIMIT"] = "0"
 
 # Secret cố định để token tạo trong một test dùng được suốt phiên.
 os.environ.setdefault("TERRATWIN_SECRET", "test-secret-khong-dung-cho-production")
+
+# Bộ hẹn giờ rà soát nền không được chạy trong test: nó sẽ tự gọi Open-Meteo và
+# ghi cảnh báo giữa chừng, làm test khác thấy dữ liệu lạ xuất hiện từ hư không.
+os.environ["TERRATWIN_RADAR_INTERVAL_H"] = "0"

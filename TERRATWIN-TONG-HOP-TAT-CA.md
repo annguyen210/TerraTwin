@@ -82,20 +82,22 @@ Thắng thi: demo choáng + kỹ thuật sâu + tác động lớn + moat. Thác
 |---|--------|--------|-------|-----------|
 | 1 | Xâm nhập mặn | Dự báo mặn 7 ngày + đóng cống | Bờ biển VN (34 điểm) + cao độ DEM thật + **mùa vụ khô/lũ** + triều | 🧪 ƯỚC LƯỢNG VẬT LÝ, **giới hạn ĐBSCL + ĐBSH** (chờ MRC) |
 | 2 | Hạn & thiếu nước | Chỉ số thiếu ẩm 7 ngày | **Open-Meteo mưa+ET₀** | ✅ THẬT |
-| 3 | Sâu bệnh sớm | Chỉ số bất thường cây | Cần Sentinel-2 | ⏳ CHỜ DỮ LIỆU (không bịa số) |
-| 4 | Năng suất & thu hoạch | Ước lượng năng suất | Cần Sentinel | ⏳ CHỜ DỮ LIỆU |
-| 5 | Carbon rừng | tCO₂/ha + giá trị | Cần Sentinel | ⏳ CHỜ DỮ LIỆU |
+| 3 | Sâu bệnh sớm | NDVI so nền CHÍNH thửa 4 tháng + phân biệt giảm ĐỀU (hạn) với LOANG LỔ (ổ bệnh) | **Sentinel-2 NDVI** | 🔑 THẬT khi có khóa Copernicus |
+| 4 | Năng suất & thu hoạch | Đường cong sinh trưởng 180 ngày: đang lên hay chín, đỉnh ngày nào. KHÔNG quy tấn/ha khi chưa hiệu chuẩn | **Sentinel-2 NDVI** | 🔑 THẬT khi có khóa |
+| 5 | Carbon rừng | Che phủ tán ĐO từ histogram pixel + tCO₂ ước lượng **IPCC Tier 1** ±50% + mã băm chống sửa | **Sentinel-2 + IPCC 2006** | 🔑 THẬT khi có khóa |
 | 6 | Cháy rừng | Nguy cơ cháy 7 ngày | **Open-Meteo nhiệt+mưa** | ✅ THẬT |
 | 7 | Ao nuôi thủy sản | Nhiệt nước & sóng 7 ngày, ngưỡng tôm | **Open-Meteo Marine (SST + sóng)** | ✅ THẬT (ao nội đồng: chờ cảm biến) |
 | 8 | Lũ/ngập sớm | Chỉ số ngập 7 ngày + lưu lượng sông | **Open-Meteo mưa+cao độ + GloFAS lưu lượng sông** | ✅ THẬT (2 nguồn độc lập) |
 | 9 | Sạt lở | Nguy cơ sạt lở 7 ngày | **Open-Meteo mưa + độ dốc THẬT (DEM 4 hướng)** | ✅ THẬT |
-| 10 | Thiệt hại sau bão | % thiệt hại | Cần Sentinel | ⏳ CHỜ DỮ LIỆU |
+| 10 | Thiệt hại sau bão | So NDVI hai kỳ → mất thảm thực vật. Nói rõ KHÔNG tự nhận biết nguyên nhân | **Sentinel-2 NDVI hai kỳ** | 🔑 THẬT khi có khóa |
 | 11 | Rủi ro mua đất | Điểm an toàn 0–100 | **Cao độ+dốc+mưa THẬT** | ✅ THẬT |
-| 12 | Xây dựng trái phép | Phát hiện thay đổi | Cần Sentinel | ⏳ CHỜ DỮ LIỆU |
+| 12 | Xây dựng trái phép | Đòi hỏi NDBI tăng **VÀ** NDVI giảm cùng lúc (một mình NDBI báo nhầm vì mùa khô) | **Sentinel-2 NDBI+NDVI** | 🔑 THẬT khi có khóa |
 | 13 | Bảo hiểm tham số | Kích hoạt chi trả | **Open-Meteo (hạn)** | ✅ THẬT |
 | 14 | Điện mặt trời | Bức xạ + sản lượng | **NASA POWER** | ✅ THẬT |
 
-**8 module dữ liệu THẬT · 1 ước lượng vật lý (mặn) · 5 chờ ảnh Sentinel (nói thật "chưa đủ dữ liệu", KHÔNG bịa số).**
+**8 module dữ liệu THẬT ngay · 1 ước lượng vật lý (mặn) · 5 module quang học ĐÃ VIẾT XONG, bật bằng một khóa Copernicus miễn phí.**
+
+Chưa có khóa thì 5 module đó nói rõ **đang thiếu khóa** hay **đang bị mây che** — hai nguyên nhân khác nhau, một cái sửa trong mười phút, một cái phải chờ trời. Không có nhánh giả lập: một chỉ số NDVI bịa trông y hệt NDVI thật.
 
 > **Đợt 5 — thêm 2 nguồn thật miễn phí, không cần key:**
 > **(1) GloFAS lưu lượng sông** (Open-Meteo Flood API) cho module Lũ. Mưa là
@@ -203,57 +205,92 @@ Bật LLM: đặt `ANTHROPIC_API_KEY` trước khi chạy backend.
 
 # PHẦN III — THẬT vs LỘ TRÌNH & LÀM TIẾP
 
-## 25b. Tiến độ 26 LUỒNG — thực tế & lộ trình (2026-08-17, đợt 3)
+## 25b. Tiến độ 26 LUỒNG — trạng thái hiện tại
 
-**Đã có, chạy thật (8/26):**
-S01 TerraScore · **S02 Counterfactual Time Machine** · **S03 Goal-Seek** ·
-S06 Backtest/Replay · **S07 Causal Explain** · C02 Parallel Futures ·
-C08 Multi-Twin Portfolio · **C10 Anomaly** *(in đậm = mới đợt này)*.
-Nửa phần: C01 Twin Builder (stub in-memory), C12 Twin API (REST đủ, chưa auth/SDK).
+Bảng này **sinh từ mã nguồn** (`services/roadmap.py`), xem trực tiếp trong phần
+mềm ở **Khu làm việc → 26 luồng**, hoặc `GET /api/roadmap`. Không viết tay nên
+không thể lệch với thứ đang chạy.
 
-**4 luồng mới đợt này** — tất cả chạy trên nguồn dữ liệu đã có, qua lõi chung
-`services/hazard.py` (gộp phần trước đây lặp giữa whatif.py và backtest.py):
-- **S07 Causal Explain** — mô hình là hàm thuần nên leave-one-out cho đóng góp
-  CHÍNH XÁC, không cần xấp xỉ SHAP. Ví dụ thật (Quảng Nam): đỉnh 95.8 điểm =
-  lượng mưa 58.2% + địa hình trũng 41.8%.
-- **S03 Goal-Seek** — tìm kiếm nhị phân 40 vòng đảo ngược mô hình. Phát hiện và
-  xử lý được ca suy biến: khi nền địa hình đã ≥ ngưỡng thì "giảm 100% mưa" là
-  vô nghĩa → báo thẳng "giảm mưa một mình không đủ" + đề xuất phương án KẾT HỢP.
-- **S02 Time Machine** — analog ensemble 10 năm ERA5 thật. Quảng Nam: 7/10 năm
-  cùng kỳ vượt ngưỡng nguy hiểm → xác suất ~70%, P10 48.9 / P50 89.2 / P90 100.
-  Truy ngược được từng năm (2020 và 2022 đều đạt đỉnh 100 — khớp backtest).
-- **C10 Anomaly** — z-score so khí hậu nền cùng kỳ 10 năm. Bến Tre: nhiệt độ tối
-  đa 32.1°C, z=+2.25, cao hơn 100% số năm cùng kỳ.
-
-**Còn lại 18 luồng, chia theo thứ CHẶN chúng (không phải theo độ khó code):**
-| Nhóm | Luồng | Chặn bởi |
+| | Số luồng | |
 |---|---|---|
-| Cần **database + đăng nhập** | C01 (thật), C05 Proactive Radar, C11 BYO-Data, C12 (auth/SDK), S08 Autonomous Agent | 1 lần dựng DB mở hết |
-| Cần **API key ảnh Sentinel** | C04 Time-Lapse, C07 Carbon MRV (+ 6 module đang ⏳) | Tài khoản Copernicus — chỉ chủ dự án đăng ký được |
-| Cần **LLM key** (đã có hook) | C03 What-If NLP, C09 Field Mode | `ANTHROPIC_API_KEY` |
-| Cần **grid sampling** (code được, tốn quota) | C06 Risk & Yield Heatmaps, S04 Twin Genome | Nhiều lệnh gọi Open-Meteo → nên có cache/DB trước |
-| Cần **dataset gán nhãn / GPU / pháp lý / nhiều người dùng** | S05 Federated, S09 Model Engine, S10 Generative Vision, U01–U04 | Nhiều tháng, cần tiền và người dùng thật |
+| ✅ Đã viết xong, có test | **25** | Signature 9/10 · Cốt lõi 12/12 · Nâng cấp 4/4 |
+| ⏳ Chờ khóa Copernicus | **1** | C07 Carbon MRV |
+| ⛔ Bị chặn | **1** | S10 Generative Vision |
 
-> Kết luận trung thực: 26/26 là **lộ trình**, không phải một lần commit. Nhóm cuối
-> không có đường code tắt — S05 Federated Learning cần nhiều bên triển khai thật,
-> U02 Marketplace cần thanh toán và pháp lý.
+Bảng phân biệt rạch ròi hai thứ hay bị trộn:
+- `done` — **mã đã viết, có test, không bịa số**
+- `awaiting_config` — **mã xong nhưng deployment này thiếu khóa** nên người
+  dùng chưa dùng được
 
-## 26. Trạng thái THẬT vs LỘ TRÌNH (quan trọng khi đi thi — đừng nói quá)
-**Đã có, chạy thật:** 14 module ra kết quả · 7 module dữ liệu thật · TerraScore · Copilot (fallback+LLM-ready) · vẽ vùng · bản đồ · API đầy đủ.
-**CHƯA có (lộ trình):** ảnh Sentinel thật (CV) · huấn luyện model + dataset · database thật · các luồng "wow" còn lại (Twin Genome, Federated Learning, Marketplace, Generative Vision, Autonomous Agent, Causal Explain, Twin API).
-> Đã bổ sung so với bản trước (bản thật, minh bạch — KHÔNG phải phiên bản ML đầy đủ trong tầm nhìn):
-> - **S06 Backtest/Replay** — dùng lịch sử ERA5, đo lead time 4 thiên tai VN.
-> - **C02 Parallel Futures / What-If** — mô phỏng tham số 4 kịch bản trên nền thời tiết thật.
-> - **C08 Multi-Twin Portfolio** — lưu/so sánh nhiều thửa (localStorage) + xuất báo cáo.
-> - **Quét toàn cảnh** — chạy cả 14 module + cảnh báo ưu tiên trong 1 lần.
+Gộp hai cái đó vào một chữ "xong" là lúc một bảng trạng thái bắt đầu nói dối.
+
+### S10 — luồng duy nhất còn bị chặn, và vì sao không làm bừa
+
+Ảnh Sentinel đã có. Còn thiếu **GPU** và **model diffusion đã huấn luyện trên
+ảnh viễn thám** — hai thứ không mua được bằng công sức viết code. Một tấm ảnh
+"siêu phân giải" do model bịa ra trông y hệt ảnh vệ tinh thật, nhưng chi tiết
+trong đó là do model tưởng tượng. Dùng nó để kết luận về đất đai còn nguy hiểm
+hơn là không có ảnh.
+
+### Mọi luồng đều có đường vào từ giao diện
+
+Một luồng người dùng không bấm được thì với họ nó không tồn tại. 11 luồng từng
+chỉ có API nay đều có mặt:
+
+| Ở đâu | Luồng |
+|---|---|
+| Cột phải → **Xem sâu hơn** | C04 Tua 10 năm · S04 Vùng giống · U03 Trồng gì · U02 Kinh nghiệm · C07 Carbon |
+| Cột phải → **Cho phần mềm biết thực tế** | U04 hành động & kết quả · S05 quan sát thực địa |
+| Cột trái → **Khu làm việc** | C01 Twin đã lưu · C11 Dữ liệu của tôi · U01 Kênh cảnh báo · C12 Khoá API · Vòng học (S05·S09·U04) · 26 luồng |
+
+Riêng khối "Cho phần mềm biết thực tế" là **công tắc khởi động của cả moat**:
+không có nó thì S05 không có gì để tổng hợp, S09 không có gì để chấm, U04 không
+bao giờ khép, và lời hứa "càng dùng càng chính xác cho đất Việt" mãi là lời hứa.
+
+## 26. Trạng thái THẬT vs LỘ TRÌNH (khi đi thi — đừng nói quá)
+
+**Nói được, vì có thật:**
+- 14 mũi nhọn ra kết quả; **9 chạy dữ liệu thật ngay**, 5 mở bằng một khóa miễn phí
+- Hiệu chuẩn theo khí hậu từng điểm kéo **báo động giả 46–61% → 3%**
+- Backtest 4 thiên tai VN có thật, công bố **cả lead time lẫn tỉ lệ báo động giả**
+- XAI leave-one-out **chính xác** (hàm thuần nên không cần xấp xỉ SHAP)
+- Xương sống học: quan sát thực địa → POD/FAR/CSI → hiệu chỉnh ngưỡng theo vùng,
+  **dữ liệu thô không rời tài khoản người gửi**
+- Cảnh báo chủ động **tự chạy trong tiến trình** (gói free không có cron)
+- Trang trạng thái 26 luồng **sinh từ mã nguồn**, mở cho người dùng xem
+
+**KHÔNG được nói quá:**
+- Chưa deploy công khai, chưa test tải, chưa phỏng vấn người dùng nào
+- Kho quan sát thực địa gần như trống → S04/S05/S09 đúng về cơ chế nhưng **chưa
+  có dữ liệu để phát huy**
+- S10 chưa có; carbon là **ước lượng Tier 1 ±50%**, KHÔNG đủ chuẩn phát hành tín chỉ
+- 3/12 ngành chưa có mũi nhọn: Đô thị & Quy hoạch, Khai khoáng & Hạ tầng, Chuỗi cung ứng
+- 0/6 dòng doanh thu có cơ chế thu tiền
 
 ## 27. Checklist — tối ưu + ra thị trường + đi thi
-**Chính xác hơn:** ① cắm dữ liệu mặn thật (MRC/trạm tỉnh) để **hiệu chỉnh hệ số mùa + biên độ** đang dùng · ~~② backtest~~ **✅ ĐÃ LÀM: backtest 4 thiên tai lịch sử thật (Huế 5đ/Quảng Nam 5đ/Trà Leng 8đ/Bến Tre 10đ lead time, verify khớp)** · ③ cảnh báo qua Zalo/email.
-**Ra thị trường:** ④ đăng nhập + lưu vùng người dùng (cần database PostGIS) · ⑤ deploy cloud (backend Render/Fly, frontend Vercel) · ⑥ phỏng vấn 5–7 người dùng thật (nông dân/HTX/cán bộ) xác nhận nhu cầu & ai trả tiền.
-**Đi thi:** ⑦ demo kịch bản: điểm ĐBSCL trũng + đang mưa → module Lũ "nguy cơ cao" (dữ liệu thật) · ⑧ nhấn điểm mạnh thật (dữ liệu thật + kiến trúc mở rộng + bản địa hóa VN), KHÔNG khoe thứ chưa có · ⑨ trình bày lộ trình 2 Phase (Phase 1: Sentinel + backtest; Phase 2: model training + database + tính năng wow).
+
+**Chính xác hơn:** ① cắm dữ liệu mặn thật (MRC/trạm tỉnh) để hiệu chỉnh hệ số mùa ·
+~~② backtest~~ **✅ ĐÃ LÀM** · ~~③ cảnh báo qua email/webhook~~ **✅ ĐÃ LÀM (U01)**
+
+**Ra thị trường:** ~~④ đăng nhập + database~~ **✅ ĐÃ LÀM** · ⑤ deploy cloud ·
+⑥ **phỏng vấn 5–7 người dùng thật** (nông dân/HTX/cán bộ) — việc còn lại quan
+trọng nhất, và là thứ code không thay thế được
+
+**Đi thi:** ⑦ demo: điểm ĐBSCL trũng đang mưa → Lũ "nguy cơ cao" từ dữ liệu thật,
+rồi mở **Causal Explain** chỉ ra bao nhiêu phần do mưa bao nhiêu phần do địa hình ·
+⑧ mở thẳng trang **26 luồng** cho giám khảo xem — bảng sinh từ mã nguồn là bằng
+chứng mạnh hơn mọi lời khẳng định · ⑨ nhấn **báo động giả 3%** và **CSI**, vì
+POD một mình thì cảnh báo mỗi ngày cũng đạt 100%
 
 ---
 
 ## TỔNG SỐ LIỆU
 Tầm nhìn: 12 ngành · 14 mũi nhọn · 26 luồng · 8 bậc năng lực · 7 trụ cột · 19 mảng AI · 6 dòng doanh thu.
-Thực tế đã code: 14 module (7 dữ liệu thật) · TerraScore · Copilot · vẽ vùng · bản đồ · 5 API · frontend+backend chạy được (localhost:1825).
+
+Thực tế đã code:
+- **14 mũi nhọn** — 9 chạy dữ liệu thật ngay, 5 mở bằng khóa Copernicus miễn phí
+- **25/26 luồng** đã viết xong và có test; 24 chạy được ngay không cần khóa nào
+- **66 route API** · **256 test** đạt · frontend Next.js + PWA cài được lên điện thoại
+- Nguồn thật miễn phí: Open-Meteo (dự báo · ERA5 · elevation · GloFAS · Marine) ·
+  NASA POWER · Sentinel-2 qua Copernicus (tuỳ chọn)
+- Chưa có: S10 Generative Vision · thu tiền · người dùng thật

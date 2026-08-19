@@ -69,3 +69,26 @@ def assessment_from_series(module, loc: Location, series_data, unit: str,
         confidence=confidence, confidence_low=lo, confidence_high=hi, is_real=is_real,
         forecast=fc, data_sources=data_sources or module.data_sources,
     )
+
+
+def _needs_sentinel(what: str) -> str:
+    """Mô tả thứ đang thiếu — nói rõ thiếu KHÓA hay thiếu ẢNH QUANG MÂY.
+
+    Hai nguyên nhân này khác nhau hoàn toàn với người dùng: một cái họ tự sửa
+    được trong mười phút, một cái phải chờ trời. Gộp chung thành "chưa đủ dữ
+    liệu" là bỏ mặc họ không biết làm gì tiếp.
+    """
+    from app.services import sentinel
+    if not sentinel.configured():
+        return f"{what} — phần mềm chưa được cấu hình khóa Copernicus"
+    return f"{what} — đã có khóa nhưng chưa lấy được ảnh quang mây cho vùng này"
+
+
+def _next_sentinel() -> str:
+    from app.services import sentinel
+    if not sentinel.configured():
+        return ("Đăng ký miễn phí tại dataspace.copernicus.eu, tạo OAuth client, "
+                "rồi đặt TERRATWIN_COPERNICUS_ID và TERRATWIN_COPERNICUS_SECRET. "
+                "Không tốn phí và không cần thẻ.")
+    return ("Sentinel-2 bay qua mỗi khoảng 5 ngày và mùa mưa thường bị mây che. "
+            "Thử lại sau vài ngày — phần mềm tự dùng tấm ảnh quang mây gần nhất.")

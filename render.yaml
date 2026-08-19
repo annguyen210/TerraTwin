@@ -37,14 +37,35 @@ services:
         value: "120"
       - key: TERRATWIN_TRUST_PROXY
         value: "1"                   # BẮT BUỘC: Render đứng sau proxy
+      # C05 Rà soát chủ động tự chạy trong tiến trình, vì gói free của Render
+      # KHÔNG có cron. Đặt 0 nếu bạn chạy nhiều worker hoặc đã có cron ngoài
+      # gọi POST /api/radar/run (nhiều worker = mỗi worker quét một lần).
+      - key: TERRATWIN_RADAR_INTERVAL_H
+        value: "6"
       - key: TERRATWIN_CORS
         sync: false                  # điền URL frontend sau khi dựng xong
       # Tuỳ chọn — bật trợ lý LLM. Nhà cung cấp nào cũng được.
+      #
+      #   openai-compatible (DeepSeek, Groq, OpenRouter, Together, xAI, Qwen,
+      #   Ollama): đặt API_KEY + BASE_URL + MODEL, KHÔNG cần PROVIDER.
+      #
+      #   Gemini hoặc Anthropic: BẮT BUỘC đặt PROVIDER=gemini|anthropic. Thiếu
+      #   nó thì chế độ auto coi khóa là openai-compatible, gửi sai giao thức,
+      #   và trợ lý im lặng tụt về rule-based mà không báo lỗi gì.
+      - key: TERRATWIN_LLM_PROVIDER
+        sync: false
       - key: TERRATWIN_LLM_API_KEY
         sync: false
       - key: TERRATWIN_LLM_BASE_URL
         sync: false
       - key: TERRATWIN_LLM_MODEL
+        sync: false
+      # Tuỳ chọn — ảnh vệ tinh Sentinel-2 (mở khoá 5 mũi nhọn quang học + C07).
+      # Đăng ký miễn phí: https://dataspace.copernicus.eu → Sentinel Hub →
+      # OAuth clients → tạo client, lấy ID và secret.
+      - key: TERRATWIN_COPERNICUS_ID
+        sync: false
+      - key: TERRATWIN_COPERNICUS_SECRET
         sync: false
 
   - type: web

@@ -249,15 +249,32 @@ pytest                      # 217 test, chạy offline & tất định
 1. Tạo lớp con `TwinModule` trong `backend/app/modules/`, viết `assess()`.
 2. Đăng ký ở `registry.py`. Frontend tự hiện.
 
-## Lộ trình — 24/26 luồng chạy thật
+## Lộ trình — 25/26 luồng đã viết xong
 
 `GET /api/roadmap` trả trạng thái sinh **từ mã nguồn**, nên không thể lệch với
-phần mềm.
+phần mềm. Trang trạng thái cũng mở cho người dùng xem: **Khu làm việc → 26 luồng**.
 
 | | Số luồng | |
 |---|---|---|
-| ✅ **Chạy thật** | **24** | Signature 9/10 · Cốt lõi 11/12 · Nâng cấp 4/4 |
-| ⛔ Bị chặn | **2** | S10 Generative Vision · C07 Carbon MRV |
+| ✅ **Đã viết xong** | **25** | Signature 9/10 · Cốt lõi 12/12 · Nâng cấp 4/4 |
+| ⏳ Chờ khóa Copernicus | **1** | C07 Carbon MRV — mã xong, có test, thiếu khóa |
+| ⛔ Bị chặn | **1** | S10 Generative Vision |
+
+Bảng phân biệt rạch ròi hai thứ hay bị trộn: `done` là **mã đã viết, có test,
+không bịa số**; `awaiting_config` là **mã xong nhưng deployment này thiếu khóa
+nên người dùng chưa dùng được**. Gộp hai cái đó vào một chữ "xong" là lúc một
+bảng trạng thái bắt đầu nói dối.
+
+### Mọi luồng đều có mặt trên giao diện
+
+Một luồng người dùng không bấm được thì với họ nó không tồn tại. 11 luồng từng
+chỉ có API nay đều có đường vào:
+
+| Ở đâu | Luồng |
+|---|---|
+| Cột phải → **Xem sâu hơn** | C04 Tua 10 năm · S04 Vùng giống · U03 Trồng gì · U02 Kinh nghiệm · C07 Carbon |
+| Cột phải → **Cho phần mềm biết thực tế** | U04 hành động & kết quả · S05 quan sát thực địa |
+| Cột trái → **Khu làm việc** | C01 Twin đã lưu · C11 Dữ liệu của tôi · U01 Kênh cảnh báo · C12 Khoá API · S05·S09·U04 Vòng học · 26 luồng |
 
 ### Xương sống học hỏi — thứ khiến phần mềm khá lên theo thời gian
 
@@ -281,15 +298,37 @@ xác nhận kết quả (U04) ←──── khuyến nghị ←──── c�
 - **U03 Design Studio** — sinh phương án canh tác cụ thể; mỗi điểm cộng/trừ kèm
   lý do truy được về con số gốc.
 
-### 2 luồng còn bị chặn — cùng một nguyên nhân
+### Ảnh vệ tinh — con mắt cắm vào đất
+
+Lớp `services/sentinel.py` nối Sentinel-2 L2A qua **Copernicus Data Space**:
+NDVI · NDWI · NDMI · NDBI, lọc mây bằng băng SCL, thống kê và histogram theo
+từng pixel 10 m, cache 12 giờ (ảnh chỉ 5 ngày mới có tấm mới).
+
+Đăng ký miễn phí, không cần thẻ:
+
+1. https://dataspace.copernicus.eu → tạo tài khoản
+2. Sentinel Hub → User settings → **OAuth clients** → Create
+3. Đặt `TERRATWIN_COPERNICUS_ID` và `TERRATWIN_COPERNICUS_SECRET`
+
+Cắm khóa vào là mở khoá **5 mũi nhọn** đang trả "chưa đủ dữ liệu" và **C07**:
+
+| Mũi nhọn | Ảnh dùng để làm gì |
+|---|---|
+| Sâu bệnh | NDVI so với chính thửa 4 tháng qua, **phân biệt giảm ĐỀU (hạn) với giảm LOANG LỔ (ổ bệnh)** bằng tỉ lệ độ lệch chuẩn |
+| Năng suất | Đường cong sinh trưởng 180 ngày: đang lên hay đang chín, đỉnh ngày nào. **Cố ý không quy ra tấn/ha** khi chưa có hệ số hiệu chuẩn địa phương |
+| Thiệt hại sau bão | So NDVI hai kỳ. Nói rõ đo được **mất thảm thực vật**, không tự nhận biết nguyên nhân |
+| Xây dựng trái phép | Đòi hỏi **NDBI tăng VÀ NDVI giảm** cùng lúc — một mình NDBI báo nhầm vì mùa khô cũng làm đất trống tăng NDBI |
+| Carbon (C07) | Che phủ tán đo thật từ histogram + hệ số **IPCC Tier 1**, có dải sai số ±50% và mã băm SHA-256 chống sửa |
+
+Không có khóa thì các mô-đun này nói thẳng **đang thiếu khóa hay đang bị mây
+che** — hai nguyên nhân khác nhau, một cái sửa trong mười phút, một cái phải
+chờ trời. Không có nhánh giả lập nào: một chỉ số NDVI bịa trông y hệt NDVI thật.
+
+### 1 luồng còn bị chặn
 
 | Luồng | Chặn bởi |
 |---|---|
-| **S10** Generative Vision | Ảnh Sentinel + GPU + model đã huấn luyện. Thiếu cả ba thì làm giả chỉ tạo ra ảnh *trông như* vệ tinh mà không phải vệ tinh — nguy hiểm hơn là không có |
-| **C07** Carbon MRV | Sinh khối cần ảnh Sentinel + khảo sát thực địa. Con số carbon có hệ quả **tài chính và pháp lý** — đây là luồng duy nhất mà làm giả gây thiệt hại tiền thật |
-
-Cả hai mở khoá bằng **một tài khoản Copernicus miễn phí**, và cũng bật luôn 5
-module đang ⏳.
+| **S10** Generative Vision | Ảnh Sentinel đã có. Còn thiếu **GPU** và **model diffusion đã huấn luyện trên ảnh viễn thám** — hai thứ không mua được bằng công sức viết code. Một tấm ảnh "siêu phân giải" do model bịa ra trông y hệt ảnh thật nhưng chi tiết trong đó là tưởng tượng; dùng nó để kết luận về đất đai còn nguy hiểm hơn không có ảnh |
 
 > **Một điều đã học khi làm:** ban đầu 8 luồng bị xếp "bị chặn" vì mỗi luồng bị
 > gán vào *một công nghệ cụ thể*. Xét lại theo **mục đích** thì 6 trong số đó có

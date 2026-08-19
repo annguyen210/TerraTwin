@@ -7,8 +7,17 @@ tự nhiên.
 """
 from __future__ import annotations
 
-from app.schemas import CopilotAnswer, Location
+from app.schemas import CopilotAnswer, KnowledgeCitation, Location
 from app.services import llm
+
+# Số ghi chép thực địa tối đa nạp vào ngữ cảnh. Giữ nhỏ có chủ đích: nhồi 20
+# mẩu kinh nghiệm vào prompt làm loãng chính dữ liệu đo được, mà dữ liệu đo
+# được mới là thứ kiểm chứng được.
+_RAG_K = 3
+_RAG_MIN_SIMILARITY = 35.0
+NL = "\n"
+KNOW_HEAD = ("Kinh nghiệm thực địa từ vùng có bộ gen đất tương đồng (do người "
+             "dùng khác chia sẻ, KHÔNG phải số đo — nói rõ điều đó nếu dùng tới):")
 
 
 def _route(question: str) -> list[str]:
@@ -35,6 +44,72 @@ _SYSTEM = (
 )
 
 
+def _knowledge(loc: Location) -> tuple[list[KnowledgeCitation], str]:
+    """Lấy kinh nghiệm thực địa từ vùng có BỘ GEN ĐẤT giống nơi đang hỏi.
+
+    Đây là phần "kho tri thức ngành" của RAG. Ghép theo bộ gen chứ không theo
+    khoảng cách, vì một hộ cách 200 km nhưng cùng cao độ, chế độ mưa và mức mặn
+    cho kinh nghiệm dùng được ngay, còn hộ cách 20 km trên đồi thì không.
+
+    Lỗi ở đây (chưa có database, chưa dựng được lưới gen, mất mạng) KHÔNG được
+    làm hỏng câu trả lời: kinh nghiệm là phần bổ sung, dữ liệu đo được mới là
+    phần chính. Vì vậy mọi lỗi đều nuốt và trả về rỗng.
+    """
+    try:
+        from sqlalchemy import select
+
+        from app import db as _db
+        from app.db import KnowledgeNote
+        from app.services import datasources as ds
+        from app.services import genome
+
+        session = _db.SessionLocal()
+        try:
+            notes = session.execute(select(KnowledgeNote)).scalars().all()
+            if not notes:
+                return [], ""
+
+            mine = genome.genome_of(loc.lat, loc.lon)
+            ref = genome.build_reference() if mine is not None else None
+            stats = ref["stats"] if ref and ref.get("cells") else None
+
+            scored = []
+            for n in notes:
+                sim = None
+                if mine is not None and stats is not None:
+                    try:
+                        theirs = genome.genome_of(n.lat, n.lon)
+                        if theirs is not None:
+                            d = genome._distance(mine, theirs, stats)
+                            sim = round(100.0 / (1.0 + d), 1)
+                    except Exception:
+                        sim = None
+                km = ds._haversine_km(loc.lat, loc.lon, n.lat, n.lon)
+                if sim is None:
+                    sim = round(max(0.0, 100.0 - km / 10.0), 1)
+                if sim >= _RAG_MIN_SIMILARITY:
+                    scored.append((sim, km, n))
+
+            scored.sort(key=lambda t: t[0], reverse=True)
+            top = scored[:_RAG_K]
+            if not top:
+                return [], ""
+
+            cites = [
+                KnowledgeCitation(id=n.id, title=n.title,
+                                  author_name=n.author_name,
+                                  similarity_pct=sim, distance_km=round(km, 0))
+                for sim, km, n in top
+            ]
+            lines = [f"- [{n.author_name}, vùng tương đồng {sim}%] {n.title}: "
+                     f"{n.body[:400]}" for sim, _, n in top]
+            return cites, "\n".join(lines)
+        finally:
+            session.close()
+    except Exception:
+        return [], ""
+
+
 def answer(question: str, loc: Location) -> CopilotAnswer:
     from app.modules.registry import get_module
     from app.services import terrascore
@@ -51,17 +126,25 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
     facts.append(f"- TerraScore: {ts.score}/100 (hạng {ts.grade}) — {ts.summary}")
     facts_txt = "\n".join(facts)
 
+    cites, know_txt = _knowledge(loc)
+    know_block = ((NL + NL + KNOW_HEAD + NL + know_txt) if know_txt else '')
+
     prompt = (
-        f"Dữ liệu về vị trí ({loc.lat:.4f}, {loc.lon:.4f}):\n{facts_txt}\n\n"
+        f"Dữ liệu về vị trí ({loc.lat:.4f}, {loc.lon:.4f}):\n{facts_txt}{know_block}\n\n"
         f"Câu hỏi của người dùng: {question}\n\nTrả lời:"
     )
 
     text = llm.complete(prompt, system=_SYSTEM, max_tokens=600)
     if text:
-        return CopilotAnswer(answer=text, used_modules=routes, llm=True)
+        return CopilotAnswer(answer=text, used_modules=routes,
+                             llm=True, knowledge_used=cites)
 
-    ans = (f"TerraScore {ts.score}/100 (hạng {ts.grade}). {ts.summary}\n{facts_txt}\n\n"
-           "[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY (+ TERRATWIN_LLM_BASE_URL "
-           "nếu không dùng OpenAI) để bật trả lời bằng LLM — hỗ trợ OpenAI, Gemini, "
-           "DeepSeek, Groq, OpenRouter, Anthropic, Ollama…]")
-    return CopilotAnswer(answer=ans, used_modules=routes, llm=False)
+    ans = (f"TerraScore {ts.score}/100 (hạng {ts.grade}). {ts.summary}\n{facts_txt}"
+           f"{know_block}\n\n"
+           "[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY để bật trả lời bằng LLM. "
+           "Nhà cung cấp openai-compatible (DeepSeek, Groq, OpenRouter, Together, "
+           "xAI, Qwen, Ollama) chỉ cần thêm TERRATWIN_LLM_BASE_URL. Gemini hoặc "
+           "Anthropic PHẢI đặt thêm TERRATWIN_LLM_PROVIDER=gemini|anthropic — "
+           "thiếu biến đó thì khóa bị gửi sai giao thức và im lặng không chạy.]")
+    return CopilotAnswer(answer=ans, used_modules=routes, llm=False,
+                         knowledge_used=cites)

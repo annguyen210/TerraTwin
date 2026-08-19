@@ -346,15 +346,54 @@ def test_helpful_counter(client):
 
 # ---------- Roadmap sau khi thêm 6 luồng ----------
 
-def test_roadmap_now_24_of_26(client):
+def test_roadmap_dem_dung_va_khop_tong(client):
+    """Không ghim con số tuyệt đối — ghim tính NHẤT QUÁN của bảng.
+
+    Một test kiểu `done == 24` phải sửa mỗi lần làm xong thêm một luồng, và
+    người sửa dễ chỉnh con số cho test xanh lại mà không kiểm gì cả. Ghim
+    bất biến thì test vẫn bắt được lỗi thật mà không cản tiến độ.
+    """
     d = client.get("/api/roadmap").json()
-    assert d["done"] == 24 and d["blocked"] == 2
-    blocked = {f["id"] for f in d["flows"] if f["status"] == "blocked"}
-    assert blocked == {"S10", "C07"}
+    assert d["total"] == 26
+    assert d["done"] + d["partial"] + d["blocked"] == 26
+    assert d["live"] + d["awaiting_config"] == d["done"]
+    assert d["live"] <= d["done"] <= d["total"]
+    for tier in d["by_tier"].values():
+        assert tier["live"] <= tier["done"] <= tier["total"]
 
 
-def test_both_blocked_flows_need_sentinel(client):
+def test_luong_bi_chan_phai_noi_ro_dang_thieu_gi(client):
+    """`blocked` phải nêu đích danh thứ đang chặn, không được viết chung chung."""
     for f in client.get("/api/roadmap").json()["flows"]:
         if f["status"] == "blocked":
-            assert "Sentinel" in f["note"], f["id"]
+            note = f["note"]
+            assert any(k in note for k in ("GPU", "Sentinel", "model")), f["id"]
+            assert "đang phát triển" not in note, f["id"]
+
+
+def test_luong_cho_khoa_phai_tu_danh_dau(client, monkeypatch):
+    """Luồng cần vệ tinh phải tự khai là chưa chạy được khi thiếu khóa.
+
+    Đây là chỗ dễ nói dối nhất: mã đã viết xong nên rất cám dỗ để đếm là
+    "xong", trong khi người dùng bấm vào chỉ thấy 'chưa đủ dữ liệu'.
+    """
+    monkeypatch.delenv("TERRATWIN_COPERNICUS_ID", raising=False)
+    monkeypatch.delenv("TERRATWIN_COPERNICUS_SECRET", raising=False)
+    d = client.get("/api/roadmap").json()
+    assert d["satellite_configured"] is False
+    sat = [f for f in d["flows"] if f["requires"] == "satellite"]
+    assert sat, "phải có ít nhất một luồng phụ thuộc vệ tinh"
+    for f in sat:
+        assert f["awaiting_config"] is True
+        assert f["awaiting_note"]
+    assert d["live"] < d["done"]
+
+
+def test_co_khoa_thi_khong_con_luong_nao_cho(client, monkeypatch):
+    monkeypatch.setenv("TERRATWIN_COPERNICUS_ID", "id")
+    monkeypatch.setenv("TERRATWIN_COPERNICUS_SECRET", "secret")
+    d = client.get("/api/roadmap").json()
+    assert d["satellite_configured"] is True
+    assert d["awaiting_config"] == 0
+    assert d["live"] == d["done"]
 

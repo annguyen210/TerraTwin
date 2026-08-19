@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 from app.modules.base import TwinModule
-from app.modules.util import assessment_from_series, need_data_assessment
+from app.modules.util import (
+    _needs_sentinel, _next_sentinel, assessment_from_series, need_data_assessment,
+)
 from app.schemas import Assessment, Location
 from app.services import datasources as ds
-from app.services import hazard
+from app.services import hazard, optical, sentinel
 
 
 class DroughtModule(TwinModule):
@@ -59,18 +61,45 @@ class WildfireModule(TwinModule):
 
 
 class PestModule(TwinModule):
-    id = "pest"; name = "Phát hiện sâu bệnh sớm"; group = "A"; icon = "🌾"; status = "preview"
-    data_sources = ["Sentinel-2 NDVI (cần key)", "Ảnh người dùng (CV)"]
+    """Stress cây nhìn từ vệ tinh, có phân biệt ĐỀU hay LOANG LỔ.
+
+    Hạn làm cây yếu đều cả thửa; sâu bệnh làm yếu theo ổ. Module đo cả hai nên
+    nói được 'bất thường này giống ổ bệnh' hay 'giống hạn toàn vùng' — thứ mà
+    một bản tin cấp tỉnh không nói được cho riêng thửa của bạn.
+    """
+    id = "pest"; name = "Phát hiện sâu bệnh sớm"; group = "A"; icon = "🌾"
+    status = "active" if sentinel.configured() else "preview"
+    data_sources = ["Sentinel-2 NDVI (Copernicus)", "Ảnh lá người dùng (lộ trình)"]
     users = ["Nông dân", "DN nông nghiệp"]
-    description = "Khoanh vùng cây stress bất thường + xác nhận qua ảnh lá."
+    description = "Khoanh vùng cây stress bất thường + phân biệt đều hay loang lổ."
 
     def assess(self, loc: Location) -> Assessment:
-        return need_data_assessment(
-            self, loc,
-            needs="ảnh vệ tinh Sentinel-2 (NDVI)",
-            will_do="khoanh vùng cây bị stress bất thường theo chỉ số thực vật NDVI "
-                    "và so sánh với nền khỏe mạnh của cùng loại cây",
-            next_step="Có thể chụp ảnh lá qua Field Mode để AI kiểm tra cục bộ (lộ trình).")
+        r = optical.stress(loc.lat, loc.lon)
+        if r is None:
+            return need_data_assessment(
+                self, loc,
+                needs=_needs_sentinel("ảnh Sentinel-2 (NDVI) cho thửa này"),
+                will_do="so sức sống cây hiện tại với chính thửa này 4 tháng qua và "
+                        "cho biết bất thường đang ĐỀU hay LOANG LỔ",
+                next_step=_next_sentinel())
+
+        metrics = {"ndvi_hien_tai": r["ndvi_now"], "ndvi_nen": r["ndvi_baseline"],
+                   "thay_doi_pct": r["change_pct"], "z_score": r["z_score"]}
+        if r["patchiness_ratio"] is not None:
+            metrics["do_loang_lo"] = r["patchiness_ratio"]
+
+        head = (f"{r['verdict'].capitalize()} — NDVI {r['ndvi_now']} "
+                f"({r['change_pct']:+.1f}% so nền thửa), ảnh ngày {r['observed_on']}")
+        rec = (r["cause_hint"] + " Ra thăm đúng chỗ và chụp lá gửi lại qua Field Mode."
+               if r["cause_hint"] else
+               "Chưa cần hành động. Phần mềm tiếp tục theo dõi mỗi lần vệ tinh bay qua.")
+        return Assessment(
+            module_id=self.id, module_name=self.name, location=loc, status="ok",
+            risk_level=r["level"], headline=head,
+            detail=(f"{r['cover'].capitalize()}. {r['method']} {r['caveat']}"),
+            recommendation=rec, confidence=0.7, confidence_low=0.6,
+            confidence_high=0.78, is_real=True, metrics=metrics,
+            data_sources=[sentinel.source_note("NDVI")])
 
 
 class AquacultureModule(TwinModule):
@@ -140,30 +169,86 @@ class AquacultureModule(TwinModule):
 
 
 class YieldModule(TwinModule):
-    id = "yield"; name = "Dự báo năng suất & thu hoạch"; group = "A"; icon = "🌾"; status = "preview"
-    data_sources = ["Chuỗi ảnh vệ tinh (cần key)", "Thời tiết"]
+    id = "yield"; name = "Dự báo năng suất & thu hoạch"; group = "A"; icon = "🌾"
+    status = "active" if sentinel.configured() else "preview"
+    data_sources = ["Chuỗi NDVI Sentinel-2 180 ngày (Copernicus)"]
     users = ["Nông dân", "Thương lái", "DN xuất khẩu"]
-    description = "Ước lượng sản lượng theo vùng & thời điểm thu tối ưu."
+    description = "Cây đang ở giai đoạn nào, đỉnh sinh trưởng khi nào, còn bao lâu tới thu."
 
     def assess(self, loc: Location) -> Assessment:
-        return need_data_assessment(
-            self, loc,
-            needs="chuỗi ảnh vệ tinh NDVI theo mùa vụ",
-            will_do="ước lượng năng suất (tấn/ha) và thời điểm thu hoạch tối ưu từ đường "
-                    "cong sinh trưởng NDVI + thời tiết",
-            next_step="Đang trong lộ trình tích hợp chuỗi ảnh Sentinel.")
+        r = optical.growth(loc.lat, loc.lon)
+        if r is None:
+            return need_data_assessment(
+                self, loc,
+                needs=_needs_sentinel("chuỗi ảnh Sentinel-2 180 ngày"),
+                will_do="dựng đường cong sinh trưởng NDVI của thửa và cho biết cây "
+                        "đang lên hay đang chín, đỉnh rơi vào ngày nào",
+                next_step=_next_sentinel())
+
+        # Giai đoạn sinh trưởng KHÔNG phải hiểm họa: cây chín không phải rủi ro.
+        # Chỉ báo động khi thửa mất thảm thực vật ngoài dự kiến.
+        lvl = "danger" if r["ndvi_now"] < optical.NDVI_BARE else "safe"
+        head = (f"{r['stage'].capitalize()} — NDVI {r['ndvi_now']}, "
+                f"đỉnh {r['ndvi_peak']} ngày {r['peak_date']}")
+        return Assessment(
+            module_id=self.id, module_name=self.name, location=loc, status="ok",
+            risk_level=lvl, headline=head,
+            detail=f"{r['method']} {r['caveat']}",
+            recommendation=r["advice"], confidence=0.68, confidence_low=0.58,
+            confidence_high=0.76, is_real=True,
+            metrics={"ndvi_hien_tai": r["ndvi_now"], "ndvi_dinh": r["ndvi_peak"],
+                     "ngay_qua_dinh": float(r["days_since_peak"]),
+                     "tich_phan_ndvi": r["ndvi_integral"],
+                     "suc_song_so_dinh_pct": r["vigor_vs_peak_pct"] or 0.0},
+            data_sources=[sentinel.source_note("NDVI")])
 
 
 class CarbonModule(TwinModule):
-    id = "carbon"; name = "Đo & bán tín chỉ carbon rừng"; group = "A"; icon = "🌲"; status = "preview"
-    data_sources = ["Sentinel-2 (cần key)", "Mô hình sinh khối", "Đối chiếu thực địa"]
+    id = "carbon"; name = "Đo & bán tín chỉ carbon rừng"; group = "A"; icon = "🌲"
+    status = "active" if sentinel.configured() else "preview"
+    data_sources = ["Sentinel-2 NDVI theo pixel (Copernicus)",
+                    "Hệ số IPCC 2006 Tier 1 (AFOLU Ch.4)"]
     users = ["Chủ rừng", "DN", "Quỹ carbon"]
-    description = "Đo trữ lượng carbon xác thực được để bán tín chỉ."
+    description = "Đo che phủ tán thật + ước lượng trữ lượng có công bố bậc và sai số."
 
     def assess(self, loc: Location) -> Assessment:
-        return need_data_assessment(
-            self, loc,
-            needs="ảnh Sentinel-2 + khảo sát thực địa",
-            will_do="ước lượng sinh khối & trữ lượng carbon (tCO₂/ha) để lập hồ sơ MRV "
-                    "bán tín chỉ — con số này cần xác thực nên KHÔNG mô phỏng",
-            next_step="Đang trong lộ trình tích hợp ảnh vệ tinh + quy trình đo thực địa.")
+        from app.services import mrv
+
+        r = mrv.build(loc.lat, loc.lon)
+        if not r.get("available"):
+            return need_data_assessment(
+                self, loc,
+                needs=_needs_sentinel("ảnh Sentinel-2 để đo che phủ tán"),
+                will_do="đo che phủ tán thật rồi ước lượng trữ lượng tCO₂ theo hệ số "
+                        "IPCC Tier 1, kèm dải sai số và mã băm chống sửa",
+                next_step=_next_sentinel())
+
+        m, e = r["measured"], r["estimated"]
+        # Che phủ giảm so với năm ngoái là RỦI RO (mất rừng); trữ lượng cao
+        # không phải rủi ro. Đừng để module carbon báo động vì có nhiều cây.
+        ch = r.get("change_vs_last_year")
+        if ch and ch["delta_ha"] <= -0.5:
+            lvl = "danger"
+        elif ch and ch["delta_ha"] < -0.2:
+            lvl = "warning"
+        else:
+            lvl = "safe"
+
+        return Assessment(
+            module_id=self.id, module_name=self.name, location=loc, status="ok",
+            risk_level=lvl, headline=r["headline"],
+            detail=(f"{r['methodology']['measured_by']} "
+                    f"{r['methodology']['not_measured']} "
+                    f"{r['limitations'][0]}"),
+            recommendation=("Che phủ đang giảm — kiểm tra thực địa ngay, đây là "
+                            "thứ trực tiếp làm mất tín chỉ."
+                            if lvl != "safe" else
+                            "Muốn lên chuẩn phát hành tín chỉ: " +
+                            r["to_reach_credit_grade"][0]),
+            confidence=0.6, confidence_low=0.45, confidence_high=0.72,
+            is_real=True,
+            metrics={"che_phu_tan_pct": m["canopy_pct"],
+                     "dien_tich_rung_ha": m["forest_ha"],
+                     "tru_luong_tco2": e["stock_tco2"],
+                     "sai_so_pct": e["uncertainty_pct"]},
+            data_sources=[m["source"], r["methodology"]["estimated_by"]])

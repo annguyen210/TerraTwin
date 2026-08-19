@@ -557,6 +557,12 @@ export function ackAlert(id: number) {
     "Không đánh dấu được");
 }
 
+async function getJson<T>(path: string, err: string): Promise<T> {
+  const r = await fetch(`${BASE}${path}`, { headers: authHeaders() });
+  if (!r.ok) throw new Error(await errMessage(r, err));
+  return r.json();
+}
+
 async function postJson<T>(path: string, body: unknown, err: string): Promise<T> {
   const r = await fetch(`${BASE}${path}`, {
     method: "POST",
@@ -597,4 +603,499 @@ export async function runBacktest(eventId: string): Promise<BacktestResult> {
   const r = await fetch(`${BASE}/api/backtest/${eventId}`);
   if (!r.ok) throw new Error("Không chạy được backtest");
   return r.json();
+}
+
+// =====================================================================
+//  Các luồng trước đây chỉ có backend mà không có đường nào chạm tới từ
+//  giao diện. Một luồng người dùng không bấm được thì với họ nó không tồn
+//  tại — và với vòng học của phần mềm thì nó còn tệ hơn thế: S05/S09 chỉ
+//  sống được nếu U04 có chỗ để người dùng gửi quan sát về.
+// =====================================================================
+
+// ---- S04 Twin Genome ----
+export type GenomeFeature = { label: string; unit: string };
+export type GenomeCompare = {
+  feature: string;
+  label: string;
+  unit: string;
+  yours: number;
+  theirs: number;
+  diff: number;
+};
+export type GenomeTwin = {
+  lat: number;
+  lon: number;
+  similarity_pct: number;
+  distance_km: number;
+  genome: Record<string, number>;
+  comparison: GenomeCompare[];
+};
+export type GenomeResult = {
+  available: boolean;
+  message?: string;
+  location?: { lat: number; lon: number };
+  your_genome?: Record<string, number>;
+  feature_labels?: Record<string, GenomeFeature>;
+  twins?: GenomeTwin[];
+  reference?: {
+    land_cells: number;
+    grid_step_deg: number;
+    reference_year: number;
+    cached: boolean;
+  };
+  headline?: string;
+  why_useful?: string;
+  caveat?: string;
+  method?: string;
+};
+
+export function runGenome(lat: number, lon: number, k = 5) {
+  return postJson<GenomeResult>(`/api/genome?k=${k}`, { lat, lon },
+    "Không tìm được vùng tương đồng");
+}
+
+// ---- C04 Time-Lapse ----
+export type TimeLapseFrame = {
+  year: number;
+  peak: number;
+  date: string;
+  risk_level: string;
+};
+export type TimeLapseResult = {
+  available: boolean;
+  module_id?: string;
+  module_name?: string;
+  unit?: string;
+  from_year?: number;
+  to_year?: number;
+  frames?: TimeLapseFrame[];
+  trend?: string;
+  trend_change?: number;
+  early_mean?: number;
+  late_mean?: number;
+  danger_years?: number;
+  worst_year?: TimeLapseFrame;
+  safe?: number;
+  warning?: number;
+  headline?: string;
+  caveat?: string;
+  method?: string;
+};
+
+export function runTimeLapse(moduleId: string, lat: number, lon: number, years = 10) {
+  return postJson<TimeLapseResult>(
+    `/api/timelapse/${moduleId}?years=${years}`, { lat, lon },
+    "Không dựng được time-lapse");
+}
+
+// ---- U03 Generative Design Studio ----
+export type DesignOption = {
+  code: string;
+  name: string;
+  icon: string;
+  score: number;
+  reasons: string[];
+  warnings: string[];
+};
+export type DesignInfra = { priority: string; item: string; why: string };
+export type DesignResult = {
+  location: { lat: number; lon: number };
+  site: Record<string, unknown>;
+  recommended: DesignOption;
+  options: DesignOption[];
+  infrastructure: DesignInfra[];
+  headline: string;
+  generative_note: string;
+  caveat: string;
+};
+
+export function runDesign(lat: number, lon: number) {
+  return postJson<DesignResult>("/api/design", { lat, lon },
+    "Không sinh được phương án");
+}
+
+// ---- U02 Chợ tri thức ----
+export type KnowledgeNote = {
+  id: number;
+  lat: number;
+  lon: number;
+  title: string;
+  body: string;
+  topic: string;
+  author_name: string;
+  helpful_count: number;
+  created_at: string;
+  similarity_pct?: number;
+};
+export type KnowledgeResult = {
+  available: boolean;
+  matched_by: string | null;
+  notes: KnowledgeNote[];
+  message?: string;
+  why?: string;
+  note?: string;
+};
+
+export function findKnowledge(lat: number, lon: number, topic?: string, k = 5) {
+  const q = new URLSearchParams({ lat: String(lat), lon: String(lon), k: String(k) });
+  if (topic) q.set("topic", topic);
+  return getJson<KnowledgeResult>(`/api/knowledge?${q}`,
+    "Không tải được kinh nghiệm chia sẻ");
+}
+
+export function shareKnowledge(
+  lat: number, lon: number, title: string, body: string, topic: string,
+) {
+  return authed<KnowledgeNote>("/api/knowledge", {
+    method: "POST",
+    body: JSON.stringify({ location: { lat, lon }, title, body, topic }),
+  }, "Không chia sẻ được");
+}
+
+export function markHelpful(id: number) {
+  return authed<KnowledgeNote>(`/api/knowledge/${id}/helpful`, { method: "POST" },
+    "Không đánh dấu được");
+}
+
+// ---- U04 Vòng khép kín: hành động + kết quả ----
+export type ActionRow = {
+  id: number;
+  module_id: string;
+  recommendation: string;
+  status: string;
+  acted_on: string;
+  note: string;
+  outcome: string | null;
+  outcome_note: string;
+  created_at: string;
+};
+export type LoopStage = { stage: string; count: number };
+export type LoopStatus = {
+  closed: boolean;
+  stages: LoopStage[];
+  actions_taken: number;
+  outcomes_verified: number;
+  helped_count: number;
+  help_rate: number | null;
+  headline: string;
+  note: string;
+};
+
+export function logAction(
+  moduleId: string, recommendation: string, actedOn: string,
+  status = "done", note = "", alertId?: number,
+) {
+  return authed<ActionRow>("/api/actions", {
+    method: "POST",
+    body: JSON.stringify({
+      module_id: moduleId, recommendation, acted_on: actedOn,
+      status, note, alert_id: alertId ?? null,
+    }),
+  }, "Không ghi được hành động");
+}
+
+export function recordOutcome(id: number, outcome: string, note = "") {
+  return authed<ActionRow>(`/api/actions/${id}/outcome`, {
+    method: "POST",
+    body: JSON.stringify({ outcome, outcome_note: note }),
+  }, "Không ghi được kết quả");
+}
+
+export function listActions() {
+  return authed<ActionRow[]>("/api/actions", { method: "GET" },
+    "Không tải được nhật ký hành động");
+}
+
+export function getLoop() {
+  return authed<LoopStatus>("/api/loop", { method: "GET" },
+    "Không tải được trạng thái vòng học");
+}
+
+// ---- S05 Quan sát thực địa (nguồn nuôi cả S04/S05/S09) ----
+export type ObservationRow = {
+  id: number;
+  lat: number;
+  lon: number;
+  module_id: string;
+  observed_on: string;
+  outcome: string;
+  severity: string | null;
+  note: string;
+  model_index: number | null;
+  created_at: string;
+};
+
+export function addObservation(
+  lat: number, lon: number, moduleId: string, observedOn: string,
+  outcome: "occurred" | "none", severity?: string | null, note = "",
+) {
+  return authed<ObservationRow>("/api/observations", {
+    method: "POST",
+    body: JSON.stringify({
+      location: { lat, lon }, module_id: moduleId, observed_on: observedOn,
+      outcome, severity: severity ?? null, note,
+    }),
+  }, "Không gửi được quan sát");
+}
+
+export function listObservations() {
+  return authed<ObservationRow[]>("/api/observations", { method: "GET" },
+    "Không tải được quan sát");
+}
+
+// ---- S05 Bảng hiệu chỉnh tổng hợp (công khai, đã ẩn danh) ----
+export type FederatedAdjustment = {
+  cell: string;
+  module_id: string;
+  threshold_shift: number;
+  observations: number;
+  hit: number;
+  missed: number;
+  false_alarm: number;
+  correct_quiet: number;
+  direction: string;
+};
+export type FederatedStatus = {
+  grid_deg: number;
+  min_observations: number;
+  max_shift: number;
+  total_observations: number;
+  contributors: number;
+  cells_published: number;
+  cells_pending: number;
+  adjustments: FederatedAdjustment[];
+  privacy: string;
+  headline?: string;
+};
+
+export function getFederated() {
+  return getJson<FederatedStatus>("/api/federated",
+    "Không tải được bảng hiệu chỉnh");
+}
+
+// ---- S09 Chấm điểm mô hình ----
+export type ModelMetrics = {
+  hit: number;
+  false_alarm: number;
+  miss: number;
+  correct_negative: number;
+  samples: number;
+  pod: number | null;
+  far: number | null;
+  csi: number | null;
+  bias: number | null;
+};
+export type ModelEval = {
+  dataset: {
+    observations: number;
+    modules_covered: number;
+    cells_covered: number;
+    warn_threshold: number;
+  };
+  overall: ModelMetrics;
+  overall_verdict: string;
+  by_module: Record<string, ModelMetrics & { verdict?: string }>;
+  weakest_cells: unknown[];
+  headline: string;
+  metric_guide: Record<string, string>;
+  why_csi_first?: string;
+};
+
+export function getModelEval() {
+  return getJson<ModelEval>("/api/model/evaluate", "Không chấm được mô hình");
+}
+
+// ---- C01 Twin đã lưu ----
+export type TwinSummary = {
+  id: number;
+  name: string;
+  lat: number;
+  lon: number;
+  area_ha: number | null;
+  score: number | null;
+  grade: string | null;
+  built_at: string;
+};
+
+export function listTwins() {
+  return authed<TwinSummary[]>("/api/twins", { method: "GET" },
+    "Không tải được danh sách Twin");
+}
+
+export function buildTwin(name: string, lat: number, lon: number, areaHa?: number) {
+  const location: Record<string, number> = { lat, lon };
+  if (areaHa != null) location.area_ha = areaHa;
+  return authed<{ id: number; name: string }>("/api/twins", {
+    method: "POST", body: JSON.stringify({ name, location }),
+  }, "Không dựng được Twin");
+}
+
+export function getTwin(id: number) {
+  return authed<Record<string, unknown>>(`/api/twins/${id}`, { method: "GET" },
+    "Không mở được Twin");
+}
+
+export function deleteTwin(id: number) {
+  return authed<void>(`/api/twins/${id}`, { method: "DELETE" },
+    "Không xoá được Twin");
+}
+
+// ---- C11 Bring-Your-Own-Data ----
+export type DatasetRow = {
+  id: number;
+  name: string;
+  kind: string;
+  row_count: number;
+  created_at: string;
+};
+
+export function listDatasets() {
+  return authed<DatasetRow[]>("/api/datasets", { method: "GET" },
+    "Không tải được dữ liệu đã tải lên");
+}
+
+export function uploadDataset(name: string, kind: "csv" | "geojson", content: string) {
+  return authed<DatasetRow>("/api/datasets", {
+    method: "POST", body: JSON.stringify({ name, kind, content }),
+  }, "Không tải lên được");
+}
+
+export function scoreDataset(id: number, limit = 50) {
+  return authed<Record<string, unknown>>(
+    `/api/datasets/${id}/score?limit=${limit}`, { method: "POST" },
+    "Không chấm điểm được");
+}
+
+export function deleteDataset(id: number) {
+  return authed<void>(`/api/datasets/${id}`, { method: "DELETE" },
+    "Không xoá được");
+}
+
+// ---- C12 Khoá API ----
+export type ApiKeyRow = {
+  id: number;
+  label: string;
+  prefix: string;
+  created_at: string;
+  last_used_at: string | null;
+  revoked: boolean;
+};
+
+export function listKeys() {
+  return authed<ApiKeyRow[]>("/api/keys", { method: "GET" }, "Không tải được khoá");
+}
+
+export function createKey(label: string) {
+  return authed<ApiKeyRow & { key: string }>(
+    `/api/keys?label=${encodeURIComponent(label)}`, { method: "POST" },
+    "Không tạo được khoá");
+}
+
+export function revokeKey(id: number) {
+  return authed<void>(`/api/keys/${id}`, { method: "DELETE" },
+    "Không thu hồi được khoá");
+}
+
+// ---- U01 Kênh gửi cảnh báo ----
+export type ChannelRow = {
+  id: number;
+  kind: string;
+  target: string;
+  min_level: string;
+  enabled: boolean;
+  created_at: string;
+  last_sent_at: string | null;
+  last_error: string | null;
+};
+
+export function listChannels() {
+  return authed<ChannelRow[]>("/api/channels", { method: "GET" },
+    "Không tải được kênh gửi");
+}
+
+export function createChannel(
+  kind: "webhook" | "email", target: string, minLevel: "warning" | "danger",
+) {
+  return authed<ChannelRow>("/api/channels", {
+    method: "POST",
+    body: JSON.stringify({ kind, target, min_level: minLevel }),
+  }, "Không thêm được kênh");
+}
+
+export function testChannel(id: number) {
+  return authed<Record<string, unknown>>(`/api/channels/${id}/test`,
+    { method: "POST" }, "Không gửi thử được");
+}
+
+export function deleteChannel(id: number) {
+  return authed<void>(`/api/channels/${id}`, { method: "DELETE" },
+    "Không xoá được kênh");
+}
+
+// ---- C07 Báo cáo MRV carbon ----
+export type MrvReport = {
+  available: boolean;
+  reason?: string;
+  message?: string;
+  project_name?: string;
+  generated_at?: string;
+  measured?: Record<string, unknown>;
+  estimated?: Record<string, unknown>;
+  change_vs_last_year?: Record<string, unknown> | null;
+  headline?: string;
+  methodology?: Record<string, string>;
+  limitations?: string[];
+  to_reach_credit_grade?: string[];
+  integrity?: Record<string, unknown>;
+};
+
+export function runMrv(lat: number, lon: number, projectName = "", agbTHa?: number) {
+  return postJson<MrvReport>("/api/mrv", {
+    location: { lat, lon }, project_name: projectName,
+    agb_t_ha: agbTHa ?? null,
+  }, "Không lập được báo cáo MRV");
+}
+
+// ---- Trạng thái vệ tinh & 26 luồng ----
+export type SatelliteStatus = {
+  configured: boolean;
+  client_id_hint: string | null;
+  provider: string;
+  indices: Record<string, string>;
+  message: string;
+  unlocks: string[];
+};
+
+export function getSatellite() {
+  return getJson<SatelliteStatus>("/api/satellite",
+    "Không đọc được trạng thái vệ tinh");
+}
+
+export type RoadmapFlow = {
+  id: string;
+  name: string;
+  tier: string;
+  tier_name: string;
+  status: string;
+  note: string;
+  requires: string | null;
+  awaiting_config: boolean;
+  awaiting_note: string | null;
+};
+export type Roadmap = {
+  total: number;
+  done: number;
+  partial: number;
+  blocked: number;
+  live: number;
+  awaiting_config: number;
+  satellite_configured: boolean;
+  flows: RoadmapFlow[];
+  by_tier: Record<string, { name: string; total: number; done: number; live: number }>;
+  headline: string;
+  honesty_note: string;
+};
+
+export function getRoadmap() {
+  return getJson<Roadmap>("/api/roadmap", "Không tải được trạng thái luồng");
 }
