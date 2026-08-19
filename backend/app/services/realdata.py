@@ -11,25 +11,95 @@ from __future__ import annotations
 import json
 import math
 import time
+import urllib.error
 import urllib.request
+
+# Trạng thái hạn mức của nguồn dữ liệu miễn phí.
+#
+# VÌ SAO PHẢI TÁCH RIÊNG: Open-Meteo có hạn mức THEO NGÀY. Cạn hạn mức thì mọi
+# lời gọi trả 429, và nếu gộp chung với "mất mạng" thì người dùng thấy đúng một
+# câu "chưa lấy được dữ liệu" cho hai tình huống hoàn toàn khác nhau: một cái
+# mười giây nữa hết, một cái phải chờ tới ngày mai. Người vận hành cũng không
+# biết là cần nâng gói hay chỉ cần chờ.
+_QUOTA: dict[str, float] = {}      # host -> thời điểm phát hiện cạn hạn mức
+_QUOTA_TTL = 3600.0                # nhắc lại mỗi giờ, hạn mức reset theo ngày UTC
+
+
+def quota_status() -> dict:
+    """Nguồn nào đang cạn hạn mức, phát hiện lúc nào."""
+    now = time.time()
+    hit = {h: round((now - t) / 60.0, 1)
+           for h, t in _QUOTA.items() if now - t < _QUOTA_TTL}
+    return {
+        "exhausted": sorted(hit),
+        "minutes_since_detected": hit,
+        "message": (
+            "Đã cạn hạn mức ngày của: " + ", ".join(sorted(hit))
+            + ". Hạn mức reset theo ngày UTC. Nếu chuyện này lặp lại khi có "
+              "người dùng thật thì cần nâng gói Open-Meteo hoặc tăng thời gian "
+              "cache."
+            if hit else "Chưa nguồn nào báo cạn hạn mức."),
+    }
 
 _CACHE: dict[str, tuple[float, object]] = {}
 _TTL = 1800  # giây
 
 
+def _fetch(url: str, timeout: float):
+    """Gọi mạng thật. Đi qua trần đồng thời để không nã dồn nguồn miễn phí."""
+    from app.services import jobs
+
+    with jobs.upstream() as allowed:
+        if not allowed:
+            # Hàng đợi ra ngoài tắc quá lâu. Trả None đúng như khi mất mạng —
+            # người gọi đã biết xử lý None; treo thì không ai xử lý được.
+            return None
+        try:
+            req = urllib.request.Request(
+                url, headers={"User-Agent": "TerraTwin/0.2"})
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return json.loads(r.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                host = url.split("/")[2] if "//" in url else url[:40]
+                if host not in _QUOTA or time.time() - _QUOTA[host] > _QUOTA_TTL:
+                    from app.safelog import log
+                    log(f"[TerraTwin] {host}: CAN HAN MUC NGAY (HTTP 429). "
+                        f"Moi ket qua se bao 'chua du du lieu' cho toi khi reset.")
+                _QUOTA[host] = time.time()
+            return None
+        except Exception:
+            return None
+
+
 def _get(url: str, timeout: float = 8.0):
+    """Lấy JSON có cache, và GỘP những lời gọi trùng nhau đang chạy cùng lúc.
+
+    Cache thường chỉ cứu từ lượt thứ hai trở đi. Khi nhiều người cùng hỏi một
+    toạ độ trong cùng một giây — chuyện xảy ra ngay trong một lượt quét toàn
+    cảnh, trong bản đồ nhiệt, và trong mọi lần demo trước đám đông — thì tất cả
+    đều thấy cache rỗng và cùng gọi ra ngoài. `single_flight` để đúng MỘT lượt
+    chạy, số còn lại chờ chung kết quả đó.
+    """
+    from app.services import jobs
+
     now = time.time()
     hit = _CACHE.get(url)
     if hit and now - hit[0] < _TTL:
         return hit[1]
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "TerraTwin/0.2"})
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            data = json.loads(r.read().decode("utf-8"))
-        _CACHE[url] = (now, data)
+
+    def _work():
+        # Kiểm lại trong "phòng chờ": người dẫn đầu có thể vừa ghi cache xong
+        # ngay trước khi ta bước vào đây.
+        h = _CACHE.get(url)
+        if h and time.time() - h[0] < _TTL:
+            return h[1]
+        data = _fetch(url, timeout)
+        if data is not None:
+            _CACHE[url] = (time.time(), data)
         return data
-    except Exception:
-        return None
+
+    return jobs.single_flight(f"om:{url}", _work)
 
 
 def _bust(url: str) -> None:
@@ -101,6 +171,38 @@ def _chunks(points: list, size: int = _MAX_POINTS):
         yield points[i:i + size]
 
 
+def _parallel_chunks(points, build_url, timeout):
+    """Chia lô rồi gọi các lô ĐỒNG THỜI, ghép lại đúng thứ tự.
+
+    Open-Meteo chỉ nhận 100 toạ độ mỗi lượt, nên lưới bộ gen 180 ô hay bản đồ
+    nhiệt 11x11 phải chia thành nhiều lô. Trước đây các lô chạy nối tiếp: lô sau
+    chờ lô trước xong. Chúng độc lập hoàn toàn nên chạy cùng lúc được, và trần
+    đồng thời trong jobs.upstream() vẫn giữ cho nguồn miễn phí không bị nã dồn.
+
+    Lô nào hỏng trả None cho đúng số điểm của lô đó — KHÔNG được lệch chỉ số,
+    vì người gọi ghép kết quả theo vị trí với danh sách điểm ban đầu.
+    """
+    from app.services import jobs
+
+    lots = list(_chunks(points))
+
+    def _task(chunk):
+        return lambda: _get(build_url(chunk), timeout=timeout)
+
+    responses = jobs.gather([_task(c) for c in lots])
+
+    out = []
+    for chunk, d in zip(lots, responses):
+        if d is None:
+            out.extend([None] * len(chunk))
+            continue
+        # Một điểm -> Open-Meteo trả object; nhiều điểm -> trả mảng.
+        items = d if isinstance(d, list) else [d]
+        out.extend(_rows_from_daily(items[i] if i < len(items) else None)
+                   for i in range(len(chunk)))
+    return out
+
+
 def historical_weather_multi(points: list[tuple[float, float]],
                              start: str, end: str):
     """Thời tiết lịch sử (ERA5) cho NHIỀU điểm trong MỘT lần gọi.
@@ -111,25 +213,19 @@ def historical_weather_multi(points: list[tuple[float, float]],
     """
     if not points:
         return []
-    out = []
-    for chunk in _chunks(points):
+
+    def _url(chunk):
         lat_q = ",".join(f"{la:.4f}" for la, _ in chunk)
         lon_q = ",".join(f"{lo:.4f}" for _, lo in chunk)
-        url = (
+        return (
             "https://archive-api.open-meteo.com/v1/archive"
             f"?latitude={lat_q}&longitude={lon_q}"
             f"&start_date={start}&end_date={end}"
             "&daily=precipitation_sum,et0_fao_evapotranspiration,temperature_2m_max"
             "&timezone=auto"
         )
-        d = _get(url, timeout=120.0)
-        if d is None:
-            out.extend([None] * len(chunk))
-            continue
-        items = d if isinstance(d, list) else [d]
-        out.extend(_rows_from_daily(items[i] if i < len(items) else None)
-                   for i in range(len(chunk)))
-    return out
+
+    return _parallel_chunks(points, _url, 120.0)
 
 
 def weather_multi(points: list[tuple[float, float]]):
@@ -141,25 +237,18 @@ def weather_multi(points: list[tuple[float, float]]):
     """
     if not points:
         return []
-    out = []
-    for chunk in _chunks(points):
+
+    def _url(chunk):
         lat_q = ",".join(f"{la:.4f}" for la, _ in chunk)
         lon_q = ",".join(f"{lo:.4f}" for _, lo in chunk)
-        url = (
+        return (
             "https://api.open-meteo.com/v1/forecast"
             f"?latitude={lat_q}&longitude={lon_q}"
             "&daily=precipitation_sum,et0_fao_evapotranspiration,temperature_2m_max"
             "&forecast_days=7&timezone=auto"
         )
-        d = _get(url, timeout=25.0)
-        if d is None:
-            out.extend([None] * len(chunk))
-            continue
-        # Một điểm → Open-Meteo trả object; nhiều điểm → trả mảng.
-        items = d if isinstance(d, list) else [d]
-        out.extend(_rows_from_daily(items[i] if i < len(items) else None)
-                   for i in range(len(chunk)))
-    return out
+
+    return _parallel_chunks(points, _url, 25.0)
 
 
 def _rows_from_daily(item):
@@ -189,13 +278,21 @@ def elevation_multi(points: list[tuple[float, float]]):
     """Cao độ cho nhiều điểm trong một lần gọi. Trả list float|None."""
     if not points:
         return []
-    out: list[float | None] = []
-    for chunk in _chunks(points):
+    from app.services import jobs
+
+    lots = list(_chunks(points))
+
+    def _task(chunk):
         lat_q = ",".join(f"{la:.5f}" for la, _ in chunk)
         lon_q = ",".join(f"{lo:.5f}" for _, lo in chunk)
-        d = _get(
-            f"https://api.open-meteo.com/v1/elevation?latitude={lat_q}&longitude={lon_q}",
-            timeout=20.0)
+        url = ("https://api.open-meteo.com/v1/elevation"
+               f"?latitude={lat_q}&longitude={lon_q}")
+        return lambda: _get(url, timeout=20.0)
+
+    responses = jobs.gather([_task(c) for c in lots])
+
+    out: list[float | None] = []
+    for chunk, d in zip(lots, responses):
         try:
             vals = [float(x) for x in d["elevation"]]
         except (KeyError, TypeError, ValueError):

@@ -9,7 +9,6 @@ Cấu hình qua biến môi trường (xem .env.example):
 from __future__ import annotations
 
 import os
-import sys
 import time
 from collections import defaultdict, deque
 from contextlib import asynccontextmanager
@@ -29,28 +28,13 @@ from app.schemas import (
     TerraScoreResult, WhatIfResult,
 )
 from app.services import (
-    anomaly, backtest, copilot, explain, genome, goalseek, hazard, heatmap, llm,
-    design, mrv, roadmap, scan, sentinel, terrascore, timelapse, timemachine,
-    whatif, whatif_nlp,
+    anomaly, backtest, copilot, design, explain, genome, goalseek, hazard,
+    heatmap, jobs, llm, mrv, roadmap, scan, sentinel, terrascore, timelapse,
+    timemachine, whatif, whatif_nlp,
 )
 from app.services import twin as twin_service
 from app import auth
-
-
-def log(msg: str) -> None:
-    """In log an toàn với mọi bảng mã console.
-
-    KHÔNG dùng print() thẳng cho chuỗi tiếng Việt. Console Windows mặc định là
-    cp1252/cp437; print("chủ động") ở đó ném UnicodeEncodeError, và nếu câu lệnh
-    đó nằm trong lifespan thì APP KHÔNG KHỞI ĐỘNG ĐƯỢC — sập vì một dòng log.
-    Đã dính đúng lỗi này một lần, nên chặn ở một chỗ duy nhất.
-    """
-    try:
-        print(msg, flush=True)
-    except UnicodeEncodeError:
-        enc = (getattr(sys.stdout, "encoding", None) or "ascii")
-        sys.stdout.buffer.write(msg.encode(enc, "replace") + b"\n")
-        sys.stdout.flush()
+from app.safelog import log
 
 
 # Bộ hẹn giờ nền cho C05 Proactive Radar.
@@ -193,7 +177,19 @@ class CopilotRequest(BaseModel):
 
 @app.get("/api/health")
 def health() -> dict:
-    return {"status": "ok", "service": "terratwin", "modules": len(list_modules())}
+    """Sức khoẻ máy chủ VÀ tình trạng hạn mức nguồn dữ liệu.
+
+    Hạn mức nằm ở đây có chủ đích: Open-Meteo giới hạn theo NGÀY, và khi cạn thì
+    mọi mô-đun đồng loạt trả "chưa đủ dữ liệu" — nhìn hệt như phần mềm hỏng.
+    Người vận hành phải phân biệt được ngay "hết quota, mai lại chạy" với "code
+    hỏng", nếu không sẽ đi sửa nhầm chỗ.
+    """
+    from app.services import realdata
+
+    q = realdata.quota_status()
+    return {"status": "degraded" if q["exhausted"] else "ok",
+            "service": "terratwin", "modules": len(list_modules()),
+            "quota": q, "jobs": jobs.stats()}
 
 
 @app.get("/api/roadmap")
@@ -341,6 +337,23 @@ def mrv_endpoint(req: MrvRequest) -> dict:
                      agb_t_ha=req.agb_t_ha, project_name=req.project_name)
 
 
+class ProvenanceRequest(BaseModel):
+    location: Location
+    start: str
+    end: str
+    product: str = ""
+    grower: str = ""
+
+
+@app.post("/api/provenance")
+def provenance_endpoint(req: ProvenanceRequest) -> dict:
+    """SUP-12 — hồ sơ truy xuất: điều kiện môi trường THẬT suốt vụ, có mã băm."""
+    from app.modules.group_d import provenance
+
+    return provenance(req.location, req.start, req.end,
+                      product=req.product, grower=req.grower)
+
+
 @app.post("/api/mrv/verify")
 def mrv_verify(report: dict) -> dict:
     """Kiểm tra một báo cáo MRV còn nguyên vẹn hay đã bị sửa sau khi lập."""
@@ -358,10 +371,45 @@ def genome_endpoint(location: Location, k: int = 5) -> dict:
 
 
 @app.post("/api/genome/warm")
-def genome_warm(force: bool = False) -> dict:
-    """Dựng sẵn lưới tham chiếu để lần hỏi đầu của người dùng không phải chờ."""
-    ref = genome.build_reference(force=force)
-    return {k: v for k, v in ref.items() if k != "cells"}
+def genome_warm(force: bool = False, background: bool = True) -> dict:
+    """Dựng sẵn lưới tham chiếu để lần hỏi đầu của người dùng không phải chờ.
+
+    Mặc định chạy NỀN và trả ngay mã việc. Dựng lưới mất 1–2 phút, mà Render và
+    phần lớn proxy cắt kết nối trước đó — người dùng thấy lỗi trong khi máy chủ
+    vẫn đang chạy đúng. Đặt background=false nếu muốn chờ tại chỗ (dùng cho
+    script triển khai, không dùng cho trình duyệt).
+    """
+    if not background:
+        ref = genome.build_reference(force=force)
+        return {k: v for k, v in ref.items() if k != "cells"}
+
+    def _work():
+        ref = genome.build_reference(force=force)
+        return {k: v for k, v in ref.items() if k != "cells"}
+
+    job_id = jobs.submit("genome_warm", _work, "Dựng lưới bộ gen toàn quốc")
+    return {"job_id": job_id, "state": "queued",
+            "poll": f"/api/jobs/{job_id}",
+            "message": ("Đang dựng lưới ở chế độ nền (1–2 phút). Hỏi lại "
+                        "/api/jobs/{id} để lấy kết quả.")}
+
+
+@app.get("/api/jobs/{job_id}")
+def job_status(job_id: str) -> dict:
+    """Trạng thái một việc chạy nền."""
+    st = jobs.status(job_id)
+    if st is None:
+        raise HTTPException(
+            status_code=404,
+            detail=("Không có việc nào mang mã này. Hàng đợi nằm trong bộ nhớ "
+                    "nên khởi động lại máy chủ là mất; kết quả cũng chỉ giữ 30 phút."))
+    return st
+
+
+@app.get("/api/jobs")
+def jobs_overview() -> dict:
+    """Sức khoẻ hàng đợi và trần gọi ra ngoài."""
+    return jobs.stats()
 
 
 class AskRequest(BaseModel):

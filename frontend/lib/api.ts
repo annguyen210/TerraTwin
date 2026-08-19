@@ -183,6 +183,9 @@ export type ScanResult = {
   alerts: ScanModule[];
   real_data_ratio: number;
   generated_at: string;
+  // Mô-đun "nặng" (quét cả một vùng) bị bỏ qua trong lượt toàn cảnh — khai báo
+  // ra chứ không giấu, để người dùng biết còn thứ gì cần mở riêng.
+  skipped_heavy?: string[];
 };
 
 export type ScenarioPoint = {
@@ -1082,6 +1085,7 @@ export type RoadmapFlow = {
   awaiting_config: boolean;
   awaiting_note: string | null;
 };
+export type Principle = { name: string; status: string; note: string };
 export type Roadmap = {
   total: number;
   done: number;
@@ -1092,9 +1096,52 @@ export type Roadmap = {
   satellite_configured: boolean;
   flows: RoadmapFlow[];
   by_tier: Record<string, { name: string; total: number; done: number; live: number }>;
+  principles: Principle[];
+  sectors: { planned: number; covered: number; note: string };
+  modules: { total: number; active: number; awaiting_satellite: number };
   headline: string;
   honesty_note: string;
 };
+
+// ---- SUP-12 Hồ sơ truy xuất nguồn gốc ----
+export type Provenance = {
+  available: boolean;
+  message?: string;
+  product?: string;
+  grower?: string;
+  generated_at?: string;
+  measured?: Record<string, unknown>;
+  context?: Record<string, unknown>;
+  headline?: string;
+  integrity?: Record<string, unknown>;
+  scope?: string;
+};
+
+export function runProvenance(
+  lat: number, lon: number, start: string, end: string,
+  product = "", grower = "",
+) {
+  return postJson<Provenance>("/api/provenance", {
+    location: { lat, lon }, start, end, product, grower,
+  }, "Không lập được hồ sơ truy xuất");
+}
+
+// ---- Hàng đợi việc chạy nền ----
+export type JobStatus = {
+  id: string;
+  kind: string;
+  label: string;
+  state: "queued" | "running" | "done" | "error";
+  queued_s: number;
+  elapsed_s: number;
+  result?: unknown;
+  error?: string;
+  message?: string;
+};
+
+export function getJob(id: string) {
+  return getJson<JobStatus>(`/api/jobs/${id}`, "Không đọc được trạng thái việc");
+}
 
 export function getRoadmap() {
   return getJson<Roadmap>("/api/roadmap", "Không tải được trạng thái luồng");

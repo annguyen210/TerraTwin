@@ -1,6 +1,6 @@
 # 🛰️ TerraTwin
 
-**Bản sao số (digital twin) của đất đai Việt Nam** — nhìn đất thật từ vệ tinh → mô phỏng → dự đoán kiểm chứng được → khuyến nghị hành động. Một lõi Twin, phủ 14 mũi nhọn.
+**Bản sao số (digital twin) của đất đai Việt Nam** — nhìn đất thật từ vệ tinh → mô phỏng → dự đoán kiểm chứng được → khuyến nghị hành động. Một lõi Twin, **17 mũi nhọn phủ đủ 12/12 ngành**.
 
 Ba chữ cốt lõi: **CỦA MÌNH** (từng thửa) · **BIẾT TRƯỚC** (kịp hành động) · **BẰNG CHỨNG THẬT** (vệ tinh/thời tiết, kiểm chứng được — không phỏng đoán).
 
@@ -27,7 +27,7 @@ Mỗi kết quả gắn cờ rõ ràng 🛰️ **Dữ liệu thật** hoặc �
 > áp ngưỡng mặn của cây lúa. Mô hình có **mùa vụ**: đỉnh ~15/3 (mùa khô, sông cạn),
 > đáy ~15/9 (lũ đẩy mặn ra biển) — tỉ lệ khô/mưa ở Bến Tre ≈ **6,2×**.
 
-**Tính năng thật đã có:** TerraScore (chỉ chấm từ hiểm họa dữ liệu thật) · Quét toàn cảnh 14 module · **Backtest lịch sử ERA5** (đo lead time 4 thiên tai VN có thật) · **What-If / Parallel Futures** · **Causal Explain** · **Goal-Seek** · **Time Machine** · **Anomaly** · Danh mục thửa đất + xuất báo cáo · Copilot (rule-based, bật LLM nếu có key) · bản đồ nền ảnh vệ tinh thật.
+**Tính năng thật đã có:** TerraScore (chỉ chấm từ hiểm họa dữ liệu thật) · Quét toàn cảnh mọi mũi nhọn trong ~2,5 giây · **Backtest lịch sử ERA5** (đo lead time 4 thiên tai VN có thật) · **What-If / Parallel Futures** · **Causal Explain** · **Goal-Seek** · **Time Machine** · **Anomaly** · Danh mục thửa đất + xuất báo cáo · Copilot (rule-based, bật LLM nếu có key) · bản đồ nền ảnh vệ tinh thật.
 
 ### Phân tích sâu — 4 luồng nâng cao (mới)
 
@@ -185,7 +185,7 @@ terratwin/
 │       │                         #   terrascore, scan, whatif, explain,
 │       │                         #   goalseek, timemachine, anomaly,
 │       │                         #   backtest, copilot, twin
-│       └── modules/              # base + util + 14 module + registry
+│       └── modules/              # base + util + 17 mũi nhọn (nhóm A–D) + registry
 │   └── tests/                    # pytest (217 test, offline & tất định)
 ├── frontend/                     # Next.js 14 + MapLibre
 │   └── components/               # MapView, ResultsPanel, Overview, WhatIf,
@@ -249,6 +249,42 @@ pytest                      # 217 test, chạy offline & tất định
 1. Tạo lớp con `TwinModule` trong `backend/app/modules/`, viết `assess()`.
 2. Đăng ký ở `registry.py`. Frontend tự hiện.
 
+## Chạy song song — nguyên lý 02 của bản thiết kế
+
+Bản thiết kế đặt "Song song & đồng thời" thành nguyên lý bắt buộc. `services/jobs.py`
+làm bốn việc, không thêm phụ thuộc nào (gói miễn phí không có chỗ chạy Redis/Celery):
+
+| Vấn đề thật | Cách giải | Đo được |
+|---|---|---|
+| Quét toàn cảnh gọi từng mô-đun nối tiếp | chạy đồng thời | **13,1 s → 2,5 s** |
+| Lưới 180 ô / 11×11 chia lô rồi chờ từng lô | các lô chạy cùng lúc | 250 điểm trong ~1 s |
+| Nhiều người hỏi cùng toạ độ ⇒ nhiều lượt gọi giống hệt | gộp thành một (`single_flight`) | 6 lời gọi → 1 |
+| Không có trần lượt gọi ra ngoài ⇒ nguồn free chặn IP | semaphore toàn tiến trình | `TERRATWIN_UPSTREAM_CONCURRENCY` |
+| Việc dài (dựng lưới bộ gen 1–2 phút) giữ kết nối HTTP tới lúc proxy cắt | hàng đợi + `GET /api/jobs/{id}` | trả mã việc ngay |
+
+**Nói rõ giới hạn:** đây là song song TRONG MỘT TIẾN TRÌNH. Hàng đợi nằm trong bộ
+nhớ nên restart là mất, và gộp việc trùng chỉ gộp trong cùng tiến trình. Phân tán
+thật cần hàng đợi bền bên ngoài — việc của lúc có tải thật, không phải bây giờ.
+
+**Mô-đun "nặng"** (`heavy = True`) bị loại khỏi lượt quét toàn cảnh và khỏi việc
+dựng Twin, vì chúng quét cả một vùng chứ không riêng thửa. Phần bị bỏ qua được
+khai báo trong `skipped_heavy`, không giấu.
+
+## Khi nguồn miễn phí cạn hạn mức
+
+Open-Meteo giới hạn **theo ngày**. Cạn hạn mức thì mọi mô-đun đồng loạt trả
+"chưa đủ dữ liệu" — nhìn hệt như phần mềm hỏng. Chuyện này đã xảy ra thật trong
+lúc phát triển, nên phần mềm tách riêng hai tình huống:
+
+```bash
+curl <api>/api/health
+# "status":"ok"        → bình thường
+# "status":"degraded"  → hết quota nguồn dữ liệu, KHÔNG phải code hỏng
+```
+
+Gộp hai cái đó thành một câu "chưa lấy được dữ liệu" là để người vận hành đi
+sửa nhầm chỗ cả ngày, và để người dùng tưởng phần mềm hỏng khi nó chỉ đang chờ.
+
 ## Lộ trình — 25/26 luồng đã viết xong
 
 `GET /api/roadmap` trả trạng thái sinh **từ mã nguồn**, nên không thể lệch với
@@ -264,6 +300,23 @@ Bảng phân biệt rạch ròi hai thứ hay bị trộn: `done` là **mã đã
 không bịa số**; `awaiting_config` là **mã xong nhưng deployment này thiếu khóa
 nên người dùng chưa dùng được**. Gộp hai cái đó vào một chữ "xong" là lúc một
 bảng trạng thái bắt đầu nói dối.
+
+### 17 mũi nhọn phủ đủ 12/12 ngành
+
+Bản thiết kế liệt kê **14 mũi nhọn** nhưng lại hứa **12 ngành** — hai con số đó
+không khớp nhau. Ba ngành không có mũi nhọn nào: Đô thị & Quy hoạch, Khai khoáng
+& Hạ tầng, Chuỗi cung ứng. Nhóm D lấp đúng ba chỗ đó:
+
+| Mũi nhọn | Ngành | Đo cái gì | Nguồn |
+|---|---|---|---|
+| 🏙️ **Ngập úng & mảng xanh đô thị** | URB-09 | Bê tông hoá làm nước chảy tràn tăng bao nhiêu lần so với khi chưa đô thị hoá — bằng đường cong dòng chảy **SCS Curve Number (USDA TR-55)**, không phải hệ số tự nghĩ | OSM + mưa + DEM |
+| ⛏️ **An toàn mỏ & công trường** | INF-11 | Mái dốc trên đất đã bị đào bới, ghép mỏ/khu công nghiệp quanh đó với độ dốc thật và mưa dự báo | OSM + DEM + Open-Meteo (+ Sentinel) |
+| 🔗 **Rủi ro vùng nguyên liệu** | SUP-12 | Bao nhiêu **phần trăm diện tích vùng thu mua** đang ở mức cảnh báo — chạy mô hình hiểm họa trên lưới 5×5 phủ bán kính 25 km. Kèm **hồ sơ truy xuất** điều kiện cả vụ từ ERA5, có mã băm | Open-Meteo + OSM |
+
+Nguồn mới: **OpenStreetMap qua Overpass** — miễn phí, không cần key. Vệ tinh thấy
+"bề mặt cứng"; OSM nói bề mặt đó *là gì* — nhà ở, nhà máy, mỏ đá hay quốc lộ.
+Mọi kết quả kèm **mức đầy đủ dữ liệu**, vì OSM ở nông thôn VN còn thưa và
+"0 công trình" thường nghĩa là chưa ai vẽ, không phải đất trống.
 
 ### Mọi luồng đều có mặt trên giao diện
 

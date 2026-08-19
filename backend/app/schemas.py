@@ -47,6 +47,7 @@ class ModuleInfo(BaseModel):
     data_sources: list[str]
     users: list[str]
     description: str
+    heavy: bool = False
 
 
 class ForecastPoint(BaseModel):
@@ -120,6 +121,7 @@ class ScanResult(BaseModel):
     alerts: list[ScanModule] = []      # chỉ module warning/danger, ưu tiên nguy hiểm trước
     real_data_ratio: float = 0.0
     generated_at: str
+    skipped_heavy: list[str] = []
 
 
 class ScenarioPoint(BaseModel):

@@ -14,17 +14,37 @@ _RISK_ORDER = {"danger": 0, "warning": 1, "safe": 2, "unknown": 3, "not_implemen
 
 
 def scan(loc: Location) -> ScanResult:
-    from app.modules.registry import list_modules, get_module
+    """Chạy toàn bộ mô-đun ĐỒNG THỜI.
+
+    Trước đây chạy nối tiếp: mỗi mô-đun chờ mạng xong mới tới lượt mô-đun sau,
+    nên endpoint được dùng nhiều nhất cũng là endpoint chậm nhất. Chúng độc lập
+    với nhau (chỉ dùng chung tầng cache) nên chạy song song được.
+
+    Mô-đun nào hỏng trả None và bị bỏ qua — một nguồn dữ liệu chết không được
+    làm trắng cả bảng toàn cảnh.
+    """
+    from app.modules.registry import get_module, list_modules
+    from app.services import jobs
+
+    # Bỏ qua mô-đun nặng: chúng quét cả một vùng chứ không riêng thửa này, và
+    # để chúng trong lượt toàn cảnh thì mười sáu mô-đun nhanh phải chờ một mô-đun
+    # chậm. Người dùng mở riêng từng cái khi cần.
+    all_infos = [i for i in list_modules() if get_module(i.id) is not None]
+    infos = [i for i in all_infos if not i.heavy]
+    skipped = [i.id for i in all_infos if i.heavy]
+
+    def _task(mid: str):
+        return lambda: get_module(mid).assess(loc)
+
+    results = jobs.gather([_task(i.id) for i in infos])
 
     mods: list[ScanModule] = []
     assessments = {}          # id → Assessment (tái dùng cho TerraScore, khỏi assess lại)
     real_count = 0
     real_total = 0
-    for info in list_modules():
-        module = get_module(info.id)
-        if module is None:
+    for info, a in zip(infos, results):
+        if a is None:
             continue
-        a = module.assess(loc)
         assessments[info.id] = a
         mods.append(ScanModule(
             id=info.id, name=info.name, icon=info.icon, group=info.group,
@@ -45,6 +65,6 @@ def scan(loc: Location) -> ScanResult:
     ratio = round(real_count / real_total, 2) if real_total else 0.0
     return ScanResult(
         location=loc, terrascore=ts, modules=mods, alerts=alerts,
-        real_data_ratio=ratio,
+        real_data_ratio=ratio, skipped_heavy=skipped,
         generated_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
     )

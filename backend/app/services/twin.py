@@ -27,14 +27,23 @@ def build_layers(loc: Location) -> dict:
     slope, slope_real = ds.slope_context(loc.lat, loc.lon)
     coast = ds.distance_to_coast_km(loc.lat, loc.lon)
 
+    # Cùng luật với quét toàn cảnh: bỏ qua mô-đun NẶNG (quét cả một vùng, mỗi
+    # điểm cần khí hậu nền riêng). Dựng Twin mà phải chờ hơn mười lăm giây thì
+    # không ai dựng. Phần bỏ qua được ghi vào metadata, không giấu.
+    from app.services import jobs
+
+    infos = [i for i in list_modules()
+             if get_module(i.id) is not None and not i.heavy]
+    skipped = [i.id for i in list_modules() if i.heavy]
+
+    def _task(mid):
+        return lambda: get_module(mid).assess(loc)
+
+    results = jobs.gather([_task(i.id) for i in infos])
+
     modules, assessments = [], {}
-    for info in list_modules():
-        m = get_module(info.id)
-        if m is None:
-            continue
-        try:
-            a = m.assess(loc)
-        except Exception:
+    for info, a in zip(infos, results):
+        if a is None:
             continue
         assessments[info.id] = a
         modules.append({
@@ -67,6 +76,7 @@ def build_layers(loc: Location) -> dict:
                        "real_data_ratio": ts.real_data_ratio},
         "data_quality": {
             "modules_total": len(modules),
+            "modules_skipped_heavy": skipped,
             "modules_real_data": n_real,
             "real_ratio": round(n_real / len(modules), 2) if modules else 0.0,
             "climate_genome_available": gen is not None,

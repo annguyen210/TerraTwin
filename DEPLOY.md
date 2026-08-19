@@ -73,6 +73,8 @@ URL Fly.
 | ☐ | `TERRATWIN_RADAR_INTERVAL_H` | Xem mục dưới — đặt sai thì cảnh báo chủ động **không tự chạy** |
 | ☐ | `TERRATWIN_LLM_PROVIDER` nếu dùng Gemini/Anthropic | Thiếu = khóa gửi sai giao thức, trợ lý **im lặng** tụt về rule-based |
 | ☐ | Khóa Copernicus (tuỳ chọn) | Mở khoá 5 mũi nhọn quang học + C07 Carbon |
+| ☐ | Theo dõi `/api/health` → `status` | `degraded` = hết quota nguồn dữ liệu, KHÔNG phải code hỏng |
+| ☐ | `TERRATWIN_UPSTREAM_CONCURRENCY` hợp với số worker | Đặt cao quá = bị nguồn miễn phí chặn IP, cả app mất dữ liệu |
 
 ---
 
@@ -102,10 +104,61 @@ gói trả phí hoặc một dịch vụ ping bên ngoài.
 
 ---
 
+## Chạy song song & tải
+
+Ba biến điều chỉnh, đều có mặc định chạy được ngay:
+
+```bash
+TERRATWIN_WORKERS=4                  # luồng chạy việc nền (hàng đợi)
+TERRATWIN_UPSTREAM_CONCURRENCY=6     # trần lượt gọi RA NGOÀI cùng lúc
+TERRATWIN_RADAR_INTERVAL_H=6         # rà soát chủ động; 0 = tắt
+```
+
+`TERRATWIN_UPSTREAM_CONCURRENCY` là thứ đứng giữa phần mềm và việc bị Open-Meteo
+chặn IP. Đừng nâng cao chỉ vì thấy chậm — nguồn miễn phí bị nã dồn thì chặn cả
+máy chủ, và lúc đó MỌI người dùng mất dữ liệu chứ không riêng người gây ra.
+
+**Nhiều worker uvicorn**: mỗi worker có hàng đợi và bộ đếm riêng, nên
+`--workers 4` nghĩa là trần gọi ra ngoài thực tế là 4×6 = 24. Chạy nhiều worker
+thì hạ `TERRATWIN_UPSTREAM_CONCURRENCY` xuống tương ứng và đặt
+`TERRATWIN_RADAR_INTERVAL_H=0`.
+
+Kiểm tra sức khoẻ hàng đợi: `curl https://<api>/api/jobs`.
+
+**Việc dài chạy nền.** Dựng lưới bộ gen mất 1–2 phút, quá thời gian chờ của
+Render và phần lớn proxy. `POST /api/genome/warm` mặc định trả ngay một mã việc;
+hỏi kết quả bằng `GET /api/jobs/{id}`. Script triển khai muốn chờ tại chỗ thì gọi
+`POST /api/genome/warm?background=false`.
+
+---
+
+## Hạn mức nguồn dữ liệu miễn phí — đọc trước khi mở cho nhiều người
+
+Open-Meteo giới hạn **theo ngày**. Cạn hạn mức thì mọi mô-đun đồng loạt trả
+"chưa đủ dữ liệu" — **nhìn hệt như phần mềm hỏng**. Đây là chuyện đã xảy ra thật
+trong lúc phát triển, nên phần mềm phân biệt rõ hai tình huống:
+
+```bash
+curl https://<api>/api/health
+# {"status":"ok",       "quota":{"exhausted":[], ...}}          bình thường
+# {"status":"degraded", "quota":{"exhausted":["archive-api.open-meteo.com"]}}
+```
+
+`status: degraded` nghĩa là **hết quota, mai lại chạy** — không phải code hỏng.
+Đừng đi sửa nhầm chỗ. Máy chủ cũng in một dòng cảnh báo khi phát hiện lần đầu.
+
+Giảm áp lực hạn mức:
+- Tăng `_TTL` cache trong `services/realdata.py` (mặc định 30 phút)
+- Gọi `POST /api/genome/warm` **một lần** sau deploy, đừng gọi lặp
+- Hạ `TERRATWIN_RADAR_INTERVAL_H` xuống ít lần quét hơn nếu có nhiều thửa
+- Có ngân sách thì nâng gói Open-Meteo (họ có gói thương mại)
+
+---
+
 ## Ảnh vệ tinh Sentinel-2 (tuỳ chọn, miễn phí)
 
-Không có thì phần mềm vẫn chạy đủ 9/14 mũi nhọn bằng khí tượng và địa hình; 5
-mũi nhọn quang học sẽ nói thẳng là chưa có ảnh. Có thì mở khoá cả 14.
+Không có thì phần mềm vẫn chạy 12/17 mũi nhọn bằng khí tượng, địa hình và OSM; 5
+mũi nhọn quang học sẽ nói thẳng là chưa có ảnh. Có thì mở khoá cả 17.
 
 1. Đăng ký tại https://dataspace.copernicus.eu (miễn phí, không cần thẻ)
 2. Sentinel Hub → User settings → **OAuth clients** → Create

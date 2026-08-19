@@ -311,8 +311,20 @@ def marine_context(lat: float, lon: float):
     }
 
 
-def recent_precip_total(lat: float, lon: float):
+def forecast_precip_7d_total(lat: float, lon: float):
+    """Tổng lượng mưa DỰ BÁO 7 ngày TỚI. Trả (mm, có_dữ_liệu_thật).
+
+    Tên cũ là `recent_precip_total` — sai nghĩa, vì "recent" đọc ra là mưa đã
+    qua trong khi hàm trả mưa SẮP TỚI. Cái tên đó đã lừa được chính người viết
+    ra nó: một lần kiểm chứng đối chiếu nhầm với dữ liệu 7 ngày quá khứ và
+    tưởng con số lệch gần 8 lần là lỗi. Cảnh báo sớm thì phải nhìn về phía
+    trước, nên hành vi giữ nguyên — chỉ cái tên là phải nói đúng sự thật.
+    """
     w = realdata.weather_7d(lat, lon)
     if w:
         return round(sum(r["precip"] for r in w), 1), True
     return None, False
+
+
+# Bí danh cũ, giữ để không phá mã bên ngoài đang gọi.
+recent_precip_total = forecast_precip_7d_total

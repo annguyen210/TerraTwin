@@ -21,11 +21,18 @@ class TwinModule(ABC):
     description: str = ""
     status: str = "planned"
 
+    # Mô-đun "nặng": tốn nhiều lượt gọi ra ngoài (vd. quét cả một lưới điểm,
+    # mỗi điểm cần khí hậu nền riêng). Lượt QUÉT TOÀN CẢNH bỏ qua những mô-đun
+    # này — người dùng bấm một điểm trên bản đồ thì chờ vài giây là hợp lý,
+    # chờ mười lăm giây thì không, và một mô-đun vùng không nên bắt cả mười
+    # sáu mô-đun kia đợi nó.
+    heavy: bool = False
+
     def info(self) -> ModuleInfo:
         return ModuleInfo(
             id=self.id, name=self.name, group=self.group, status=self.status,
             icon=self.icon, data_sources=self.data_sources, users=self.users,
-            description=self.description,
+            description=self.description, heavy=self.heavy,
         )
 
     @abstractmethod

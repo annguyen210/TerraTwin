@@ -31,6 +31,7 @@ import DesignStudio from "@/components/DesignStudio";
 import Knowledge from "@/components/Knowledge";
 import Feedback from "@/components/Feedback";
 import Mrv from "@/components/Mrv";
+import Provenance from "@/components/Provenance";
 import Workspace from "@/components/Workspace";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
@@ -44,12 +45,14 @@ const DEEP = [
   { id: "design", icon: "🎨", label: "Trồng gì", flow: "U03 Design Studio" },
   { id: "knowledge", icon: "🤝", label: "Kinh nghiệm", flow: "U02 Marketplace" },
   { id: "mrv", icon: "🌲", label: "Carbon", flow: "C07 MRV" },
+  { id: "provenance", icon: "📜", label: "Truy xuất", flow: "SUP-12 Chuỗi cung ứng" },
 ] as const;
 
 const GROUPS: Record<string, string> = {
   A: "Nhóm A · Quang học",
   B: "Nhóm B · Radar & địa hình",
   C: "Nhóm C · Chỉ số",
+  D: "Nhóm D · Hạ tầng & chuỗi",
 };
 
 function TerraBadge({ t }: { t: TerraScore }) {
@@ -99,7 +102,7 @@ export default function Home() {
   // Cột phải hẹp nên KHÔNG đổ hết mọi luồng ra cùng lúc: mở đủ thứ một lúc thì
   // người dùng phải cuộn qua sáu bảng mới thấy được kết quả module đang xem.
   const [deep, setDeep] = useState<
-    "none" | "timelapse" | "genome" | "design" | "knowledge" | "mrv"
+    "none" | "timelapse" | "genome" | "design" | "knowledge" | "mrv" | "provenance"
   >("none");
 
   useEffect(() => {
@@ -202,7 +205,10 @@ export default function Home() {
           <small>Twin đã lưu · dữ liệu · kênh cảnh báo · khoá API · vòng học</small>
         </button>
 
-        <p className="foot">14 module · dữ liệu thật: Open-Meteo + NASA POWER</p>
+        <p className="foot">
+          {modules.length} mũi nhọn · 12/12 ngành · dữ liệu thật: Open-Meteo ·
+          NASA POWER · OpenStreetMap · Sentinel-2
+        </p>
       </aside>
 
       <section className="mapwrap">
@@ -320,6 +326,9 @@ export default function Home() {
               <Knowledge lat={coord.lat} lon={coord.lon} user={user} />
             )}
             {coord && deep === "mrv" && <Mrv lat={coord.lat} lon={coord.lon} />}
+            {coord && deep === "provenance" && (
+              <Provenance lat={coord.lat} lon={coord.lon} />
+            )}
 
             {coord && <Copilot lat={coord.lat} lon={coord.lon} />}
           </>

@@ -24,9 +24,20 @@ DRY = [0.0] * 7
 
 @pytest.fixture
 def offline(monkeypatch):
-    """Cố định địa hình để không phụ thuộc mạng."""
+    """Cố định địa hình VÀ dọn cache khí hậu để không phụ thuộc mạng hay thứ tự.
+
+    calibration._CACHE nằm ở cấp module và không phân biệt dữ liệu thật với dữ
+    liệu giả. Không dọn thì một test chạy trước có thể nạp khí hậu THẬT của
+    Quảng Nam vào đó, và test này lặng lẽ chấm điểm trên dữ liệu thật trong khi
+    tưởng mình đang chạy offline.
+    """
+    from app.services import calibration
+
+    calibration._CACHE.clear()
     monkeypatch.setattr(realdata, "elevation_m", lambda la, lo: 3.0)
     monkeypatch.setattr(realdata, "slope_deg", lambda la, lo, step_m=500.0: 22.0)
+    yield
+    calibration._CACHE.clear()
 
 
 @pytest.fixture
@@ -125,15 +136,25 @@ def test_goalseek_rejects_non_hazard_module():
 # ---------- S02 Time Machine (analog ensemble) ----------
 
 def _fake_archive(lat, lon, start, end):
-    """10 năm dữ liệu giả: 3 năm mưa lớn, còn lại khô → xác suất ~30%."""
+    """Lịch sử giả: 1/3 số NĂM có một đợt mưa lớn, còn lại khô → xác suất ~30%.
+
+    QUAN TRỌNG — đợt mưa phải HIẾM trong chuỗi ngày, không phải mưa đều quanh
+    năm. Bản trước cho mưa 110 mm suốt cả năm ướt, tức 1/3 tổng số NGÀY đều
+    110 mm; khi ấy 110 mm chỉ nằm quanh phân vị 67 của chính khí hậu nền, nên
+    hiệu chuẩn chấm nó là bình thường và xác suất nguy hiểm ra 0. Dữ liệu giả
+    tự mâu thuẫn với cơ chế đang được kiểm — đúng loại test hoặc luôn xanh
+    nhầm, hoặc phụ thuộc thứ tự chạy.
+    """
     y0, y1 = int(start[:4]), int(end[:4])
     out = []
     for y in range(y0, y1 + 1):
         wet_year = y % 3 == 0
+        spell = {date(y, 8, 15) + timedelta(days=i) for i in range(7)}
         d = date(y, 1, 1)
         while d.year == y:
+            heavy = wet_year and d in spell
             out.append({"day": 0, "date": d.isoformat(),
-                        "precip": 110.0 if wet_year else 1.0,
+                        "precip": 110.0 if heavy else 1.0,
                         "et0": 4.0, "tmax": 33.0})
             d += timedelta(days=1)
     return out

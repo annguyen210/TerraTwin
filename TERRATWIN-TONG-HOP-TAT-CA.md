@@ -48,6 +48,14 @@ Nông nghiệp · Lâm nghiệp · Môi trường & Khí hậu · Bất động 
 ## 10. 4 nguyên lý xây tính năng
 Mở rộng được (plugin) · Chạy song song (pipeline bất đồng bộ) · Tối ưu & chính xác (ensemble + backtest + active learning) · Hội tụ (thuật toán + model + AI).
 
+**Thực tế đã làm (xem trong phần mềm: Khu làm việc → 26 luồng → 4 nguyên lý):**
+① Mở rộng ✅ — thêm 3 ngành = thêm một tệp, không sửa lõi. ② Song song ✅ —
+`services/jobs.py`: quét toàn cảnh **13,1 s → 2,5 s**, chia lô song song, gộp lời
+gọi trùng, trần gọi ra ngoài, hàng đợi cho việc dài (trong một tiến trình; phân
+tán thật cần hàng đợi bền). ③ Tối ưu ✅ — hiệu chuẩn kéo báo động giả 46–61% → 3%,
+backtest công bố cả POD lẫn FAR. ④ Hội tụ ⚠️ — có thuật toán cổ điển + XAI +
+federated + LLM, **chưa có model học sâu tự huấn luyện**.
+
 ## 11. Bản đồ áp dụng AI (19 mảng)
 CV · DL · ML · Time-Series · Generative(diffusion) · NLP · LLM · Embeddings · Vector Search · Anomaly · Monte Carlo · Optimization/RL · GNN · XAI · Causal Inference · Federated Learning · Speech · Multimodal Fusion · Model Training/Dataset/MLOps.
 
@@ -96,6 +104,22 @@ Thắng thi: demo choáng + kỹ thuật sâu + tác động lớn + moat. Thác
 | 14 | Điện mặt trời | Bức xạ + sản lượng | **NASA POWER** | ✅ THẬT |
 
 **8 module dữ liệu THẬT ngay · 1 ước lượng vật lý (mặn) · 5 module quang học ĐÃ VIẾT XONG, bật bằng một khóa Copernicus miễn phí.**
+
+### Nhóm D — 3 mũi nhọn phủ nốt 12/12 ngành
+
+Bản thiết kế liệt kê 14 mũi nhọn nhưng hứa 12 ngành; hai con số đó không khớp.
+Ba ngành trước đây không có mũi nhọn nào:
+
+| # | Mũi nhọn | Ngành | Đo gì | Nguồn | Trạng thái |
+|---|---|---|---|---|---|
+| 15 | 🏙️ Ngập úng & mảng xanh đô thị | URB-09 | Bê tông hoá làm nước chảy tràn tăng bao nhiêu lần, bằng **SCS Curve Number (USDA TR-55)** | **OpenStreetMap** + mưa + DEM | ✅ THẬT |
+| 16 | ⛏️ An toàn mỏ & công trường | INF-11 | Mái dốc trên đất đã đào bới: mỏ quanh đó × độ dốc thật × mưa dự báo | **OpenStreetMap** + DEM + Open-Meteo | ✅ THẬT |
+| 17 | 🔗 Rủi ro vùng nguyên liệu | SUP-12 | % diện tích vùng thu mua đang cảnh báo (lưới 5×5, bán kính 25 km) + **hồ sơ truy xuất** cả vụ có mã băm | Open-Meteo ERA5 + OpenStreetMap | ✅ THẬT |
+
+**Nguồn mới: OpenStreetMap qua Overpass** — miễn phí, không key. Vệ tinh thấy
+"bề mặt cứng"; OSM nói bề mặt đó *là gì*. Mọi kết quả kèm **mức đầy đủ dữ liệu**
+vì OSM ở nông thôn VN còn thưa — "0 công trình" thường là chưa ai vẽ, không phải
+đất trống.
 
 Chưa có khóa thì 5 module đó nói rõ **đang thiếu khóa** hay **đang bị mây che** — hai nguyên nhân khác nhau, một cái sửa trong mười phút, một cái phải chờ trời. Không có nhánh giả lập: một chỉ số NDVI bịa trông y hệt NDVI thật.
 
@@ -260,12 +284,21 @@ bao giờ khép, và lời hứa "càng dùng càng chính xác cho đất Việ
 - Trang trạng thái 26 luồng **sinh từ mã nguồn**, mở cho người dùng xem
 
 **KHÔNG được nói quá:**
-- Chưa deploy công khai, chưa test tải, chưa phỏng vấn người dùng nào
+- Chưa deploy công khai, chưa test tải THẬT (nhiều người dùng đồng thời), chưa
+  phỏng vấn người dùng nào
 - Kho quan sát thực địa gần như trống → S04/S05/S09 đúng về cơ chế nhưng **chưa
   có dữ liệu để phát huy**
 - S10 chưa có; carbon là **ước lượng Tier 1 ±50%**, KHÔNG đủ chuẩn phát hành tín chỉ
-- 3/12 ngành chưa có mũi nhọn: Đô thị & Quy hoạch, Khai khoáng & Hạ tầng, Chuỗi cung ứng
-- 0/6 dòng doanh thu có cơ chế thu tiền
+- 0/6 dòng doanh thu có cơ chế thu tiền — bậc 6 "Giao dịch" của thang năng lực
+  vẫn trống, và nó thiếu cổng thanh toán + pháp lý chứ không thiếu code
+- **Chưa có model học sâu tự huấn luyện.** Phần "thị giác" là viễn thám cổ điển
+  (chỉ số phổ, so hai kỳ) — đúng và kiểm chứng được, nhưng không phải deep
+  learning. Giám khảo hỏi "model của em huấn luyện thế nào" thì trả lời thẳng
+  là chưa có; chuỗi còn thiếu là dataset gán nhãn Việt → GPU → S09 → S10
+- Song song hiện TRONG MỘT TIẾN TRÌNH; hàng đợi mất khi restart. Phân tán thật
+  cần Redis/RabbitMQ + worker riêng
+- Kiến trúc 7 tầng vẫn rút gọn: SQLite/Postgres thay PostGIS + TimescaleDB +
+  Vector DB + object storage; không GPU, không microservice
 
 ## 27. Checklist — tối ưu + ra thị trường + đi thi
 
@@ -288,9 +321,12 @@ POD một mình thì cảnh báo mỗi ngày cũng đạt 100%
 Tầm nhìn: 12 ngành · 14 mũi nhọn · 26 luồng · 8 bậc năng lực · 7 trụ cột · 19 mảng AI · 6 dòng doanh thu.
 
 Thực tế đã code:
-- **14 mũi nhọn** — 9 chạy dữ liệu thật ngay, 5 mở bằng khóa Copernicus miễn phí
+- **17 mũi nhọn phủ 12/12 ngành** — 12 chạy dữ liệu thật ngay, 5 mở bằng khóa
+  Copernicus miễn phí
 - **25/26 luồng** đã viết xong và có test; 24 chạy được ngay không cần khóa nào
-- **66 route API** · **256 test** đạt · frontend Next.js + PWA cài được lên điện thoại
+- **4/4 nguyên lý** có bản thật (nguyên lý "hội tụ" còn thiếu deep learning)
+- **69 route API** · frontend Next.js + PWA cài được lên điện thoại
 - Nguồn thật miễn phí: Open-Meteo (dự báo · ERA5 · elevation · GloFAS · Marine) ·
-  NASA POWER · Sentinel-2 qua Copernicus (tuỳ chọn)
-- Chưa có: S10 Generative Vision · thu tiền · người dùng thật
+  NASA POWER · **OpenStreetMap** · Sentinel-2 qua Copernicus (tuỳ chọn)
+- Chạy song song: quét toàn cảnh 13,1 s → 2,5 s, gộp lời gọi trùng, hàng đợi việc dài
+- Chưa có: S10 Generative Vision · deep learning · thu tiền · người dùng thật

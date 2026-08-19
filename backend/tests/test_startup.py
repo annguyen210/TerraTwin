@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from app.main import log
+from app.safelog import log
 
 APP = Path(__file__).resolve().parent.parent / "app"
 
@@ -48,18 +48,32 @@ def test_log_van_giu_nguyen_tieng_viet_khi_console_utf8(monkeypatch):
     assert "Rà soát chủ động" in raw.getvalue().decode("utf-8")
 
 
-def test_khong_con_print_tho_trong_main():
-    """main.py phải đi qua log(), trừ chính thân hàm log().
+def test_khong_con_print_tho_o_duong_khoi_dong():
+    """main.py và tầng services phải đi qua log(), trừ chính safelog.py.
 
     Chốt chặn để lần sau ai thêm một dòng print() tiếng Việt vào lifespan thì
     test đỏ ngay, thay vì phát hiện lúc container không chịu khởi động.
     """
-    src = (APP / "main.py").read_text(encoding="utf-8")
-    body = src[src.index("def log("):]
-    body = body[:body.index("\n\n\n")]          # chỉ thân hàm log()
-    rest = src.replace(body, "")
-    offenders = re.findall(r"(?m)^\s*print\(", rest)
-    assert not offenders, f"còn {len(offenders)} chỗ print() thô trong main.py"
+    files = [APP / "main.py"] + sorted((APP / "services").glob("*.py"))
+    offenders = []
+    for f in files:
+        if f.name == "safelog.py":
+            continue
+        for i, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
+            if re.match(r"^\s*print\(", line):
+                offenders.append(f"{f.name}:{i}")
+    assert not offenders, f"print() thô ở: {offenders}"
+
+
+def test_service_khong_import_nguoc_len_entrypoint():
+    """Service ghi log phải dùng app.safelog, không import ngược app.main.
+
+    Import ngược tạo vòng phụ thuộc và biến một dòng log thành lý do khiến
+    tầng dữ liệu không nạp được nếu entrypoint đổi.
+    """
+    rd = (APP / "services" / "realdata.py").read_text(encoding="utf-8")
+    assert "from app.main import" not in rd
+    assert "from app.safelog import log" in rd
 
 
 def test_bo_hen_gio_tat_duoc_bang_bien_moi_truong():
@@ -94,3 +108,70 @@ def test_render_yaml_khai_bao_du_bien(var):
     """
     y = (APP.parent.parent / "render.yaml").read_text(encoding="utf-8")
     assert var in y, f"render.yaml thiếu {var}"
+
+
+# ---------------------------------------------------------------- hạn mức
+
+def test_can_han_muc_khac_voi_mat_mang(monkeypatch):
+    """429 phải được ghi nhận riêng, không lẫn vào 'không có dữ liệu'.
+
+    Open-Meteo giới hạn theo NGÀY. Cạn hạn mức thì mọi mô-đun đồng loạt trả
+    "chưa đủ dữ liệu" — nhìn hệt như phần mềm hỏng. Người vận hành phải phân
+    biệt được "hết quota, mai lại chạy" với "code hỏng", nếu không sẽ đi sửa
+    nhầm chỗ suốt một ngày.
+    """
+    import urllib.error
+
+    from app.services import realdata
+
+    realdata._QUOTA.clear()
+    realdata._CACHE.clear()
+
+    def _429(req, timeout=None):
+        raise urllib.error.HTTPError(
+            "https://api.open-meteo.com/v1/x", 429, "Too Many Requests", {}, None)
+
+    monkeypatch.setattr("urllib.request.urlopen", _429)
+    assert realdata._get("https://api.open-meteo.com/v1/forecast?x=1") is None
+
+    q = realdata.quota_status()
+    assert "api.open-meteo.com" in q["exhausted"]
+    assert "hạn mức" in q["message"]
+    realdata._QUOTA.clear()
+
+
+def test_loi_mang_thuong_khong_bi_ghi_la_can_han_muc(monkeypatch):
+    from app.services import realdata
+
+    realdata._QUOTA.clear()
+    realdata._CACHE.clear()
+
+    def _boom(req, timeout=None):
+        raise OSError("mat mang")
+
+    monkeypatch.setattr("urllib.request.urlopen", _boom)
+    assert realdata._get("https://api.open-meteo.com/v1/forecast?y=1") is None
+    assert realdata.quota_status()["exhausted"] == []
+
+
+@pytest.fixture
+def client():
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+    return TestClient(app)
+
+
+def test_health_bao_degraded_khi_can_han_muc(client, monkeypatch):
+    import time as _t
+
+    from app.services import realdata
+
+    realdata._QUOTA.clear()
+    assert client.get("/api/health").json()["status"] == "ok"
+
+    realdata._QUOTA["api.open-meteo.com"] = _t.time()
+    d = client.get("/api/health").json()
+    assert d["status"] == "degraded"
+    assert "api.open-meteo.com" in d["quota"]["exhausted"]
+    realdata._QUOTA.clear()

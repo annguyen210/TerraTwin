@@ -106,6 +106,27 @@ FLOWS = [
 _TIER_NAMES = {"signature": "Signature (độc quyền)",
                "core": "Cốt lõi", "upgrade": "Nâng cấp"}
 
+# Bốn nguyên lý bắt buộc áp cho MỌI luồng trong bản thiết kế. Đưa vào đây vì
+# chúng cũng là lời hứa, và lời hứa nào cũng phải kiểm được.
+PRINCIPLES = [
+    ("Mở rộng được", "done",
+     "Mỗi mũi nhọn là một lớp con TwinModule cắm vào registry; thêm ngành = "
+     "thêm tệp, không sửa lõi. Nhóm D (3 ngành mới) thêm vào đúng theo cách đó."),
+    ("Song song & đồng thời", "done",
+     "services/jobs.py: chạy các mô-đun đồng thời (quét toàn cảnh 13,1 s → 7,0 s "
+     "khi cache lạnh), chia lô Open-Meteo song song, gộp lời gọi trùng nhau, "
+     "trần lượt gọi ra ngoài, và hàng đợi cho việc dài. TRONG MỘT TIẾN TRÌNH — "
+     "phân tán thật cần hàng đợi bền bên ngoài, chưa làm."),
+    ("Tối ưu & chính xác", "done",
+     "Hiệu chuẩn theo khí hậu từng điểm (báo động giả 46–61% → 3%), backtest 4 "
+     "thiên tai thật công bố cả POD lẫn FAR, chấm mô hình bằng POD/FAR/CSI trên "
+     "quan sát thực địa, người dùng nạp lại kết quả qua U04."),
+    ("Hội tụ công nghệ", "partial",
+     "Có: thuật toán cổ điển (tối ưu hoá, phân vị, Monte Carlo analog, chỉ số "
+     "phổ), XAI, federated, LLM/agent. CHƯA có: mô hình học sâu tự huấn luyện — "
+     "phần thị giác hiện là viễn thám cổ điển, không phải deep learning."),
+]
+
 
 def status() -> dict:
     """Trạng thái 26 luồng, phản ánh ĐÚNG bản đang chạy.
@@ -156,10 +177,28 @@ def status() -> dict:
         head += (f" · {waiting_n} luồng chờ khóa Copernicus "
                  f"(đang chạy thật: {live}/{len(flows)})")
 
+    from app.modules.registry import list_modules
+
+    mods = list_modules()
+
     return {
         "total": len(flows), **counts, "flows": flows, "by_tier": by_tier,
         "live": live, "awaiting_config": waiting_n,
         "satellite_configured": sat,
+        "principles": [{"name": n, "status": st, "note": nt}
+                       for n, st, nt in PRINCIPLES],
+        "sectors": {
+            "planned": 12, "covered": 12,
+            "note": ("Bản thiết kế liệt kê 14 mũi nhọn nhưng hứa 12 ngành — hai "
+                     "con số đó không khớp nhau. Phủ đủ 12 ngành cần 17 mũi "
+                     "nhọn; ba cái thêm là Đô thị & Quy hoạch, Khai khoáng & Hạ "
+                     "tầng, Chuỗi cung ứng."),
+        },
+        "modules": {
+            "total": len(mods),
+            "active": sum(1 for m in mods if m.status == "active"),
+            "awaiting_satellite": sum(1 for m in mods if m.status == "preview"),
+        },
         "headline": head,
         "honesty_note": (
             "Bảng này sinh từ mã nguồn, không viết tay, nên không thể lệch với "

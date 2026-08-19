@@ -146,7 +146,7 @@ class LandRiskModule(TwinModule):
         elev = ds.elevation_proxy(loc.lat, loc.lon)          # thật (Open-Meteo)
         slope, slope_real = ds.slope_context(loc.lat, loc.lon)
         dist = ds.distance_to_coast_km(loc.lat, loc.lon)
-        precip, has_rain = ds.recent_precip_total(loc.lat, loc.lon)
+        precip, has_rain = ds.forecast_precip_7d_total(loc.lat, loc.lon)
 
         flood_pen = max(0.0, 30.0 - elev * 1.2)
         if precip is not None:
@@ -161,7 +161,7 @@ class LandRiskModule(TwinModule):
                else "Rủi ro cao — cân nhắc rất kỹ trước khi mua.")
         slope_lbl = "THẬT " if slope_real else ""
         detail = (f"Cao độ THẬT ~{elev} m · dốc {slope_lbl}~{slope}° · cách biển ~{round(dist,1)} km"
-                  + (f" · mưa 7 ngày ~{precip} mm (Open-Meteo)." if has_rain else " (mưa: mẫu)."))
+                  + (f" · mưa dự báo 7 ngày tới ~{precip} mm (Open-Meteo)." if has_rain else " (mưa: mẫu)."))
         metrics = {"diem": float(score), "cao_do_m": elev, "do_doc_deg": slope}
         if precip is not None:
             metrics["mua_7ngay_mm"] = precip

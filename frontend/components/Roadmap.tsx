@@ -66,6 +66,35 @@ export default function Roadmap() {
         </div>
       )}
 
+      {d.sectors && (
+        <div className="rm-sectors">
+          <b>
+            {d.sectors.covered}/{d.sectors.planned} ngành có mũi nhọn
+            {d.modules && ` · ${d.modules.total} mũi nhọn (${d.modules.active} chạy ngay`}
+            {d.modules?.awaiting_satellite
+              ? `, ${d.modules.awaiting_satellite} chờ khoá vệ tinh)`
+              : d.modules && ")"}
+          </b>
+          <p>{d.sectors.note}</p>
+        </div>
+      )}
+
+      {d.principles && (
+        <section className="rm-sec">
+          <h3>4 nguyên lý bắt buộc</h3>
+          {d.principles.map((p) => (
+            <div key={p.name} className="rm-flow">
+              <div className="rm-flow-h">
+                <i style={{ background: DOT[p.status]?.c ?? "#9fb2bf" }} />
+                <b>{p.name}</b>
+                <span className="rm-st">{DOT[p.status]?.t ?? p.status}</span>
+              </div>
+              <p className="rm-note">{p.note}</p>
+            </div>
+          ))}
+        </section>
+      )}
+
       {tiers.map((t) => (
         <section key={t} className="rm-sec">
           <h3>{d.by_tier[t]?.name}</h3>

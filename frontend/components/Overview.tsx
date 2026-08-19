@@ -113,6 +113,18 @@ export default function Overview({
             Quét lúc {new Date(data.generated_at).toLocaleString("vi-VN")} ·{" "}
             {Math.round(data.real_data_ratio * 100)}% hiểm họa dùng dữ liệu thật
           </p>
+          {data.skipped_heavy && data.skipped_heavy.length > 0 && (
+            <p className="ov-skipped">
+              Không chạy trong lượt toàn cảnh:{" "}
+              {data.skipped_heavy.map((id) => (
+                <button key={id} onClick={() => onSelectModule?.(id)}>
+                  {id}
+                </button>
+              ))}{" "}
+              — mô-đun này quét cả một vùng nên mất khoảng mười giây, mở riêng
+              khi cần.
+            </p>
+          )}
         </>
       )}
     </div>

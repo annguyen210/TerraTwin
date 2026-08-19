@@ -21,12 +21,14 @@ client = TestClient(app)
 
 def test_health():
     r = client.get("/api/health")
-    assert r.status_code == 200 and r.json()["modules"] == 14
+    # KHÔNG ghim con số: thêm ngành là phải sửa test, và người sửa dễ chỉnh
+    # con số cho xanh lại mà không kiểm gì. Ghim bất biến thay vì con số.
+    assert r.status_code == 200 and r.json()["modules"] >= 14
 
 
 def test_modules_list():
     r = client.get("/api/modules")
-    assert r.status_code == 200 and len(r.json()) == 14
+    assert r.status_code == 200 and len(r.json()) >= 14
 
 
 @pytest.mark.parametrize("body", [
@@ -48,7 +50,11 @@ def test_scan_structure():
     r = client.post("/api/scan", json={"lat": 10.03, "lon": 105.78})
     assert r.status_code == 200
     d = r.json()
-    assert len(d["modules"]) == 14
+    # Quét toàn cảnh bỏ qua mô-đun NẶNG (quét cả vùng, ~10 giây). Số mô-đun
+    # trong kết quả = tổng trừ đi số đã bỏ qua, và phần bỏ qua phải khai báo.
+    total = len(client.get("/api/modules").json())
+    assert len(d["modules"]) == total - len(d["skipped_heavy"])
+    assert len(d["modules"]) >= 14
     # cảnh báo chỉ gồm module dữ liệu thật
     assert all(m["is_real"] for m in d["alerts"])
 

@@ -16,3 +16,26 @@ os.environ.setdefault("TERRATWIN_SECRET", "test-secret-khong-dung-cho-production
 # Bộ hẹn giờ rà soát nền không được chạy trong test: nó sẽ tự gọi Open-Meteo và
 # ghi cảnh báo giữa chừng, làm test khác thấy dữ liệu lạ xuất hiện từ hư không.
 os.environ["TERRATWIN_RADAR_INTERVAL_H"] = "0"
+
+
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def _khong_goi_overpass_that(monkeypatch, request):
+    """Chặn mọi lời gọi Overpass THẬT trong test.
+
+    Overpass là dịch vụ công cộng: chậm 10–60 giây, giới hạn 2 slot mỗi IP, và
+    có lúc trả 429. Để test thật sự gọi ra đó nghĩa là bộ test vừa chậm vừa đỏ
+    ngẫu nhiên theo tâm trạng của một máy chủ ở nước khác — và khi nó đỏ thì
+    không ai biết là lỗi code hay lỗi mạng.
+
+    Mặc định trả None (đúng như khi Overpass không phản hồi), nên các mô-đun
+    nhóm D rơi vào nhánh "chưa đủ dữ liệu" — nhánh đó cũng cần được test.
+    Test nào muốn có dữ liệu OSM thì tự monkeypatch `osm._query` của mình; đặt
+    sau fixture này nên sẽ ghi đè được.
+    """
+    if "goi_overpass_that" in request.keywords:
+        return
+    from app.services import osm
+    monkeypatch.setattr(osm, "_query", lambda q: None)

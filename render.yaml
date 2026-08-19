@@ -42,6 +42,12 @@ services:
       # gọi POST /api/radar/run (nhiều worker = mỗi worker quét một lần).
       - key: TERRATWIN_RADAR_INTERVAL_H
         value: "6"
+      # Trần lượt gọi RA NGOÀI cùng lúc. Đây là thứ đứng giữa phần mềm và việc
+      # bị Open-Meteo chặn IP — đừng nâng chỉ vì thấy chậm.
+      - key: TERRATWIN_UPSTREAM_CONCURRENCY
+        value: "6"
+      - key: TERRATWIN_WORKERS
+        value: "4"
       - key: TERRATWIN_CORS
         sync: false                  # điền URL frontend sau khi dựng xong
       # Tuỳ chọn — bật trợ lý LLM. Nhà cung cấp nào cũng được.
