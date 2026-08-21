@@ -113,10 +113,11 @@ PRINCIPLES = [
      "Mỗi mũi nhọn là một lớp con TwinModule cắm vào registry; thêm ngành = "
      "thêm tệp, không sửa lõi. Nhóm D (3 ngành mới) thêm vào đúng theo cách đó."),
     ("Song song & đồng thời", "done",
-     "services/jobs.py: chạy các mô-đun đồng thời (quét toàn cảnh 13,1 s → 7,0 s "
-     "khi cache lạnh), chia lô Open-Meteo song song, gộp lời gọi trùng nhau, "
-     "trần lượt gọi ra ngoài, và hàng đợi cho việc dài. TRONG MỘT TIẾN TRÌNH — "
-     "phân tán thật cần hàng đợi bền bên ngoài, chưa làm."),
+     "services/jobs.py: quét toàn cảnh 13,1 s (14 mô-đun nối tiếp) → 2,5 s "
+     "(16 mô-đun song song, đã tách mô-đun quét cả vùng ra riêng); chia lô "
+     "Open-Meteo song song; gộp lời gọi trùng nhau; trần lượt gọi ra ngoài; "
+     "hàng đợi cho việc dài. TRONG MỘT TIẾN TRÌNH — phân tán thật cần hàng đợi "
+     "bền bên ngoài, chưa làm."),
     ("Tối ưu & chính xác", "done",
      "Hiệu chuẩn theo khí hậu từng điểm (báo động giả 46–61% → 3%), backtest 4 "
      "thiên tai thật công bố cả POD lẫn FAR, chấm mô hình bằng POD/FAR/CSI trên "
