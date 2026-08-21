@@ -124,8 +124,9 @@ PRINCIPLES = [
      "quan sát thực địa, người dùng nạp lại kết quả qua U04."),
     ("Hội tụ công nghệ", "partial",
      "Có: thuật toán cổ điển (tối ưu hoá, phân vị, Monte Carlo analog, chỉ số "
-     "phổ), XAI, federated, LLM/agent. CHƯA có: mô hình học sâu tự huấn luyện — "
-     "phần thị giác hiện là viễn thám cổ điển, không phải deep learning."),
+     "phổ, thuỷ văn SCS), XAI, federated, LLM/agent, lan truyền rủi ro theo địa "
+     "hình. CHƯA có: mô hình học sâu tự huấn luyện — phần thị giác hiện là viễn "
+     "thám cổ điển, không phải deep learning."),
 ]
 
 

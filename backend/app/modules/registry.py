@@ -16,7 +16,7 @@ from app.modules.group_a import (
 )
 from app.modules.group_b import (
     FloodModule, IllegalBuildModule, LandRiskModule, LandslideModule,
-    StormDamageModule,
+    StormDamageModule, UpstreamFloodModule,
 )
 from app.modules.group_c import ParametricInsuranceModule, SolarModule
 from app.modules.group_d import (
@@ -29,7 +29,7 @@ _CLASSES = [
     SalinityModule, DroughtModule, PestModule, YieldModule,
     CarbonModule, WildfireModule, AquacultureModule,
     # Nhóm B — radar/địa hình
-    FloodModule, LandslideModule, StormDamageModule,
+    FloodModule, UpstreamFloodModule, LandslideModule, StormDamageModule,
     LandRiskModule, IllegalBuildModule,
     # Nhóm C — chỉ số
     ParametricInsuranceModule, SolarModule,

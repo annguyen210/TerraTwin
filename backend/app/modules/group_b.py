@@ -20,6 +20,12 @@ class FloodModule(TwinModule):
     def assess(self, loc: Location) -> Assessment:
         s, real, calibrated = hazard.module_series(self.id, loc.lat, loc.lon)
         elev = ds.elevation_proxy(loc.lat, loc.lon)
+
+        # Mưa THƯỢNG NGUỒN cố ý KHÔNG nằm ở đây mà tách thành mô-đun riêng
+        # (upstream_flood, nhóm B, đánh dấu nặng). Nó cần lấy mẫu cả một nan
+        # quạt địa hình nên tốn ~10 giây; nhét vào đây thì lượt quét toàn cảnh
+        # từ 2,5 s vọt lên 82 s — đo được, không phải phỏng đoán. Rà soát nền
+        # vẫn chạy nó vì ở đó chờ lâu không sao.
         river = ds.river_discharge_context(loc.lat, loc.lon)
 
         def texts(lvl, pk, fd):
@@ -59,7 +65,6 @@ class FloodModule(TwinModule):
             # Hai nguồn độc lập cùng chỉ một hướng ⇒ tin cậy hơn.
             if real:
                 conf = min(0.88, conf + 0.08)
-
         a = assessment_from_series(self, loc, s, "điểm", 40, 70, texts, detail,
                                    confidence=conf, is_real=real, data_sources=src)
         a.metrics = metrics
@@ -204,3 +209,90 @@ class IllegalBuildModule(TwinModule):
             metrics={"ndbi_thay_doi": r["ndbi"]["delta"],
                      "ndvi_thay_doi": r["ndvi"]["delta"]},
             data_sources=[sentinel.source_note("NDBI"), sentinel.source_note("NDVI")])
+
+
+class UpstreamFloodModule(TwinModule):
+    """Lũ đến từ mưa rơi Ở TRÊN CAO, không phải mưa rơi trên thửa.
+
+    Vì sao phải là một mô-đun riêng chứ không gộp vào module Lũ: nó cảnh báo
+    được ngay cả khi TẠI CHỖ chưa mưa giọt nào — Trà Leng 2020 không sập vì mưa
+    tại chỗ mà vì cả sườn núi phía trên đã ngậm nước. Gộp vào chỉ số ngập tại
+    chỗ sẽ làm loãng đúng cái tín hiệu quan trọng nhất của nó.
+
+    Đánh dấu NẶNG vì phải lấy mẫu địa hình cả một nan quạt: đo được là lượt quét
+    toàn cảnh từ 2,5 s vọt lên 82 s nếu để chung. Rà soát nền vẫn chạy nó — ở đó
+    chờ mười giây không ai thấy, mà đó lại đúng là lúc cảnh báo có giá trị nhất.
+    """
+
+    id = "upstream_flood"; name = "Lũ từ thượng nguồn"; group = "B"; icon = "🏔️"
+    status = "active"
+    heavy = True
+    data_sources = ["DEM: nan quạt cao độ 8 hướng × 3 vòng (Open-Meteo)",
+                    "Open-Meteo: mưa dự báo trên lưới thượng nguồn"]
+    users = ["Dân vùng núi và hạ lưu", "Chính quyền", "Cứu hộ"]
+    description = "Trên cao có đang mưa không, và nước đó có dồn về phía bạn không."
+
+    def assess(self, loc: Location) -> Assessment:
+        from app.services import catchment
+
+        r = catchment.upstream(loc.lat, loc.lon)
+        if r is None:
+            return need_data_assessment(
+                self, loc,
+                needs="cao độ và mưa dự báo cho vùng quanh thửa",
+                will_do="đo lượng mưa rơi trên phần đất cao hơn rồi cân theo độ "
+                        "dốc về phía thửa, để cảnh báo nước dồn xuống",
+                next_step="Nguồn dữ liệu đang không phản hồi. Thử lại sau ít phút.")
+
+        # Địa hình phẳng hoặc thửa nằm ở chỗ cao: KHÔNG phải "chưa đủ dữ liệu" —
+        # là một câu trả lời đầy đủ, và với người dùng còn là tin tốt.
+        if not r["available"]:
+            binh_yen = r["reason"] == "no_upslope"
+            return Assessment(
+                module_id=self.id, module_name=self.name, location=loc,
+                status="ok", risk_level="safe",
+                headline=("Không có sườn nào đổ nước về thửa này"
+                          if binh_yen else
+                          f"Địa hình quá phẳng để nói chuyện thượng nguồn "
+                          f"(chênh cao {r['relief_m']} m)"),
+                detail=r["message"],
+                recommendation=(
+                    "Nguy cơ nước từ trên dồn xuống gần như không có. Vẫn theo "
+                    "dõi module Lũ cho mưa tại chỗ."
+                    if binh_yen else
+                    "Ở đồng bằng, hãy theo dõi module Lũ (mưa tại chỗ + lưu "
+                    "lượng sông GloFAS) và thông báo đóng/mở cống của địa phương."),
+                confidence=0.6, confidence_low=0.5, confidence_high=0.7,
+                is_real=True,
+                metrics={"cao_do_m": r["here_m"], "chenh_cao_m": r["relief_m"]},
+                data_sources=["DEM cao độ (Open-Meteo)"])
+
+        rec = {
+            "danger": ("Trên cao đang mưa rất lớn và nước sẽ dồn xuống. Nguy cơ "
+                       "đến NGAY CẢ KHI ở đây chưa mưa — kê cao tài sản, tránh "
+                       "lòng suối và chân mái dốc, sẵn sàng di dời."),
+            "warning": ("Thượng nguồn mưa đáng kể. Theo dõi mực nước suối và "
+                        "tránh qua ngầm tràn khi nước lên."),
+            "safe": "Chưa thấy nước bất thường dồn về từ phía trên.",
+        }[r["level"]]
+
+        return Assessment(
+            module_id=self.id, module_name=self.name, location=loc, status="ok",
+            risk_level=r["level"],
+            headline=(f"{r['verdict'].capitalize()} — mưa thượng nguồn "
+                      f"{r['upstream_rain_mm']} mm so với {r['local_rain_mm']} mm "
+                      f"tại chỗ ({r['extra_vs_local_mm']:+} mm)"),
+            detail=(f"{r['upslope_points']}/{r['total_points']} điểm quanh thửa "
+                    f"cao hơn, chênh cao {r['relief_m']} m. Sườn dốc nhất: cách "
+                    f"{r['steepest']['km']} km, cao hơn {r['steepest']['drop_m']} m, "
+                    f"mưa {r['steepest']['rain_7d_mm']} mm. {r['method']} "
+                    f"{r['caveat']}"),
+            recommendation=rec, confidence=0.6, confidence_low=0.48,
+            confidence_high=0.7, is_real=True,
+            metrics={"mua_thuong_nguon_mm": r["upstream_rain_mm"],
+                     "mua_tai_cho_mm": r["local_rain_mm"] or 0.0,
+                     "lech_mm": r["extra_vs_local_mm"] or 0.0,
+                     "diem_cao_hon": float(r["upslope_points"]),
+                     "chenh_cao_m": r["relief_m"]},
+            data_sources=["DEM nan quạt cao độ (thật)",
+                          "Open-Meteo: mưa trên lưới thượng nguồn (thật)"])

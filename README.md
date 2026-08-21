@@ -1,6 +1,6 @@
 # 🛰️ TerraTwin
 
-**Bản sao số (digital twin) của đất đai Việt Nam** — nhìn đất thật từ vệ tinh → mô phỏng → dự đoán kiểm chứng được → khuyến nghị hành động. Một lõi Twin, **17 mũi nhọn phủ đủ 12/12 ngành**.
+**Bản sao số (digital twin) của đất đai Việt Nam** — nhìn đất thật từ vệ tinh → mô phỏng → dự đoán kiểm chứng được → khuyến nghị hành động. Một lõi Twin, **18 mũi nhọn phủ đủ 12/12 ngành**.
 
 Ba chữ cốt lõi: **CỦA MÌNH** (từng thửa) · **BIẾT TRƯỚC** (kịp hành động) · **BẰNG CHỨNG THẬT** (vệ tinh/thời tiết, kiểm chứng được — không phỏng đoán).
 
@@ -185,7 +185,7 @@ terratwin/
 │       │                         #   terrascore, scan, whatif, explain,
 │       │                         #   goalseek, timemachine, anomaly,
 │       │                         #   backtest, copilot, twin
-│       └── modules/              # base + util + 17 mũi nhọn (nhóm A–D) + registry
+│       └── modules/              # base + util + 18 mũi nhọn (nhóm A–D) + registry
 │   └── tests/                    # pytest (217 test, offline & tất định)
 ├── frontend/                     # Next.js 14 + MapLibre
 │   └── components/               # MapView, ResultsPanel, Overview, WhatIf,
@@ -269,6 +269,26 @@ thật cần hàng đợi bền bên ngoài — việc của lúc có tải th�
 **Mô-đun "nặng"** (`heavy = True`) bị loại khỏi lượt quét toàn cảnh và khỏi việc
 dựng Twin, vì chúng quét cả một vùng chứ không riêng thửa. Phần bị bỏ qua được
 khai báo trong `skipped_heavy`, không giấu.
+
+## Lũ đến từ mưa rơi Ở TRÊN CAO
+
+Cho tới gần đây, module Lũ chỉ nhìn lượng mưa rơi trên **chính thửa đó**. Nhưng
+Trà Leng 2020 không sập vì mưa tại chỗ — mà vì cả sườn núi phía trên đã ngậm
+nước. Một mảnh đất có thể khô ráo suốt buổi sáng rồi ngập trong một giờ vì
+chuyện xảy ra cách đó mười cây số về phía núi.
+
+`services/catchment.py` lấy mẫu **8 hướng × 3 vòng (3/7/12 km)**, giữ lại những
+điểm cao hơn thửa, cân theo độ dốc về phía thửa, rồi so mưa thượng nguồn với
+mưa tại chỗ. Nó chỉ báo động khi thượng nguồn mưa **nhiều hơn hẳn** tại chỗ —
+mưa đều cả vùng thì module Lũ đã bắt rồi, báo thêm chỉ làm tăng báo động giả.
+
+**Và nó từ chối trả lời ở đồng bằng.** Chênh cao ở Bến Tre đo được 13 m trong
+bán kính 12 km — nằm trong sai số đứng của DEM toàn cầu. Ở đó nước đi đâu là do
+đê bao, cống và kênh quyết định, không do độ dốc; phần mềm nói thẳng điều đó
+thay vì trả một con số trông có vẻ chính xác.
+
+Đo thật: Trà Leng chênh cao 1194 m, 16/24 điểm cao hơn · Sa Pa 2069 m · Bến Tre
+13 m → từ chối.
 
 ## Khi nguồn miễn phí cạn hạn mức
 

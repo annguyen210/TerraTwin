@@ -105,6 +105,22 @@ Thắng thi: demo choáng + kỹ thuật sâu + tác động lớn + moat. Thác
 
 **8 module dữ liệu THẬT ngay · 1 ước lượng vật lý (mặn) · 5 module quang học ĐÃ VIẾT XONG, bật bằng một khóa Copernicus miễn phí.**
 
+### Lũ từ thượng nguồn (nhóm B, mũi nhọn thứ 18)
+
+| # | Mũi nhọn | Đo gì | Nguồn | Trạng thái |
+|---|---|---|---|---|
+| 18 | 🏔️ Lũ từ thượng nguồn | Mưa rơi trên phần đất CAO HƠN, cân theo độ dốc về phía thửa. Cảnh báo được **ngay cả khi tại chỗ chưa mưa giọt nào** | DEM nan quạt 8×3 + lưới mưa | ✅ THẬT |
+
+Trà Leng 2020 không sập vì mưa tại chỗ mà vì cả sườn núi phía trên ngậm nước.
+Module này lấp đúng mảng "GNN — rủi ro lan truyền (lũ hạ nguồn)" của bản thiết
+kế, nhưng bằng địa hình chứ không bằng mạng nơ-ron đồ thị — vì thứ người dùng
+cần là câu trả lời, không phải công nghệ.
+
+**Nó TỪ CHỐI trả lời ở đồng bằng** (Bến Tre chênh cao 13 m, dưới sai số DEM).
+Đánh dấu NẶNG: chạy trong lượt quét toàn cảnh làm 2,5 s vọt lên 82 s, nên duyệt
+bản đồ thì bỏ qua và khai báo, còn **rà soát nền chạy đủ** — lũ ập tới lúc ba
+giờ sáng, không phải lúc người dùng đang mở app.
+
 ### Nhóm D — 3 mũi nhọn phủ nốt 12/12 ngành
 
 Bản thiết kế liệt kê 14 mũi nhọn nhưng hứa 12 ngành; hai con số đó không khớp.
@@ -321,7 +337,7 @@ POD một mình thì cảnh báo mỗi ngày cũng đạt 100%
 Tầm nhìn: 12 ngành · 14 mũi nhọn · 26 luồng · 8 bậc năng lực · 7 trụ cột · 19 mảng AI · 6 dòng doanh thu.
 
 Thực tế đã code:
-- **17 mũi nhọn phủ 12/12 ngành** — 12 chạy dữ liệu thật ngay, 5 mở bằng khóa
+- **18 mũi nhọn phủ 12/12 ngành** — 13 chạy dữ liệu thật ngay, 5 mở bằng khóa
   Copernicus miễn phí
 - **25/26 luồng** đã viết xong và có test; 24 chạy được ngay không cần khóa nào
 - **4/4 nguyên lý** có bản thật (nguyên lý "hội tụ" còn thiếu deep learning)

@@ -44,8 +44,13 @@ def sweep_user(user_id: int, db: Session) -> dict:
     created: list[Alert] = []
     for p in plots:
         try:
+            # include_heavy=True: rà soát nền là chỗ DUY NHẤT chạy được mô-đun
+            # quét cả vùng. Lũ từ thượng nguồn ập tới lúc ba giờ sáng, không
+            # phải lúc người dùng đang mở app — bỏ nó ở đây là bỏ đúng lúc nó
+            # đáng giá nhất.
             result = scan_svc.scan(
-                Location(lat=p.lat, lon=p.lon, area_ha=p.area_ha))
+                Location(lat=p.lat, lon=p.lon, area_ha=p.area_ha),
+                include_heavy=True)
         except Exception:
             # Một thửa hỏng (mất mạng, nguồn dữ liệu lỗi) không được làm hỏng
             # cả lượt quét của những thửa còn lại.

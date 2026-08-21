@@ -13,7 +13,7 @@ from app.services import terrascore
 _RISK_ORDER = {"danger": 0, "warning": 1, "safe": 2, "unknown": 3, "not_implemented": 4}
 
 
-def scan(loc: Location) -> ScanResult:
+def scan(loc: Location, include_heavy: bool = False) -> ScanResult:
     """Chạy toàn bộ mô-đun ĐỒNG THỜI.
 
     Trước đây chạy nối tiếp: mỗi mô-đun chờ mạng xong mới tới lượt mô-đun sau,
@@ -26,12 +26,14 @@ def scan(loc: Location) -> ScanResult:
     from app.modules.registry import get_module, list_modules
     from app.services import jobs
 
-    # Bỏ qua mô-đun nặng: chúng quét cả một vùng chứ không riêng thửa này, và
-    # để chúng trong lượt toàn cảnh thì mười sáu mô-đun nhanh phải chờ một mô-đun
-    # chậm. Người dùng mở riêng từng cái khi cần.
+    # Mô-đun NẶNG quét cả một vùng chứ không riêng thửa này, mất ~10 giây mỗi
+    # cái. Người dùng bấm bản đồ thì không được bắt chờ ngần ấy, nên mặc định bỏ
+    # qua và KHAI BÁO ra. Nhưng rà soát nền (C05) thì chạy đủ — ở đó không ai
+    # ngồi chờ, mà đó lại đúng là lúc cảnh báo có giá trị nhất: lũ từ thượng
+    # nguồn ập tới lúc ba giờ sáng, không phải lúc người ta đang mở app.
     all_infos = [i for i in list_modules() if get_module(i.id) is not None]
-    infos = [i for i in all_infos if not i.heavy]
-    skipped = [i.id for i in all_infos if i.heavy]
+    infos = all_infos if include_heavy else [i for i in all_infos if not i.heavy]
+    skipped = [] if include_heavy else [i.id for i in all_infos if i.heavy]
 
     def _task(mid: str):
         return lambda: get_module(mid).assess(loc)
