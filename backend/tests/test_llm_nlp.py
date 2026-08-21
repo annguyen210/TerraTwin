@@ -200,3 +200,85 @@ def test_refuses_to_simulate_without_real_weather(clean_env, monkeypatch):
     monkeypatch.setattr(realdata, "elevation_m", lambda la, lo: 3.0)
     r = whatif_nlp.ask("mưa gấp đôi thì sao", LAT, LON)
     assert r["understood"] is True and r["available"] is False
+
+
+# ---------------------------------------------------------------- RAG đúng đề
+
+class _Note:
+    """Ghi chép giả — chỉ cần đủ thuộc tính mà _relevance đọc tới."""
+
+    def __init__(self, title, topic, body, nid=1, lat=10.0, lon=106.0):
+        self.id, self.title, self.topic, self.body = nid, title, topic, body
+        self.lat, self.lon, self.author_name = lat, lon, "Người thử"
+        self.helpful_count, self.created_at = 0, None
+
+
+def test_rag_cham_diem_dung_de_tai():
+    from app.services.copilot import _relevance
+
+    lu = _Note("Đắp bờ bao trước Tết", "lũ",
+               "Năm ngoái đắp sớm hai tuần nên giữ được cả vụ lúa khi nước lên.")
+    caphe = _Note("Che nắng cho cà phê", "giống",
+                  "Vườn cà phê nhà tôi trồng xen muồng để giảm nắng gắt.")
+
+    assert _relevance("Ruộng tôi có bị lũ không?", lu) > 0
+    assert _relevance("Ruộng tôi có bị lũ không?", caphe) == 0
+    assert _relevance("Cà phê nên trồng thế nào?", caphe) > \
+        _relevance("Cà phê nên trồng thế nào?", lu)
+
+
+def test_rag_khop_ca_khi_go_khong_dau():
+    """Nông dân gõ không dấu rất nhiều — 'man' phải khớp được 'mặn'."""
+    from app.services.copilot import _relevance
+
+    man = _Note("Đóng cống khi mặn lên", "mặn",
+                "Mặn vượt 2 g/L là tôi đóng cống ngay, không chờ thông báo xã.")
+    assert _relevance("khi nao thi dong cong vi man", man) > 0
+
+
+def test_rag_bo_qua_tu_qua_pho_bien():
+    """Một ghi chép không được 'khớp' chỉ vì có chữ 'của' hay 'không'."""
+    from app.services.copilot import _relevance
+
+    n = _Note("Kinh nghiệm của tôi", "khác",
+              "Tôi thì không có gì đặc biệt để nói với các bạn cả.")
+    assert _relevance("của tôi thì không có các bạn", n) == 0
+
+
+def test_rag_loai_ghi_chep_lac_de_khoi_prompt(monkeypatch):
+    """Chốt chặn cho một bug thật: xếp theo bộ gen mà bỏ qua nội dung câu hỏi.
+
+    Hỏi về lũ mà nạp ghi chép về cà phê chỉ vì nó ở vùng cùng bộ gen là đưa văn
+    bản lạc đề vào prompt, làm loãng chính dữ liệu đo được.
+    """
+    from app.schemas import Location
+    from app.services import copilot
+
+    lu = _Note("Đắp bờ bao trước Tết", "lũ",
+               "Đắp sớm hai tuần nên giữ được cả vụ lúa khi nước lên.", nid=1)
+    caphe = _Note("Che nắng cho cà phê", "giống",
+                  "Trồng xen muồng để giảm nắng gắt.", nid=2)
+
+    class _Sess:
+        def execute(self, *a, **k):
+            class _R:
+                def scalars(self_inner):
+                    class _S:
+                        def all(self_s):
+                            return [caphe, lu]
+                    return _S()
+            return _R()
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr("app.db.SessionLocal", lambda: _Sess())
+    # Không có lưới bộ gen ⇒ rơi về chấm theo khoảng cách; cả hai cùng điểm,
+    # nên thứ tự CHỈ có thể do độ liên quan quyết định.
+    monkeypatch.setattr("app.services.genome.genome_of", lambda la, lo: None)
+
+    cites, txt = copilot._knowledge("Ruộng tôi có bị lũ không?",
+                                    Location(lat=10.0, lon=106.0))
+    assert cites, "phải nạp được ghi chép về lũ"
+    assert all("cà phê" not in c.title.lower() for c in cites)
+    assert "bờ bao" in txt

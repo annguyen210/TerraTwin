@@ -44,7 +44,48 @@ _SYSTEM = (
 )
 
 
-def _knowledge(loc: Location) -> tuple[list[KnowledgeCitation], str]:
+# Từ quá phổ biến trong tiếng Việt, xuất hiện ở mọi ghi chép nên không phân
+# biệt được gì. Bỏ đi để một ghi chép không "khớp" chỉ vì có chữ "của".
+_STOP = {
+    "cua", "va", "la", "co", "khong", "cho", "voi", "thi", "ma", "nhung",
+    "duoc", "nay", "do", "cac", "nhu", "de", "tu", "o", "den", "ra", "vao",
+    "toi", "ban", "minh", "roi", "se", "da", "rat", "hon", "nhieu", "it",
+    "nen", "vi", "sao", "gi", "the", "nao", "bao", "nhieu", "mot", "hai",
+}
+
+
+def _tokens(text: str) -> set[str]:
+    from app.services.whatif_nlp import _norm
+    raw = _norm(text or "").replace("/", " ").replace("-", " ")
+    out = set()
+    for w in raw.split():
+        w = "".join(c for c in w if c.isalnum())
+        if len(w) >= 2 and w not in _STOP:
+            out.add(w)
+    return out
+
+
+def _relevance(question: str, note) -> int:
+    """Ghi chép này có nói về đúng thứ đang được hỏi không.
+
+    Chấm bằng số từ trùng nhau sau khi bỏ dấu — nông dân gõ không dấu rất
+    nhiều, nên "man" phải khớp được với "mặn". Tiêu đề và chủ đề tính nặng hơn
+    thân bài vì chúng cô đọng hơn.
+
+    Cố ý KHÔNG dùng embedding: nó cần một lời gọi API cho mỗi ghi chép, tốn
+    tiền và làm chậm, trong khi kho hiện có vài chục mẩu và trùng từ đã đủ để
+    loại thứ lạc đề. Khi kho lên hàng nghìn mẩu thì hãy đổi — không phải trước.
+    """
+    q = _tokens(question)
+    if not q:
+        return 0
+    title = _tokens(getattr(note, "title", ""))
+    topic = _tokens(getattr(note, "topic", ""))
+    body = _tokens(getattr(note, "body", ""))
+    return (3 * len(q & topic) + 2 * len(q & title) + len(q & body))
+
+
+def _knowledge(question: str, loc: Location) -> tuple[list[KnowledgeCitation], str]:
     """Lấy kinh nghiệm thực địa từ vùng có BỘ GEN ĐẤT giống nơi đang hỏi.
 
     Đây là phần "kho tri thức ngành" của RAG. Ghép theo bộ gen chứ không theo
@@ -90,7 +131,17 @@ def _knowledge(loc: Location) -> tuple[list[KnowledgeCitation], str]:
                 if sim >= _RAG_MIN_SIMILARITY:
                     scored.append((sim, km, n))
 
-            scored.sort(key=lambda t: t[0], reverse=True)
+            # Xếp theo CẢ hai: giống về đất, VÀ đúng thứ đang được hỏi.
+            #
+            # Chỉ xếp theo bộ gen là bug thật đã có: hỏi về lũ vẫn có thể được
+            # nạp một ghi chép về cà phê, chỉ vì nó ở vùng cùng bộ gen. Đưa văn
+            # bản lạc đề vào prompt làm loãng chính dữ liệu đo được — thứ duy
+            # nhất kiểm chứng được trong câu trả lời.
+            rel = {id(n): _relevance(question, n) for _, _, n in scored}
+            has_relevant = any(v > 0 for v in rel.values())
+            if has_relevant:
+                scored = [t for t in scored if rel[id(t[2])] > 0]
+            scored.sort(key=lambda t: (rel[id(t[2])], t[0]), reverse=True)
             top = scored[:_RAG_K]
             if not top:
                 return [], ""
@@ -126,7 +177,7 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
     facts.append(f"- TerraScore: {ts.score}/100 (hạng {ts.grade}) — {ts.summary}")
     facts_txt = "\n".join(facts)
 
-    cites, know_txt = _knowledge(loc)
+    cites, know_txt = _knowledge(question, loc)
     know_block = ((NL + NL + KNOW_HEAD + NL + know_txt) if know_txt else '')
 
     prompt = (
