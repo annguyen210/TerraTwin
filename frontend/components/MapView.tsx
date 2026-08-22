@@ -100,6 +100,12 @@ export default function MapView({
               "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
             ],
             tileSize: 256,
+            // ESRI World Imagery chỉ có ảnh tới ~z18 ở phần lớn Việt Nam (nông
+            // thôn/ruộng). Không đặt maxzoom thì zoom sâu hơn sẽ xin tile không
+            // tồn tại → ESRI trả tile "Map data not yet available". Đặt maxzoom=18
+            // để MapLibre PHÓNG TO tile thật z18 (hơi mờ nhưng là ảnh thật) thay
+            // vì báo lỗi.
+            maxzoom: 18,
             attribution: "Ảnh: Esri, Maxar, Earthstar Geographics",
           },
           labels: {
@@ -108,6 +114,7 @@ export default function MapView({
               "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
             ],
             tileSize: 256,
+            maxzoom: 18,
           },
         },
         layers: [
@@ -117,6 +124,9 @@ export default function MapView({
       },
       center: [106.3, 9.6],
       zoom: 7,
+      // Cho phép zoom sâu hơn nguồn ảnh (overzoom): thấy sát thửa đất, ảnh mờ dần
+      // nhưng KHÔNG bao giờ hiện tile lỗi.
+      maxZoom: 19,
     });
     map.addControl(new maplibregl.NavigationControl(), "top-right");
     map.on("load", () => {
