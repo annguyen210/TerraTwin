@@ -47,7 +47,8 @@ _FLOOR = {
 }
 
 _CACHE: dict[tuple, tuple[float, list[float]]] = {}
-_TTL = 24 * 3600.0     # khí hậu nền đổi chậm — cache 1 ngày
+_TTL = 24 * 3600.0        # L1 in-memory: khí hậu nền đổi chậm — giữ 1 ngày
+_DB_TTL = 30 * 24 * 3600  # L2 database (kv_cache): giữ 30 ngày, sống qua restart
 
 
 # ---------- Tầng 1: động lực vật lý THÔ (không chặn trần) ----------
@@ -123,15 +124,29 @@ def _rolling_peaks(module_id: str, lat: float, lon: float, rows) -> list[float]:
 
 def climatology(module_id: str, lat: float, lon: float,
                 years: int = _YEARS, today: date | None = None) -> list[float] | None:
-    """Phân bố đỉnh động lực thô 10 năm tại điểm này. None nếu không tải được."""
+    """Phân bố đỉnh động lực thô 10 năm tại điểm này. None nếu không tải được.
+
+    Cache hai tầng để không nã lại 10 năm ERA5 cho mỗi toạ độ sau mỗi restart:
+      L1 in-memory  — nhanh nhất, mất khi restart.
+      L2 kv_cache DB — sống qua restart & dùng chung giữa nhiều worker uvicorn.
+    `last` (năm cuối cửa sổ) nằm trong khóa nên sang năm mới tự lấy lại số liệu.
+    """
     today = today or date.today()
-    key = (module_id, round(lat, 2), round(lon, 2), years)
-    hit = _CACHE.get(key)
+    last = (today - timedelta(days=_LAG_DAYS)).year - 1
+    key = (module_id, round(lat, 2), round(lon, 2), years, last)
     now = time.time()
+    hit = _CACHE.get(key)
     if hit and now - hit[0] < _TTL:
         return hit[1]
 
-    last = (today - timedelta(days=_LAG_DAYS)).year - 1
+    # L2: cache bền trong database (bảng kv_cache).
+    from app.services import cache_store   # lazy: tránh phụ thuộc DB khi test thuần
+    db_key = cache_store.make_key("clim", module_id, round(lat, 2), round(lon, 2), years, last)
+    cached = cache_store.get(db_key)
+    if isinstance(cached, list) and cached:
+        _CACHE[key] = (now, cached)
+        return cached
+
     rows = realdata.historical_weather(
         lat, lon, date(last - years + 1, 1, 1).isoformat(), date(last, 12, 31).isoformat())
     if not rows:
@@ -140,6 +155,7 @@ def climatology(module_id: str, lat: float, lon: float,
     if not dist:
         return None
     _CACHE[key] = (now, dist)
+    cache_store.put(db_key, dist, ttl_seconds=_DB_TTL)   # sống qua restart
     return dist
 
 
