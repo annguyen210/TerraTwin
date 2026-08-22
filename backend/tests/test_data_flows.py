@@ -222,13 +222,26 @@ def test_radar_creates_alerts_then_dedupes(client):
     assert second["new_alerts"] == 0
 
 
-def test_alerts_listed_and_acknowledged(client):
+def test_alerts_listed_and_acknowledged(client, monkeypatch):
+    """Đọc và đánh dấu đã xem một cảnh báo.
+
+    Trước đây test này bỏ qua chính nó khi lượt quét không sinh cảnh báo nào —
+    và nó từng xanh nhờ một cảnh báo SAI từ mô-đun điện mặt trời ("danger" ở đó
+    nghĩa là bức xạ trung bình). Vá xong lỗi ấy thì test hết việc để làm, tức
+    là suốt thời gian đó nó chỉ đang xác nhận một cái bug.
+
+    Nay ép mưa cực lớn để chắc chắn có cảnh báo LŨ thật, không bỏ qua nữa.
+    """
+    from app.services import realdata
+
+    monkeypatch.setattr(realdata, "weather_7d", lambda la, lo: _rows(250.0))
+
     h = _tok(client)
     _save_plot(client, h)
     client.post("/api/radar/run", headers=h)
     rows = client.get("/api/alerts", headers=h).json()
-    if not rows:
-        pytest.skip("dữ liệu giả lập không sinh cảnh báo nào")
+    assert rows, "mưa 250 mm/ngày phải sinh được cảnh báo lũ"
+    assert any(r["module_id"] == "flood" for r in rows)
     aid = rows[0]["id"]
     assert client.post(f"/api/alerts/{aid}/ack", headers=h).json()["acknowledged"] is True
     assert all(a["id"] != aid for a in

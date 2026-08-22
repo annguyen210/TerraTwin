@@ -22,11 +22,13 @@ import {
   type TwinSummary,
 } from "@/lib/api";
 import Learning from "@/components/Learning";
+import PortfolioOverview from "@/components/PortfolioOverview";
 import Roadmap from "@/components/Roadmap";
 
-type Tab = "twins" | "data" | "alerts" | "api" | "learn" | "status";
+type Tab = "portfolio" | "twins" | "data" | "alerts" | "api" | "learn" | "status";
 
 const TABS: { id: Tab; label: string; flow: string }[] = [
+  { id: "portfolio", label: "Toàn cảnh danh mục", flow: "C08" },
   { id: "twins", label: "Twin đã lưu", flow: "C01" },
   { id: "data", label: "Dữ liệu của tôi", flow: "C11" },
   { id: "alerts", label: "Kênh cảnh báo", flow: "U01" },
@@ -369,6 +371,12 @@ function KeysPanel({ user }: { user: AuthUser | null }) {
             <p className="ws-when">
               Tạo {when(k.created_at)} · dùng lần cuối {when(k.last_used_at)}
             </p>
+            <p className="ws-when">
+              Đã gọi {k.calls_total} lượt
+              {k.monthly_quota > 0
+                ? ` · tháng này ${k.calls_period}/${k.monthly_quota}`
+                : " · không giới hạn tháng"}
+            </p>
           </div>
           {!k.revoked && (
             <button
@@ -385,6 +393,12 @@ function KeysPanel({ user }: { user: AuthUser | null }) {
         Máy chủ chỉ giữ bản băm của khoá, không giữ khoá gốc — mất thì tạo cái
         mới, không ai lấy lại được cho bạn, kể cả quản trị hệ thống.
       </p>
+      <p className="ws-note">
+        Mỗi khoá có hạn mức lượt gọi theo tháng. Đây là chống lạm dụng chứ chưa
+        phải tính tiền: một khoá bị lộ mà không có trần sẽ đốt hết hạn mức ngày
+        của nguồn dữ liệu miễn phí, và lúc đó mọi người dùng khác mất dữ liệu
+        theo, không riêng chủ khoá.
+      </p>
     </>
   );
 }
@@ -392,14 +406,15 @@ function KeysPanel({ user }: { user: AuthUser | null }) {
 /* ------------------------------------------------------------------ shell */
 
 export default function Workspace({
-  user, coord, area, onClose,
+  user, coord, area, onClose, onOpenPlot,
 }: {
   user: AuthUser | null;
   coord: { lat: number; lon: number } | null;
   area?: number;
   onClose: () => void;
+  onOpenPlot?: (lat: number, lon: number) => void;
 }) {
-  const [tab, setTab] = useState<Tab>("twins");
+  const [tab, setTab] = useState<Tab>("portfolio");
   const needsAuth = tab !== "status" && tab !== "learn" && !user;
 
   return (
@@ -433,6 +448,9 @@ export default function Workspace({
             </p>
           ) : (
             <>
+              {tab === "portfolio" && (
+                <PortfolioOverview user={user} onOpen={onOpenPlot} />
+              )}
               {tab === "twins" && <TwinsPanel user={user} coord={coord} area={area} />}
               {tab === "data" && <DataPanel user={user} />}
               {tab === "alerts" && <ChannelsPanel user={user} />}

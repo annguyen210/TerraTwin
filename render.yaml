@@ -48,6 +48,11 @@ services:
         value: "6"
       - key: TERRATWIN_WORKERS
         value: "4"
+      # Chống lạm dụng khóa API, chưa phải tính tiền: một khóa bị lộ mà không
+      # có trần sẽ đốt hết hạn mức ngày của Open-Meteo và MỌI người dùng mất
+      # dữ liệu theo. 0 = không giới hạn.
+      - key: TERRATWIN_KEY_MONTHLY_QUOTA
+        value: "5000"
       - key: TERRATWIN_CORS
         sync: false                  # điền URL frontend sau khi dựng xong
       # Tuỳ chọn — bật trợ lý LLM. Nhà cung cấp nào cũng được.

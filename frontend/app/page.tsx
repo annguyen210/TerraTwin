@@ -343,6 +343,10 @@ export default function Home() {
           coord={coord}
           area={area}
           onClose={() => setWorkspace(false)}
+          onOpenPlot={(lat, lon) => {
+            setWorkspace(false);
+            loadPlot(lat, lon);
+          }}
         />
       )}
     </main>

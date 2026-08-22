@@ -8,6 +8,10 @@ from app.services import datasources as ds
 
 class ParametricInsuranceModule(TwinModule):
     id = "parametric_insurance"; name = "Bảo hiểm nông nghiệp tham số"; group = "C"; icon = "🛡️"; status = "active"
+    # "danger" ở đây = ĐÃ KÍCH HOẠT CHI TRẢ, tức tin tốt cho nông dân, và nó
+    # suy ra từ chính chỉ số hạn nên module Hạn đã cảnh báo rồi. Đưa vào danh
+    # sách cảnh báo là báo hai lần cùng một sự việc.
+    threat = False
     data_sources = ["Open-Meteo: chỉ số hạn (mưa & ET₀)"]
     users = ["Nông dân", "Công ty bảo hiểm"]
     description = "Tự chi trả khi hạn/lũ vượt ngưỡng đo bằng vệ tinh."
@@ -37,6 +41,9 @@ class ParametricInsuranceModule(TwinModule):
 
 class SolarModule(TwinModule):
     id = "solar"; name = "Chọn vị trí & dự báo điện mặt trời"; group = "C"; icon = "☀️"; status = "active"
+    # "danger" = bức xạ trung bình, sản lượng hạn chế. Đó là thông tin đầu tư,
+    # tuyệt đối không phải mối đe doạ với mảnh đất.
+    threat = False
     data_sources = ["NASA POWER: bức xạ mặt trời"]
     users = ["Nhà đầu tư điện mặt trời", "Hộ lắp mái"]
     description = "Bức xạ/che khuất của mái/khu đất → sản lượng dự kiến."

@@ -171,6 +171,11 @@ class AquacultureModule(TwinModule):
 class YieldModule(TwinModule):
     id = "yield"; name = "Dự báo năng suất & thu hoạch"; group = "A"; icon = "🌾"
     status = "active" if sentinel.configured() else "preview"
+    # Giai đoạn sinh trưởng là THÔNG TIN, không phải đe doạ: "đang chín" và
+    # "vừa thu hoạch xong nên đất trống" đều làm chỉ số tụt mà chẳng có gì xấu.
+    # Việc bắt cây suy bất thường là của module Sâu bệnh — nó so với chính nền
+    # của thửa nên không nhầm thu hoạch thành thảm hoạ.
+    threat = False
     data_sources = ["Chuỗi NDVI Sentinel-2 180 ngày (Copernicus)"]
     users = ["Nông dân", "Thương lái", "DN xuất khẩu"]
     description = "Cây đang ở giai đoạn nào, đỉnh sinh trưởng khi nào, còn bao lâu tới thu."

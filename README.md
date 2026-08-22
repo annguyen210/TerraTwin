@@ -270,6 +270,22 @@ thật cần hàng đợi bền bên ngoài — việc của lúc có tải th�
 dựng Twin, vì chúng quét cả một vùng chứ không riêng thửa. Phần bị bỏ qua được
 khai báo trong `skipped_heavy`, không giấu.
 
+## `risk_level` không đồng nghĩa với "nguy hiểm"
+
+Điện mặt trời trả `danger` khi bức xạ chỉ ở mức **trung bình**. Bảo hiểm tham số
+trả `danger` khi **đã kích hoạt chi trả** — tin tốt. Trộn chúng vào danh sách
+cảnh báo làm rà soát nền gửi email lúc ba giờ sáng báo *"điện mặt trời: nguy
+hiểm"*. Vài lần như thế là người dùng tắt thông báo, và lần thứ mười hai — lần
+lũ thật — họ không còn nhận được nữa.
+
+Nay mỗi mũi nhọn khai báo `threat`. Chỉ mô-đun **thật sự mô tả một mối đe doạ**
+mới vào được danh sách cảnh báo và mới tính vào mức rủi ro của thửa; bốn mô-đun
+cơ hội/thẩm định (`solar`, `yield`, `land_risk`, `parametric_insurance`) vẫn
+hiện đầy đủ trên giao diện nhưng không đánh thức ai lúc nửa đêm.
+
+Đo thật trên một danh mục 4 thửa: **"4/4 thửa đang cảnh báo" → "1/4"**, và cái
+còn lại là cảnh báo lũ thật.
+
 ## Lũ đến từ mưa rơi Ở TRÊN CAO
 
 Cho tới gần đây, module Lũ chỉ nhìn lượng mưa rơi trên **chính thửa đó**. Nhưng

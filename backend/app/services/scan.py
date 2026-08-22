@@ -52,15 +52,23 @@ def scan(loc: Location, include_heavy: bool = False) -> ScanResult:
             id=info.id, name=info.name, icon=info.icon, group=info.group,
             risk_level=a.risk_level, headline=a.headline,
             recommendation=a.recommendation, is_real=a.is_real, score=a.score,
+            threat=info.threat,
         ))
         real_total += 1
         if a.is_real:
             real_count += 1
 
-    # Cảnh báo hành động: CHỈ lấy module dùng DỮ LIỆU THẬT (tránh báo động giả từ
-    # module mẫu), xếp nguy hiểm trước. Module mẫu vẫn hiện trong lưới, gắn cờ 🧪.
+    # Cảnh báo hành động: chỉ lấy mô-đun (a) dùng DỮ LIỆU THẬT và (b) thật sự
+    # mô tả một MỐI ĐE DOẠ.
+    #
+    # Điều kiện (b) là một lỗi đã sửa, không phải cẩn thận thừa: điện mặt trời
+    # trả "danger" khi bức xạ chỉ ở mức trung bình, và bảo hiểm tham số trả
+    # "danger" khi ĐÃ KÍCH HOẠT CHI TRẢ — tin tốt. Không lọc thì rà soát nền
+    # gửi email lúc ba giờ sáng báo "điện mặt trời: nguy hiểm". Vài lần như thế
+    # là người dùng tắt thông báo, và lần lũ thật họ không còn nhận được nữa.
     alerts = sorted(
-        [m for m in mods if m.is_real and m.risk_level in ("danger", "warning")],
+        [m for m in mods
+         if m.is_real and m.threat and m.risk_level in ("danger", "warning")],
         key=lambda m: _RISK_ORDER.get(m.risk_level, 9),
     )
     ts = terrascore.compute(loc, assessments=assessments)   # tái dùng, không assess lại

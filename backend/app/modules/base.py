@@ -28,11 +28,24 @@ class TwinModule(ABC):
     # sáu mô-đun kia đợi nó.
     heavy: bool = False
 
+    # Mô-đun này có mô tả một MỐI ĐE DOẠ không?
+    #
+    # `risk_level` chỉ là "mức trên thang của chính mô-đun đó". Với hiểm họa,
+    # danger nghĩa là sắp có chuyện xấu. Với mô-đun cơ hội hay đánh giá, danger
+    # nghĩa hoàn toàn khác: điện mặt trời "danger" = bức xạ trung bình, hoàn
+    # toàn không phải nguy hiểm.
+    #
+    # Trộn hai loại đó vào cùng một danh sách cảnh báo là lý do rà soát nền có
+    # thể gửi email lúc ba giờ sáng báo "điện mặt trời: nguy hiểm". Người nhận
+    # cái đó vài lần sẽ tắt thông báo, và lần thứ mười hai — lần lũ thật — họ
+    # không còn nhận được nữa. Đây chính là thứ phá tỉ lệ báo động giả 3%.
+    threat: bool = True
+
     def info(self) -> ModuleInfo:
         return ModuleInfo(
             id=self.id, name=self.name, group=self.group, status=self.status,
             icon=self.icon, data_sources=self.data_sources, users=self.users,
-            description=self.description, heavy=self.heavy,
+            description=self.description, heavy=self.heavy, threat=self.threat,
         )
 
     @abstractmethod

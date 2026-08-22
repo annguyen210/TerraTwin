@@ -48,6 +48,7 @@ class ModuleInfo(BaseModel):
     users: list[str]
     description: str
     heavy: bool = False
+    threat: bool = True
 
 
 class ForecastPoint(BaseModel):
@@ -112,6 +113,7 @@ class ScanModule(BaseModel):
     recommendation: str
     is_real: bool = False
     score: Optional[float] = None
+    threat: bool = True
 
 
 class ScanResult(BaseModel):

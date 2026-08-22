@@ -982,6 +982,10 @@ export type ApiKeyRow = {
   created_at: string;
   last_used_at: string | null;
   revoked: boolean;
+  calls_total: number;
+  calls_period: number;
+  period: string;
+  monthly_quota: number;
 };
 
 export function listKeys() {
@@ -1141,6 +1145,59 @@ export type JobStatus = {
 
 export function getJob(id: string) {
   return getJson<JobStatus>(`/api/jobs/${id}`, "Không đọc được trạng thái việc");
+}
+
+// ---- C08 Tổng quan danh mục theo vùng ----
+export type PortfolioDriver = {
+  id: string;
+  name: string;
+  icon: string;
+  risk_level: string;
+  headline: string;
+};
+export type PortfolioPlot = {
+  plot_id: number;
+  name: string;
+  lat: number;
+  lon: number;
+  area_ha: number | null;
+  risk_level: string;
+  score: number | null;
+  grade: string | null;
+  drivers: PortfolioDriver[];
+};
+export type PortfolioCell = {
+  cell: string;
+  plots: number;
+  area_ha: number;
+  danger: number;
+  warning: number;
+  safe: number;
+  unknown: number;
+  at_risk_pct: number;
+  top_driver: string | null;
+};
+export type PortfolioOverview = {
+  available: boolean;
+  message?: string;
+  plots_scanned?: number;
+  plots_total?: number;
+  truncated?: boolean;
+  counts?: Record<string, number>;
+  total_ha?: number;
+  at_risk_ha?: number;
+  bbox?: { min_lat: number; max_lat: number; min_lon: number; max_lon: number };
+  cells?: PortfolioCell[];
+  cell_deg?: number;
+  plots?: PortfolioPlot[];
+  headline?: string;
+  method?: string;
+  caveat?: string;
+};
+
+export function getPortfolioOverview() {
+  return authed<PortfolioOverview>("/api/plots/overview", { method: "GET" },
+    "Không quét được danh mục");
 }
 
 export function getRoadmap() {

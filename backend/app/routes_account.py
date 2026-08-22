@@ -73,6 +73,10 @@ class ApiKeyOut(BaseModel):
     created_at: datetime
     last_used_at: datetime | None
     revoked: bool
+    calls_total: int = 0
+    calls_period: int = 0
+    period: str = ""
+    monthly_quota: int = 0
 
 
 class ApiKeyCreated(ApiKeyOut):
@@ -143,6 +147,23 @@ def list_plots(user: User = Depends(auth.current_user),
     return [_plot_out(p) for p in rows]
 
 
+@router.get("/api/plots/overview")
+def plots_overview(heavy: bool = False,
+                   user: User = Depends(auth.current_user),
+                   db: Session = Depends(get_session)) -> dict:
+    """C08 — nhìn cả danh mục như một VÙNG, không phải một danh sách.
+
+    Hợp tác xã 200 thửa không hỏi "thửa số 137 thế nào" mà hỏi "chỗ nào của tôi
+    sắp gãy". Gộp theo ô ~11 km và xếp vùng nặng nhất lên đầu.
+    """
+    from app.services import portfolio
+
+    rows = db.execute(
+        select(Plot).where(Plot.user_id == user.id)
+        .order_by(Plot.created_at.desc())).scalars().all()
+    return portfolio.overview(rows, include_heavy=heavy)
+
+
 @router.post("/api/plots", response_model=PlotOut, status_code=201)
 def create_plot(body: PlotIn, user: User = Depends(auth.current_user),
                 db: Session = Depends(get_session)) -> PlotOut:
@@ -189,7 +210,11 @@ def list_keys(user: User = Depends(auth.current_user),
     ).scalars().all()
     return [ApiKeyOut(id=k.id, label=k.label, prefix=k.prefix,
                       created_at=k.created_at, last_used_at=k.last_used_at,
-                      revoked=bool(k.revoked)) for k in rows]
+                      revoked=bool(k.revoked),
+                      calls_total=k.calls_total or 0,
+                      calls_period=k.calls_period or 0,
+                      period=k.period or "",
+                      monthly_quota=auth.KEY_MONTHLY_QUOTA) for k in rows]
 
 
 @router.post("/api/keys", response_model=ApiKeyCreated, status_code=201)
@@ -202,7 +227,8 @@ def create_key(label: str = "", user: User = Depends(auth.current_user),
     db.refresh(k)
     return ApiKeyCreated(id=k.id, label=k.label, prefix=k.prefix,
                          created_at=k.created_at, last_used_at=None,
-                         revoked=False, key=raw)
+                         revoked=False, monthly_quota=auth.KEY_MONTHLY_QUOTA,
+                         key=raw)
 
 
 @router.delete("/api/keys/{key_id}", status_code=204,

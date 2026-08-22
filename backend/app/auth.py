@@ -84,6 +84,11 @@ def hash_api_key(raw: str) -> str:
 
 # ---------- Dependency ----------
 
+# Hạn mức lượt gọi mỗi tháng cho MỖI khóa API. 0 = không giới hạn.
+# Mặc định có giới hạn: khóa bị lộ mà không có trần thì nó đốt hạn mức nguồn
+# dữ liệu miễn phí của cả hệ thống, và mọi người dùng khác mất dữ liệu theo.
+KEY_MONTHLY_QUOTA = int(os.environ.get("TERRATWIN_KEY_MONTHLY_QUOTA", "5000"))
+
 _UNAUTH = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
     detail="Cần đăng nhập. Gửi header 'Authorization: Bearer <token>' "
@@ -104,8 +109,30 @@ def current_user(
         ).scalar_one_or_none()
         if row is None:
             raise _UNAUTH
-        row.last_used_at = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc)
+
+        # Đếm lượt và chặn khi vượt hạn mức tháng.
+        #
+        # Đây là chống LẠM DỤNG, không phải tính tiền: một khóa bị lộ có thể nã
+        # API không giới hạn và đốt sạch hạn mức ngày của Open-Meteo — lúc đó
+        # MỌI người dùng mất dữ liệu chứ không riêng chủ khóa. Hạn mức riêng
+        # từng khóa giữ cho thiệt hại nằm trong phạm vi một khóa.
+        period = now.strftime("%Y-%m")
+        if row.period != period:
+            row.period, row.calls_period = period, 0
+        row.calls_period = (row.calls_period or 0) + 1
+        row.calls_total = (row.calls_total or 0) + 1
+        row.last_used_at = now
         db.commit()
+
+        if KEY_MONTHLY_QUOTA > 0 and row.calls_period > KEY_MONTHLY_QUOTA:
+            raise HTTPException(
+                status_code=429,
+                detail=(f"Khóa này đã dùng {row.calls_period} lượt trong tháng "
+                        f"{period}, vượt hạn mức {KEY_MONTHLY_QUOTA}. Hạn mức "
+                        "đặt lại vào đầu tháng sau; cần cao hơn thì liên hệ "
+                        "quản trị hệ thống."))
+
         user = db.get(User, row.user_id)
         if user is None:
             raise _UNAUTH

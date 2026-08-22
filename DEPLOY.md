@@ -112,7 +112,13 @@ Ba biến điều chỉnh, đều có mặc định chạy được ngay:
 TERRATWIN_WORKERS=4                  # luồng chạy việc nền (hàng đợi)
 TERRATWIN_UPSTREAM_CONCURRENCY=6     # trần lượt gọi RA NGOÀI cùng lúc
 TERRATWIN_RADAR_INTERVAL_H=6         # rà soát chủ động; 0 = tắt
+TERRATWIN_KEY_MONTHLY_QUOTA=5000     # hạn mức mỗi khoá API/tháng; 0 = không giới hạn
 ```
+
+`TERRATWIN_KEY_MONTHLY_QUOTA` là **chống lạm dụng, chưa phải tính tiền**: một
+khoá API bị lộ mà không có trần sẽ đốt hết hạn mức ngày của Open-Meteo, và lúc
+đó *mọi* người dùng mất dữ liệu chứ không riêng chủ khoá. Số lượt dùng hiện ngay
+trong Khu làm việc → Khoá API.
 
 `TERRATWIN_UPSTREAM_CONCURRENCY` là thứ đứng giữa phần mềm và việc bị Open-Meteo
 chặn IP. Đừng nâng cao chỉ vì thấy chậm — nguồn miễn phí bị nã dồn thì chặn cả

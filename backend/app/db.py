@@ -213,6 +213,14 @@ class ApiKey(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     revoked: Mapped[int] = mapped_column(Integer, default=0)
+    # Đếm lượt dùng. Đây KHÔNG phải để tính tiền (chưa có cổng thanh toán) mà
+    # để CHỐNG LẠM DỤNG: một khóa bị lộ có thể nã API không giới hạn và đốt sạch
+    # hạn mức ngày của Open-Meteo — lúc đó MỌI người dùng mất dữ liệu, không
+    # riêng chủ khóa. Hạn mức theo tháng cũng là điều kiện cần cho mô hình "trả
+    # theo lượt gọi" sau này.
+    calls_total: Mapped[int] = mapped_column(Integer, default=0)
+    calls_period: Mapped[int] = mapped_column(Integer, default=0)
+    period: Mapped[str] = mapped_column(String(7), default="")   # YYYY-MM
 
 
 class Dataset(Base):
@@ -262,9 +270,40 @@ class Alert(Base):
 Index("ix_alert_user_created", Alert.user_id, Alert.created_at.desc())
 
 
+# Cột thêm sau khi đã có database chạy thật. `create_all` KHÔNG thêm cột vào
+# bảng sẵn có, nên thiếu bước này thì bản deploy cũ sẽ đổ ngay lần truy vấn đầu
+# — lỗi chỉ lộ ra ở production, không bao giờ lộ trong test trên database sạch.
+_ADDED_COLUMNS = [
+    ("api_keys", "calls_total", "INTEGER DEFAULT 0"),
+    ("api_keys", "calls_period", "INTEGER DEFAULT 0"),
+    ("api_keys", "period", "VARCHAR(7) DEFAULT ''"),
+]
+
+
+def _ensure_columns() -> None:
+    """Thêm cột còn thiếu vào bảng đã tồn tại. Di trú nghèo nhưng đủ dùng.
+
+    Có Alembic thì tốt hơn, nhưng nó thêm một bước triển khai nữa mà dự án ở
+    quy mô này chưa cần. Khi schema bắt đầu đổi thường xuyên thì hãy chuyển.
+    """
+    from sqlalchemy import inspect, text
+
+    insp = inspect(engine)
+    have = set(insp.get_table_names())
+    with engine.begin() as conn:
+        for table, col, decl in _ADDED_COLUMNS:
+            if table not in have:
+                continue
+            cols = {c["name"] for c in insp.get_columns(table)}
+            if col in cols:
+                continue
+            conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {decl}"))
+
+
 def init_db() -> None:
-    """Tạo bảng nếu chưa có. Đủ cho SQLite; lên Postgres nên dùng Alembic."""
+    """Tạo bảng nếu chưa có, rồi bù cột còn thiếu cho database đã chạy."""
     Base.metadata.create_all(engine)
+    _ensure_columns()
 
 
 def get_session():

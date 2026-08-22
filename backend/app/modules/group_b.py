@@ -143,6 +143,10 @@ class StormDamageModule(TwinModule):
 
 class LandRiskModule(TwinModule):
     id = "land_risk"; name = "Rủi ro trước khi mua đất"; group = "B"; icon = "🏘️"; status = "active"
+    # Đây là điểm thẩm định MỘT LẦN trước khi mua, không phải sự việc sắp xảy
+    # ra. Với thửa đã sở hữu, nhắc lại mỗi sáu giờ rằng "đất này trũng" là phiền
+    # chứ không phải cảnh báo — nền đất không đổi từ hôm qua.
+    threat = False
     data_sources = ["Cao độ (Open-Meteo)", "Open-Meteo: lượng mưa", "Khoảng cách biển"]
     users = ["Người mua nhà đất", "Môi giới", "Ngân hàng"]
     description = "Nhập vị trí → lô này có ngập/sạt lở không, an toàn không."
