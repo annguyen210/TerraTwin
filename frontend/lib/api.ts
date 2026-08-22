@@ -56,6 +56,7 @@ export type Assessment = {
 
 export type TerraScore = {
   location: { lat: number; lon: number };
+  region?: RegionInfo;
   score: number;
   grade: string;
   summary: string;
@@ -176,8 +177,20 @@ export type ScanModule = {
   score?: number;
 };
 
+export type RegionInfo = {
+  kind: "land" | "sea" | "foreign" | "unknown";
+  serviceable: boolean;
+  elevation_m?: number | null;
+  land_neighbours?: number | null;
+  country?: string | null;
+  in_vietnam?: boolean | null;
+  note?: string | null;
+  caveat?: string | null;
+};
+
 export type ScanResult = {
   location: { lat: number; lon: number };
+  region?: RegionInfo;
   terrascore: TerraScore;
   modules: ScanModule[];
   alerts: ScanModule[];

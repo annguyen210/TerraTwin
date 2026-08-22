@@ -29,8 +29,8 @@ from app.schemas import (
 )
 from app.services import (
     anomaly, backtest, copilot, design, explain, genome, goalseek, hazard,
-    heatmap, jobs, llm, mrv, roadmap, scan, sentinel, terrascore, timelapse,
-    timemachine, whatif, whatif_nlp,
+    heatmap, jobs, llm, mrv, region, roadmap, scan, sentinel, terrascore,
+    timelapse, timemachine, whatif, whatif_nlp,
 )
 from app.services import twin as twin_service
 from app import auth
@@ -212,23 +212,77 @@ def build_twin_endpoint(location: Location) -> dict:
     return twin_service.build(location)
 
 
+def _off_site(module, loc: Location, reg: dict) -> Assessment:
+    """Câu trả lời trung thực cho toạ độ ngoài phạm vi phục vụ.
+
+    KHÔNG chạy mô-đun. Trước khi có hàm này, một điểm giữa Biển Đông nhận được
+    "Điểm an toàn đất: 70/100" và "Thiếu nước NGHIÊM TRỌNG 96,7%" — con số đúng
+    định dạng, sai hoàn toàn về ý nghĩa, và người dùng không có cách nào biết.
+    """
+    return Assessment(
+        module_id=getattr(module, "id", "?"),
+        module_name=getattr(module, "name", "?"),
+        location=loc, status="out_of_scope", risk_level="unknown",
+        is_real=False,
+        headline=("Đây là mặt nước — TerraTwin phục vụ đất liền và đảo có dân cư"
+                  if reg["kind"] == "sea" else
+                  f"Toạ độ ngoài phạm vi phục vụ ({(reg.get('country') or '?').upper()})"),
+        detail=reg.get("note") or "",
+        recommendation=("Bấm lại vào phần đất gần nhất."
+                        if reg["kind"] == "sea" else
+                        "TerraTwin hiệu chuẩn theo khí hậu và địa hình Việt Nam."),
+        confidence=None,
+        data_sources=["Cao độ DEM (Open-Meteo)"]
+        + (["Nominatim / OpenStreetMap"] if reg.get("country") else []),
+    )
+
+
 @app.post("/api/assess/{module_id}", response_model=Assessment)
 def assess(module_id: str, location: Location) -> Assessment:
     module = get_module(module_id)
     if module is None:
         raise HTTPException(status_code=404, detail=f"Không có mô-đun '{module_id}'")
+    reg = region.classify(location.lat, location.lon)
+    if not reg["serviceable"]:
+        return _off_site(module, location, reg)
     return module.assess(location)
 
 
 @app.post("/api/terrascore", response_model=TerraScoreResult)
 def terra(location: Location) -> TerraScoreResult:
-    return terrascore.compute(location)
+    reg = region.classify(location.lat, location.lon)
+    if not reg["serviceable"]:
+        return TerraScoreResult(
+            location=location, score=0, grade="—",
+            summary=reg.get("note") or "Ngoài phạm vi phục vụ.",
+            real_data_ratio=0.0, region=reg)
+    r = terrascore.compute(location)
+    r.region = reg
+    return r
 
 
 @app.post("/api/scan", response_model=ScanResult)
 def scan_endpoint(location: Location) -> ScanResult:
-    """Quét toàn cảnh thửa đất: cả 14 module + cảnh báo ưu tiên trong 1 lần gọi."""
-    return scan.scan(location)
+    """Quét toàn cảnh thửa đất: mọi mũi nhọn nhẹ + cảnh báo ưu tiên, một lần gọi.
+
+    Chặn trước ở đây thay vì để từng mô-đun tự xoay xở: mặt biển và đất nước
+    khác không phải chuyện của mười sáu mô-đun, mà là chuyện của toạ độ.
+    """
+    reg = region.classify(location.lat, location.lon)
+    if not reg["serviceable"]:
+        from datetime import datetime, timezone
+        return ScanResult(
+            location=location,
+            terrascore=TerraScoreResult(
+                location=location, score=0, grade="—",
+                summary=reg.get("note") or "Ngoài phạm vi phục vụ.",
+                real_data_ratio=0.0),
+            modules=[], alerts=[], real_data_ratio=0.0, region=reg,
+            generated_at=datetime.now(timezone.utc).isoformat(timespec="seconds"))
+
+    r = scan.scan(location)
+    r.region = reg
+    return r
 
 
 @app.post("/api/whatif/{module_id}", response_model=WhatIfResult)

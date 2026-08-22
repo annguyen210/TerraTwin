@@ -4,7 +4,27 @@
 
 Ba chữ cốt lõi: **CỦA MÌNH** (từng thửa) · **BIẾT TRƯỚC** (kịp hành động) · **BẰNG CHỨNG THẬT** (vệ tinh/thời tiết, kiểm chứng được — không phỏng đoán).
 
-> Phạm vi phục vụ: **lãnh thổ Việt Nam**. Toạ độ ngoài vùng bị từ chối (HTTP 422).
+> **Phạm vi phục vụ: đất liền và đảo có dân cư của Việt Nam.**
+>
+> Kiểm tra bằng **cao độ DEM + tra cứu quốc gia**, không phải bằng một hình chữ nhật.
+> Hình chữ nhật cũ bao trọn Viêng Chăn, Phnom Penh, nam Trung Quốc và cả Biển Đông —
+> đo được là giữa Biển Đông phần mềm chấm *"Điểm an toàn đất 70/100"* và *"Thiếu nước
+> NGHIÊM TRỌNG 96,7%"*.
+>
+> | Toạ độ | Nay trả về |
+> |---|---|
+> | Đất liền / đảo VN (kể cả Cần Giờ 0 m, Đất Mũi, Phú Quốc) | phục vụ bình thường |
+> | Mặt nước (kể cả Hoàng Sa, Trường Sa — DEM không phân giải được đảo nhỏ) | `out_of_scope`, nói rõ là mặt nước |
+> | Lào · Campuchia · Trung Quốc | `out_of_scope`, nêu tên nước |
+> | Rác (lat 0, Paris…) | HTTP 422 |
+>
+> Nhận biết mặt nước bằng **lấy mẫu vòng 5 km**: đất có ≥2/8 điểm quanh cao hơn 0 m
+> (Cần Giờ 7/8 · Đất Mũi 5/8 · Phú Quốc 4/8), mặt nước có 0–1/8 (biển ngoài Vũng Tàu
+> 0/8 · ngoài Nha Trang 1/8). Cao độ đơn thuần không đủ vì Cần Giờ đọc đúng 0 m.
+>
+> Cả hai lớp kiểm đều **fail-open**: nguồn cao độ hay dịch vụ tra cứu quốc gia chết
+> thì phần mềm vẫn phục vụ — thà cho một toạ độ ngoài biên lọt qua còn hơn chặn cả
+> nước vì một dịch vụ ngoài đang bảo trì.
 
 ---
 

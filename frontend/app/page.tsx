@@ -235,7 +235,24 @@ export default function Home() {
         {area != null && (
           <p className="areanote">📐 Diện tích vùng: {area} ha</p>
         )}
-        {terra && <TerraBadge t={terra} />}
+        {terra?.region && !terra.region.serviceable && (
+          <div className="offsite">
+            <b>
+              {terra.region.kind === "sea"
+                ? "🌊 Đây là mặt nước"
+                : `🗺️ Ngoài phạm vi phục vụ${
+                    terra.region.country
+                      ? ` (${terra.region.country.toUpperCase()})`
+                      : ""
+                  }`}
+            </b>
+            <p>{terra.region.note}</p>
+            {terra.region.caveat && (
+              <p className="offsite-sub">{terra.region.caveat}</p>
+            )}
+          </div>
+        )}
+        {terra && terra.region?.serviceable !== false && <TerraBadge t={terra} />}
 
         {coord && (
           <div className="tabs">

@@ -2737,3 +2737,29 @@ body {
   font-size: 11px;
   margin: 4px 0 0 16px;
 }
+
+/* Toạ độ ngoài phạm vi phục vụ — mặt nước hoặc nước khác */
+.offsite {
+  border: 1px solid #d9a441;
+  background: rgba(217, 164, 65, 0.1);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+.offsite b {
+  display: block;
+  margin-bottom: 6px;
+}
+.offsite p {
+  margin: 0;
+  color: var(--dim);
+  line-height: 1.6;
+  font-size: 12.5px;
+}
+.offsite-sub {
+  margin-top: 6px !important;
+  font-size: 11px !important;
+  font-style: italic;
+  opacity: 0.85;
+}

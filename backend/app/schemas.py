@@ -4,9 +4,17 @@ from __future__ import annotations
 from typing import Optional
 from pydantic import BaseModel, Field, field_validator
 
-# Khung phục vụ: lãnh thổ Việt Nam (đệm nhẹ để không chặn oan click sát biên giới).
+# Hộp toạ độ THÔ — chỉ là cửa chặn nhanh cho dữ liệu rác (lat=999), KHÔNG phải
+# ranh giới Việt Nam. Hộp này bao cả Lào, Campuchia, nam Trung Quốc và Biển
+# Đông; việc phân biệt đất liền Việt Nam / mặt biển / nước khác do
+# services/region.py làm bằng cao độ DEM và tra cứu quốc gia.
+#
+# Kinh độ nới tới 115,0 có chủ đích: mốc cũ 112,5 khiến Trường Sa bị từ chối
+# kèm câu "ngoài lãnh thổ Việt Nam" — phần mềm không nên tự phát ngôn về chủ
+# quyền, và càng không nên phát ngôn sai. Nay điểm đó đi qua được cửa này rồi
+# được region.py trả lời trung thực là "mặt nước, ngoài phạm vi phục vụ".
 VN_LAT_MIN, VN_LAT_MAX = 7.5, 24.0
-VN_LON_MIN, VN_LON_MAX = 101.5, 112.5
+VN_LON_MIN, VN_LON_MAX = 101.5, 115.0
 
 
 class Location(BaseModel):
@@ -22,8 +30,8 @@ class Location(BaseModel):
     def _lat_in_vn(cls, v: float) -> float:
         if not (VN_LAT_MIN <= v <= VN_LAT_MAX):
             raise ValueError(
-                "TerraTwin hiện phục vụ lãnh thổ Việt Nam "
-                f"(vĩ độ {VN_LAT_MIN}–{VN_LAT_MAX}). Toạ độ ngoài vùng."
+                f"Vĩ độ phải trong khoảng {VN_LAT_MIN}–{VN_LAT_MAX} "
+                "(khung bao quanh Việt Nam). Toạ độ này nằm quá xa."
             )
         return v
 
@@ -32,8 +40,8 @@ class Location(BaseModel):
     def _lon_in_vn(cls, v: float) -> float:
         if not (VN_LON_MIN <= v <= VN_LON_MAX):
             raise ValueError(
-                "TerraTwin hiện phục vụ lãnh thổ Việt Nam "
-                f"(kinh độ {VN_LON_MIN}–{VN_LON_MAX}). Toạ độ ngoài vùng."
+                f"Kinh độ phải trong khoảng {VN_LON_MIN}–{VN_LON_MAX} "
+                "(khung bao quanh Việt Nam). Toạ độ này nằm quá xa."
             )
         return v
 
@@ -85,6 +93,7 @@ class TerraScoreResult(BaseModel):
     summary: str
     breakdown: dict[str, int] = {}
     real_data_ratio: float = 0.0   # tỉ lệ hiểm họa được đánh giá bằng dữ liệu thật
+    region: dict = {}
 
 
 class KnowledgeCitation(BaseModel):
@@ -124,6 +133,7 @@ class ScanResult(BaseModel):
     real_data_ratio: float = 0.0
     generated_at: str
     skipped_heavy: list[str] = []
+    region: dict = {}
 
 
 class ScenarioPoint(BaseModel):
