@@ -136,7 +136,12 @@ def test_can_han_muc_khac_voi_mat_mang(monkeypatch):
 
     q = realdata.quota_status()
     assert "api.open-meteo.com" in q["exhausted"]
-    assert "hạn mức" in q["message"]
+    assert "quá nhiều" in q["message"]
+    # Phải nói đúng thứ ĐO ĐƯỢC (phục hồi sau ~10 phút), không chép lại câu
+    # "thử lại ngày mai" của Open-Meteo — chép lại là bắt người vận hành ngồi
+    # chờ vô ích cả ngày trong khi mười phút nữa là chạy lại được.
+    assert "mười phút" in q["message"]
+    assert "ngày mai" not in q["message"]
     realdata._QUOTA.clear()
 
 
