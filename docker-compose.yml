@@ -8,7 +8,26 @@ services:
     environment:
       - TERRATWIN_CORS=http://localhost:1825
       - TERRATWIN_RATE_LIMIT=120
-      # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}   # bỏ ghi chú để bật Copilot LLM
+      # CSDL nam trong volume, TACH KHOI /app/data. Neu de chung, volume se che
+      # mat thu muc anh chua anomaly_model.json, va ban mo hinh moi trong anh
+      # se khong bao gio xuat hien o lan trien khai sau.
+      - TERRATWIN_DATABASE_URL=sqlite:////app/var/terratwin.db
+      # Copilot chạy bằng luật khi không có khoá. Muốn bật LLM thì điền ba biến
+      # dưới đây — dùng được khoá của BẤT KỲ nhà cung cấp nào (openai, gemini,
+      # anthropic, openrouter, xai, mistral, qwen) hoặc ollama chạy ngay máy này.
+      # - TERRATWIN_LLM_PROVIDER=openrouter
+      # - TERRATWIN_LLM_API_KEY=${TERRATWIN_LLM_API_KEY}
+      # - TERRATWIN_LLM_MODEL=meta-llama/llama-3.3-70b-instruct
+      #
+      # Ảnh vệ tinh Sentinel-2 (miễn phí, mở 5 mũi nhọn quang học):
+      # - TERRATWIN_CDSE_CLIENT_ID=${TERRATWIN_CDSE_CLIENT_ID}
+      # - TERRATWIN_CDSE_CLIENT_SECRET=${TERRATWIN_CDSE_CLIENT_SECRET}
+    volumes:
+      # KHÔNG BỎ DÒNG NÀY. SQLite nằm trong container, nên không có volume thì
+      # mỗi lần `docker compose up --build` là mất sạch tài khoản, khoá API và
+      # TOÀN BỘ kho quan sát thực địa — thứ duy nhất trong sản phẩm mà đối thủ
+      # không tải về được từ nguồn mở. Mất nó là mất lợi thế, không phải mất dữ liệu vặt.
+      - terratwin-db:/app/var
     restart: unless-stopped
 
   frontend:
@@ -19,3 +38,6 @@ services:
       - backend
     # Trình duyệt gọi backend qua cổng host 8000 (mặc định trong lib/api.ts).
     restart: unless-stopped
+
+volumes:
+  terratwin-db:

@@ -21,6 +21,7 @@ from fastapi import Depends, Header, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.services import plans
 from app.db import ApiKey, User, get_session
 
 _ALGO = "HS256"
@@ -84,10 +85,12 @@ def hash_api_key(raw: str) -> str:
 
 # ---------- Dependency ----------
 
-# Hạn mức lượt gọi mỗi tháng cho MỖI khóa API. 0 = không giới hạn.
-# Mặc định có giới hạn: khóa bị lộ mà không có trần thì nó đốt hạn mức nguồn
-# dữ liệu miễn phí của cả hệ thống, và mọi người dùng khác mất dữ liệu theo.
-KEY_MONTHLY_QUOTA = int(os.environ.get("TERRATWIN_KEY_MONTHLY_QUOTA", "5000"))
+# Hạn mức lượt gọi mỗi tháng nay lấy theo GÓI của từng khóa —
+# xem app/services/plans.py. Không giữ lại hằng số KEY_MONTHLY_QUOTA ở đây:
+# một hằng số trông như còn điều khiển hạn mức nhưng thật ra không còn tác dụng
+# là cái bẫy tệ hơn không có gì. Muốn ép một mức chung (thử nghiệm, tình huống
+# khẩn) thì đặt biến môi trường TERRATWIN_KEY_MONTHLY_QUOTA — plans.quota_for()
+# đọc nó và ghi đè mọi gói.
 
 _UNAUTH = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -125,13 +128,16 @@ def current_user(
         row.last_used_at = now
         db.commit()
 
-        if KEY_MONTHLY_QUOTA > 0 and row.calls_period > KEY_MONTHLY_QUOTA:
+        limit = plans.quota_for(getattr(row, "plan", None))
+        if limit > 0 and row.calls_period > limit:
+            tier = plans.PLANS.get(getattr(row, "plan", None) or "free",
+                                   plans.PLANS["free"])
             raise HTTPException(
                 status_code=429,
                 detail=(f"Khóa này đã dùng {row.calls_period} lượt trong tháng "
-                        f"{period}, vượt hạn mức {KEY_MONTHLY_QUOTA}. Hạn mức "
-                        "đặt lại vào đầu tháng sau; cần cao hơn thì liên hệ "
-                        "quản trị hệ thống."))
+                        f"{period}, vượt hạn mức {limit} của gói "
+                        f"{tier['name']}. Hạn mức đặt lại vào đầu tháng sau. "
+                        "Xem GET /api/plans để biết các mức cao hơn."))
 
         user = db.get(User, row.user_id)
         if user is None:

@@ -231,8 +231,7 @@ def test_khoa_api_dem_luot_va_chan_khi_vuot(monkeypatch):
 
     from fastapi.testclient import TestClient
 
-    from app import auth
-    monkeypatch.setattr(auth, "KEY_MONTHLY_QUOTA", 3)
+    monkeypatch.setenv("TERRATWIN_KEY_MONTHLY_QUOTA", "3")
     from app.main import app
 
     with TestClient(app) as c:
@@ -259,8 +258,7 @@ def test_khoa_api_khong_gioi_han_khi_dat_0(monkeypatch):
 
     from fastapi.testclient import TestClient
 
-    from app import auth
-    monkeypatch.setattr(auth, "KEY_MONTHLY_QUOTA", 0)
+    monkeypatch.setenv("TERRATWIN_KEY_MONTHLY_QUOTA", "0")
     from app.main import app
 
     with TestClient(app) as c:

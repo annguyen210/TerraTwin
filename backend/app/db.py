@@ -221,6 +221,10 @@ class ApiKey(Base):
     calls_total: Mapped[int] = mapped_column(Integer, default=0)
     calls_period: Mapped[int] = mapped_column(Integer, default=0)
     period: Mapped[str] = mapped_column(String(7), default="")   # YYYY-MM
+    # Gói cước quyết định hạn mức tháng. Để ở KHÓA chứ không ở NGƯỜI DÙNG, vì
+    # một người có thể có khóa cho việc khác nhau — khóa thử nghiệm để gói thấp,
+    # khóa chạy thật để gói cao, và một khóa bị lộ không kéo theo cả tài khoản.
+    plan: Mapped[str] = mapped_column(String(16), default="free")
 
 
 class Dataset(Base):
@@ -277,6 +281,7 @@ _ADDED_COLUMNS = [
     ("api_keys", "calls_total", "INTEGER DEFAULT 0"),
     ("api_keys", "calls_period", "INTEGER DEFAULT 0"),
     ("api_keys", "period", "VARCHAR(7) DEFAULT ''"),
+    ("api_keys", "plan", "VARCHAR(16) DEFAULT 'free'"),
 ]
 
 

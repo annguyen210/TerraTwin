@@ -15,6 +15,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app import auth
+from app.services import plans
 from app.db import ApiKey, Plot, User, get_session
 from app.schemas import Location
 
@@ -77,6 +78,7 @@ class ApiKeyOut(BaseModel):
     calls_period: int = 0
     period: str = ""
     monthly_quota: int = 0
+    plan: str = "free"
 
 
 class ApiKeyCreated(ApiKeyOut):
@@ -214,21 +216,56 @@ def list_keys(user: User = Depends(auth.current_user),
                       calls_total=k.calls_total or 0,
                       calls_period=k.calls_period or 0,
                       period=k.period or "",
-                      monthly_quota=auth.KEY_MONTHLY_QUOTA) for k in rows]
+                      plan=getattr(k, "plan", None) or plans.DEFAULT_PLAN,
+                      monthly_quota=plans.quota_for(getattr(k, "plan", None)))
+            for k in rows]
 
 
 @router.post("/api/keys", response_model=ApiKeyCreated, status_code=201)
-def create_key(label: str = "", user: User = Depends(auth.current_user),
+def create_key(label: str = "", plan: str = plans.DEFAULT_PLAN,
+               user: User = Depends(auth.current_user),
                db: Session = Depends(get_session)) -> ApiKeyCreated:
+    if plan not in plans.PLANS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Gói không hợp lệ. Chọn một trong: {', '.join(plans.PLANS)}")
     raw, digest, prefix = auth.generate_api_key()
-    k = ApiKey(user_id=user.id, label=label[:120], key_hash=digest, prefix=prefix)
+    k = ApiKey(user_id=user.id, label=label[:120], key_hash=digest,
+               prefix=prefix, plan=plan)
     db.add(k)
     db.commit()
     db.refresh(k)
     return ApiKeyCreated(id=k.id, label=k.label, prefix=k.prefix,
                          created_at=k.created_at, last_used_at=None,
-                         revoked=False, monthly_quota=auth.KEY_MONTHLY_QUOTA,
-                         key=raw)
+                         revoked=False, plan=plan,
+                         monthly_quota=plans.quota_for(plan), key=raw)
+
+
+@router.get("/api/plans")
+def plan_catalogue() -> dict:
+    """Bảng giá đề xuất. Luôn kèm ghi chú là CHƯA có ai trả tiền."""
+    return plans.catalogue()
+
+
+@router.get("/api/usage")
+def usage(user: User = Depends(auth.current_user),
+          db: Session = Depends(get_session)) -> dict:
+    """Bảng kê sử dụng từng khoá — đủ chi tiết để xuất hoá đơn khi có cổng thu.
+
+    Hiện đúng số đã dùng và phần VƯỢT nếu có, không giấu sau chữ "gần hết".
+    """
+    rows = db.execute(
+        select(ApiKey).where(ApiKey.user_id == user.id, ApiKey.revoked == 0)
+    ).scalars().all()
+    kê = [plans.statement(k) for k in rows]
+    return {
+        "keys": kê,
+        "total_calls_this_period": sum(k["used"] for k in kê),
+        "billing_status": "chưa thu tiền — chưa có cổng thanh toán",
+        "next_step": ("Thu tiền cần giấy phép kinh doanh và hợp đồng thương "
+                      "nhân với VNPay/MoMo. Đó là bước pháp lý, không phải "
+                      "bước lập trình."),
+    }
 
 
 @router.delete("/api/keys/{key_id}", status_code=204,

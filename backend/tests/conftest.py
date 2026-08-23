@@ -20,6 +20,17 @@ os.environ["TERRATWIN_RADAR_INTERVAL_H"] = "0"
 
 import pytest
 
+# Dựng/di trú schema NGAY khi nạp conftest.
+#
+# TestClient(app) không kích hoạt lifespan, nên init_db() trong main.py không
+# chạy trong test. Trước đây bộ test vẫn xanh chỉ vì file terratwin.db còn sót
+# lại từ một lần chạy thật — nghĩa là mọi test dùng CSDL đang dựa vào tình cờ.
+# Tệ hơn: đúng bước _ensure_columns() (thứ vá schema cho bản deploy CŨ) không
+# bao giờ được test chạm tới, nên một cột thêm thiếu sẽ chỉ vỡ ở production.
+from app.db import init_db
+
+init_db()
+
 
 @pytest.fixture(autouse=True)
 def _khong_goi_overpass_that(monkeypatch, request):
