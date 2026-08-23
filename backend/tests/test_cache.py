@@ -42,6 +42,14 @@ def test_climatology_survives_restart(monkeypatch):
         return rows
 
     monkeypatch.setattr(cal.realdata, "historical_weather", fake_hist)
+    # Chặn NỐT đường cao độ. Trước đây chỉ chặn historical_weather, nên
+    # climatology() vẫn lặng lẽ gọi thật api.open-meteo.com/elevation qua
+    # datasources.elevation_proxy. Test vẫn xanh chừng nào mạng còn nhanh —
+    # đến lúc nhà cung cấp chặn thì nó không đỏ mà TREO, kéo cả bộ test từ
+    # 144 giây lên hơn hai mươi phút. Một test "offline" mà còn sót một
+    # đường ra mạng thì không phải test offline.
+    monkeypatch.setattr(cal.realdata, "elevation_m", lambda la, lo: 5.0)
+    monkeypatch.setattr(cal.realdata, "slope_deg", lambda la, lo, **k: None)
 
     when = date(2024, 6, 1)
     dist1 = cal.climatology("flood", 10.0, 106.0, today=when)

@@ -30,6 +30,7 @@ import Genome from "@/components/Genome";
 import DesignStudio from "@/components/DesignStudio";
 import Knowledge from "@/components/Knowledge";
 import Feedback from "@/components/Feedback";
+import ModelCard from "@/components/ModelCard";
 import Mrv from "@/components/Mrv";
 import Provenance from "@/components/Provenance";
 import Timeline from "@/components/Timeline";
@@ -48,6 +49,7 @@ const DEEP = [
   { id: "knowledge", icon: "🤝", label: "Kinh nghiệm", flow: "U02 Marketplace" },
   { id: "mrv", icon: "🌲", label: "Carbon", flow: "C07 MRV" },
   { id: "provenance", icon: "📜", label: "Truy xuất", flow: "SUP-12 Chuỗi cung ứng" },
+  { id: "model", icon: "🧠", label: "Mô hình", flow: "S09 Model đã huấn luyện" },
 ] as const;
 
 const GROUPS: Record<string, string> = {
@@ -105,7 +107,7 @@ export default function Home() {
   // người dùng phải cuộn qua sáu bảng mới thấy được kết quả module đang xem.
   const [deep, setDeep] = useState<
     | "none" | "playback" | "timelapse" | "genome" | "design" | "knowledge"
-    | "mrv" | "provenance"
+    | "mrv" | "provenance" | "model"
   >("none");
 
   useEffect(() => {
@@ -354,6 +356,7 @@ export default function Home() {
               <Knowledge lat={coord.lat} lon={coord.lon} user={user} />
             )}
             {coord && deep === "mrv" && <Mrv lat={coord.lat} lon={coord.lon} />}
+            {coord && deep === "model" && <ModelCard />}
             {coord && deep === "provenance" && (
               <Provenance lat={coord.lat} lon={coord.lon} />
             )}

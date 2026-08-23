@@ -1058,16 +1058,97 @@ export type ApiKeyRow = {
   calls_period: number;
   period: string;
   monthly_quota: number;
+  plan: string;
 };
 
 export function listKeys() {
   return authed<ApiKeyRow[]>("/api/keys", { method: "GET" }, "Không tải được khoá");
 }
 
-export function createKey(label: string) {
+export function createKey(label: string, plan = "free") {
   return authed<ApiKeyRow & { key: string }>(
-    `/api/keys?label=${encodeURIComponent(label)}`, { method: "POST" },
-    "Không tạo được khoá");
+    `/api/keys?label=${encodeURIComponent(label)}&plan=${encodeURIComponent(plan)}`,
+    { method: "POST" }, "Không tạo được khoá");
+}
+
+// ---- Gói cước & bảng kê ----
+export type Plan = {
+  id: string; name: string; quota: number; price_vnd: number;
+  for: string; features: string[];
+};
+
+export type PlanCatalogue = {
+  plans: Plan[]; currency: string; billing_period: string;
+  status: string; disclaimer: string;
+};
+
+export function getPlans() {
+  return getJson<PlanCatalogue>("/api/plans", "Không tải được bảng giá");
+}
+
+export type UsageRow = {
+  period: string; plan: string; plan_name: string;
+  quota: number | null; used: number; remaining: number | null;
+  over_quota: number; calls_total_all_time: number; prefix: string;
+  upstream_calls_estimate: number; cash_cost_vnd: number;
+  cost_note: string; billing_status: string;
+};
+
+export function getUsage() {
+  return authed<{
+    keys: UsageRow[]; total_calls_this_period: number;
+    billing_status: string; next_step: string;
+  }>("/api/usage", { method: "GET" }, "Không tải được bảng kê");
+}
+
+// ---- Mô hình đã huấn luyện ----
+export type ModelEvent = {
+  label: string; site: string; detected: boolean;
+  in_scope: boolean; lead_days: number | null;
+};
+
+export type ModelCard = {
+  available: boolean;
+  message?: string;
+  enabled?: boolean;
+  trained_at?: string;
+  train_period?: [string, string];
+  test_period?: [string, string];
+  sites?: number;
+  train_days?: number;
+  test_days?: number;
+  features?: string[];
+  regimes?: { id: number; days: number; sites: string[] }[];
+  comparison?: {
+    alarm_rate: number;
+    joint_detected: number; baseline_detected: number;
+    joint_events: ModelEvent[]; baseline_events: ModelEvent[];
+  }[];
+  leave_one_out?: { site: string; label: string; detected: boolean; lead: number | null }[];
+  verdict?: string;
+  role?: string;
+  method?: string;
+};
+
+export function getModelCard() {
+  return getJson<ModelCard>("/api/model", "Không tải được thẻ mô hình");
+}
+
+export type AnomalyMl = {
+  available: boolean;
+  message?: string;
+  date?: string;
+  percentile?: number;
+  verdict?: string;
+  regime?: number;
+  top_drivers?: { feature: string; share: number }[];
+  role?: string;
+  caveat?: string;
+};
+
+export function runAnomalyMl(lat: number, lon: number) {
+  return postJson<AnomalyMl>("/api/anomaly-ml", { location: { lat, lon } },
+    "Không chấm được độ hiếm tổ hợp");
 }
 
 export function revokeKey(id: number) {

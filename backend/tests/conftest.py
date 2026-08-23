@@ -18,6 +18,38 @@ os.environ.setdefault("TERRATWIN_SECRET", "test-secret-khong-dung-cho-production
 os.environ["TERRATWIN_RADAR_INTERVAL_H"] = "0"
 
 
+# CSDL RIÊNG CHO MỖI LẦN CHẠY TEST.
+#
+# Trước đây test ghi thẳng vào backend/terratwin.db — cùng file với bản chạy
+# tay. Sau hàng trăm lượt chạy nó phình lên 38,7 MB, và hậu quả có hai mặt:
+#
+#   · Chậm: mọi truy vấn quét qua đống rác tích luỹ, bộ test từ 144 giây kéo
+#     dài thành hơn hai mươi phút.
+#   · Nguy hiểm hơn: test bắt đầu phụ thuộc vào TRẠNG THÁI SÓT LẠI. Chính vì
+#     bảng api_keys đã tồn tại sẵn nên bước _ensure_columns() không bao giờ
+#     được chạm tới, và một cột thêm thiếu sẽ chỉ vỡ ở production chứ không
+#     bao giờ đỏ ở đây.
+#
+# Đặt TRƯỚC khi bất kỳ chỗ nào import app.db, vì DATABASE_URL đọc lúc nạp module.
+import socket
+import tempfile
+
+# LƯỚI AN TOÀN: không lượt gọi mạng nào được treo vô hạn trong test.
+#
+# Vài test cố tình gọi mạng thật (đo số lượt gọi, kiểm chứng nguồn), nên không
+# chặn hẳn được. Nhưng một lượt gọi LỌT LƯỚI — như test_cache từng gọi
+# api.open-meteo.com/elevation mà không ai để ý — sẽ không đỏ, nó TREO, và cả
+# bộ test đứng im cho tới khi ai đó bấm huỷ. Đặt trần ở đây để hỏng thì hỏng
+# nhanh và nhìn thấy được.
+#
+# Lưu ý: trần này không cứu được lúc phân giải DNS treo, vì getaddrinfo() của
+# Python không nhận timeout. Xem chú thích ở realdata._fetch.
+socket.setdefaulttimeout(20.0)
+
+_DB = os.path.join(tempfile.mkdtemp(prefix="terratwin-test-"), "test.db")
+os.environ["TERRATWIN_DATABASE_URL"] = f"sqlite:///{_DB}"
+
+
 import pytest
 
 # Dựng/di trú schema NGAY khi nạp conftest.

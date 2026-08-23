@@ -15,11 +15,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
-  buildTwin, createChannel, createKey, deleteChannel, deleteDataset,
+  buildTwin, createChannel, createKey, deleteChannel, deleteDataset, getPlans,
   deleteTwin, listChannels, listDatasets, listKeys, listTwins, revokeKey,
   scoreDataset, testChannel, uploadDataset,
   type ApiKeyRow, type AuthUser, type ChannelRow, type DatasetRow,
   type TwinSummary,
+  type Plan,
 } from "@/lib/api";
 import Learning from "@/components/Learning";
 import PortfolioOverview from "@/components/PortfolioOverview";
@@ -314,6 +315,14 @@ function ChannelsPanel({ user }: { user: AuthUser | null }) {
 function KeysPanel({ user }: { user: AuthUser | null }) {
   const [rows, setRows] = useState<ApiKeyRow[]>([]);
   const [label, setLabel] = useState("");
+  const [plan, setPlan] = useState("free");
+  const [cat, setCat] = useState<Plan[]>([]);
+
+  // Bảng giá tải một lần, không chặn màn hình nếu lỗi — người dùng vẫn tạo
+  // được khoá gói mặc định.
+  useEffect(() => {
+    getPlans().then((c) => setCat(c.plans)).catch(() => {});
+  }, []);
   const [fresh, setFresh] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -333,6 +342,22 @@ function KeysPanel({ user }: { user: AuthUser | null }) {
       </p>
       {err && <p className="ws-err">⚠️ {err}</p>}
 
+      <div className="ws-plan">
+        {cat.map((p) => (
+          <button
+            key={p.id}
+            className={plan === p.id ? "on" : ""}
+            onClick={() => setPlan(p.id)}
+            title={p.for}
+          >
+            {p.name}
+            <small>
+              {p.quota.toLocaleString("vi")} lượt/tháng
+              {p.price_vnd > 0 && ` · ${p.price_vnd.toLocaleString("vi")}đ`}
+            </small>
+          </button>
+        ))}
+      </div>
       <div className="ws-row">
         <input
           placeholder="Đặt tên, vd. Hệ thống HTX Bình Đại"
@@ -343,7 +368,7 @@ function KeysPanel({ user }: { user: AuthUser | null }) {
           onClick={async () => {
             setErr(null);
             try {
-              const k = await createKey(label.trim() || "Khoá mới");
+              const k = await createKey(label.trim() || "Khoá mới", plan);
               setFresh(k.key);
               setLabel("");
               await load();
@@ -367,6 +392,7 @@ function KeysPanel({ user }: { user: AuthUser | null }) {
         <div key={k.id} className={`ws-item ${k.revoked ? "off" : ""}`}>
           <div>
             <b>{k.label || "(không tên)"}</b>
+            <span className="ws-tag">{k.plan}</span>
             <p><code>{k.prefix}…</code>{k.revoked && " · ĐÃ THU HỒI"}</p>
             <p className="ws-when">
               Tạo {when(k.created_at)} · dùng lần cuối {when(k.last_used_at)}

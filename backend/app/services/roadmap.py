@@ -125,8 +125,13 @@ PRINCIPLES = [
     ("Hội tụ công nghệ", "partial",
      "Có: thuật toán cổ điển (tối ưu hoá, phân vị, Monte Carlo analog, chỉ số "
      "phổ, thuỷ văn SCS), XAI, federated, LLM/agent, lan truyền rủi ro theo địa "
-     "hình. CHƯA có: mô hình học sâu tự huấn luyện — phần thị giác hiện là viễn "
-     "thám cổ điển, không phải deep learning."),
+     "hình, và HỌC MÁY THẬT — mô hình bất thường đa biến theo vùng khí hậu, "
+     "huấn luyện tự giám sát trên 28.256 ngày ERA5, kiểm tra trên 5 năm về sau "
+     "và trên tỉnh chưa từng huấn luyện (xem /api/model). "
+     "CHƯA có: HỌC SÂU. Phần thị giác vẫn là viễn thám cổ điển — chỉ số phổ và "
+     "so hai kỳ — không phải mạng nơ-ron. Muốn có thì cần bộ dữ liệu gán nhãn "
+     "của Việt Nam và GPU, mà mắt xích đầu tiên là quan sát từ người dùng thật. "
+     "Vì vậy mục này vẫn để 'một phần', không nâng lên 'xong' chỉ vì đã có ML."),
 ]
 
 

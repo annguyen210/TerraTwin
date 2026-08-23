@@ -51,7 +51,20 @@ _TTL = 1800  # giây
 
 
 def _fetch(url: str, timeout: float):
-    """Gọi mạng thật. Đi qua trần đồng thời để không nã dồn nguồn miễn phí."""
+    """Gọi mạng thật. Đi qua trần đồng thời để không nã dồn nguồn miễn phí.
+
+    GIỚI HẠN CẦN BIẾT: `timeout` chỉ chi phối lúc kết nối và lúc đọc, KHÔNG chi
+    phối lúc phân giải tên miền — getaddrinfo() của Python không nhận timeout.
+    Nếu DNS treo thì luồng này giữ luôn giấy phép của trần đồng thời cho tới
+    khi hệ điều hành bỏ cuộc. Đã quan sát thấy thật: một lần phân giải treo làm
+    bộ test đứng im hơn hai mươi phút.
+
+    Vì sao chấp nhận được trong sản phẩm: trần đồng thời có thời hạn chờ riêng,
+    nên các yêu cầu khác trả None nhanh thay vì xếp hàng vô tận — hỏng một chỗ
+    chứ không kéo sập cả hệ. Muốn chữa tận gốc thì phải phân giải DNS ở luồng
+    riêng hoặc dùng thư viện có bể kết nối; cả hai đều thêm phụ thuộc, nên chỉ
+    làm khi có người dùng thật và đo được là nó xảy ra thường xuyên.
+    """
     from app.services import jobs
 
     with jobs.upstream() as allowed:

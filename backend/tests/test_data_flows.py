@@ -291,6 +291,14 @@ def test_heatmap_sat_lo_khong_goi_mang_tung_o(monkeypatch):
     monkeypatch.setattr(realdata, "_CACHE", {})
 
     heatmap.build("landslide", 15.36, 107.90, radius_km=8.0, side=7)
+
+    # Nếu nguồn đang chặn vì quá hạn mức thì phép đo này KHÔNG có nghĩa: hàm
+    # gom lô thất bại rồi rơi về đường hỏi từng ô, và ta đo nhầm đường dự phòng
+    # chứ không đo đường chính. Bỏ qua kèm lý do vẫn trung thực hơn là để đỏ
+    # một lỗi không tồn tại, hoặc tệ hơn là nới ngưỡng cho nó xanh.
+    if realdata.quota_status()["exhausted"]:
+        pytest.skip("nguồn đang bị chặn vì quá hạn mức — không đo được cách gom lô")
+
     assert n["c"] <= 12, (
         f"{n['c']} lượt gọi mạng cho lưới 7×7 — độ dốc lại bị hỏi từng ô rồi")
 
