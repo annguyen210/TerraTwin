@@ -36,3 +36,7 @@ Thumbs.db
 dist/
 build/
 *.log
+
+# Cache ERA5 tho — 5,3 MB, tai lai duoc bang: python -m app.ml.train
+# Mo hinh da huan luyen (anomaly_model.json) thi VAN commit: san pham can no luc chay.
+backend/data/era5/

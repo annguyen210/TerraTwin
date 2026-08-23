@@ -28,9 +28,9 @@ from app.schemas import (
     TerraScoreResult, WhatIfResult,
 )
 from app.services import (
-    anomaly, backtest, copilot, design, explain, genome, goalseek, hazard,
-    heatmap, jobs, llm, mrv, region, roadmap, scan, sentinel, terrascore,
-    timelapse, timemachine, whatif, whatif_nlp,
+    anomaly, anomaly_ml, backtest, copilot, design, explain, genome, goalseek,
+    hazard, heatmap, jobs, llm, mrv, region, roadmap, scan, sentinel,
+    terrascore, timelapse, timemachine, whatif, whatif_nlp,
 )
 from app.services import twin as twin_service
 from app import auth
@@ -387,6 +387,40 @@ def timelapse_endpoint(module_id: str, location: Location,
 def design_endpoint(location: Location) -> dict:
     """U03 Design Studio — sinh phương án canh tác cụ thể cho thửa đất."""
     return design.generate(location)
+
+
+@app.get("/api/model")
+def model_card() -> dict:
+    """Thẻ mô hình đã huấn luyện — công bố cả chỗ nó KHÔNG thắng.
+
+    Bảng `comparison` giữ nguyên mọi mức báo động đã thử, kể cả mức mô hình chỉ
+    hoà với cách cũ. Đưa ra hết là cách duy nhất để người đọc tự kiểm tra thay
+    vì phải tin.
+    """
+    return anomaly_ml.model_card()
+
+
+class AnomalyMlRequest(BaseModel):
+    location: Location
+
+
+@app.post("/api/anomaly-ml")
+def anomaly_ml_endpoint(req: AnomalyMlRequest) -> dict:
+    """Chấm độ hiếm của TỔ HỢP điều kiện hôm nay, bằng mô hình đã huấn luyện.
+
+    Đây là chỉ số ĐỐI CHIẾU. Nó không được phép nâng hay hạ mức rủi ro của
+    module nào — vì trên 5 năm kiểm tra nó chỉ hoà với cách xét từng biến ở mức
+    vận hành 2%.
+    """
+    off = _off_site(req.location.lat, req.location.lon)
+    if off:
+        return off
+    r = anomaly_ml.score(req.location.lat, req.location.lon)
+    if r is None:
+        return {"available": False,
+                "message": ("Chưa có mô hình hoặc không đủ dữ liệu lịch sử cho "
+                            "điểm này. Huấn luyện: python -m app.ml.train")}
+    return r
 
 
 @app.get("/api/satellite")
