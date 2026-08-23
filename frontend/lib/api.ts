@@ -469,6 +469,9 @@ export type HeatCell = {
   lon: number;
   value: number | null;
   risk: string;
+  // Màu do người gọi chỉ định — bản đồ NGÀY ĐẾN mã hoá thời điểm bằng màu,
+  // không phải mức độ, nên không dùng được thang màu rủi ro.
+  color?: string;
 };
 
 export type HeatmapResult = {
@@ -505,6 +508,62 @@ export function runHeatmap(
     { lat, lon },
     "Không dựng được bản đồ nhiệt",
   );
+}
+
+// ---- C02 + C06 Dòng thời gian rủi ro trên lưới ----
+export type TimelineCell = {
+  lat: number;
+  lon: number;
+  values: number[] | null;
+  arrival_day: number | null;
+  days_over: number;
+};
+export type TimelineScenario = {
+  label: string;
+  rain_mult: number;
+  temp_delta: number;
+  cells: TimelineCell[];
+  n_over_by_day: number[];
+  first_arrival_day: number | null;
+  cells_affected: number;
+  max_days_over: number;
+};
+export type TimelineResolution = {
+  cell_km: number;
+  effective_km: number;
+  native_weather_km: number;
+  oversampled: boolean;
+  cells_per_data_pixel: number | null;
+  note: string;
+  why: string;
+};
+export type TimelineResult = {
+  available: boolean;
+  message?: string;
+  module_id?: string;
+  module_name?: string;
+  unit?: string;
+  center?: { lat: number; lon: number };
+  radius_km?: number;
+  side?: number;
+  cell_dlat?: number;
+  cell_dlon?: number;
+  dates?: string[];
+  scenarios?: TimelineScenario[];
+  safe?: number;
+  warning?: number;
+  calibrated?: boolean;
+  headline?: string;
+  resolution?: TimelineResolution;
+  caveat?: string;
+};
+
+export function runTimeline(
+  moduleId: string, lat: number, lon: number, side = 7, radiusKm = 8,
+) {
+  return postJson<TimelineResult>(
+    `/api/heatmap/${moduleId}/timeline?side=${side}&radius_km=${radiusKm}`,
+    { lat, lon }, "Không dựng được dòng thời gian");
 }
 
 // ---- C03 / C09 hỏi bằng lời ----

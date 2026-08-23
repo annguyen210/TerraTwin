@@ -179,7 +179,10 @@ export default function MapView({
         features: heat.cells.map((c) => ({
           type: "Feature",
           properties: {
-            color: RISK_FILL[c.risk] ?? RISK_FILL.unknown,
+            // Ô có thể tự chỉ định màu (dùng cho bản đồ NGÀY ĐẾN, nơi màu mã
+            // hoá thời điểm chứ không phải mức độ). Không có thì về màu rủi ro.
+            color: (c as { color?: string }).color
+              ?? RISK_FILL[c.risk] ?? RISK_FILL.unknown,
             value: c.value ?? -1,
           },
           geometry: {

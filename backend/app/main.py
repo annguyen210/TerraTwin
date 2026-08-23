@@ -342,6 +342,27 @@ def heatmap_endpoint(module_id: str, location: Location,
     return result
 
 
+@app.post("/api/heatmap/{module_id}/timeline")
+def heatmap_timeline(module_id: str, location: Location,
+                     radius_km: float = 8.0, side: int = 7) -> dict:
+    """C02 + C06 — diễn tiến rủi ro theo NGÀY trên lưới, cả 4 kịch bản.
+
+    Tốn đúng bằng một lượt bản đồ nhiệt: dữ liệu 7 ngày vốn đã được tải cho mọi
+    ô rồi bị bỏ đi chỉ giữ đỉnh. Trả đủ để giao diện phát lại tại chỗ, không
+    gọi mạng thêm lần nào khi người dùng kéo trượt ngày hay đổi kịch bản.
+    """
+    reg = region.classify(location.lat, location.lon)
+    if not reg["serviceable"]:
+        return {"available": False, "region": reg,
+                "message": reg.get("note") or "Ngoài phạm vi phục vụ."}
+    r = heatmap.timeline(module_id, location.lat, location.lon,
+                         radius_km=radius_km, side=side)
+    if r is None:
+        raise HTTPException(status_code=404, detail=_HAZARD_ONLY)
+    r["available"] = True
+    return r
+
+
 @app.post("/api/anomaly")
 def anomaly_endpoint(location: Location, years: int = 10) -> dict:
     """C10 Anomaly — tuần tới có bất thường so với khí hậu nền cùng kỳ không."""

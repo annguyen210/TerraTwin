@@ -32,6 +32,7 @@ import Knowledge from "@/components/Knowledge";
 import Feedback from "@/components/Feedback";
 import Mrv from "@/components/Mrv";
 import Provenance from "@/components/Provenance";
+import Timeline from "@/components/Timeline";
 import Workspace from "@/components/Workspace";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
@@ -40,6 +41,7 @@ const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 // hết ra: mỗi cái tốn từ vài giây tới hai phút để chạy, mở tất cả cùng lúc vừa
 // chậm vừa đốt hạn mức của các nguồn dữ liệu miễn phí.
 const DEEP = [
+  { id: "playback", icon: "🎬", label: "Diễn tiến", flow: "C02+C06 trên bản đồ" },
   { id: "timelapse", icon: "⏳", label: "Tua 10 năm", flow: "C04 Time-Lapse" },
   { id: "genome", icon: "🧬", label: "Vùng giống", flow: "S04 Twin Genome" },
   { id: "design", icon: "🎨", label: "Trồng gì", flow: "U03 Design Studio" },
@@ -102,7 +104,8 @@ export default function Home() {
   // Cột phải hẹp nên KHÔNG đổ hết mọi luồng ra cùng lúc: mở đủ thứ một lúc thì
   // người dùng phải cuộn qua sáu bảng mới thấy được kết quả module đang xem.
   const [deep, setDeep] = useState<
-    "none" | "timelapse" | "genome" | "design" | "knowledge" | "mrv" | "provenance"
+    | "none" | "playback" | "timelapse" | "genome" | "design" | "knowledge"
+    | "mrv" | "provenance"
   >("none");
 
   useEffect(() => {
@@ -330,6 +333,14 @@ export default function Home() {
               </div>
             )}
 
+            {coord && deep === "playback" && (
+              <Timeline
+                moduleId={active}
+                lat={coord.lat}
+                lon={coord.lon}
+                onHeat={setHeat}
+              />
+            )}
             {coord && deep === "timelapse" && (
               <TimeLapse moduleId={active} lat={coord.lat} lon={coord.lon} />
             )}
