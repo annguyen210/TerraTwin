@@ -37,6 +37,47 @@ def _grid(lat: float, lon: float, radius_km: float, side: int):
     return pts, dlat * 2 / max(1, side - 1), dlon * 2 / max(1, side - 1)
 
 
+_SLOPE_STEP_M = 500.0     # cùng bước với realdata.slope_deg, để hai bên khớp nhau
+
+
+def _grid_slopes(pts):
+    """Độ dốc cho MỌI ô của lưới trong một lượt gọi, thay vì mỗi ô một lượt.
+
+    Với mỗi ô cần cao độ ở 4 hướng lân cận (Bắc/Nam/Đông/Tây cách ~500 m) — y
+    hệt realdata.slope_deg, chỉ khác là gom hết điểm của cả lưới lại rồi hỏi
+    một lần. elevation_multi tự chia lô 100 điểm và chạy các lô song song.
+
+    Lưới 7×7 nghĩa là 49×4 = 196 điểm, gọn trong hai lô. So với 49 lượt gọi
+    riêng của bản cũ.
+
+    Trả list cùng thứ tự với `pts`, phần tử None khi thiếu dữ liệu — người gọi
+    tự lùi về cách cũ cho riêng ô đó.
+    """
+    need = []
+    for la, lo in pts:
+        dlat = _SLOPE_STEP_M / 111_320.0
+        dlon = _SLOPE_STEP_M / (111_320.0 * max(0.1, math.cos(math.radians(la))))
+        need += [(round(la + dlat, 5), round(lo, 5)),
+                 (round(la - dlat, 5), round(lo, 5)),
+                 (round(la, 5), round(lo + dlon, 5)),
+                 (round(la, 5), round(lo - dlon, 5))]
+
+    got = realdata.elevation_multi(need) or []
+    if len(got) < len(need):
+        return None
+
+    out = []
+    for i in range(len(pts)):
+        n, s_, e_, w = got[i * 4:i * 4 + 4]
+        if None in (n, s_, e_, w):
+            out.append(None)
+            continue
+        dz_ns = (n - s_) / (2 * _SLOPE_STEP_M)
+        dz_ew = (e_ - w) / (2 * _SLOPE_STEP_M)
+        out.append(round(math.degrees(math.atan(math.hypot(dz_ns, dz_ew))), 1))
+    return out
+
+
 def build(module_id: str, lat: float, lon: float,
           radius_km: float = 8.0, side: int = 7) -> dict | None:
     if not hazard.supports(module_id):
@@ -59,6 +100,15 @@ def build(module_id: str, lat: float, lon: float,
     elevs = (realdata.elevation_multi(pts)
              if module_id in ("flood", "landslide") else [None] * len(pts))
 
+    # Độ dốc cho CẢ lưới trong một lượt, thay vì hỏi từng ô.
+    #
+    # Trước đây vòng lặp gọi ds.slope_context(la, lo) cho từng ô — mỗi lượt là
+    # một truy vấn cao độ 5 điểm. ĐO ĐƯỢC: lưới 7×7 tốn 51 lượt gọi mạng và 37
+    # giây, so với 2 lượt / 2 giây của module Lũ cùng kích thước lưới. Gom lại
+    # thành một lượt (chia lô và chạy song song bên trong elevation_multi) đưa
+    # nó về ngang các module khác.
+    slopes = _grid_slopes(pts) if module_id == "landslide" else None
+
     # Khí hậu nền lấy ở TÂM, dùng chung cả lưới (xấp xỉ đã ghi rõ ở trên).
     dist = calibration.climatology(module_id, lat, lon)
 
@@ -75,7 +125,8 @@ def build(module_id: str, lat: float, lon: float,
                 series, _ = calibration.calibrated_with_terrain(
                     module_id, lat, lon, rows, terrain=elevs[i], dist=dist)
             elif module_id == "landslide":
-                slope, _ = ds.slope_context(la, lo)
+                slope = (slopes[i] if slopes and slopes[i] is not None
+                         else ds.slope_context(la, lo)[0])
                 series, _ = calibration.calibrated_with_terrain(
                     module_id, lat, lon, rows, terrain=slope, dist=dist)
             else:

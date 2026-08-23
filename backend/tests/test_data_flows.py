@@ -265,3 +265,50 @@ def test_cache_survives_and_expires(client):
     assert cache_store.get(k) == {"x": 1}
     cache_store.put(k, {"x": 2}, ttl_seconds=-1)     # đã hết hạn
     assert cache_store.get(k) is None
+
+
+def test_heatmap_sat_lo_khong_goi_mang_tung_o(monkeypatch):
+    """Độ dốc phải lấy cho CẢ lưới trong một lượt, không phải mỗi ô một lượt.
+
+    Đo được trước khi sửa: lưới 7×7 của module Sạt lở tốn 52 lượt gọi mạng và
+    41 giây, trong khi module Lũ cùng kích thước lưới chỉ tốn 4 lượt / 6 giây.
+    Nguyên nhân là ds.slope_context() nằm TRONG vòng lặp từng ô.
+
+    Test đếm ở tầng mạng thật (_fetch), không phải _get — _get trả sớm khi
+    trúng cache nên đếm ở đó cho ra con số vô nghĩa (lần đo đầu ra 3651).
+    """
+    from app.services import cache_store, heatmap, realdata
+
+    n = {"c": 0}
+    orig = realdata._fetch
+
+    def spy(url, timeout):
+        n["c"] += 1
+        return orig(url, timeout)
+
+    monkeypatch.setattr(realdata, "_fetch", spy)
+    monkeypatch.setattr(cache_store, "get", lambda k: None)
+    monkeypatch.setattr(realdata, "_CACHE", {})
+
+    heatmap.build("landslide", 15.36, 107.90, radius_km=8.0, side=7)
+    assert n["c"] <= 12, (
+        f"{n['c']} lượt gọi mạng cho lưới 7×7 — độ dốc lại bị hỏi từng ô rồi")
+
+
+def test_do_doc_gom_lo_khop_voi_ban_tung_diem():
+    """Bản gom lô phải cho ra CÙNG con số với realdata.slope_deg.
+
+    Nếu lệch thì bản đồ nhiệt và thẻ mô-đun nói hai chuyện khác nhau về cùng
+    một chỗ — đúng loại mâu thuẫn dự án này đã mất công dẹp một lần.
+    """
+    from app.services import heatmap, realdata
+
+    pts = [(15.36, 107.90), (22.34, 103.84), (10.24, 106.38)]
+    gom = heatmap._grid_slopes(pts)
+    if gom is None:
+        pytest.skip("không lấy được cao độ")
+    for (la, lo), v in zip(pts, gom):
+        rieng = realdata.slope_deg(la, lo)
+        if rieng is None or v is None:
+            continue
+        assert abs(v - rieng) < 0.15, f"{la},{lo}: gom {v} vs riêng {rieng}"
