@@ -22,7 +22,7 @@
  *    toàn". "Chưa biết" và "không sao" là hai chuyện khác hẳn nhau.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { scanAll, type ScanResult, type ScanModule } from "@/lib/api";
 
 const TONE: Record<string, string> = {
@@ -107,6 +107,27 @@ export default function Answer({
   const [d, setD] = useState<ScanResult | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [giay, setGiay] = useState(0);
+  const dong = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Đếm giây khi chờ. LÝ DO CÓ CÁI NÀY: đo thật cho thấy nơi đã có cache trả
+  // lời trong 2,5 giây, nhưng nơi CHƯA TỪNG XEM mất tới 15 giây — vì phải tải
+  // 10 năm lịch sử của đúng toạ độ đó về mới hiệu chuẩn được ngưỡng. Con số
+  // 2,5 giây vẫn hay được nêu là trường hợp ĐÃ ẤM, không phải lần đầu.
+  //
+  // Mười lăm giây nhìn một vòng xoay câm là quá đủ để người ta đóng app. Không
+  // giấu được thì nói ra: đang làm gì, vì sao lâu, và lần sau sẽ nhanh.
+  useEffect(() => {
+    if (!busy) {
+      if (dong.current) clearInterval(dong.current);
+      setGiay(0);
+      return;
+    }
+    dong.current = setInterval(() => setGiay((g) => g + 1), 1000);
+    return () => {
+      if (dong.current) clearInterval(dong.current);
+    };
+  }, [busy]);
 
   useEffect(() => {
     let huy = false;
@@ -126,7 +147,17 @@ export default function Answer({
     return (
       <div className="ans busy">
         <div className="ans-spin" />
-        <p>Đang kiểm tra mọi rủi ro cho thửa này…</p>
+        <div>
+          <p>Đang kiểm tra mọi rủi ro cho thửa này…</p>
+          {giay >= 4 && (
+            <p className="ans-wait">
+              Lần đầu xem một nơi mới thì lâu hơn — TerraTwin đang tải{" "}
+              <b>10 năm lịch sử thời tiết của đúng toạ độ này</b> để biết thế
+              nào mới là bất thường <i>ở đây</i>, thay vì dùng một ngưỡng chung
+              cho cả nước. Lần sau chỗ này sẽ trả lời trong vài giây.
+            </p>
+          )}
+        </div>
       </div>
     );
   }
