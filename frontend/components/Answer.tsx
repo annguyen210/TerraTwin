@@ -35,9 +35,10 @@ const TONE: Record<string, string> = {
 function headline(d: ScanResult): { tone: string; big: string; sub: string } {
   const nguy = d.alerts.filter((a) => a.risk_level === "danger");
   const canh = d.alerts.filter((a) => a.risk_level === "warning");
-  const chuaBiet = d.modules.filter(
-    (m) => !m.is_real && m.risk_level !== "not_implemented",
-  ).length;
+  // BỐN TRẠNG THÁI, đếm riêng. Gộp lại là tự bôi xấu mình: một mục ĐANG CHẠY
+  // và một mục KHÔNG CÓ DỮ LIỆU trông như nhau, còn "ở đây không áp dụng" thì
+  // vốn là câu trả lời đúng chứ không phải lỗ hổng.
+  const chuaBiet = d.modules.filter((m) => m.status === "need_data").length;
 
   const duoi = chuaBiet
     ? `${chuaBiet} mục chưa đủ dữ liệu để kết luận — xem bên dưới.`
@@ -190,9 +191,9 @@ export default function Answer({
 
   const h = headline(d);
   const canLam = d.alerts.filter((a) => a.recommendation);
-  const chuaDu = d.modules.filter(
-    (m) => !m.is_real && m.risk_level !== "not_implemented",
-  );
+  const chuaDu = d.modules.filter((m) => m.status === "need_data");
+  const dangChay = d.modules.filter((m) => m.status === "pending");
+  const khongApDung = d.modules.filter((m) => m.status === "out_of_scope");
 
   return (
     <div className="ans">
@@ -222,6 +223,29 @@ export default function Answer({
         <p className="ans-calm">
           Không có việc gì cần làm gấp. Bật cảnh báo để TerraTwin tự báo khi
           tình hình đổi, thay vì bạn phải mở lên xem.
+        </p>
+      )}
+
+      {dangChay.length > 0 && (
+        <div className="ans-pending">
+          <span className="ans-spin sm" />
+          <div>
+            <b>Đang kiểm tra thêm {dangChay.length} mục</b>
+            <p>
+              Những mục này cần ảnh vệ tinh nên lâu hơn hẳn — chúng đang chạy
+              nền, không phải thiếu dữ liệu. Mở{" "}
+              <i>{dangChay.slice(0, 3).map((m) => m.name.toLowerCase()).join(", ")}</i>
+              {dangChay.length > 3 ? "…" : ""} ở cột trái để xem từng cái.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {khongApDung.length > 0 && (
+        <p className="ans-na">
+          {khongApDung.length} mục <b>không áp dụng</b> ở đây (
+          {khongApDung.map((m) => m.name.toLowerCase()).join(", ")}) — đó là câu
+          trả lời đúng cho vị trí này, không phải thiếu sót.
         </p>
       )}
 

@@ -80,12 +80,14 @@ def status() -> dict:
         "client_id_hint": (cid[:6] + "…") if cid else None,
         "provider": "Copernicus Data Space Ecosystem (Sentinel-2 L2A)",
         "indices": {k: v[2] for k, v in INDICES.items()},
+        "fallback": "Microsoft Planetary Computer (Sentinel-2 L2A, không cần khoá)",
         "message": (
-            "Đã nối ảnh Sentinel-2." if configured() else
-            "Chưa cấu hình ảnh vệ tinh. Đăng ký miễn phí tại "
-            "dataspace.copernicus.eu rồi đặt TERRATWIN_COPERNICUS_ID và "
-            "TERRATWIN_COPERNICUS_SECRET. Trong lúc chờ, các mô-đun cần ảnh sẽ "
-            "nói thẳng là chưa đủ dữ liệu chứ không đoán."),
+            "Đã nối ảnh Sentinel-2 qua Copernicus." if configured() else
+            "Chưa có khoá Copernicus — đang dùng Microsoft Planetary Computer, "
+            "phục vụ ĐÚNG bộ ảnh Sentinel-2 L2A đó, công khai và không cần đăng "
+            "ký. Chất lượng dữ liệu không đổi. Khác biệt thật: nguồn này gọi "
+            "riêng từng ảnh nên chậm hơn, và che mây theo cả cảnh thay vì theo "
+            "từng điểm ảnh. Thêm khoá Copernicus miễn phí thì nhanh và mịn hơn."),
     }
 
 
@@ -198,6 +200,14 @@ def index_series(lat: float, lon: float, index: str = "NDVI",
     """
     if index not in INDICES:
         raise ValueError(f"Chỉ số không hỗ trợ: {index}")
+
+    # KHÔNG CÓ KHOÁ THÌ VẪN CÓ ẢNH. Planetary Computer phục vụ đúng bộ Sentinel-2
+    # L2A này, công khai, không đăng ký. Chất lượng dữ liệu không đổi — chỉ đổi
+    # chỗ lấy. Trước đây thiếu khoá là năm mũi nhọn quang học nằm im hoàn toàn.
+    if not configured():
+        from app.services import mpc
+        return mpc.index_series(lat, lon, index=index, days=days,
+                                buffer_m=buffer_m, end=end)
     if not configured():
         return None
 
@@ -281,7 +291,9 @@ def index_distribution(lat: float, lon: float, index: str = "NDVI",
     if index not in INDICES:
         raise ValueError(f"Chỉ số không hỗ trợ: {index}")
     if not configured():
-        return None
+        from app.services import mpc
+        return mpc.index_distribution(lat, lon, index=index, days=days,
+                                      buffer_m=buffer_m, bins=bins, end=end)
 
     end = end or date.today()
     start = end - timedelta(days=int(days))

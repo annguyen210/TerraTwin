@@ -53,7 +53,13 @@ def test_scan_structure():
     # Quét toàn cảnh bỏ qua mô-đun NẶNG (quét cả vùng, ~10 giây). Số mô-đun
     # trong kết quả = tổng trừ đi số đã bỏ qua, và phần bỏ qua phải khai báo.
     total = len(client.get("/api/modules").json())
-    assert len(d["modules"]) == total - len(d["skipped_heavy"])
+    # Lượt quét nhanh trả về ĐỦ mọi mục. Mục nặng (cần ảnh vệ tinh) có mặt với
+    # trạng thái "pending" thay vì biến mất — bỏ hẳn chúng làm màn hình từ 18
+    # mục còn 11, trông trống hơn hẳn, trong khi sự thật là chúng đang chạy chứ
+    # không phải không có. "Chưa xong" và "không có" là hai chuyện khác nhau.
+    assert len(d["modules"]) == total
+    cho = [m for m in d["modules"] if m["status"] == "pending"]
+    assert {m["id"] for m in cho} == set(d["skipped_heavy"])
     assert len(d["modules"]) >= 14
     # cảnh báo chỉ gồm module dữ liệu thật
     assert all(m["is_real"] for m in d["alerts"])

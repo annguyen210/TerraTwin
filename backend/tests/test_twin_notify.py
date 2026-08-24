@@ -72,13 +72,17 @@ def test_build_twin_without_login(client):
     assert d["persisted"] is False
     layers = d["layers"]
     assert layers["terrain"]["elevation_m"] == 4.0
-    assert len(layers["modules"]) >= 14
+    # Twin cố ý CHỈ lưu mục đã có kết quả, không lưu chỗ trống. Nó là một bản
+    # chụp tại một thời điểm, nên một ô "đang chờ" ghi vào đó sẽ mãi mãi đứng
+    # ở trạng thái chờ. Mục nặng được liệt kê riêng trong data_quality.
+    q = layers["data_quality"]
+    assert len(layers["modules"]) + len(q["modules_skipped_heavy"]) >= 14
     assert "terrascore" in layers and "data_quality" in layers
 
 
 def test_twin_records_data_quality_honestly(client):
     q = client.post("/api/twin", json=BEN_TRE).json()["layers"]["data_quality"]
-    assert q["modules_total"] >= 14
+    assert q["modules_total"] + len(q["modules_skipped_heavy"]) >= 14
     # Không phải mọi mô-đun đều dùng dữ liệu thật (5 cái chờ khoá vệ tinh).
     assert 0 < q["modules_real_data"] < q["modules_total"]
     assert q["climate_genome_available"] is False
@@ -94,7 +98,8 @@ def test_save_and_reload_twin(client):
     assert len(client.get("/api/twins", headers=h).json()) == 1
     got = client.get(f"/api/twins/{tid}", headers=h).json()
     assert got["name"] == "Ruộng nhà"
-    assert len(got["layers"]["modules"]) >= 14
+    q = got["layers"]["data_quality"]
+    assert len(got["layers"]["modules"]) + len(q["modules_skipped_heavy"]) >= 14
 
 
 def test_twin_is_a_snapshot_not_a_live_query(client, monkeypatch):

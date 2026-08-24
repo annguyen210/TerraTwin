@@ -120,7 +120,18 @@ class ScanModule(BaseModel):
     risk_level: str
     headline: str
     recommendation: str
-    is_real: bool = False
+    is_real: bool
+    # BỐN TRẠNG THÁI, không phải hai. Gộp chúng lại là vừa thiệt cho sản phẩm
+    # vừa sai với người dùng:
+    #   status="ok"  + is_real=True   → ĐO ĐƯỢC
+    #   status="ok"  + is_real=False  → ƯỚC LƯỢNG (có kết luận, có độ tin cậy)
+    #   status="need_data"            → THIẾU DỮ LIỆU (thật sự chưa biết)
+    #   status="out_of_scope"         → KHÔNG ÁP DỤNG ở đây (cũng là câu trả lời)
+    # Trước đây "mặn Bến Tre 0,27 g/L" và "chưa có ảnh vệ tinh" đều hiện ra như
+    # nhau, nên màn hình đầu báo "7/16 mục thiếu dữ liệu" trong khi thực tế chỉ
+    # 5 mục là thiếu thật.
+    status: str = "ok"
+    confidence: Optional[float] = None
     score: Optional[float] = None
     threat: bool = True
 

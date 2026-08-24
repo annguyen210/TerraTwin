@@ -167,6 +167,9 @@ export async function askCopilot(
 
 export type ScanModule = {
   id: string;
+  // "ok" | "need_data" | "out_of_scope" | "pending"
+  status?: string;
+  confidence?: number | null;
   name: string;
   icon: string;
   group: string;

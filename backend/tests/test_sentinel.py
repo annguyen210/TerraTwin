@@ -68,15 +68,64 @@ def _series(monkeypatch, values, start_days_ago=120, step=10, nodata_at=()):
 
 # ---------------------------------------------------------------- cấu hình
 
-def test_chua_co_khoa_thi_moi_thu_tra_none(monkeypatch):
+def test_chua_co_khoa_thi_chuyen_sang_nguon_khong_khoa(monkeypatch):
+    """Thiếu khoá Copernicus KHÔNG còn nghĩa là mù.
+
+    HÀNH VI NÀY ĐÃ ĐỔI CÓ CHỦ Ý. Trước đây không khoá là năm mũi nhọn quang học
+    nằm im hoàn toàn, và người dùng mở app thấy "5 mục chưa đủ dữ liệu". Nay
+    lớp này tự chuyển sang Microsoft Planetary Computer — ĐÚNG bộ ảnh Sentinel-2
+    L2A đó, công khai, không cần đăng ký.
+
+    Điều PHẢI giữ nguyên, và test này canh: chuyển nguồn không được kéo theo
+    việc bịa số. Nguồn dự phòng hỏng thì vẫn trả None như cũ.
+    """
     monkeypatch.delenv("TERRATWIN_COPERNICUS_ID", raising=False)
     monkeypatch.delenv("TERRATWIN_COPERNICUS_SECRET", raising=False)
     assert sentinel.configured() is False
+
+    from app.services import mpc
+    goi = {"n": 0}
+
+    def hong(*a, **k):
+        goi["n"] += 1
+        return None
+
+    monkeypatch.setattr(mpc, "index_series", hong)
+    monkeypatch.setattr(mpc, "index_distribution", hong)
+
     assert sentinel.index_series(10.0, 106.0) is None
+    assert goi["n"] == 1, "phải THỬ nguồn dự phòng chứ không bỏ cuộc ngay"
     assert optical.stress(10.0, 106.0) is None
     assert optical.growth(10.0, 106.0) is None
     assert optical.vegetation_loss(10.0, 106.0) is None
     assert optical.new_construction(10.0, 106.0) is None
+
+
+def test_nguon_du_phong_khong_can_khoa():
+    from app.services import mpc
+    assert mpc.available() is True
+    assert set(mpc.EXPR) >= {"NDVI", "NDWI", "NDMI", "NDBI"}
+    # Lọc mây phải theo THỬA, không theo cả cảnh: đo được ở Bến Tre thấy cảnh
+    # 46,6% mây cho NDVI 0,498 dùng tốt, còn cảnh 55,4% mây cho 0,136 toàn rác.
+    assert mpc.MAX_CLOUD >= 90.0, "ngưỡng mây cảnh phải rộng, lọc thật ở CLEAR_MIN"
+    assert 50.0 <= mpc.CLEAR_MIN <= 90.0
+
+
+def test_nguon_du_phong_khong_bia_so():
+    """Cùng kỷ luật với lớp Copernicus: thiếu thì trả None, không đoán."""
+    import ast
+    src = open(__import__("app.services.mpc", fromlist=["x"]).__file__,
+               encoding="utf-8").read()
+    cay = ast.parse(src)
+    for node in ast.walk(cay):
+        if isinstance(node, (ast.FunctionDef, ast.ClassDef, ast.Module)):
+            d = ast.get_docstring(node)
+            if d:
+                src = src.replace(d, "")
+    nl = chr(10)
+    low = nl.join(l.split("#")[0] for l in src.split(nl)).lower()
+    for tu in ("random", "fake", "mock", "dummy", "synthetic"):
+        assert tu not in low, f"mpc.py chứa '{tu}'"
 
 
 def test_status_khong_bao_gio_lo_secret(monkeypatch):
@@ -298,6 +347,10 @@ def test_module_pest_thieu_khoa_thi_noi_ro_cach_sua(monkeypatch):
     from app.modules.registry import get_module
     monkeypatch.delenv("TERRATWIN_COPERNICUS_ID", raising=False)
     monkeypatch.delenv("TERRATWIN_COPERNICUS_SECRET", raising=False)
+    # Nguồn dự phòng bị ép hỏng, để test đúng đường "thật sự không có ảnh".
+    from app.services import mpc
+    monkeypatch.setattr(mpc, "index_series", lambda *a, **k: None)
+    monkeypatch.setattr(mpc, "index_distribution", lambda *a, **k: None)
     a = get_module("pest").assess(Location(lat=10.0, lon=106.0))
     assert a.status == "need_data"
     assert a.risk_level == "unknown"

@@ -106,6 +106,11 @@ class LandslideModule(TwinModule):
 class StormDamageModule(TwinModule):
     id = "storm_damage"; name = "Bản đồ thiệt hại sau bão"; group = "B"; icon = "🌪️"
     status = "active" if sentinel.configured() else "preview"
+    # NẶNG: cần ảnh vệ tinh, mà nguồn không khoá phải gọi riêng từng ảnh và dò
+    # lớp SCL cho từng cảnh — đo được 60–370 giây. Để trong lượt quét nhanh thì
+    # màn hình đầu từ 2,5 giây thành hơn một phút, và người dùng đóng app trước
+    # khi thấy bất cứ thứ gì. Chạy riêng khi được yêu cầu, kết quả có cache.
+    heavy = True
     data_sources = ["Sentinel-2 NDVI hai kỳ (Copernicus)"]
     users = ["Cứu trợ", "Bảo hiểm", "Nhà nước"]
     description = "So ảnh hai kỳ để đo mất thảm thực vật đột ngột."
@@ -184,6 +189,11 @@ class LandRiskModule(TwinModule):
 class IllegalBuildModule(TwinModule):
     id = "illegal_build"; name = "Giám sát xây dựng trái phép"; group = "B"; icon = "🏗️"
     status = "active" if sentinel.configured() else "preview"
+    # NẶNG: cần ảnh vệ tinh, mà nguồn không khoá phải gọi riêng từng ảnh và dò
+    # lớp SCL cho từng cảnh — đo được 60–370 giây. Để trong lượt quét nhanh thì
+    # màn hình đầu từ 2,5 giây thành hơn một phút, và người dùng đóng app trước
+    # khi thấy bất cứ thứ gì. Chạy riêng khi được yêu cầu, kết quả có cache.
+    heavy = True
     data_sources = ["Sentinel-2 NDBI + NDVI, hai kỳ cách nhau 1 năm (Copernicus)"]
     users = ["Quản lý đô thị", "Địa chính"]
     description = "Bề mặt cứng mới xuất hiện so với cùng kỳ năm trước."

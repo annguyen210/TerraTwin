@@ -66,16 +66,12 @@ def build(lat: float, lon: float, buffer_m: float = 600.0,
     `agb_t_ha` là hệ số sinh khối địa phương do người dùng cung cấp (từ khảo sát
     ô mẫu hoặc số liệu kiểm kê rừng của tỉnh). Có nó thì báo cáo lên Tier 2.
     """
-    if not sentinel.configured():
-        return {
-            "available": False,
-            "reason": "no_satellite",
-            "message": (
-                "Báo cáo carbon bắt buộc phải dựa trên quan trắc vệ tinh thật. "
-                "Chưa cấu hình khóa Copernicus nên phần mềm KHÔNG lập báo cáo — "
-                "một con số carbon không có nguồn còn tệ hơn không có báo cáo. "
-                "Đăng ký miễn phí tại dataspace.copernicus.eu."),
-        }
+    # KHÔNG còn chặn ở đây. sentinel.index_distribution() tự chuyển sang
+    # Planetary Computer khi chưa có khoá Copernicus — cùng bộ ảnh Sentinel-2
+    # L2A, chỉ khác nơi phục vụ. Nếu THẬT SỰ không lấy được ảnh thì các bước
+    # bên dưới vẫn trả về "không lập được báo cáo", nên nguyên tắc "carbon phải
+    # dựa trên quan trắc thật" vẫn được giữ nguyên — chỉ là nó không còn từ
+    # chối oan khi ảnh vốn đang sẵn có.
 
     dist = sentinel.index_distribution(lat, lon, "NDVI", days=60,
                                        buffer_m=buffer_m, bins=20)

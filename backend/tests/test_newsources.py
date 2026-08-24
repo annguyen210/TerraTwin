@@ -111,6 +111,10 @@ def test_aquaculture_flags_big_waves(offline, monkeypatch):
 def test_aquaculture_honest_when_inland(offline):
     """Đà Lạt không có dữ liệu biển → phải nói thật, KHÔNG bịa số."""
     a = get_module("aquaculture").assess(INLAND)
-    assert a.status == "need_data"
+    # "Ở đây không nuôi biển được" là một CÂU TRẢ LỜI dứt khoát, không phải một
+    # lỗ hổng dữ liệu. Trước đây trả need_data nên một thửa lúa giữa đồng bằng
+    # bị đếm là "thiếu dữ liệu ao nuôi", làm màn hình đầu báo thiếu nhiều hơn
+    # thực tế.
+    assert a.status == "out_of_scope"
     assert a.risk_level == "unknown"
     assert a.metrics == {}

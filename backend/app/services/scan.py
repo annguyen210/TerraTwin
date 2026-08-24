@@ -52,11 +52,32 @@ def scan(loc: Location, include_heavy: bool = False) -> ScanResult:
             id=info.id, name=info.name, icon=info.icon, group=info.group,
             risk_level=a.risk_level, headline=a.headline,
             recommendation=a.recommendation, is_real=a.is_real, score=a.score,
-            threat=info.threat,
+            threat=info.threat, status=a.status,
+            confidence=getattr(a, "confidence", None),
         ))
         real_total += 1
         if a.is_real:
             real_count += 1
+
+    # MỤC NẶNG VẪN CÓ MẶT TRONG DANH SÁCH, chỉ là chưa có kết quả.
+    #
+    # Bỏ hẳn chúng đi thì màn hình đầu từ 16 mục còn 11 — trông TRỐNG HƠN, đúng
+    # cái phải tránh. Nhưng chạy chúng ngay thì lượt quét từ 2,5 giây thành hơn
+    # một phút, và người dùng đóng app trước khi thấy gì.
+    #
+    # Lối ra là trạng thái thứ năm: "đang kiểm tra". Người dùng thấy đủ 16 mục
+    # ngay, biết 5 mục còn lại đang chạy chứ không phải không có, và giao diện
+    # điền dần khi kết quả về. "Chưa xong" và "không có" là hai chuyện khác hẳn
+    # nhau — gộp lại là tự bôi xấu chính mình.
+    for info in all_infos:
+        if info.id in assessments or not info.heavy:
+            continue
+        mods.append(ScanModule(
+            id=info.id, name=info.name, icon=info.icon, group=info.group,
+            risk_level="unknown", status="pending", is_real=False,
+            headline="Đang kiểm tra — mục này cần ảnh vệ tinh nên lâu hơn",
+            recommendation="", threat=info.threat,
+        ))
 
     # Cảnh báo hành động: chỉ lấy mô-đun (a) dùng DỮ LIỆU THẬT và (b) thật sự
     # mô tả một MỐI ĐE DOẠ.

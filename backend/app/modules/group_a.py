@@ -69,6 +69,11 @@ class PestModule(TwinModule):
     """
     id = "pest"; name = "Phát hiện sâu bệnh sớm"; group = "A"; icon = "🌾"
     status = "active" if sentinel.configured() else "preview"
+    # NẶNG: cần ảnh vệ tinh, mà nguồn không khoá phải gọi riêng từng ảnh và dò
+    # lớp SCL cho từng cảnh — đo được 60–370 giây. Để trong lượt quét nhanh thì
+    # màn hình đầu từ 2,5 giây thành hơn một phút, và người dùng đóng app trước
+    # khi thấy bất cứ thứ gì. Chạy riêng khi được yêu cầu, kết quả có cache.
+    heavy = True
     data_sources = ["Sentinel-2 NDVI (Copernicus)", "Ảnh lá người dùng (lộ trình)"]
     users = ["Nông dân", "DN nông nghiệp"]
     description = "Khoanh vùng cây stress bất thường + phân biệt đều hay loang lổ."
@@ -102,6 +107,11 @@ class PestModule(TwinModule):
             data_sources=[sentinel.source_note("NDVI")])
 
 
+# Quá mốc này thì coi là trong đất liền — đo được, không phải đoán: ven biển
+# 15,7 km và cửa sông 22,2 km đều có dữ liệu biển; 43 km thì không.
+_INLAND_KM = 30.0
+
+
 class AquacultureModule(TwinModule):
     """Ngưỡng nhiệt cho tôm sú/thẻ chân trắng ĐBSCL:
     tối ưu 28–32°C · >33°C stress nhiệt (giảm ăn, dễ bệnh) · <25°C chậm lớn.
@@ -119,12 +129,37 @@ class AquacultureModule(TwinModule):
     def assess(self, loc: Location) -> Assessment:
         marine = ds.marine_context(loc.lat, loc.lon)
         if marine is None:
+            # PHÂN BIỆT "KHÔNG ÁP DỤNG" VỚI "THIẾU DỮ LIỆU".
+            #
+            # Trước đây cả hai đều trả need_data, nên một thửa lúa giữa đồng
+            # bằng bị đếm là "thiếu dữ liệu ao nuôi" — làm màn hình đầu báo
+            # thiếu 6 mục trong khi thực tế chỉ 5. Nhưng "ở đây không nuôi biển
+            # được" là một CÂU TRẢ LỜI đúng và dứt khoát, không phải một lỗ hổng.
+            #
+            # Ranh giới lấy theo ĐO ĐƯỢC chứ không đoán: thử thật thì Cần Giờ
+            # (15,7 km) và cửa sông (22,2 km) đều có đủ 7 ngày dữ liệu biển,
+            # còn điểm cách bờ 43 km thì không có ô lưới biển nào gần.
+            km = ds.distance_to_coast_km(loc.lat, loc.lon)
+            if km > _INLAND_KM:
+                return Assessment(
+                    module_id=self.id, module_name=self.name, location=loc,
+                    status="out_of_scope", risk_level="unknown", is_real=False,
+                    headline=f"Không áp dụng — cách biển ~{round(km)} km",
+                    detail=(
+                        f"Vị trí này nằm sâu trong đất liền (~{round(km)} km từ "
+                        "bờ), nên không có dữ liệu nhiệt mặt nước hay sóng. Đây "
+                        "không phải thiếu sót của phần mềm: nuôi trồng ven biển "
+                        "không diễn ra ở đây. Với ao nội đồng thì yếu tố quyết "
+                        "định là nhiệt và ôxy TẠI AO, phải đo bằng cảm biến đặt "
+                        "tại chỗ — vệ tinh không nhìn thấy được."),
+                    recommendation="",
+                    data_sources=self.data_sources)
             return need_data_assessment(
                 self, loc,
-                needs="dữ liệu nhiệt mặt nước (chỉ có ở vùng biển/ven biển)",
+                needs="dữ liệu nhiệt mặt nước cho đúng toạ độ này",
                 will_do="theo dõi nhiệt nước, sóng và độ đục để cảnh báo môi trường ao xấu",
-                next_step=("Vị trí này nằm sâu trong đất liền nên không có dữ liệu "
-                           "biển. Với ao nội đồng cần cảm biến tại ao (lộ trình)."))
+                next_step=(f"Điểm này chỉ cách bờ ~{round(km)} km nên lẽ ra phải "
+                           "có dữ liệu biển. Nguồn đang không trả về — thử lại sau."))
 
         sst, wave = marine["sst_max"], marine["wave_max"]
         if sst >= self.VERY_HOT:
@@ -171,6 +206,11 @@ class AquacultureModule(TwinModule):
 class YieldModule(TwinModule):
     id = "yield"; name = "Dự báo năng suất & thu hoạch"; group = "A"; icon = "🌾"
     status = "active" if sentinel.configured() else "preview"
+    # NẶNG: cần ảnh vệ tinh, mà nguồn không khoá phải gọi riêng từng ảnh và dò
+    # lớp SCL cho từng cảnh — đo được 60–370 giây. Để trong lượt quét nhanh thì
+    # màn hình đầu từ 2,5 giây thành hơn một phút, và người dùng đóng app trước
+    # khi thấy bất cứ thứ gì. Chạy riêng khi được yêu cầu, kết quả có cache.
+    heavy = True
     # Giai đoạn sinh trưởng là THÔNG TIN, không phải đe doạ: "đang chín" và
     # "vừa thu hoạch xong nên đất trống" đều làm chỉ số tụt mà chẳng có gì xấu.
     # Việc bắt cây suy bất thường là của module Sâu bệnh — nó so với chính nền
@@ -211,6 +251,11 @@ class YieldModule(TwinModule):
 class CarbonModule(TwinModule):
     id = "carbon"; name = "Đo & bán tín chỉ carbon rừng"; group = "A"; icon = "🌲"
     status = "active" if sentinel.configured() else "preview"
+    # NẶNG: cần ảnh vệ tinh, mà nguồn không khoá phải gọi riêng từng ảnh và dò
+    # lớp SCL cho từng cảnh — đo được 60–370 giây. Để trong lượt quét nhanh thì
+    # màn hình đầu từ 2,5 giây thành hơn một phút, và người dùng đóng app trước
+    # khi thấy bất cứ thứ gì. Chạy riêng khi được yêu cầu, kết quả có cache.
+    heavy = True
     data_sources = ["Sentinel-2 NDVI theo pixel (Copernicus)",
                     "Hệ số IPCC 2006 Tier 1 (AFOLU Ch.4)"]
     users = ["Chủ rừng", "DN", "Quỹ carbon"]
