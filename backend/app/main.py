@@ -28,7 +28,8 @@ from app.schemas import (
     TerraScoreResult, WhatIfResult,
 )
 from app.services import (
-    anomaly, anomaly_ml, backtest, copilot, design, explain, genome, goalseek,
+    anomaly, anomaly_ml, backtest, calibration, copilot, design, explain,
+    genome, goalseek,
     hazard, heatmap, jobs, llm, mrv, place, region, roadmap, scan, sentinel,
     terrascore, timelapse, timemachine, whatif, whatif_nlp,
 )
@@ -387,6 +388,37 @@ def timelapse_endpoint(module_id: str, location: Location,
 def design_endpoint(location: Location) -> dict:
     """U03 Design Studio — sinh phương án canh tác cụ thể cho thửa đất."""
     return design.generate(location)
+
+
+class ContrastRequest(BaseModel):
+    location: Location
+
+
+@app.post("/api/contrast")
+def contrast_endpoint(req: ContrastRequest) -> dict:
+    """Đối chứng: ngưỡng chung cả nước vs hiệu chuẩn theo chính thửa này.
+
+    LÝ DO TỒN TẠI. Điểm mạnh nhất của sản phẩm là thứ không nhìn thấy được:
+    những lần báo động giả ĐÃ KHÔNG xảy ra. Người dùng mở app chỉ thấy "hôm nay
+    an toàn" — y hệt mọi phần mềm khác, nên không có cơ sở nào để tin cái này
+    hơn cái kia. Endpoint này biến cái vô hình thành con số tại chính toạ độ họ
+    vừa bấm.
+
+    Không tốn thêm lượt gọi mạng: dùng lại phân bố 10 năm mà bước hiệu chuẩn
+    trong lượt quét vừa rồi đã tải và cache.
+    """
+    off = _off_site(req.location.lat, req.location.lon)
+    if off:
+        return off
+    out = []
+    for mid in ("flood", "landslide", "drought", "wildfire"):
+        c = calibration.contrast(mid, req.location.lat, req.location.lon)
+        if c:
+            out.append(c)
+    if not out:
+        return {"available": False,
+                "message": "Chưa tải được lịch sử 10 năm cho điểm này."}
+    return {"available": True, "modules": out}
 
 
 @app.get("/api/place")

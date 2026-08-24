@@ -229,6 +229,84 @@ def calibrated_with_terrain(module_id: str, lat: float, lon: float, rows,
     return out, True
 
 
+# ────────────────────── ĐỐI CHỨNG: ngưỡng chung cả nước ──────────────────────
+#
+# VÌ SAO CẦN CON SỐ NÀY. Điểm mạnh nhất của TerraTwin là thứ VÔ HÌNH theo đúng
+# nghĩa đen: báo động giả 3% nghĩa là những lần kêu oan ĐÃ KHÔNG XẢY RA, mà
+# không ai nhìn thấy được thứ không xảy ra. Người dùng mở app lên chỉ thấy "hôm
+# nay an toàn" — giống hệt mọi phần mềm khác. Cách duy nhất làm cái vô hình đó
+# hiện lên là cho xem ĐỐI CHỨNG: ở chính thửa này, một hệ thống dùng ngưỡng
+# chung sẽ báo động bao nhiêu ngày.
+#
+# ĐỊNH NGHĨA CHẶT, không phải con số bịa cho dễ thắng: lấy giá trị động lực thô
+# ở phân vị 97 khi GỘP CẢ NƯỚC, rồi áp đúng con số đó ở mọi nơi. Đó chính xác là
+# ý nghĩa của "một ngưỡng chung cho toàn quốc", và nó được chọn ở P97 để CÙNG
+# mục tiêu thiết kế với bản hiệu chuẩn — tức là đối thủ mạnh, không phải hình nộm.
+#
+# Đo từ 58.336 cửa sổ 7 ngày thật: 16 điểm phủ hết các kiểu khí hậu Việt Nam
+# (Hà Giang → Cà Mau), 10 năm ERA5, kèm cao độ và độ dốc thật của từng điểm.
+# Cách tính lại: xem app/ml/dataset.py SITES và hàm raw_* ngay phía trên.
+# LƯU Ý PHƯƠNG PHÁP — đây là chỗ tôi đã tính SAI một lần và phải làm lại.
+# climatology() trả về ĐỈNH CỦA TỪNG CỬA SỔ 7 NGÀY, và bộ tích luỹ được đặt lại
+# ở mỗi cửa sổ. Lần đầu tôi tính hằng số này trên một chuỗi liền 10 năm, nơi
+# thiếu hụt ẩm của raw_drought cộng dồn không giới hạn tới hàng nghìn. Hai phân
+# bố khác hẳn nhau, nên ngưỡng hạn ra 3.623 và không nơi nào trên cả nước chạm
+# tới — đối chứng hiện "0 ngày/năm" ở cả Phan Rang, chỗ khô hạn nhất Việt Nam.
+# Con số vô lý đó là thứ duy nhất làm lộ ra lỗi. Nay tính bằng ĐÚNG quy trình
+# _rolling_peaks, gộp 58.336 cửa sổ.
+NATIONAL_P97 = {
+    "flood": 95.23,
+    "landslide": 28.07,
+    "drought": 64.48,
+    "wildfire": 45.28,
+}
+
+
+def contrast(module_id: str, lat: float, lon: float,
+             threshold: float = 70.0, today: date | None = None) -> dict | None:
+    """So số ngày báo động: ngưỡng chung cả nước vs hiệu chuẩn theo nơi này.
+
+    Không tốn thêm lượt gọi mạng nào — dùng lại đúng phân bố 10 năm mà
+    climatology() đã tải và cache cho việc hiệu chuẩn.
+    """
+    fixed = NATIONAL_P97.get(module_id)
+    if fixed is None:
+        return None
+    dist = climatology(module_id, lat, lon, today=today)
+    if not dist:
+        return None
+
+    floor = _FLOOR.get(module_id, 0.0)
+    n = len(dist)
+    n_fixed = sum(1 for raw in dist if raw >= fixed)
+    n_cal = sum(
+        1 for raw in dist
+        if raw >= floor and map_percentile(percentile_of(raw, dist)) >= threshold
+    )
+
+    # Quy ra ngày/năm — đơn vị người đọc hình dung được ngay, khác với "%" là
+    # thứ phải nhân chia trong đầu mới thấy được mức độ phiền.
+    per_year = 365.0 / n if n else 0.0
+    fixed_yr = round(n_fixed * per_year * (n / 365.0) / max(n / 365.0, 1e-9))
+    cal_yr = round(n_cal * per_year * (n / 365.0) / max(n / 365.0, 1e-9))
+    years = max(n / 365.0, 1e-9)
+
+    return {
+        "module_id": module_id,
+        "windows": n,
+        "years": round(years, 1),
+        "fixed_threshold": fixed,
+        "fixed_alarms": n_fixed,
+        "fixed_days_per_year": round(n_fixed / years, 1),
+        "calibrated_alarms": n_cal,
+        "calibrated_days_per_year": round(n_cal / years, 1),
+        "method": (
+            "Ngưỡng chung = giá trị thô ở phân vị 97 khi gộp 16 điểm phủ cả "
+            "nước, 58.336 cửa sổ 7 ngày ERA5. Hiệu chuẩn = phân vị 97 của riêng "
+            "toạ độ này. Cả hai cùng mục tiêu thiết kế, chỉ khác chỗ lấy nền so."),
+    }
+
+
 def alarm_rate(module_id: str, lat: float, lon: float, threshold: float = 70.0,
                years: int = _YEARS, today: date | None = None) -> dict | None:
     """FAR thiết kế: bao nhiêu % cửa sổ trong lịch sử vượt ngưỡng sau hiệu chuẩn."""

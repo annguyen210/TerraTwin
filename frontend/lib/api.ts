@@ -1071,6 +1071,24 @@ export function createKey(label: string, plan = "free") {
     { method: "POST" }, "Không tạo được khoá");
 }
 
+// ---- Đối chứng: ngưỡng chung vs hiệu chuẩn ----
+export type ModuleContrast = {
+  module_id: string;
+  windows: number;
+  years: number;
+  fixed_threshold: number;
+  fixed_alarms: number;
+  fixed_days_per_year: number;
+  calibrated_alarms: number;
+  calibrated_days_per_year: number;
+  method: string;
+};
+
+export function getContrast(lat: number, lon: number) {
+  return postJson<{ available: boolean; modules: ModuleContrast[]; message?: string }>(
+    "/api/contrast", { location: { lat, lon } }, "Không tính được đối chứng");
+}
+
 // ---- Tìm địa điểm theo tên ----
 export type PlaceHit = { label: string; lat: number; lon: number; kind: string };
 

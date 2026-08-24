@@ -24,6 +24,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { scanAll, type ScanResult, type ScanModule } from "@/lib/api";
+import WhyTrust from "./WhyTrust";
 
 const TONE: Record<string, string> = {
   danger: "bad",
@@ -242,6 +243,8 @@ export default function Answer({
           </ul>
         </details>
       )}
+
+      <WhyTrust lat={lat} lon={lon} />
 
       <div className="ans-more">
         <button onClick={onDetail}>Xem chi tiết từng mục</button>
