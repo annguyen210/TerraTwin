@@ -1071,6 +1071,14 @@ export function createKey(label: string, plan = "free") {
     { method: "POST" }, "Không tạo được khoá");
 }
 
+// ---- Tìm địa điểm theo tên ----
+export type PlaceHit = { label: string; lat: number; lon: number; kind: string };
+
+export function searchPlace(q: string) {
+  return getJson<{ query: string; results: PlaceHit[]; message?: string }>(
+    `/api/place?q=${encodeURIComponent(q)}`, "Không tìm được địa điểm");
+}
+
 // ---- Gói cước & bảng kê ----
 export type Plan = {
   id: string; name: string; quota: number; price_vnd: number;

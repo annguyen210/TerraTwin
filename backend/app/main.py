@@ -29,7 +29,7 @@ from app.schemas import (
 )
 from app.services import (
     anomaly, anomaly_ml, backtest, copilot, design, explain, genome, goalseek,
-    hazard, heatmap, jobs, llm, mrv, region, roadmap, scan, sentinel,
+    hazard, heatmap, jobs, llm, mrv, place, region, roadmap, scan, sentinel,
     terrascore, timelapse, timemachine, whatif, whatif_nlp,
 )
 from app.services import twin as twin_service
@@ -387,6 +387,16 @@ def timelapse_endpoint(module_id: str, location: Location,
 def design_endpoint(location: Location) -> dict:
     """U03 Design Studio — sinh phương án canh tác cụ thể cho thửa đất."""
     return design.generate(location)
+
+
+@app.get("/api/place")
+def place_search(q: str = "") -> dict:
+    """Tìm xã/huyện/tỉnh theo tên → toạ độ.
+
+    Có endpoint này thì màn hình đầu mới hỏi được "ruộng của bạn ở đâu" bằng
+    tiếng Việt, thay vì bắt người dùng tự mò trên bản đồ cả nước.
+    """
+    return place.search(q)
 
 
 @app.get("/api/model")

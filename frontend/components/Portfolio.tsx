@@ -217,7 +217,7 @@ function buildReportHtml(scan: any, area?: number): string {
   )}</span></div>
   <h3>Cảnh báo cần chú ý (từ dữ liệu thật)</h3>
   <ul>${alerts || "<li>Không có cảnh báo từ dữ liệu thật.</li>"}</ul>
-  <h3>Toàn bộ 14 module</h3>
+  <h3>Toàn cảnh mọi mũi nhọn</h3>
   <table><thead><tr><th>Module</th><th>Mức</th><th>Nguồn</th><th>Nhận định</th></tr></thead>
   <tbody>${rows}</tbody></table>
   <p class="foot">Nguồn dữ liệu thật: Open-Meteo (dự báo + lịch sử ERA5), GloFAS lưu lượng sông,

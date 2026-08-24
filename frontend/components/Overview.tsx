@@ -48,7 +48,7 @@ export default function Overview({
   return (
     <div className="overview">
       <button className="scan-btn" onClick={run} disabled={loading}>
-        {loading ? "Đang quét 14 module…" : "🛰️ Quét toàn cảnh thửa đất (14 module)"}
+        {loading ? "Đang quét…" : "🛰️ Quét toàn cảnh thửa đất"}
       </button>
       {err && <p className="err">{err}</p>}
 
@@ -83,7 +83,7 @@ export default function Overview({
           </div>
 
           <div className="ov-grid-head">
-            Toàn bộ 14 module · 🛰️ dữ liệu thật · 🧪 ước lượng vật lý · ⏳ chưa
+            🛰️ dữ liệu thật · 🧪 ước lượng vật lý · ⏳ chưa
             đưa số (chờ ảnh Sentinel / ngoài phạm vi vùng)
           </div>
           <div className="ov-grid">

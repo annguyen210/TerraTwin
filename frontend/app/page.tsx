@@ -15,6 +15,8 @@ import {
 } from "@/lib/api";
 import type { HeatmapResult } from "@/lib/api";
 import Account from "@/components/Account";
+import Answer from "@/components/Answer";
+import Start from "@/components/Start";
 import Alerts from "@/components/Alerts";
 import FieldMode from "@/components/FieldMode";
 import Heatmap from "@/components/Heatmap";
@@ -52,11 +54,18 @@ const DEEP = [
   { id: "model", icon: "🧠", label: "Mô hình", flow: "S09 Model đã huấn luyện" },
 ] as const;
 
+// Nhóm theo THỨ NGƯỜI DÙNG ĐANG LO, không theo loại cảm biến.
+//
+// Trước đây là "Nhóm A · Quang học", "Nhóm B · Radar & địa hình" — cách phân
+// loại của kỹ sư. Người trồng lúa không nghĩ "vấn đề của tôi thuộc quang học
+// hay radar"; họ nghĩ "ruộng tôi sắp mặn không". Cùng một danh sách mô-đun,
+// nhưng xếp theo nỗi lo thì người ta tự tìm được, xếp theo cảm biến thì phải
+// học cấu trúc bên trong phần mềm trước đã.
 const GROUPS: Record<string, string> = {
-  A: "Nhóm A · Quang học",
-  B: "Nhóm B · Radar & địa hình",
-  C: "Nhóm C · Chỉ số",
-  D: "Nhóm D · Hạ tầng & chuỗi",
+  A: "Cây trồng & vật nuôi",
+  B: "Thiên tai & đất đai",
+  C: "Tài chính & năng lượng",
+  D: "Đô thị, mỏ & chuỗi cung ứng",
 };
 
 function TerraBadge({ t }: { t: TerraScore }) {
@@ -105,6 +114,7 @@ export default function Home() {
   const [workspace, setWorkspace] = useState(false);
   // Cột phải hẹp nên KHÔNG đổ hết mọi luồng ra cùng lúc: mở đủ thứ một lúc thì
   // người dùng phải cuộn qua sáu bảng mới thấy được kết quả module đang xem.
+  const [placeLabel, setPlaceLabel] = useState<string | undefined>();
   const [deep, setDeep] = useState<
     | "none" | "playback" | "timelapse" | "genome" | "design" | "knowledge"
     | "mrv" | "provenance" | "model"
@@ -148,7 +158,20 @@ export default function Home() {
     (lat: number, lon: number, areaHa?: number) => {
       setCoord({ lat, lon });
       setArea(areaHa);
+      setPlaceLabel(undefined);
       run(active, lat, lon, areaHa);
+    },
+    [active, run],
+  );
+
+  // Từ màn hình đầu: có tên nơi, và bay bản đồ tới đó.
+  const onStart = useCallback(
+    (lat: number, lon: number, label?: string) => {
+      setCoord({ lat, lon });
+      setArea(undefined);
+      setPlaceLabel(label);
+      setFlyTo({ lat, lon, key: Date.now() });
+      run(active, lat, lon, undefined);
     },
     [active, run],
   );
@@ -177,7 +200,7 @@ export default function Home() {
       <aside className="sidebar">
         <div className="brand">◵ TerraTwin</div>
         <p className="tag">
-          Chọn mô-đun, <b>bấm bản đồ</b> (1 điểm hoặc vẽ vùng) rồi <b>Phân tích</b>.
+          <b>Bấm vào bản đồ</b> — hoặc vẽ một vùng — là chạy ngay.
         </p>
         {Object.keys(grouped)
           .sort()
@@ -234,8 +257,17 @@ export default function Home() {
             )}
           </p>
         )}
-        {!loading && !err && !result && (
-          <p className="hint">Bấm bản đồ (1 điểm hoặc vẽ vùng) → Phân tích.</p>
+        {!coord && <Start onPick={onStart} />}
+
+        {coord && (
+          <Answer
+            lat={coord.lat}
+            lon={coord.lon}
+            area={area}
+            label={placeLabel}
+            onSelectModule={selectModule}
+            onDetail={() => setTab("overview")}
+          />
         )}
         {area != null && (
           <p className="areanote">📐 Diện tích vùng: {area} ha</p>
@@ -271,7 +303,7 @@ export default function Home() {
               className={tab === "overview" ? "on" : ""}
               onClick={() => setTab("overview")}
             >
-              Toàn cảnh 14 module
+              Toàn cảnh {modules.length} mũi nhọn
             </button>
           </div>
         )}
