@@ -214,6 +214,27 @@ def build_twin_endpoint(location: Location) -> dict:
     return twin_service.build(location)
 
 
+def _off_site_dict(lat: float, lon: float) -> dict | None:
+    """Ngoài phạm vi phục vụ → dict giải thích; trong phạm vi → None.
+
+    Bản dict này dành cho các endpoint KHÔNG trả về Assessment (đối chiếu
+    ngưỡng, chấm bất thường). Trước đây tôi gọi thẳng _off_site() ở đó, nhưng
+    hàm kia nhận (module, loc, reg) và trả Assessment — sai cả chữ ký lẫn kiểu
+    trả về, và nó nổ 500 ngay lời gọi đầu tiên.
+
+    Lỗi này lọt qua toàn bộ test vì test gọi hàm tính toán TRỰC TIẾP, không đi
+    qua tầng HTTP. Đã bổ sung test gọi qua HTTP cho cả hai endpoint.
+    """
+    reg = region.classify(lat, lon)
+    if reg.get("serviceable"):
+        return None
+    return {
+        "available": False,
+        "region": reg,
+        "message": reg.get("note") or "Ngoài phạm vi phục vụ.",
+    }
+
+
 def _off_site(module, loc: Location, reg: dict) -> Assessment:
     """Câu trả lời trung thực cho toạ độ ngoài phạm vi phục vụ.
 
@@ -408,7 +429,7 @@ def contrast_endpoint(req: ContrastRequest) -> dict:
     Không tốn thêm lượt gọi mạng: dùng lại phân bố 10 năm mà bước hiệu chuẩn
     trong lượt quét vừa rồi đã tải và cache.
     """
-    off = _off_site(req.location.lat, req.location.lon)
+    off = _off_site_dict(req.location.lat, req.location.lon)
     if off:
         return off
     out = []
@@ -465,7 +486,7 @@ def anomaly_ml_endpoint(req: AnomalyMlRequest) -> dict:
     module nào — vì trên 5 năm kiểm tra nó chỉ hoà với cách xét từng biến ở mức
     vận hành 2%.
     """
-    off = _off_site(req.location.lat, req.location.lon)
+    off = _off_site_dict(req.location.lat, req.location.lon)
     if off:
         return off
     r = anomaly_ml.score(req.location.lat, req.location.lon)
