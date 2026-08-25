@@ -30,7 +30,8 @@ from app.schemas import (
 from app.services import (
     anomaly, anomaly_ml, backtest, calibration, copilot, design, explain,
     genome, goalseek,
-    hazard, heatmap, jobs, llm, mrv, place, region, roadmap, scan, sentinel,
+    hazard, heatmap, jobs, landcover, llm, mrv, place, region, roadmap,
+    scan, sentinel,
     terrascore, timelapse, timemachine, whatif, whatif_nlp,
 )
 from app.services import twin as twin_service
@@ -419,6 +420,16 @@ def contrast_endpoint(req: ContrastRequest) -> dict:
         return {"available": False,
                 "message": "Chưa tải được lịch sử 10 năm cho điểm này."}
     return {"available": True, "modules": out}
+
+
+@app.get("/api/landcover")
+def landcover_status() -> dict:
+    """Trạng thái mô hình học sâu phân đoạn lớp phủ.
+
+    Nói rõ đang thiếu gì và các lệnh để tự chạy — vì việc còn lại nằm ở máy có
+    GPU, không nằm trong tay máy chủ này.
+    """
+    return landcover.status()
 
 
 @app.get("/api/place")
