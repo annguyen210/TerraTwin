@@ -3121,3 +3121,47 @@ body {
 .ans-pending i { font-style: normal; color: var(--fg); }
 .ans-na { font-size: 12.5px; color: var(--dim); line-height: 1.55; margin: 12px 0 0; }
 .ans-na b { color: var(--fg); }
+
+/* ── Ảnh thửa đất ──────────────────────────────────────────────────────── */
+.pv { margin: 4px 0 18px; }
+.pv-busy { display: flex; gap: 11px; align-items: center; color: var(--dim); font-size: 13px; padding: 14px 2px; }
+.pv-head { font-size: 13.5px; font-weight: 650; margin-bottom: 9px; }
+.pv-none { font-size: 13px; color: var(--dim); line-height: 1.55; margin: 0; }
+
+.pv-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 9px; }
+.pv-tabs button {
+  background: none; border: 1px solid var(--line); color: var(--dim);
+  padding: 5px 12px; border-radius: 999px; cursor: pointer; font-size: 12.5px;
+}
+.pv-tabs button.on { border-color: var(--ok); color: var(--ok); }
+.pv-tabs .pv-cmp { margin-left: auto; }
+
+.pv-frame {
+  position: relative; width: 100%; aspect-ratio: 1; border-radius: 8px;
+  overflow: hidden; background: var(--card); border: 1px solid var(--line);
+}
+.pv-img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pv-skel { position: absolute; inset: 0; background: var(--card); }
+.pv-old { position: absolute; inset: 0; overflow: hidden; }
+.pv-old img { display: block; height: 100%; object-fit: cover; max-width: none; }
+.pv-handle { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; box-shadow: 0 0 6px rgba(0,0,0,.6); pointer-events: none; }
+.pv-range { position: absolute; inset: auto 0 0 0; width: 100%; margin: 0; opacity: 0; height: 100%; cursor: ew-resize; }
+.pv-tag {
+  position: absolute; bottom: 8px; font-size: 11px; padding: 3px 8px; border-radius: 4px;
+  background: rgba(0,0,0,.62); color: #fff; pointer-events: none; font-variant-numeric: tabular-nums;
+}
+.pv-tag.left { left: 8px; }
+.pv-tag.right { right: 8px; }
+.pv-scale { position: absolute; top: 8px; left: 8px; font-size: 10.5px; color: #fff;
+            background: rgba(0,0,0,.55); padding: 3px 8px; border-radius: 4px; display: flex; align-items: center; gap: 6px; }
+.pv-scale i { display: block; width: 34px; height: 2px; background: #fff; }
+
+.pv-legend { display: flex; align-items: center; gap: 8px; margin: 8px 0 0; font-size: 11px; color: var(--dim); }
+.pv-ramp { flex: 1; height: 8px; border-radius: 4px;
+           background: linear-gradient(90deg,#a50026,#f46d43,#fee08b,#a6d96a,#1a9850); }
+
+.pv-meta { font-size: 12px; color: var(--dim); margin: 9px 0 0; line-height: 1.5; }
+.pv-meta b { color: var(--fg); }
+.pv-note { font-size: 12px; color: var(--dim); margin: 6px 0 0; line-height: 1.55;
+           border-left: 2px solid var(--line); padding-left: 9px; }
+.pv-src { font-size: 11px; color: var(--dim); margin: 6px 0 0; }

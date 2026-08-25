@@ -1075,6 +1075,34 @@ export function createKey(label: string, plan = "free") {
 }
 
 // ---- Đối chứng: ngưỡng chung vs hiệu chuẩn ----
+// ---- Ảnh vệ tinh thật của thửa đất ----
+export type ImageryLayer = {
+  item: string;
+  date: string;
+  cloud_scene_pct: number;
+  true_color: string;
+  ndvi: string;
+};
+
+export type Imagery = {
+  available: boolean;
+  message?: string;
+  center?: { lat: number; lon: number };
+  span_m: number;
+  now: ImageryLayer;
+  then?: ImageryLayer;
+  source: string;
+  resolution_m: number;
+  caveat: string;
+  compare_note: string;
+};
+
+export function getImagery(lat: number, lon: number, bufferM = 500) {
+  return postJson<Imagery>("/api/imagery",
+    { location: { lat, lon }, buffer_m: bufferM },
+    "Không lấy được ảnh vệ tinh");
+}
+
 export type ModuleContrast = {
   module_id: string;
   windows: number;

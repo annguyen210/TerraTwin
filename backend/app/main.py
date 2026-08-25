@@ -30,7 +30,8 @@ from app.schemas import (
 from app.services import (
     anomaly, anomaly_ml, backtest, calibration, copilot, design, explain,
     genome, goalseek,
-    hazard, heatmap, jobs, landcover, llm, mrv, place, region, roadmap,
+    hazard, heatmap, imagery, jobs, landcover, llm, mrv, place, region,
+    roadmap,
     scan, sentinel,
     terrascore, timelapse, timemachine, whatif, whatif_nlp,
 )
@@ -441,6 +442,28 @@ def contrast_endpoint(req: ContrastRequest) -> dict:
         return {"available": False,
                 "message": "Chưa tải được lịch sử 10 năm cho điểm này."}
     return {"available": True, "modules": out}
+
+
+class ImageryRequest(BaseModel):
+    location: Location
+    buffer_m: float = 500.0
+
+
+@app.post("/api/imagery")
+def imagery_endpoint(req: ImageryRequest) -> dict:
+    """Ảnh vệ tinh THẬT của thửa đất — màu thật, sức sống cây, và đối chiếu năm ngoái.
+
+    Thứ TerraTwin thiếu suốt từ đầu: người dùng chưa bao giờ NHÌN THẤY mảnh đất
+    của mình, chỉ đọc câu văn kể về nó. Chữ "Twin" hứa một bản sao của vật thật.
+
+    Trả về ĐƯỜNG DẪN ảnh chứ không tải ảnh qua đây — mỗi tấm nửa megabyte, đẩy
+    qua máy chủ gói free là tự bóp cổ mình mà chẳng lợi gì, vì nguồn vốn công khai.
+    """
+    off = _off_site_dict(req.location.lat, req.location.lon)
+    if off:
+        return off
+    return imagery.plot_view(req.location.lat, req.location.lon,
+                             buffer_m=max(150.0, min(req.buffer_m, 3000.0)))
 
 
 @app.get("/api/landcover")

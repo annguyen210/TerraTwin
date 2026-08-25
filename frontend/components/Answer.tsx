@@ -24,6 +24,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { scanAll, type ScanResult, type ScanModule } from "@/lib/api";
+import PlotView from "./PlotView";
 import WhyTrust from "./WhyTrust";
 
 const TONE: Record<string, string> = {
@@ -198,6 +199,11 @@ export default function Answer({
   return (
     <div className="ans">
       {label && <p className="ans-where">📍 {label}</p>}
+
+      {/* ẢNH ĐẶT TRƯỚC CHỮ. Người ta nhận ra mảnh đất của mình bằng mắt trong
+          một giây; đọc một đoạn văn tả về nó thì mất lâu hơn và vẫn không chắc
+          là đúng thửa. Thấy đúng chỗ rồi mới có lý do đọc tiếp. */}
+      <PlotView lat={lat} lon={lon} />
 
       <div className={`ans-head ${h.tone}`}>
         <b>{h.big}</b>
