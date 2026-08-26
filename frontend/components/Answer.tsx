@@ -99,6 +99,7 @@ export default function Answer({
   label,
   onSelectModule,
   onDetail,
+  onRisk,
 }: {
   lat: number;
   lon: number;
@@ -106,6 +107,9 @@ export default function Answer({
   label?: string;
   onSelectModule?: (id: string) => void;
   onDetail?: () => void;
+  // Báo mức rủi ro cao nhất ra ngoài để bản đồ tô khung cùng màu — nối phần
+  // lớn nhất của màn hình với câu trả lời, thay vì để nó là tấm nền trơn.
+  onRisk?: (risk: string) => void;
 }) {
   const [d, setD] = useState<ScanResult | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -145,6 +149,16 @@ export default function Answer({
       huy = true;
     };
   }, [lat, lon, area]);
+
+  useEffect(() => {
+    if (!d || !onRisk) return;
+    const co = d.alerts.some((a) => a.risk_level === "danger")
+      ? "danger"
+      : d.alerts.some((a) => a.risk_level === "warning")
+        ? "warning"
+        : "safe";
+    onRisk(co);
+  }, [d, onRisk]);
 
   if (busy) {
     return (

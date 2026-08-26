@@ -115,6 +115,11 @@ export default function Home() {
   // Cột phải hẹp nên KHÔNG đổ hết mọi luồng ra cùng lúc: mở đủ thứ một lúc thì
   // người dùng phải cuộn qua sáu bảng mới thấy được kết quả module đang xem.
   const [placeLabel, setPlaceLabel] = useState<string | undefined>();
+  // Danh sách mô-đun gập lại trên điện thoại — nó là công cụ đào sâu, không
+  // phải cửa vào. Trên máy tính CSS bỏ qua trạng thái này.
+  const [railOpen, setRailOpen] = useState(false);
+  // Mức rủi ro cao nhất của thửa vừa quét — dùng để tô khung trên bản đồ.
+  const [plotRisk, setPlotRisk] = useState<string>("safe");
   const [deep, setDeep] = useState<
     | "none" | "playback" | "timelapse" | "genome" | "design" | "knowledge"
     | "mrv" | "provenance" | "model"
@@ -197,11 +202,19 @@ export default function Home() {
 
   return (
     <main className="app">
-      <aside className="sidebar">
+      <aside className={`sidebar${railOpen ? " open" : ""}`}>
         <div className="brand">◵ TerraTwin</div>
         <p className="tag">
           <b>Bấm vào bản đồ</b> — hoặc vẽ một vùng — là chạy ngay.
         </p>
+        <button
+          className="rail-toggle"
+          onClick={() => setRailOpen(!railOpen)}
+          aria-expanded={railOpen}
+        >
+          {railOpen ? "▾" : "▸"} Xem từng loại rủi ro riêng
+          <small>{modules.length} mũi nhọn · chọn để đào sâu một loại</small>
+        </button>
         {Object.keys(grouped)
           .sort()
           .map((g) => (
@@ -240,7 +253,12 @@ export default function Home() {
       </aside>
 
       <section className="mapwrap">
-        <MapView onPick={onPick} flyTo={flyTo} heat={heat} />
+        <MapView
+          onPick={onPick}
+          flyTo={flyTo}
+          heat={heat}
+          plot={coord ? { ...coord, spanM: 1000, risk: plotRisk } : null}
+        />
       </section>
 
       <aside className="results">
@@ -267,6 +285,7 @@ export default function Home() {
             label={placeLabel}
             onSelectModule={selectModule}
             onDetail={() => setTab("overview")}
+            onRisk={setPlotRisk}
           />
         )}
         {area != null && (

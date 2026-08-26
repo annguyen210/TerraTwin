@@ -800,13 +800,61 @@ body {
   border-color: #e58067;
 }
 
+/* ── ĐIỆN THOẠI: ĐẢO NGƯỢC THỨ TỰ ────────────────────────────────────────
+ *
+ * ĐÂY LÀ LỖI NẶNG NHẤT CỦA CẢ SẢN PHẨM, và nó là lỗi BỐ CỤC chứ không phải
+ * thiếu tính năng.
+ *
+ * Thứ tự trong DOM là sidebar → bản đồ → kết quả, hợp lý cho ba cột trên máy
+ * tính. Nhưng dưới 1000px lưới xếp thành ba HÀNG DỌC, nên trên điện thoại —
+ * thứ nông dân thật sự cầm — người ta mở app ra và thấy:
+ *     1. 18 nút mô-đun + ô đăng nhập + cảnh báo + danh mục   (một màn hình)
+ *     2. bản đồ                                              (màn hình thứ hai)
+ *     3. "Thửa đất của bạn ở đâu?" + ảnh + câu trả lời       (phải cuộn tới)
+ *
+ * Toàn bộ phần chào đón, ảnh thửa đất và câu trả lời đều nằm dưới hai màn hình
+ * cuộn. Người dùng không bao giờ tới đó, và họ kết luận phần mềm chẳng có gì —
+ * kết luận đúng với thứ họ nhìn thấy.
+ *
+ * Sửa bằng `order` nên KHÔNG đụng vào DOM: máy tính giữ nguyên ba cột, điện
+ * thoại thì câu trả lời lên đầu, bản đồ ở giữa, danh sách mô-đun xuống cuối và
+ * gập lại.
+ */
 @media (max-width: 1000px) {
   .app {
     grid-template-columns: 1fr;
-    grid-template-rows: auto 50vh auto;
+    grid-template-rows: auto auto auto;
     height: auto;
   }
+  .results  { order: 1; border-left: none; }
+  .mapwrap  { order: 2; height: 46vh; min-height: 300px; }
+  .sidebar  { order: 3; border-right: none; border-top: 1px solid var(--line); }
+
+  /* Danh sách mô-đun gập lại: nó là công cụ đào sâu, không phải cửa vào. */
+  .sidebar .group { display: none; }
+  .sidebar.open .group { display: block; }
+  .rail-toggle { display: block; }
+
+  .brand { font-size: 17px; }
+  .tag { display: none; }
 }
+
+/* Nút gập/mở danh sách mô-đun — chỉ hiện trên điện thoại. */
+.rail-toggle {
+  display: none;
+  width: 100%;
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--fg);
+  padding: 10px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 14px;
+  text-align: left;
+  margin-bottom: 10px;
+}
+.rail-toggle:hover { border-color: var(--ok); }
+.rail-toggle small { display: block; font-size: 11.5px; color: var(--dim); margin-top: 2px; }
 
 /* ---- Phân tích sâu (S07 Explain · S03 Goal-Seek · S02 Time Machine · C10 Anomaly) ---- */
 .insights {

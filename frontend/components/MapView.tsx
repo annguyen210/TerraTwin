@@ -45,10 +45,17 @@ export default function MapView({
   onPick,
   flyTo,
   heat,
+  plot,
 }: {
   onPick: (lat: number, lon: number, areaHa?: number) => void;
   flyTo?: { lat: number; lon: number; key: number } | null;
   heat?: Heat;
+  // Ô ĐANG PHÂN TÍCH. Trước đây bản đồ — thứ CHIẾM NHIỀU CHỖ NHẤT trên màn
+  // hình — không phản ánh gì cả, kể cả sau khi đã quét xong: nó vẫn là một tấm
+  // nền trơn. Người dùng nhìn vào phần lớn nhất của sản phẩm và thấy trống.
+  // Khung này cho họ thấy ĐÚNG mảnh đất vừa được chấm, và màu viền nói luôn
+  // mức rủi ro cao nhất tìm được.
+  plot?: { lat: number; lon: number; spanM: number; risk: string } | null;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -131,6 +138,15 @@ export default function MapView({
     map.addControl(new maplibregl.NavigationControl(), "top-right");
     map.on("load", () => {
       // Lớp bản đồ nhiệt nằm DƯỚI các lớp vẽ tay để không che điểm người dùng chọn.
+      map.addSource("plot", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+      map.addLayer({
+        id: "plot-line", type: "line", source: "plot",
+        paint: { "line-color": ["get", "color"], "line-width": 2.5, "line-dasharray": [2, 1.5] },
+      });
+      map.addLayer({
+        id: "plot-glow", type: "line", source: "plot",
+        paint: { "line-color": ["get", "color"], "line-width": 9, "line-opacity": 0.16 },
+      });
       map.addSource("heat", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
       map.addLayer({
         id: "heat-fill",
@@ -201,6 +217,39 @@ export default function MapView({
     if (map.isStyleLoaded()) draw();
     else map.once("load", draw);
   }, [heat]);
+
+  // Vẽ khung ô vừa phân tích.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded()) return;
+    const src = map.getSource("plot") as maplibregl.GeoJSONSource | undefined;
+    if (!src) return;
+    if (!plot) {
+      src.setData({ type: "FeatureCollection", features: [] });
+      return;
+    }
+    const color =
+      plot.risk === "danger" ? "#E2705C"
+      : plot.risk === "warning" ? "#D8A253"
+      : "#5CBF8B";
+    const dy = plot.spanM / 2 / 111320;
+    const dx = plot.spanM / 2 / (111320 * Math.max(0.2, Math.abs(Math.cos((plot.lat * Math.PI) / 180))));
+    src.setData({
+      type: "FeatureCollection",
+      features: [{
+        type: "Feature",
+        properties: { color },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [plot.lon - dx, plot.lat - dy], [plot.lon + dx, plot.lat - dy],
+            [plot.lon + dx, plot.lat + dy], [plot.lon - dx, plot.lat + dy],
+            [plot.lon - dx, plot.lat - dy],
+          ]],
+        },
+      }],
+    });
+  }, [plot]);
 
   // Bay tới thửa đã lưu khi tải lại từ danh mục.
   useEffect(() => {
