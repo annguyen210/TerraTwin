@@ -24,6 +24,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { scanAll, type ScanResult, type ScanModule } from "@/lib/api";
+import Passport from "./Passport";
 import PlotView from "./PlotView";
 import WhyTrust from "./WhyTrust";
 
@@ -287,6 +288,11 @@ export default function Answer({
           </ul>
         </details>
       )}
+
+      {/* Hồ sơ riêng đặt TRƯỚC khối đối chiếu: nó trả lời "phần mềm này hơn
+          app thời tiết ở chỗ nào" bằng ba con số cụ thể của chính thửa này,
+          còn khối đối chiếu trả lời "vì sao tin được con số đó". */}
+      <Passport lat={lat} lon={lon} />
 
       <WhyTrust lat={lat} lon={lon} />
 

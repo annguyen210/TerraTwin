@@ -1075,6 +1075,33 @@ export function createKey(label: string, plan = "free") {
 }
 
 // ---- Đối chứng: ngưỡng chung vs hiệu chuẩn ----
+// ---- Hồ sơ riêng của thửa đất ----
+export type PassportHazard = {
+  name: string; events: number; peak_month: number | null;
+  peak_month_events?: number; latest: string | null;
+  worst_value: number; worst_date: string | null;
+  national_threshold: number; note: string;
+};
+
+export type Passport = {
+  available: boolean;
+  message?: string;
+  terrain?: {
+    elevation_m: number; neighbours_sampled: number; radius_km: number;
+    lower_than_pct: number; around_min_m: number; around_max_m: number;
+    slope_deg: number | null; meaning: string;
+  } | null;
+  history?: Record<string, PassportHazard> | null;
+  headline?: string | null;
+  why_unique: string;
+  caveat: string;
+};
+
+export function getPassport(lat: number, lon: number) {
+  return postJson<Passport>("/api/passport", { location: { lat, lon } },
+    "Không dựng được hồ sơ thửa đất");
+}
+
 // ---- Ảnh vệ tinh thật của thửa đất ----
 export type ImageryLayer = {
   item: string;

@@ -31,8 +31,7 @@ from app.services import (
     anomaly, anomaly_ml, backtest, calibration, copilot, design, explain,
     genome, goalseek,
     hazard, heatmap, imagery, jobs, landcover, llm, mrv, place, region,
-    roadmap,
-    scan, sentinel,
+    passport, roadmap, scan, sentinel,
     terrascore, timelapse, timemachine, whatif, whatif_nlp,
 )
 from app.services import twin as twin_service
@@ -464,6 +463,21 @@ def imagery_endpoint(req: ImageryRequest) -> dict:
         return off
     return imagery.plot_view(req.location.lat, req.location.lon,
                              buffer_m=max(150.0, min(req.buffer_m, 3000.0)))
+
+
+@app.post("/api/passport")
+def passport_endpoint(req: ContrastRequest) -> dict:
+    """Hồ sơ riêng của một thửa: địa hình tương đối + mười năm hiểm hoạ.
+
+    Đây là câu trả lời cho "phần mềm này hơn app thời tiết ở chỗ nào". App thời
+    tiết biết trời sắp mưa bao nhiêu; nó không biết thửa của bạn nằm cao hay
+    trũng so với đất xung quanh, và không biết mười năm qua đã có bao nhiêu lần
+    nước lên tới đây.
+    """
+    off = _off_site_dict(req.location.lat, req.location.lon)
+    if off:
+        return off
+    return passport.build(req.location.lat, req.location.lon)
 
 
 @app.get("/api/landcover")
