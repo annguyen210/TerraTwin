@@ -164,9 +164,13 @@ export default function Home() {
       setCoord({ lat, lon });
       setArea(areaHa);
       setPlaceLabel(undefined);
-      run(active, lat, lon, areaHa);
+      // KHÔNG gọi run() ở đây nữa. Khối Answer bên phải chạy /api/scan, mà
+      // scan đã tính sẵn CẢ TerraScore lẫn kết quả từng mô-đun. Gọi thêm
+      // assess + terrascore là làm lại đúng việc đó lần thứ hai, và ba lời gọi
+      // nặng tranh nhau sáu khe mạng: đo trong trình duyệt thật thấy câu trả
+      // lời đầu tiên ở một tỉnh mới mất 84 giây, trong khi gọi tuần tự chỉ 17.
     },
-    [active, run],
+    [],
   );
 
   // Từ màn hình đầu: có tên nơi, và bay bản đồ tới đó.
@@ -176,9 +180,8 @@ export default function Home() {
       setArea(undefined);
       setPlaceLabel(label);
       setFlyTo({ lat, lon, key: Date.now() });
-      run(active, lat, lon, undefined);
     },
-    [active, run],
+    [],
   );
 
   function selectModule(id: string) {
@@ -286,6 +289,7 @@ export default function Home() {
             onSelectModule={selectModule}
             onDetail={() => setTab("overview")}
             onRisk={setPlotRisk}
+            onTerra={setTerra}
           />
         )}
         {area != null && (
@@ -314,7 +318,10 @@ export default function Home() {
           <div className="tabs">
             <button
               className={tab === "detail" ? "on" : ""}
-              onClick={() => setTab("detail")}
+              onClick={() => {
+                setTab("detail");
+                if (coord && !result) run(active, coord.lat, coord.lon, area);
+              }}
             >
               Chi tiết module
             </button>

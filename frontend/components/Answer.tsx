@@ -101,6 +101,7 @@ export default function Answer({
   onSelectModule,
   onDetail,
   onRisk,
+  onTerra,
 }: {
   lat: number;
   lon: number;
@@ -111,6 +112,9 @@ export default function Answer({
   // Báo mức rủi ro cao nhất ra ngoài để bản đồ tô khung cùng màu — nối phần
   // lớn nhất của màn hình với câu trả lời, thay vì để nó là tấm nền trơn.
   onRisk?: (risk: string) => void;
+  // Chuyển TerraScore ra ngoài. Lượt quét đã tính sẵn nó, nên trang không cần
+  // gọi /api/terrascore lần nữa — đó chính là lời gọi thừa làm chậm gấp năm lần.
+  onTerra?: (t: ScanResult["terrascore"]) => void;
 }) {
   const [d, setD] = useState<ScanResult | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -160,6 +164,10 @@ export default function Answer({
         : "safe";
     onRisk(co);
   }, [d, onRisk]);
+
+  useEffect(() => {
+    if (d?.terrascore && onTerra) onTerra(d.terrascore);
+  }, [d, onTerra]);
 
   if (busy) {
     return (
