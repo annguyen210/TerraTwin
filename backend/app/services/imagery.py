@@ -48,6 +48,17 @@ _NDVI = ("expression=(B08-B04)%2F(B08%2BB04)&asset_as_band=true"
          "&rescale=-0.2%2C0.9&colormap_name=rdylgn")
 
 SIZE = 512
+
+# KHUNG NHÌN MẶC ĐỊNH 2,4 km, KHÔNG PHẢI 1 km — và đây là phép tính chứ không
+# phải khẩu vị. Sentinel-2 có độ phân giải 10 m, nên một khung 1 km chỉ chứa
+# 100 ĐIỂM ẢNH THẬT. Yêu cầu render ra 512 là phóng to hơn 5 lần, và kết quả
+# nhìn như nhiễu TV — người dùng thấy một mớ hạt chứ không thấy mảnh đất của
+# mình, đúng thứ mà tính năng này sinh ra để chữa. Nhìn ảnh chụp màn hình mới
+# phát hiện; mọi phép kiểm tra bằng số trước đó đều báo "ảnh tải được, 512x512".
+#
+# Khung 2,4 km cho 240 điểm ảnh thật → phóng 2,1 lần, đủ sắc để nhận ra đường,
+# ruộng, mái nhà. Rộng hơn nữa thì thửa bé quá không còn thấy.
+DEFAULT_BUFFER_M = 1200.0
 # Không có ngưỡng quang mây ở đây — xem lý do trong _pick(). Ảnh nhiều mây vẫn
 # được đưa ra kèm con số độ mây, để người xem tự quyết; giấu nó đi thì người ta
 # tưởng vệ tinh không bay qua, trong khi thực tế là bay qua nhưng trời nhiều mây.
@@ -87,7 +98,7 @@ def _pick(box: list[float], start: date, end: date) -> dict | None:
     }
 
 
-def plot_view(lat: float, lon: float, buffer_m: float = 500.0) -> dict:
+def plot_view(lat: float, lon: float, buffer_m: float = DEFAULT_BUFFER_M) -> dict:
     """Ba lớp ảnh cho một thửa. Luôn trả dict — không bao giờ ném lỗi lên API."""
     from app.services import cache_store
     key = cache_store.make_key("imagery", round(lat, 4), round(lon, 4), int(buffer_m))

@@ -1124,7 +1124,7 @@ export type Imagery = {
   compare_note: string;
 };
 
-export function getImagery(lat: number, lon: number, bufferM = 500) {
+export function getImagery(lat: number, lon: number, bufferM = 1200) {
   return postJson<Imagery>("/api/imagery",
     { location: { lat, lon }, buffer_m: bufferM },
     "Không lấy được ảnh vệ tinh");

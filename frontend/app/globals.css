@@ -833,7 +833,13 @@ body {
   /* Danh sách mô-đun gập lại: nó là công cụ đào sâu, không phải cửa vào. */
   .sidebar .group { display: none; }
   .sidebar.open .group { display: block; }
-  .rail-toggle { display: block; }
+  /* Độ đặc hiệu cao hơn có CHỦ Ý. Quy tắc nền `.rail-toggle{display:none}` nằm
+   * SAU khối media này trong tệp, nên nếu ở đây cũng chỉ dùng `.rail-toggle`
+   * thì cùng độ đặc hiệu và quy tắc sau thắng — nút biến mất trên điện thoại,
+   * và người dùng không còn cách nào mở danh sách mô-đun. Đã gặp thật: ảnh
+   * chụp màn hình điện thoại cho computed style `display: none`.
+   */
+  .sidebar .rail-toggle { display: block; }
 
   .brand { font-size: 17px; }
   .tag { display: none; }

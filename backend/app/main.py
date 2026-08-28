@@ -445,7 +445,7 @@ def contrast_endpoint(req: ContrastRequest) -> dict:
 
 class ImageryRequest(BaseModel):
     location: Location
-    buffer_m: float = 500.0
+    buffer_m: float = 1200.0
 
 
 @app.post("/api/imagery")
