@@ -40,9 +40,13 @@ def main() -> int:
 
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     dummy = torch.zeros(1, ck["in_ch"], a.size, a.size)
+    # dynamo=False ép dùng bộ xuất cũ (TorchScript): trọng số NHÚNG THẲNG vào một
+    # tệp .onnx duy nhất. Bộ xuất mới của torch ≥2.x tách trọng số ra .onnx.data,
+    # nên nếu chỉ chép landcover.onnx lên máy chủ thì mất trọng số → model hỏng.
     torch.onnx.export(
         net, dummy, a.out, input_names=["image"], output_names=["logits"],
-        dynamic_axes={"image": {0: "n"}, "logits": {0: "n"}}, opset_version=17)
+        dynamic_axes={"image": {0: "n"}, "logits": {0: "n"}}, opset_version=17,
+        dynamo=False)
 
     # Thẻ mô hình đi KÈM tệp .onnx. Một mô hình không có điểm số đi cùng thì
     # không ai kiểm được nó tốt tới đâu — và đó là lúc người ta bắt đầu tin bừa.
