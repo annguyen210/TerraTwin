@@ -136,6 +136,35 @@ PRINCIPLES = [
 ]
 
 
+def _principle(name: str, status: str, note: str) -> dict:
+    """Nguyên lý 04 tự cập nhật khi mô hình học sâu có mặt.
+
+    Trước đây trạng thái này ghi CỨNG là "partial". Nghĩa là sau khi huấn luyện
+    xong và chép landcover.onnx lên máy chủ, lộ trình VẪN báo "một phần" cho tới
+    khi có người nhớ ra và sửa tay — phần mềm nói sai về chính nó, đúng kiểu lỗi
+    đã bắt được hai lần trước (mũi nhọn quang học tự khai "preview", C07 tự khai
+    "chờ khoá"). Một trạng thái ghi cứng là một lời nói dối đang chờ tới hạn.
+    """
+    if name != "Hội tụ công nghệ":
+        return {"name": name, "status": status, "note": note}
+
+    from app.services import landcover
+    if not landcover.available():
+        return {"name": name, "status": status, "note": note}
+
+    card = landcover.status()
+    return {
+        "name": name, "status": "done",
+        "note": ("Đủ cả bốn tầng: thuật toán cổ điển, học máy (mô hình bất "
+                 "thường đa biến trên 28.256 ngày ERA5), HỌC SÂU (mạng phân "
+                 "đoạn lớp phủ từ ảnh Sentinel-2, mIoU "
+                 f"{card.get('miou_holdout')} trên tỉnh giữ lại hoàn toàn khỏi "
+                 "tập huấn luyện), và NLP/LLM. Thị giác máy tính nay nhìn được "
+                 "ngữ cảnh không gian — hình dạng và kết cấu — chứ không chỉ "
+                 "xét từng điểm ảnh như chỉ số phổ."),
+    }
+
+
 def status() -> dict:
     """Trạng thái 26 luồng, phản ánh ĐÚNG bản đang chạy.
 
@@ -213,8 +242,7 @@ def status() -> dict:
         "satellite_available": sat,
         "satellite_source": ("Copernicus (có khoá riêng)" if sentinel.configured()
                              else "Microsoft Planetary Computer (không cần khoá)"),
-        "principles": [{"name": n, "status": st, "note": nt}
-                       for n, st, nt in PRINCIPLES],
+        "principles": [_principle(n, st, nt) for n, st, nt in PRINCIPLES],
         "sectors": {
             "planned": 12, "covered": 12,
             "note": ("Bản thiết kế liệt kê 14 mũi nhọn nhưng hứa 12 ngành — hai "

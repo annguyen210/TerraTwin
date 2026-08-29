@@ -13,6 +13,28 @@ import pytest
 from app.services import calibration as cal, passport
 
 
+@pytest.fixture(autouse=True)
+def _khong_ra_mang(monkeypatch):
+    """Chặn MỌI đường ra mạng của lớp này.
+
+    test_dem_theo_nguong_chung_cho_ra_so_KHAC_NHAU từng TREO cả bộ test hơn
+    bốn mươi phút: nó chặn climatology và historical_weather, nhưng
+    passport.history() gọi raw_series() cho lũ và sạt lở, mà hai cái đó tra cao
+    độ và độ dốc THẬT. Một test tự nhận là "offline" mà còn sót một đường ra
+    mạng thì không phải test offline — đúng lỗi đã gặp ở test_cache.py, và tôi
+    tự mắc lại y hệt khi viết tệp này.
+
+    Chặn ở cả hai tầng (datasources và realdata) vì mỗi mô-đun đi một đường
+    khác nhau; chặn một tầng thôi thì đường còn lại vẫn hở.
+    """
+    from app.services import datasources as ds, realdata
+    monkeypatch.setattr(ds, "elevation_proxy", lambda la, lo: 8.0)
+    monkeypatch.setattr(ds, "slope_context", lambda la, lo: (2.0, "giả lập"))
+    monkeypatch.setattr(realdata, "elevation_m", lambda la, lo: 8.0)
+    monkeypatch.setattr(realdata, "slope_deg", lambda la, lo, **k: 2.0)
+    monkeypatch.setattr(realdata, "elevation_multi", lambda pts: [8.0] * len(pts))
+
+
 def test_diem_lay_mau_phu_deu_quanh_thua():
     pts = passport._ring_points(10.0, 106.0)
     assert len(pts) == 1 + len(passport.RINGS_KM) * passport.PER_RING

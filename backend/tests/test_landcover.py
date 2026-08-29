@@ -92,3 +92,26 @@ def test_chấm_bằng_iou_tung_lop_khong_phai_do_chinh_xac_tong():
     src = open(p, encoding="utf-8").read()
     assert "iou_per_class" in src
     assert "Bề mặt xây dựng" in src, "phải theo dõi riêng lớp hiếm nhưng quan trọng"
+
+
+def test_nguyen_ly_hoi_tu_tu_cap_nhat_khi_co_mo_hinh(monkeypatch):
+    """Nguyên lý 04 phải TỰ chuyển sang 'xong' khi mô hình học sâu có mặt.
+
+    Ghi cứng trạng thái là một lời nói dối đang chờ tới hạn: huấn luyện xong,
+    chép tệp lên máy chủ, mà lộ trình vẫn báo "một phần" cho tới khi ai đó nhớ
+    ra và sửa tay. Đúng kiểu lỗi đã bắt được hai lần trước — mũi nhọn quang học
+    tự khai "preview", C07 tự khai "chờ khoá".
+    """
+    from app.services import landcover as lc, roadmap
+
+    def _lay(d):
+        return next(p for p in d["principles"] if p["name"] == "Hội tụ công nghệ")
+
+    monkeypatch.setattr(lc, "available", lambda: False)
+    assert _lay(roadmap.status())["status"] == "partial"
+
+    monkeypatch.setattr(lc, "available", lambda: True)
+    monkeypatch.setattr(lc, "status", lambda: {"miou_holdout": 0.62})
+    sau = _lay(roadmap.status())
+    assert sau["status"] == "done"
+    assert "HỌC SÂU" in sau["note"] and "0.62" in sau["note"]

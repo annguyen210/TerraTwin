@@ -133,11 +133,22 @@ def history(lat: float, lon: float, years: int = 10) -> dict | None:
             continue
         floor = cal._FLOOR.get(mid, 0.0)
 
+        # Tra địa hình MỘT LẦN, ngoài vòng lặp — cùng lý do như trong
+        # calibration._rolling_peaks: toạ độ không di chuyển giữa các cửa sổ,
+        # nên hỏi cao độ 3.646 lần là hỏi lại đúng một câu.
+        fn = cal._RAW_FIXED.get(mid)
+        dh = cal._TERRAIN.get(mid)
+        if fn is None:
+            continue
+        terrain = dh(lat, lon) if dh else None
+        if dh is not None and terrain is None:
+            continue
+
         nang_nhat = (0.0, None)
         vuot = []
         for i in range(len(rows) - W):
             w = [{**r, "day": j} for j, r in enumerate(rows[i:i + W])]
-            sr = cal.raw_series(mid, lat, lon, w)
+            sr = fn(w, terrain)
             if not sr:
                 continue
             v = max(x for _, _, x in sr)
