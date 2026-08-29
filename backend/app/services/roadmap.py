@@ -45,13 +45,24 @@ FLOWS = [
      "Kho quan sát thực địa làm dataset + chấm mô hình bằng POD/FAR/CSI, chỉ ra "
      "vùng nào đang lệch. Phần HUẤN LUYỆN lại cần GPU và dataset gán nhãn lớn — "
      "chưa có, nhưng không đo được thì huấn luyện chỉ là tiêu tiền trong bóng tối."),
-    ("S10", "Generative Vision", "signature", "declined",
-     "TỪ CHỐI VÌ NGUYÊN TẮC, không phải 'chưa làm được'. Siêu phân giải bằng "
-     "diffusion sinh ra tấm ảnh trông y hệt ảnh vệ tinh thật, nhưng từng chi "
-     "tiết trong đó là do model tưởng tượng. Người dùng nhìn vào tưởng đang xem "
-     "bằng chứng, thật ra đang xem một phỏng đoán được vẽ đẹp — mâu thuẫn trực "
-     "tiếp với điểm mạnh nhất của sản phẩm (bằng chứng thật, kiểm chứng được). "
-     "Trần thật vì thế là 25/26 luồng, và đó là con số mạnh hơn 26/26."),
+    ("S10", "Generative Vision", "signature", "partial",
+     "BA PHẦN, và chỉ MỘT phần bị từ chối. Bản trước gộp cả cụm thành "
+     "'declined' — che mất việc hai phần ba của nó là hoàn toàn chính đáng. "
+     "① SẮC NÉT 20m→10m, NÊN LÀM: Sentinel-2 có 4 băng ở 10m và 6 băng ở 20m, "
+     "cùng vị trí cùng thời điểm. Chuyển chi tiết không gian từ băng 10m ĐÃ "
+     "QUAN SÁT ĐƯỢC sang băng 20m không phải bịa — thông tin là thật, chỉ được "
+     "chuyển giao giữa các băng. Giá trị đo được: B11 (20m) là băng tính NDMI, "
+     "thứ báo hạn sớm hơn NDVI. "
+     "② DỮ LIỆU TỔNG HỢP để huấn luyện, NÊN LÀM: nó không bao giờ đến tay "
+     "người dùng, chỉ làm model tốt hơn. train.py đã có dạng cơ bản. "
+     "③ ẢNH 'TƯƠNG LAI' theo kịch bản, LÀM ĐƯỢC TRUNG THỰC và không cần model "
+     "sinh nào: phủ kết quả kịch bản lên chính ảnh vệ tinh THẬT của thửa — nền "
+     "là ảnh thật, lớp phủ là dự phóng kèm mức tin cậy. Đúng điều kiện mà đặc "
+     "tả gốc đã tự đặt ra. "
+     "TỪ CHỐI riêng phần sinh chi tiết DƯỚI 10m bằng diffusion: không cảm biến "
+     "nào quan sát được mức đó, nên từng điểm ảnh là do model tưởng tượng. Nếu "
+     "vẫn làm thì hai hàng rào bắt buộc — không bao giờ đưa vào phép đo, và "
+     "nhãn hiện trên chính tấm ảnh chứ không giấu ở chú thích."),
 
     # ----- Cốt lõi (12) -----
     ("C01", "Twin Builder", "core", "done",
