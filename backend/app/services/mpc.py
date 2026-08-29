@@ -303,12 +303,34 @@ def index_distribution(lat: float, lon: float, index: str = "NDVI",
     except (KeyError, IndexError, TypeError):
         return None
 
+    # ĐỦ MỌI TRƯỜNG mà bản Copernicus trả về. Thiếu một cái là hàm dùng nó nổ
+    # KeyError hoặc trả None, và triệu chứng lộ ra ở tận mô-đun carbon dưới dạng
+    # "không dựng được phân bố" — nghe như thiếu ảnh, trong khi ảnh đã có sẵn.
+    # Đã sập hai lần liên tiếp (thiếu `bins`, rồi thiếu `area_ha`), nên lần này
+    # đối chiếu thẳng danh sách trường mà mrv.py thật sự đọc.
+    px = 10.0
+    valid = int(st.get("count", 0))
+    tong = max(1, int((buffer_m * 2 / px) ** 2))
     out = {
         "date": it["properties"]["datetime"][:10],
+        "observed_window": [start.isoformat(), end.isoformat()],
+        "pixel_m": px,
+        "area_ha": round((buffer_m * 2) ** 2 / 10_000.0, 3),
+        "valid_px": valid,
+        "total_px": tong,
+        "coverage_pct": round(100.0 * valid / tong, 1),
         "index": index,
         "mean": round(st["mean"], 4),
         "std": round(st.get("std", 0.0), 4),
         "valid_px": int(st.get("count", 0)),
+        # ĐÚNG DẠNG mà sentinel.fraction_above() mong đợi: danh sách bin có
+        # low/high/count. Bản đầu trả {counts, edges} theo dạng thô của máy chủ,
+        # nên fraction_above() trả None và mô-đun carbon báo "không dựng được
+        # phân bố" — trong khi ảnh vốn đã lấy được. Lệch hợp đồng giữa bản dự
+        # phòng và bản gốc, không phải thiếu dữ liệu.
+        "bins": [{"low": float(edges[i]), "high": float(edges[i + 1]),
+                  "count": int(counts[i])}
+                 for i in range(min(len(counts), len(edges) - 1))],
         "histogram": {"counts": counts, "edges": edges},
         "cloud_pct": round(float(it["properties"].get("eo:cloud_cover") or 0.0), 1),
         "scene": it["id"],

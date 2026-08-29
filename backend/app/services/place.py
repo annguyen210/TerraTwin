@@ -37,42 +37,115 @@ _last = [0.0]
 _MIN_GAP = 1.1
 
 
-def _query(q: str) -> list | None:
-    url = SEARCH + "?" + urllib.parse.urlencode({
-        "q": q,
-        "format": "jsonv2",
-        "countrycodes": "vn",     # chỉ Việt Nam — sản phẩm không phục vụ nơi khác
-        "limit": _LIMIT,
-        "addressdetails": 1,
-    })
+# BA NGUỒN, thử lần lượt — và đây là bài học phải trả giá.
+#
+# Bản đầu chỉ dùng Nominatim. Nó bị CHẶN HẲN từ máy này ("connection forcibly
+# closed"), nên ô tìm kiếm trả rỗng cho MỌI truy vấn. Người dùng gõ tên xã của
+# mình, không ra gì, và kết luận phần mềm chỉ chạy được ở tám nơi có sẵn trong
+# danh sách chọn nhanh. Họ kết luận đúng với thứ họ trải nghiệm.
+#
+# Một dịch vụ cộng đồng miễn phí CÓ THỂ chặn bất kỳ ai bất kỳ lúc nào. Cho
+# đường vào chính của sản phẩm phụ thuộc vào đúng một dịch vụ như thế là lỗi
+# thiết kế, không phải rủi ro vận hành.
+#
+# Đo thật, cùng truy vấn "Ba Tri Ben Tre":
+#   Open-Meteo Geocoding  1,0s  · sạch, chỉ địa danh hành chính
+#   Photon (Komoot)       1,0s  · phủ dày hơn (tìm được Trà Leng, Đất Mũi)
+#                                 nhưng lẫn quán ăn, nhà hát → phải lọc
+#   Nominatim             HỎNG  · bị chặn
+GEO_OM = "https://geocoding-api.open-meteo.com/v1/search"
+PHOTON = "https://photon.komoot.io/api/"
+
+# Loại địa điểm Photon được nhận. Không lọc thì "Ba Tri" ra "Bánh Bao Bến Tre".
+_PHOTON_OK = {
+    "city", "town", "village", "hamlet", "suburb", "quarter", "neighbourhood",
+    "municipality", "administrative", "county", "state", "province", "region",
+    "district", "locality", "island", "national_park",
+}
+
+
+def _get(url: str, timeout: float = TIMEOUT) -> dict | None:
+    try:
+        req = urllib.request.Request(
+            url, headers={"User-Agent": USER_AGENT, "Accept-Language": "vi,en"})
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return json.loads(r.read().decode("utf-8"))
+    except Exception:
+        return None
+
+
+def _from_open_meteo(q: str) -> list | None:
+    d = _get(GEO_OM + "?" + urllib.parse.urlencode(
+        {"name": q, "count": _LIMIT, "language": "vi"}))
+    if not d:
+        return None
+    out = []
+    for it in d.get("results", []):
+        if it.get("country_code") != "VN":
+            continue
+        phu = " · ".join(x for x in (it.get("admin2"), it.get("admin1")) if x)
+        try:
+            out.append({"label": f"{it['name']}" + (f" · {phu}" if phu else ""),
+                        "lat": float(it["latitude"]), "lon": float(it["longitude"]),
+                        "kind": it.get("feature_code") or "", "source": "open-meteo"})
+        except (KeyError, TypeError, ValueError):
+            continue
+    return out
+
+
+def _from_photon(q: str) -> list | None:
+    d = _get(PHOTON + "?" + urllib.parse.urlencode(
+        {"q": q, "limit": _LIMIT * 3, "lang": "en"}))
+    if not d:
+        return None
+    out = []
+    for f in d.get("features", []):
+        p = f.get("properties", {})
+        if p.get("countrycode") != "VN":
+            continue
+        if p.get("osm_value") not in _PHOTON_OK:
+            continue
+        try:
+            c = f["geometry"]["coordinates"]
+            phu = " · ".join(x for x in (p.get("county"), p.get("state")) if x)
+            out.append({"label": f"{p.get('name')}" + (f" · {phu}" if phu else ""),
+                        "lat": float(c[1]), "lon": float(c[0]),
+                        "kind": p.get("osm_value") or "", "source": "photon"})
+        except (KeyError, IndexError, TypeError, ValueError):
+            continue
+        if len(out) >= _LIMIT:
+            break
+    return out
+
+
+def _from_nominatim(q: str) -> list | None:
+    """Giữ lại làm nguồn cuối. Bị chặn từ máy phát triển nhưng có thể chạy được
+    ở nơi khác, và nó phủ dày nhất trong ba nguồn khi hoạt động."""
     with _GATE:
         gap = time.time() - _last[0]
         if gap < _MIN_GAP:
             time.sleep(_MIN_GAP - gap)
         try:
-            req = urllib.request.Request(
-                url, headers={"User-Agent": USER_AGENT,
-                              "Accept-Language": "vi,en"})
-            with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-                return json.loads(r.read().decode("utf-8"))
-        except Exception:
-            return None
+            d = _get(SEARCH + "?" + urllib.parse.urlencode({
+                "q": q, "format": "jsonv2", "countrycodes": "vn",
+                "limit": _LIMIT, "addressdetails": 1}))
         finally:
             _last[0] = time.time()
+    if not d:
+        return None
+    out = []
+    for it in d:
+        try:
+            out.append({"label": _label(it), "lat": float(it["lat"]),
+                        "lon": float(it["lon"]),
+                        "kind": it.get("addresstype") or it.get("type") or "",
+                        "source": "nominatim"})
+        except (KeyError, TypeError, ValueError):
+            continue
+    return out
 
 
-def _label(item: dict) -> str:
-    """Tên gọn, bỏ phần đuôi lặp lại.
-
-    Nominatim trả về chuỗi rất dài kiểu "Xã An Đức, Huyện Ba Tri, Tỉnh Bến Tre,
-    Đồng bằng sông Cửu Long, 86000, Việt Nam". Giữ hết thì không đọc nổi trên
-    một dòng, nên lấy ba đoạn đầu — đủ để phân biệt hai xã trùng tên.
-    """
-    full = item.get("display_name") or ""
-    parts = [p.strip() for p in full.split(",") if p.strip()]
-    drop = {"việt nam", "vietnam"}
-    parts = [p for p in parts if p.lower() not in drop and not p.isdigit()]
-    return ", ".join(parts[:3]) if parts else full
+_SOURCES = (_from_open_meteo, _from_photon, _from_nominatim)
 
 
 def search(q: str) -> dict:
@@ -87,23 +160,24 @@ def search(q: str) -> dict:
     if hit is not None:
         return {"query": q, "results": hit, "cached": True}
 
-    raw = _query(q)
-    if raw is None:
-        return {"query": q, "results": [],
-                "message": ("Chưa tìm được — dịch vụ tra cứu địa danh đang bận. "
-                            "Bạn có thể bấm thẳng lên bản đồ.")}
-
-    out = []
-    for it in raw:
-        try:
-            out.append({
-                "label": _label(it),
-                "lat": float(it["lat"]),
-                "lon": float(it["lon"]),
-                "kind": it.get("addresstype") or it.get("type") or "",
-            })
-        except (KeyError, TypeError, ValueError):
+    # Thử lần lượt, dừng ở nguồn ĐẦU TIÊN có kết quả. Không gộp kết quả các
+    # nguồn: chúng đặt tên khác nhau nên gộp lại sinh ra danh sách trùng lặp
+    # trông như lỗi.
+    out, hong = [], 0
+    for lay in _SOURCES:
+        r = lay(q)
+        if r is None:
+            hong += 1
             continue
+        if r:
+            out = r
+            break
+
+    if not out and hong == len(_SOURCES):
+        return {"query": q, "results": [],
+                "message": ("Chưa tìm được — cả ba dịch vụ tra cứu địa danh đều "
+                            "không phản hồi. Bạn vẫn bấm thẳng lên bản đồ được, "
+                            "hoặc dùng nút định vị.")}
 
     if not out:
         # CỐ Ý KHÔNG CACHE KẾT QUẢ RỖNG. Rỗng có thể chỉ là nhất thời — dịch vụ
