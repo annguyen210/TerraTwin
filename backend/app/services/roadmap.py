@@ -7,6 +7,7 @@ Quy ước `status`:
   done     — chạy được, có test, dùng dữ liệu thật hoặc thuật toán kiểm chứng được
   partial  — phần lõi chạy, còn thiếu một mảnh đã nói rõ
   blocked  — CHƯA làm, và ghi rõ đang chờ thứ gì
+  declined — CỐ Ý KHÔNG làm vì nguyên tắc (khác blocked: không phải chưa làm được)
 
 `blocked_by` phải nói thật thứ đang chặn, không được viết "đang phát triển".
 
@@ -44,13 +45,13 @@ FLOWS = [
      "Kho quan sát thực địa làm dataset + chấm mô hình bằng POD/FAR/CSI, chỉ ra "
      "vùng nào đang lệch. Phần HUẤN LUYỆN lại cần GPU và dataset gán nhãn lớn — "
      "chưa có, nhưng không đo được thì huấn luyện chỉ là tiêu tiền trong bóng tối."),
-    ("S10", "Generative Vision", "signature", "blocked",
-     "Ảnh Sentinel đã có (từ bản này), nhưng siêu phân giải bằng diffusion còn "
-     "thiếu HAI thứ chưa mua được bằng công sức: GPU để suy luận và một model "
-     "đã huấn luyện trên ảnh viễn thám. Không làm bản giả: một tấm ảnh 'siêu "
-     "phân giải' do model bịa ra trông y hệt ảnh vệ tinh thật nhưng chi tiết "
-     "trong đó là do model tưởng tượng — dùng nó để kết luận về đất đai còn "
-     "nguy hiểm hơn là không có ảnh."),
+    ("S10", "Generative Vision", "signature", "declined",
+     "TỪ CHỐI VÌ NGUYÊN TẮC, không phải 'chưa làm được'. Siêu phân giải bằng "
+     "diffusion sinh ra tấm ảnh trông y hệt ảnh vệ tinh thật, nhưng từng chi "
+     "tiết trong đó là do model tưởng tượng. Người dùng nhìn vào tưởng đang xem "
+     "bằng chứng, thật ra đang xem một phỏng đoán được vẽ đẹp — mâu thuẫn trực "
+     "tiếp với điểm mạnh nhất của sản phẩm (bằng chứng thật, kiểm chứng được). "
+     "Trần thật vì thế là 25/26 luồng, và đó là con số mạnh hơn 26/26."),
 
     # ----- Cốt lõi (12) -----
     ("C01", "Twin Builder", "core", "done",
@@ -174,7 +175,7 @@ def status() -> dict:
         })
 
     counts = {k: sum(1 for f in flows if f["status"] == k)
-              for k in ("done", "partial", "blocked")}
+              for k in ("done", "partial", "blocked", "declined")}
     waiting_n = sum(1 for f in flows if f["awaiting_config"])
     live = counts["done"] - waiting_n
 
@@ -190,6 +191,8 @@ def status() -> dict:
 
     head = (f"{counts['done']}/{len(flows)} luồng đã viết xong · "
             f"{counts['partial']} một phần · {counts['blocked']} đang bị chặn")
+    if counts["declined"]:
+        head += f" · {counts['declined']} từ chối vì nguyên tắc"
     if waiting_n:
         head += (f" · {waiting_n} luồng chờ khóa Copernicus "
                  f"(đang chạy thật: {live}/{len(flows)})")
@@ -227,9 +230,10 @@ def status() -> dict:
         "headline": head,
         "honesty_note": (
             "Bảng này sinh từ mã nguồn, không viết tay, nên không thể lệch với "
-            "phần mềm. Luồng còn bị chặn thiếu GPU và một model diffusion đã "
-            "huấn luyện — hai thứ không mua được bằng công sức viết code. Chúng "
-            "tôi không dựng endpoint rỗng để đếm cho đủ 26: một con số carbon bịa "
-            "có thể gây thiệt hại tiền thật, và một tấm ảnh 'siêu phân giải' do "
-            "model tưởng tượng ra còn nguy hiểm hơn là không có ảnh."),
+            "phần mềm. Luồng duy nhất không đạt 26/26 là S10 Generative Vision — "
+            "và nó bị TỪ CHỐI VÌ NGUYÊN TẮC, không phải chưa làm được: một tấm "
+            "ảnh 'siêu phân giải' do model tưởng tượng ra trông y hệt ảnh thật "
+            "nhưng chi tiết là bịa, dùng nó kết luận về đất đai còn nguy hiểm hơn "
+            "không có ảnh. Chúng tôi cũng không dựng endpoint rỗng để đếm cho đủ "
+            "26. Trần thật 25/26 mạnh hơn con số 26/26 khoe cho đẹp."),
     }

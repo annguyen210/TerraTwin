@@ -19,6 +19,7 @@ const DOT: Record<string, { c: string; t: string }> = {
   done: { c: "#5fcb8e", t: "chạy thật" },
   partial: { c: "#B07A2E", t: "một phần" },
   blocked: { c: "#C2412E", t: "bị chặn" },
+  declined: { c: "#7d8ea0", t: "từ chối vì nguyên tắc" },
 };
 
 export default function Roadmap() {
