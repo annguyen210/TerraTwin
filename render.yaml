@@ -21,7 +21,12 @@ services:
     runtime: python
     plan: free
     rootDir: backend
-    buildCommand: pip install -r requirements.txt psycopg[binary]==3.2.3
+    # onnxruntime cài sẵn ở đây, KHÔNG phải để dùng ngay. Nếu bạn huấn luyện
+    # mô hình lớp phủ trên máy có GPU rồi chép landcover.onnx lên, máy chủ phải
+    # có sẵn thư viện đọc nó — nếu không, lớp học sâu IM LẶNG trả None và bạn
+    # mất 4-8 tiếng huấn luyện mà không biết vì sao model không được dùng.
+    # Chưa có tệp .onnx thì thư viện này chỉ nằm im, không ảnh hưởng gì.
+    buildCommand: pip install -r requirements.txt psycopg[binary]==3.2.3 onnxruntime
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/health
     envVars:

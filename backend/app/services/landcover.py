@@ -8,10 +8,21 @@ lẫn lộn mái tôn với đất khô — hai thứ phản xạ gần giống 
 nhìn cả vùng lân cận nên thấy được hình chữ nhật, đường thẳng, kết cấu đều đặn
 của mái nhà. Đó là năng lực mà công thức không có, không phải nhãn dán.
 
-TRẠNG THÁI THẬT: mã đã viết xong và có test, nhưng mô hình CHƯA ĐƯỢC HUẤN LUYỆN
-— máy phát triển không có GPU và không cài được torch. Cho tới khi có tệp
-.onnx, mọi hàm ở đây trả None và các mô-đun tiếp tục dùng chỉ số phổ như cũ.
-Không có bản giả lập nào để "trông cho có".
+TRẠNG THÁI THẬT: đường ống huấn luyện ĐÃ ĐƯỢC CHẠY THẬT ĐẦU-CUỐI trên máy có
+torch — fetch --smoke lấy ảnh Sentinel-2 qua Planetary Computer, train --smoke
+dựng UNet 1,9 triệu tham số đúng kích thước, export ra một tệp ONNX 7,7 MB, và
+onnxruntime chạy suy luận (n,4,256,256 → n,11,256,256). Nhưng mô hình THẬT thì
+chưa huấn luyện: việc đó cần 4–8 giờ trên GPU.
+
+Cho tới khi có tệp .onnx, mọi hàm ở đây trả None và các mô-đun tiếp tục dùng chỉ
+số phổ như cũ. Không có bản giả lập nào để "trông cho có".
+
+HAI CÁI BẪY ĐẮT TIỀN đã được chặn ở đây, cả hai đều làm mất công huấn luyện:
+  · Thiếu onnxruntime trên máy chủ → lớp này im lặng trả None, nhìn từ ngoài y
+    hệt "chưa huấn luyện". status() nay phân biệt rõ hai trường hợp đó.
+  · torch ≥2.x mặc định tách trọng số ra tệp .onnx.data riêng, nên chép mỗi
+    landcover.onnx lên máy chủ sẽ được một khung rỗng. export.py ép dynamo=False
+    để gói tất cả vào một tệp.
 """
 from __future__ import annotations
 
@@ -74,10 +85,19 @@ def status() -> dict:
             import onnxruntime  # noqa: F401
         except ImportError:
             thieu.append("chưa cài onnxruntime")
+        # Nói rõ CÓ TỆP MÔ HÌNH nhưng THIẾU THƯ VIỆN — đây là cái bẫy đắt nhất:
+        # người dùng huấn luyện 4-8 tiếng, chép tệp lên máy chủ, rồi lớp này im
+        # lặng trả None vì onnxruntime chưa cài. Nhìn từ ngoài y hệt như "chưa
+        # huấn luyện", nên rất dễ đi huấn luyện lại lần nữa.
+        co_tep = os.path.exists(MODEL_PATH)
         return {
             "available": False,
             "missing": thieu,
+            "model_file_present": co_tep,
             "message": (
+                "ĐÃ CÓ tệp mô hình nhưng máy chủ thiếu onnxruntime — chạy "
+                "`pip install onnxruntime` rồi khởi động lại. Không cần huấn "
+                "luyện lại." if co_tep and "chưa cài onnxruntime" in thieu else
                 "Mô hình học sâu chưa sẵn sàng. Mã huấn luyện đã có sẵn trong "
                 "app/dl/ và chạy được trên máy có GPU: fetch → train → export. "
                 "Trong lúc chờ, các mô-đun vẫn dùng chỉ số phổ cổ điển — kém "

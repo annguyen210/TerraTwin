@@ -355,7 +355,13 @@ def test_roadmap_dem_dung_va_khop_tong(client):
     """
     d = client.get("/api/roadmap").json()
     assert d["total"] == 26
-    assert d["done"] + d["partial"] + d["blocked"] == 26
+    # PHẢI CỘNG CẢ `declined`. S10 chuyển từ "blocked" sang "declined" — cố ý
+    # không làm vì nguyên tắc, khác hẳn "chưa làm được". Bỏ sót một trạng thái
+    # thì phép cộng hụt và test đỏ dù không có gì sai; tệ hơn, nếu ai đó thêm
+    # trạng thái mới mà quên ở đây thì một luồng có thể biến mất khỏi mọi phép
+    # đếm mà không ai thấy.
+    assert (d["done"] + d["partial"] + d["blocked"]
+            + d.get("declined", 0)) == 26
     assert d["live"] + d["awaiting_config"] == d["done"]
     assert d["live"] <= d["done"] <= d["total"]
     for tier in d["by_tier"].values():
