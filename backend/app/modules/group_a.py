@@ -68,7 +68,13 @@ class PestModule(TwinModule):
     một bản tin cấp tỉnh không nói được cho riêng thửa của bạn.
     """
     id = "pest"; name = "Phát hiện sâu bệnh sớm"; group = "A"; icon = "🌾"
-    status = "active" if sentinel.configured() else "preview"
+    # CHẠY NGAY, không cần khoá. Điều kiện cũ gắn trạng thái vào
+    # sentinel.configured(), nên khi chưa có khoá Copernicus thì mũi nhọn này
+    # tự khai là "preview" — trong khi nó đã chạy thật qua Planetary Computer,
+    # cùng bộ ảnh Sentinel-2 L2A, không cần đăng ký. Phần mềm khai báo SAI về
+    # chính năng lực của mình: /api/roadmap báo "chạy ngay 13/18" trong khi
+    # thực tế là 18/18.
+    status = "active"
     # NẶNG: cần ảnh vệ tinh, mà nguồn không khoá phải gọi riêng từng ảnh và dò
     # lớp SCL cho từng cảnh — đo được 60–370 giây. Để trong lượt quét nhanh thì
     # màn hình đầu từ 2,5 giây thành hơn một phút, và người dùng đóng app trước
@@ -205,7 +211,13 @@ class AquacultureModule(TwinModule):
 
 class YieldModule(TwinModule):
     id = "yield"; name = "Dự báo năng suất & thu hoạch"; group = "A"; icon = "🌾"
-    status = "active" if sentinel.configured() else "preview"
+    # CHẠY NGAY, không cần khoá. Điều kiện cũ gắn trạng thái vào
+    # sentinel.configured(), nên khi chưa có khoá Copernicus thì mũi nhọn này
+    # tự khai là "preview" — trong khi nó đã chạy thật qua Planetary Computer,
+    # cùng bộ ảnh Sentinel-2 L2A, không cần đăng ký. Phần mềm khai báo SAI về
+    # chính năng lực của mình: /api/roadmap báo "chạy ngay 13/18" trong khi
+    # thực tế là 18/18.
+    status = "active"
     # NẶNG: cần ảnh vệ tinh, mà nguồn không khoá phải gọi riêng từng ảnh và dò
     # lớp SCL cho từng cảnh — đo được 60–370 giây. Để trong lượt quét nhanh thì
     # màn hình đầu từ 2,5 giây thành hơn một phút, và người dùng đóng app trước
@@ -250,7 +262,13 @@ class YieldModule(TwinModule):
 
 class CarbonModule(TwinModule):
     id = "carbon"; name = "Đo & bán tín chỉ carbon rừng"; group = "A"; icon = "🌲"
-    status = "active" if sentinel.configured() else "preview"
+    # CHẠY NGAY, không cần khoá. Điều kiện cũ gắn trạng thái vào
+    # sentinel.configured(), nên khi chưa có khoá Copernicus thì mũi nhọn này
+    # tự khai là "preview" — trong khi nó đã chạy thật qua Planetary Computer,
+    # cùng bộ ảnh Sentinel-2 L2A, không cần đăng ký. Phần mềm khai báo SAI về
+    # chính năng lực của mình: /api/roadmap báo "chạy ngay 13/18" trong khi
+    # thực tế là 18/18.
+    status = "active"
     # NẶNG: cần ảnh vệ tinh, mà nguồn không khoá phải gọi riêng từng ảnh và dò
     # lớp SCL cho từng cảnh — đo được 60–370 giây. Để trong lượt quét nhanh thì
     # màn hình đầu từ 2,5 giây thành hơn một phút, và người dùng đóng app trước

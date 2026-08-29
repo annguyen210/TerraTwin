@@ -371,22 +371,29 @@ def test_luong_bi_chan_phai_noi_ro_dang_thieu_gi(client):
             assert "đang phát triển" not in note, f["id"]
 
 
-def test_luong_cho_khoa_phai_tu_danh_dau(client, monkeypatch):
-    """Luồng cần vệ tinh phải tự khai là chưa chạy được khi thiếu khóa.
+def test_khong_co_khoa_van_co_anh_nhung_phai_noi_ro_nguon(client, monkeypatch):
+    """Không có khoá Copernicus thì VẪN lấy được ảnh — nhưng phải nói rõ từ đâu.
 
-    Đây là chỗ dễ nói dối nhất: mã đã viết xong nên rất cám dỗ để đếm là
-    "xong", trong khi người dùng bấm vào chỉ thấy 'chưa đủ dữ liệu'.
+    Test này TRƯỚC ĐÂY khẳng định điều ngược lại: thiếu khoá thì luồng vệ tinh
+    phải tự khai là chưa chạy được. Đó là sự thật ở thời điểm nó được viết. Nay
+    sentinel tự chuyển sang Planetary Computer — cùng bộ Sentinel-2 L2A, công
+    khai, không đăng ký — nên các luồng đó chạy thật.
+
+    Điều PHẢI giữ nguyên là sự rạch ròi giữa hai khái niệm:
+        satellite_configured — có khoá riêng hay không
+        satellite_available  — có lấy được ảnh hay không
+    Gộp chúng lại thì "configured" hoá ra True dù không hề có khoá, và người
+    đọc tưởng đã cấu hình xong. Đó mới là chỗ dễ nói dối.
     """
     monkeypatch.delenv("TERRATWIN_COPERNICUS_ID", raising=False)
     monkeypatch.delenv("TERRATWIN_COPERNICUS_SECRET", raising=False)
     d = client.get("/api/roadmap").json()
-    assert d["satellite_configured"] is False
-    sat = [f for f in d["flows"] if f["requires"] == "satellite"]
-    assert sat, "phải có ít nhất một luồng phụ thuộc vệ tinh"
-    for f in sat:
-        assert f["awaiting_config"] is True
-        assert f["awaiting_note"]
-    assert d["live"] < d["done"]
+    assert d["satellite_configured"] is False, "không có khoá thì phải nói là không"
+    assert d["satellite_available"] is True, "vẫn phải lấy được ảnh qua nguồn mở"
+    assert "không cần khoá" in d["satellite_source"]
+    for f in [f for f in d["flows"] if f["requires"] == "satellite"]:
+        assert f["awaiting_config"] is False, (
+            f"{f['id']} khai là chờ khoá trong khi nó đã chạy được")
 
 
 def test_co_khoa_thi_khong_con_luong_nao_cho(client, monkeypatch):

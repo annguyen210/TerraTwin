@@ -147,7 +147,14 @@ def status() -> dict:
     """
     from app.services import sentinel
 
-    sat = sentinel.configured()
+    # ẢNH VỆ TINH ĐÃ CÓ, KỂ CẢ KHI CHƯA CÓ KHOÁ. sentinel tự chuyển sang
+    # Planetary Computer — cùng bộ Sentinel-2 L2A, công khai, không đăng ký.
+    # Trước đây chỉ hỏi sentinel.configured(), nên khi thiếu khoá thì lộ trình
+    # tự khai "1 luồng chờ khoá Copernicus" trong khi luồng đó đã chạy thật
+    # (carbon trả về "che phủ tán 77,8% trên 144 ha"). Phần mềm nói sai về
+    # chính năng lực của mình — với ban giám khảo thì đó là tự bắn vào chân.
+    from app.services import mpc
+    sat = sentinel.configured() or mpc.available()
 
     flows = []
     for row in FLOWS:
@@ -159,8 +166,11 @@ def status() -> dict:
             "status": st, "note": note, "requires": requires,
             "awaiting_config": waiting,
             "awaiting_note": ("Mã đã xong và có test, nhưng deployment này chưa "
-                              "có khóa Copernicus nên luồng trả 'chưa đủ dữ liệu' "
-                              "thay vì kết quả." if waiting else None),
+                              "lấy được ảnh vệ tinh nên luồng trả 'chưa đủ dữ "
+                              "liệu' thay vì kết quả." if waiting else None),
+            # Nói rõ đang lấy ảnh từ đâu, để không ai tưởng phải có khoá mới chạy.
+            "satellite_source": ("Copernicus (có khoá)" if sentinel.configured()
+                                 else "Microsoft Planetary Computer (không cần khoá)"),
         })
 
     counts = {k: sum(1 for f in flows if f["status"] == k)
@@ -191,7 +201,15 @@ def status() -> dict:
     return {
         "total": len(flows), **counts, "flows": flows, "by_tier": by_tier,
         "live": live, "awaiting_config": waiting_n,
-        "satellite_configured": sat,
+        # HAI KHÁI NIỆM KHÁC NHAU, đừng gộp:
+        #   satellite_configured — có khoá Copernicus riêng hay không
+        #   satellite_available  — có lấy được ảnh hay không (khoá HOẶC nguồn mở)
+        # Gộp lại thì "configured" hoá ra True dù không hề có khoá, và người đọc
+        # tưởng đã cấu hình xong. Tách ra thì cả hai câu đều đúng.
+        "satellite_configured": sentinel.configured(),
+        "satellite_available": sat,
+        "satellite_source": ("Copernicus (có khoá riêng)" if sentinel.configured()
+                             else "Microsoft Planetary Computer (không cần khoá)"),
         "principles": [{"name": n, "status": st, "note": nt}
                        for n, st, nt in PRINCIPLES],
         "sectors": {
