@@ -111,12 +111,43 @@ def raw_series(module_id: str, lat: float, lon: float, rows):
 
 # ---------- Tầng 2: khí hậu nền của CHÍNH điểm đó ----------
 
+# Địa hình của một toạ độ KHÔNG đổi giữa các cửa sổ thời gian. Tra nó bên trong
+# vòng lặp là hỏi cùng một câu 3.646 lần.
+_TERRAIN = {
+    "flood": lambda lat, lon: ds.elevation_proxy(lat, lon),
+    "landslide": lambda lat, lon: ds.slope_context(lat, lon)[0],
+}
+_RAW_FIXED = {
+    "flood": raw_flood,
+    "landslide": raw_landslide,
+    "drought": lambda rows, _: raw_drought(rows),
+    "wildfire": lambda rows, _: raw_wildfire(rows),
+}
+
+
 def _rolling_peaks(module_id: str, lat: float, lon: float, rows) -> list[float]:
-    """Đỉnh động lực thô của mọi cửa sổ 7 ngày trong chuỗi lịch sử."""
+    """Đỉnh động lực thô của mọi cửa sổ 7 ngày trong chuỗi lịch sử.
+
+    ĐỊA HÌNH ĐƯỢC TRA MỘT LẦN, ngoài vòng lặp. Bản trước gọi raw_series() cho
+    từng cửa sổ, mà với lũ và sạt lở thì raw_series lại tra cao độ/độ dốc — tức
+    là hỏi cùng một câu 3.646 lần cho một toạ độ không hề di chuyển. Kết quả tuy
+    lấy từ cache nhưng riêng chi phí gọi hàm đã chiếm gần hết thời gian: đo được
+    lũ 1,04s và sạt lở 0,91s, trong khi hạn và cháy — hai module không cần địa
+    hình — chỉ mất 0,04s.
+    """
+    fn = _RAW_FIXED.get(module_id)
+    if fn is None:
+        return []
+    dh = _TERRAIN.get(module_id)
+    terrain = dh(lat, lon) if dh else None
+    if dh is not None and terrain is None:
+        return []
+
     out = []
-    for i in range(len(rows) - _WINDOW):
+    n = len(rows)
+    for i in range(n - _WINDOW):
         w = [{**r, "day": j} for j, r in enumerate(rows[i:i + _WINDOW])]
-        s = raw_series(module_id, lat, lon, w)
+        s = fn(w, terrain)
         if s:
             out.append(max(v for _, _, v in s))
     return sorted(out)

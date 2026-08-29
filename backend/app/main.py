@@ -285,7 +285,7 @@ def terra(location: Location) -> TerraScoreResult:
 
 
 @app.post("/api/scan", response_model=ScanResult)
-def scan_endpoint(location: Location) -> ScanResult:
+def scan_endpoint(location: Location, deep: bool = False) -> ScanResult:
     """Quét toàn cảnh thửa đất: mọi mũi nhọn nhẹ + cảnh báo ưu tiên, một lần gọi.
 
     Chặn trước ở đây thay vì để từng mô-đun tự xoay xở: mặt biển và đất nước
@@ -303,7 +303,11 @@ def scan_endpoint(location: Location) -> ScanResult:
             modules=[], alerts=[], real_data_ratio=0.0, region=reg,
             generated_at=datetime.now(timezone.utc).isoformat(timespec="seconds"))
 
-    r = scan.scan(location)
+    # deep=true chạy cả những mũi nhọn NẶNG (cần ảnh vệ tinh, 6–60 giây mỗi
+    # cái). Giao diện gọi lượt nhanh trước để có câu trả lời trong vài giây,
+    # rồi gọi lượt sâu ở nền và điền dần — thay vì để bảy ô treo ở "đang kiểm
+    # tra" mãi mãi, thứ trông y hệt như thiếu dữ liệu.
+    r = scan.scan(location, include_heavy=deep)
     r.region = reg
     return r
 

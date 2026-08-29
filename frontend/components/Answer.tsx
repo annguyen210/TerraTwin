@@ -147,7 +147,18 @@ export default function Answer({
     setErr(null);
     setD(null);
     scanAll(lat, lon, area)
-      .then((r) => !huy && setD(r))
+      .then((r) => {
+        if (huy) return;
+        setD(r);
+        // LƯỢT SÂU CHẠY NGAY SAU, ở nền. Bảy mũi nhọn cần ảnh vệ tinh mất 6–60
+        // giây mỗi cái nên không thể để trong lượt nhanh. Nhưng bỏ mặc chúng ở
+        // trạng thái "đang kiểm tra" thì chúng treo vĩnh viễn, và trông y hệt
+        // như thiếu dữ liệu — đúng thứ làm người dùng thấy phần mềm sơ sài.
+        // Gọi tiếp và thay kết quả vào khi xong.
+        scanAll(lat, lon, area, true)
+          .then((sau) => !huy && setD(sau))
+          .catch(() => {});
+      })
       .catch((e) => !huy && setErr(e.message))
       .finally(() => !huy && setBusy(false));
     return () => {

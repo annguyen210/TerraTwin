@@ -238,10 +238,11 @@ export async function scanAll(
   lat: number,
   lon: number,
   areaHa?: number,
+  deep = false,
 ): Promise<ScanResult> {
   const body: Record<string, number> = { lat, lon };
   if (areaHa != null) body.area_ha = areaHa;
-  const r = await fetch(`${BASE}/api/scan`, {
+  const r = await fetch(`${BASE}/api/scan${deep ? "?deep=true" : ""}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
