@@ -29,7 +29,7 @@ from app.schemas import (
 )
 from app.services import (
     anomaly, anomaly_ml, backtest, calibration, copilot, design, explain,
-    genome, goalseek,
+    future, genome, goalseek,
     hazard, heatmap, imagery, jobs, landcover, llm, mrv, place, region,
     passport, roadmap, scan, sentinel,
     terrascore, timelapse, timemachine, whatif, whatif_nlp,
@@ -467,6 +467,20 @@ def imagery_endpoint(req: ImageryRequest) -> dict:
         return off
     return imagery.plot_view(req.location.lat, req.location.lon,
                              buffer_m=max(150.0, min(req.buffer_m, 3000.0)))
+
+
+@app.post("/api/future/{module_id}")
+def future_endpoint(module_id: str, location: Location) -> dict:
+    """S10 ③ — Ảnh 'tương lai': ảnh vệ tinh THẬT + lớp phủ DỰ PHÓNG theo kịch bản.
+
+    Nền là ảnh thật có ngày chụp; lớp phủ là mô phỏng kịch bản (đã hiệu chuẩn +
+    backtest), vẽ tách khỏi ảnh và ghi rõ 'dự phóng' — không có điểm ảnh nào do
+    model tưởng tượng.
+    """
+    off = _off_site_dict(location.lat, location.lon)
+    if off:
+        return off
+    return future.build(module_id, location.lat, location.lon)
 
 
 @app.post("/api/passport")

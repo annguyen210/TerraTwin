@@ -1131,6 +1131,57 @@ export function getImagery(lat: number, lon: number, bufferM = 1200) {
     "Không lấy được ảnh vệ tinh");
 }
 
+// ---- S10 ③ Ảnh "tương lai": ảnh thật + lớp phủ dự phóng theo kịch bản ----
+export type FutureScenario = {
+  label: string;
+  rain_mult: number;
+  temp_delta: number;
+  peak: number;
+  risk: string;
+  risk_vi: string;
+  first_danger_date?: string | null;
+  intensity: number;
+  opacity: number;
+  caption: string;
+};
+
+export type FutureResult = {
+  available: boolean;
+  reason?: string;
+  message?: string;
+  module_id?: string;
+  module_name?: string;
+  unit?: string;
+  safe?: number;
+  warning?: number;
+  is_real?: boolean;
+  confidence?: number;
+  confidence_low?: number;
+  confidence_high?: number;
+  overlay_color?: string;
+  layer_label?: string;
+  scenarios?: FutureScenario[];
+  is_projection?: boolean;
+  disclaimer?: string;
+  note?: string;
+  base_image?: {
+    true_color: string;
+    date: string;
+    cloud_scene_pct?: number;
+  } | null;
+  base_message?: string;
+  span_m?: number;
+  resolution_m?: number;
+  source?: string;
+};
+
+export const FUTURE_MODULES = ["drought", "flood", "wildfire", "landslide"];
+
+export function runFuture(moduleId: string, lat: number, lon: number) {
+  return postJson<FutureResult>(`/api/future/${moduleId}`, { lat, lon },
+    "Không dựng được ảnh tương lai");
+}
+
 export type ModuleContrast = {
   module_id: string;
   windows: number;

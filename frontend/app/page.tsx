@@ -25,6 +25,7 @@ import Copilot from "@/components/Copilot";
 import Backtest from "@/components/Backtest";
 import Overview from "@/components/Overview";
 import WhatIf from "@/components/WhatIf";
+import Future from "@/components/Future";
 import Insights from "@/components/Insights";
 import Portfolio from "@/components/Portfolio";
 import TimeLapse from "@/components/TimeLapse";
@@ -348,6 +349,9 @@ export default function Home() {
             {result && <ResultsPanel a={result} />}
             {coord && result && (
               <WhatIf moduleId={active} lat={coord.lat} lon={coord.lon} />
+            )}
+            {coord && result && (
+              <Future moduleId={active} lat={coord.lat} lon={coord.lon} />
             )}
             {coord && result && (
               <FieldMode moduleId={active} lat={coord.lat} lon={coord.lon} />
