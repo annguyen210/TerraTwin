@@ -17,6 +17,7 @@ import type { HeatmapResult } from "@/lib/api";
 import Account from "@/components/Account";
 import Answer from "@/components/Answer";
 import Start from "@/components/Start";
+import Story from "@/components/Story";
 import Alerts from "@/components/Alerts";
 import FieldMode from "@/components/FieldMode";
 import Heatmap from "@/components/Heatmap";
@@ -104,6 +105,7 @@ export default function Home() {
   const [active, setActive] = useState("salinity");
   const [result, setResult] = useState<Assessment | null>(null);
   const [terra, setTerra] = useState<TerraScore | null>(null);
+  const [story, setStory] = useState(false);
   const [coord, setCoord] = useState<{ lat: number; lon: number } | null>(null);
   const [area, setArea] = useState<number | undefined>(undefined);
   const [loading, setLoading] = useState(false);
@@ -206,6 +208,9 @@ export default function Home() {
 
   return (
     <main className="app">
+      {story && (
+        <Story onClose={() => setStory(false)} onExplore={onStart} />
+      )}
       <aside className={`sidebar${railOpen ? " open" : ""}`}>
         <div className="brand">◵ TerraTwin</div>
         <p className="tag">
@@ -279,7 +284,7 @@ export default function Home() {
             )}
           </p>
         )}
-        {!coord && <Start onPick={onStart} />}
+        {!coord && <Start onPick={onStart} onStory={() => setStory(true)} />}
 
         {coord && (
           <Answer

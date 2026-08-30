@@ -46,8 +46,10 @@ const QUICK: { name: string; lat: number; lon: number; note: string }[] = [
 
 export default function Start({
   onPick,
+  onStory,
 }: {
   onPick: (lat: number, lon: number, label?: string) => void;
+  onStory?: () => void;
 }) {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<PlaceHit[]>([]);
@@ -116,6 +118,13 @@ export default function Start({
         Chọn một chỗ, TerraTwin sẽ kiểm tra <b>toàn bộ rủi ro trong 7 ngày tới</b>{" "}
         và cho biết nên làm gì. Mất khoảng ba giây.
       </p>
+
+      {onStory && (
+        <button className="start-story" onClick={onStory}>
+          ▶ Xem nhanh 90 giây — TerraTwin làm được gì
+          <small>Câu chuyện thật: lũ Huế 2020, có bằng chứng backtest</small>
+        </button>
+      )}
 
       <button className="start-gps" onClick={locate} disabled={locating}>
         {locating ? "Đang xác định vị trí…" : "📍 Dùng vị trí của tôi"}
