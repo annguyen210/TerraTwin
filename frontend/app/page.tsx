@@ -18,6 +18,7 @@ import Account from "@/components/Account";
 import Answer from "@/components/Answer";
 import Start from "@/components/Start";
 import Story from "@/components/Story";
+import MyLand from "@/components/MyLand";
 import Alerts from "@/components/Alerts";
 import FieldMode from "@/components/FieldMode";
 import Heatmap from "@/components/Heatmap";
@@ -284,6 +285,7 @@ export default function Home() {
             )}
           </p>
         )}
+        {!coord && <MyLand user={user} onOpen={onStart} />}
         {!coord && <Start onPick={onStart} onStory={() => setStory(true)} />}
 
         {coord && (
