@@ -3380,3 +3380,7 @@ body {
 .ml-open { font-size:12px; color:var(--terra,#5fcb8e); font-weight:700; }
 .ml-or { display:flex; align-items:center; gap:10px; margin:14px 0 2px; color:var(--dim); font-size:11.5px; }
 .ml-or::before, .ml-or::after { content:""; flex:1; height:1px; background:var(--line); }
+
+/* Ô 'đang chạy nền' (mũi nhọn cần ảnh vệ tinh) — nhấp nháy để thấy grid đang lấp dần */
+.ans-cell.pending { border-left-color:#3aa0a0; animation: ans-pulse 1.3s ease-in-out infinite; }
+.ans-cell.pending .ans-cell-dot { background:#3aa0a0; animation: ans-pulse 1.3s ease-in-out infinite; }

@@ -37,8 +37,10 @@ const TONE: Record<string, string> = {
 // Màu ô trong lưới toàn cảnh. Mục chưa có dữ liệu / đang chạy / ngoài phạm vi →
 // "chờ" (xám), KHÔNG tô như an toàn — "chưa biết" khác "không sao".
 function cellTone(m: ScanModule): string {
-  if (m.status === "need_data" || m.status === "pending" || m.status === "out_of_scope")
-    return "wait";
+  // pending = mũi nhọn cần ảnh vệ tinh, ĐANG chạy nền → nhấp nháy để thấy nó
+  // sắp được lấp (khác need_data/out_of_scope: xám tĩnh vì chưa/không có số).
+  if (m.status === "pending") return "pending";
+  if (m.status === "need_data" || m.status === "out_of_scope") return "wait";
   return TONE[m.risk_level] ?? "wait";
 }
 
