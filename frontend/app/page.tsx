@@ -292,6 +292,7 @@ export default function Home() {
             lon={coord.lon}
             area={area}
             label={placeLabel}
+            modules={modules}
             onSelectModule={selectModule}
             onDetail={() => setTab("overview")}
             onRisk={setPlotRisk}

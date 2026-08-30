@@ -23,7 +23,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { scanAll, type ScanResult, type ScanModule } from "@/lib/api";
+import { scanAll, type ScanResult, type ScanModule, type ModuleInfo } from "@/lib/api";
 import Passport from "./Passport";
 import PlotView from "./PlotView";
 import WhyTrust from "./WhyTrust";
@@ -106,6 +106,7 @@ export default function Answer({
   lon,
   area,
   label,
+  modules,
   onSelectModule,
   onDetail,
   onRisk,
@@ -115,6 +116,9 @@ export default function Answer({
   lon: number;
   area?: number;
   label?: string;
+  // Danh sách mũi nhọn để vẽ lưới skeleton NGAY khi đang quét — cho người dùng
+  // thấy phần mềm đang kiểm cả 18 thứ, thay vì một vòng xoay câm 15 giây.
+  modules?: ModuleInfo[];
   onSelectModule?: (id: string) => void;
   onDetail?: () => void;
   // Báo mức rủi ro cao nhất ra ngoài để bản đồ tô khung cùng màu — nối phần
@@ -190,19 +194,34 @@ export default function Answer({
 
   if (busy) {
     return (
-      <div className="ans busy">
-        <div className="ans-spin" />
-        <div>
-          <p>Đang kiểm tra mọi rủi ro cho thửa này…</p>
-          {giay >= 4 && (
-            <p className="ans-wait">
-              Lần đầu xem một nơi mới thì lâu hơn — TerraTwin đang tải{" "}
-              <b>10 năm lịch sử thời tiết của đúng toạ độ này</b> để biết thế
-              nào mới là bất thường <i>ở đây</i>, thay vì dùng một ngưỡng chung
-              cho cả nước. Lần sau chỗ này sẽ trả lời trong vài giây.
-            </p>
-          )}
+      <div className="ans">
+        {label && <p className="ans-where">📍 {label}</p>}
+        <div className="ans-scanning">
+          <span className="ans-spin sm" />
+          <b>Đang quét {modules?.length ?? 18} mũi nhọn cho thửa này{giay ? ` · ${giay}s` : ""}…</b>
         </div>
+        {/* Lưới SỐNG: hiện ngay mọi mũi nhọn đang được kiểm (skeleton nhấp nháy),
+            để 15 giây chờ trở thành bằng chứng phần mềm đang làm RẤT NHIỀU việc —
+            thay vì một vòng xoay câm khiến người ta tưởng nó "sơ sài". */}
+        {modules && modules.length > 0 && (
+          <div className="ans-grid ans-grid-skel">
+            {modules.map((m) => (
+              <div key={m.id} className="ans-cell skel">
+                <span className="ans-cell-ic">{m.icon}</span>
+                <span className="ans-cell-nm">{m.name}</span>
+                <span className="ans-cell-dot" />
+              </div>
+            ))}
+          </div>
+        )}
+        {giay >= 4 && (
+          <p className="ans-wait">
+            Lần đầu xem một nơi mới thì lâu hơn — TerraTwin đang tải{" "}
+            <b>10 năm lịch sử thời tiết của đúng toạ độ này</b> để biết thế nào
+            mới là bất thường <i>ở đây</i>, thay vì dùng một ngưỡng chung cho cả
+            nước. Lần sau chỗ này trả lời trong vài giây.
+          </p>
+        )}
       </div>
     );
   }

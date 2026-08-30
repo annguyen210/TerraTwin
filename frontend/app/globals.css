@@ -3337,3 +3337,11 @@ body {
 .story-dots { display:flex; gap:6px; }
 .story-dots i { width:7px; height:7px; border-radius:50%; background:var(--line); }
 .story-dots i.on { background: var(--terra,#5fcb8e); }
+
+/* ---- Màn quét SỐNG: lưới skeleton 18 mũi nhọn nhấp nháy khi đang quét ---- */
+.ans-scanning { display:flex; align-items:center; gap:10px; font-size:14px; margin:4px 0 12px; }
+.ans-scanning b { font-weight:700; }
+.ans-grid-skel .ans-cell.skel { cursor:default; border-left-color:#3a4750; animation: ans-pulse 1.2s ease-in-out infinite; }
+.ans-grid-skel .ans-cell.skel .ans-cell-dot { background:#3a4750; animation: ans-pulse 1.2s ease-in-out infinite; }
+.ans-grid-skel .ans-cell.skel .ans-cell-nm { color: var(--dim); }
+@keyframes ans-pulse { 0%,100% { opacity:.45; } 50% { opacity:.9; } }
