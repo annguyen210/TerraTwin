@@ -3271,3 +3271,25 @@ body {
 .fut-disc { font-size: 11.5px; line-height: 1.55; color: var(--dim); margin: 8px 0 0;
   border-left: 3px solid #B07A2E; padding: 6px 10px; background: rgba(176,122,46,0.08); border-radius: 0 6px 6px 0; }
 .fut-src { font-size: 10.5px; color: var(--dim); margin: 6px 0 0; }
+
+/* ---- Answer: lưới toàn cảnh 18 mũi nhọn (chữa cảm giác "chỉ một kết luận") ---- */
+.ans-grid-wrap { margin: 14px 0 0; }
+.ans-grid-wrap .ans-cap { display:block; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+  color: var(--dim); font-weight:600; margin-bottom:8px; }
+.ans-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; }
+.ans-cell { position:relative; display:flex; flex-direction:column; align-items:flex-start; gap:3px;
+  text-align:left; background: var(--card,#13202c); border:1px solid var(--line); border-left-width:3px;
+  border-radius:8px; padding:7px 8px; cursor:pointer; color: var(--fg,#e7eef3); min-height:52px; }
+.ans-cell:hover { filter:brightness(1.12); }
+.ans-cell-ic { font-size:14px; }
+.ans-cell-nm { font-size:10px; line-height:1.2; color: var(--dim); }
+.ans-cell-dot { position:absolute; top:7px; right:7px; width:7px; height:7px; border-radius:50%; }
+.ans-cell.bad  { border-left-color:#C2412E; } .ans-cell.bad  .ans-cell-dot { background:#C2412E; }
+.ans-cell.warn { border-left-color:#B07A2E; } .ans-cell.warn .ans-cell-dot { background:#B07A2E; }
+.ans-cell.ok   { border-left-color:#2E9E67; } .ans-cell.ok   .ans-cell-dot { background:#2E9E67; }
+.ans-cell.wait { border-left-color:#5a6b73; } .ans-cell.wait .ans-cell-dot { background:#5a6b73; }
+.ans-cell.bad  .ans-cell-nm, .ans-cell.warn .ans-cell-nm { color: var(--fg,#e7eef3); }
+.ans-grid-key { display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; font-size:10px; color:var(--dim); }
+.ans-grid-key i { display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:4px; vertical-align:middle; }
+.ans-grid-key .k-bad{background:#C2412E} .ans-grid-key .k-warn{background:#B07A2E}
+.ans-grid-key .k-ok{background:#2E9E67} .ans-grid-key .k-wait{background:#5a6b73}

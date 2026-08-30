@@ -34,6 +34,14 @@ const TONE: Record<string, string> = {
   safe: "ok",
 };
 
+// Màu ô trong lưới toàn cảnh. Mục chưa có dữ liệu / đang chạy / ngoài phạm vi →
+// "chờ" (xám), KHÔNG tô như an toàn — "chưa biết" khác "không sao".
+function cellTone(m: ScanModule): string {
+  if (m.status === "need_data" || m.status === "pending" || m.status === "out_of_scope")
+    return "wait";
+  return TONE[m.risk_level] ?? "wait";
+}
+
 function headline(d: ScanResult): { tone: string; big: string; sub: string } {
   const nguy = d.alerts.filter((a) => a.risk_level === "danger");
   const canh = d.alerts.filter((a) => a.risk_level === "warning");
@@ -264,6 +272,37 @@ export default function Answer({
           Không có việc gì cần làm gấp. Bật cảnh báo để TerraTwin tự báo khi
           tình hình đổi, thay vì bạn phải mở lên xem.
         </p>
+      )}
+
+      {/* TOÀN CẢNH 1 MẮT: cho thấy phần mềm vừa kiểm CẢ 18 mũi nhọn, không phải
+          chỉ một kết luận. Đây là thứ chữa trực tiếp cảm giác "sơ sài" — breadth
+          hiện ngay, không cần đổi tab. Bấm ô nào là nhảy vào chi tiết mục đó. */}
+      {d.modules.length > 0 && (
+        <div className="ans-grid-wrap">
+          <span className="ans-cap">
+            Đã quét toàn bộ {d.modules.length} mũi nhọn cho thửa này
+          </span>
+          <div className="ans-grid">
+            {d.modules.map((m) => (
+              <button
+                key={m.id}
+                className={`ans-cell ${cellTone(m)}`}
+                title={`${m.name}: ${m.headline}`}
+                onClick={() => onSelectModule?.(m.id)}
+              >
+                <span className="ans-cell-ic">{m.icon}</span>
+                <span className="ans-cell-nm">{m.name}</span>
+                <span className="ans-cell-dot" />
+              </button>
+            ))}
+          </div>
+          <div className="ans-grid-key">
+            <span><i className="k-bad" /> nguy hiểm</span>
+            <span><i className="k-warn" /> cảnh báo</span>
+            <span><i className="k-ok" /> an toàn</span>
+            <span><i className="k-wait" /> đang/ chờ dữ liệu</span>
+          </div>
+        </div>
       )}
 
       {dangChay.length > 0 && (
