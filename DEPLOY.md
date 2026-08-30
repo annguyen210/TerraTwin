@@ -1,193 +1,118 @@
-# Triển khai TerraTwin
+# Đưa TerraTwin lên Internet (Render) — checklist từng bước
 
-Ba cách, xếp từ nhanh nhất. Mọi cách đều cần **một biến bắt buộc**:
-`TERRATWIN_SECRET` — khóa ký token đăng nhập. Không đặt thì mỗi lần khởi động
-lại sẽ sinh khóa mới và toàn bộ người dùng bị đăng xuất.
+Mục tiêu: từ chạy trên máy bạn → chạy trên Internet để **người khác dùng được**.
+Đây là mắt xích mở khoá mọi thứ còn lại (người dùng thật → quan sát thực địa → moat).
+Toàn bộ ~1 giờ, **0 đồng** (gói free Render). File `render.yaml` đã dựng sẵn mọi thứ.
+
+> Ba bẫy đã biết — đọc trước:
+> 1. **Windows:** dừng server theo cổng bằng `Stop-Process`, KHÔNG dùng `pkill`.
+> 2. **Đừng** `npm run build` khi `next dev` đang chạy (ghi đè `.next` → 500).
+> 3. Ảnh vệ tinh chạy qua **Microsoft Planetary Computer — KHÔNG cần khoá Copernicus**.
+
+---
+
+## Bước 0 — Đưa mã lên GitHub (~10 phút)
 
 ```bash
-python -c "import secrets; print(secrets.token_urlsafe(48))"
+cd D:\terratwin
+git add -A && git commit -m "chuan bi deploy"    # nếu còn thay đổi
+# Tạo repo rỗng trên github.com (New repository), rồi:
+git remote add origin https://github.com/<tên-bạn>/terratwin.git
+git branch -M main
+git push -u origin main
 ```
+✅ **Xong khi:** mở repo trên GitHub thấy đủ thư mục `backend/`, `frontend/`, và file `render.yaml` ở gốc.
 
 ---
 
-## Cách A — Render (một cú bấm, có sẵn database)
+## Bước 1 — Dựng bằng Blueprint (~15 phút, Render tự làm)
 
-1. Đẩy repo lên GitHub.
-2. Render → **New → Blueprint** → chọn repo. Render đọc `render.yaml` và dựng
-   backend + frontend + PostgreSQL.
-3. Dựng xong, điền hai biến nối hai service với nhau:
-   - `terratwin-api` → `TERRATWIN_CORS` = URL của `terratwin-web`
-   - `terratwin-web` → `NEXT_PUBLIC_API` = URL của `terratwin-api`
+1. Vào https://render.com → đăng ký (login bằng GitHub cho nhanh).
+2. **New → Blueprint** → chọn repo `terratwin`.
+3. Render đọc `render.yaml` và hiện 3 thứ sẽ tạo: `terratwin-db` (Postgres), `terratwin-api` (backend), `terratwin-web` (frontend). Bấm **Apply**.
+4. Chờ build (~5–10 phút). Backend cài xong sẽ tự chạy `uvicorn`; frontend chạy `npm run build` rồi `npm start`.
 
-`TERRATWIN_SECRET` do Render tự sinh và giữ cố định — đừng sửa.
-
-> ⚠️ `TERRATWIN_TRUST_PROXY=1` đã bật sẵn trong `render.yaml`. **Bắt buộc** khi
-> đứng sau proxy: nếu không, rate limiter thấy mọi người dùng chung một IP (IP
-> của proxy) và chặn nhầm cả nhà ngay khi có vài người truy cập.
+✅ **Xong khi:** cả `terratwin-api` và `terratwin-web` đều xanh (Live).
 
 ---
 
-## Cách B — Docker ở đâu cũng được (VPS, máy chủ trường, máy cá nhân)
+## Bước 2 — Nối frontend ↔ backend (~5 phút, BẮT BUỘC)
 
-```bash
-cp .env.example .env      # sửa TERRATWIN_SECRET và TERRATWIN_CORS
-docker compose up --build -d
-```
+Render cấp cho bạn 2 URL, ví dụ:
+- API: `https://terratwin-api.onrender.com`
+- Web: `https://terratwin-web.onrender.com`
 
-Frontend `:1825` · API `:8000/docs`. Mặc định dùng SQLite (một file), đủ cho
-demo và vài chục người dùng. Muốn PostgreSQL thì đặt `TERRATWIN_DATABASE_URL`
-và thêm `psycopg[binary]` vào `backend/requirements.txt`.
+Đặt 2 biến môi trường (dashboard Render → service → **Environment**):
 
-> ⚠️ `docker compose` **chưa được kiểm thử** trên máy phát triển vì máy đó không
-> cài Docker. Dockerfile đọc thì hợp lý, nhưng hãy chạy thử trước khi dùng cho
-> buổi demo quan trọng.
-
----
-
-## Cách C — Fly.io + Vercel (tách backend/frontend)
-
-Backend lên Fly, frontend lên Vercel:
-
-```bash
-cd backend && fly launch --no-deploy
-fly secrets set TERRATWIN_SECRET=... TERRATWIN_TRUST_PROXY=1 TERRATWIN_CORS=https://<app>.vercel.app
-fly deploy
-```
-
-Vercel: import repo, Root Directory = `frontend`, đặt `NEXT_PUBLIC_API` bằng
-URL Fly.
-
----
-
-## Danh sách kiểm tra trước khi mở cho người dùng thật
-
-| | Việc | Vì sao |
+| Service | Biến | Giá trị |
 |---|---|---|
-| ☐ | `TERRATWIN_SECRET` đặt cố định | Không đặt = đăng xuất toàn bộ mỗi lần restart |
-| ☐ | `TERRATWIN_TRUST_PROXY=1` nếu sau proxy | Không đặt = rate limiter chặn nhầm mọi người |
-| ☐ | `TERRATWIN_CORS` đúng domain frontend | Để `*` là ai cũng gọi API của bạn được |
-| ☐ | PostgreSQL thay SQLite | SQLite không chịu được ghi đồng thời |
-| ☐ | Chạy `pytest` | Bắt lỗi trước khi người dùng gặp |
-| ☐ | Gọi `POST /api/genome/warm` một lần | Dựng sẵn lưới, người dùng đầu không phải chờ 2–3 phút |
-| ☐ | Sao lưu database định kỳ | Thửa đất và Twin của người dùng nằm trong đó |
-| ☐ | `TERRATWIN_RADAR_INTERVAL_H` | Xem mục dưới — đặt sai thì cảnh báo chủ động **không tự chạy** |
-| ☐ | `TERRATWIN_LLM_PROVIDER` nếu dùng Gemini/Anthropic | Thiếu = khóa gửi sai giao thức, trợ lý **im lặng** tụt về rule-based |
-| ☐ | Khóa Copernicus (tuỳ chọn) | Mở khoá 5 mũi nhọn quang học + C07 Carbon |
-| ☐ | Theo dõi `/api/health` → `status` | `degraded` = hết quota nguồn dữ liệu, KHÔNG phải code hỏng |
-| ☐ | `TERRATWIN_UPSTREAM_CONCURRENCY` hợp với số worker | Đặt cao quá = bị nguồn miễn phí chặn IP, cả app mất dữ liệu |
+| `terratwin-web` | `NEXT_PUBLIC_API` | URL của **api** (vd `https://terratwin-api.onrender.com`) |
+| `terratwin-api` | `TERRATWIN_CORS` | URL của **web** (vd `https://terratwin-web.onrender.com`) |
+
+Đặt xong bấm **Manual Deploy → Deploy latest** cho `terratwin-web` (vì `NEXT_PUBLIC_*` nhúng lúc build).
+
+✅ **Xong khi:** mở URL web, bấm 1 nơi → ra kết quả (không lỗi CORS trong Console trình duyệt).
+
+> `TERRATWIN_SECRET` Render tự sinh và giữ cố định — **đừng đặt tay**, đổi là mọi người bị đăng xuất.
 
 ---
 
-## Cảnh báo chủ động — thứ dễ tưởng có mà không có
+## Bước 3 — Kiểm tra volume (dữ liệu KHÔNG được mất khi deploy lại)
 
-C05 Proactive Radar là điểm bán hàng số một, nhưng nó chỉ *chủ động* nếu có gì
-đó gọi nó khi người dùng đang ngủ. **Gói miễn phí của Render và Fly không có
-cron.** Vì vậy bộ hẹn giờ nằm ngay trong tiến trình:
+Đây là bài kiểm QUAN TRỌNG NHẤT — kho quan sát thực địa là thứ đối thủ không tải được.
 
-```
-TERRATWIN_RADAR_INTERVAL_H=6     # mặc định: tự quét mọi tài khoản mỗi 6 giờ
-TERRATWIN_RADAR_INTERVAL_H=0     # tắt — dùng khi chạy NHIỀU WORKER
-```
+1. Trên web đã deploy: **đăng ký** một tài khoản → **lưu một thửa đất**.
+2. Vào Render → `terratwin-api` → **Manual Deploy → Deploy latest** (deploy lại lần nữa).
+3. Sau khi Live lại: đăng nhập lại → **thửa đó còn không?**
 
-⚠️ Chạy nhiều worker (`--workers 4`) thì **mỗi worker quét một lần**. Chống
-trùng 12 giờ hấp thụ được cảnh báo lặp, nhưng vẫn đốt lượt gọi Open-Meteo gấp 4.
-Nhiều worker thì đặt `0` và dùng cron ngoài:
-
-```bash
-# cron-job.org, GitHub Actions, hay crontab — 6 giờ một lần
-curl -X POST https://<api>/api/radar/run -H "Authorization: Bearer <token>"
-```
-
-Gói free Render còn **ngủ sau 15 phút không có request**, nên lần gọi đầu mất
-~50 giây và bộ hẹn giờ bị ngắt trong lúc ngủ. Muốn cảnh báo chạy đều thì cần
-gói trả phí hoặc một dịch vụ ping bên ngoài.
+✅ **Còn** → volume/DB đúng, an tâm mở cho người dùng.
+❌ **Mất** → DỪNG LẠI, kiểm `TERRATWIN_DATABASE_URL` đã nối Postgres chưa (trong `render.yaml` là `fromDatabase`). Đừng mời người dùng khi còn mất dữ liệu.
 
 ---
 
-## Chạy song song & tải
+## Bước 4 — Hâm nóng trên chính server (~35 phút, chạy 1 lần)
 
-Ba biến điều chỉnh, đều có mặc định chạy được ngay:
+Xoá 15 giây chờ của người-dùng-đầu-tiên ở mỗi toạ độ.
 
+- Render → `terratwin-api` → tab **Shell**:
 ```bash
-TERRATWIN_WORKERS=4                  # luồng chạy việc nền (hàng đợi)
-TERRATWIN_UPSTREAM_CONCURRENCY=6     # trần lượt gọi RA NGOÀI cùng lúc
-TERRATWIN_RADAR_INTERVAL_H=6         # rà soát chủ động; 0 = tắt
-TERRATWIN_KEY_MONTHLY_QUOTA=5000     # hạn mức mỗi khoá API/tháng; 0 = không giới hạn
+cd backend
+python -m app.warm --demo        # 8 nơi demo (~35 giây) — chạy trước buổi thi
+python -m app.warm --provinces   # phủ cả nước (~35 phút)
 ```
 
-`TERRATWIN_KEY_MONTHLY_QUOTA` là **chống lạm dụng, chưa phải tính tiền**: một
-khoá API bị lộ mà không có trần sẽ đốt hết hạn mức ngày của Open-Meteo, và lúc
-đó *mọi* người dùng mất dữ liệu chứ không riêng chủ khoá. Số lượt dùng hiện ngay
-trong Khu làm việc → Khoá API.
+✅ **Xong khi:** mở một tỉnh bất kỳ trên điện thoại → trả lời trong vài giây, không phải 15.
 
-`TERRATWIN_UPSTREAM_CONCURRENCY` là thứ đứng giữa phần mềm và việc bị Open-Meteo
-chặn IP. Đừng nâng cao chỉ vì thấy chậm — nguồn miễn phí bị nã dồn thì chặn cả
-máy chủ, và lúc đó MỌI người dùng mất dữ liệu chứ không riêng người gây ra.
-
-**Nhiều worker uvicorn**: mỗi worker có hàng đợi và bộ đếm riêng, nên
-`--workers 4` nghĩa là trần gọi ra ngoài thực tế là 4×6 = 24. Chạy nhiều worker
-thì hạ `TERRATWIN_UPSTREAM_CONCURRENCY` xuống tương ứng và đặt
-`TERRATWIN_RADAR_INTERVAL_H=0`.
-
-Kiểm tra sức khoẻ hàng đợi: `curl https://<api>/api/jobs`.
-
-**Việc dài chạy nền.** Dựng lưới bộ gen mất 1–2 phút, quá thời gian chờ của
-Render và phần lớn proxy. `POST /api/genome/warm` mặc định trả ngay một mã việc;
-hỏi kết quả bằng `GET /api/jobs/{id}`. Script triển khai muốn chờ tại chỗ thì gọi
-`POST /api/genome/warm?background=false`.
+> Gói free Render KHÔNG có cron; `render.yaml` đã bật radar quét nền trong tiến trình
+> (`TERRATWIN_RADAR_INTERVAL_H=6`). Nếu server "ngủ" do free tier, dùng cron ngoài
+> (vd cron-job.org) gọi `GET https://terratwin-api.onrender.com/api/radar/run` mỗi 6h.
 
 ---
 
-## Hạn mức nguồn dữ liệu miễn phí — đọc trước khi mở cho nhiều người
+## Bước 5 — Bật cảnh báo tự động (tùy chọn, nhưng là "engine giữ chân")
 
-Open-Meteo giới hạn **theo ngày**. Cạn hạn mức thì mọi mô-đun đồng loạt trả
-"chưa đủ dữ liệu" — **nhìn hệt như phần mềm hỏng**. Đây là chuyện đã xảy ra thật
-trong lúc phát triển, nên phần mềm phân biệt rõ hai tình huống:
-
-```bash
-curl https://<api>/api/health
-# {"status":"ok",       "quota":{"exhausted":[], ...}}          bình thường
-# {"status":"degraded", "quota":{"exhausted":["archive-api.open-meteo.com"]}}
-```
-
-`status: degraded` nghĩa là **hết quota, mai lại chạy** — không phải code hỏng.
-Đừng đi sửa nhầm chỗ. Máy chủ cũng in một dòng cảnh báo khi phát hiện lần đầu.
-
-Giảm áp lực hạn mức:
-- Tăng `_TTL` cache trong `services/realdata.py` (mặc định 30 phút)
-- Gọi `POST /api/genome/warm` **một lần** sau deploy, đừng gọi lặp
-- Hạ `TERRATWIN_RADAR_INTERVAL_H` xuống ít lần quét hơn nếu có nhiều thửa
-- Có ngân sách thì nâng gói Open-Meteo (họ có gói thương mại)
+Để TerraTwin **tự canh đất và báo trước** — thứ khiến người ta dùng mỗi ngày:
+- Người dùng vào **Khu làm việc → Kênh cảnh báo** → thêm webhook (nối Zalo OA/Telegram)
+  hoặc email SMTP. Radar nền quét thửa đã lưu và gửi khi có rủi ro.
 
 ---
 
-## Ảnh vệ tinh Sentinel-2 (tuỳ chọn, miễn phí)
+## (Tùy chọn) Bật trợ lý LLM
+`terratwin-api` → Environment, đặt theo nhà cung cấp:
+- OpenAI-compatible (DeepSeek/Groq/OpenRouter…): `TERRATWIN_LLM_API_KEY` + `TERRATWIN_LLM_BASE_URL` + `TERRATWIN_LLM_MODEL`.
+- Gemini/Anthropic: BẮT BUỘC thêm `TERRATWIN_LLM_PROVIDER=gemini|anthropic`.
+Không đặt gì → Copilot tự chạy bằng luật tiếng Việt (vẫn hoạt động).
 
-Không có thì phần mềm vẫn chạy 12/17 mũi nhọn bằng khí tượng, địa hình và OSM; 5
-mũi nhọn quang học sẽ nói thẳng là chưa có ảnh. Có thì mở khoá cả 17.
+## (Tùy chọn) Bật 5 mũi nhọn quang học bằng model học sâu
+Sau khi huấn luyện trên máy có GPU (xem `backend/app/dl/`), chép `data/landcover.onnx`
++ `data/landcover.json` vào `terratwin-api` → `/api/landcover` sẽ báo `available: true`.
 
-1. Đăng ký tại https://dataspace.copernicus.eu (miễn phí, không cần thẻ)
-2. Sentinel Hub → User settings → **OAuth clients** → Create
-3. Đặt hai biến:
+---
 
-```bash
-TERRATWIN_COPERNICUS_ID=<client id>
-TERRATWIN_COPERNICUS_SECRET=<client secret>
-```
-
-Kiểm tra: `curl https://<api>/api/satellite` → `"configured": true`.
-
-Hạn mức tài khoản miễn phí tính theo processing unit mỗi tháng. Phần mềm cache
-12 giờ cho chuỗi gần đây và 7 ngày cho cửa sổ lịch sử đã đóng, vì Sentinel-2
-chỉ 5 ngày mới bay qua một lần — hỏi lại sau 10 phút cũng không có gì mới.
-
-## Sau khi deploy, kiểm nhanh
-
-```bash
-curl https://<api>/api/health           # {"status":"ok","modules":14}
-curl https://<api>/api/roadmap          # trạng thái thật 26 luồng
-curl https://<api>/api/satellite        # ảnh vệ tinh đã nối chưa
-curl -X POST https://<api>/api/scan \
-  -H 'content-type: application/json' \
-  -d '{"lat":10.19,"lon":106.70}'
-```
+### Tóm tắt "xong khi nào"
+- [ ] Repo trên GitHub có `render.yaml`
+- [ ] `terratwin-api` + `terratwin-web` đều Live
+- [ ] `NEXT_PUBLIC_API` + `TERRATWIN_CORS` đã đặt đúng chéo nhau
+- [ ] Đăng ký + lưu thửa → deploy lại → **thửa vẫn còn**
+- [ ] Đã chạy `python -m app.warm --provinces`
+- [ ] (tùy chọn) Kênh cảnh báo đã nối
