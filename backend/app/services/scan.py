@@ -48,12 +48,17 @@ def scan(loc: Location, include_heavy: bool = False) -> ScanResult:
         if a is None:
             continue
         assessments[info.id] = a
+        fc = a.forecast or []
+        spark = [round(p.value, 1) for p in fc]
         mods.append(ScanModule(
             id=info.id, name=info.name, icon=info.icon, group=info.group,
             risk_level=a.risk_level, headline=a.headline,
             recommendation=a.recommendation, is_real=a.is_real, score=a.score,
             threat=info.threat, status=a.status,
             confidence=getattr(a, "confidence", None),
+            spark=spark,
+            unit=fc[0].unit if fc else None,
+            peak=(max(p.value for p in fc) if fc else None),
         ))
         real_total += 1
         if a.is_real:

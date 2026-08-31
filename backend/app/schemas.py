@@ -134,6 +134,10 @@ class ScanModule(BaseModel):
     confidence: Optional[float] = None
     score: Optional[float] = None
     threat: bool = True
+    # Đủ để vẽ chi tiết NGAY trong lưới, không phải bấm vào mới thấy:
+    spark: list[float] = []          # giá trị dự báo 7 ngày (vẽ sparkline)
+    unit: Optional[str] = None       # đơn vị của spark
+    peak: Optional[float] = None     # đỉnh 7 ngày (con số đập vào mắt)
 
 
 class ScanResult(BaseModel):

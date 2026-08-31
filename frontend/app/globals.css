@@ -3384,3 +3384,21 @@ body {
 /* Ô 'đang chạy nền' (mũi nhọn cần ảnh vệ tinh) — nhấp nháy để thấy grid đang lấp dần */
 .ans-cell.pending { border-left-color:#3aa0a0; animation: ans-pulse 1.3s ease-in-out infinite; }
 .ans-cell.pending .ans-cell-dot { background:#3aa0a0; animation: ans-pulse 1.3s ease-in-out infinite; }
+
+/* ---- Lưới CHI TIẾT: mỗi mũi nhọn hiện số + sparkline 7 ngày ngay trong ô ---- */
+.ans-grid.rich { grid-template-columns: repeat(2, 1fr); gap:7px; }
+.ans-grid.rich .ans-cell { min-height:auto; padding:8px 9px; gap:5px; }
+.ans-cell-top { position:relative; display:flex; align-items:center; gap:6px; width:100%; }
+.ans-cell-top .ans-cell-ic { font-size:14px; }
+.ans-cell-top .ans-cell-nm { font-size:10.5px; line-height:1.2; color:var(--dim); flex:1;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ans-cell-top .ans-cell-dot { position:static; width:7px; height:7px; }
+.ans-cell-data { display:flex; align-items:center; justify-content:space-between; gap:6px; width:100%; }
+.ans-spark { display:block; opacity:.95; }
+.ans-cell-data b { font-size:14px; font-weight:800; font-variant-numeric:tabular-nums; }
+.ans-cell-hl { font-size:10.5px; line-height:1.35; color:var(--fg,#e7eef3); }
+.ans-cell-hl b { font-size:14px; font-weight:800; margin-right:2px; }
+.ans-cell-st { font-size:10px; color:var(--dim); font-style:italic; }
+.ans-cell.bad .ans-cell-data b, .ans-cell.bad .ans-cell-hl b { color:#e0715c; }
+.ans-cell.warn .ans-cell-data b, .ans-cell.warn .ans-cell-hl b { color:#d3a253; }
+.ans-cell.ok .ans-cell-data b, .ans-cell.ok .ans-cell-hl b { color:#66c795; }

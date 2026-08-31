@@ -44,6 +44,41 @@ function cellTone(m: ScanModule): string {
   return TONE[m.risk_level] ?? "wait";
 }
 
+const TONE_HEX: Record<string, string> = {
+  bad: "#C2412E", warn: "#B07A2E", ok: "#2E9E67", pending: "#3aa0a0", wait: "#5a6b73",
+};
+
+function statusLabel(st?: string): string {
+  if (st === "pending") return "đang chạy…";
+  if (st === "need_data") return "chờ ảnh vệ tinh quang mây";
+  if (st === "out_of_scope") return "không áp dụng ở đây";
+  return "";
+}
+
+function fmt(v: number): string {
+  return Number.isInteger(v) ? String(v) : v.toFixed(1);
+}
+
+// Sparkline 7 ngày — SVG nhẹ, không thư viện. Cho thấy XU HƯỚNG ngay trong ô.
+function Spark({ values, color }: { values: number[]; color: string }) {
+  const n = values.length;
+  if (n < 2) return null;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1;
+  const W = 62, H = 18;
+  const pts = values
+    .map((v, i) => `${(i / (n - 1)) * W},${H - ((v - min) / span) * (H - 3) - 1.5}`)
+    .join(" ");
+  return (
+    <svg className="ans-spark" viewBox={`0 0 ${W} ${H}`} width={W} height={H} aria-hidden>
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5"
+        strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={W} cy={H - ((values[n - 1] - min) / span) * (H - 3) - 1.5} r="1.8" fill={color} />
+    </svg>
+  );
+}
+
 function headline(d: ScanResult): { tone: string; big: string; sub: string } {
   const nguy = d.alerts.filter((a) => a.risk_level === "danger");
   const canh = d.alerts.filter((a) => a.risk_level === "warning");
@@ -303,19 +338,37 @@ export default function Answer({
           <span className="ans-cap">
             Đã quét toàn bộ {d.modules.length} mũi nhọn cho thửa này
           </span>
-          <div className="ans-grid">
-            {d.modules.map((m) => (
-              <button
-                key={m.id}
-                className={`ans-cell ${cellTone(m)}`}
-                title={`${m.name}: ${m.headline}`}
-                onClick={() => onSelectModule?.(m.id)}
-              >
-                <span className="ans-cell-ic">{m.icon}</span>
-                <span className="ans-cell-nm">{m.name}</span>
-                <span className="ans-cell-dot" />
-              </button>
-            ))}
+          <div className="ans-grid rich">
+            {d.modules.map((m) => {
+              const tone = cellTone(m);
+              const hasSpark = (m.spark?.length ?? 0) > 1;
+              return (
+                <button
+                  key={m.id}
+                  className={`ans-cell ${tone}`}
+                  title={`${m.name}: ${m.headline}`}
+                  onClick={() => onSelectModule?.(m.id)}
+                >
+                  <span className="ans-cell-top">
+                    <span className="ans-cell-ic">{m.icon}</span>
+                    <span className="ans-cell-nm">{m.name}</span>
+                    <span className="ans-cell-dot" />
+                  </span>
+                  {hasSpark ? (
+                    <span className="ans-cell-data">
+                      <Spark values={m.spark!} color={TONE_HEX[tone]} />
+                      {m.peak != null && (
+                        <b>{fmt(m.peak)}{m.unit === "%" ? "%" : ""}</b>
+                      )}
+                    </span>
+                  ) : m.status === "ok" ? (
+                    <span className="ans-cell-hl">{m.headline}</span>
+                  ) : (
+                    <span className="ans-cell-st">{statusLabel(m.status)}</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
           <div className="ans-grid-key">
             <span><i className="k-bad" /> nguy hiểm</span>

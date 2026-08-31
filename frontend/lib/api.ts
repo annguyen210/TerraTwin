@@ -178,6 +178,9 @@ export type ScanModule = {
   recommendation: string;
   is_real: boolean;
   score?: number;
+  spark?: number[];
+  unit?: string | null;
+  peak?: number | null;
 };
 
 export type RegionInfo = {
