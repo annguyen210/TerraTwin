@@ -251,12 +251,14 @@ export default function MapView({
     });
   }, [plot]);
 
-  // Bay tới thửa đã lưu khi tải lại từ danh mục.
+  // Bay tới nơi vừa tìm/vị trí — ZOOM SÂU tới mức thấy TỪNG THỬA (z16, ~0.6 m/px)
+  // để người dùng nhận ra đúng thửa của mình, không dừng ở mức cả thị trấn.
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !flyTo) return;
-    map.flyTo({ center: [flyTo.lon, flyTo.lat], zoom: 12 });
-    ptsRef.current = [[flyTo.lon, flyTo.lat]];
+    map.flyTo({ center: [flyTo.lon, flyTo.lat], zoom: 16 });
+    // KHÔNG tự chấm điểm — để người dùng tự kéo ô ngắm vào đúng thửa rồi bấm.
+    ptsRef.current = [];
     refresh();
   }, [flyTo?.key]);
 
@@ -271,6 +273,17 @@ export default function MapView({
     onPick(c[1], c[0], Math.round(areaHa(pts) * 100) / 100);
   }
 
+  // Phân tích ĐÚNG chỗ giữa ô ngắm ✛ — cách chính xác nhất để chấm thửa của mình:
+  // kéo/zoom cho thửa vào giữa rồi bấm, khỏi phải chạm trúng một ô bé xíu.
+  function analyzeCenter() {
+    const map = mapRef.current;
+    if (!map) return;
+    const c = map.getCenter();
+    ptsRef.current = [];
+    refresh();
+    onPick(c.lat, c.lng);
+  }
+
   function clear() {
     ptsRef.current = [];
     refresh();
@@ -279,18 +292,29 @@ export default function MapView({
   return (
     <div style={{ position: "absolute", inset: 0 }}>
       <div ref={ref} style={{ position: "absolute", inset: 0 }} />
+
+      {/* Kính ngắm CỐ ĐỊNH giữa màn — người dùng kéo/zoom cho ĐÚNG thửa của mình
+          vào giữa rồi bấm "Phân tích đúng chỗ này". Cách chấm chính xác nhất khi
+          một tỉnh có hàng nghìn thửa. */}
+      <div className="map-cross" aria-hidden>
+        <span className="mc-v" /><span className="mc-h" /><span className="mc-o" />
+      </div>
+
       <div className="drawbar">
-        <span>
+        <span className="db-hint">
           {count === 0
-            ? "Bấm bản đồ: 1 điểm, hoặc nhiều điểm để vẽ vùng ruộng"
-            : `${count} điểm${count >= 3 ? " · đã tạo vùng" : ""}`}
+            ? "Kéo & zoom cho ĐÚNG thửa của bạn vào giữa ô ngắm ✛ — rồi bấm nút xanh"
+            : `${count} điểm${count >= 3 ? " · đã tạo vùng ruộng" : ""}`}
         </span>
-        <button onClick={analyze} disabled={count === 0}>
-          Phân tích
+        <button className="db-primary" onClick={analyzeCenter}>
+          📍 Phân tích đúng thửa ở giữa
         </button>
-        <button onClick={clear} className="ghost" disabled={count === 0}>
-          Xóa
-        </button>
+        {count > 0 && (
+          <>
+            <button onClick={analyze}>Phân tích điểm/vùng đã chấm</button>
+            <button onClick={clear} className="ghost">Xóa</button>
+          </>
+        )}
       </div>
     </div>
   );

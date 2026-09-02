@@ -3402,3 +3402,15 @@ body {
 .ans-cell.bad .ans-cell-data b, .ans-cell.bad .ans-cell-hl b { color:#e0715c; }
 .ans-cell.warn .ans-cell-data b, .ans-cell.warn .ans-cell-hl b { color:#d3a253; }
 .ans-cell.ok .ans-cell-data b, .ans-cell.ok .ans-cell-hl b { color:#66c795; }
+
+/* ---- Kính ngắm giữa bản đồ: chấm ĐÚNG thửa của mình ---- */
+.map-cross { position:absolute; top:50%; left:50%; width:0; height:0; z-index:4; pointer-events:none; }
+.map-cross .mc-v, .map-cross .mc-h { position:absolute; background:rgba(255,255,255,.9);
+  box-shadow:0 0 2px rgba(0,0,0,.8); }
+.map-cross .mc-v { left:-1px; top:-16px; width:2px; height:32px; }
+.map-cross .mc-h { top:-1px; left:-16px; height:2px; width:32px; }
+.map-cross .mc-o { position:absolute; left:-7px; top:-7px; width:14px; height:14px; border-radius:50%;
+  border:2px solid #5fcb8e; box-shadow:0 0 3px rgba(0,0,0,.7); }
+.drawbar .db-hint { max-width:260px; }
+.drawbar .db-primary { background:#5fcb8e; color:#04150c; font-weight:800; }
+.drawbar .db-primary:hover { filter:brightness(1.08); }
