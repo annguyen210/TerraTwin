@@ -1,10 +1,28 @@
 :root {
-  --bg: #0e1720;
-  --panel: #13202c;
-  --line: rgba(132, 162, 178, 0.16);
-  --text: #e7eef3;
+  /* Nền & bề mặt — thang tối chuyên nghiệp, tăng dần độ sáng theo lớp */
+  --bg: #0b1218;
+  --panel: #111c26;
+  --card: #17242f;
+  --line: rgba(140, 168, 184, 0.18);
+  --line-2: rgba(140, 168, 184, 0.30);
+
+  /* Chữ */
+  --text: #eaf1f5;
+  --fg: #eaf1f5;
   --dim: #9fb2bf;
+
+  /* Thương hiệu & trạng thái — ĐÃ ĐỊNH NGHĨA ĐỦ (trước đây thiếu --ok/--warn/
+     --bad/--fg/--card khiến nút "Dùng vị trí của tôi" chữ đen trên nền rỗng,
+     và nhiều chữ cảnh báo bị mất màu). */
   --terra: #5fcb8e;
+  --accent: #5fcb8e;
+  --ok: #3ecb83;
+  --warn: #e0a44a;
+  --bad: #e5705a;
+  --on-accent: #06140d;      /* chữ trên nền xanh/accent */
+
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  --radius: 12px;
 }
 
 * {
@@ -3421,3 +3439,62 @@ body {
 .start-coord button { flex:0 0 auto; background:var(--terra,#5fcb8e); color:#04150c; border:none;
   border-radius:8px; padding:0 14px; font-weight:700; font-size:12.5px; cursor:pointer; }
 .start-coord button:disabled { opacity:.5; cursor:default; }
+
+/* ============================================================
+   PREMIUM POLISH — tinh chỉnh cuối, nâng cảm giác cao cấp/hiện đại.
+   Đặt cuối file nên thắng rule cũ; chỉ chỉnh thị giác, không đổi cấu trúc.
+   ============================================================ */
+
+/* Thanh cuộn mảnh, hợp tông tối */
+* { scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; }
+*::-webkit-scrollbar { width: 9px; height: 9px; }
+*::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 6px; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* Thương hiệu nổi bật hơn */
+.brand { font-size: 21px; font-weight: 800; letter-spacing: -.02em; }
+
+/* Tiêu đề màn Start — to, rõ, hút mắt */
+.start-h { font-size: 22px; font-weight: 800; letter-spacing: -.02em;
+  background: linear-gradient(90deg, var(--text), var(--terra));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* Ô nhập nhất quán, có vòng focus xanh rõ */
+.start-q, .start-coord input {
+  background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+  color: var(--text); padding: 11px 13px; font-size: 13.5px; transition: border-color .15s, box-shadow .15s; width: 100%; }
+.start-q::placeholder, .start-coord input::placeholder { color: #7d8f9b; }
+.start-q:focus, .start-coord input:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(95,203,142,.18); }
+
+/* Nút chính đồng bộ + đổ bóng nhẹ + nâng khi hover */
+.start-gps, .start-story {
+  border-radius: var(--radius); box-shadow: var(--shadow); transition: transform .12s, filter .12s, box-shadow .12s; }
+.start-gps { background: linear-gradient(135deg, #5fcb8e, #3ecb83); color: var(--on-accent); }
+.start-gps:hover:not(:disabled), .start-story:hover { transform: translateY(-1px); }
+
+/* Thẻ nơi gợi ý & kết quả tìm — dạng card cao cấp, hover nâng + viền sáng */
+.start-quick button, .start-hits button {
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+  transition: transform .12s, border-color .15s, background .15s; }
+.start-quick button:hover, .start-hits button:hover {
+  transform: translateY(-1px); border-color: var(--accent); background: #1b2b38; }
+.start-quick b { font-weight: 700; }
+
+/* Đường phân mục "hoặc" mảnh hơn, chữ nhạt */
+.start-or { color: #6f8290; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+
+/* Nút định vị (map) & drawbar — nền kính mờ hiện đại */
+.drawbar { backdrop-filter: blur(8px); background: rgba(13,20,26,.82);
+  border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+.drawbar .db-primary { box-shadow: 0 2px 10px rgba(62,203,131,.35); }
+
+/* Nút mô-đun ở cột trái — hover nâng nhẹ, bo mềm */
+.mod { border-radius: 10px; transition: transform .1s, border-color .15s, background .15s; }
+.mod:hover { transform: translateX(2px); }
+
+/* Câu trả lời & các panel — bề mặt card có chiều sâu */
+.ans-head, .ml-head, .terra { border-radius: var(--radius); }
+
+/* Badge dữ liệu thật/ước lượng — bo tròn, gọn */
+.databadge { border-radius: 999px; }

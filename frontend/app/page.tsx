@@ -223,7 +223,7 @@ export default function Home() {
           aria-expanded={railOpen}
         >
           {railOpen ? "▾" : "▸"} Xem từng loại rủi ro riêng
-          <small>{modules.length} mũi nhọn · chọn để đào sâu một loại</small>
+          <small>{modules.length || 18} mũi nhọn · chọn để đào sâu một loại</small>
         </button>
         {Object.keys(grouped)
           .sort()
@@ -257,7 +257,7 @@ export default function Home() {
         </button>
 
         <p className="foot">
-          {modules.length} mũi nhọn · 12/12 ngành · dữ liệu thật: Open-Meteo ·
+          {modules.length || 18} mũi nhọn · 12/12 ngành · dữ liệu thật: Open-Meteo ·
           NASA POWER · OpenStreetMap · Sentinel-2
         </p>
       </aside>
@@ -338,7 +338,7 @@ export default function Home() {
               className={tab === "overview" ? "on" : ""}
               onClick={() => setTab("overview")}
             >
-              Toàn cảnh {modules.length} mũi nhọn
+              Toàn cảnh {modules.length || 18} mũi nhọn
             </button>
           </div>
         )}
