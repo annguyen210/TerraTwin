@@ -29,7 +29,7 @@ SEARCH = "https://nominatim.openstreetmap.org/search"
 USER_AGENT = "TerraTwin/0.7 (Vietnam land digital twin; contact via repo)"
 TIMEOUT = 12.0
 _TTL = 30 * 86400
-_LIMIT = 6
+_LIMIT = 10
 
 # Nominatim cho phép tối đa 1 lời gọi/giây. Một khe, và tự giãn cách.
 _GATE = threading.BoundedSemaphore(1)
@@ -83,7 +83,10 @@ def _from_open_meteo(q: str) -> list | None:
     for it in d.get("results", []):
         if it.get("country_code") != "VN":
             continue
-        phu = " · ".join(x for x in (it.get("admin2"), it.get("admin1")) if x)
+        # admin3 = xã/phường, admin2 = huyện/quận, admin1 = tỉnh — nêu đủ để phân
+        # biệt hàng nghìn thửa cùng tên khác xã.
+        phu = " · ".join(x for x in (it.get("admin3"), it.get("admin2"),
+                                     it.get("admin1")) if x)
         try:
             out.append({"label": f"{it['name']}" + (f" · {phu}" if phu else ""),
                         "lat": float(it["latitude"]), "lon": float(it["longitude"]),

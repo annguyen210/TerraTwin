@@ -3414,3 +3414,10 @@ body {
 .drawbar .db-hint { max-width:260px; }
 .drawbar .db-primary { background:#5fcb8e; color:#04150c; font-weight:800; }
 .drawbar .db-primary:hover { filter:brightness(1.08); }
+
+/* ---- Ô dán toạ độ GPS trực tiếp ---- */
+.start-coord { display:flex; gap:6px; }
+.start-coord input { flex:1; }
+.start-coord button { flex:0 0 auto; background:var(--terra,#5fcb8e); color:#04150c; border:none;
+  border-radius:8px; padding:0 14px; font-weight:700; font-size:12.5px; cursor:pointer; }
+.start-coord button:disabled { opacity:.5; cursor:default; }

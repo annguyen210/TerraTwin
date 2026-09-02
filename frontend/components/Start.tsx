@@ -57,7 +57,27 @@ export default function Start({
   const [busy, setBusy] = useState(false);
   const [locating, setLocating] = useState(false);
   const [geoErr, setGeoErr] = useState<string | null>(null);
+  const [coordStr, setCoordStr] = useState("");
+  const [coordErr, setCoordErr] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Dán toạ độ GPS trực tiếp — cho người biết chính xác lat/lon (vd copy từ
+  // Google Maps). Nhận "21.03, 105.85", "21.03 105.85", hay có ký hiệu độ.
+  function goCoord() {
+    setCoordErr(null);
+    const nums = coordStr.replace(/[^\d.,\-\s]/g, " ").match(/-?\d+(\.\d+)?/g);
+    if (!nums || nums.length < 2) {
+      setCoordErr("Nhập dạng: vĩ độ, kinh độ — vd 21.0278, 105.8342");
+      return;
+    }
+    const lat = parseFloat(nums[0]);
+    const lon = parseFloat(nums[1]);
+    if (Math.abs(lat) > 90 || Math.abs(lon) > 180) {
+      setCoordErr("Toạ độ không hợp lệ (vĩ độ ≤ 90, kinh độ ≤ 180).");
+      return;
+    }
+    onPick(lat, lon, `Toạ độ ${lat.toFixed(4)}, ${lon.toFixed(4)}`);
+  }
 
   // Chờ người dùng ngừng gõ rồi mới hỏi. Nominatim giới hạn 1 lần/giây, gọi
   // theo từng phím là vừa vi phạm chính sách vừa chậm.
@@ -154,6 +174,24 @@ export default function Start({
           ))}
         </ul>
       )}
+
+      <div className="start-or"><span>hoặc dán toạ độ GPS</span></div>
+
+      <div className="start-coord">
+        <input
+          className="start-q"
+          placeholder="vd. 21.0278, 105.8342 (copy từ Google Maps)"
+          value={coordStr}
+          onChange={(e) => setCoordStr(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") goCoord();
+          }}
+          inputMode="decimal"
+          autoComplete="off"
+        />
+        <button onClick={goCoord} disabled={!coordStr.trim()}>Đi tới</button>
+      </div>
+      {coordErr && <p className="start-warn">{coordErr}</p>}
 
       <div className="start-or"><span>hoặc thử một nơi có sẵn</span></div>
 
