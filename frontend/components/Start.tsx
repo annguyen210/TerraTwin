@@ -63,6 +63,10 @@ export default function Start({
 
   // Dán toạ độ GPS trực tiếp — cho người biết chính xác lat/lon (vd copy từ
   // Google Maps). Nhận "21.03, 105.85", "21.03 105.85", hay có ký hiệu độ.
+  //
+  // TỰ NHẬN DIỆN NHẦM THỨ TỰ: rất nhiều người dán kinh độ trước (105.85, 21.03).
+  // Nếu (lat,lon) ngoài khung Việt Nam nhưng đảo lại thì vào → tự hoán đổi và
+  // báo nhẹ, thay vì bắt người dùng tự đoán "vĩ độ hay kinh độ trước".
   function goCoord() {
     setCoordErr(null);
     const nums = coordStr.replace(/[^\d.,\-\s]/g, " ").match(/-?\d+(\.\d+)?/g);
@@ -70,13 +74,25 @@ export default function Start({
       setCoordErr("Nhập dạng: vĩ độ, kinh độ — vd 21.0278, 105.8342");
       return;
     }
-    const lat = parseFloat(nums[0]);
-    const lon = parseFloat(nums[1]);
-    if (Math.abs(lat) > 90 || Math.abs(lon) > 180) {
+    const a = parseFloat(nums[0]);
+    const b = parseFloat(nums[1]);
+    // Khung bao Việt Nam (khớp máy chủ): vĩ độ 7.5–24, kinh độ 101.5–115.
+    const inVN = (lat: number, lon: number) =>
+      lat >= 7.5 && lat <= 24 && lon >= 101.5 && lon <= 115;
+
+    if (inVN(a, b)) {
+      onPick(a, b, `Toạ độ ${a.toFixed(4)}, ${b.toFixed(4)}`);
+    } else if (inVN(b, a)) {
+      // Người dùng dán ngược (kinh độ trước) — tự sửa.
+      onPick(b, a, `Toạ độ ${b.toFixed(4)}, ${a.toFixed(4)} (đã tự sửa thứ tự)`);
+    } else if (Math.abs(a) > 90 || Math.abs(b) > 180) {
       setCoordErr("Toạ độ không hợp lệ (vĩ độ ≤ 90, kinh độ ≤ 180).");
-      return;
+    } else {
+      setCoordErr(
+        `Điểm này nằm ngoài Việt Nam (VN: vĩ độ 7.5–24, kinh độ 101.5–115). ` +
+        `Kiểm tra lại — hoặc bạn đang dán đúng một chỗ ở nước khác?`,
+      );
     }
-    onPick(lat, lon, `Toạ độ ${lat.toFixed(4)}, ${lon.toFixed(4)}`);
   }
 
   // Chờ người dùng ngừng gõ rồi mới hỏi. Nominatim giới hạn 1 lần/giây, gọi
