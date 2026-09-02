@@ -19,6 +19,7 @@ import Answer from "@/components/Answer";
 import Start from "@/components/Start";
 import Story from "@/components/Story";
 import MyLand from "@/components/MyLand";
+import Landing from "@/components/Landing";
 import Alerts from "@/components/Alerts";
 import FieldMode from "@/components/FieldMode";
 import Heatmap from "@/components/Heatmap";
@@ -206,6 +207,39 @@ export default function Home() {
 
   const grouped: Record<string, ModuleInfo[]> = {};
   for (const m of modules) (grouped[m.group] ??= []).push(m);
+
+  // CHƯA chọn thửa → trang ĐÓN rộng, phân mục rõ (thay 3 cột chật). Chọn xong
+  // (coord có giá trị) mới rơi xuống bố cục app làm việc bên dưới.
+  if (!coord) {
+    return (
+      <>
+        {story && (
+          <Story onClose={() => setStory(false)} onExplore={onStart} />
+        )}
+        {workspace && (
+          <Workspace
+            user={user}
+            coord={coord}
+            area={area}
+            onClose={() => setWorkspace(false)}
+            onOpenPlot={(lat, lon) => {
+              setWorkspace(false);
+              loadPlot(lat, lon);
+            }}
+          />
+        )}
+        <Landing
+          user={user}
+          onAuth={setUser}
+          onStart={onStart}
+          onStory={() => setStory(true)}
+          onLoad={loadPlot}
+          onWorkspace={() => setWorkspace(true)}
+          modules={modules}
+        />
+      </>
+    );
+  }
 
   return (
     <main className="app">

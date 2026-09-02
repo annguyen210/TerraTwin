@@ -3498,3 +3498,81 @@ body {
 
 /* Badge dữ liệu thật/ước lượng — bo tròn, gọn */
 .databadge { border-radius: 999px; }
+
+/* ============================================================
+   TRANG ĐÓN (Landing) — bố cục rộng, phân mục rõ ràng
+   ============================================================ */
+.lp { min-height: 100vh; overflow-y: auto; color: var(--text);
+  background:
+    radial-gradient(1100px 520px at 78% -8%, rgba(95,203,142,.12), transparent 60%),
+    radial-gradient(900px 500px at 0% 8%, rgba(58,160,160,.10), transparent 55%),
+    var(--bg); }
+
+.lp-top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center;
+  justify-content: space-between; padding: 14px 28px;
+  background: rgba(11,18,24,.72); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line); }
+.lp-brand { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+.lp-brand::first-letter { color: var(--terra); }
+.lp-top-actions { display: flex; align-items: center; gap: 10px; }
+.lp-ws { background: transparent; border: 1px solid var(--line); color: var(--dim);
+  border-radius: 9px; padding: 8px 12px; font-size: 12.5px; cursor: pointer; }
+.lp-ws:hover { color: var(--text); border-color: var(--line-2); }
+
+.lp-body { max-width: 1140px; margin: 0 auto; padding: 40px 28px 60px; }
+
+/* HERO */
+.lp-hero { display: grid; grid-template-columns: 1.05fr .95fr; gap: 40px; align-items: start; }
+.lp-eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--terra); font-weight: 700; }
+.lp-h1 { font-size: clamp(30px, 4vw, 46px); line-height: 1.1; letter-spacing: -.025em;
+  font-weight: 800; margin: 12px 0 14px; }
+.lp-h1 span { background: linear-gradient(90deg, var(--terra), #7fe0a6);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.lp-lede { font-size: 16px; line-height: 1.65; color: var(--dim); max-width: 46ch; margin: 0 0 22px; }
+.lp-lede b { color: var(--text); font-weight: 600; }
+.lp-stats { display: flex; flex-wrap: wrap; gap: 10px; }
+.lp-stats div { flex: 1 1 90px; background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; padding: 12px 14px; }
+.lp-stats b { display: block; font-size: 24px; font-weight: 800; letter-spacing: -.02em;
+  color: var(--terra); }
+.lp-stats span { font-size: 11.5px; color: var(--dim); }
+
+/* Ô nhập (bọc Start + MyLand) — card nổi có bóng */
+.lp-entry { background: var(--panel); border: 1px solid var(--line-2); border-radius: 16px;
+  padding: 20px; box-shadow: var(--shadow); }
+
+/* Các mục */
+.lp-sec-h { font-size: 20px; font-weight: 800; letter-spacing: -.02em; margin: 54px 0 18px;
+  padding-top: 26px; border-top: 1px solid var(--line); }
+.lp-feats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.lp-feat { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 18px; transition: transform .12s, border-color .15s; }
+.lp-feat:hover { transform: translateY(-2px); border-color: var(--line-2); }
+.lp-feat-ic { font-size: 24px; }
+.lp-feat b { display: block; font-size: 14.5px; margin: 8px 0 6px; }
+.lp-feat p { font-size: 12.5px; color: var(--dim); line-height: 1.55; margin: 0; }
+
+/* Dải dữ liệu thật */
+.lp-trust { margin-top: 40px; text-align: center; }
+.lp-trust-cap { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); }
+.lp-sources { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 12px 0; }
+.lp-sources span { font-size: 12.5px; font-weight: 600; color: var(--text);
+  background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; }
+.lp-honest { font-size: 12.5px; color: var(--dim); line-height: 1.6; max-width: 62ch; margin: 6px auto 0; }
+.lp-honest b { color: var(--text); }
+
+.lp-foot { margin-top: 46px; padding-top: 18px; border-top: 1px solid var(--line);
+  text-align: center; font-size: 12px; color: var(--dim); }
+
+/* Trong trang đón, Start/MyLand không cần nền riêng (đã có card .lp-entry bọc) */
+.lp-entry .myland { margin-bottom: 14px; }
+
+@media (max-width: 860px) {
+  .lp-hero { grid-template-columns: 1fr; gap: 26px; }
+  .lp-feats { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 520px) {
+  .lp-feats { grid-template-columns: 1fr; }
+  .lp-body { padding: 26px 16px 44px; }
+}
