@@ -50,6 +50,8 @@ def scan(loc: Location, include_heavy: bool = False) -> ScanResult:
         assessments[info.id] = a
         fc = a.forecast or []
         spark = [round(p.value, 1) for p in fc]
+        peak_p = max(fc, key=lambda p: p.value) if fc else None
+        risky = [p.date for p in fc if p.risk in ("danger", "warning")]
         mods.append(ScanModule(
             id=info.id, name=info.name, icon=info.icon, group=info.group,
             risk_level=a.risk_level, headline=a.headline,
@@ -58,7 +60,9 @@ def scan(loc: Location, include_heavy: bool = False) -> ScanResult:
             confidence=getattr(a, "confidence", None),
             spark=spark,
             unit=fc[0].unit if fc else None,
-            peak=(max(p.value for p in fc) if fc else None),
+            peak=(peak_p.value if peak_p else None),
+            peak_date=(peak_p.date if peak_p else None),
+            risk_dates=risky,
         ))
         real_total += 1
         if a.is_real:

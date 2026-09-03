@@ -1495,3 +1495,77 @@ export function getPortfolioOverview() {
 export function getRoadmap() {
   return getJson<Roadmap>("/api/roadmap", "Không tải được trạng thái luồng");
 }
+
+// ---- KẾ HOẠCH THỬA CỦA BẠN (gom 4 hướng: việc cần làm · ngày an toàn ·
+//      giá trị chịu rủi ro · tự canh) ----
+export type PlanAction = {
+  id: string;
+  name: string;
+  icon: string;
+  risk_level: string;
+  headline: string;
+  do: string;
+  when: string | null;
+  when_weekday: string;
+  lead_days: number | null;
+  peak: number | null;
+  unit: string | null;
+  can_ask: boolean;
+};
+export type PlanDay = {
+  date: string;
+  weekday: string;
+  safe: boolean;
+  hazards: string[];
+};
+export type PlanValueItem = {
+  id: string;
+  name: string;
+  icon: string;
+  loss_pct: [number, number];
+  stake_lo: number;
+  stake_hi: number;
+  stake_text: string;
+  lead_days: number | null;
+};
+export type PlanValue = {
+  available: boolean;
+  crop: string;
+  crop_label: string;
+  crop_value_range: [number, number];
+  area_ha: number | null;
+  per_unit: boolean;
+  items: PlanValueItem[];
+  worst_lo: number;
+  worst_hi: number;
+  headline: string;
+  assumption: string;
+};
+export type PlanWatch = {
+  grade: string;
+  score: number;
+  n_alerts: number;
+  real_data_ratio: number;
+  headline: string;
+  capability: string;
+};
+export type PlanCrop = { id: string; label: string };
+export type PlotPlan = {
+  serviceable: boolean;
+  message?: string;
+  location?: { lat: number; lon: number };
+  generated_at?: string;
+  n_alerts?: number;
+  actions?: PlanAction[];
+  safe_window?: { days: PlanDay[]; safe_dates: string[]; headline: string };
+  value?: PlanValue;
+  watch?: PlanWatch;
+  crops?: PlanCrop[];
+};
+
+export function getPlan(lat: number, lon: number, areaHa?: number, crop = "lua") {
+  const body: Record<string, number> = { lat, lon };
+  if (areaHa != null) body.area_ha = areaHa;
+  return postJson<PlotPlan>(`/api/plan?crop=${encodeURIComponent(crop)}`, body,
+    "Không dựng được kế hoạch thửa");
+}

@@ -3576,3 +3576,119 @@ body {
   .lp-feats { grid-template-columns: 1fr; }
   .lp-body { padding: 26px 16px 44px; }
 }
+
+/* ============================================================
+   KẾ HOẠCH THỬA CỦA BẠN (PlotPlan) — tầng hành động sau khi quét
+   ============================================================ */
+.plan {
+  margin: 16px 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(95,203,142,0.05), transparent 120px), var(--card);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.plan-skel { opacity: 0.7; }
+.plan-head {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 14px 16px;
+  font-weight: 800; font-size: 1.05rem; color: var(--text);
+  border-bottom: 1px solid var(--line);
+  background: rgba(95,203,142,0.06);
+}
+.plan-sub { font-weight: 500; font-size: 0.8rem; color: var(--dim); }
+.plan-sec { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.plan-sec:last-child { border-bottom: 0; }
+.plan-h { margin: 0 0 10px; font-size: 0.9rem; font-weight: 700; color: var(--text); }
+.plan-note { margin: 8px 0 0; font-size: 0.82rem; color: var(--dim); line-height: 1.5; }
+.plan-assume {
+  margin: 8px 0 0; font-size: 0.76rem; color: var(--dim); line-height: 1.5;
+  padding: 8px 10px; border-radius: 8px; background: rgba(255,255,255,0.03);
+  border: 1px dashed var(--line-2);
+}
+.plan-value-head { margin: 0; font-size: 0.92rem; font-weight: 700; color: var(--text); }
+.plan-clear {
+  margin: 0; padding: 12px 14px; border-radius: 10px;
+  background: rgba(62,203,131,0.08); border: 1px solid rgba(62,203,131,0.25);
+  color: var(--text); font-size: 0.85rem; line-height: 1.5;
+}
+
+/* 1. Việc cần làm */
+.plan-actions { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.plan-actions > li {
+  border: 1px solid var(--line); border-left: 4px solid var(--warn);
+  border-radius: 10px; padding: 11px 13px; background: var(--panel);
+}
+.pa-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.pa-name { font-size: 0.95rem; color: var(--text); cursor: pointer; }
+.pa-name:hover { color: var(--terra); }
+.pa-when { font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
+.pa-head { margin: 4px 0 6px; font-size: 0.85rem; color: var(--text); line-height: 1.45; }
+.pa-do { margin: 0; font-size: 0.84rem; color: var(--dim); line-height: 1.5; }
+.pa-do span { color: var(--terra); font-weight: 700; }
+.pa-askbtn {
+  margin-top: 9px; padding: 6px 12px; font-size: 0.8rem; font-weight: 600;
+  border: 1px solid var(--line-2); border-radius: 8px; background: transparent;
+  color: var(--text); cursor: pointer; transition: all .15s;
+}
+.pa-askbtn:hover { border-color: var(--terra); color: var(--terra); }
+.pa-ask-load { margin: 9px 0 0; font-size: 0.8rem; color: var(--dim); }
+.pa-ask {
+  margin-top: 9px; padding: 10px 12px; border-radius: 8px;
+  background: rgba(95,203,142,0.06); border: 1px solid var(--line);
+}
+.pa-ask > b { font-size: 0.82rem; color: var(--text); }
+.pa-ask ul { margin: 6px 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.pa-ask li { font-size: 0.8rem; color: var(--dim); line-height: 1.45; }
+.pa-ask li span { color: var(--text); font-weight: 600; }
+.pa-ask li.infeasible { opacity: 0.72; }
+.pa-comb { margin: 4px 0; font-size: 0.8rem; color: var(--warn); line-height: 1.45; }
+.pa-ask small { font-size: 0.72rem; color: var(--dim); opacity: 0.8; }
+
+/* 2. Ngày an toàn */
+.plan-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.pw-day {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 8px 2px; border-radius: 8px; border: 1px solid var(--line);
+  text-align: center;
+}
+.pw-day.safe { background: rgba(62,203,131,0.10); border-color: rgba(62,203,131,0.3); }
+.pw-day.risky { background: rgba(229,112,90,0.10); border-color: rgba(229,112,90,0.3); }
+.pw-wd { font-size: 0.66rem; color: var(--dim); }
+.pw-dt { font-size: 0.78rem; font-weight: 700; color: var(--text); }
+.pw-dot { font-size: 0.8rem; font-weight: 800; }
+.pw-day.safe .pw-dot { color: var(--ok); }
+.pw-day.risky .pw-dot { color: var(--bad); }
+
+/* 3. Giá trị chịu rủi ro */
+.plan-crops { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 10px; }
+.plan-crops > span { font-size: 0.78rem; color: var(--dim); margin-right: 2px; }
+.plan-crops button {
+  padding: 4px 10px; font-size: 0.78rem; border-radius: 999px;
+  border: 1px solid var(--line-2); background: transparent; color: var(--dim); cursor: pointer;
+  transition: all .15s;
+}
+.plan-crops button:hover { color: var(--text); border-color: var(--terra); }
+.plan-crops button.on { background: var(--terra); color: var(--on-accent); border-color: var(--terra); font-weight: 700; }
+.plan-value { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.plan-value > li {
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  padding: 8px 10px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line);
+}
+.pv-name { font-size: 0.84rem; color: var(--text); flex: 1 1 40%; }
+.pv-stake { font-size: 0.9rem; font-weight: 800; color: var(--warn); }
+.pv-pct { font-size: 0.74rem; color: var(--dim); }
+
+/* 4. Trí tuệ vùng */
+.plan-twins { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+.pt-cell {
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  padding: 9px 14px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line);
+  min-width: 78px;
+}
+.pt-cell b { font-size: 1.15rem; font-weight: 800; color: var(--terra); }
+.pt-cell span { font-size: 0.72rem; color: var(--dim); }
+.pt-cell small { font-size: 0.72rem; color: var(--dim); }
+
+/* 5. Tự canh */
+.plan-watch { background: rgba(95,203,142,0.04); }

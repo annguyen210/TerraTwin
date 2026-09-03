@@ -28,6 +28,7 @@ from app.schemas import (
     TerraScoreResult, WhatIfResult,
 )
 from app.services import (
+    advisor,
     anomaly, anomaly_ml, backtest, calibration, copilot, design, explain,
     future, genome, goalseek,
     hazard, heatmap, imagery, jobs, landcover, llm, mrv, place, region,
@@ -310,6 +311,23 @@ def scan_endpoint(location: Location, deep: bool = False) -> ScanResult:
     r = scan.scan(location, include_heavy=deep)
     r.region = reg
     return r
+
+
+@app.post("/api/plan")
+def plan_endpoint(location: Location, crop: str = "lua") -> dict:
+    """KẾ HOẠCH THỬA CỦA BẠN — gom cảnh báo thành việc-cần-làm-có-ngày, ngày an
+    toàn, giá trị chịu rủi ro (ước lượng thô, khai báo rõ), và trạng thái tự canh.
+
+    Cùng cửa chặn như /api/scan: mặt biển / nước khác không có kế hoạch mùa vụ.
+    """
+    reg = region.classify(location.lat, location.lon)
+    if not reg["serviceable"]:
+        return {"serviceable": False, "region": reg,
+                "message": reg.get("note") or "Ngoài phạm vi phục vụ."}
+    out = advisor.build(location, crop=crop)
+    out["region"] = reg
+    out["serviceable"] = True
+    return out
 
 
 @app.post("/api/whatif/{module_id}", response_model=WhatIfResult)

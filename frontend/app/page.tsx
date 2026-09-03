@@ -16,6 +16,7 @@ import {
 import type { HeatmapResult } from "@/lib/api";
 import Account from "@/components/Account";
 import Answer from "@/components/Answer";
+import PlotPlan from "@/components/PlotPlan";
 import Start from "@/components/Start";
 import Story from "@/components/Story";
 import MyLand from "@/components/MyLand";
@@ -333,6 +334,14 @@ export default function Home() {
             onDetail={() => setTab("overview")}
             onRisk={setPlotRisk}
             onTerra={setTerra}
+          />
+        )}
+        {coord && terra?.region?.serviceable !== false && (
+          <PlotPlan
+            lat={coord.lat}
+            lon={coord.lon}
+            area={area}
+            onSelectModule={selectModule}
           />
         )}
         {area != null && (

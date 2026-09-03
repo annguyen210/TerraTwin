@@ -138,6 +138,10 @@ class ScanModule(BaseModel):
     spark: list[float] = []          # giá trị dự báo 7 ngày (vẽ sparkline)
     unit: Optional[str] = None       # đơn vị của spark
     peak: Optional[float] = None     # đỉnh 7 ngày (con số đập vào mắt)
+    # Timing — để "Kế hoạch thửa" biết VIỆC CẦN LÀM rơi vào NGÀY nào, không chỉ
+    # "có rủi ro". Một cảnh báo không kèm ngày thì người dùng vẫn phải tự đoán.
+    peak_date: Optional[str] = None      # ngày đạt đỉnh trong 7 ngày tới
+    risk_dates: list[str] = []           # các ngày có cảnh báo (warning/danger)
 
 
 class ScanResult(BaseModel):
