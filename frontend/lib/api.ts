@@ -1530,6 +1530,7 @@ export type PlanValueItem = {
 };
 export type PlanValue = {
   available: boolean;
+  at_risk: boolean;
   crop: string;
   crop_label: string;
   crop_value_range: [number, number];
@@ -1538,6 +1539,9 @@ export type PlanValue = {
   items: PlanValueItem[];
   worst_lo: number;
   worst_hi: number;
+  plot_lo: number;
+  plot_hi: number;
+  plot_text: string;
   headline: string;
   assumption: string;
 };

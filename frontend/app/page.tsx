@@ -323,19 +323,8 @@ export default function Home() {
         {!coord && <MyLand user={user} onOpen={onStart} />}
         {!coord && <Start onPick={onStart} onStory={() => setStory(true)} />}
 
-        {coord && (
-          <Answer
-            lat={coord.lat}
-            lon={coord.lon}
-            area={area}
-            label={placeLabel}
-            modules={modules}
-            onSelectModule={selectModule}
-            onDetail={() => setTab("overview")}
-            onRisk={setPlotRisk}
-            onTerra={setTerra}
-          />
-        )}
+        {/* KẾ HOẠCH lên đầu — thứ người dùng cần nhất ("làm gì") là thứ đầu tiên
+            họ thấy. Lưới 18 mũi nhọn (bằng chứng) tụt xuống dưới. */}
         {coord && terra?.region?.serviceable !== false && (
           <PlotPlan
             lat={coord.lat}
@@ -343,6 +332,24 @@ export default function Home() {
             area={area}
             onSelectModule={selectModule}
           />
+        )}
+        {coord && (
+          <>
+            {terra?.region?.serviceable !== false && (
+              <h3 className="ev-h">🔬 Bằng chứng chi tiết — lưới 18 mũi nhọn</h3>
+            )}
+            <Answer
+              lat={coord.lat}
+              lon={coord.lon}
+              area={area}
+              label={placeLabel}
+              modules={modules}
+              onSelectModule={selectModule}
+              onDetail={() => setTab("overview")}
+              onRisk={setPlotRisk}
+              onTerra={setTerra}
+            />
+          </>
         )}
         {area != null && (
           <p className="areanote">📐 Diện tích vùng: {area} ha</p>

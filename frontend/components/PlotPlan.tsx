@@ -225,7 +225,9 @@ export default function PlotPlan({
               </button>
             ))}
           </div>
-          <p className="plan-value-head">{value.headline}</p>
+          <p className={`plan-value-head${value.at_risk ? "" : " safe"}`}>
+            {value.headline}
+          </p>
           {value.items.length > 0 && (
             <ul className="plan-value">
               {value.items.map((it) => (

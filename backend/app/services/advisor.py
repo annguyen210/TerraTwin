@@ -153,22 +153,33 @@ def build(loc: Location, crop: str = DEFAULT_CROP) -> dict:
     # họa lớn nhất làm mức "đang chịu rủi ro" — bảo thủ, không thổi phồng.
     worst_hi = max((it["stake_hi"] for it in items), default=0)
     worst_lo = max((it["stake_lo"] for it in items), default=0)
+    # Giá trị vụ (gộp) của thửa — để nói dương tính khi an toàn: "chừng này giá trị
+    # đang được canh giữ", thay vì một câu trống rỗng. Vẫn là giả định, gắn cờ rõ.
+    plot_lo = round(unit_area * v_lo)
+    plot_hi = round(unit_area * v_hi)
+    on = "trên thửa" if area else "mỗi ha"
     value = {
-        "available": bool(items),
+        "available": True,
+        "at_risk": bool(items),
         "crop": crop, "crop_label": crop_label,
         "crop_value_range": [v_lo, v_hi],
         "area_ha": area, "per_unit": area is None,
         "items": items,
         "worst_lo": worst_lo, "worst_hi": worst_hi,
+        "plot_lo": plot_lo, "plot_hi": plot_hi,
+        "plot_text": f"{_money(plot_lo)} – {_money(plot_hi)}",
         "headline": (
-            (f"Tối đa ~{_money(worst_hi)} {'trên thửa' if area else 'mỗi ha'} đang "
-             f"chịu rủi ro (lấy hiểm họa lớn nhất, KHÔNG cộng dồn).")
+            (f"Tối đa ~{_money(worst_hi)} {on} đang chịu rủi ro "
+             f"(lấy hiểm họa lớn nhất, KHÔNG cộng dồn).")
             if items else
-            "Chưa có hiểm họa nào quy được ra thiệt hại mùa vụ ở thời điểm này."),
+            (f"✅ Giá trị vụ ~{_money(plot_lo)}–{_money(plot_hi)} {on} đang được "
+             f"canh giữ — không hiểm họa nào đe doạ trong 7 ngày tới.")),
         "assumption": (
-            f"Ước lượng THÔ = diện tích × tỉ lệ thiệt hại điển hình của hiểm họa × "
-            f"giá trị vụ giả định ({crop_label}: {_money(v_lo)}–{_money(v_hi)}/ha). "
-            f"KHÔNG phải đo cho thửa này; đổi loại canh tác để tính lại."
+            f"Ước lượng THÔ theo giả định {crop_label} ({_money(v_lo)}–{_money(v_hi)}/ha"
+            + (f" × {area} ha" if area else "/ha") + "). "
+            + ("Phần chịu rủi ro = giá trị vụ × tỉ lệ thiệt hại điển hình của hiểm họa. "
+               if items else "")
+            + "KHÔNG phải đo cho thửa này — đổi loại canh tác để tính lại."
             + ("" if area else " Vẽ hoặc nhập diện tích thửa để ra tổng theo thửa.")),
     }
 

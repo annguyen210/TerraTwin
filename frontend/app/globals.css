@@ -3692,3 +3692,15 @@ body {
 
 /* 5. Tự canh */
 .plan-watch { background: rgba(95,203,142,0.04); }
+
+/* Trạng thái an toàn dương tính + tiêu đề "bằng chứng" (Kế hoạch lên hero) */
+.plan-value-head.safe {
+  color: var(--ok);
+  padding: 10px 12px; border-radius: 10px;
+  background: rgba(62,203,131,0.08); border: 1px solid rgba(62,203,131,0.25);
+}
+.ev-h {
+  margin: 20px 0 6px; padding-top: 14px;
+  font-size: 0.86rem; font-weight: 700; color: var(--dim);
+  letter-spacing: 0.02em; border-top: 1px solid var(--line);
+}
