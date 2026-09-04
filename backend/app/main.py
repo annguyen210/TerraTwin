@@ -23,6 +23,7 @@ from app.modules.registry import get_module, list_modules
 from app.routes_account import router as account_router
 from app.routes_data import router as data_router
 from app.routes_learn import router as learn_router
+from app.routes_trust import router as trust_router
 from app.schemas import (
     Assessment, CopilotAnswer, Location, ModuleInfo, ScanResult,
     TerraScoreResult, WhatIfResult,
@@ -171,6 +172,7 @@ async def rate_limit(request: Request, call_next):
 app.include_router(account_router)
 app.include_router(data_router)
 app.include_router(learn_router)
+app.include_router(trust_router)
 
 
 class CopilotRequest(BaseModel):

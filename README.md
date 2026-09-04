@@ -206,7 +206,7 @@ terratwin/
 │       │                         #   goalseek, timemachine, anomaly,
 │       │                         #   backtest, copilot, twin
 │       └── modules/              # base + util + 18 mũi nhọn (nhóm A–D) + registry
-│   └── tests/                    # pytest (217 test, offline & tất định)
+│   └── tests/                    # pytest (509 test, offline & tất định)
 ├── frontend/                     # Next.js 14 + MapLibre
 │   └── components/               # MapView, ResultsPanel, Overview, WhatIf,
 │                                 #   Backtest, Portfolio, Copilot
@@ -243,7 +243,7 @@ npm run dev -- -p 1825      # http://localhost:1825
 ```bash
 cd backend
 pip install -r requirements-dev.txt
-pytest                      # 217 test, chạy offline & tất định
+pytest                      # 509 test, chạy offline & tất định
 ```
 
 ---
@@ -357,7 +357,7 @@ không bịa số**; `awaiting_config` là **mã xong nhưng deployment này thi
 nên người dùng chưa dùng được**. Gộp hai cái đó vào một chữ "xong" là lúc một
 bảng trạng thái bắt đầu nói dối.
 
-### 17 mũi nhọn phủ đủ 12/12 ngành
+### 18 mũi nhọn phủ đủ 12/12 ngành
 
 Bản thiết kế liệt kê **14 mũi nhọn** nhưng lại hứa **12 ngành** — hai con số đó
 không khớp nhau. Ba ngành không có mũi nhọn nào: Đô thị & Quy hoạch, Khai khoáng

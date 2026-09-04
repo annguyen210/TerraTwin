@@ -3704,3 +3704,223 @@ body {
   font-size: 0.86rem; font-weight: 700; color: var(--dim);
   letter-spacing: 0.02em; border-top: 1px solid var(--line);
 }
+
+/* ============================================================
+   MỘT CHẠM (/tap/[token]) — trang công khai từ link cảnh báo
+   ============================================================ */
+.tap{
+  min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:18px; padding:24px 18px;
+  background:radial-gradient(1200px 500px at 50% -10%, rgba(95,203,142,.10), transparent 70%), var(--bg);
+}
+.tap-card{
+  width:100%; max-width:440px; background:var(--card); border:1px solid var(--line);
+  border-radius:18px; padding:26px 22px 24px; box-shadow:var(--shadow); text-align:center;
+}
+.tap-brand{ font-weight:800; font-size:1.05rem; color:var(--terra); letter-spacing:.01em; margin-bottom:18px }
+.tap-load{ color:var(--dim); font-size:.95rem; padding:22px 0 }
+.tap-emoji{ font-size:2.4rem; line-height:1; margin-bottom:12px }
+.tap-q{ font-size:1.28rem; line-height:1.42; font-weight:700; color:var(--text); margin:6px 0 22px; text-wrap:balance }
+.tap-btns{ display:flex; flex-direction:column; gap:11px }
+.tap-btn{
+  padding:17px 16px; font-size:1.12rem; font-weight:800; border-radius:13px; cursor:pointer;
+  border:2px solid var(--line-2); background:var(--panel); color:var(--text); transition:transform .08s, border-color .15s, background .15s;
+}
+.tap-btn:hover{ transform:translateY(-1px) }
+.tap-btn:disabled{ opacity:.6; cursor:default; transform:none }
+.tap-yes{ border-color:rgba(62,203,131,.5) } .tap-yes:hover{ background:rgba(62,203,131,.12); border-color:var(--ok) }
+.tap-no{ border-color:rgba(229,112,90,.5) } .tap-no:hover{ background:rgba(229,112,90,.12); border-color:var(--bad) }
+.tap-unsure:hover{ background:rgba(255,255,255,.04) }
+.tap-why{ font-size:.82rem; color:var(--dim); line-height:1.55; margin:20px 4px 0 }
+.tap-thanks-msg{ font-size:1.15rem; font-weight:700; color:var(--text); line-height:1.45; margin:2px 0 6px }
+.tap-err p{ font-size:1rem; color:var(--text); margin:6px 0 18px }
+.tap-home{
+  display:inline-block; margin-top:8px; padding:11px 20px; border-radius:11px;
+  background:var(--terra); color:var(--on-accent); font-weight:700; font-size:.92rem; text-decoration:none;
+}
+.tap-home:hover{ filter:brightness(1.05) }
+.tap-foot{ font-size:.78rem; color:var(--dim); text-align:center; max-width:420px; line-height:1.5 }
+
+/* ============================================================
+   SO DIEM TU CHAM (components/Scorecard.tsx)
+   Con so TerraTwin khong co quyen sua. Dat o trang don, ngay
+   duoi hero, vi day la thu tra loi cau "phan mem nay hon o dau"
+   nhanh hon bat ky danh sach tinh nang nao.
+   ============================================================ */
+.sc{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  padding:22px 24px; display:flex; flex-direction:column; gap:16px;
+}
+.sc-load,.sc-err{ color:var(--dim); font-size:.95rem; padding:26px 24px }
+.sc-err p{ margin:0 }
+
+.sc-head{ display:flex; align-items:flex-start; gap:14px; flex-wrap:wrap }
+.sc-eyebrow{
+  display:block; font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--dim); margin-bottom:6px;
+}
+.sc-h{ margin:0; font-size:1.22rem; line-height:1.3; color:var(--text); font-weight:700 }
+.sc-badge{
+  margin-left:auto; font-size:.75rem; padding:4px 11px; border-radius:99px;
+  border:1px solid var(--line-2); color:var(--dim); white-space:nowrap;
+}
+.sc-badge.on{ border-color:rgba(62,203,131,.45); color:var(--ok) }
+
+.sc-headline{
+  margin:0; font-size:1.05rem; line-height:1.55; color:var(--text); font-weight:600;
+}
+.sc-empty{ margin:0; font-size:.9rem; line-height:1.6; color:var(--dim) }
+
+.sc-counts{ display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px }
+.sc-c{
+  background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  padding:12px 14px; display:flex; flex-direction:column; gap:2px;
+}
+.sc-c b{ font-size:1.7rem; line-height:1.1; font-variant-numeric:tabular-nums }
+.sc-c span{ font-size:.82rem; color:var(--dim) }
+.sc-c small{ font-size:.7rem; color:var(--dim); opacity:.75; line-height:1.35; margin-top:3px }
+.sc-c.ok b{ color:var(--ok) }
+.sc-c.bad b{ color:var(--bad) }
+.sc-c.dim b{ color:var(--dim) }
+
+.sc-rates{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px }
+.sc-rate{ display:flex; flex-direction:column; gap:6px }
+.sc-rate-top{ display:flex; justify-content:space-between; align-items:baseline; font-size:.88rem }
+.sc-rate-top b{ font-size:1.15rem; font-variant-numeric:tabular-nums; color:var(--text) }
+.sc-bar{ height:6px; border-radius:99px; background:rgba(140,168,184,.16); overflow:hidden }
+.sc-bar i{ display:block; height:100%; border-radius:99px }
+.sc-bar i.good{ background:var(--ok) }
+.sc-bar i.mid{ background:var(--warn) }
+.sc-bar i.poor{ background:var(--bad) }
+.sc-rate small{ font-size:.74rem; color:var(--dim); line-height:1.5 }
+
+.sc-mods{ display:flex; flex-direction:column; gap:8px }
+.sc-mods-h{ font-size:.78rem; color:var(--dim); letter-spacing:.02em }
+.sc-table{ width:100%; border-collapse:collapse; font-size:.86rem }
+.sc-table th{
+  text-align:left; font-weight:600; color:var(--dim); font-size:.74rem;
+  text-transform:uppercase; letter-spacing:.08em; padding:6px 8px;
+  border-bottom:1px solid var(--line);
+}
+.sc-table td{ padding:8px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums }
+.sc-table th:not(:first-child),.sc-table td:not(:first-child){ text-align:right; width:1%; white-space:nowrap }
+.sc-table tr.off td{ color:var(--dim); opacity:.6 }
+
+.sc-foot{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding-top:4px }
+.sc-gt{ font-size:.82rem; color:var(--dim); line-height:1.5 }
+.sc-gt b{ color:var(--text) }
+.sc-more{
+  margin-left:auto; background:none; border:1px solid var(--line-2); color:var(--dim);
+  border-radius:99px; padding:5px 13px; font-size:.78rem; cursor:pointer;
+}
+.sc-more:hover{ color:var(--text); border-color:var(--terra) }
+.sc-method{
+  border-left:2px solid var(--terra); padding:2px 0 2px 14px;
+  display:flex; flex-direction:column; gap:8px;
+}
+.sc-method p{ margin:0; font-size:.85rem; line-height:1.65; color:var(--dim) }
+.sc-method-note b{ color:var(--text) }
+
+@media (max-width:640px){
+  .sc{ padding:18px 16px }
+  .sc-badge{ margin-left:0 }
+  .sc-table{ font-size:.8rem }
+  .sc-table th,.sc-table td{ padding:6px 5px }
+}
+
+/* Vi tri so diem tren trang don. .lp-body da lo be ngang + padding roi,
+   nen o day chi can khoang cach doc. */
+.lp-score{ margin-top:44px }
+@media (max-width:640px){ .lp-score{ margin-top:30px } }
+
+/* ============================================================
+   SỔ ĐIỂM TỰ CHẤM (Scorecard) — modal + inline
+   ============================================================ */
+.sc-overlay{ position:fixed; inset:0; z-index:60; background:rgba(4,8,10,.72); backdrop-filter:blur(4px);
+  display:flex; align-items:flex-start; justify-content:center; padding:5vh 16px; overflow:auto }
+.sc-modal{ width:100%; max-width:560px; }
+.sc{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px 20px 18px; box-shadow:var(--shadow) }
+.sc-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:4px }
+.sc-title{ margin:0; font-size:1.1rem; font-weight:800; color:var(--text) }
+.sc-sub{ margin:3px 0 0; font-size:.8rem; color:var(--dim); line-height:1.45 }
+.sc-close{ flex:none; width:30px; height:30px; border-radius:8px; border:1px solid var(--line-2); background:transparent; color:var(--dim); cursor:pointer; font-size:.9rem }
+.sc-close:hover{ color:var(--text); border-color:var(--terra) }
+.sc-load,.sc-err{ color:var(--dim); font-size:.9rem; padding:14px 0 }
+.sc-headline{ margin:14px 0 0; padding:11px 13px; border-radius:10px; font-size:.9rem; line-height:1.5;
+  color:var(--text); background:var(--panel); border:1px solid var(--line) }
+.sc-headline.ok{ background:rgba(62,203,131,.08); border-color:rgba(62,203,131,.25) }
+.sc-rates{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px }
+.sc-rate{ display:flex; flex-direction:column; gap:2px; padding:12px 10px; border-radius:11px; background:var(--panel); border:1px solid var(--line); text-align:center }
+.sc-rate-val{ font-size:1.7rem; font-weight:800; letter-spacing:-.02em }
+.sc-rate-lbl{ font-size:.8rem; font-weight:700; color:var(--text) }
+.sc-rate-hint{ font-size:.68rem; color:var(--dim); line-height:1.35 }
+.sc-counts{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:14px }
+.sc-counts>div{ text-align:center; padding:9px 4px; border-radius:9px; background:var(--panel); border:1px solid var(--line) }
+.sc-counts b{ display:block; font-size:1.15rem; font-weight:800; color:var(--text) }
+.sc-counts span{ font-size:.68rem; color:var(--dim) }
+.sc-gt{ margin-top:16px; padding:13px 14px; border-radius:11px; background:rgba(95,203,142,.05); border:1px solid var(--line) }
+.sc-gt h4{ margin:0 0 9px; font-size:.86rem; font-weight:700; color:var(--text) }
+.sc-gt-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px }
+.sc-gt-row>div{ text-align:center }
+.sc-gt-row b{ display:block; font-size:1.25rem; font-weight:800; color:var(--terra) }
+.sc-gt-row span{ font-size:.7rem; color:var(--dim) }
+.sc-gt-note{ margin:10px 0 0; font-size:.74rem; color:var(--dim); line-height:1.5 }
+.sc-mods{ margin-top:16px }
+.sc-mods h4{ margin:0 0 8px; font-size:.86rem; font-weight:700; color:var(--text) }
+.sc-mods table{ width:100%; border-collapse:collapse; font-size:.82rem }
+.sc-mods th{ text-align:left; font-size:.66rem; text-transform:uppercase; letter-spacing:.05em; color:var(--dim); padding:6px 8px; border-bottom:1px solid var(--line) }
+.sc-mods td{ padding:7px 8px; border-bottom:1px solid var(--line); color:var(--text) }
+.sc-mods .sc-num{ text-align:right; font-variant-numeric:tabular-nums; color:var(--dim) }
+.sc-method{ margin:14px 0 0; font-size:.72rem; color:var(--dim); line-height:1.55 }
+/* nút mở sổ điểm trên landing */
+.lp-scorebtn{ margin-top:14px; padding:9px 18px; border-radius:10px; border:1px solid var(--line-2);
+  background:transparent; color:var(--text); font-weight:600; font-size:.86rem; cursor:pointer; transition:all .15s }
+.lp-scorebtn:hover{ border-color:var(--terra); color:var(--terra) }
+
+/* ============================================================
+   A11Y + IN ẤN
+   ============================================================ */
+@media (prefers-reduced-motion:reduce){ *{ animation-duration:.001ms!important; transition-duration:.001ms!important } }
+@media print{
+  .lp-top,.sidebar,.mapwrap,.drawbar,.tabs,.sc-overlay,.pa-askbtn,.plan-crops button{ display:none!important }
+  body,.app,.results{ background:#fff!important; color:#111!important; display:block!important }
+  .plan{ break-inside:avoid; border:1px solid #ccc; box-shadow:none }
+  .plan *{ color:#111!important }
+  .plan-head,.plan-sec{ background:#fff!important }
+}
+
+/* PlotPlan: nút in + câu hỏi chờ (vòng khép kín) */
+.plan-head{ flex-direction:row!important; align-items:center; justify-content:space-between; gap:10px }
+.plan-head-main{ display:flex; flex-direction:column; gap:2px; min-width:0 }
+.plan-print{ flex:none; padding:6px 12px; border-radius:9px; border:1px solid var(--line-2);
+  background:transparent; color:var(--dim); font-size:.78rem; font-weight:600; cursor:pointer; white-space:nowrap }
+.plan-print:hover{ color:var(--terra); border-color:var(--terra) }
+.plan-ask{ background:rgba(95,203,142,.06) }
+.plan-qs{ list-style:none; margin:10px 0 0; padding:0; display:flex; flex-direction:column; gap:10px }
+.plan-qs>li{ padding:11px 13px; border-radius:10px; background:var(--panel); border:1px solid var(--line) }
+.pq-q{ margin:0 0 9px; font-size:.9rem; font-weight:600; color:var(--text); line-height:1.45 }
+.pq-btns{ display:flex; gap:8px; flex-wrap:wrap }
+.pq-btn{ flex:1 1 auto; min-width:72px; padding:9px 12px; font-size:.9rem; font-weight:700; border-radius:9px;
+  border:2px solid var(--line-2); background:var(--card); color:var(--text); cursor:pointer; transition:all .12s }
+.pq-btn:disabled{ opacity:.6; cursor:default }
+.pq-yes{ border-color:rgba(62,203,131,.5) } .pq-yes:hover{ background:rgba(62,203,131,.12) }
+.pq-no{ border-color:rgba(229,112,90,.5) } .pq-no:hover{ background:rgba(229,112,90,.12) }
+.pq-unsure:hover{ background:rgba(255,255,255,.04) }
+.pq-done{ margin:0; font-size:.85rem; color:var(--ok); font-weight:600; line-height:1.45 }
+
+/* Workspace ChannelsPanel: công thức nối Zalo/Telegram */
+.ws-recipes{ display:flex; flex-wrap:wrap; gap:7px; margin:4px 0 10px }
+.ws-recipes button{ padding:6px 12px; font-size:.82rem; border-radius:999px; border:1px solid var(--line-2);
+  background:transparent; color:var(--dim); cursor:pointer; transition:all .15s }
+.ws-recipes button:hover{ color:var(--text); border-color:var(--terra) }
+.ws-recipes button.on{ background:var(--terra); color:var(--on-accent); border-color:var(--terra); font-weight:700 }
+.ws-recipe{ margin:0 0 12px; padding:12px 14px; border-radius:10px; background:var(--panel); border:1px solid var(--line);
+  font-size:.85rem; line-height:1.55; color:var(--text) }
+.ws-recipe ol{ margin:8px 0 4px; padding-left:20px } .ws-recipe li{ margin-bottom:5px }
+.ws-mono{ font-family:ui-monospace,Consolas,monospace; font-size:.82em; background:var(--card);
+  padding:1px 5px; border-radius:4px; color:var(--terra); word-break:break-word }
+.ws-mini{ margin:8px 0 0; font-size:.76rem; color:var(--dim); line-height:1.5 }
+
+/* MyLand: dòng bản tin sáng */
+.ml-brief{ margin:4px 0 2px; font-size:.9rem; color:var(--dim); text-transform:capitalize }
+.ml-brief-sub{ margin:0; font-size:.8rem; color:var(--dim); opacity:.85 }

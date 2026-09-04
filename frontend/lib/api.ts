@@ -1573,3 +1573,88 @@ export function getPlan(lat: number, lon: number, areaHa?: number, crop = "lua")
   return postJson<PlotPlan>(`/api/plan?crop=${encodeURIComponent(crop)}`, body,
     "Không dựng được kế hoạch thửa");
 }
+
+// ---- VÒNG LẶP TIN CẬY: sổ điểm tự chấm + một chạm (moat) ----
+export type ScorecardRates = {
+  pod_pct: number | null;   // bắt được bao nhiêu % số đợt thực tế
+  far_pct: number | null;   // báo bừa
+  csi_pct: number | null;   // điểm tổng hợp
+};
+export type ScorecardModule = ScorecardRates & {
+  module_id: string;
+  name: string;
+  scored: number;
+  counts: Record<string, number>;
+  enough: boolean;
+};
+export type GroundTruth = {
+  observations: number;
+  by_source: Record<string, number>;
+  by_onetap: number;
+  cells_covered: number;
+  note: string;
+};
+export type Scorecard = ScorecardRates & {
+  window_days: number;
+  module_id: string | null;
+  counts: Record<string, number>;
+  scored: number;
+  pending: number;
+  verified_by_people: number;
+  enough: boolean;
+  min_sample: number;
+  headline: string;
+  method: string;
+  by_module: ScorecardModule[];
+  ground_truth: GroundTruth;
+};
+
+export function getScorecard(days = 90) {
+  return getJson<Scorecard>(`/api/scorecard?days=${days}`,
+    "Không tải được sổ điểm");
+}
+
+export type ScorecardBucket = ScorecardRates & {
+  from: string; to: string; counts: Record<string, number>; scored: number;
+};
+export function getScorecardTimeline(days = 180, buckets = 12) {
+  return getJson<{ buckets: ScorecardBucket[] }>(
+    `/api/scorecard/timeline?days=${days}&buckets=${buckets}`,
+    "Không tải được xu hướng sổ điểm");
+}
+
+// ---- Một chạm: câu hỏi công khai sau link cảnh báo (KHÔNG cần đăng nhập) ----
+export type TapOption = { value: "yes" | "no" | "unsure"; label: string };
+export type TapQuestion = {
+  alert_id: number;
+  module_id: string;
+  asked_on: string;
+  headline: string;
+  question: string;
+  options: TapOption[];
+  answered: boolean;
+  outcome: string | null;
+  why: string;
+  token?: string;
+};
+export type TapResult = {
+  already: boolean;
+  outcome: string | null;
+  message: string;
+};
+
+export function getTapQuestion(token: string) {
+  return getJson<TapQuestion>(`/api/tap/${encodeURIComponent(token)}`,
+    "Liên kết không hợp lệ hoặc đã hết hạn");
+}
+export function sendTapAnswer(token: string, answer: "yes" | "no" | "unsure") {
+  return postJson<TapResult>(`/api/tap/${encodeURIComponent(token)}`, { answer },
+    "Không gửi được câu trả lời");
+}
+
+// Câu hỏi đang chờ CHÍNH người này trả lời — để đóng vòng ngay trong app.
+export function getMyQuestions(limit = 5) {
+  return authed<{ questions: TapQuestion[]; count: number }>(
+    `/api/questions?limit=${limit}`, { method: "GET" },
+    "Không tải được câu hỏi cần bạn xác nhận");
+}

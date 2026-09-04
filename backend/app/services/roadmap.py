@@ -76,7 +76,11 @@ FLOWS = [
      "khóa), và phát hiện thay đổi BỀ MẶT hai kỳ trên ảnh Sentinel-2 — mất thảm "
      "thực vật (NDVI) và bề mặt xây dựng mới (NDBI + NDVI cùng đổi)."),
     ("C05", "Proactive Radar", "core", "done",
-     "Quét lại mọi thửa đã lưu, chống trùng 12 giờ, tự gửi qua kênh đã cấu hình."),
+     "Quét lại mọi thửa đã lưu, chống trùng 12 giờ, tự gửi qua kênh đã cấu "
+     "hình — và ĐÓNG VÒNG LẶP: sau khi cửa sổ dự báo trôi qua, mỗi cảnh báo "
+     "được chấm lại bằng số liệu thực đo của chính khoảng thời gian đó, đồng "
+     "thời hỏi người trên thửa đúng một câu để đối chiếu. Kết quả lên sổ điểm "
+     "công khai, kể cả những lần bỏ sót tìm được khi quét ngược lịch sử."),
     ("C06", "Risk & Yield Heatmaps", "core", "done",
      "Lưới tới 11×11 quanh thửa, vẽ trực tiếp lên bản đồ."),
     ("C07", "Carbon / ESG MRV", "core", "done",
@@ -100,7 +104,10 @@ FLOWS = [
 
     # ----- Nâng cấp (4) -----
     ("U01", "Action & Automation", "upgrade", "done",
-     "Gửi cảnh báo qua webhook và email; webhook chặn địa chỉ nội bộ (chống SSRF)."),
+     "Gửi cảnh báo qua Zalo (ZNS, theo số điện thoại), Telegram, webhook và "
+     "email; webhook chặn địa chỉ nội bộ (chống SSRF). Zalo và Telegram được "
+     "thêm sau khi một phép đo phơi ra chuyện radar sinh hàng trăm cảnh báo mà "
+     "không cái nào có đường tới điện thoại một người làm ruộng."),
     ("U02", "Marketplace", "upgrade", "done",
      "Chợ TRI THỨC ghép theo Twin Genome: kinh nghiệm đến từ vùng cùng bộ gen "
      "đất, không phải lời khuyên chung chung. Chợ có GIAO DỊCH TIỀN cần cổng "

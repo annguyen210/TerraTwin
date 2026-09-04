@@ -47,6 +47,21 @@ def client(tmp_path, monkeypatch):
     dist = sorted((i / 500) ** 2 * 200.0 for i in range(500))
     monkeypatch.setattr(cal, "climatology", lambda *a, **k: dist)
 
+    # CHẶN NỐT ĐƯỜNG MẠNG CỦA CÁC MÔ-ĐUN NẶNG.
+    #
+    # Rà soát nền chạy với include_heavy=True, nên bốn mô-đun quang học/lưu vực
+    # gọi thẳng ra Planetary Computer và Overpass. Bốn nguồn ấy KHÔNG được giả
+    # lập ở đây, và hậu quả là test chống trùng từng đỏ đúng một lần trong ba
+    # lượt chạy đầy đủ: lượt quét thứ nhất một mô-đun nặng lỗi mạng nên im,
+    # lượt thứ hai nó trả lời được nên sinh thêm cảnh báo — rồi "chạy lại không
+    # được sinh trùng" hoá ra sai vì lý do chẳng liên quan gì tới chống trùng.
+    #
+    # Trả None = "không lấy được ảnh", đúng nhánh mà mô-đun vốn đã xử lý sẵn.
+    from app.services import catchment, optical
+    for ten in ("stress", "growth", "vegetation_loss", "new_construction"):
+        monkeypatch.setattr(optical, ten, lambda *a, **k: None)
+    monkeypatch.setattr(catchment, "upstream", lambda la, lo: None)
+
     from app.main import app
 
     def _session():

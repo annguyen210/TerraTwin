@@ -53,6 +53,23 @@ class AlertOut(BaseModel):
     recommendation: str
     created_at: datetime
     acknowledged: bool
+    # Kết quả chấm lại sau khi cửa sổ dự báo trôi qua (services/verify.py).
+    # None = chưa tới hạn chấm. Trả cả bằng chứng chứ không chỉ kết luận, để
+    # người dùng đối chiếu được thay vì phải tin.
+    outcome: str | None = None
+    observed_peak: float | None = None
+    verify_source: str = ""
+    verify_note: str = ""
+
+
+def _alert_out(a: Alert) -> AlertOut:
+    return AlertOut(
+        id=a.id, plot_id=a.plot_id, module_id=a.module_id,
+        risk_level=a.risk_level, headline=a.headline,
+        recommendation=a.recommendation, created_at=a.created_at,
+        acknowledged=bool(a.acknowledged), outcome=a.outcome,
+        observed_peak=a.observed_peak, verify_source=a.verify_source or "",
+        verify_note=a.verify_note or "")
 
 
 # ---------- Phân tích tệp tải lên ----------
@@ -292,7 +309,7 @@ def delete_twin(twin_id: int, user: User = Depends(auth.current_user),
 # ---------- U01 Kênh gửi cảnh báo ----------
 
 class ChannelIn(BaseModel):
-    kind: str = Field(pattern="^(webhook|email)$")
+    kind: str = Field(pattern="^(webhook|email|zalo|telegram)$")
     target: str = Field(min_length=3, max_length=500)
     min_level: str = Field(default="warning", pattern="^(warning|danger)$")
 
@@ -327,15 +344,29 @@ def list_channels(user: User = Depends(auth.current_user),
 @router.post("/api/channels", response_model=ChannelOut, status_code=201)
 def create_channel(body: ChannelIn, user: User = Depends(auth.current_user),
                    db: Session = Depends(get_session)) -> ChannelOut:
+    # Kiểm ngay lúc tạo, không đợi tới lúc gửi — một kênh sai địa chỉ mà im
+    # lặng nằm đó là kiểu hỏng tệ nhất: người dùng tin là mình đang được bảo vệ.
+    target = body.target.strip()
     if body.kind == "webhook":
-        # Chặn ngay lúc tạo, không đợi tới lúc gửi.
-        err = notify.validate_webhook(body.target)
+        err = notify.validate_webhook(target)
         if err:
             raise HTTPException(422, err)
-    elif "@" not in body.target:
+    elif body.kind == "zalo":
+        num = notify.normalize_phone(target)
+        if not num:
+            raise HTTPException(
+                422, "Số điện thoại không hợp lệ. Nhập số di động Việt Nam, "
+                     "ví dụ 0912345678.")
+        target = num          # lưu dạng chuẩn 84xxxxxxxxx mà ZNS đòi hỏi
+    elif body.kind == "telegram":
+        if not target.lstrip("-").isdigit():
+            raise HTTPException(
+                422, "chat_id Telegram phải là một dãy số. Nhắn /start cho bot "
+                     "của bạn rồi lấy chat_id từ getUpdates.")
+    elif "@" not in target:
         raise HTTPException(422, "Địa chỉ email không hợp lệ.")
 
-    c = NotifyChannel(user_id=user.id, kind=body.kind, target=body.target,
+    c = NotifyChannel(user_id=user.id, kind=body.kind, target=target,
                       min_level=body.min_level)
     db.add(c)
     db.commit()
@@ -370,23 +401,48 @@ def test_channel(channel_id: int, user: User = Depends(auth.current_user),
     db.commit()
     ok = res["sent"] > 0
     return {"ok": ok, "detail": res["results"][0] if res["results"] else None,
-            "smtp_configured": notify.smtp_configured()}
+            "smtp_configured": notify.smtp_configured(),
+            "channels_ready": notify.channel_status()}
+
+
+@router.get("/api/channels/status")
+def channels_status() -> dict:
+    """Kênh nào đã cấu hình xong ở phía máy chủ.
+
+    Công khai vì giao diện cần biết TRƯỚC khi người dùng gõ số điện thoại vào
+    một kênh chưa bao giờ gửi được. Không lộ gì: chỉ trả có/không, không trả
+    token hay địa chỉ nào.
+    """
+    st = notify.channel_status()
+    return {
+        "ready": st,
+        "note": {
+            "zalo": ("Cần TERRATWIN_ZALO_TOKEN + TERRATWIN_ZALO_TEMPLATE_ID. "
+                     "Zalo OA/ZNS đòi giấy phép kinh doanh và duyệt mẫu tin — "
+                     "nộp hồ sơ sớm vì đó là thời gian chờ, không phải thời "
+                     "gian làm."),
+            "telegram": ("Cần TERRATWIN_TELEGRAM_TOKEN. Tạo bot với @BotFather "
+                         "mất khoảng một phút, không phải xét duyệt gì."),
+            "email": "Cần TERRATWIN_SMTP_HOST và các biến SMTP kèm theo.",
+            "webhook": "Không cần cấu hình phía máy chủ.",
+        },
+    }
 
 
 @router.get("/api/alerts", response_model=list[AlertOut])
 def list_alerts(unread_only: bool = False, limit: int = 50,
                 user: User = Depends(auth.current_user),
                 db: Session = Depends(get_session)) -> list[AlertOut]:
-    q = select(Alert).where(Alert.user_id == user.id)
+    # retro == 0: hàng hồi cứu là những đợt phần mềm ĐÃ BỎ SÓT, ghi lại để tính
+    # vào sổ điểm. Chúng chưa từng được gửi cho ai, nên hiện chúng ở đây sẽ là
+    # nói dối rằng người dùng từng được cảnh báo.
+    q = select(Alert).where(Alert.user_id == user.id, Alert.retro == 0)
     if unread_only:
         q = q.where(Alert.acknowledged == 0)
     rows = db.execute(
         q.order_by(Alert.created_at.desc()).limit(max(1, min(limit, 200)))
     ).scalars().all()
-    return [AlertOut(id=a.id, plot_id=a.plot_id, module_id=a.module_id,
-                     risk_level=a.risk_level, headline=a.headline,
-                     recommendation=a.recommendation, created_at=a.created_at,
-                     acknowledged=bool(a.acknowledged)) for a in rows]
+    return [_alert_out(a) for a in rows]
 
 
 @router.post("/api/alerts/{alert_id}/ack", response_model=AlertOut)
@@ -397,7 +453,4 @@ def ack_alert(alert_id: int, user: User = Depends(auth.current_user),
         raise HTTPException(404, "Không tìm thấy cảnh báo.")
     a.acknowledged = 1
     db.commit()
-    return AlertOut(id=a.id, plot_id=a.plot_id, module_id=a.module_id,
-                    risk_level=a.risk_level, headline=a.headline,
-                    recommendation=a.recommendation, created_at=a.created_at,
-                    acknowledged=True)
+    return _alert_out(a)

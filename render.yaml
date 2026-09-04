@@ -60,6 +60,40 @@ services:
         value: "5000"
       - key: TERRATWIN_CORS
         sync: false                  # điền URL frontend sau khi dựng xong
+      # BẮT BUỘC — địa chỉ CÔNG KHAI của giao diện web. Dùng để dựng liên kết
+      # "một chạm" gửi kèm mỗi tin cảnh báo.
+      #
+      # QUÊN BIẾN NÀY LÀ HỎNG IM LẶNG: mặc định rơi về http://localhost:3000,
+      # nên mọi liên kết gửi tới điện thoại người dùng đều là LINK CHẾT. Tin
+      # vẫn gửi thành công, không một dòng lỗi nào trong log, chỉ là không ai
+      # bấm được — và kho quan sát thực địa mãi không lớn lên mà không ai hiểu
+      # tại sao.
+      - key: TERRATWIN_PUBLIC_URL
+        sync: false                  # https://terratwin-web.onrender.com
+      # Tuỳ chọn — Zalo ZNS, kênh thật của người dùng Việt Nam. Cần giấy phép
+      # kinh doanh + mẫu tin được duyệt: nộp hồ sơ SỚM, đó là thời gian lịch
+      # 1–2 tuần chứ không phải thời gian làm.
+      - key: TERRATWIN_ZALO_TOKEN
+        sync: false
+      - key: TERRATWIN_ZALO_TEMPLATE_ID
+        sync: false
+      - key: TERRATWIN_ZALO_PARAM
+        value: "content"             # tên tham số trong mẫu tin đã đăng ký
+      # Tuỳ chọn — Telegram. Chạy được NGAY, không xét duyệt: nhắn /newbot cho
+      # @BotFather. Dùng làm kênh tạm trong lúc chờ Zalo.
+      - key: TERRATWIN_TELEGRAM_TOKEN
+        sync: false
+      # Tuỳ chọn — email SMTP.
+      - key: TERRATWIN_SMTP_HOST
+        sync: false
+      - key: TERRATWIN_SMTP_PORT
+        value: "587"
+      - key: TERRATWIN_SMTP_USER
+        sync: false
+      - key: TERRATWIN_SMTP_PASSWORD
+        sync: false
+      - key: TERRATWIN_SMTP_FROM
+        sync: false
       # Tuỳ chọn — bật trợ lý LLM. Nhà cung cấp nào cũng được.
       #
       #   openai-compatible (DeepSeek, Groq, OpenRouter, Together, xAI, Qwen,

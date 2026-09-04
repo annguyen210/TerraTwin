@@ -222,6 +222,7 @@ function ChannelsPanel({ user }: { user: AuthUser | null }) {
   const [level, setLevel] = useState<"warning" | "danger">("warning");
   const [err, setErr] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const [recipe, setRecipe] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -237,6 +238,58 @@ function ChannelsPanel({ user }: { user: AuthUser | null }) {
         mềm — mà thiên tai không chờ điều đó. Thêm kênh để cảnh báo tự tìm đến
         bạn: email, hoặc webhook để nối sang Zalo OA, Telegram, hệ thống nội bộ.
       </p>
+
+      {/* Công thức nối nhanh. TRUNG THỰC: Zalo/Telegram KHÔNG nhận thẳng JSON của
+          TerraTwin — cần một webhook trung gian chuyển tiếp. Nói rõ từng bước
+          thay vì hứa "1 chạm cắm là chạy". */}
+      <div className="ws-recipes">
+        {[
+          ["email", "📧 Email", "email"],
+          ["zalo", "📱 Zalo OA", "webhook"],
+          ["telegram", "✈️ Telegram", "webhook"],
+          ["webhook", "🔗 Webhook riêng", "webhook"],
+        ].map(([id, label, k]) => (
+          <button
+            key={id}
+            className={recipe === id || (id === "email" && kind === "email" && !recipe) ? "on" : ""}
+            onClick={() => { setRecipe(id === "email" ? null : id); setKind(k as "webhook" | "email"); }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {recipe === "zalo" && (
+        <div className="ws-recipe">
+          <b>Nối Zalo OA (miễn phí):</b>
+          <ol>
+            <li>Tạo <b>Official Account</b> tại <span className="ws-mono">oa.zalo.me</span>.</li>
+            <li>Dựng một webhook trung gian (một hàm serverless ~15 dòng: nhận JSON
+              <span className="ws-mono">{"{alerts:[…]}"}</span> của TerraTwin → gọi API
+              gửi tin Zalo OA). Mẫu có trong <span className="ws-mono">DEPLOY.md</span>.</li>
+            <li>Dán URL webhook trung gian vào ô bên dưới → Thêm → Gửi thử.</li>
+          </ol>
+          <p className="ws-mini">Zalo OA không nhận JSON tuỳ ý trực tiếp — bước trung gian là bắt buộc, không thể bỏ.</p>
+        </div>
+      )}
+      {recipe === "telegram" && (
+        <div className="ws-recipe">
+          <b>Nối Telegram (nhanh nhất):</b>
+          <ol>
+            <li>Nhắn <span className="ws-mono">@BotFather</span> → <span className="ws-mono">/newbot</span> → lấy <b>token</b>.</li>
+            <li>Lấy <b>chat_id</b> của bạn (nhắn <span className="ws-mono">@userinfobot</span>).</li>
+            <li>Dựng webhook trung gian đổi JSON của TerraTwin thành lệnh
+              <span className="ws-mono">sendMessage</span> (token + chat_id). Dán URL trung gian vào ô dưới.</li>
+          </ol>
+        </div>
+      )}
+      {recipe === "webhook" && (
+        <div className="ws-recipe">
+          <b>Webhook hệ thống của bạn:</b> TerraTwin gửi <span className="ws-mono">POST</span> JSON
+          <span className="ws-mono">{"{alerts:[{module,risk_level,headline,recommendation,link}…]}"}</span>
+          tới URL khi có rủi ro. <span className="ws-mono">link</span> là đường một-chạm để người nhận xác nhận.
+        </div>
+      )}
+
       {err && <p className="ws-err">⚠️ {err}</p>}
       {msg && <p className="ws-ok">✓ {msg}</p>}
 

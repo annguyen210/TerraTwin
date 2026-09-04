@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 
 from app.db import Alert, NotifyChannel, Plot, User
 from app.schemas import Location
-from app.services import notify
+from app.services import notify, verify
 
 DEDUP_HOURS = 12       # cùng một cảnh báo trong 12 h thì không ghi lại
 
@@ -83,13 +83,42 @@ def sweep_user(user_id: int, db: Session) -> dict:
     delivery = notify.dispatch(channels, payload)
     db.commit()
 
+    # ĐÓNG VÒNG LẶP — hỏi lại về một cảnh báo cũ đã tới lúc biết kết quả.
+    #
+    # Đặt ở đây, ngay sau khi gửi cảnh báo mới, là có chủ đích: đây là thời điểm
+    # DUY NHẤT trong cả phần mềm chắc chắn chạy đều đặn mà không cần ai nhớ ra.
+    # Hỏi bằng một lượt gửi riêng chứ không kèm vào cảnh báo mới, vì trộn "sắp
+    # có lũ" với "hôm trước có lũ thật không" trong cùng một tin là cách chắc
+    # chắn để không nhận được câu trả lời nào.
+    asking = _ask_one(user_id, channels, db)
+
     return {
         "plots_scanned": len(plots),
         "new_alerts": len(created),
         "dedup_window_hours": DEDUP_HOURS,
         "alerts": payload,
         "delivery": delivery,
+        "asked": asking,
     }
+
+
+def _ask_one(user_id: int, channels: list, db: Session) -> dict:
+    """Gửi đúng MỘT câu hỏi một chạm, nếu có câu nào đang chờ."""
+    from app.services import onetap
+
+    if not channels:
+        return {"asked": 0, "reason": "người dùng chưa nối kênh nhận tin nào"}
+    try:
+        pend = onetap.pending_questions(db, user_id, limit=1)
+        if not pend:
+            return {"asked": 0, "reason": "không có câu hỏi nào tới hạn"}
+        q = dict(pend[0])
+        q["link"] = f"{onetap.base_url()}/tap/{q['token']}"
+        return notify.ask(channels, [q])
+    except Exception as e:
+        # Hỏi hỏng tuyệt đối không được làm hỏng việc cảnh báo. Cảnh báo là thứ
+        # cứu được mùa màng; câu hỏi chỉ làm mô hình tốt lên.
+        return {"asked": 0, "error": type(e).__name__}
 
 
 def sweep_all(db: Session) -> dict:
@@ -98,7 +127,7 @@ def sweep_all(db: Session) -> dict:
         select(User.id).join(Plot, Plot.user_id == User.id).distinct()
     ).scalars().all()
 
-    users, plots, alerts, sent, failed = 0, 0, 0, 0, 0
+    users, plots, alerts, sent, failed, asked = 0, 0, 0, 0, 0, 0
     for uid in ids:
         try:
             r = sweep_user(uid, db)
@@ -111,6 +140,18 @@ def sweep_all(db: Session) -> dict:
         d = r.get("delivery") or {}
         sent += int(d.get("sent", 0) or 0)
         failed += int(d.get("failed", 0) or 0)
-    return {"users_scanned": users, "plots_scanned": plots,
+        asked += int((r.get("asked") or {}).get("asked", 0) or 0)
+
+    # CHẤM ĐIỂM những cảnh báo cũ đã tới hạn. Gắn vào lượt quét nền thay vì làm
+    # một bộ hẹn giờ thứ hai: gói miễn phí của Render/Fly không có cron, thêm
+    # một tiến trình nữa là thêm một thứ im lặng không chạy sau khi deploy.
+    try:
+        scored = verify.sweep(db)
+    except Exception as e:
+        db.rollback()
+        scored = {"error": type(e).__name__}
+
+    return {"notifications_asked": asked, "scored": scored,
+            "users_scanned": users, "plots_scanned": plots,
             "new_alerts": alerts, "notifications_sent": sent,
             "notifications_failed": failed}

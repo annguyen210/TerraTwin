@@ -18,12 +18,15 @@
 
 import { useEffect, useState } from "react";
 import {
+  getMyQuestions,
   getPlan,
   runGenome,
   runGoalSeek,
+  sendTapAnswer,
   type GenomeResult,
   type GoalSeekResult,
   type PlotPlan as Plan,
+  type TapQuestion,
 } from "@/lib/api";
 
 const RISK_HEX: Record<string, string> = {
@@ -57,6 +60,10 @@ export default function PlotPlan({
   const [genome, setGenome] = useState<GenomeResult | null>(null);
   const [genErr, setGenErr] = useState(false);
   const [ask, setAsk] = useState<Record<string, GoalSeekResult | "loading">>({});
+  // Câu hỏi chờ CHÍNH người này xác nhận (đóng vòng khép kín ngay trong app).
+  // getMyQuestions cần đăng nhập; chưa đăng nhập → 401 → nuốt lỗi, không hiện gì.
+  const [questions, setQuestions] = useState<TapQuestion[]>([]);
+  const [qDone, setQDone] = useState<Record<number, string>>({});
 
   useEffect(() => {
     let live = true;
@@ -98,6 +105,31 @@ export default function PlotPlan({
     }
   }
 
+  useEffect(() => {
+    let live = true;
+    getMyQuestions(5)
+      .then((r) => live && setQuestions(r.questions))
+      .catch(() => {});          // chưa đăng nhập → không có câu hỏi để hỏi
+    return () => {
+      live = false;
+    };
+  }, [lat, lon]);
+
+  async function answerQ(q: TapQuestion, value: "yes" | "no" | "unsure") {
+    if (!q.token || qDone[q.alert_id]) return;
+    setQDone((d) => ({ ...d, [q.alert_id]: "sending" }));
+    try {
+      const r = await sendTapAnswer(q.token, value);
+      setQDone((d) => ({ ...d, [q.alert_id]: r.message }));
+    } catch {
+      setQDone((d) => {
+        const n = { ...d };
+        delete n[q.alert_id];
+        return n;
+      });
+    }
+  }
+
   if (loading && !plan) {
     return (
       <div className="plan plan-skel">
@@ -117,13 +149,60 @@ export default function PlotPlan({
   return (
     <div className="plan">
       <div className="plan-head">
-        🧭 Kế hoạch cho thửa của bạn
-        <span className="plan-sub">
-          {plan.n_alerts
-            ? `${plan.n_alerts} việc cần lưu ý · sắp theo mức nguy hiểm`
-            : "Không có cảnh báo — nhưng vẫn có kế hoạch canh nền"}
-        </span>
+        <div className="plan-head-main">
+          🧭 Kế hoạch cho thửa của bạn
+          <span className="plan-sub">
+            {plan.n_alerts
+              ? `${plan.n_alerts} việc cần lưu ý · sắp theo mức nguy hiểm`
+              : "Không có cảnh báo — nhưng vẫn có kế hoạch canh nền"}
+          </span>
+        </div>
+        <button
+          className="plan-print"
+          onClick={() => window.print()}
+          title="In hoặc lưu PDF để đưa hợp tác xã / cán bộ xã"
+        >
+          🖨️ In / lưu
+        </button>
       </div>
+
+      {/* CÂU HỎI CHO BẠN — đóng vòng khép kín. Chỉ hiện khi đã đăng nhập và có
+          cảnh báo cũ tới hạn kiểm chứng. Trả lời ngay tại đây → /api/tap → quan sát. */}
+      {questions.length > 0 && (
+        <section className="plan-sec plan-ask">
+          <h4 className="plan-h">🌾 Giúp chỉnh mô hình — {questions.length} câu hỏi cho bạn</h4>
+          <p className="plan-note" style={{ marginTop: 0 }}>
+            Cảnh báo cũ đã tới lúc kiểm chứng. Bạn ở trên thửa — câu trả lời của bạn
+            được ưu tiên hơn số liệu vệ tinh, và giúp chỉnh ngưỡng cho cả vùng.
+          </p>
+          <ul className="plan-qs">
+            {questions.map((q) => {
+              const done = qDone[q.alert_id];
+              return (
+                <li key={q.alert_id}>
+                  <p className="pq-q">{q.question}</p>
+                  {done && done !== "sending" ? (
+                    <p className="pq-done">✅ {done}</p>
+                  ) : (
+                    <div className="pq-btns">
+                      {q.options.map((o) => (
+                        <button
+                          key={o.value}
+                          disabled={done === "sending"}
+                          className={`pq-btn pq-${o.value}`}
+                          onClick={() => answerQ(q, o.value)}
+                        >
+                          {done === "sending" ? "…" : o.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       {/* 1. VIỆC CẦN LÀM */}
       <section className="plan-sec">

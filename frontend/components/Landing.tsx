@@ -12,10 +12,14 @@
  * MyLand: thửa đã lưu) — không viết lại, chỉ đặt trong một bố cục rộng đẹp hơn.
  */
 
+import { useEffect, useState } from "react";
+
 import Account from "./Account";
 import MyLand from "./MyLand";
+import Scorecard from "./Scorecard";
 import Start from "./Start";
-import type { AuthUser, ModuleInfo } from "@/lib/api";
+import { getScorecard, type AuthUser, type ModuleInfo,
+         type Scorecard as SC } from "@/lib/api";
 
 const FEATURES = [
   {
@@ -58,6 +62,31 @@ export default function Landing({
   modules: ModuleInfo[];
 }) {
   const nModules = modules.length || 18;
+
+  // SỐ LIỆU SỔ ĐIỂM LẤY MỘT LẦN Ở ĐÂY, dùng cho cả ô thống kê hero lẫn khối sổ
+  // điểm bên dưới.
+  //
+  // VÌ SAO PHẢI GỘP: ô hero trước đây ghi cứng "~3% tỉ lệ báo bừa" — con số
+  // THẬT, đo trên backtest các thiên tai lịch sử. Nhưng khi khối sổ điểm tự
+  // chấm nằm ngay bên dưới và nói một tỉ lệ khác (đo trên cảnh báo đang chạy,
+  // cơ sở đo khác hẳn), hai con số mâu thuẫn nhau trên cùng một màn hình. Người
+  // xem không thể biết nên tin cái nào, và cái mất đi không phải là một con số
+  // — mà là lòng tin vào cả hai.
+  //
+  // Nên: có đủ mẫu đo thật thì hero hiện SỐ ĐO THẬT; chưa đủ thì vẫn hiện con
+  // số backtest nhưng ghi rõ cơ sở đo là backtest.
+  const [sc, setSc] = useState<SC | null>(null);
+  useEffect(() => {
+    let live = true;
+    getScorecard(90)
+      .then((r) => live && setSc(r))
+      .catch(() => {});          // hỏng thì hero lùi về số backtest, không sao
+    return () => {
+      live = false;
+    };
+  }, []);
+  const doThat = sc?.enough && sc.far_pct !== null;
+
   return (
     <div className="lp">
       {/* Thanh trên cùng */}
@@ -85,7 +114,12 @@ export default function Landing({
             <div className="lp-stats">
               <div><b>{nModules}</b><span>mũi nhọn</span></div>
               <div><b>12/12</b><span>ngành</span></div>
-              <div><b>~3%</b><span>tỉ lệ báo bừa</span></div>
+              <div title={doThat
+                ? "Đo trên chính những cảnh báo TerraTwin đã phát trong 90 ngày qua."
+                : "Đo trên backtest các thiên tai lịch sử. Sổ điểm chạy thật sẽ thay chỗ này khi đủ mẫu."}>
+                <b>{doThat ? `${sc!.far_pct}%` : "~3%"}</b>
+                <span>{doThat ? "báo bừa · đo thật" : "báo bừa · backtest"}</span>
+              </div>
               <div><b>0đ</b><span>miễn phí dùng thử</span></div>
             </div>
           </div>
@@ -94,6 +128,15 @@ export default function Landing({
             {user && <MyLand user={user} onOpen={onStart} />}
             <Start onPick={onStart} onStory={onStory} />
           </div>
+        </section>
+
+        {/* SỔ ĐIỂM TỰ CHẤM.
+            Đặt NGAY DƯỚI hero, trước cả phần "vì sao khác biệt", là có chủ ý:
+            danh sách tính năng thì phần mềm nào cũng viết được, còn một sổ điểm
+            công khai kèm cả tỉ lệ báo bừa lẫn số lần bỏ sót thì không ai dám
+            bịa. Đây là câu trả lời nhanh nhất cho "phần mềm này hơn ở đâu". */}
+        <section className="lp-score">
+          <Scorecard data={sc} />
         </section>
 
         {/* VÌ SAO KHÁC BIỆT */}

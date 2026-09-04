@@ -93,7 +93,17 @@ export default function MyLand({
       <div className="ml-head">
         <div>
           <b>🛡️ TerraTwin đang canh {plots.length} thửa của bạn</b>
-          <p>Tự quét nền và báo trước khi có rủi ro — bạn không cần nhớ mở.</p>
+          <p className="ml-brief">
+            ☀️{" "}
+            {new Date().toLocaleDateString("vi-VN", { weekday: "long", day: "numeric", month: "numeric" })}
+            {" · "}
+            {alerts.length ? (
+              <b style={{ color: "var(--warn)" }}>{alerts.length} cảnh báo mới cần xem</b>
+            ) : (
+              <b style={{ color: "var(--ok)" }}>tất cả thửa đang an toàn</b>
+            )}
+          </p>
+          <p className="ml-brief-sub">Tự quét nền và báo trước khi có rủi ro — bạn không cần nhớ mở.</p>
         </div>
         <button onClick={scanNow} disabled={scanning}>
           {scanning ? "Đang quét…" : "Quét lại ngay"}
