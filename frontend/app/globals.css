@@ -3944,3 +3944,14 @@ body {
 .csrc-cite{ font-size:.78rem; color:var(--text); line-height:1.4 }
 .csrc-cite b{ color:var(--terra) } .csrc-cite span{ color:var(--dim) }
 .csrc-note{ margin:10px 0 0; font-size:.72rem; color:var(--dim); line-height:1.5 }
+
+/* PlotPlan: độ hiếm tổ hợp (anomaly-ml) */
+.plan-aml{ display:flex; flex-direction:column; gap:8px }
+.aml-meter{ display:flex; align-items:center; gap:10px }
+.aml-bar{ flex:1; height:9px; border-radius:999px; background:var(--panel); border:1px solid var(--line); overflow:hidden }
+.aml-bar span{ display:block; height:100%; background:linear-gradient(90deg,var(--ok),var(--warn),var(--bad)); border-radius:999px }
+.aml-meter b{ font-size:1rem; font-weight:800; color:var(--text); min-width:44px; text-align:right; font-variant-numeric:tabular-nums }
+.aml-drivers{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:10px }
+.aml-drivers>span:first-child{ font-size:.78rem; color:var(--dim) }
+.aml-chip{ font-size:.74rem; padding:3px 9px; border-radius:999px; background:rgba(127,180,230,.12);
+  border:1px solid rgba(127,180,230,.3); color:var(--text) }

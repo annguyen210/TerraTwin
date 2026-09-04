@@ -20,14 +20,29 @@ import { useEffect, useState } from "react";
 import {
   getMyQuestions,
   getPlan,
+  runAnomalyMl,
   runGenome,
   runGoalSeek,
   sendTapAnswer,
+  type AnomalyMl,
   type GenomeResult,
   type GoalSeekResult,
   type PlotPlan as Plan,
   type TapQuestion,
 } from "@/lib/api";
+
+// Tên đặc trưng cho phần "độ hiếm tổ hợp" — đọc được cho người thường.
+const DRIVER_VI: Record<string, string> = {
+  tmax: "Nhiệt tối đa",
+  tmin: "Nhiệt tối thiểu",
+  rain_7d: "Mưa 7 ngày",
+  rain_30d: "Mưa 30 ngày",
+  rain_60d: "Mưa 60 ngày",
+  dry_streak: "Chuỗi ngày khô",
+  wet_streak: "Chuỗi ngày mưa",
+  humidity: "Độ ẩm",
+  wind: "Gió",
+};
 
 const RISK_HEX: Record<string, string> = {
   danger: "#e5705a",
@@ -64,6 +79,8 @@ export default function PlotPlan({
   // getMyQuestions cần đăng nhập; chưa đăng nhập → 401 → nuốt lỗi, không hiện gì.
   const [questions, setQuestions] = useState<TapQuestion[]>([]);
   const [qDone, setQDone] = useState<Record<number, string>>({});
+  // Độ hiếm TỔ HỢP (anomaly-ml) — mô hình đã huấn luyện, vai trò ĐỐI CHIẾU.
+  const [aml, setAml] = useState<AnomalyMl | null>(null);
 
   useEffect(() => {
     let live = true;
@@ -110,6 +127,17 @@ export default function PlotPlan({
     getMyQuestions(5)
       .then((r) => live && setQuestions(r.questions))
       .catch(() => {});          // chưa đăng nhập → không có câu hỏi để hỏi
+    return () => {
+      live = false;
+    };
+  }, [lat, lon]);
+
+  useEffect(() => {
+    let live = true;
+    setAml(null);
+    runAnomalyMl(lat, lon)
+      .then((d) => live && setAml(d))
+      .catch(() => {});          // mô hình đối chiếu là bổ sung, hỏng thì bỏ qua
     return () => {
       live = false;
     };
@@ -352,6 +380,31 @@ export default function PlotPlan({
           <p className="plan-note">{genome.message || "Không tìm được vùng tương đồng."}</p>
         )}
       </section>
+
+      {/* 6. ĐỘ HIẾM TỔ HỢP — mô hình AI đã huấn luyện, vai trò ĐỐI CHIẾU */}
+      {aml?.available && (
+        <section className="plan-sec">
+          <h4 className="plan-h">🧠 Độ hiếm tổ hợp thời tiết (mô hình AI đối chiếu)</h4>
+          <div className="plan-aml">
+            <div className="aml-meter">
+              <div className="aml-bar">
+                <span style={{ width: `${Math.min(100, Math.max(0, aml.percentile ?? 0))}%` }} />
+              </div>
+              <b>{(aml.percentile ?? 0).toFixed(0)}%</b>
+            </div>
+            <p className="plan-value-head" style={{ margin: 0 }}>{aml.verdict}</p>
+          </div>
+          {aml.top_drivers && aml.top_drivers.length > 0 && (
+            <div className="aml-drivers">
+              <span>Yếu tố đóng góp:</span>
+              {aml.top_drivers.slice(0, 3).map((d) => (
+                <span key={d.feature} className="aml-chip">{DRIVER_VI[d.feature] ?? d.feature}</span>
+              ))}
+            </div>
+          )}
+          <p className="plan-assume">🧪 {aml.role}{aml.caveat ? ` ${aml.caveat}` : ""}</p>
+        </section>
+      )}
 
       {/* 5. TỰ CANH */}
       {watch && (
