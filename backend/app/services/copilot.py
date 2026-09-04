@@ -161,6 +161,37 @@ def _knowledge(question: str, loc: Location) -> tuple[list[KnowledgeCitation], s
         return [], ""
 
 
+_HAZ_VI = {"flood": "Lũ/ngập", "landslide": "Sạt lở", "drought": "Hạn/thiếu nước",
+           "wildfire": "Cháy rừng", "salinity": "Xâm nhập mặn"}
+
+
+def _history_facts(loc: Location, routes: list[str]) -> str:
+    """Lịch sử hiểm hoạ 10 NĂM của CHÍNH thửa này — nền ĐO ĐƯỢC, kiểm chứng được.
+
+    Đây là thứ làm trợ lý khác hẳn app thời tiết: nó trả lời "nơi này từng bị
+    gì, bao nhiêu lần, cao điểm tháng nào". Lỗi/nặng thì nuốt và trả rỗng — lịch
+    sử là phần bổ sung, dữ liệu 7 ngày tới mới là phần chính.
+    """
+    try:
+        from app.services import passport
+        h = passport.history(loc.lat, loc.lon, years=10)
+        if not h:
+            return ""
+        lines = []
+        for r in routes:
+            row = h.get(r)
+            if not row or not row.get("events"):
+                continue
+            pm = row.get("peak_month")
+            when = f", cao điểm tháng {pm}" if pm else ""
+            latest = f", gần nhất {row['latest']}" if row.get("latest") else ""
+            lines.append(f"- {_HAZ_VI.get(r, r)}: {row['events']} đợt vượt ngưỡng "
+                         f"trong 10 năm{when}{latest}.")
+        return "\n".join(lines)
+    except Exception:
+        return ""
+
+
 def answer(question: str, loc: Location) -> CopilotAnswer:
     from app.modules.registry import get_module
     from app.services import terrascore
@@ -177,11 +208,16 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
     facts.append(f"- TerraScore: {ts.score}/100 (hạng {ts.grade}) — {ts.summary}")
     facts_txt = "\n".join(facts)
 
+    hist = _history_facts(loc, routes)
+    hist_block = ((NL + "Lịch sử 10 năm tại đây (đo từ ERA5, kiểm chứng được):"
+                   + NL + hist) if hist else "")
+
     cites, know_txt = _knowledge(question, loc)
     know_block = ((NL + NL + KNOW_HEAD + NL + know_txt) if know_txt else '')
 
     prompt = (
-        f"Dữ liệu về vị trí ({loc.lat:.4f}, {loc.lon:.4f}):\n{facts_txt}{know_block}\n\n"
+        f"Dữ liệu về vị trí ({loc.lat:.4f}, {loc.lon:.4f}):\n{facts_txt}"
+        f"{hist_block}{know_block}\n\n"
         f"Câu hỏi của người dùng: {question}\n\nTrả lời:"
     )
 
@@ -191,7 +227,7 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
                              llm=True, knowledge_used=cites)
 
     ans = (f"TerraScore {ts.score}/100 (hạng {ts.grade}). {ts.summary}\n{facts_txt}"
-           f"{know_block}\n\n"
+           f"{hist_block}{know_block}\n\n"
            "[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY để bật trả lời bằng LLM. "
            "Nhà cung cấp openai-compatible (DeepSeek, Groq, OpenRouter, Together, "
            "xAI, Qwen, Ollama) chỉ cần thêm TERRATWIN_LLM_BASE_URL. Gemini hoặc "
