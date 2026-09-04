@@ -31,6 +31,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { searchPlace, type PlaceHit } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
 
 // 16 điểm đã kiểm chứng — cùng bộ dùng để huấn luyện mô hình khí hậu.
 const QUICK: { name: string; lat: number; lon: number; note: string }[] = [
@@ -51,6 +52,7 @@ export default function Start({
   onPick: (lat: number, lon: number, label?: string) => void;
   onStory?: () => void;
 }) {
+  const { t } = useLang();
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<PlaceHit[]>([]);
   const [msg, setMsg] = useState<string | null>(null);
@@ -149,35 +151,38 @@ export default function Start({
 
   return (
     <div className="start">
-      <h2 className="start-h">Thửa đất của bạn ở đâu?</h2>
+      <h2 className="start-h">{t("Thửa đất của bạn ở đâu?", "Where is your plot?")}</h2>
       <p className="start-sub">
-        Chọn một chỗ, TerraTwin sẽ kiểm tra <b>toàn bộ rủi ro trong 7 ngày tới</b>{" "}
-        và cho biết nên làm gì. Mất khoảng ba giây.
+        {t("Chọn một chỗ, TerraTwin sẽ kiểm tra ", "Pick a spot and TerraTwin checks ")}
+        <b>{t("toàn bộ rủi ro trong 7 ngày tới", "every risk over the next 7 days")}</b>{" "}
+        {t("và cho biết nên làm gì. Mất khoảng ba giây.", "and tells you what to do. Takes about three seconds.")}
       </p>
 
       {onStory && (
         <button className="start-story" onClick={onStory}>
-          ▶ Xem nhanh 90 giây — TerraTwin làm được gì
-          <small>Câu chuyện thật: lũ Huế 2020, có bằng chứng backtest</small>
+          ▶ {t("Xem nhanh 90 giây — TerraTwin làm được gì", "90-second tour — what TerraTwin does")}
+          <small>{t("Câu chuyện thật: lũ Huế 2020, có bằng chứng backtest",
+                     "A real story: the 2020 Huế flood, backtested")}</small>
         </button>
       )}
 
       <button className="start-gps" onClick={locate} disabled={locating}>
-        {locating ? "Đang xác định vị trí…" : "📍 Dùng vị trí của tôi"}
-        <small>Chính xác nhất nếu bạn đang đứng trên thửa đất</small>
+        {locating ? t("Đang xác định vị trí…", "Locating…") : t("📍 Dùng vị trí của tôi", "📍 Use my location")}
+        <small>{t("Chính xác nhất nếu bạn đang đứng trên thửa đất",
+                   "Most accurate if you're standing on the plot")}</small>
       </button>
       {geoErr && <p className="start-warn">{geoErr}</p>}
 
-      <div className="start-or"><span>hoặc</span></div>
+      <div className="start-or"><span>{t("hoặc", "or")}</span></div>
 
       <input
         className="start-q"
-        placeholder="Gõ tên xã, huyện… vd. Ba Tri"
+        placeholder={t("Gõ tên xã, huyện… vd. Ba Tri", "Type a commune/district… e.g. Ba Tri")}
         value={q}
         onChange={(e) => setQ(e.target.value)}
         autoComplete="off"
       />
-      {busy && <p className="start-note">Đang tìm…</p>}
+      {busy && <p className="start-note">{t("Đang tìm…", "Searching…")}</p>}
       {msg && <p className="start-warn">{msg}</p>}
       {hits.length > 0 && (
         <ul className="start-hits">
@@ -191,12 +196,13 @@ export default function Start({
         </ul>
       )}
 
-      <div className="start-or"><span>hoặc dán toạ độ GPS</span></div>
+      <div className="start-or"><span>{t("hoặc dán toạ độ GPS", "or paste GPS coordinates")}</span></div>
 
       <div className="start-coord">
         <input
           className="start-q"
-          placeholder="vd. 21.0278, 105.8342 (copy từ Google Maps)"
+          placeholder={t("vd. 21.0278, 105.8342 (copy từ Google Maps)",
+                          "e.g. 21.0278, 105.8342 (copy from Google Maps)")}
           value={coordStr}
           onChange={(e) => setCoordStr(e.target.value)}
           onKeyDown={(e) => {
@@ -205,11 +211,11 @@ export default function Start({
           inputMode="decimal"
           autoComplete="off"
         />
-        <button onClick={goCoord} disabled={!coordStr.trim()}>Đi tới</button>
+        <button onClick={goCoord} disabled={!coordStr.trim()}>{t("Đi tới", "Go")}</button>
       </div>
       {coordErr && <p className="start-warn">{coordErr}</p>}
 
-      <div className="start-or"><span>hoặc thử một nơi có sẵn</span></div>
+      <div className="start-or"><span>{t("hoặc thử một nơi có sẵn", "or try a ready-made spot")}</span></div>
 
       <div className="start-quick">
         {QUICK.map((p) => (
@@ -221,8 +227,10 @@ export default function Start({
       </div>
 
       <p className="start-foot">
-        Bạn cũng có thể <b>bấm thẳng vào bản đồ</b> — hoặc vẽ một vùng để tính
-        theo cả thửa.
+        {t("Bạn cũng có thể ", "You can also ")}
+        <b>{t("bấm thẳng vào bản đồ", "click directly on the map")}</b>
+        {t(" — hoặc vẽ một vùng để tính theo cả thửa.",
+           " — or draw an area to compute over the whole plot.")}
       </p>
     </div>
   );

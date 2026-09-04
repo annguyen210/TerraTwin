@@ -20,6 +20,7 @@
 
 import { useEffect, useState } from "react";
 import { getScorecard, type Scorecard as SC } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
 
 const fmtPct = (v: number | null) => (v == null ? "—" : `${v}%`);
 
@@ -43,6 +44,7 @@ export default function Scorecard({ data, onClose }: {
 }) {
   // Chế độ tự-gọi chỉ bật khi KHÔNG được truyền `data` (kể cả null). `null` là
   // "đang tải, do bên ngoài quản"; `undefined` là "không ai truyền → tự lo".
+  const { t } = useLang();
   const selfFetch = data === undefined;
   const [fetched, setFetched] = useState<SC | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -61,9 +63,10 @@ export default function Scorecard({ data, onClose }: {
     <div className="sc">
       <div className="sc-head">
         <div>
-          <h3 className="sc-title">🎯 Sổ điểm tự chấm — vì sao tin được</h3>
+          <h3 className="sc-title">🎯 {t("Sổ điểm tự chấm — vì sao tin được", "Self-scorecard — why to trust it")}</h3>
           <p className="sc-sub">
-            TerraTwin tự chấm về chính mình, không sửa được từ giao diện. 90 ngày gần nhất.
+            {t("TerraTwin tự chấm về chính mình, không sửa được từ giao diện. 90 ngày gần nhất.",
+               "TerraTwin scores itself — not editable from the UI. Last 90 days.")}
           </p>
         </div>
         {onClose && (
@@ -71,8 +74,8 @@ export default function Scorecard({ data, onClose }: {
         )}
       </div>
 
-      {err && <p className="sc-err">Chưa tải được sổ điểm: {err}</p>}
-      {!sc && !err && <p className="sc-load">Đang tải sổ điểm…</p>}
+      {err && <p className="sc-err">{t("Chưa tải được sổ điểm:", "Couldn't load the scorecard:")} {err}</p>}
+      {!sc && !err && <p className="sc-load">{t("Đang tải sổ điểm…", "Loading scorecard…")}</p>}
 
       {sc && (
         <>
@@ -80,30 +83,32 @@ export default function Scorecard({ data, onClose }: {
 
           {sc.enough && (
             <div className="sc-rates">
-              <Rate label="Bắt được" value={sc.pod_pct} tone="var(--ok)"
-                    hint="% số đợt thực tế mà TerraTwin có báo trước" />
-              <Rate label="Báo bừa" value={sc.far_pct} tone="var(--bad)"
-                    hint="% lần báo mà thực tế không xảy ra" />
-              <Rate label="Điểm tổng (CSI)" value={sc.csi_pct} tone="var(--terra)"
-                    hint="gộp cả bắt được lẫn báo bừa" />
+              <Rate label={t("Bắt được", "Caught")} value={sc.pod_pct} tone="var(--ok)"
+                    hint={t("% số đợt thực tế mà TerraTwin có báo trước",
+                            "% of real events TerraTwin warned about")} />
+              <Rate label={t("Báo bừa", "False alarm")} value={sc.far_pct} tone="var(--bad)"
+                    hint={t("% lần báo mà thực tế không xảy ra",
+                            "% of alerts where nothing happened")} />
+              <Rate label={t("Điểm tổng (CSI)", "Overall (CSI)")} value={sc.csi_pct} tone="var(--terra)"
+                    hint={t("gộp cả bắt được lẫn báo bừa", "combines catch rate and false alarms")} />
             </div>
           )}
 
           {/* Đếm thô — luôn hiện, kể cả khi chưa đủ mẫu */}
           <div className="sc-counts">
-            <div><b>{sc.counts.hit ?? 0}</b><span>báo đúng</span></div>
-            <div><b>{sc.counts.false_alarm ?? 0}</b><span>báo bừa</span></div>
-            <div><b>{sc.counts.miss ?? 0}</b><span>bỏ sót</span></div>
-            <div><b>{sc.pending}</b><span>đang chờ chấm</span></div>
+            <div><b>{sc.counts.hit ?? 0}</b><span>{t("báo đúng", "correct")}</span></div>
+            <div><b>{sc.counts.false_alarm ?? 0}</b><span>{t("báo bừa", "false")}</span></div>
+            <div><b>{sc.counts.miss ?? 0}</b><span>{t("bỏ sót", "missed")}</span></div>
+            <div><b>{sc.pending}</b><span>{t("đang chờ chấm", "pending")}</span></div>
           </div>
 
           {/* Kho quan sát thực địa = moat */}
           <div className="sc-gt">
-            <h4>🌾 Kho quan sát thực địa</h4>
+            <h4>🌾 {t("Kho quan sát thực địa", "Field-observation store")}</h4>
             <div className="sc-gt-row">
-              <div><b>{sc.ground_truth.observations}</b><span>quan sát</span></div>
-              <div><b>{sc.ground_truth.by_onetap}</b><span>qua một chạm</span></div>
-              <div><b>{sc.ground_truth.cells_covered}</b><span>vùng (~55 km)</span></div>
+              <div><b>{sc.ground_truth.observations}</b><span>{t("quan sát", "observations")}</span></div>
+              <div><b>{sc.ground_truth.by_onetap}</b><span>{t("qua một chạm", "via one-tap")}</span></div>
+              <div><b>{sc.ground_truth.cells_covered}</b><span>{t("vùng (~55 km)", "regions (~55 km)")}</span></div>
             </div>
             <p className="sc-gt-note">{sc.ground_truth.note}</p>
           </div>
@@ -111,10 +116,15 @@ export default function Scorecard({ data, onClose }: {
           {/* Tách theo mô-đun — chỉ những mục đã có lần chấm */}
           {sc.by_module.some((m) => m.scored > 0) && (
             <div className="sc-mods">
-              <h4>Theo từng mũi nhọn</h4>
+              <h4>{t("Theo từng mũi nhọn", "By spearhead")}</h4>
               <table>
                 <thead>
-                  <tr><th>Mũi nhọn</th><th>Đã chấm</th><th>Bắt được</th><th>Báo bừa</th></tr>
+                  <tr>
+                    <th>{t("Mũi nhọn", "Spearhead")}</th>
+                    <th>{t("Đã chấm", "Scored")}</th>
+                    <th>{t("Bắt được", "Caught")}</th>
+                    <th>{t("Báo bừa", "False")}</th>
+                  </tr>
                 </thead>
                 <tbody>
                   {sc.by_module.filter((m) => m.scored > 0).map((m) => (

@@ -3955,3 +3955,10 @@ body {
 .aml-drivers>span:first-child{ font-size:.78rem; color:var(--dim) }
 .aml-chip{ font-size:.74rem; padding:3px 9px; border-radius:999px; background:rgba(127,180,230,.12);
   border:1px solid rgba(127,180,230,.3); color:var(--text) }
+
+/* Nút chuyển ngôn ngữ VI/EN */
+.lang-toggle{ display:inline-flex; border:1px solid var(--line-2); border-radius:999px; overflow:hidden }
+.lang-toggle button{ padding:5px 11px; font-size:.76rem; font-weight:700; border:none; background:transparent;
+  color:var(--dim); cursor:pointer; transition:all .12s }
+.lang-toggle button.on{ background:var(--terra); color:var(--on-accent) }
+.lang-toggle button:not(.on):hover{ color:var(--text) }

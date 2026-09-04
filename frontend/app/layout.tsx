@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import RegisterSW from "@/components/RegisterSW";
+import { LangProvider } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   title: "TerraTwin",
@@ -37,8 +38,10 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body>
-        {children}
-        <RegisterSW />
+        <LangProvider>
+          {children}
+          <RegisterSW />
+        </LangProvider>
       </body>
     </html>
   );
