@@ -112,10 +112,18 @@ export type BacktestResult = {
   data_source?: string;
 };
 
+export type KnowledgeCitation = {
+  id: number;
+  title: string;
+  author_name: string;
+  similarity_pct: number;
+  distance_km: number;
+};
 export type CopilotAnswer = {
   answer: string;
   used_modules: string[];
   llm?: boolean;
+  knowledge_used?: KnowledgeCitation[];
 };
 
 export async function getModules(): Promise<ModuleInfo[]> {

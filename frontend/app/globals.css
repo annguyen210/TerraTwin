@@ -3924,3 +3924,23 @@ body {
 /* MyLand: dòng bản tin sáng */
 .ml-brief{ margin:4px 0 2px; font-size:.9rem; color:var(--dim); text-transform:capitalize }
 .ml-brief-sub{ margin:0; font-size:.8rem; color:var(--dim); opacity:.85 }
+
+/* Copilot RAG: gợi ý + nguồn dẫn */
+.csuggest{ display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 4px }
+.csuggest button{ padding:5px 11px; font-size:.78rem; border-radius:999px; border:1px solid var(--line-2);
+  background:transparent; color:var(--dim); cursor:pointer; transition:all .15s }
+.csuggest button:hover{ color:var(--text); border-color:var(--terra) }
+.cresult{ margin-top:10px }
+.csrc{ margin-top:8px; padding:11px 13px; border-radius:10px; background:var(--panel); border:1px solid var(--line) }
+.csrc-cap{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:.8rem; font-weight:700; color:var(--text) }
+.cbadge{ font-size:.68rem; font-weight:700; padding:2px 8px; border-radius:999px }
+.cbadge.llm{ background:var(--ai-soft,rgba(127,180,230,.15)); color:var(--ai,#7fb4e6) }
+.cbadge.rule{ background:rgba(224,164,74,.15); color:var(--warn) }
+.csrc-mods{ display:flex; flex-wrap:wrap; gap:6px; margin-top:9px }
+.csrc-chip{ font-size:.74rem; padding:3px 9px; border-radius:999px; background:rgba(95,203,142,.1);
+  border:1px solid rgba(95,203,142,.3); color:var(--text) }
+.csrc-cites{ margin-top:10px; display:flex; flex-direction:column; gap:5px }
+.csrc-sub{ font-size:.74rem; color:var(--dim) }
+.csrc-cite{ font-size:.78rem; color:var(--text); line-height:1.4 }
+.csrc-cite b{ color:var(--terra) } .csrc-cite span{ color:var(--dim) }
+.csrc-note{ margin:10px 0 0; font-size:.72rem; color:var(--dim); line-height:1.5 }
