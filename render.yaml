@@ -60,6 +60,11 @@ services:
         value: "5000"
       - key: TERRATWIN_CORS
         sync: false                  # điền URL frontend sau khi dựng xong
+      # BẮT BUỘC cho vòng lặp một-chạm: link trong tin cảnh báo (/tap/{token})
+      # dựng từ đây. Không đặt → link trỏ localhost và người nhận bấm không ra
+      # gì. Đặt bằng ĐÚNG URL frontend Render cấp (giống TERRATWIN_CORS).
+      - key: TERRATWIN_PUBLIC_URL
+        sync: false
       # BẮT BUỘC — địa chỉ CÔNG KHAI của giao diện web. Dùng để dựng liên kết
       # "một chạm" gửi kèm mỗi tin cảnh báo.
       #
