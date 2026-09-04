@@ -3962,3 +3962,13 @@ body {
   color:var(--dim); cursor:pointer; transition:all .12s }
 .lang-toggle button.on{ background:var(--terra); color:var(--on-accent) }
 .lang-toggle button:not(.on):hover{ color:var(--text) }
+
+/* Scorecard: độ tin cậy theo vùng */
+.sc-rel{ margin-top:16px }
+.sc-rel h4{ margin:0 0 9px; font-size:.86rem; font-weight:700; color:var(--text) }
+.sc-rel-list{ display:flex; flex-wrap:wrap; gap:7px }
+.sc-rel-cell{ display:flex; flex-direction:column; gap:1px; padding:7px 11px; border-radius:9px;
+  background:var(--panel); border:1px solid var(--line); min-width:104px }
+.sc-rel-cell.ok{ border-color:rgba(62,203,131,.35); background:rgba(62,203,131,.06) }
+.sc-rel-cell b{ font-size:.8rem; color:var(--text); font-variant-numeric:tabular-nums }
+.sc-rel-cell span{ font-size:.7rem; color:var(--dim) }

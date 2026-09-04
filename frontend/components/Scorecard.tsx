@@ -19,7 +19,12 @@
  */
 
 import { useEffect, useState } from "react";
-import { getScorecard, type Scorecard as SC } from "@/lib/api";
+import {
+  getReliability,
+  getScorecard,
+  type ReliabilityResult,
+  type Scorecard as SC,
+} from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 const fmtPct = (v: number | null) => (v == null ? "—" : `${v}%`);
@@ -48,6 +53,7 @@ export default function Scorecard({ data, onClose }: {
   const selfFetch = data === undefined;
   const [fetched, setFetched] = useState<SC | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [rel, setRel] = useState<ReliabilityResult | null>(null);
   const sc = selfFetch ? fetched : data;
 
   useEffect(() => {
@@ -58,6 +64,12 @@ export default function Scorecard({ data, onClose }: {
       .catch((e) => live && setErr(e.message));
     return () => { live = false; };
   }, [selfFetch]);
+
+  useEffect(() => {
+    let live = true;
+    getReliability(365).then((r) => live && setRel(r)).catch(() => {});
+    return () => { live = false; };
+  }, []);
 
   const body = (
     <div className="sc">
@@ -137,6 +149,35 @@ export default function Scorecard({ data, onClose }: {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Độ tin cậy theo vùng — nơi mô hình ĐÃ được kiểm chứng (lớn dần theo moat) */}
+          {rel && (
+            <div className="sc-rel">
+              <h4>🗺️ {t("Độ tin cậy theo vùng", "Reliability by region")}</h4>
+              {rel.cells.length === 0 ? (
+                <p className="sc-gt-note">
+                  {t("Chưa vùng nào đủ mẫu — bản đồ này lớn dần khi người dùng gửi quan sát thực địa về.",
+                     "No region has enough samples yet — this map grows as users send field observations back.")}
+                </p>
+              ) : (
+                <>
+                  <div className="sc-rel-list">
+                    {rel.cells.slice(0, 6).map((c) => (
+                      <div key={c.cell} className={`sc-rel-cell${c.enough ? " ok" : ""}`}>
+                        <b>{c.lat.toFixed(1)}, {c.lon.toFixed(1)}</b>
+                        {c.enough ? (
+                          <span>{t("bắt", "POD")} {fmtPct(c.pod_pct)} · {t("bừa", "FAR")} {fmtPct(c.far_pct)}</span>
+                        ) : (
+                          <span>{t("đang tích luỹ", "accumulating")} {c.scored}/{rel.min_cell_sample}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="sc-gt-note">{rel.note}</p>
+                </>
+              )}
             </div>
           )}
 

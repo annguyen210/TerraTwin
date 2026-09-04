@@ -1631,6 +1631,34 @@ export function getScorecardTimeline(days = 180, buckets = 12) {
     "Không tải được xu hướng sổ điểm");
 }
 
+// Bản đồ độ tin cậy — phần mềm ĐÃ được kiểm chứng ở ĐÂU (theo ô lưới ~55 km).
+export type ReliabilityCell = ScorecardRates & {
+  cell: string;
+  lat: number;
+  lon: number;
+  scored: number;
+  hit: number;
+  miss: number;
+  false_alarm: number;
+  enough: boolean;
+  label: string;
+  grid_deg: number;
+};
+export type ReliabilityResult = {
+  cells: ReliabilityCell[];
+  window_days: number;
+  module_id: string | null;
+  min_cell_sample: number;
+  grid_deg: number;
+  note: string;
+};
+export function getReliability(days = 365, moduleId?: string) {
+  const q = new URLSearchParams({ days: String(days) });
+  if (moduleId) q.set("module_id", moduleId);
+  return getJson<ReliabilityResult>(`/api/reliability?${q}`,
+    "Không tải được bản đồ độ tin cậy");
+}
+
 // ---- Một chạm: câu hỏi công khai sau link cảnh báo (KHÔNG cần đăng nhập) ----
 export type TapOption = { value: "yes" | "no" | "unsure"; label: string };
 export type TapQuestion = {
