@@ -174,6 +174,10 @@ export default function Landing({
           <div className="lp-foot-links">
             <Link href="/about">{t("Cách hoạt động", "How it works")}</Link>
             <span>·</span>
+            <Link href="/pricing">{t("Bảng giá", "Pricing")}</Link>
+            <span>·</span>
+            <Link href="/help">{t("Trợ giúp", "Help")}</Link>
+            <span>·</span>
             <Link href="/privacy">{t("Quyền riêng tư", "Privacy")}</Link>
             <span>·</span>
             <Link href="/terms">{t("Điều khoản", "Terms")}</Link>
