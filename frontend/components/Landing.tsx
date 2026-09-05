@@ -9,6 +9,7 @@
  */
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 import Account from "./Account";
 import MyLand from "./MyLand";
@@ -170,6 +171,13 @@ export default function Landing({
         <footer className="lp-foot">
           ◵ TerraTwin · {nModules} {t("mũi nhọn · 12 ngành · dữ liệu thật, hiệu chuẩn từng thửa",
                                        "spearheads · 12 sectors · real data, calibrated per plot")}
+          <div className="lp-foot-links">
+            <Link href="/about">{t("Cách hoạt động", "How it works")}</Link>
+            <span>·</span>
+            <Link href="/privacy">{t("Quyền riêng tư", "Privacy")}</Link>
+            <span>·</span>
+            <Link href="/terms">{t("Điều khoản", "Terms")}</Link>
+          </div>
         </footer>
       </div>
     </div>
