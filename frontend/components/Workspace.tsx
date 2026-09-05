@@ -18,6 +18,7 @@ import {
   buildTwin, createChannel, createKey, deleteChannel, deleteDataset, getPlans,
   deleteTwin, listChannels, listDatasets, listKeys, listTwins, revokeKey,
   scoreDataset, testChannel, uploadDataset,
+  exportMyData, deleteMyAccount, setToken,
   type ApiKeyRow, type AuthUser, type ChannelRow, type DatasetRow,
   type TwinSummary,
   type Plan,
@@ -359,7 +360,60 @@ function ChannelsPanel({ user }: { user: AuthUser | null }) {
         Webhook chặn địa chỉ nội bộ (localhost, 10.x, 192.168.x) để không ai dùng
         phần mềm làm bàn đạp gọi vào mạng riêng của máy chủ.
       </p>
+
+      <DataPrivacyBlock />
     </>
+  );
+}
+
+/** Xuất/xoá dữ liệu — quyền riêng tư của người dùng, khớp trang /privacy. */
+function DataPrivacyBlock() {
+  const [busy, setBusy] = useState(false);
+  const [confirm, setConfirm] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+
+  async function download() {
+    setErr(null); setBusy(true);
+    try {
+      const data = await exportMyData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `terratwin-du-lieu-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
+  }
+
+  async function removeAccount() {
+    if (confirm !== "XOA") return;
+    setErr(null); setBusy(true);
+    try {
+      await deleteMyAccount();
+      setToken(null);
+      window.location.href = "/";
+    } catch (e: any) { setErr(e.message); setBusy(false); }
+  }
+
+  return (
+    <div className="ws-privacy">
+      <h4>🔒 Dữ liệu & quyền riêng tư</h4>
+      {err && <p className="ws-err">⚠️ {err}</p>}
+      <div className="ws-row">
+        <button onClick={download} disabled={busy}>⬇️ Tải toàn bộ dữ liệu của tôi (JSON)</button>
+      </div>
+      <p className="ws-hint">
+        Xoá tài khoản là <b>vĩnh viễn</b> — mọi thửa, quan sát, cảnh báo, khoá API sẽ mất.
+        Gõ <b>XOA</b> để xác nhận.
+      </p>
+      <div className="ws-row">
+        <input placeholder="Gõ XOA để xác nhận" value={confirm}
+               onChange={(e) => setConfirm(e.target.value)} />
+        <button className="ws-del" onClick={removeAccount} disabled={busy || confirm !== "XOA"}>
+          Xoá tài khoản
+        </button>
+      </div>
+    </div>
   );
 }
 

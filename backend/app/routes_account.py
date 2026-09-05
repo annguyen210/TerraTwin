@@ -16,7 +16,10 @@ from sqlalchemy.orm import Session
 
 from app import auth
 from app.services import plans
-from app.db import ApiKey, Plot, User, get_session
+from app.db import (
+    ActionLog, Alert, ApiKey, Dataset, KnowledgeNote, NotifyChannel,
+    Observation, Plot, Twin, User, get_session,
+)
 from app.schemas import Location
 
 router = APIRouter(tags=["account"])
@@ -276,4 +279,70 @@ def revoke_key(key_id: int, user: User = Depends(auth.current_user),
     if k is None or k.user_id != user.id:
         raise HTTPException(404, "Không tìm thấy khóa.")
     k.revoked = 1
+    db.commit()
+
+
+# ---------------------------------------------------------------------------
+# QUYỀN RIÊNG TƯ — xuất toàn bộ dữ liệu & xoá tài khoản (khớp chính sách công bố)
+# ---------------------------------------------------------------------------
+
+# Các bảng thuộc về người dùng. Giữ ở một chỗ để export và delete KHÔNG bao giờ
+# lệch nhau: quên một bảng ở delete là để lại dữ liệu cá nhân sau khi "đã xoá".
+_OWNED = [
+    ("plots", Plot), ("twins", Twin), ("channels", NotifyChannel),
+    ("observations", Observation), ("actions", ActionLog),
+    ("knowledge_notes", KnowledgeNote), ("api_keys", ApiKey),
+    ("datasets", Dataset), ("alerts", Alert),
+]
+
+
+def _row_to_dict(row) -> dict:
+    out = {}
+    for c in row.__table__.columns:
+        v = getattr(row, c.name)
+        if isinstance(v, datetime):
+            v = v.isoformat()
+        # Không bao giờ xuất bí mật ra ngoài, kể cả cho chính chủ: hash mật khẩu
+        # và hash khoá API là thứ không được rời database.
+        if c.name in ("password_hash", "key_hash", "prefix_hash"):
+            continue
+        out[c.name] = v
+    return out
+
+
+@router.get("/api/account/export")
+def export_my_data(user: User = Depends(auth.current_user),
+                   db: Session = Depends(get_session)) -> dict:
+    """Xuất TOÀN BỘ dữ liệu của tài khoản dưới dạng JSON — quyền của người dùng.
+
+    Không kèm hash mật khẩu/khoá (bí mật không rời database). Đây là bản sao đầy
+    đủ để người dùng tự giữ hoặc chuyển đi.
+    """
+    data: dict = {
+        "account": {"id": user.id, "email": user.email, "name": user.name,
+                    "created_at": user.created_at.isoformat() if user.created_at else None},
+        "exported_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }
+    for label, model in _OWNED:
+        rows = db.execute(
+            select(model).where(model.user_id == user.id)).scalars().all()
+        data[label] = [_row_to_dict(r) for r in rows]
+    return data
+
+
+@router.delete("/api/account", status_code=204, response_class=Response,
+               response_model=None)
+def delete_my_account(user: User = Depends(auth.current_user),
+                      db: Session = Depends(get_session)):
+    """Xoá vĩnh viễn tài khoản và MỌI dữ liệu thuộc về nó.
+
+    Xoá tường minh từng bảng thay vì dựa vào cascade của cơ sở dữ liệu: SQLite
+    mặc định KHÔNG bật khoá ngoại, nên 'ON DELETE CASCADE' có thể im lặng không
+    chạy và để lại dữ liệu mồ côi sau khi người dùng tưởng đã xoá sạch.
+    """
+    for _, model in _OWNED:
+        for r in db.execute(
+                select(model).where(model.user_id == user.id)).scalars().all():
+            db.delete(r)
+    db.delete(user)
     db.commit()

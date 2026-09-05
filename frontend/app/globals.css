@@ -4046,3 +4046,7 @@ a.plan-print{ text-decoration:none; display:inline-flex; align-items:center }
 .faq-item summary::before{ content:"＋"; color:var(--terra); margin-right:9px; font-weight:800 }
 .faq-item[open] summary::before{ content:"－" }
 .faq-item p{ margin:0; padding:0 16px 15px; color:var(--text); opacity:.9; line-height:1.65; font-size:.92rem }
+
+/* Workspace: dữ liệu & quyền riêng tư */
+.ws-privacy{ margin-top:22px; padding-top:16px; border-top:1px solid var(--line) }
+.ws-privacy h4{ margin:0 0 10px; font-size:.92rem; color:var(--text) }

@@ -478,6 +478,16 @@ export function deletePlot(id: number) {
     "Không xóa được thửa đất");
 }
 
+// Quyền riêng tư: xuất toàn bộ dữ liệu / xoá tài khoản.
+export function exportMyData() {
+  return authed<Record<string, unknown>>("/api/account/export", { method: "GET" },
+    "Không xuất được dữ liệu");
+}
+export function deleteMyAccount() {
+  return authed<void>("/api/account", { method: "DELETE" },
+    "Không xoá được tài khoản");
+}
+
 // ---- C06 Heatmap ----
 export type HeatCell = {
   lat: number;
