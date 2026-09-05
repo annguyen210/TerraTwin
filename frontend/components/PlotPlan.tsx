@@ -17,6 +17,7 @@
  */
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   getMyQuestions,
   getPlan,
@@ -185,13 +186,22 @@ export default function PlotPlan({
               : "Không có cảnh báo — nhưng vẫn có kế hoạch canh nền"}
           </span>
         </div>
-        <button
-          className="plan-print"
-          onClick={() => window.print()}
-          title="In hoặc lưu PDF để đưa hợp tác xã / cán bộ xã"
-        >
-          🖨️ In / lưu
-        </button>
+        <div className="plan-head-btns">
+          <Link
+            className="plan-print"
+            href={`/plot/${lat.toFixed(5)},${lon.toFixed(5)}`}
+            title="Sổ tay thửa — hồ sơ dữ liệu chia sẻ được (ngân hàng, bảo hiểm, người mua)"
+          >
+            📄 Sổ tay thửa
+          </Link>
+          <button
+            className="plan-print"
+            onClick={() => window.print()}
+            title="In hoặc lưu PDF để đưa hợp tác xã / cán bộ xã"
+          >
+            🖨️ In / lưu
+          </button>
+        </div>
       </div>
 
       {/* CÂU HỎI CHO BẠN — đóng vòng khép kín. Chỉ hiện khi đã đăng nhập và có

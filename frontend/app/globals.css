@@ -4000,3 +4000,28 @@ body {
 /* liên kết chân trang landing */
 .lp-foot-links{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:10px; font-size:.82rem }
 .lp-foot-links a{ color:var(--dim); text-decoration:none } .lp-foot-links a:hover{ color:var(--terra) }
+
+/* ============================================================
+   SỔ TAY THỬA (Land Passport) — /plot/[coord]
+   ============================================================ */
+.pp-share{ padding:6px 13px; border-radius:9px; border:1px solid var(--line-2); background:transparent;
+  color:var(--text); font-size:.82rem; font-weight:600; cursor:pointer; transition:all .15s }
+.pp-share:hover{ border-color:var(--terra); color:var(--terra) }
+.pp-badge{ display:inline-block; font-size:.7rem; letter-spacing:.12em; text-transform:uppercase; font-weight:700;
+  color:var(--terra); background:rgba(95,203,142,.1); border:1px solid rgba(95,203,142,.3);
+  padding:4px 11px; border-radius:999px; margin-bottom:14px }
+.pp-coord{ font-family:ui-monospace,Consolas,monospace; font-size:.95rem; color:var(--dim); margin:0 0 14px }
+.pp-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:6px 0 10px }
+.pp-cell{ text-align:center; padding:14px 8px; border-radius:12px; background:var(--panel); border:1px solid var(--line) }
+.pp-cell b{ display:block; font-size:1.4rem; font-weight:800; color:var(--text) }
+.pp-cell span{ font-size:.75rem; color:var(--dim) }
+.pp-mean{ font-size:.9rem; color:var(--dim); line-height:1.6 }
+.pp-table{ width:100%; border-collapse:collapse; font-size:.9rem; background:var(--panel) }
+.pp-table th{ text-align:left; font-size:.68rem; text-transform:uppercase; letter-spacing:.06em; color:var(--dim);
+  padding:10px 12px; border-bottom:1px solid var(--line-2); background:var(--card) }
+.pp-table td{ padding:10px 12px; border-bottom:1px solid var(--line); color:var(--text) }
+.pp-table .pp-num{ text-align:right; font-variant-numeric:tabular-nums; color:var(--dim) }
+.pp-cred{ font-size:.9rem; color:var(--text); opacity:.9 } .pp-cred a{ color:var(--terra); text-decoration:none }
+/* nút trong header Kế hoạch */
+.plan-head-btns{ display:flex; gap:7px; flex:none }
+a.plan-print{ text-decoration:none; display:inline-flex; align-items:center }
