@@ -80,9 +80,12 @@ def _observed_peak(module_id: str, lat: float, lon: float,
 
     # Chỉ lấy phần TRONG cửa sổ cảnh báo. Phần chạy đà chỉ để chỉ số có trí nhớ,
     # tính cả vào đỉnh là chấm nhầm sang chuyện đã xảy ra trước khi báo.
+    #
+    # index_series trả về CHUỖI 3-TUPLE (_, _, giá trị) — xem hazard.peak_of.
+    # Phải rút giá trị ở phần tử thứ ba; float() thẳng lên tuple sẽ nổ TypeError.
     want = {(start + timedelta(days=i)).strftime("%Y-%m-%d")
             for i in range((end - start).days + 1)}
-    inside = [v for r, v in zip(rows, series) if r.get("date") in want]
+    inside = [s[2] for r, s in zip(rows, series) if r.get("date") in want]
     if not inside:
         return None, "Số liệu trả về không phủ đúng cửa sổ cảnh báo."
 
@@ -292,13 +295,14 @@ def _record_misses(db: Session, p: Plot, module_id: str, rows, series,
         ))
         return 1
 
-    for r, v in zip(rows, series):
+    for r, s in zip(rows, series):
         try:
             d = datetime.strptime(r["date"], "%Y-%m-%d")
         except (KeyError, TypeError, ValueError):
             continue
         if d < start:
             continue
+        v = s[2]                      # 3-tuple (_, _, giá trị) — xem hazard.peak_of
         if float(v) >= hazard.WARNING:
             if run_start is None:
                 run_start, run_peak = d, float(v)

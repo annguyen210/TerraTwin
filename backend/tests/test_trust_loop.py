@@ -414,8 +414,10 @@ def test_cham_theo_dinh_thuc_do(env, monkeypatch, peak, mong_doi):
 
     monkeypatch.setattr(verify.realdata, "historical_weather",
                         lambda la, lo, st, en: _rows(date.fromisoformat(st), 100))
+    # index_series trả CHUỖI 3-TUPLE (_, _, giá trị) — khớp hazard.peak_of và
+    # code thật; mock bằng scalar sẽ che giấu bug production (đã xảy ra một lần).
     monkeypatch.setattr(verify.hazard, "index_series",
-                        lambda m, la, lo, rows: [peak] * len(rows))
+                        lambda m, la, lo, rows: [(0, 0, peak)] * len(rows))
 
     verify.sweep(s)
     a = s.get(Alert, aid)
@@ -464,7 +466,7 @@ def test_chi_lay_dinh_TRONG_cua_so_canh_bao(env, monkeypatch):
     # cảnh báo được phát. Trong cửa sổ thật mọi ngày chỉ có 10.
     monkeypatch.setattr(verify.realdata, "historical_weather", fake_hist)
     monkeypatch.setattr(verify.hazard, "index_series",
-                        lambda m, la, lo, rows: [99.0] + [10.0] * (len(rows) - 1))
+                        lambda m, la, lo, rows: [(0, 0, 99.0)] + [(0, 0, 10.0)] * (len(rows) - 1))
 
     verify.sweep(s)
     a = s.get(Alert, aid)
@@ -484,7 +486,7 @@ def test_bo_sot_lien_tiep_gop_thanh_MOT_dot(env, monkeypatch):
     start = date.today() - timedelta(days=40)
     rows = _rows(start, 20)
     # Bảy ngày liền vượt ngưỡng nguy hiểm, rồi lặng.
-    series = [10.0] * 3 + [85.0] * 7 + [10.0] * 10
+    series = [(0, 0, 10.0)] * 3 + [(0, 0, 85.0)] * 7 + [(0, 0, 10.0)] * 10
     monkeypatch.setattr(verify.realdata, "historical_weather",
                         lambda la, lo, st, en: rows)
     monkeypatch.setattr(verify.hazard, "index_series",
@@ -507,7 +509,7 @@ def test_da_bao_roi_thi_khong_tinh_la_bo_sot(env, monkeypatch):
     s = Session()
     start = date.today() - timedelta(days=40)
     rows = _rows(start, 20)
-    series = [10.0] * 3 + [85.0] * 4 + [10.0] * 13
+    series = [(0, 0, 10.0)] * 3 + [(0, 0, 85.0)] * 4 + [(0, 0, 10.0)] * 13
     dot = datetime.combine(start + timedelta(days=3), datetime.min.time())
     # Đã có cảnh báo phát ra một ngày trước khi đợt bắt đầu.
     s.add(Alert(user_id=uid, plot_id=pid, module_id="flood",
@@ -533,7 +535,7 @@ def test_quet_bo_sot_hai_lan_khong_ghi_trung(env, monkeypatch):
 
     s = Session()
     rows = _rows(date.today() - timedelta(days=40), 20)
-    series = [10.0] * 3 + [85.0] * 4 + [10.0] * 13
+    series = [(0, 0, 10.0)] * 3 + [(0, 0, 85.0)] * 4 + [(0, 0, 10.0)] * 13
     monkeypatch.setattr(verify.realdata, "historical_weather",
                         lambda la, lo, st, en: rows)
     monkeypatch.setattr(verify.hazard, "index_series",

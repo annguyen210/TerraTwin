@@ -21,21 +21,26 @@ class ParametricInsuranceModule(TwinModule):
         idx = round(max(v for (_, _, v) in s), 1)
         threshold = 70.0
         triggered = idx >= threshold
-        payout = round((idx - threshold) / 30.0 * 5_000_000, 0) if triggered else 0.0
-        if loc.area_ha and triggered:
-            payout = round(payout * loc.area_ha, 0)
+        # KHÔNG bịa số tiền chi trả. Trước đây ở đây có một hằng số 5_000_000 viết
+        # cứng, không hợp đồng, không phí bảo hiểm, không đơn vị bảo hiểm — mà lại
+        # hiện ra như "đã chi trả ~X đồng". Số tiền phụ thuộc hợp đồng thật; chỉ
+        # số kích hoạt mới là thứ TerraTwin đo được và trả lời trung thực.
+        over = round(idx - threshold, 1) if triggered else 0.0
         lvl = "danger" if triggered else "safe"
-        head = (f"ĐÃ KÍCH HOẠT chi trả ~{payout:,.0f}đ (chỉ số hạn {idx} ≥ ngưỡng {threshold:.0f})"
+        head = (f"Đã đạt ngưỡng kích hoạt (chỉ số hạn {idx} ≥ ngưỡng {threshold:.0f})"
                 if triggered else f"Chưa kích hoạt (chỉ số hạn {idx} < ngưỡng {threshold:.0f})")
-        rec = ("Tự động lập hồ sơ chi trả, không cần giám định thủ công." if triggered
+        rec = ("Đủ điều kiện lập hồ sơ chi trả tự động. Số tiền chi trả tuỳ HỢP "
+               "ĐỒNG với đơn vị bảo hiểm — TerraTwin chỉ cung cấp chỉ số kích hoạt, "
+               "không định giá bồi thường." if triggered
                else "Chưa đạt ngưỡng bồi thường; tiếp tục theo dõi.")
         detail = ("Trigger dựa trên chỉ số hạn THẬT (Open-Meteo)." if real
-                  else "Trigger dựa trên chỉ số hạn (mẫu).") + " Chi trả tự động khi vượt ngưỡng."
+                  else "Trigger dựa trên chỉ số hạn (mẫu).") + \
+            " Kích hoạt tự động khi vượt ngưỡng; số tiền do hợp đồng bảo hiểm quy định."
         return Assessment(
             module_id=self.id, module_name=self.name, location=loc, status="ok",
             risk_level=lvl, headline=head, detail=detail, recommendation=rec,
             confidence=0.75 if real else 0.6, is_real=real,
-            metrics={"chi_so": idx, "nguong": threshold, "chi_tra_uoc_tinh_vnd": payout},
+            metrics={"chi_so": idx, "nguong": threshold, "vuot_nguong": over},
             data_sources=["Open-Meteo (thật)"] if real else self.data_sources)
 
 
