@@ -27,6 +27,17 @@ from app.services import onetap, scorecard, verify
 
 router = APIRouter(tags=["trust"])
 
+# Đ1 — /api/scorecard công khai, không đăng nhập, nằm ngay trang đón nên dễ bị
+# dội. Sổ điểm đổi theo NGÀY, không theo giây → cache trong bộ nhớ 5 phút. Các
+# endpoint verify sẽ xoá cache để số liệu cập nhật ngay sau khi chấm.
+import time as _time
+_SC_CACHE: dict = {}
+_SC_TTL = 300.0
+
+
+def _sc_clear() -> None:
+    _SC_CACHE.clear()
+
 
 # ---------------------------------------------------------------------------
 # SỔ ĐIỂM — công khai
@@ -39,9 +50,14 @@ def get_scorecard(days: int = 90, db: Session = Depends(get_session)) -> dict:
     Con số này do phần mềm tự chấm về chính mình và không sửa được từ giao diện.
     """
     days = max(7, min(days, 3650))
+    now = _time.time()
+    hit = _SC_CACHE.get(days)
+    if hit is not None and now - hit[0] < _SC_TTL:
+        return hit[1]
     s = scorecard.summary(db, days)
     s["by_module"] = scorecard.by_module(db, days)
     s["ground_truth"] = scorecard.ground_truth(db)
+    _SC_CACHE[days] = (now, s)
     return s
 
 
@@ -122,7 +138,9 @@ def my_questions(limit: int = 5, user: User = Depends(auth.current_user),
 def run_verify(limit: int = 100, user: User = Depends(auth.current_user),
                db: Session = Depends(get_session)) -> dict:
     """Chấm ngay những cảnh báo đã tới hạn, không đợi lượt quét nền."""
-    return verify.sweep(db, max(1, min(limit, 500)))
+    r = verify.sweep(db, max(1, min(limit, 500)))
+    _sc_clear()               # số liệu vừa đổi → xoá cache sổ điểm
+    return r
 
 
 @router.get("/api/plots/{plot_id}/timeline")
@@ -201,4 +219,6 @@ def run_misses(days: int = verify.MISS_LOOKBACK_DAYS,
     Nặng hơn `/api/verify/run` (một lời gọi mạng mỗi thửa) nhưng là thứ khiến
     sổ điểm không phải một lời tự khen.
     """
-    return verify.sweep_misses(db, max(14, min(days, 730)))
+    r = verify.sweep_misses(db, max(14, min(days, 730)))
+    _sc_clear()               # số liệu vừa đổi → xoá cache sổ điểm
+    return r

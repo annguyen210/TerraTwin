@@ -5,8 +5,9 @@ thiết bị và bán được cho doanh nghiệp (nhiều người dùng, phân
 """
 from __future__ import annotations
 
+import os
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, EmailStr, Field
@@ -346,3 +347,104 @@ def delete_my_account(user: User = Depends(auth.current_user),
             db.delete(r)
     db.delete(user)
     db.commit()
+
+
+# ---------------------------------------------------------------------------
+# N1 — QUÊN / ĐẶT LẠI / ĐỔI MẬT KHẨU
+# ---------------------------------------------------------------------------
+#
+# Trước đây chỉ có register/login/me: quên mật khẩu là mất VĨNH VIỄN mọi thửa,
+# cảnh báo, quan sát — và người vận hành cũng không giúp được. Chuyện này xảy ra
+# với người dùng thứ mười, không phải thứ nghìn.
+#
+# Token đặt lại dùng lại đúng cơ chế JWT ký số của onetap: chứa id người dùng,
+# loại "reset", hết hạn 1 giờ. KHÔNG phải phiên đăng nhập — chỉ đổi được đúng
+# mật khẩu của đúng tài khoản đó.
+
+import jwt as _jwt                                            # noqa: E402
+from app.auth import _ALGO as _AUTH_ALGO, _SECRET as _AUTH_SECRET   # noqa: E402
+
+_RESET_TTL_MIN = 60
+
+
+def _make_reset_token(user_id: int) -> str:
+    now = datetime.now(timezone.utc)
+    return _jwt.encode(
+        {"u": int(user_id), "k": "reset", "iat": now,
+         "exp": now + timedelta(minutes=_RESET_TTL_MIN)},
+        _AUTH_SECRET, algorithm=_AUTH_ALGO)
+
+
+def _read_reset_token(token: str) -> int | None:
+    try:
+        d = _jwt.decode(token, _AUTH_SECRET, algorithms=[_AUTH_ALGO])
+    except _jwt.PyJWTError:
+        return None
+    if d.get("k") != "reset":
+        return None
+    try:
+        return int(d["u"])
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+class ForgotIn(BaseModel):
+    email: EmailStr
+
+
+class ResetIn(BaseModel):
+    token: str
+    password: str = Field(min_length=_MIN_PW, max_length=256)
+
+
+class ChangePwIn(BaseModel):
+    old_password: str = Field(max_length=256)
+    new_password: str = Field(min_length=_MIN_PW, max_length=256)
+
+
+@router.post("/api/auth/forgot")
+def forgot_password(body: ForgotIn, db: Session = Depends(get_session)) -> dict:
+    """Gửi liên kết đặt lại mật khẩu. LUÔN trả 200 dù email không tồn tại —
+    trả 404 là để lộ email nào đã đăng ký."""
+    email = body.email.strip().lower()
+    user = db.execute(select(User).where(User.email == email)).scalar_one_or_none()
+    out: dict = {"message": ("Nếu email có trong hệ thống, chúng tôi đã gửi liên "
+                             "kết đặt lại (hết hạn sau 1 giờ).")}
+    if user is not None:
+        from app.services import notify, onetap
+        token = _make_reset_token(user.id)
+        link = f"{onetap.base_url()}/reset/{token}"
+        if notify.smtp_configured():
+            notify.send_email(
+                email, "TerraTwin — đặt lại mật khẩu",
+                f"Bấm vào liên kết để đặt lại mật khẩu (hết hạn sau 1 giờ):\n\n{link}\n\n"
+                f"Nếu không phải bạn yêu cầu, bỏ qua email này.")
+        elif os.environ.get("TERRATWIN_ENV", "prod").strip().lower() == "dev":
+            # Chưa cấu hình SMTP + đang chạy dev → trả link ra để thử được ngay.
+            out["dev_link"] = link
+    return out
+
+
+@router.post("/api/auth/reset")
+def reset_password(body: ResetIn, db: Session = Depends(get_session)) -> dict:
+    _check_password_strength(body.password)
+    uid = _read_reset_token(body.token)
+    if uid is None:
+        raise HTTPException(400, "Liên kết đặt lại không hợp lệ hoặc đã hết hạn (1 giờ).")
+    user = db.get(User, uid)
+    if user is None:
+        raise HTTPException(400, "Tài khoản không còn tồn tại.")
+    user.password_hash = auth.hash_password(body.password)
+    db.commit()
+    return {"message": "Đã đặt lại mật khẩu. Hãy đăng nhập lại."}
+
+
+@router.post("/api/auth/change-password")
+def change_password(body: ChangePwIn, user: User = Depends(auth.current_user),
+                    db: Session = Depends(get_session)) -> dict:
+    if not auth.verify_password(body.old_password, user.password_hash):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Mật khẩu cũ không đúng.")
+    _check_password_strength(body.new_password)
+    user.password_hash = auth.hash_password(body.new_password)
+    db.commit()
+    return {"message": "Đã đổi mật khẩu."}

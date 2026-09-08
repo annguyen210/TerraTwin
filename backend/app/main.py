@@ -121,6 +121,19 @@ _HAZARD_ONLY = f"Chỉ áp dụng cho module hiểm họa thời tiết: {', '.j
 _origins_env = os.environ.get("TERRATWIN_CORS", "*").strip()
 _ORIGINS = ["*"] if _origins_env in ("", "*") else [o.strip() for o in _origins_env.split(",")]
 
+# Đ3 — quên một biến BẢO MẬT thì phải ỒN ÀO, không được im. CORS='*' ngoài môi
+# trường dev nghĩa là mọi trang web đều gọi được API này. render.yaml có nhắc
+# đặt TERRATWIN_CORS, nhưng nhắc thì quên được — nên chặn/kêu ngay lúc khởi động.
+_IS_DEV = os.environ.get("TERRATWIN_ENV", "prod").strip().lower() == "dev"
+if _ORIGINS == ["*"] and not _IS_DEV:
+    if os.environ.get("TERRATWIN_STRICT", "").strip().lower() in ("1", "true", "yes"):
+        raise RuntimeError(
+            "TERRATWIN_CORS đang là '*' ngoài môi trường dev — TERRATWIN_STRICT=1 "
+            "từ chối khởi động. Đặt TERRATWIN_CORS = đúng URL frontend.")
+    log("[TerraTwin] CẢNH BÁO BẢO MẬT: TERRATWIN_CORS='*' — MỌI origin gọi được "
+        "API. Đặt TERRATWIN_CORS = URL frontend trước khi mở cho người dùng thật "
+        "(hoặc TERRATWIN_ENV=dev nếu đang chạy cục bộ).")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_ORIGINS,

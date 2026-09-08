@@ -478,6 +478,21 @@ export function deletePlot(id: number) {
     "Không xóa được thửa đất");
 }
 
+// N1 — quên / đặt lại / đổi mật khẩu.
+export function forgotPassword(email: string) {
+  return postJson<{ message: string; dev_link?: string }>(
+    "/api/auth/forgot", { email }, "Không gửi được yêu cầu");
+}
+export function resetPassword(token: string, password: string) {
+  return postJson<{ message: string }>(
+    "/api/auth/reset", { token, password }, "Không đặt lại được mật khẩu");
+}
+export function changePassword(oldPassword: string, newPassword: string) {
+  return authed<{ message: string }>("/api/auth/change-password",
+    { method: "POST", body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }) },
+    "Không đổi được mật khẩu");
+}
+
 // Quyền riêng tư: xuất toàn bộ dữ liệu / xoá tài khoản.
 export function exportMyData() {
   return authed<Record<string, unknown>>("/api/account/export", { method: "GET" },

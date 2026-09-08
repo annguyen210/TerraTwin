@@ -242,6 +242,19 @@ def channel_status() -> dict:
 
 # ---------- Gửi một loạt cảnh báo ----------
 
+# Câu miễn trừ BẮT BUỘC dưới mọi cảnh báo (N7). Đây là phần mềm cảnh báo thiên
+# tai; người dân sẽ dựa vào nó để quyết định. Sổ điểm đã CHỨNG MINH mô hình có
+# lúc bỏ sót — nên câu này phải luôn đi kèm, và kèm LINK sổ điểm để nó là sự thật
+# đo được chứ không phải một dòng chối bỏ trách nhiệm.
+DISCLAIMER = ("Đây là dự báo có SAI SỐ, không thay thế chỉ đạo của cơ quan phòng "
+              "chống thiên tai địa phương.")
+
+
+def _scorecard_url() -> str:
+    from app.services import onetap
+    return onetap.base_url() + "/"      # trang đón hiện sổ điểm tự chấm công khai
+
+
 def _format_text(alerts: list[dict]) -> str:
     """Bản ngắn cho Zalo/Telegram. Điện thoại, không phải màn hình máy tính."""
     n = len(alerts)
@@ -254,8 +267,7 @@ def _format_text(alerts: list[dict]) -> str:
             lines.append(f"  → {a['recommendation']}")
     if n > 5:
         lines.append(f"…và {n - 5} cảnh báo nữa.")
-    lines += ["", "Dựa trên dữ liệu vệ tinh và thời tiết thật, có sai số. "
-                  "Hãy đối chiếu với những gì bác thấy ngoài đồng."]
+    lines += ["", DISCLAIMER, f"Tỉ lệ đúng/sai công khai: {_scorecard_url()}"]
     return "\n".join(lines)
 
 
@@ -268,7 +280,8 @@ def _format_email(alerts: list[dict]) -> tuple[str, str]:
         mark = "‼️" if a["risk_level"] == "danger" else "⚠️"
         lines += [f"{mark} {a['headline']}", f"   → {a['recommendation']}", ""]
     lines += ["—",
-              "Cảnh báo dựa trên dữ liệu vệ tinh và thời tiết thật, kèm sai số.",
+              DISCLAIMER,
+              f"Tỉ lệ báo đúng / báo bừa / bỏ sót công khai tại: {_scorecard_url()}",
               "Không đảm bảo 100% — hãy đối chiếu với quan sát thực địa."]
     return subject, "\n".join(lines)
 

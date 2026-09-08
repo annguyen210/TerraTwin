@@ -424,6 +424,14 @@ export default function PlotPlan({
           <p className="plan-note">{watch.capability}</p>
         </section>
       )}
+
+      {/* N7 — câu miễn trừ luôn đi kèm cảnh báo, kèm link sổ điểm để nó là sự
+          thật đo được chứ không phải một dòng chối bỏ trách nhiệm. */}
+      <p className="plan-disclaimer">
+        ⚠️ Đây là dự báo có sai số, không thay thế chỉ đạo của cơ quan phòng chống
+        thiên tai địa phương.{" "}
+        <a href="/about">Xem tỉ lệ đúng/sai của chúng tôi</a>.
+      </p>
     </div>
   );
 }

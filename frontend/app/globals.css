@@ -4050,3 +4050,24 @@ a.plan-print{ text-decoration:none; display:inline-flex; align-items:center }
 /* Workspace: dữ liệu & quyền riêng tư */
 .ws-privacy{ margin-top:22px; padding-top:16px; border-top:1px solid var(--line) }
 .ws-privacy h4{ margin:0 0 10px; font-size:.92rem; color:var(--text) }
+
+/* N7 — câu miễn trừ dưới cảnh báo */
+.plan-disclaimer, .ml-disclaimer{ margin:12px 0 0; padding:9px 12px; border-radius:9px;
+  background:rgba(224,164,74,.08); border:1px solid rgba(224,164,74,.25);
+  font-size:.76rem; line-height:1.5; color:var(--dim) }
+.plan-disclaimer a, .ml-disclaimer a{ color:var(--warn); text-decoration:none; font-weight:600 }
+.plan-disclaimer a:hover, .ml-disclaimer a:hover{ text-decoration:underline }
+
+/* N1 — form quên/đặt lại mật khẩu */
+.auth-form{ display:flex; flex-direction:column; gap:10px; margin:14px 0 }
+.auth-form input{ padding:12px 14px; border-radius:10px; border:1px solid var(--line-2);
+  background:var(--panel); color:var(--text); font-size:.95rem }
+.auth-form input:focus{ border-color:var(--terra); outline:none }
+.auth-form .doc-btn{ text-align:center; border:none; cursor:pointer }
+.auth-msg{ font-size:.9rem; color:var(--text); padding:10px 13px; border-radius:9px;
+  background:var(--panel); border:1px solid var(--line); line-height:1.5 }
+.auth-dev{ font-size:.82rem; color:var(--dim); margin-top:10px } .auth-dev a{ color:var(--terra) }
+
+/* Link quên mật khẩu trong form đăng nhập */
+.acct-forgot{ font-size:.8rem; color:var(--dim); text-decoration:none; align-self:flex-end }
+.acct-forgot:hover{ color:var(--terra) }

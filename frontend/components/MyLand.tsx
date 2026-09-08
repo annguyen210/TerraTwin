@@ -127,6 +127,10 @@ export default function MyLand({
               {a.recommendation && <p className="ml-alert-do">→ {a.recommendation}</p>}
             </div>
           ))}
+          <p className="ml-disclaimer">
+            ⚠️ Dự báo có sai số, không thay thế chỉ đạo của cơ quan phòng chống
+            thiên tai địa phương. <a href="/about">Xem tỉ lệ đúng/sai</a>.
+          </p>
         </div>
       )}
 

@@ -114,6 +114,9 @@ export default function Account({
         required
         minLength={mode === "register" ? 8 : undefined}
       />
+      {mode === "login" && (
+        <a className="acct-forgot" href="/forgot">Quên mật khẩu?</a>
+      )}
       {err && <p className="acct-err">{err}</p>}
       <div className="acct-actions">
         <button type="submit" disabled={busy}>
