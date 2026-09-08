@@ -222,3 +222,38 @@ def run_misses(days: int = verify.MISS_LOOKBACK_DAYS,
     r = verify.sweep_misses(db, max(14, min(days, 730)))
     _sc_clear()               # số liệu vừa đổi → xoá cache sổ điểm
     return r
+
+
+# ---------------------------------------------------------------------------
+# N2 — TRẠNG THÁI SAO LƯU (đòi đăng nhập: thông tin vận hành, không công khai)
+# ---------------------------------------------------------------------------
+
+@router.get("/api/admin/backup-status")
+def backup_status(user: User = Depends(auth.current_user)) -> dict:
+    """Bản sao lưu gần nhất cách đây bao lâu. Báo động nếu quá 36 giờ.
+
+    Đọc thư mục TERRATWIN_BACKUP_DIR (do ops/backup.sh ghi). Có endpoint này để
+    biết sao lưu ĐANG chạy hay đã chết âm thầm — bản sao lưu mà không ai canh
+    cũng nguy hiểm như không có.
+    """
+    import glob
+    import os
+    import time as _t
+
+    d = os.environ.get("TERRATWIN_BACKUP_DIR", "./backups")
+    files = glob.glob(os.path.join(d, "daily", "*.sql.gz"))
+    if not files:
+        return {"configured": False, "stale": True,
+                "message": ("Chưa có bản sao lưu nào. Đặt cron ngoài gọi "
+                            "ops/backup.sh mỗi ngày.")}
+    newest = max(files, key=os.path.getmtime)
+    age_h = (_t.time() - os.path.getmtime(newest)) / 3600.0
+    return {
+        "configured": True,
+        "latest": os.path.basename(newest),
+        "age_hours": round(age_h, 1),
+        "count": len(files),
+        "stale": age_h > 36.0,
+        "message": ("⚠️ Sao lưu gần nhất quá 36 giờ — kiểm tra cron."
+                    if age_h > 36.0 else "Sao lưu đang cập nhật đều."),
+    }

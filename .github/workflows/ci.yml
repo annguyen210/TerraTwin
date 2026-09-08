@@ -21,6 +21,40 @@ jobs:
       - run: pip install -r requirements.txt -r requirements-dev.txt
       - run: pytest       # chạy offline, không gọi mạng
 
+  backend-postgres:
+    name: Backend — pytest trên PostgreSQL
+    # Đ7 — mã Đợt 1 (đặt lại mật khẩu, xoá tài khoản, cột env, _deduped_counts,
+    # cache sổ điểm) CHƯA từng chạy trên Postgres. Deploy dùng Postgres, và đúng
+    # loại lỗi này (DATETIME, DDL, SQL riêng của Postgres) chỉ lộ ở đó. Chạy
+    # ĐÚNG bộ test hiện có trên Postgres để bắt trước khi lên production.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: terratwin_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 10s
+          --health-timeout 5s --health-retries 5
+    env:
+      TERRATWIN_DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/terratwin_test
+      TERRATWIN_SECRET: ci-fixed-secret-postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-dev.txt "psycopg[binary]"
+      - run: pytest       # CÙNG bộ test, lần này trên PostgreSQL
+
   frontend:
     name: Frontend — typecheck + build
     runs-on: ubuntu-latest

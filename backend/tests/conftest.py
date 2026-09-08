@@ -46,8 +46,12 @@ import tempfile
 # Python không nhận timeout. Xem chú thích ở realdata._fetch.
 socket.setdefaulttimeout(20.0)
 
-_DB = os.path.join(tempfile.mkdtemp(prefix="terratwin-test-"), "test.db")
-os.environ["TERRATWIN_DATABASE_URL"] = f"sqlite:///{_DB}"
+# Nếu môi trường ĐÃ chỉ định CSDL (CI đặt để chạy trên PostgreSQL — bắt đúng loại
+# lỗi chỉ lộ trên Postgres, như DATETIME từng ẩn), TÔN TRỌNG nó. Không thì dùng
+# SQLite tạm để chạy offline nhanh ở máy dev.
+if not os.environ.get("TERRATWIN_DATABASE_URL"):
+    _DB = os.path.join(tempfile.mkdtemp(prefix="terratwin-test-"), "test.db")
+    os.environ["TERRATWIN_DATABASE_URL"] = f"sqlite:///{_DB}"
 
 
 import pytest

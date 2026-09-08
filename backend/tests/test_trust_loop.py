@@ -18,6 +18,7 @@ Không test nào ở đây chạm mạng.
 """
 from __future__ import annotations
 
+import os
 from datetime import date, datetime, timedelta, timezone
 
 import pytest
@@ -48,8 +49,16 @@ def env(tmp_path, monkeypatch):
     from app.services import calibration as cal
     from app.services import genome, realdata
 
-    engine = create_engine(f"sqlite:///{tmp_path/'t.db'}",
-                           connect_args={"check_same_thread": False})
+    # Chạy trên ĐÚNG loại CSDL. CI đặt TERRATWIN_DATABASE_URL=postgres để chấm
+    # sổ điểm / _deduped_counts / cột env trên Postgres — đúng chỗ lỗi DATETIME
+    # từng ẩn. Máy dev không đặt → SQLite tạm, nhanh và offline.
+    _url = os.environ.get("TERRATWIN_DATABASE_URL", "")
+    if _url.startswith("postgres"):
+        engine = create_engine(_url)
+        dbmod.Base.metadata.drop_all(engine)      # sạch giữa các test
+    else:
+        engine = create_engine(f"sqlite:///{tmp_path/'t.db'}",
+                               connect_args={"check_same_thread": False})
     Session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
     dbmod.Base.metadata.create_all(engine)
     monkeypatch.setattr(dbmod, "engine", engine)

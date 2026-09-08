@@ -333,6 +333,10 @@ class Alert(Base):
 Index("ix_alert_user_created", Alert.user_id, Alert.created_at.desc())
 # Sổ điểm luôn quét theo "đã chấm chưa" + "chấm lúc nào".
 Index("ix_alert_outcome_time", Alert.outcome, Alert.created_at.desc())
+# Đ4 — gộp kết quả theo ĐỢT (scorecard._deduped_counts) và quét bỏ sót
+# (verify._record_misses) đều lọc/nhóm theo (thửa, mô-đun, thời gian). Không có
+# index này thì mỗi lần chấm quét toàn bảng alerts.
+Index("ix_alert_plot_module_time", Alert.plot_id, Alert.module_id, Alert.created_at)
 
 
 # Cột thêm sau khi đã có database chạy thật. `create_all` KHÔNG thêm cột vào

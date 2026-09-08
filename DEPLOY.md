@@ -48,12 +48,16 @@ Render cấp cho bạn 2 URL, ví dụ:
 |---|---|---|
 | `terratwin-web` | `NEXT_PUBLIC_API` | URL của **api** (vd `https://terratwin-api.onrender.com`) |
 | `terratwin-api` | `TERRATWIN_CORS` | URL của **web** (vd `https://terratwin-web.onrender.com`) |
+| `terratwin-api` | `TERRATWIN_PUBLIC_URL` | URL của **web** — để link một chạm trong cảnh báo trỏ đúng |
 
 Đặt xong bấm **Manual Deploy → Deploy latest** cho `terratwin-web` (vì `NEXT_PUBLIC_*` nhúng lúc build).
 
 ✅ **Xong khi:** mở URL web, bấm 1 nơi → ra kết quả (không lỗi CORS trong Console trình duyệt).
 
 > `TERRATWIN_SECRET` Render tự sinh và giữ cố định — **đừng đặt tay**, đổi là mọi người bị đăng xuất.
+> `TERRATWIN_ENV` để `render.yaml` đặt sẵn = `prod` — **đừng đổi thành `dev` trên production**, nếu không cảnh báo thật bị loại khỏi sổ điểm.
+
+> **Toàn bộ biến môi trường** (kèm giải thích từng biến) nằm ở `backend/.env.example` — `render.yaml` đã ánh xạ sẵn. Đừng chép lại danh sách vào đây rồi để hai nơi lệch nhau; mở đúng một nguồn đó.
 
 ---
 
@@ -109,10 +113,31 @@ Sau khi huấn luyện trên máy có GPU (xem `backend/app/dl/`), chép `data/l
 
 ---
 
+## Kiểm tra SAU deploy (~10 phút — làm ngay khi Live)
+
+Bốn phép thử này bắt đúng những kiểu hỏng "im lặng" — không có lỗi trong log,
+chỉ là người dùng không nhận được gì:
+
+1. **Sức khoẻ**: mở `https://<api>/api/health` → `"status":"ok"`. Nếu `degraded`
+   thì đọc phần `quota` để biết là hết hạn mức nguồn (mai lại chạy) hay lỗi thật.
+2. **Sổ điểm**: mở `https://<api>/api/scorecard` → trả JSON. Trên DB mới sẽ là
+   `"enough":false` (chưa có cảnh báo prod tới hạn) — đúng, không phải lỗi.
+3. **Cảnh báo + một chạm** (cần đã nối kênh ở Bước 5): đăng nhập → lưu một thửa
+   → **Quét lại ngay** → nếu có rủi ro, nhận được tin. **Bấm link trong tin** →
+   trang một chạm mở đúng (không phải `localhost` — nếu là localhost thì thiếu
+   `TERRATWIN_PUBLIC_URL`, xem Bước 2).
+4. **Đăng nhập lại được**: dùng trang **/forgot** → nhận email đặt lại (cần SMTP,
+   xem `.env.example` mục 2) → đặt mật khẩu mới → đăng nhập lại.
+
+✅ Cả bốn chạy → sản phẩm thật sự sống, không chỉ "Live" trên bảng Render.
+
+---
+
 ### Tóm tắt "xong khi nào"
 - [ ] Repo trên GitHub có `render.yaml`
 - [ ] `terratwin-api` + `terratwin-web` đều Live
-- [ ] `NEXT_PUBLIC_API` + `TERRATWIN_CORS` đã đặt đúng chéo nhau
+- [ ] `NEXT_PUBLIC_API` + `TERRATWIN_CORS` + `TERRATWIN_PUBLIC_URL` đã đặt đúng
 - [ ] Đăng ký + lưu thửa → deploy lại → **thửa vẫn còn**
 - [ ] Đã chạy `python -m app.warm --provinces`
-- [ ] (tùy chọn) Kênh cảnh báo đã nối
+- [ ] Bốn phép thử "Kiểm tra sau deploy" đều xanh
+- [ ] (tùy chọn) Kênh cảnh báo đã nối · sao lưu tự động (N2) đã diễn tập khôi phục
