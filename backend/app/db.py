@@ -35,6 +35,12 @@ def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _alert_env() -> str:
+    """Môi trường tạo cảnh báo. Chạy dev đặt TERRATWIN_ENV=dev để cảnh báo thử
+    không lẫn vào sổ điểm công khai; production để trống → "prod"."""
+    return os.environ.get("TERRATWIN_ENV", "prod").strip().lower() or "prod"
+
+
 class Base(DeclarativeBase):
     pass
 
@@ -316,6 +322,12 @@ class Alert(Base):
     # KHÔNG bao giờ hiện trong danh sách cảnh báo của người dùng (chưa từng gửi
     # cho họ) nhưng LUÔN được tính vào sổ điểm.
     retro: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    # dev = cảnh báo sinh trong GIAI ĐOẠN PHÁT TRIỂN (toạ độ thử, radar test lúc
+    # dev); prod = cảnh báo thật sau khi phát hành. Sổ điểm CÔNG KHAI chỉ tính
+    # prod và ghi rõ đã loại bao nhiêu bản dev — loại trừ CÓ LÝ DO, không phải
+    # xoá lén. Giá trị khi tạo lấy từ TERRATWIN_ENV (mặc định "prod").
+    env: Mapped[str] = mapped_column(String(8), default=_alert_env,
+                                     server_default="prod", index=True)
 
 
 Index("ix_alert_user_created", Alert.user_id, Alert.created_at.desc())

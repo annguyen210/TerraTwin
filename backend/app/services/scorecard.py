@@ -43,6 +43,14 @@ MIN_SAMPLE = 10
 MIN_CELL_SAMPLE = 5
 DEFAULT_WINDOW_DAYS = 90
 
+# Cùng thửa + cùng mô-đun + các cảnh báo cách nhau ≤ ngần này ngày = MỘT đợt, MỘT
+# phán quyết. Không gộp thì một trận mưa ba ngày sinh ba cảnh báo, rồi bị chấm
+# thành ba lần báo bừa cho CÙNG MỘT chuyện — thổi phồng cả tử số lẫn mẫu của FAR.
+# Lỗi này sinh ra ngay trên production nếu chỉ đếm từng cảnh báo, không ai thấy.
+DEDUP_DAYS = 7
+# Sổ điểm CÔNG KHAI chỉ tính cảnh báo prod; bản dev-phase bị loại NHƯNG đếm ra.
+DEFAULT_ENV = "prod"
+
 
 def _now() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
@@ -58,31 +66,78 @@ def _rates(hit: int, miss: int, fa: int) -> dict:
     return {"pod_pct": pct(pod), "far_pct": pct(far), "csi_pct": pct(csi)}
 
 
+def _deduped_counts(db: Session, since: datetime, until: datetime | None = None,
+                    module_id: str | None = None,
+                    env: str | None = DEFAULT_ENV) -> dict:
+    """Đếm kết quả THEO ĐỢT, không theo từng cảnh báo.
+
+    Nhiều cảnh báo cho cùng một đợt (cùng thửa + mô-đun, cách ≤ DEDUP_DAYS ngày)
+    chỉ tính MỘT phán quyết. Bản ghi bỏ sót (retro=1) đã được verify gộp theo đợt
+    nên đếm thẳng.
+    """
+    from collections import Counter, defaultdict
+    q = select(Alert.outcome, Alert.plot_id, Alert.module_id,
+               Alert.created_at, Alert.retro).where(
+        Alert.outcome.in_(("hit", "miss", "false_alarm")),
+        Alert.created_at >= since)
+    if until is not None:
+        q = q.where(Alert.created_at < until)
+    if module_id:
+        q = q.where(Alert.module_id == module_id)
+    if env is not None:
+        q = q.where(Alert.env == env)
+
+    counts: Counter = Counter()
+    groups: dict = defaultdict(list)
+    for outcome, plot_id, mid, created, retro in db.execute(q).all():
+        if retro:
+            counts[outcome] += 1
+        else:
+            groups[(plot_id, mid)].append((created, outcome))
+    for items in groups.values():
+        items.sort(key=lambda t: t[0])
+        last = None
+        for created, outcome in items:
+            if last is None or (created - last).days > DEDUP_DAYS:
+                counts[outcome] += 1          # đợt mới
+            last = created
+    return {k: int(counts.get(k, 0)) for k in ("hit", "miss", "false_alarm")}
+
+
 def summary(db: Session, days: int = DEFAULT_WINDOW_DAYS,
             module_id: str | None = None) -> dict:
     """Sổ điểm tổng — đây là thứ hiện trên trang đầu."""
     since = _now() - timedelta(days=max(1, days))
 
-    q = (select(Alert.outcome, func.count(Alert.id))
-         .where(Alert.outcome.is_not(None), Alert.created_at >= since)
-         .group_by(Alert.outcome))
+    # ĐẾM THEO ĐỢT + chỉ môi trường prod. Cảnh báo dev-phase bị loại nhưng đếm ra
+    # để việc loại trừ là MINH BẠCH, không phải xoá lén.
+    counts = _deduped_counts(db, since, module_id=module_id, env=DEFAULT_ENV)
+    eq = select(func.count(Alert.id)).where(
+        Alert.outcome == "expired", Alert.created_at >= since,
+        Alert.env == DEFAULT_ENV)
     if module_id:
-        q = q.where(Alert.module_id == module_id)
-    counts = {k: 0 for k in ("hit", "miss", "false_alarm", "expired")}
-    for outcome, n in db.execute(q).all():
-        if outcome in counts:
-            counts[outcome] = int(n)
+        eq = eq.where(Alert.module_id == module_id)
+    counts["expired"] = int(db.execute(eq).scalar() or 0)
+
+    xq = select(func.count(Alert.id)).where(
+        Alert.outcome.in_(("hit", "miss", "false_alarm")),
+        Alert.created_at >= since, Alert.env != DEFAULT_ENV)
+    if module_id:
+        xq = xq.where(Alert.module_id == module_id)
+    excluded_dev = int(db.execute(xq).scalar() or 0)
 
     hit, miss, fa = counts["hit"], counts["miss"], counts["false_alarm"]
     scored = hit + miss + fa
     pending = db.execute(
         select(func.count(Alert.id)).where(
-            Alert.outcome.is_(None), Alert.created_at >= since)).scalar() or 0
+            Alert.outcome.is_(None), Alert.created_at >= since,
+            Alert.env == DEFAULT_ENV)).scalar() or 0
 
     # Bao nhiêu phán quyết đến từ người thật đứng trên thửa, thay vì từ vệ tinh.
     by_user = db.execute(
         select(func.count(Alert.id)).where(
-            Alert.verify_source == "user", Alert.created_at >= since)).scalar() or 0
+            Alert.verify_source == "user", Alert.created_at >= since,
+            Alert.env == DEFAULT_ENV)).scalar() or 0
 
     out = {
         "window_days": days,
@@ -91,6 +146,7 @@ def summary(db: Session, days: int = DEFAULT_WINDOW_DAYS,
         "scored": scored,
         "pending": int(pending),
         "verified_by_people": int(by_user),
+        "excluded_dev": excluded_dev,
         "enough": scored >= MIN_SAMPLE,
         "min_sample": MIN_SAMPLE,
         **_rates(hit, miss, fa),
@@ -109,15 +165,19 @@ def summary(db: Session, days: int = DEFAULT_WINDOW_DAYS,
 def _headline(s: dict) -> str:
     """Một câu tiếng Việt cho trang đầu. Không tô hồng khi mẫu còn ít."""
     c = s["counts"]
+    # Loại trừ CÓ LÝ DO, nói ra chứ không giấu.
+    excl = (f" (đã loại {s['excluded_dev']} cảnh báo giai đoạn phát triển)"
+            if s.get("excluded_dev") else "")
     if s["scored"] == 0:
-        return ("Chưa có cảnh báo nào tới hạn chấm. Sổ điểm sẽ tự hiện khi "
-                "cảnh báo đầu tiên đủ 13 ngày tuổi.")
-    base = (f"{s['window_days']} ngày qua: báo trước {c['hit'] + c['false_alarm']} lần, "
+        return ("Chưa có cảnh báo prod nào tới hạn chấm. Sổ điểm sẽ tự hiện khi "
+                "cảnh báo thật đầu tiên đủ 13 ngày tuổi." + excl)
+    base = (f"{s['window_days']} ngày qua: báo trước {c['hit'] + c['false_alarm']} đợt, "
             f"đúng {c['hit']}, báo bừa {c['false_alarm']}, bỏ sót {c['miss']}")
     if not s["enough"]:
-        return (base + f". Mới {s['scored']} lần chấm — chưa đủ "
-                f"{MIN_SAMPLE} để công bố tỉ lệ.")
-    return base + f" — báo bừa {s['far_pct']}%, bắt được {s['pod_pct']}% số đợt thực tế."
+        return (base + f". Mới {s['scored']} đợt chấm — chưa đủ "
+                f"{MIN_SAMPLE} để công bố tỉ lệ." + excl)
+    return (base + f" — báo bừa {s['far_pct']}%, bắt được {s['pod_pct']}% số đợt "
+            f"thực tế." + excl)
 
 
 def by_module(db: Session, days: int = DEFAULT_WINDOW_DAYS) -> list[dict]:
@@ -149,14 +209,9 @@ def timeline(db: Session, days: int = DEFAULT_WINDOW_DAYS,
     for i in range(buckets):
         hi = now - timedelta(days=span * i)
         lo = now - timedelta(days=span * (i + 1))
-        q = (select(Alert.outcome, func.count(Alert.id))
-             .where(Alert.outcome.is_not(None),
-                    Alert.created_at >= lo, Alert.created_at < hi)
-             .group_by(Alert.outcome))
-        c = {k: 0 for k in ("hit", "miss", "false_alarm", "expired")}
-        for outcome, n in db.execute(q).all():
-            if outcome in c:
-                c[outcome] = int(n)
+        # Cùng quy tắc với summary: đếm theo ĐỢT, chỉ prod.
+        c = _deduped_counts(db, lo, until=hi, env=DEFAULT_ENV)
+        c["expired"] = 0
         rows.append({"from": lo.strftime("%Y-%m-%d"),
                      "to": hi.strftime("%Y-%m-%d"),
                      "counts": c, "scored": c["hit"] + c["miss"] + c["false_alarm"],
@@ -190,7 +245,8 @@ def reliability(db: Session, days: int = 365,
 
     q = (select(Alert.outcome, Plot.lat, Plot.lon)
          .join(Plot, Plot.id == Alert.plot_id)
-         .where(Alert.outcome.is_not(None), Alert.created_at >= since))
+         .where(Alert.outcome.is_not(None), Alert.created_at >= since,
+                Alert.env == DEFAULT_ENV))
     if module_id:
         q = q.where(Alert.module_id == module_id)
 

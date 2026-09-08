@@ -112,17 +112,21 @@ def _seed(Session, *, outcomes=(), retro_misses=0, coord=BEN_TRE,
     s.commit()
 
     born = _now() - timedelta(days=age_days)
+    # Giãn mỗi cảnh báo thành MỘT ĐỢT riêng (cách nhau >DEDUP_DAYS). Cùng thửa +
+    # mô-đun + cùng thời điểm là cùng một đợt và sổ điểm gộp lại — đúng thực tế,
+    # nên dữ liệu test cũng phải là các đợt tách bạch mới đo đúng thứ nó nói.
+    step = timedelta(days=10)
     for i, oc in enumerate(outcomes):
         s.add(Alert(user_id=u.id, plot_id=p.id, module_id=module,
                     risk_level="danger", headline=f"canh bao {i}",
-                    created_at=born, outcome=oc, verified_at=_now(),
+                    created_at=born - i * step, outcome=oc, verified_at=_now(),
                     verify_source="data", observed_peak=80.0 if oc == "hit" else 5.0))
     for i in range(retro_misses):
         s.add(Alert(user_id=u.id, plot_id=p.id, module_id=module,
                     risk_level="danger", headline=f"[HOI CUU] bo sot {i}",
-                    created_at=born, outcome="miss", verified_at=_now(),
-                    verify_source="data", observed_peak=85.0, retro=1,
-                    acknowledged=1))
+                    created_at=born - (len(outcomes) + i) * step, outcome="miss",
+                    verified_at=_now(), verify_source="data", observed_peak=85.0,
+                    retro=1, acknowledged=1))
     s.commit()
     uid, pid = u.id, p.id
     s.close()
