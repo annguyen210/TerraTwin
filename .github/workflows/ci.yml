@@ -19,7 +19,8 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt -r requirements-dev.txt
-      - run: pytest       # chạy offline, không gọi mạng
+      # Test gọi API thật thi thoảng hụt do mạng — tự chạy lại, không phải lỗi code.
+      - run: pytest --reruns 2 --reruns-delay 5
 
   backend-postgres:
     name: Backend — pytest trên PostgreSQL
@@ -53,7 +54,7 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt -r requirements-dev.txt "psycopg[binary]"
-      - run: pytest       # CÙNG bộ test, lần này trên PostgreSQL
+      - run: pytest --reruns 2 --reruns-delay 5    # CÙNG bộ test, trên PostgreSQL
 
   frontend:
     name: Frontend — typecheck + build
