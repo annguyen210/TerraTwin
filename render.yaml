@@ -30,6 +30,11 @@ services:
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/health
     envVars:
+      # Ghim Python 3.12 (đúng bản CI test). Mặc định Render nhảy lên 3.14, mà
+      # pydantic-core 2.23.4 chưa có wheel cho 3.14 → pip phải biên dịch bằng
+      # Rust và chết vì cargo cache read-only. 3.12 có sẵn wheel cho mọi gói.
+      - key: PYTHON_VERSION
+        value: "3.12.7"
       - key: TERRATWIN_DATABASE_URL
         fromDatabase:
           name: terratwin-db
