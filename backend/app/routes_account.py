@@ -5,6 +5,7 @@ thiết bị và bán được cho doanh nghiệp (nhiều người dùng, phân
 """
 from __future__ import annotations
 
+import hashlib
 import os
 import re
 from datetime import datetime, timedelta, timezone
@@ -131,7 +132,12 @@ def login(body: LoginIn, db: Session = Depends(get_session)) -> TokenOut:
     email = body.email.strip().lower()
     user = db.execute(select(User).where(User.email == email)).scalar_one_or_none()
     # Cùng một thông báo cho email sai và mật khẩu sai — không tiết lộ email nào tồn tại.
-    if user is None or not auth.verify_password(body.password, user.password_hash):
+    if user is None:
+        # Băm giả để thời gian phản hồi KHÔNG tiết lộ email nào đã đăng ký (chống
+        # dò tài khoản qua đo thời gian). Vẫn báo lỗi y hệt nhánh sai mật khẩu.
+        auth.verify_password(body.password, auth.DUMMY_HASH)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Email hoặc mật khẩu không đúng.")
+    if not auth.verify_password(body.password, user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Email hoặc mật khẩu không đúng.")
     return TokenOut(access_token=auth.create_token(user.id), user=_out(user))
 
@@ -367,25 +373,31 @@ from app.auth import _ALGO as _AUTH_ALGO, _SECRET as _AUTH_SECRET   # noqa: E402
 _RESET_TTL_MIN = 60
 
 
-def _make_reset_token(user_id: int) -> str:
+def _pw_version(pw_hash: str) -> str:
+    """Vân tay ngắn của hash mật khẩu hiện tại. Gắn vào token đặt lại để token
+    thành DÙNG-MỘT-LẦN: sau khi đặt lại, hash đổi → vân tay đổi → token cũ (kể cả
+    bị chuyển tiếp hay dùng lại trong 1 giờ) không còn hợp lệ."""
+    return hashlib.sha256(pw_hash.encode("utf-8")).hexdigest()[:16]
+
+
+def _make_reset_token(user_id: int, pw_hash: str) -> str:
     now = datetime.now(timezone.utc)
     return _jwt.encode(
-        {"u": int(user_id), "k": "reset", "iat": now,
+        {"u": int(user_id), "k": "reset", "pv": _pw_version(pw_hash), "iat": now,
          "exp": now + timedelta(minutes=_RESET_TTL_MIN)},
         _AUTH_SECRET, algorithm=_AUTH_ALGO)
 
 
-def _read_reset_token(token: str) -> int | None:
+def _read_reset_token(token: str) -> dict | None:
+    """Trả nguyên payload (để reset_password còn kiểm 'pv'), hoặc None nếu chữ ký
+    sai / hết hạn / nhầm loại token."""
     try:
         d = _jwt.decode(token, _AUTH_SECRET, algorithms=[_AUTH_ALGO])
     except _jwt.PyJWTError:
         return None
     if d.get("k") != "reset":
         return None
-    try:
-        return int(d["u"])
-    except (KeyError, TypeError, ValueError):
-        return None
+    return d
 
 
 class ForgotIn(BaseModel):
@@ -412,7 +424,7 @@ def forgot_password(body: ForgotIn, db: Session = Depends(get_session)) -> dict:
                              "kết đặt lại (hết hạn sau 1 giờ).")}
     if user is not None:
         from app.services import notify, onetap
-        token = _make_reset_token(user.id)
+        token = _make_reset_token(user.id, user.password_hash)
         link = f"{onetap.base_url()}/reset/{token}"
         if notify.smtp_configured():
             notify.send_email(
@@ -428,12 +440,21 @@ def forgot_password(body: ForgotIn, db: Session = Depends(get_session)) -> dict:
 @router.post("/api/auth/reset")
 def reset_password(body: ResetIn, db: Session = Depends(get_session)) -> dict:
     _check_password_strength(body.password)
-    uid = _read_reset_token(body.token)
-    if uid is None:
+    d = _read_reset_token(body.token)
+    if d is None:
+        raise HTTPException(400, "Liên kết đặt lại không hợp lệ hoặc đã hết hạn (1 giờ).")
+    try:
+        uid = int(d["u"])
+    except (KeyError, TypeError, ValueError):
         raise HTTPException(400, "Liên kết đặt lại không hợp lệ hoặc đã hết hạn (1 giờ).")
     user = db.get(User, uid)
     if user is None:
         raise HTTPException(400, "Tài khoản không còn tồn tại.")
+    # Token gắn với hash mật khẩu lúc phát: nếu mật khẩu đã đổi (token đã dùng
+    # rồi, hoặc đã đổi bằng đường khác) thì vân tay lệch → từ chối. Đây là chốt
+    # DÙNG-MỘT-LẦN: một liên kết đặt lại bị rò/chuyển tiếp không xài lại được.
+    if d.get("pv") != _pw_version(user.password_hash):
+        raise HTTPException(400, "Liên kết đặt lại đã được dùng hoặc đã hết hạn (1 giờ).")
     user.password_hash = auth.hash_password(body.password)
     db.commit()
     return {"message": "Đã đặt lại mật khẩu. Hãy đăng nhập lại."}

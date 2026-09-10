@@ -51,6 +51,13 @@ def verify_password(password: str, hashed: str) -> bool:
         return False
 
 
+# Băm giả để CÂN BẰNG THỜI GIAN khi đăng nhập với email KHÔNG tồn tại. Nếu nhánh
+# đó bỏ qua bcrypt, nó trả lời nhanh hơn hẳn nhánh email có thật (bcrypt ~50-100ms)
+# — chênh lệch đó đủ để dò xem email nào đã đăng ký. Chạy verify_password lên hash
+# giả này ở nhánh không-có-user để hai nhánh tốn thời gian như nhau. Tính một lần.
+DUMMY_HASH = hash_password("terratwin-timing-equalizer-not-a-real-password")
+
+
 def create_token(user_id: int) -> str:
     now = datetime.now(timezone.utc)
     return jwt.encode(
