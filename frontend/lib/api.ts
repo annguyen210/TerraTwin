@@ -1364,6 +1364,50 @@ export function deleteChannel(id: number) {
     "Không xoá được kênh");
 }
 
+// H5 — kênh nào đã cấu hình xong PHÍA MÁY CHỦ. Công khai, không lộ token: giao
+// diện cần biết trước khi người dùng gõ số vào một kênh chưa bao giờ gửi được.
+export type ChannelStatus = {
+  ready: { zalo: boolean; telegram: boolean; email: boolean; webhook: boolean };
+  note: Record<string, string>;
+};
+export function getChannelStatus() {
+  return getJson<ChannelStatus>("/api/channels/status",
+    "Không tải được trạng thái kênh");
+}
+
+// H4 — dòng thời gian của MỘT thửa: đã báo gì, hoá ra đúng/hụt/đang chờ, và câu
+// nào đang chờ trả lời. Kể cả lần BỎ SÓT (was_warned=false) — không giấu.
+export type PlotTimelineEvent = {
+  alert_id: number;
+  at: string;
+  module_id: string;
+  risk_level: string;
+  headline: string;
+  recommendation: string;
+  was_warned: boolean;
+  outcome: string | null;
+  observed_peak: number | null;
+  verify_source: string;
+  verify_note: string;
+};
+export type PlotTimeline = {
+  plot: {
+    id: number; name: string; lat: number; lon: number;
+    area_ha: number | null; score: number | null; grade: string | null;
+    saved_at: string;
+  };
+  window_days: number;
+  events: PlotTimelineEvent[];
+  tally: Record<string, number>;
+  questions: TapQuestion[];
+  watching_since: string;
+};
+export function getPlotTimeline(plotId: number, days = 90, limit = 30) {
+  return authed<PlotTimeline>(
+    `/api/plots/${plotId}/timeline?days=${days}&limit=${limit}`,
+    { method: "GET" }, "Không tải được dòng thời gian thửa");
+}
+
 // ---- C07 Báo cáo MRV carbon ----
 export type MrvReport = {
   available: boolean;

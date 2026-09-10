@@ -17,9 +17,9 @@ import { useCallback, useEffect, useState } from "react";
 import {
   buildTwin, createChannel, createKey, deleteChannel, deleteDataset, getPlans,
   deleteTwin, listChannels, listDatasets, listKeys, listTwins, revokeKey,
-  scoreDataset, testChannel, uploadDataset,
+  scoreDataset, testChannel, uploadDataset, getChannelStatus,
   exportMyData, deleteMyAccount, setToken,
-  type ApiKeyRow, type AuthUser, type ChannelRow, type DatasetRow,
+  type ApiKeyRow, type AuthUser, type ChannelRow, type ChannelStatus, type DatasetRow,
   type TwinSummary,
   type Plan,
 } from "@/lib/api";
@@ -224,6 +224,7 @@ function ChannelsPanel({ user }: { user: AuthUser | null }) {
   const [err, setErr] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [recipe, setRecipe] = useState<string | null>(null);
+  const [status, setStatus] = useState<ChannelStatus | null>(null);   // H5
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -231,6 +232,12 @@ function ChannelsPanel({ user }: { user: AuthUser | null }) {
   }, [user]);
 
   useEffect(() => { load(); }, [load]);
+  // H5 — trạng thái kênh phía máy chủ (công khai, không cần đăng nhập).
+  useEffect(() => {
+    let live = true;
+    getChannelStatus().then((s) => live && setStatus(s)).catch(() => {});
+    return () => { live = false; };
+  }, []);
 
   return (
     <>
@@ -249,16 +256,37 @@ function ChannelsPanel({ user }: { user: AuthUser | null }) {
           ["zalo", "📱 Zalo OA", "webhook"],
           ["telegram", "✈️ Telegram", "webhook"],
           ["webhook", "🔗 Webhook riêng", "webhook"],
-        ].map(([id, label, k]) => (
-          <button
-            key={id}
-            className={recipe === id || (id === "email" && kind === "email" && !recipe) ? "on" : ""}
-            onClick={() => { setRecipe(id === "email" ? null : id); setKind(k as "webhook" | "email"); }}
-          >
-            {label}
-          </button>
-        ))}
+        ].map(([id, label, k]) => {
+          // H5 — kênh này máy chủ đã cấu hình chưa (● xanh = gửi được, ○ = chưa).
+          const ready = status?.ready?.[id as keyof ChannelStatus["ready"]];
+          return (
+            <button
+              key={id}
+              className={recipe === id || (id === "email" && kind === "email" && !recipe) ? "on" : ""}
+              onClick={() => { setRecipe(id === "email" ? null : id); setKind(k as "webhook" | "email"); }}
+            >
+              {label}
+              {status && (
+                <span
+                  title={ready ? "Máy chủ đã cấu hình kênh này — gửi được ngay."
+                               : "Máy chủ CHƯA cấu hình kênh này — thêm token/SMTP mới gửi được."}
+                  style={{ marginLeft: 6, fontSize: 10, fontWeight: 700,
+                           color: ready ? "var(--ok, #3ecb83)" : "var(--dim, #66716a)" }}
+                >
+                  {ready ? "● sẵn sàng" : "○ chưa"}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
+      {/* H5 — nói thẳng nếu kênh đang chọn chưa gửi được phía máy chủ, kèm việc cần làm. */}
+      {status && recipe && status.ready?.[recipe as keyof ChannelStatus["ready"]] === false && (
+        <p className="ws-mini" style={{ color: "var(--clay, #a0522c)" }}>
+          ⚠️ Máy chủ chưa cấu hình kênh này nên tin sẽ KHÔNG gửi được dù bạn thêm.
+          {status.note?.[recipe] ? ` ${status.note[recipe]}` : ""}
+        </p>
+      )}
       {recipe === "zalo" && (
         <div className="ws-recipe">
           <b>Nối Zalo OA (miễn phí):</b>

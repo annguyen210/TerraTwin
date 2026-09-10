@@ -22,12 +22,74 @@ import { useEffect, useState } from "react";
 import {
   getReliability,
   getScorecard,
+  getScorecardTimeline,
   type ReliabilityResult,
   type Scorecard as SC,
+  type ScorecardBucket,
 } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 const fmtPct = (v: number | null) => (v == null ? "—" : `${v}%`);
+
+/**
+ * H2 — XU HƯỚNG BÁO BỪA THEO THỜI GIAN.
+ *
+ * Sổ điểm cho một con số hôm nay; biểu đồ này cho biết con số đó đang tốt lên
+ * hay xấu đi. Nếu vòng lặp hiệu chỉnh có tác dụng thì cột báo bừa (FAR) phải
+ * thấp dần. Trung thực trước hết: kỳ nào CHƯA có cảnh báo được chấm thì cột để
+ * mờ, và nếu chưa kỳ nào có thì nói thẳng chứ không vẽ một đường phẳng giả.
+ */
+function ScoreTrend({ buckets, t }: {
+  buckets: ScorecardBucket[]; t: (vi: string, en: string) => string;
+}) {
+  const anyScored = buckets.some((b) => b.scored > 0);
+  const monthOf = (iso: string) => iso.slice(5, 7);
+  return (
+    <div className="sc-trend" style={{ marginTop: 16 }}>
+      <h4 style={{ marginBottom: 6 }}>
+        📈 {t("Xu hướng báo bừa theo thời gian", "False-alarm trend over time")}
+      </h4>
+      {!anyScored ? (
+        <p className="sc-gt-note">
+          {t("Chưa kỳ nào có cảnh báo được chấm — biểu đồ xu hướng sẽ hiện dần khi cảnh báo thật đầu tiên đủ tuổi để chấm.",
+             "No period has scored alerts yet — this trend fills in as the first real alerts age enough to be scored.")}
+        </p>
+      ) : (
+        <>
+          <div style={{
+            display: "flex", alignItems: "flex-end", gap: 4, height: 68,
+            padding: "6px 2px 0", borderBottom: "1px solid var(--line, #d7ddd8)",
+          }}>
+            {buckets.map((b, i) => {
+              const far = b.far_pct;
+              const h = far == null ? 0 : Math.max(3, far);   // % chiều cao
+              const scored = b.scored > 0;
+              return (
+                <div key={i} title={`${b.from} → ${b.to}\n${b.scored} ${t("cảnh báo", "alerts")}${far == null ? "" : ` · FAR ${far}%`}`}
+                     style={{ flex: 1, display: "flex", alignItems: "flex-end", height: "100%" }}>
+                  <div style={{
+                    width: "100%", height: `${h}%`,
+                    background: scored ? "var(--bad, #e5705a)" : "var(--line, #d7ddd8)",
+                    opacity: scored ? 0.9 : 0.35, borderRadius: "2px 2px 0 0",
+                    minHeight: scored ? 3 : 2,
+                  }} />
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--dim, #66716a)", marginTop: 3 }}>
+            <span>{t("tháng", "mo.")} {monthOf(buckets[0].from)}</span>
+            <span>{t("tháng", "mo.")} {monthOf(buckets[buckets.length - 1].to)}</span>
+          </div>
+          <p className="sc-gt-note">
+            {t("Cột thấp dần = vòng lặp hiệu chỉnh đang có tác dụng. Cột mờ = kỳ chưa có cảnh báo nào được chấm.",
+               "Bars trending down = the calibration loop is working. Faint bars = periods with no scored alerts yet.")}
+          </p>
+        </>
+      )}
+    </div>
+  );
+}
 
 function Rate({ label, value, tone, hint }: {
   label: string; value: number | null; tone: string; hint: string;
@@ -54,6 +116,7 @@ export default function Scorecard({ data, onClose }: {
   const [fetched, setFetched] = useState<SC | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [rel, setRel] = useState<ReliabilityResult | null>(null);
+  const [tl, setTl] = useState<ScorecardBucket[] | null>(null);   // H2
   const sc = selfFetch ? fetched : data;
 
   useEffect(() => {
@@ -68,6 +131,8 @@ export default function Scorecard({ data, onClose }: {
   useEffect(() => {
     let live = true;
     getReliability(365).then((r) => live && setRel(r)).catch(() => {});
+    getScorecardTimeline(180, 12)
+      .then((r) => live && setTl(r.buckets)).catch(() => {});   // H2
     return () => { live = false; };
   }, []);
 
@@ -113,6 +178,9 @@ export default function Scorecard({ data, onClose }: {
             <div><b>{sc.counts.miss ?? 0}</b><span>{t("bỏ sót", "missed")}</span></div>
             <div><b>{sc.pending}</b><span>{t("đang chờ chấm", "pending")}</span></div>
           </div>
+
+          {/* H2 — xu hướng báo bừa theo thời gian */}
+          {tl && <ScoreTrend buckets={tl} t={t} />}
 
           {/* Kho quan sát thực địa = moat */}
           <div className="sc-gt">

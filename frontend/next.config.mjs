@@ -19,20 +19,27 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 //   · connect-src: chỉ 'self' + đúng API backend. Không mở rộng bừa.
 //   · worker-src blob:: MapLibre chạy web worker từ blob URL.
 //   · frame-ancestors/base-uri/form-action/object-src: siết khung, chống chèn.
+// connect-src phải khớp ĐÚNG backend đang cấu hình, không hardcode: lấy origin
+// từ NEXT_PUBLIC_API (prod = https://terratwin-api.onrender.com, dev = localhost).
+// Hardcode một URL cố định là lỗi ẩn — đổi api hoặc fork là CSP chặn backend.
+let API_ORIGIN = "";
+try { if (process.env.NEXT_PUBLIC_API) API_ORIGIN = new URL(process.env.NEXT_PUBLIC_API).origin; } catch {}
+
 const CSP = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  // connect-src liệt kê ĐÚNG các host trình duyệt fetch (không mở 'https:' bừa):
-  //   · terratwin-api: backend.
+  // Các host trình duyệt thật sự fetch (không mở 'https:' bừa):
+  //   · API_ORIGIN: backend đang cấu hình.
   //   · server.arcgisonline.com: MapLibre tải TILE bản đồ bằng fetch (không phải
   //     <img>), nên tile dính connect-src — thiếu host này là bản đồ trắng.
   //   · planetarycomputer.microsoft.com: ảnh vệ tinh Sentinel-2 /api/imagery trả về.
   // Mọi nguồn khác (Open-Meteo, NASA, Overpass, LLM…) là fetch phía SERVER, không
   // qua trình duyệt nên không cần ở đây.
-  "connect-src 'self' https://terratwin-api.onrender.com https://server.arcgisonline.com https://planetarycomputer.microsoft.com",
+  ["connect-src 'self'", API_ORIGIN, "https://server.arcgisonline.com",
+   "https://planetarycomputer.microsoft.com"].filter(Boolean).join(" "),
   "worker-src 'self' blob:",
   "frame-ancestors 'self'",
   "base-uri 'self'",
