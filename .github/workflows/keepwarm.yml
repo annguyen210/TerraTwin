@@ -1,0 +1,42 @@
+name: Keep warm
+
+# Gói free của Render cho service NGỦ sau ~15 phút không có request, và lần đánh
+# thức kế tiếp trả 503 trong lúc khởi động lại — đủ để làm hỏng request ĐẦU TIÊN
+# của người dùng, kể cả link "Sổ tay thửa" chia sẻ cho ngân hàng/người mua.
+#
+# Cron này ping cả api lẫn web mỗi ~10 phút để giữ chúng ấm. Chạy trên repo công
+# khai nên KHÔNG tốn phút Actions, và KHÔNG cần bất kỳ tài khoản ngoài nào.
+#
+# LƯU Ý: lịch của GitHub Actions có thể trễ vài phút lúc tải cao, nên đây là giải
+# pháp "đủ tốt & miễn phí", không phải bảo đảm 100%. Muốn chắc hơn: cron-job.org
+# (đáng tin hơn) hoặc nâng Render lên gói trả phí (không ngủ).
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+
+# Nếu một lần ping còn đang chạy (đang chờ cold-start) thì bỏ lần mới, khỏi chồng.
+concurrency:
+  group: keepwarm
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping api + web
+        run: |
+          for url in \
+            "https://terratwin-api.onrender.com/api/health" \
+            "https://terratwin-web.onrender.com/" ; do
+            echo "→ $url"
+            # --retry-all-errors để thử lại cả khi gặp 503 lúc service đang dậy;
+            # tổng thời gian chờ đủ để một service nguội khởi động xong (~50s).
+            if curl -fsS --max-time 90 --retry 5 --retry-delay 12 \
+                 --retry-all-errors "$url" -o /dev/null ; then
+              echo "  ok — đã ấm"
+            else
+              echo "  chưa đánh thức được lần này (sẽ thử lại lượt sau)"
+            fi
+          done
