@@ -26,6 +26,16 @@ from sqlalchemy.orm import (
 
 DATABASE_URL = os.environ.get("TERRATWIN_DATABASE_URL", "sqlite:///./terratwin.db")
 
+# Render (và Heroku, Supabase…) cấp URL dạng postgresql:// hoặc postgres://.
+# SQLAlchemy mặc định lái cả hai sang psycopg2 — nhưng ta chỉ cài psycopg (v3),
+# nên backend sẽ chết ngay khi mở kết nối: ModuleNotFoundError: psycopg2.
+# Chuẩn hoá về +psycopg để dùng đúng driver đã cài, bất kể nơi cấp URL viết kiểu
+# gì. Không đụng tới sqlite hay URL đã ghi rõ driver (postgresql+psycopg://…).
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = "postgresql+psycopg://" + DATABASE_URL[len("postgres://"):]
+elif DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = "postgresql+psycopg://" + DATABASE_URL[len("postgresql://"):]
+
 _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 engine = create_engine(DATABASE_URL, connect_args=_connect_args, future=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
