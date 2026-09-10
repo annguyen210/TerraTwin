@@ -21,6 +21,7 @@ import Link from "next/link";
 import {
   getMyQuestions,
   getPlan,
+  getToken,
   runAnomalyMl,
   runGenome,
   runGoalSeek,
@@ -124,10 +125,17 @@ export default function PlotPlan({
   }
 
   useEffect(() => {
+    // getMyQuestions cần đăng nhập. Trước đây vẫn gọi khi chưa đăng nhập rồi
+    // .catch nuốt lỗi — nhưng request 401 vẫn bị gửi, để lại một dòng đỏ trong
+    // console. Chưa có token thì ĐỪNG gọi: không câu hỏi để hỏi, cũng không 401.
+    if (!getToken()) {
+      setQuestions([]);
+      return;
+    }
     let live = true;
     getMyQuestions(5)
       .then((r) => live && setQuestions(r.questions))
-      .catch(() => {});          // chưa đăng nhập → không có câu hỏi để hỏi
+      .catch(() => {});          // token hết hạn giữa chừng → im lặng bỏ qua
     return () => {
       live = false;
     };
