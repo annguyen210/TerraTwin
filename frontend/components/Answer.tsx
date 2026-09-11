@@ -168,6 +168,9 @@ export default function Answer({
   const [d, setD] = useState<ScanResult | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // N10 — khi mất mạng, hiện lại kết quả ĐÃ LƯU của đúng thửa này, kèm mốc thời
+  // gian để không ai nhầm là mới. null = đang xem kết quả tươi.
+  const [stale, setStale] = useState<string | null>(null);
   const [giay, setGiay] = useState(0);
   const dong = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -192,24 +195,54 @@ export default function Answer({
 
   useEffect(() => {
     let huy = false;
+    // N10 — lưu kết quả gần nhất theo thửa. Dọn LRU giữ 8 thửa để không làm đầy
+    // localStorage. localStorage đầy/tắt thì bỏ qua — offline là tiện ích thêm.
+    const key = `tt_scan:${lat.toFixed(3)},${lon.toFixed(3)}`;
+    const save = (r: ScanResult) => {
+      try {
+        localStorage.setItem(key, JSON.stringify({ at: Date.now(), result: r }));
+        let idx: string[] = [];
+        try { idx = JSON.parse(localStorage.getItem("tt_scan_index") || "[]"); } catch { /* */ }
+        idx = [key, ...idx.filter((k) => k !== key)];
+        while (idx.length > 8) { const drop = idx.pop(); if (drop) localStorage.removeItem(drop); }
+        localStorage.setItem("tt_scan_index", JSON.stringify(idx));
+      } catch { /* localStorage đầy/tắt → bỏ qua */ }
+    };
+
     setBusy(true);
     setErr(null);
     setD(null);
+    setStale(null);
     trackEvent("scan");                               // N6
     scanAll(lat, lon, area)
       .then((r) => {
         if (huy) return;
         setD(r);
+        save(r);                                       // N10
         // LƯỢT SÂU CHẠY NGAY SAU, ở nền. Bảy mũi nhọn cần ảnh vệ tinh mất 6–60
         // giây mỗi cái nên không thể để trong lượt nhanh. Nhưng bỏ mặc chúng ở
         // trạng thái "đang kiểm tra" thì chúng treo vĩnh viễn, và trông y hệt
         // như thiếu dữ liệu — đúng thứ làm người dùng thấy phần mềm sơ sài.
         // Gọi tiếp và thay kết quả vào khi xong.
         scanAll(lat, lon, area, true)
-          .then((sau) => !huy && setD(sau))
+          .then((sau) => { if (!huy) { setD(sau); save(sau); } })
           .catch(() => {});
       })
-      .catch((e) => !huy && setErr(e.message))
+      .catch((e) => {
+        if (huy) return;
+        // N10 — mất mạng: nếu có kết quả ĐÃ LƯU cho đúng thửa này thì hiện lại,
+        // ghi rõ mốc thời gian để không ai nhầm là mới. Không có thì báo lỗi.
+        try {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const { at, result } = JSON.parse(raw);
+            setD(result);
+            setStale(new Date(at).toLocaleString("vi-VN"));
+            return;
+          }
+        } catch { /* bỏ qua */ }
+        setErr(e.message);
+      })
       .finally(() => !huy && setBusy(false));
     return () => {
       huy = true;
@@ -298,6 +331,19 @@ export default function Answer({
   return (
     <div className="ans">
       {label && <p className="ans-where">📍 {label}</p>}
+
+      {/* N10 — đang xem kết quả ĐÃ LƯU (mất mạng). Nói thẳng đã cũ, đừng để ai
+          tưởng là cảnh báo mới — với app thiên tai, nhầm chỗ này là nguy hiểm. */}
+      {stale && (
+        <p style={{
+          margin: "0 0 10px", padding: "8px 12px", borderRadius: 6,
+          background: "var(--clay-soft, #f7e9df)", color: "var(--clay, #a0522c)",
+          fontSize: 13, fontWeight: 600, border: "1px solid var(--clay, #a0522c)",
+        }}>
+          📴 Đang xem kết quả đã lưu lúc {stale} — <b>có thể đã cũ</b>. Mở lại khi
+          có mạng để cập nhật (cảnh báo mới KHÔNG hiện khi offline).
+        </p>
+      )}
 
       {/* ẢNH ĐẶT TRƯỚC CHỮ. Người ta nhận ra mảnh đất của mình bằng mắt trong
           một giây; đọc một đoạn văn tả về nó thì mất lâu hơn và vẫn không chắc
