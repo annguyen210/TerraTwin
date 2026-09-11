@@ -349,6 +349,23 @@ Index("ix_alert_outcome_time", Alert.outcome, Alert.created_at.desc())
 Index("ix_alert_plot_module_time", Alert.plot_id, Alert.module_id, Alert.created_at)
 
 
+class Event(Base):
+    """N6 — đếm sự kiện ẨN DANH phía máy chủ, để biết người dùng rơi rụng ở đâu.
+
+    KHÔNG lưu id người dùng, KHÔNG lưu IP — chỉ tên sự kiện + thời điểm + ít
+    meta không định danh. Vì thế không đụng Nghị định 13 và không cần xin phép
+    cookie. Không có đo lường này thì mọi quyết định cải tiến về sau là ĐOÁN:
+    không biết bao nhiêu người bỏ giữa lúc quét, bao nhiêu người cuộn tới sổ
+    điểm, bao nhiêu người bấm liên kết một chạm rồi thoát.
+    """
+    __tablename__ = "events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
+    name: Mapped[str] = mapped_column(String(32), index=True)
+    meta_json: Mapped[str] = mapped_column(Text, default="")
+
+
 # Cột thêm sau khi đã có database chạy thật. `create_all` KHÔNG thêm cột vào
 # bảng sẵn có, nên thiếu bước này thì bản deploy cũ sẽ đổ ngay lần truy vấn đầu
 # — lỗi chỉ lộ ra ở production, không bao giờ lộ trong test trên database sạch.

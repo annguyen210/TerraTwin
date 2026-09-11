@@ -18,6 +18,7 @@ import { useParams } from "next/navigation";
 import {
   getTapQuestion,
   sendTapAnswer,
+  trackEvent,
   type TapQuestion,
 } from "@/lib/api";
 
@@ -43,6 +44,7 @@ export default function TapPage() {
         if (!live) return;
         setQ(d);
         setLoading(false);
+        trackEvent("tap_open");                       // N6 — mở liên kết một chạm
         if (d.answered) {
           setDone(
             d.outcome === "hit"
@@ -68,6 +70,7 @@ export default function TapPage() {
     setSending(value);
     try {
       const res = await sendTapAnswer(token, value);
+      trackEvent("tap_answer");                       // N6 — đã trả lời một chạm
       setDone(res.message);
     } catch (e) {
       setErr((e as Error).message);

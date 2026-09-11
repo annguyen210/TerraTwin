@@ -1,5 +1,21 @@
 const BASE = process.env.NEXT_PUBLIC_API ?? "http://localhost:8000";
 
+// N6 — đếm sự kiện ẨN DANH. Fire-and-forget: không await, không chặn UI, nuốt
+// mọi lỗi (đo lường KHÔNG bao giờ được làm hỏng luồng chính), không gửi gì định
+// danh. Backend chỉ nhận sáu tên hợp lệ; tên lạ bị bỏ qua.
+export function trackEvent(name: string, meta?: Record<string, unknown>) {
+  try {
+    void fetch(`${BASE}/api/events`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, meta }),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    /* im lặng */
+  }
+}
+
 // Trích thông điệp lỗi dễ hiểu từ phản hồi FastAPI:
 //  - HTTPException  → { detail: "..." }
 //  - Lỗi validate   → { detail: [{ msg, loc }] }  (vd toạ độ ngoài Việt Nam)

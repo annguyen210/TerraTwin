@@ -7,6 +7,7 @@ import {
   listPlots,
   savePlot,
   scanAll,
+  trackEvent,
   type AuthUser,
   type PlotTimeline,
   type ServerPlot,
@@ -144,6 +145,7 @@ export default function Portfolio({
     setErr(null);
     try {
       await savePlot(name, coord.lat, coord.lon, area, terra.score, terra.grade);
+      trackEvent("save_plot");                        // N6
       await refresh();
     } catch (e) {
       setErr((e as Error).message);

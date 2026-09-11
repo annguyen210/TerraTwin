@@ -23,7 +23,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { scanAll, type ScanResult, type ScanModule, type ModuleInfo } from "@/lib/api";
+import { scanAll, trackEvent, type ScanResult, type ScanModule, type ModuleInfo } from "@/lib/api";
 import Passport from "./Passport";
 import PlotView from "./PlotView";
 import WhyTrust from "./WhyTrust";
@@ -195,6 +195,7 @@ export default function Answer({
     setBusy(true);
     setErr(null);
     setD(null);
+    trackEvent("scan");                               // N6
     scanAll(lat, lon, area)
       .then((r) => {
         if (huy) return;

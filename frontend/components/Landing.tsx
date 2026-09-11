@@ -15,7 +15,7 @@ import Account from "./Account";
 import MyLand from "./MyLand";
 import Scorecard from "./Scorecard";
 import Start from "./Start";
-import { getScorecard, type AuthUser, type ModuleInfo, type Scorecard as SC } from "@/lib/api";
+import { getScorecard, trackEvent, type AuthUser, type ModuleInfo, type Scorecard as SC } from "@/lib/api";
 import { LangToggle, useLang } from "@/lib/i18n";
 
 const FEATURES = [
@@ -70,6 +70,7 @@ export default function Landing({
   const nModules = modules.length || 18;
 
   const [sc, setSc] = useState<SC | null>(null);
+  useEffect(() => { trackEvent("open"); }, []);        // N6 — mở app
   useEffect(() => {
     let live = true;
     getScorecard(90).then((r) => live && setSc(r)).catch(() => {});

@@ -14,11 +14,11 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app import auth
-from app.db import Alert, Dataset, NotifyChannel, Twin, User, get_session
+from app.db import Alert, Dataset, Event, NotifyChannel, Twin, User, get_session
 from app.schemas import VN_LAT_MAX, VN_LAT_MIN, VN_LON_MAX, VN_LON_MIN, Location
 from app.services import notify, radar, twin as twin_svc
 
@@ -403,6 +403,74 @@ def test_channel(channel_id: int, user: User = Depends(auth.current_user),
     return {"ok": ok, "detail": res["results"][0] if res["results"] else None,
             "smtp_configured": notify.smtp_configured(),
             "channels_ready": notify.channel_status()}
+
+
+# ---------------------------------------------------------------------------
+# N6 — ĐẾM SỰ KIỆN ẨN DANH + PHỄU CHUYỂN ĐỔI
+# ---------------------------------------------------------------------------
+
+# Đúng SÁU sự kiện, không hơn. Mỗi tên thêm vào là một chỗ để lỡ tay nhét dữ
+# liệu định danh — giữ danh sách đóng thì chuyện đó không xảy ra được.
+_FUNNEL = ["open", "scan", "save_plot", "view_scorecard", "tap_open", "tap_answer"]
+_ALLOWED_EVENTS = set(_FUNNEL)
+
+
+class EventIn(BaseModel):
+    name: str = Field(..., max_length=32)
+    meta: dict | None = None
+
+
+@router.post("/api/events", status_code=204, response_class=Response,
+             response_model=None)
+def record_event(body: EventIn, db: Session = Depends(get_session)):
+    """Ghi một sự kiện ẨN DANH. KHÔNG đăng nhập, KHÔNG lưu ai gửi, KHÔNG lưu IP.
+
+    Chỉ nhận đúng sáu tên đã định; tên lạ thì lặng lẽ bỏ qua và vẫn trả 204 —
+    không biến endpoint đo lường thành kênh dò cho kẻ xấu.
+    """
+    name = body.name.strip()
+    if name in _ALLOWED_EVENTS:
+        meta = ""
+        if body.meta:
+            try:
+                # Chỉ giữ cặp khoá-chuỗi ngắn; không bao giờ lưu thứ định danh.
+                clean = {str(k): str(v)[:64] for k, v in body.meta.items()
+                         if isinstance(k, str)}
+                meta = json.dumps(clean, ensure_ascii=False)[:500]
+            except (TypeError, ValueError):
+                meta = ""
+        db.add(Event(name=name, meta_json=meta))
+        db.commit()
+
+
+@router.get("/api/admin/funnel")
+def funnel(days: int = 30, user: User = Depends(auth.current_user),
+           db: Session = Depends(get_session)) -> dict:
+    """Phễu sáu bước — nhìn một bảng là biết người dùng rơi rụng ở đâu.
+
+    Đòi đăng nhập vì là thông tin vận hành. Con số vẫn ẩn danh: không cách nào
+    lần ngược từ đây ra một người cụ thể.
+    """
+    from datetime import timedelta, timezone
+    since = (datetime.now(timezone.utc).replace(tzinfo=None)
+             - timedelta(days=max(1, min(days, 365))))
+    rows = db.execute(
+        select(Event.name, func.count(Event.id))
+        .where(Event.at >= since).group_by(Event.name)).all()
+    counts = {k: 0 for k in _FUNNEL}
+    for name, n in rows:
+        if name in counts:
+            counts[name] = int(n)
+    base = counts["open"]
+    steps = [{"step": k, "count": counts[k],
+              "pct_of_open": round(100.0 * counts[k] / base, 1) if base else None}
+             for k in _FUNNEL]
+    return {
+        "window_days": days, "counts": counts, "steps": steps,
+        "note": ("Đếm ẩn danh, không id người dùng, không IP. open=mở app · "
+                 "scan=chạy quét · save_plot=lưu thửa · view_scorecard=xem sổ "
+                 "điểm · tap_open=mở liên kết một chạm · tap_answer=trả lời."),
+    }
 
 
 @router.get("/api/channels/status")

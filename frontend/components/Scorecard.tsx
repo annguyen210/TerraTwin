@@ -18,11 +18,12 @@
  * sản không tải được từ vệ tinh.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   getReliability,
   getScorecard,
   getScorecardTimeline,
+  trackEvent,
   type ReliabilityResult,
   type Scorecard as SC,
   type ScorecardBucket,
@@ -117,7 +118,24 @@ export default function Scorecard({ data, onClose }: {
   const [err, setErr] = useState<string | null>(null);
   const [rel, setRel] = useState<ReliabilityResult | null>(null);
   const [tl, setTl] = useState<ScorecardBucket[] | null>(null);   // H2
+  const rootRef = useRef<HTMLDivElement>(null);                   // N6 view_scorecard
   const sc = selfFetch ? fetched : data;
+
+  // N6 — đếm "view_scorecard" khi sổ điểm THẬT SỰ vào tầm nhìn (cuộn tới), một
+  // lần duy nhất. Không đếm lúc mount vì trang đón nào cũng nhúng sẵn → sẽ trùng
+  // với "open" và mất hết ý nghĩa của phễu.
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) {
+        trackEvent("view_scorecard");
+        io.disconnect();
+      }
+    }, { threshold: 0.4 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!selfFetch) return;
@@ -137,7 +155,7 @@ export default function Scorecard({ data, onClose }: {
   }, []);
 
   const body = (
-    <div className="sc">
+    <div className="sc" ref={rootRef}>
       <div className="sc-head">
         <div>
           <h3 className="sc-title">🎯 {t("Sổ điểm tự chấm — vì sao tin được", "Self-scorecard — why to trust it")}</h3>
