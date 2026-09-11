@@ -1772,6 +1772,14 @@ export type TapResult = {
   already: boolean;
   outcome: string | null;
   message: string;
+  // M5 — đóng góp vừa rồi có ích thế nào (quan sát thứ mấy ở vùng, còn mấy lần).
+  contribution?: {
+    count_in_region: number;
+    min_needed: number;
+    remaining: number;
+    enough: boolean;
+    message: string;
+  };
 };
 
 export function getTapQuestion(token: string) {

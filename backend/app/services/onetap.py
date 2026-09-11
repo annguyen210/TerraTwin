@@ -36,11 +36,12 @@ verify.py đã chấm từ vệ tinh. Họ đứng trên thửa; ERA5 là ô lư
 """
 from __future__ import annotations
 
+import math
 import os
 from datetime import datetime, timedelta, timezone
 
 import jwt
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.auth import _ALGO, _SECRET
@@ -153,28 +154,35 @@ def answer(a: Alert, value: str, db: Session) -> dict:
                      f"{now.strftime('%d/%m/%Y')}. Câu trả lời của người được "
                      f"ưu tiên hơn số liệu vệ tinh.")
 
-    _record_observation(a, obs_outcome, db, now)
-    return {"already": False, "outcome": a.outcome,
-            "message": ("Cảm ơn bác. Câu trả lời này giúp chỉnh ngưỡng cảnh báo "
-                        "cho cả vùng.")}
+    plot = _record_observation(a, obs_outcome, db, now)
+    res = {"already": False, "outcome": a.outcome,
+           "message": ("Cảm ơn bác. Câu trả lời này giúp chỉnh ngưỡng cảnh báo "
+                       "cho cả vùng.")}
+    # M5 — cho người đóng góp THẤY đóng góp có ích: câu này là quan sát thứ mấy ở
+    # vùng, còn mấy lần nữa là đủ chỉnh ngưỡng cho cả vùng. Trả lời một chạm mà
+    # chỉ nhận "cảm ơn" thì lần sau không ai trả lời — kho quan sát đứng yên.
+    if plot is not None:
+        res["contribution"] = _contribution(a.module_id, plot, db)
+    return res
 
 
 def _record_observation(a: Alert, obs_outcome: str, db: Session,
-                        now: datetime) -> None:
+                        now: datetime) -> Plot | None:
     """Biến câu trả lời thành một điểm ground-truth cho federated.py.
 
     Chỉ ghi cho các mô-đun mà tầng hiệu chỉnh hiểu được, và không ghi trùng nếu
-    cùng một cảnh báo bị trả lời hai lần.
+    cùng một cảnh báo bị trả lời hai lần. Trả về thửa nếu có GHI (để M5 tính
+    đóng góp), None nếu không ghi.
     """
     if not hazard.supports(a.module_id):
-        return
+        return None
     plot = db.get(Plot, a.plot_id) if a.plot_id is not None else None
     if plot is None:
-        return
+        return None
     dup = db.execute(
         select(Observation.id).where(Observation.alert_id == a.id)).first()
     if dup:
-        return
+        return None
     db.add(Observation(
         user_id=a.user_id, plot_id=a.plot_id, lat=plot.lat, lon=plot.lon,
         module_id=a.module_id,
@@ -187,6 +195,37 @@ def _record_observation(a: Alert, obs_outcome: str, db: Session,
         model_index=(a.observed_peak if a.observed_peak is not None
                      else (75.0 if a.risk_level == "danger" else 50.0)),
         source="onetap", alert_id=a.id, created_at=now))
+    return plot
+
+
+def _contribution(module_id: str, plot: Plot, db: Session) -> dict:
+    """M5 — câu trả lời vừa rồi là quan sát thứ mấy ở VÙNG (ô lưới 0,5°), và còn
+    mấy lần nữa là đủ để hiệu chỉnh ngưỡng cho cả vùng. Số thật từ federated.
+
+    Đếm theo ô lưới 0,5° (giống federated.cell_of) — làm tròn xuống nên không lộ
+    toạ độ thửa cụ thể của ai.
+    """
+    from app.services import federated
+
+    db.flush()      # để đếm GỒM cả quan sát vừa thêm (chưa commit)
+    g = federated.GRID
+    glat = math.floor(plot.lat / g) * g
+    glon = math.floor(plot.lon / g) * g
+    n = db.execute(
+        select(func.count(Observation.id)).where(
+            Observation.module_id == module_id,
+            Observation.lat >= glat, Observation.lat < glat + g,
+            Observation.lon >= glon, Observation.lon < glon + g)
+    ).scalar_one()
+    remaining = max(0, federated.MIN_OBS - n)
+    if remaining > 0:
+        msg = (f"Câu trả lời của bác là quan sát thứ {n} ở vùng này. Còn "
+               f"{remaining} lần nữa là TerraTwin chỉnh được ngưỡng cho cả vùng.")
+    else:
+        msg = (f"Vùng này đã đủ {n} quan sát — ngưỡng đang được hiệu chỉnh cho "
+               f"cả vùng nhờ những câu trả lời như của bác.")
+    return {"count_in_region": int(n), "min_needed": federated.MIN_OBS,
+            "remaining": remaining, "enough": remaining == 0, "message": msg}
 
 
 def pending_questions(db: Session, user_id: int, limit: int = 5) -> list[dict]:

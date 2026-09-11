@@ -20,6 +20,7 @@ import {
   sendTapAnswer,
   trackEvent,
   type TapQuestion,
+  type TapResult,
 } from "@/lib/api";
 
 export default function TapPage() {
@@ -31,6 +32,7 @@ export default function TapPage() {
   const [err, setErr] = useState<string | null>(null);
   const [sending, setSending] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
+  const [contrib, setContrib] = useState<TapResult["contribution"] | null>(null);   // M5
 
   useEffect(() => {
     let live = true;
@@ -72,6 +74,7 @@ export default function TapPage() {
       const res = await sendTapAnswer(token, value);
       trackEvent("tap_answer");                       // N6 — đã trả lời một chạm
       setDone(res.message);
+      if (res.contribution) setContrib(res.contribution);   // M5
     } catch (e) {
       setErr((e as Error).message);
     } finally {
@@ -100,6 +103,28 @@ export default function TapPage() {
               <div className="tap-thanks">
                 <div className="tap-emoji">✅</div>
                 <p className="tap-thanks-msg">{done}</p>
+                {/* M5 — cho người đóng góp thấy đóng góp có ích: quan sát thứ mấy,
+                    còn mấy lần nữa là chỉnh được ngưỡng cho cả vùng. */}
+                {contrib && (
+                  <div style={{
+                    margin: "10px 0", padding: "10px 14px", borderRadius: 8,
+                    background: "var(--pine-soft, #dfede5)", color: "var(--pine, #1f5137)",
+                    fontSize: 13.5, fontWeight: 600,
+                  }}>
+                    {contrib.enough ? "🌾 " : "🌱 "}{contrib.message}
+                    {!contrib.enough && (
+                      <div style={{
+                        marginTop: 6, height: 6, borderRadius: 99,
+                        background: "var(--line, #d7ddd8)", overflow: "hidden",
+                      }}>
+                        <div style={{
+                          height: "100%", borderRadius: 99, background: "var(--pine, #1f5137)",
+                          width: `${Math.round(100 * contrib.count_in_region / contrib.min_needed)}%`,
+                        }} />
+                      </div>
+                    )}
+                  </div>
+                )}
                 <p className="tap-why">{q.why}</p>
                 <a className="tap-home" href="/">Xem thửa của bạn trên TerraTwin</a>
               </div>
