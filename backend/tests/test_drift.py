@@ -20,14 +20,18 @@ def test_psi_not_enough_data_returns_zero():
     assert drift.psi([1, 2, 3], [1]) == 0.0
 
 
-def test_performance_drift_structure_on_empty():
+def test_performance_drift_structure():
+    # DB dùng chung giữa các test → KHÔNG giả định nó trống. Chỉ khẳng định các
+    # BẤT BIẾN đúng với mọi trạng thái dữ liệu.
     from app.db import SessionLocal
     db = SessionLocal()
     try:
         d = drift.performance_drift(db)
         assert d["module_id"] == "all"
-        # DB trống → chưa đủ để kết luận; thiếu dữ liệu KHÔNG phải "trôi".
-        assert d["degraded"] is False
+        assert isinstance(d["degraded"], bool) and isinstance(d["enough"], bool)
+        # Bất biến cốt lõi: chưa đủ dữ liệu thì KHÔNG được coi là "trôi".
+        if not d["enough"]:
+            assert d["degraded"] is False
     finally:
         db.close()
 
