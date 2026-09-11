@@ -231,23 +231,30 @@ def _contribution(module_id: str, plot: Plot, db: Session) -> dict:
 def pending_questions(db: Session, user_id: int, limit: int = 5) -> list[dict]:
     """Câu hỏi đang chờ người này trả lời — để hiện trong app, không chỉ trong
     tin nhắn. Người không bật thông báo vẫn phải có đường đóng vòng lặp."""
+    from app.services import active
     from app.services.verify import SETTLE_DAYS
     now = datetime.now(timezone.utc).replace(tzinfo=None)
+    # Lấy DƯ ứng viên để còn xếp hạng, không chỉ cắt theo thời gian.
     rows = db.execute(
         select(Alert).where(
             Alert.user_id == user_id, Alert.retro == 0,
             Alert.verify_source != "user",
             Alert.created_at <= now - timedelta(days=SETTLE_DAYS))
-        .order_by(Alert.created_at.desc()).limit(max(1, limit) * 3)
+        .order_by(Alert.created_at.desc()).limit(max(1, limit) * 6)
     ).scalars().all()
 
+    # A12 — hỏi câu ĐÁNG HỎI NHẤT chứ không phải mới nhất: xếp theo học chủ động
+    # (phân vân + đói dữ liệu vùng + bất đồng tầng). Số lần được hỏi là tài
+    # nguyên khan hiếm nhất, không tiêu ngẫu nhiên.
+    eligible = [a for a in rows
+                if a.created_at + timedelta(days=a.window_days or 7) <= now]
+    scored = [(active.value_of_asking(a, db), a) for a in eligible]
+    scored.sort(key=lambda x: x[0], reverse=True)
+
     out = []
-    for a in rows:
-        if a.created_at + timedelta(days=a.window_days or 7) > now:
-            continue                       # cửa sổ chưa khép, hỏi là còn sớm
+    for score, a in scored[:limit]:
         q = question(a, db)
         q["token"] = make_token(a.id)
+        q["ask_value"] = score      # công khai điểm để đo học-chủ-động vs ngẫu nhiên
         out.append(q)
-        if len(out) >= limit:
-            break
     return out
