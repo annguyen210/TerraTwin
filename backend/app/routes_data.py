@@ -473,21 +473,6 @@ def funnel(days: int = 30, user: User = Depends(auth.current_user),
     }
 
 
-@router.get("/api/admin/drift")
-def drift_report(lat: float | None = None, lon: float | None = None,
-                 module: str | None = None,
-                 user: User = Depends(auth.current_user),
-                 db: Session = Depends(get_session)) -> dict:
-    """A14 — trôi HIỆU NĂNG (toàn hệ thống, từ sổ điểm) + trôi DỮ LIỆU khí hậu
-    (theo điểm nếu truyền lat/lon/module). Đòi đăng nhập: thông tin vận hành."""
-    from app.services import drift
-
-    out = drift.overview(db)
-    if lat is not None and lon is not None and module:
-        out["climate_drift"] = drift.climate_psi(module, lat, lon)
-    return out
-
-
 @router.get("/api/channels/status")
 def channels_status() -> dict:
     """Kênh nào đã cấu hình xong ở phía máy chủ.
