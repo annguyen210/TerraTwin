@@ -18,11 +18,13 @@
 import { useEffect, useState } from "react";
 import {
   getImagery,
+  getScorecard,
   runBacktest,
   runFuture,
   type Imagery,
   type BacktestResult,
   type FutureResult,
+  type Scorecard as SC,
 } from "@/lib/api";
 
 // Lũ lịch sử Thừa Thiên Huế 10/2020 — sự kiện có thật, có tài liệu, và model
@@ -38,6 +40,15 @@ export default function Story({ onClose, onExplore }: {
   const [bt, setBt] = useState<BacktestResult | null>(null);
   const [fut, setFut] = useState<FutureResult | null>(null);
   const [busy, setBusy] = useState(false);
+  const [sc, setSc] = useState<SC | null>(null);   // T4 — sổ điểm tự chấm toàn hệ thống
+
+  // T4 — tải sổ điểm tổng một lần: gắn bằng chứng backtest MỘT sự kiện với con
+  // số tự chấm trên MỌI cảnh báo, để câu chuyện không dựa vào đúng một ví dụ đẹp.
+  useEffect(() => {
+    let dead = false;
+    getScorecard(90).then((r) => !dead && setSc(r)).catch(() => {});
+    return () => { dead = true; };
+  }, []);
 
   // Tải dữ liệu cho từng bước khi tới bước đó (lazy) — không nã hết một lúc.
   useEffect(() => {
@@ -108,6 +119,32 @@ export default function Story({ onClose, onExplore }: {
           )}
           {step === 1 && bt && !bt.available && (
             <p className="story-note">{bt.message ?? "Nguồn dữ liệu lịch sử tạm bận, thử lại sau ít phút."}</p>
+          )}
+
+          {/* T4 — gắn backtest MỘT sự kiện với sổ điểm tự chấm trên MỌI cảnh báo,
+              để câu chuyện không dựa vào đúng một ví dụ đẹp. Trung thực: chưa đủ
+              mẫu thì nói thẳng, không bịa tỉ lệ. */}
+          {step === 1 && sc && (
+            <div style={{
+              marginTop: 12, padding: "10px 14px", borderRadius: 8,
+              background: "var(--surface-2, #f8faf7)", border: "1px solid var(--line, #d7ddd8)",
+            }}>
+              {sc.enough ? (
+                <p className="story-note" style={{ margin: 0 }}>
+                  🎯 <b>Sổ điểm tự chấm toàn hệ thống</b> (90 ngày, không chỉ ví dụ
+                  này): bắt được <b>{sc.pod_pct}%</b> số đợt thật · báo bừa{" "}
+                  <b>{sc.far_pct}%</b>. Phần mềm tự chấm về chính mình, không sửa
+                  được từ giao diện.
+                </p>
+              ) : (
+                <p className="story-note" style={{ margin: 0 }}>
+                  🎯 <b>Sổ điểm tự chấm toàn hệ thống:</b> chưa đủ cảnh báo thật để
+                  công bố tỉ lệ — nên backtest trên thảm họa lịch sử THẬT (ở trên)
+                  là bằng chứng hiện có. Con số sẽ tự hiện khi cảnh báo thật đầu
+                  tiên đủ tuổi để chấm. <b>Không bịa số để trông đẹp.</b>
+                </p>
+              )}
+            </div>
           )}
 
           {step === 2 && fut?.available && fut.base_image && (
