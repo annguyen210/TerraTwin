@@ -24,6 +24,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { scanAll, trackEvent, type ScanResult, type ScanModule, type ModuleInfo } from "@/lib/api";
+import SpeakButton from "@/components/SpeakButton";
 import Passport from "./Passport";
 import PlotView from "./PlotView";
 import WhyTrust from "./WhyTrust";
@@ -353,6 +354,14 @@ export default function Answer({
       <div className={`ans-head ${h.tone}`}>
         <b>{h.big}</b>
         <p>{h.sub}</p>
+        {/* A10 — đọc kết quả ra tiếng cho người đọc chữ khó. Đọc câu chính +
+            tối đa 3 việc cần làm; giọng tiếng Việt của trình duyệt, không mạng. */}
+        <div style={{ marginTop: 8 }}>
+          <SpeakButton text={[
+            h.big, h.sub,
+            ...canLam.slice(0, 3).map((a) => `${a.name}. ${a.recommendation}`),
+          ].filter(Boolean).join(". ")} />
+        </div>
       </div>
 
       {canLam.length > 0 && (
