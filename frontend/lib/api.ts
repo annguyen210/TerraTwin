@@ -1717,6 +1717,22 @@ export function getScorecard(days = 90) {
     "Không tải được sổ điểm");
 }
 
+// A3 — dự báo xác suất 7 ngày tới từ tổ hợp vật lý (P10/P50/P90 + % vượt ngưỡng).
+export type ProbForecast = {
+  available: boolean;
+  message?: string;
+  module_id?: string;
+  members?: number;
+  p10?: number; p50?: number; p90?: number;
+  prob_exceed_warning?: number;
+  prob_exceed_watch?: number;
+  sentence?: string;
+};
+export function getProbability(moduleId: string, lat: number, lon: number) {
+  return postJson<ProbForecast>(`/api/probability/${encodeURIComponent(moduleId)}`,
+    { lat, lon }, "Không tính được xác suất");
+}
+
 // A2 — rào chắn số: đã chặn bao nhiêu lần LLM bịa số (công bố như sổ điểm).
 export type GuardStats = {
   checked: number; redacted_answers: number; numbers_removed: number; note: string;

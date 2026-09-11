@@ -423,6 +423,21 @@ def heatmap_timeline(module_id: str, location: Location,
     return r
 
 
+@app.post("/api/probability/{module_id}")
+def probability_endpoint(module_id: str, location: Location) -> dict:
+    """A3 — XÁC SUẤT vượt ngưỡng trong 7 ngày tới, từ tổ hợp dự báo vật lý.
+
+    Chạy đúng chỉ số hiểm hoạ trên từng thành viên rồi đếm phân vị — xác suất
+    THẬT, không bịa từ một con số điểm. Trả P10/P50/P90 + % khả năng vượt ngưỡng.
+    """
+    from app.services import probabilistic
+
+    off = _off_site_dict(location.lat, location.lon)
+    if off:
+        return off
+    return probabilistic.forecast(module_id, location.lat, location.lon)
+
+
 @app.post("/api/anomaly")
 def anomaly_endpoint(location: Location, years: int = 10) -> dict:
     """C10 Anomaly — tuần tới có bất thường so với khí hậu nền cùng kỳ không."""

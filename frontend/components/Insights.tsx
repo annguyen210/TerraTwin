@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
+  getProbability,
   runAnomaly,
   runExplain,
   runGoalSeek,
@@ -10,6 +11,7 @@ import {
   type AnomalyResult,
   type ExplainResult,
   type GoalSeekResult,
+  type ProbForecast,
   type TimeMachineResult,
 } from "@/lib/api";
 
@@ -173,6 +175,50 @@ function AnomalyView({ d }: { d: AnomalyResult }) {
   );
 }
 
+/* ---------- A3 Dự báo xác suất từ tổ hợp (dải quạt P10–P90 + câu tiếng người) ---------- */
+function ForecastProbability({ moduleId, lat, lon }: {
+  moduleId: string; lat: number; lon: number;
+}) {
+  const [d, setD] = useState<ProbForecast | null>(null);
+  useEffect(() => {
+    let alive = true;
+    setD(null);
+    getProbability(moduleId, lat, lon).then((r) => alive && setD(r)).catch(() => {});
+    return () => { alive = false; };
+  }, [moduleId, lat, lon]);
+
+  if (!d || !d.available || d.p10 == null || d.p90 == null) return null;
+  // Dải 0..100 chỉ số; đánh dấu vùng P10–P90 và điểm P50. Ngưỡng 40/70 vẽ mờ.
+  const clamp = (x: number) => Math.max(0, Math.min(100, x));
+  const left = clamp(d.p10), right = clamp(d.p90), mid = clamp(d.p50 ?? 0);
+  const warn = (d.prob_exceed_warning ?? 0);
+  const tone = warn >= 50 ? "#C2412E" : warn >= 20 ? "#B07A2E" : "#2E9E67";
+  return (
+    <div style={{ margin: "0 0 12px", padding: "11px 14px", borderRadius: 8,
+      background: "var(--surface-2, #f8faf7)", border: "1px solid var(--line, #d7ddd8)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
+        <b style={{ fontSize: 13.5 }}>🎲 Xác suất 7 ngày tới</b>
+        <span style={{ fontSize: 11, color: "var(--muted,#66716a)" }}>{d.members} thành viên tổ hợp</span>
+      </div>
+      <p style={{ margin: "5px 0 8px", fontSize: 14, fontWeight: 600, color: tone }}>{d.sentence}</p>
+      {/* dải quạt */}
+      <div style={{ position: "relative", height: 12, borderRadius: 99,
+        background: "var(--line-2, #e8ece8)", overflow: "hidden" }}>
+        {/* ngưỡng nguy hiểm 70 */}
+        <div style={{ position: "absolute", left: "70%", top: 0, bottom: 0, width: 1, background: "#C2412E", opacity: .4 }} />
+        {/* dải P10–P90 */}
+        <div style={{ position: "absolute", left: `${left}%`, width: `${Math.max(2, right - left)}%`,
+          top: 0, bottom: 0, background: tone, opacity: .5 }} />
+        {/* P50 */}
+        <div style={{ position: "absolute", left: `calc(${mid}% - 1px)`, top: -2, bottom: -2, width: 2, background: tone }} />
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: "var(--muted,#66716a)", marginTop: 3 }}>
+        <span>P10 {d.p10}</span><span>P50 {d.p50}</span><span>P90 {d.p90}</span>
+      </div>
+    </div>
+  );
+}
+
 export default function Insights({
   moduleId,
   lat,
@@ -218,6 +264,8 @@ export default function Insights({
   return (
     <div className="insights">
       <div className="in-head-row">🔬 Phân tích sâu</div>
+      {/* A3 — xác suất 7 ngày tới, nổi bật trên cùng vì đó là số quyết định. */}
+      {isHazard && <ForecastProbability moduleId={moduleId} lat={lat} lon={lon} />}
       <div className="in-tabs">
         {tabs.map((t) => (
           <button
