@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 from app import auth
 from app.services import plans
 from app.db import (
-    ActionLog, Alert, ApiKey, Dataset, KnowledgeNote, NotifyChannel,
+    ActionLog, Alert, ApiKey, AuditLog, Dataset, KnowledgeNote, NotifyChannel,
     Observation, Plot, Twin, User, get_session,
 )
 from app.schemas import Location
@@ -27,6 +27,19 @@ from app.schemas import Location
 router = APIRouter(tags=["account"])
 
 _MIN_PW = 8
+
+
+def log_audit(db: Session, user_id: int, action: str, detail: str = "") -> None:
+    """Đ12 — ghi một hành động nhạy cảm vào nhật ký kiểm toán của tài khoản.
+
+    Nuốt lỗi có chủ đích: ghi audit KHÔNG được phép làm hỏng chính hành động
+    (đổi mật khẩu vẫn phải thành công dù ghi nhật ký trục trặc). Không commit ở
+    đây — để nó đi cùng giao dịch của hành động gọi nó.
+    """
+    try:
+        db.add(AuditLog(user_id=user_id, action=action[:40], detail=detail[:200]))
+    except Exception:      # noqa: BLE001 — nhật ký hỏng không được kéo sập hành động
+        pass
 
 
 # ---------- Kiểu dữ liệu ----------
@@ -139,6 +152,8 @@ def login(body: LoginIn, db: Session = Depends(get_session)) -> TokenOut:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Email hoặc mật khẩu không đúng.")
     if not auth.verify_password(body.password, user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Email hoặc mật khẩu không đúng.")
+    log_audit(db, user.id, "login")                    # Đ12
+    db.commit()
     return TokenOut(access_token=auth.create_token(user.id), user=_out(user))
 
 
@@ -243,6 +258,7 @@ def create_key(label: str = "", plan: str = plans.DEFAULT_PLAN,
     k = ApiKey(user_id=user.id, label=label[:120], key_hash=digest,
                prefix=prefix, plan=plan)
     db.add(k)
+    log_audit(db, user.id, "create_api_key", f"prefix {prefix}")   # Đ12
     db.commit()
     db.refresh(k)
     return ApiKeyCreated(id=k.id, label=k.label, prefix=k.prefix,
@@ -286,6 +302,7 @@ def revoke_key(key_id: int, user: User = Depends(auth.current_user),
     if k is None or k.user_id != user.id:
         raise HTTPException(404, "Không tìm thấy khóa.")
     k.revoked = 1
+    log_audit(db, user.id, "revoke_api_key", f"prefix {k.prefix}")   # Đ12
     db.commit()
 
 
@@ -299,7 +316,7 @@ _OWNED = [
     ("plots", Plot), ("twins", Twin), ("channels", NotifyChannel),
     ("observations", Observation), ("actions", ActionLog),
     ("knowledge_notes", KnowledgeNote), ("api_keys", ApiKey),
-    ("datasets", Dataset), ("alerts", Alert),
+    ("datasets", Dataset), ("alerts", Alert), ("audit_logs", AuditLog),
 ]
 
 
@@ -335,6 +352,33 @@ def export_my_data(user: User = Depends(auth.current_user),
             select(model).where(model.user_id == user.id)).scalars().all()
         data[label] = [_row_to_dict(r) for r in rows]
     return data
+
+
+_AUDIT_LABELS = {
+    "login": "Đăng nhập",
+    "change_password": "Đổi mật khẩu",
+    "reset_password": "Đặt lại mật khẩu",
+    "create_api_key": "Tạo khoá API",
+    "revoke_api_key": "Thu hồi khoá API",
+}
+
+
+@router.get("/api/account/audit")
+def my_audit(limit: int = 50, user: User = Depends(auth.current_user),
+             db: Session = Depends(get_session)) -> dict:
+    """Đ12 — hoạt động nhạy cảm gần đây trên CHÍNH tài khoản này.
+
+    Chủ nhà tự thấy tài khoản mình đăng nhập/đổi mật khẩu/tạo khoá lúc nào —
+    phát hiện được truy cập lạ mà không cần hỏi người vận hành.
+    """
+    rows = db.execute(
+        select(AuditLog).where(AuditLog.user_id == user.id)
+        .order_by(AuditLog.at.desc()).limit(max(1, min(limit, 200)))
+    ).scalars().all()
+    return {"entries": [
+        {"at": a.at.isoformat(timespec="seconds"), "action": a.action,
+         "label": _AUDIT_LABELS.get(a.action, a.action), "detail": a.detail}
+        for a in rows]}
 
 
 @router.delete("/api/account", status_code=204, response_class=Response,
@@ -456,6 +500,7 @@ def reset_password(body: ResetIn, db: Session = Depends(get_session)) -> dict:
     if d.get("pv") != _pw_version(user.password_hash):
         raise HTTPException(400, "Liên kết đặt lại đã được dùng hoặc đã hết hạn (1 giờ).")
     user.password_hash = auth.hash_password(body.password)
+    log_audit(db, user.id, "reset_password")           # Đ12
     db.commit()
     return {"message": "Đã đặt lại mật khẩu. Hãy đăng nhập lại."}
 
@@ -467,5 +512,6 @@ def change_password(body: ChangePwIn, user: User = Depends(auth.current_user),
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Mật khẩu cũ không đúng.")
     _check_password_strength(body.new_password)
     user.password_hash = auth.hash_password(body.new_password)
+    log_audit(db, user.id, "change_password")          # Đ12
     db.commit()
     return {"message": "Đã đổi mật khẩu."}

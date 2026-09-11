@@ -18,8 +18,8 @@ import {
   buildTwin, createChannel, createKey, deleteChannel, deleteDataset, getPlans,
   deleteTwin, listChannels, listDatasets, listKeys, listTwins, revokeKey,
   scoreDataset, testChannel, uploadDataset, getChannelStatus,
-  exportMyData, deleteMyAccount, setToken,
-  type ApiKeyRow, type AuthUser, type ChannelRow, type ChannelStatus, type DatasetRow,
+  exportMyData, deleteMyAccount, getAccountAudit, setToken,
+  type ApiKeyRow, type AuditEntry, type AuthUser, type ChannelRow, type ChannelStatus, type DatasetRow,
   type TwinSummary,
   type Plan,
 } from "@/lib/api";
@@ -399,6 +399,13 @@ function DataPrivacyBlock() {
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  const [audit, setAudit] = useState<AuditEntry[]>([]);   // Đ12
+
+  useEffect(() => {
+    let live = true;
+    getAccountAudit(20).then((r) => live && setAudit(r.entries)).catch(() => {});
+    return () => { live = false; };
+  }, []);
 
   async function download() {
     setErr(null); setBusy(true);
@@ -430,6 +437,30 @@ function DataPrivacyBlock() {
       <div className="ws-row">
         <button onClick={download} disabled={busy}>⬇️ Tải toàn bộ dữ liệu của tôi (JSON)</button>
       </div>
+
+      {/* Đ12 — nhật ký kiểm toán: chủ nhà tự thấy hoạt động lạ trên tài khoản. */}
+      {audit.length > 0 && (
+        <div style={{ margin: "12px 0 4px" }}>
+          <p className="ws-hint" style={{ marginBottom: 6 }}>
+            🕒 <b>Hoạt động tài khoản gần đây</b> — nếu thấy lần đăng nhập bạn không
+            nhận ra, hãy đổi mật khẩu ngay.
+          </p>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: 12.5 }}>
+            {audit.map((a, i) => (
+              <li key={i} style={{
+                display: "flex", justifyContent: "space-between", gap: 10,
+                padding: "4px 0", borderBottom: "1px solid var(--line-2, #e8ece8)",
+              }}>
+                <span>{a.label}{a.detail ? ` · ${a.detail}` : ""}</span>
+                <span style={{ color: "var(--muted, #66716a)", whiteSpace: "nowrap" }}>
+                  {new Date(a.at).toLocaleString("vi-VN")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <p className="ws-hint">
         Xoá tài khoản là <b>vĩnh viễn</b> — mọi thửa, quan sát, cảnh báo, khoá API sẽ mất.
         Gõ <b>XOA</b> để xác nhận.

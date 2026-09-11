@@ -519,6 +519,16 @@ export function deleteMyAccount() {
     "Không xoá được tài khoản");
 }
 
+// Đ12 — nhật ký kiểm toán: hoạt động nhạy cảm gần đây trên CHÍNH tài khoản này.
+export type AuditEntry = {
+  at: string; action: string; label: string; detail: string;
+};
+export function getAccountAudit(limit = 50) {
+  return authed<{ entries: AuditEntry[] }>(
+    `/api/account/audit?limit=${limit}`, { method: "GET" },
+    "Không tải được nhật ký tài khoản");
+}
+
 // ---- C06 Heatmap ----
 export type HeatCell = {
   lat: number;

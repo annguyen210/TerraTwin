@@ -366,6 +366,25 @@ class Event(Base):
     meta_json: Mapped[str] = mapped_column(Text, default="")
 
 
+class AuditLog(Base):
+    """Đ12 — nhật ký kiểm toán các HÀNH ĐỘNG NHẠY CẢM lên một tài khoản.
+
+    Khác Event (đếm ẩn danh, không biết ai): audit gắn với user_id để chính chủ
+    xem được "tài khoản mình đã bị/được làm gì" — đăng nhập, đổi/đặt lại mật
+    khẩu, tạo/thu hồi khoá API. Đây vừa là an ninh (chủ nhà thấy hoạt động lạ)
+    vừa là điều kiện làm việc với cơ quan nhà nước theo Nghị định 13. KHÔNG lưu
+    IP đầy đủ — chỉ hành động + thời điểm + mô tả ngắn không định danh bên thứ ba.
+    """
+    __tablename__ = "audit_logs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
+    action: Mapped[str] = mapped_column(String(40), index=True)
+    detail: Mapped[str] = mapped_column(String(200), default="")
+
+
 # Cột thêm sau khi đã có database chạy thật. `create_all` KHÔNG thêm cột vào
 # bảng sẵn có, nên thiếu bước này thì bản deploy cũ sẽ đổ ngay lần truy vấn đầu
 # — lỗi chỉ lộ ra ở production, không bao giờ lộ trong test trên database sạch.
