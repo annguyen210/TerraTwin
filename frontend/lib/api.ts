@@ -1717,6 +1717,14 @@ export function getScorecard(days = 90) {
     "Không tải được sổ điểm");
 }
 
+// A2 — rào chắn số: đã chặn bao nhiêu lần LLM bịa số (công bố như sổ điểm).
+export type GuardStats = {
+  checked: number; redacted_answers: number; numbers_removed: number; note: string;
+};
+export function getGuardStats() {
+  return getJson<GuardStats>("/api/guard/stats", "Không tải được thống kê rào chắn");
+}
+
 export type ScorecardBucket = ScorecardRates & {
   from: string; to: string; counts: Record<string, number>; scored: number;
 };

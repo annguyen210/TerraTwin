@@ -20,10 +20,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
+  getGuardStats,
   getReliability,
   getScorecard,
   getScorecardTimeline,
   trackEvent,
+  type GuardStats,
   type ReliabilityResult,
   type Scorecard as SC,
   type ScorecardBucket,
@@ -118,6 +120,7 @@ export default function Scorecard({ data, onClose }: {
   const [err, setErr] = useState<string | null>(null);
   const [rel, setRel] = useState<ReliabilityResult | null>(null);
   const [tl, setTl] = useState<ScorecardBucket[] | null>(null);   // H2
+  const [guard, setGuard] = useState<GuardStats | null>(null);    // A2
   const rootRef = useRef<HTMLDivElement>(null);                   // N6 view_scorecard
   const sc = selfFetch ? fetched : data;
 
@@ -151,6 +154,7 @@ export default function Scorecard({ data, onClose }: {
     getReliability(365).then((r) => live && setRel(r)).catch(() => {});
     getScorecardTimeline(180, 12)
       .then((r) => live && setTl(r.buckets)).catch(() => {});   // H2
+    getGuardStats().then((g) => live && setGuard(g)).catch(() => {});   // A2
     return () => { live = false; };
   }, []);
 
@@ -265,6 +269,17 @@ export default function Scorecard({ data, onClose }: {
                 </>
               )}
             </div>
+          )}
+
+          {/* A2 — rào chắn số: công bố số lần đã chặn LLM bịa số, đúng tinh thần
+              sổ điểm. Chỉ hiện khi đã kiểm ≥1 câu trả lời LLM (khỏi hiện số 0). */}
+          {guard && guard.checked > 0 && (
+            <p className="sc-gt-note" style={{ marginTop: 10 }}>
+              🛡️ {t("Rào chắn số", "Number guardrail")}: {t("đã kiểm", "checked")}{" "}
+              <b>{guard.checked}</b> {t("câu trả lời của trợ lý", "assistant replies")},{" "}
+              {t("ẩn", "hid")} <b>{guard.numbers_removed}</b>{" "}
+              {t("con số mô hình bịa ra ngoài dữ liệu thật", "numbers the model invented beyond real data")}.
+            </p>
           )}
 
           <p className="sc-method">{sc.method}</p>

@@ -223,6 +223,10 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
 
     text = llm.complete(prompt, system=_SYSTEM, max_tokens=600)
     if text:
+        # A2 — cưỡng chế "LLM chỉ dịch, không sinh số": ẩn mọi số model bịa ra
+        # ngoài dữ liệu thật đã đưa cho nó (facts + lịch sử + kiến thức + system).
+        from app.services import guard
+        text, _ = guard.guard_llm(text, _SYSTEM + NL + prompt)
         return CopilotAnswer(answer=text, used_modules=routes,
                              llm=True, knowledge_used=cites)
 

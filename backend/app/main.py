@@ -705,6 +705,18 @@ def llm_status() -> dict:
     return llm.info()
 
 
+@app.get("/api/guard/stats")
+def guard_stats() -> dict:
+    """A2 — rào chắn con số đã chặn bao nhiêu lần LLM bịa số.
+
+    Công khai và công bố như sổ điểm: cơ chế chống bịa số CÓ chạy hay không thì
+    đo được, không phải một dòng hứa trong prompt.
+    """
+    from app.services import guard
+
+    return guard.stats()
+
+
 @app.post("/api/copilot", response_model=CopilotAnswer)
 def copilot_endpoint(req: CopilotRequest) -> CopilotAnswer:
     return copilot.answer(req.question, req.location)
