@@ -1717,6 +1717,16 @@ export function getScorecard(days = 90) {
     "Không tải được sổ điểm");
 }
 
+// A9/G1 — ký tờ trình rủi ro bằng mã băm để bên nhận tự kiểm bản in không bị sửa.
+export type SignedReport = {
+  hash: string; short: string; signed_at: string; verify_note: string;
+  [k: string]: unknown;
+};
+export function signReport(facts: Record<string, unknown>) {
+  return postJson<SignedReport>("/api/report/sign", facts,
+    "Không ký được báo cáo");
+}
+
 // A3 — dự báo xác suất 7 ngày tới từ tổ hợp vật lý (P10/P50/P90 + % vượt ngưỡng).
 export type ProbForecast = {
   available: boolean;

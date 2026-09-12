@@ -27,6 +27,7 @@ jobs:
     steps:
       - name: Ping api + web
         run: |
+          fail=0
           for url in \
             "https://terratwin-api.onrender.com/api/health" \
             "https://terratwin-web.onrender.com/" ; do
@@ -37,6 +38,11 @@ jobs:
                  --retry-all-errors "$url" -o /dev/null ; then
               echo "  ok — đã ấm"
             else
-              echo "  chưa đánh thức được lần này (sẽ thử lại lượt sau)"
+              echo "  ✗ HỎNG sau khi thử lại hết — service có thể đang chết"
+              fail=1
             fi
           done
+          # N11 — thử lại hết mà VẪN hỏng thì BÁO ĐỎ (exit 1), không nuốt lỗi.
+          # Một cron keepwarm im lặng thất bại thì chẳng khác gì không có: phải
+          # đỏ để còn biết service chết mà xử lý.
+          exit $fail

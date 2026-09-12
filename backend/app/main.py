@@ -646,6 +646,23 @@ def mrv_verify(report: dict) -> dict:
     return mrv.verify(report)
 
 
+@app.post("/api/report/sign")
+def report_sign(facts: dict) -> dict:
+    """A9/G1 — ký tờ trình rủi ro (băm SHA-256 + dấu thời gian) để ngân hàng /
+    bảo hiểm / người mua tự kiểm bản in không bị sửa."""
+    from app.services import report
+
+    return report.sign(facts)
+
+
+@app.post("/api/report/verify")
+def report_verify(signed: dict) -> dict:
+    """Kiểm một tờ trình đã ký còn nguyên vẹn hay đã bị sửa sau khi lập."""
+    from app.services import report
+
+    return report.verify(signed)
+
+
 @app.post("/api/genome")
 def genome_endpoint(location: Location, k: int = 5) -> dict:
     """S04 Twin Genome — tìm những vùng có 'bộ gen' đất đai giống thửa của bạn.

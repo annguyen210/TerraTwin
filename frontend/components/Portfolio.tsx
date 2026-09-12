@@ -7,10 +7,12 @@ import {
   listPlots,
   savePlot,
   scanAll,
+  signReport,
   trackEvent,
   type AuthUser,
   type PlotTimeline,
   type ServerPlot,
+  type SignedReport,
   type TerraScore,
 } from "@/lib/api";
 
@@ -171,9 +173,18 @@ export default function Portfolio({
     setExporting(true);
     try {
       const scan = await scanAll(coord.lat, coord.lon, area);
+      // A9/G1 — ký báo cáo (mã băm phía máy chủ) để bên nhận tự kiểm bản in.
+      const facts = {
+        location: { lat: +coord.lat.toFixed(4), lon: +coord.lon.toFixed(4) },
+        area_ha: area ?? null,
+        terrascore: { score: scan.terrascore.score, grade: scan.terrascore.grade },
+        modules: scan.modules.map((m) => ({ id: m.id, risk: m.risk_level, real: m.is_real })),
+        generated_at: scan.generated_at,
+      };
+      const signed = await signReport(facts).catch(() => null);
       const w = window.open("", "_blank");
       if (w) {
-        w.document.write(buildReportHtml(scan, area));
+        w.document.write(buildReportHtml(scan, area, signed));
         w.document.close();
         w.focus();
         setTimeout(() => w.print(), 400);
@@ -263,7 +274,7 @@ function esc(s: string): string {
   return s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] as string));
 }
 
-function buildReportHtml(scan: any, area?: number): string {
+function buildReportHtml(scan: any, area?: number, signed?: SignedReport | null): string {
   const t = scan.terrascore;
   const rows = scan.modules
     .map(
@@ -314,6 +325,12 @@ function buildReportHtml(scan: any, area?: number): string {
   <h3>Toàn cảnh mọi mũi nhọn</h3>
   <table><thead><tr><th>Module</th><th>Mức</th><th>Nguồn</th><th>Nhận định</th></tr></thead>
   <tbody>${rows}</tbody></table>
+  ${signed ? `<div style="margin-top:18px;padding:10px 14px;border:1px solid #cbd;border-radius:6px;background:#f7f9fb;font-size:12px">
+    <b>🔏 Mã xác thực bản in (SHA-256)</b><br>
+    <span style="font-family:monospace;word-break:break-all">${esc(signed.hash)}</span><br>
+    <span>Mã ngắn: <b style="font-family:monospace">${esc(signed.short)}</b> · Ký lúc: ${esc(String(signed.signed_at))}</span><br>
+    <span style="color:#567">Bên nhận kiểm bản in không bị sửa: gửi lại đúng các trường (toạ độ, TerraScore, danh sách mức rủi ro theo module, thời điểm) tới <span style="font-family:monospace">POST /api/report/verify</span>. Khớp mã băm = bản gốc.</span>
+  </div>` : ""}
   <p class="foot">Nguồn dữ liệu thật: Open-Meteo (dự báo + lịch sử ERA5), GloFAS lưu lượng sông,
   Open-Meteo Marine, NASA POWER, DEM Open-Meteo.
   🧪 = ước lượng vật lý có tham số giải thích được, chờ hiệu chỉnh bằng số đo thực địa.
