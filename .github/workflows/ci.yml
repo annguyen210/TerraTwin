@@ -21,20 +21,8 @@ jobs:
       - run: pip install -r requirements.txt -r requirements-dev.txt
       # Test gọi API thật thi thoảng hụt do mạng — tự chạy lại, không phải lỗi code.
       # Ghi tóm tắt lỗi vào job summary (đọc được không cần quyền admin log).
-      - name: pytest
-        run: |
-          set +e
-          pytest --reruns 2 --reruns-delay 5 -q --tb=line 2>&1 | tee /tmp/pt.log
-          code=${PIPESTATUS[0]}
-          # Phát tên test hỏng thành annotation (::error::) — đọc được qua
-          # check-runs annotations API mà không cần quyền admin log.
-          grep -E "^(FAILED|ERROR) " /tmp/pt.log | while IFS= read -r line; do
-            echo "::error::$line"
-          done
-          grep -E "[0-9]+ (failed|error|passed)" /tmp/pt.log | tail -1 | while IFS= read -r line; do
-            echo "::error::SUMMARY $line"
-          done
-          exit $code
+      # Test gọi API thật thi thoảng hụt do mạng — tự chạy lại, không phải lỗi code.
+      - run: pytest --reruns 2 --reruns-delay 5
 
   backend-postgres:
     name: Backend — pytest trên PostgreSQL
