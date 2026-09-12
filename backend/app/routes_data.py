@@ -488,6 +488,54 @@ def drift_report(lat: float | None = None, lon: float | None = None,
     return out
 
 
+# ---------------------------------------------------------------------------
+# A6 — SỔ ĐĂNG KÝ MÔ HÌNH + QUAY LUI
+# ---------------------------------------------------------------------------
+
+class ModelIn(BaseModel):
+    kind: str = Field(..., max_length=32)
+    version: str = Field(..., max_length=40)
+    data_hash: str = Field(default="", max_length=64)
+    metrics: dict | None = None
+    artifact_path: str = Field(default="", max_length=255)
+    notes: str = Field(default="", max_length=1000)
+    activate: bool = False
+
+
+@router.get("/api/models")
+def list_models(kind: str | None = None,
+                db: Session = Depends(get_session)) -> dict:
+    """Liệt kê các phiên bản mô hình đã đăng ký. Công khai: minh bạch mô hình
+    nào đang chạy, huấn luyện từ dữ liệu nào (mã băm), số liệu ra sao."""
+    from app.services import model_registry
+    return {"models": [model_registry.to_dict(m)
+                       for m in model_registry.list_versions(db, kind)]}
+
+
+@router.post("/api/models", status_code=201)
+def register_model(body: ModelIn, user: User = Depends(auth.current_user),
+                   db: Session = Depends(get_session)) -> dict:
+    """Đăng ký một phiên bản mô hình mới (pipeline huấn luyện gọi khi train xong)."""
+    from app.services import model_registry
+    mv = model_registry.register(
+        db, body.kind, body.version, data_hash=body.data_hash,
+        metrics=body.metrics, artifact_path=body.artifact_path,
+        notes=body.notes, activate=body.activate)
+    return model_registry.to_dict(mv)
+
+
+@router.post("/api/models/{model_id}/activate")
+def activate_model(model_id: int, user: User = Depends(auth.current_user),
+                   db: Session = Depends(get_session)) -> dict:
+    """Chuyển mô hình đang hoạt động sang phiên bản này — KHÔNG cần deploy lại.
+    Đây cũng là đường QUAY LUI: kích hoạt lại bản cũ bằng một lời gọi."""
+    from app.services import model_registry
+    mv = model_registry.activate(db, model_id)
+    if mv is None:
+        raise HTTPException(404, "Không tìm thấy phiên bản mô hình.")
+    return model_registry.to_dict(mv)
+
+
 @router.get("/api/channels/status")
 def channels_status() -> dict:
     """Kênh nào đã cấu hình xong ở phía máy chủ.

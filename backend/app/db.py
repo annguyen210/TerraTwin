@@ -385,6 +385,29 @@ class AuditLog(Base):
     detail: Mapped[str] = mapped_column(String(200), default="")
 
 
+class ModelVersion(Base):
+    """A6 — SỔ ĐĂNG KÝ MÔ HÌNH + quay lui.
+
+    Có A1 (U-Net) và A11 (TCN) mà không có sổ này thì sau ba tháng không ai biết
+    mô hình nào đang chạy, huấn luyện từ dữ liệu nào, và vì sao hôm nay tệ hơn
+    tháng trước. Mỗi lần huấn luyện ghi một hàng kèm MÃ BĂM bộ dữ liệu — không có
+    nó thì 'mô hình này huấn luyện từ đâu' là câu không trả lời được. Đổi mô hình
+    đang hoạt động bằng một lời gọi API, không cần deploy lại; quay lui cũng vậy.
+    """
+    __tablename__ = "model_versions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kind: Mapped[str] = mapped_column(String(32), index=True)   # vd "landcover", "tcn_flood"
+    version: Mapped[str] = mapped_column(String(40))
+    trained_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    data_hash: Mapped[str] = mapped_column(String(64), default="")
+    metrics_json: Mapped[str] = mapped_column(Text, default="{}")
+    artifact_path: Mapped[str] = mapped_column(String(255), default="")
+    active: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    notes: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+
 # Cột thêm sau khi đã có database chạy thật. `create_all` KHÔNG thêm cột vào
 # bảng sẵn có, nên thiếu bước này thì bản deploy cũ sẽ đổ ngay lần truy vấn đầu
 # — lỗi chỉ lộ ra ở production, không bao giờ lộ trong test trên database sạch.
