@@ -11,15 +11,15 @@ lịch sử của đúng toạ độ đó. Ba câu dưới đây không một �
 lời được, vì chúng không biết thửa của bạn nằm ở đâu trong địa hình:
 
     "Ruộng bạn thấp hơn 78% đất trong bán kính 3 km — nước dồn về đây trước."
-    "Mười năm qua chỗ này có 274 lần mưa vượt ngưỡng chung cả nước."
+    "Mười năm qua chỗ này có 24 ĐỢT mưa vượt ngưỡng chung cả nước."
     "Tháng nguy hiểm nhất của thửa này là tháng 10, không phải tháng 9."
 
-ĐO THẬT, và con số phân biệt được nơi này với nơi khác:
-    Huế       ngập 274 lần (T10) · hạn  57 · cháy 290
-    Bến Tre   ngập  24 lần (T10) · hạn  47 · cháy   7
-    Phan Rang ngập  39 lần       · hạn 425 (T4) · cháy 296
-Huế là rốn lũ miền Trung, Phan Rang khô hạn nhất nước — số liệu khớp với điều
-ai cũng biết, và đó chính là cách kiểm tra nhanh rằng phép đo không bịa.
+ĐẾM ĐỢT, KHÔNG ĐẾM CỬA SỔ. Cửa sổ trượt theo NGÀY nên một đợt kéo dài sinh ra
+hàng loạt cửa sổ vượt ngưỡng liên tiếp; đếm từng cửa sổ ra "1206 lần" vô nghĩa.
+Gộp cửa sổ liền nhau (≤14 ngày) thành một đợt mới đo được thứ phân biệt nơi này
+với nơi khác (đo thật cho Huế, T10 = rốn lũ miền Trung):
+    Huế  ngập 24 đợt (T10) · hạn 13 · cháy 22   — khớp điều ai cũng biết,
+và đó chính là cách kiểm tra nhanh rằng phép đo không bịa.
 
 Câu thứ ba quan trọng hơn vẻ ngoài của nó: lịch mùa vụ dạy chung cho cả tỉnh,
 còn thửa đất thì không theo lịch tỉnh.
@@ -40,6 +40,35 @@ RINGS_KM = (1.0, 2.0, 3.0)
 PER_RING = 8
 DANGER = 70.0
 _TTL = 30 * 86400
+
+# Cửa sổ hiểm hoạ trượt theo NGÀY, nên một đợt kéo dài sinh ra hàng loạt cửa sổ
+# vượt ngưỡng liên tiếp cho CÙNG một đợt. Hai lần vượt cách nhau ≤ ngần này ngày
+# coi là cùng MỘT đợt; xa hơn mới là đợt mới. 14 ngày: hai trận cách nửa tháng
+# là hai đợt riêng, còn một trận kéo dài một tuần vẫn là một.
+GAP_EVENT_DAYS = 14
+
+
+def _group_events(exceed: list[tuple[str, float]],
+                  gap_days: int = GAP_EVENT_DAYS) -> list[dict]:
+    """Gộp các cửa sổ vượt ngưỡng (đã theo thứ tự thời gian) thành các ĐỢT rời
+    nhau. Mỗi đợt lấy ngày có chỉ số ĐỈNH làm mốc. Đây là chỗ sửa lỗi đếm cửa
+    sổ ('1206 lần') thành đếm đợt thật."""
+    from datetime import datetime
+
+    if not exceed:
+        return []
+
+    def _d(s: str):
+        return datetime.strptime(s, "%Y-%m-%d").date()
+
+    groups: list[list[tuple[str, float]]] = [[exceed[0]]]
+    for ngay, v in exceed[1:]:
+        if (_d(ngay) - _d(groups[-1][-1][0])).days > gap_days:
+            groups.append([(ngay, v)])
+        else:
+            groups[-1].append((ngay, v))
+    return [{"peak_date": max(g, key=lambda t: t[1])[0],
+             "peak_value": round(max(t[1] for t in g), 1)} for g in groups]
 
 _TEN = {"flood": "ngập lụt", "landslide": "sạt lở",
         "drought": "hạn thiếu nước", "wildfire": "cháy"}
@@ -145,7 +174,7 @@ def history(lat: float, lon: float, years: int = 10) -> dict | None:
             continue
 
         nang_nhat = (0.0, None)
-        vuot = []
+        exceed = []          # (ngày, chỉ số) mọi cửa sổ vượt ngưỡng, theo thời gian
         for i in range(len(rows) - W):
             w = [{**r, "day": j} for j, r in enumerate(rows[i:i + W])]
             sr = fn(w, terrain)
@@ -156,9 +185,12 @@ def history(lat: float, lon: float, years: int = 10) -> dict | None:
             if v > nang_nhat[0]:
                 nang_nhat = (v, ngay)
             if v >= muc_chung and v >= floor:
-                vuot.append(ngay)
+                exceed.append((ngay, v))
 
-        if not vuot:
+        # ĐẾM ĐỢT, KHÔNG ĐẾM CỬA SỔ (sửa lỗi "1206 lần").
+        events = _group_events(exceed)
+
+        if not events:
             out[mid] = {
                 "name": _TEN[mid], "events": 0, "peak_month": None, "latest": None,
                 "worst_value": round(nang_nhat[0], 1), "worst_date": nang_nhat[1],
@@ -169,21 +201,23 @@ def history(lat: float, lon: float, years: int = 10) -> dict | None:
             }
             continue
 
-        thang = Counter(d[5:7] for d in vuot)
+        peak_dates = [e["peak_date"] for e in events]
+        thang = Counter(d[5:7] for d in peak_dates)
         top, dem = thang.most_common(1)[0]
+        latest = peak_dates[-1]
         out[mid] = {
             "name": _TEN[mid],
-            "events": len(vuot),
+            "events": len(events),               # số ĐỢT, không phải số cửa sổ
             "peak_month": int(top),
             "peak_month_events": dem,
-            "latest": vuot[-1],
+            "latest": latest,
             "worst_value": round(nang_nhat[0], 1),
             "worst_date": nang_nhat[1],
             "national_threshold": muc_chung,
-            "note": (f"Mười năm qua thửa này có {len(vuot)} lần {_TEN[mid]} vượt "
+            "note": (f"Mười năm qua thửa này có {len(events)} đợt {_TEN[mid]} vượt "
                      f"ngưỡng chung cả nước. Tháng {int(top)} nhiều nhất "
-                     f"({dem} lần). Nặng nhất ngày {nang_nhat[1]}. "
-                     f"Gần nhất {vuot[-1]}."),
+                     f"({dem} đợt). Nặng nhất ngày {nang_nhat[1]}. "
+                     f"Gần nhất {latest}."),
         }
     return out or None
 
