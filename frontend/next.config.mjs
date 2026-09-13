@@ -57,11 +57,26 @@ const SECURITY_HEADERS = [
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
 ];
 
+// M3 — widget /embed/* PHẢI nhúng được ở site khác, nên KHÔNG chặn khung: bỏ
+// X-Frame-Options (di sản, chỉ same-origin) và mở frame-ancestors *. Giữ nguyên
+// nosniff + HSTS. Chỉ /embed mới nới; phần còn lại vẫn khoá khung chặt.
+const EMBED_CSP = CSP.replace("frame-ancestors 'self'", "frame-ancestors *");
+const EMBED_HEADERS = [
+  { key: "Content-Security-Policy", value: EMBED_CSP },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   async headers() {
-    return [{ source: "/:path*", headers: SECURITY_HEADERS }];
+    return [
+      // /embed trước để header nới khung của nó thắng (Next lấy match đầu tiên).
+      { source: "/embed/:path*", headers: EMBED_HEADERS },
+      { source: "/:path*", headers: SECURITY_HEADERS },
+    ];
   },
   webpack: (config) => {
     // Khai báo alias @/ TƯỜNG MINH cho webpack thay vì trông chờ Next tự đọc
