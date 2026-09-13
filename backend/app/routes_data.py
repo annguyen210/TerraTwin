@@ -489,6 +489,21 @@ def alert_lineage(alert_id: int, user: User = Depends(auth.current_user),
     return out
 
 
+@router.post("/api/admin/cache/clear")
+def clear_cache(prefix: str, user: User = Depends(auth.require_admin)) -> dict:
+    """Xoá cache bền theo NHÓM (vd prefix=passport) khi đổi công thức mà không
+    muốn đợi TTL 30 ngày. Chỉ admin. Bump version trong khoá là cách tự động;
+    endpoint này là nút bấm tay khi cần dọn ngay."""
+    from app.services import cache_store
+    allowed = {"passport", "clim", "genome-ref", "heatmap", "timeline",
+               "imagery", "mpc-series", "mpc-hist", "sentinel", "sentinel-hist",
+               "timelapse", "country", "osm"}
+    p = prefix.strip()
+    if p not in allowed:
+        raise HTTPException(400, f"Nhóm không hợp lệ. Chọn: {', '.join(sorted(allowed))}")
+    return {"prefix": p, "deleted": cache_store.clear_prefix(p)}
+
+
 @router.get("/api/admin/drift")
 def drift_report(lat: float | None = None, lon: float | None = None,
                  module: str | None = None,

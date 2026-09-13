@@ -28,9 +28,26 @@ def _session():
 
 
 def make_key(*parts) -> str:
-    """Khóa ngắn, ổn định, không lộ toạ độ chính xác trong log."""
+    """Khóa = '<nhóm>:<hash>'. Phần đầu (nhóm, vd 'passport') giữ ĐỌC ĐƯỢC để
+    còn xoá theo nhóm khi đổi công thức; phần sau băm để không lộ toạ độ trong
+    log. Đổi format này cũng tự vô hiệu mọi cache cũ MỘT LẦN — đúng thứ ta cần
+    khi công thức đổi mà cache thì giữ 30 ngày."""
+    prefix = str(parts[0]) if parts else "k"
     raw = "|".join(str(p) for p in parts)
-    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:48]
+    return f"{prefix}:{hashlib.sha256(raw.encode('utf-8')).hexdigest()[:40]}"
+
+
+def clear_prefix(prefix: str) -> int:
+    """Xoá mọi cache thuộc một nhóm (vd 'passport'). Dùng khi đổi công thức mà
+    không muốn đợi TTL. Trả số dòng đã xoá."""
+    try:
+        with _session() as s:
+            n = s.execute(
+                delete(KVCache).where(KVCache.key.like(f"{prefix}:%"))).rowcount
+            s.commit()
+            return n or 0
+    except Exception:
+        return 0
 
 
 def get(key: str):

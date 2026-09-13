@@ -40,6 +40,10 @@ RINGS_KM = (1.0, 2.0, 3.0)
 PER_RING = 8
 DANGER = 70.0
 _TTL = 30 * 86400
+# Số phiên bản công thức. BUMP mỗi lần đổi cách tính (như lần sửa đếm cửa sổ →
+# đếm ĐỢT): khoá cache đổi theo nên bản cũ tự hết hiệu lực, không cần đụng CSDL.
+# v2 = chuyển từ đếm cửa sổ trượt sang đếm đợt (_group_events).
+_CACHE_V = 2
 
 # Cửa sổ hiểm hoạ trượt theo NGÀY, nên một đợt kéo dài sinh ra hàng loạt cửa sổ
 # vượt ngưỡng liên tiếp cho CÙNG một đợt. Hai lần vượt cách nhau ≤ ngần này ngày
@@ -225,7 +229,7 @@ def history(lat: float, lon: float, years: int = 10) -> dict | None:
 def build(lat: float, lon: float) -> dict:
     """Hồ sơ đầy đủ. Luôn trả dict, không ném lỗi lên API."""
     from app.services import cache_store, jobs
-    key = cache_store.make_key("passport", round(lat, 3), round(lon, 3))
+    key = cache_store.make_key("passport", _CACHE_V, round(lat, 3), round(lon, 3))
     hit = cache_store.get(key)
     if hit is not None:
         return hit
