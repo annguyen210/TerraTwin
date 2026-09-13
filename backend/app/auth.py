@@ -162,6 +162,17 @@ def current_user(
     return user
 
 
+def require_admin(user: User = Depends(current_user)) -> User:
+    """Đ11 — chỉ cho vai trò admin. Route /api/admin/* dùng dependency này thay
+    cho current_user: đăng nhập thường (role='user') sẽ nhận 403, không phải 200.
+    Trước đây mọi người đăng nhập đều xem được trang vận hành — sai."""
+    if getattr(user, "role", "user") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Chỉ quản trị viên mới xem được mục này.")
+    return user
+
+
 def optional_user(
     authorization: str | None = Header(default=None),
     x_api_key: str | None = Header(default=None),

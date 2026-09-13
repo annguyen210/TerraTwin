@@ -37,6 +37,19 @@ def test_data_hash_recorded():
         db.close()
 
 
+def _admin_token(c, email):
+    from app.db import SessionLocal, User
+    from sqlalchemy import select
+    c.post("/api/auth/register", json={"email": email, "password": "Passw0rd1", "name": "A"})
+    db = SessionLocal()
+    try:
+        u = db.execute(select(User).where(User.email == email)).scalar_one()
+        u.role = "admin"; db.commit()
+    finally:
+        db.close()
+    return c.post("/api/auth/login", json={"email": email, "password": "Passw0rd1"}).json()["access_token"]
+
+
 def test_endpoints_auth_and_switch():
     with TestClient(app) as c:
         # GET công khai.
@@ -45,10 +58,13 @@ def test_endpoints_auth_and_switch():
         assert c.post("/api/models", json={"kind": "k", "version": "v"}).status_code == 401
         assert c.post("/api/models/1/activate").status_code == 401
 
-        c.post("/api/auth/register",
-               json={"email": "reg@x.com", "password": "Passw0rd1", "name": "R"})
-        tok = c.post("/api/auth/login",
-                     json={"email": "reg@x.com", "password": "Passw0rd1"}).json()["access_token"]
+        # Đ11 — người thường bị 403 khi đăng ký/kích hoạt mô hình.
+        c.post("/api/auth/register", json={"email": "plainreg@x.com", "password": "Passw0rd1", "name": "P"})
+        ptok = c.post("/api/auth/login", json={"email": "plainreg@x.com", "password": "Passw0rd1"}).json()["access_token"]
+        assert c.post("/api/models", json={"kind": "k", "version": "v"},
+                      headers={"Authorization": f"Bearer {ptok}"}).status_code == 403
+
+        tok = _admin_token(c, "regadmin@x.com")
         H = {"Authorization": f"Bearer {tok}"}
         a = c.post("/api/models", json={"kind": "api_kind", "version": "1.0", "activate": True}, headers=H).json()
         b = c.post("/api/models", json={"kind": "api_kind", "version": "2.0", "activate": True}, headers=H).json()

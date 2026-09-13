@@ -444,7 +444,7 @@ def record_event(body: EventIn, db: Session = Depends(get_session)):
 
 
 @router.get("/api/admin/funnel")
-def funnel(days: int = 30, user: User = Depends(auth.current_user),
+def funnel(days: int = 30, user: User = Depends(auth.require_admin),
            db: Session = Depends(get_session)) -> dict:
     """Phễu sáu bước — nhìn một bảng là biết người dùng rơi rụng ở đâu.
 
@@ -492,7 +492,7 @@ def alert_lineage(alert_id: int, user: User = Depends(auth.current_user),
 @router.get("/api/admin/drift")
 def drift_report(lat: float | None = None, lon: float | None = None,
                  module: str | None = None,
-                 user: User = Depends(auth.current_user),
+                 user: User = Depends(auth.require_admin),
                  db: Session = Depends(get_session)) -> dict:
     """A14 — trôi HIỆU NĂNG (toàn hệ thống, từ sổ điểm) + trôi DỮ LIỆU khí hậu
     (theo điểm nếu truyền lat/lon/module). Đòi đăng nhập: thông tin vận hành."""
@@ -529,7 +529,7 @@ def list_models(kind: str | None = None,
 
 
 @router.post("/api/models", status_code=201)
-def register_model(body: ModelIn, user: User = Depends(auth.current_user),
+def register_model(body: ModelIn, user: User = Depends(auth.require_admin),
                    db: Session = Depends(get_session)) -> dict:
     """Đăng ký một phiên bản mô hình mới (pipeline huấn luyện gọi khi train xong)."""
     from app.services import model_registry
@@ -541,7 +541,7 @@ def register_model(body: ModelIn, user: User = Depends(auth.current_user),
 
 
 @router.post("/api/models/{model_id}/activate")
-def activate_model(model_id: int, user: User = Depends(auth.current_user),
+def activate_model(model_id: int, user: User = Depends(auth.require_admin),
                    db: Session = Depends(get_session)) -> dict:
     """Chuyển mô hình đang hoạt động sang phiên bản này — KHÔNG cần deploy lại.
     Đây cũng là đường QUAY LUI: kích hoạt lại bản cũ bằng một lời gọi."""

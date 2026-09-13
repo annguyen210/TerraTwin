@@ -36,17 +36,36 @@ def test_performance_drift_structure():
         db.close()
 
 
+def _admin_token(c, email):
+    """Đăng ký, nâng role='admin' trong DB, trả token — Đ11 route admin cần admin."""
+    from app.db import SessionLocal, User
+    from sqlalchemy import select
+    c.post("/api/auth/register", json={"email": email, "password": "Passw0rd1", "name": "A"})
+    db = SessionLocal()
+    try:
+        u = db.execute(select(User).where(User.email == email)).scalar_one()
+        u.role = "admin"; db.commit()
+    finally:
+        db.close()
+    return c.post("/api/auth/login", json={"email": email, "password": "Passw0rd1"}).json()["access_token"]
+
+
 def test_drift_endpoint_requires_login():
     with TestClient(app) as c:
         assert c.get("/api/admin/drift").status_code == 401
 
 
-def test_drift_endpoint_returns_overview():
+def test_drift_endpoint_forbidden_for_normal_user():
+    # Đ11 — người đăng nhập thường KHÔNG xem được trang vận hành.
     with TestClient(app) as c:
-        c.post("/api/auth/register",
-               json={"email": "drift@x.com", "password": "Passw0rd1", "name": "D"})
-        tok = c.post("/api/auth/login",
-                     json={"email": "drift@x.com", "password": "Passw0rd1"}).json()["access_token"]
+        c.post("/api/auth/register", json={"email": "plain@x.com", "password": "Passw0rd1", "name": "P"})
+        tok = c.post("/api/auth/login", json={"email": "plain@x.com", "password": "Passw0rd1"}).json()["access_token"]
+        assert c.get("/api/admin/drift", headers={"Authorization": f"Bearer {tok}"}).status_code == 403
+
+
+def test_drift_endpoint_returns_overview_for_admin():
+    with TestClient(app) as c:
+        tok = _admin_token(c, "driftadmin@x.com")
         r = c.get("/api/admin/drift", headers={"Authorization": f"Bearer {tok}"})
         assert r.status_code == 200
         body = r.json()

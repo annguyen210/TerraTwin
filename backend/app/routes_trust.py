@@ -229,7 +229,7 @@ def run_misses(days: int = verify.MISS_LOOKBACK_DAYS,
 # ---------------------------------------------------------------------------
 
 @router.get("/api/admin/backup-status")
-def backup_status(user: User = Depends(auth.current_user)) -> dict:
+def backup_status(user: User = Depends(auth.require_admin)) -> dict:
     """Bản sao lưu gần nhất cách đây bao lâu. Báo động nếu quá 36 giờ.
 
     Đọc thư mục TERRATWIN_BACKUP_DIR (do ops/backup.sh ghi). Có endpoint này để

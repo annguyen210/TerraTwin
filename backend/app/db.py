@@ -62,6 +62,9 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255))
     name: Mapped[str] = mapped_column(String(120), default="")
+    # Đ11 — phân quyền: "user" (mặc định) · "coop" (hợp tác xã, xem cả nhóm) ·
+    # "admin" (xem trang vận hành). Route /api/admin/* chỉ mở cho admin.
+    role: Mapped[str] = mapped_column(String(16), default="user", server_default="user")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
     plots: Mapped[list["Plot"]] = relationship(
@@ -434,6 +437,8 @@ _ADDED_COLUMNS = [
     # Đường một chạm.
     ("observations", "source", "VARCHAR(16) DEFAULT 'user'"),
     ("observations", "alert_id", "INTEGER"),
+    # Đ11 — phân quyền cho database đã chạy trước khi có cột role.
+    ("users", "role", "VARCHAR(16) DEFAULT 'user'"),
 ]
 
 

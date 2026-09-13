@@ -65,6 +65,7 @@ class UserOut(BaseModel):
     id: int
     email: str
     name: str
+    role: str = "user"        # Đ11 — để giao diện ẩn/hiện mục quản trị
 
 
 class PlotIn(BaseModel):
@@ -107,7 +108,8 @@ TokenOut.model_rebuild()
 
 
 def _out(u: User) -> UserOut:
-    return UserOut(id=u.id, email=u.email, name=u.name)
+    return UserOut(id=u.id, email=u.email, name=u.name,
+                   role=getattr(u, "role", "user") or "user")
 
 
 def _plot_out(p: Plot) -> PlotOut:

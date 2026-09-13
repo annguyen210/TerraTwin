@@ -400,7 +400,7 @@ export type AnomalyResult = {
 };
 
 // ---- Tài khoản & thửa đất (thay localStorage) ----
-export type AuthUser = { id: number; email: string; name: string };
+export type AuthUser = { id: number; email: string; name: string; role?: string };
 export type TokenResponse = { access_token: string; user: AuthUser };
 
 export type ServerPlot = {
