@@ -15,12 +15,15 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   ackAlert,
+  getMyQuestions,
   listAlerts,
   listPlots,
   runRadar,
+  sendTapAnswer,
   type AlertRow,
   type AuthUser,
   type ServerPlot,
+  type TapQuestion,
 } from "@/lib/api";
 
 const GRADE_COLOR: Record<string, string> = {
@@ -39,22 +42,37 @@ export default function MyLand({
 }) {
   const [plots, setPlots] = useState<ServerPlot[]>([]);
   const [alerts, setAlerts] = useState<AlertRow[]>([]);
+  const [questions, setQuestions] = useState<TapQuestion[]>([]);   // H6
+  const [answered, setAnswered] = useState<Record<number, string>>({});
   const [loaded, setLoaded] = useState(false);
   const [scanning, setScanning] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!user) return;
     try {
-      const [p, a] = await Promise.all([
+      const [p, a, q] = await Promise.all([
         listPlots().catch(() => []),
         listAlerts(true).catch(() => []),
+        getMyQuestions(5).then((r) => r.questions).catch(() => []),
       ]);
       setPlots(p);
       setAlerts(a);
+      setQuestions(q);
     } finally {
       setLoaded(true);
     }
   }, [user]);
+
+  // H6 — trả lời câu hỏi chờ NGAY tại đây (đóng vòng lặp tin cậy trong app).
+  async function answer(q: TapQuestion, value: "yes" | "no" | "unsure") {
+    if (!q.token) return;
+    setAnswered((m) => ({ ...m, [q.alert_id]: value }));
+    try {
+      await sendTapAnswer(q.token, value);
+    } catch {
+      setAnswered((m) => { const n = { ...m }; delete n[q.alert_id]; return n; });
+    }
+  }
 
   useEffect(() => {
     refresh();
@@ -109,6 +127,41 @@ export default function MyLand({
           {scanning ? "Đang quét…" : "Quét lại ngay"}
         </button>
       </div>
+
+      {/* H6 — CÂU HỎI CHỜ LÊN TRÊN CÙNG (trên cả cảnh báo). Đây là thứ đóng vòng
+          lặp tin cậy; nằm dưới màn cuộn thì tỉ lệ trả lời ≈ 0. Đặt trên vì một
+          câu trả lời của người vừa chấm điểm cảnh báo vừa hiệu chỉnh cả vùng. */}
+      {questions.length > 0 && (
+        <div className="ml-alerts" style={{ borderColor: "var(--terra, #1f5137)" }}>
+          <span className="ml-cap">📩 {questions.length} câu cần bạn xác nhận — giúp TerraTwin chính xác hơn cho cả vùng</span>
+          {questions.map((q) => {
+            const done = answered[q.alert_id];
+            return (
+              <div key={q.alert_id} className="ml-alert" style={{ borderLeftColor: "var(--terra, #1f5137)" }}>
+                {done ? (
+                  <p style={{ margin: 0, color: "var(--ok, #2E9E67)", fontWeight: 600 }}>
+                    ✓ Cảm ơn bạn đã trả lời!
+                  </p>
+                ) : (
+                  <>
+                    <p style={{ margin: "0 0 8px", fontWeight: 600 }}>{q.question}</p>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      {[["yes", "Có"], ["no", "Không"], ["unsure", "Không rõ"]].map(([v, label]) => (
+                        <button key={v} onClick={() => answer(q, v as "yes" | "no" | "unsure")}
+                          style={{ padding: "6px 16px", borderRadius: 6, cursor: "pointer",
+                            border: "1px solid var(--line, #d7ddd8)", background: "transparent",
+                            color: "var(--ink, #0f1411)", fontWeight: 600 }}>
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {alerts.length > 0 && (
         <div className="ml-alerts">
