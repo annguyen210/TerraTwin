@@ -21,6 +21,7 @@ import Start from "@/components/Start";
 import Story from "@/components/Story";
 import MyLand from "@/components/MyLand";
 import Landing from "@/components/Landing";
+import Onboarding from "@/components/Onboarding";
 import Alerts from "@/components/Alerts";
 import FieldMode from "@/components/FieldMode";
 import Heatmap from "@/components/Heatmap";
@@ -214,6 +215,7 @@ export default function Home() {
   if (!coord) {
     return (
       <>
+        <Onboarding />
         {story && (
           <Story onClose={() => setStory(false)} onExplore={onStart} />
         )}

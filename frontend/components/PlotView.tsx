@@ -26,6 +26,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { getImagery, type Imagery } from "@/lib/api";
+import { isDataSaver } from "@/lib/net";
 
 type Lop = "true" | "ndvi";
 
@@ -36,9 +37,12 @@ export default function PlotView({ lat, lon }: { lat: number; lon: number }) {
   const [soSanh, setSoSanh] = useState(false);
   const [keo, setKeo] = useState(50);
   const [loaded, setLoaded] = useState(false);
+  // P2 — tiết kiệm dữ liệu: hoãn tải ảnh (~0,5 MB) sau một cú chạm.
+  const [defer, setDefer] = useState(false);
   const khung = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (isDataSaver()) { setDefer(true); return; }   // chờ người dùng chạm
     let huy = false;
     setBusy(true);
     setD(null);
@@ -51,6 +55,32 @@ export default function PlotView({ lat, lon }: { lat: number; lon: number }) {
       huy = true;
     };
   }, [lat, lon]);
+
+  function loadNow() {
+    setDefer(false);
+    setBusy(true);
+    getImagery(lat, lon)
+      .then(setD)
+      .catch(() => setD(null))
+      .finally(() => setBusy(false));
+  }
+
+  if (defer) {
+    return (
+      <div className="pv">
+        <div className="pv-head">🛰️ Ảnh thửa đất</div>
+        <button className="pv-load" onClick={loadNow} style={{
+          width: "100%", padding: "14px", borderRadius: 8, cursor: "pointer",
+          border: "1px dashed var(--line, #d7ddd8)", background: "var(--surface-2,#f8faf7)",
+          color: "var(--ink, #0f1411)", fontWeight: 600 }}>
+          📷 Bấm để tải ảnh vệ tinh (~0,5 MB)
+          <br /><small style={{ fontWeight: 400, color: "var(--muted,#66716a)" }}>
+            Đang ở chế độ tiết kiệm dữ liệu — ảnh không tự tải.
+          </small>
+        </button>
+      </div>
+    );
+  }
 
   if (busy) {
     return (
