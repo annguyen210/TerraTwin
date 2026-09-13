@@ -473,6 +473,22 @@ def funnel(days: int = 30, user: User = Depends(auth.current_user),
     }
 
 
+@router.get("/api/explain/{alert_id}/lineage")
+def alert_lineage(alert_id: int, user: User = Depends(auth.current_user),
+                  db: Session = Depends(get_session)) -> dict:
+    """A5 — nguồn gốc dữ liệu + công thức tái lập cho một cảnh báo. Chỉ chủ cảnh
+    báo xem được (không lộ thửa người khác). Nền bắt buộc cho G2/G3."""
+    from app.services import lineage
+
+    a = db.get(Alert, alert_id)
+    if a is None or a.user_id != user.id:
+        raise HTTPException(404, "Không tìm thấy cảnh báo.")
+    out = lineage.for_alert(db, alert_id)
+    if out is None:
+        raise HTTPException(404, "Không dựng được nguồn gốc cho cảnh báo này.")
+    return out
+
+
 @router.get("/api/admin/drift")
 def drift_report(lat: float | None = None, lon: float | None = None,
                  module: str | None = None,

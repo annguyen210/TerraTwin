@@ -3,18 +3,42 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   deletePlot,
+  getAlertLineage,
   getPlotTimeline,
   listPlots,
   savePlot,
   scanAll,
   signReport,
   trackEvent,
+  type AlertLineage,
   type AuthUser,
   type PlotTimeline,
   type ServerPlot,
   type SignedReport,
   type TerraScore,
 } from "@/lib/api";
+
+/* A5 — nguồn gốc + tái lập cho MỘT cảnh báo, mở ngay dưới sự kiện. */
+function LineageView({ alertId }: { alertId: number }) {
+  const [d, setD] = useState<AlertLineage | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    getAlertLineage(alertId).then((r) => live && setD(r)).catch((e) => live && setErr((e as Error).message));
+    return () => { live = false; };
+  }, [alertId]);
+  if (err) return <p className="pf-empty" style={{ margin: "2px 0" }}>{err}</p>;
+  if (!d) return <p className="pf-empty" style={{ margin: "2px 0" }}>Đang tải nguồn gốc…</p>;
+  return (
+    <div style={{ margin: "4px 0 2px", padding: "6px 10px", fontSize: 11.5,
+      background: "var(--surface, #fff)", borderRadius: 6, border: "1px solid var(--line-2, #e8ece8)" }}>
+      <div><b>Nguồn dữ liệu:</b> {d.sources.join(" · ")}</div>
+      <div><b>Ngưỡng:</b> chú ý {d.model.thresholds.safe} · nguy hiểm {d.model.thresholds.warning} (hiệu chuẩn theo chính điểm này)</div>
+      {d.reproduce && <div><b>Chạy lại:</b> <span style={{ fontFamily: "monospace" }}>{d.reproduce.verify_api}</span></div>}
+      <div style={{ color: "var(--dim, #66716a)", marginTop: 2 }}>🔏 {d.lineage_short}</div>
+    </div>
+  );
+}
 
 // H4 — nhãn + màu cho kết quả mỗi cảnh báo trong dòng thời gian thửa.
 const OUTCOME: Record<string, [string, string]> = {
@@ -34,6 +58,7 @@ const OUTCOME: Record<string, [string, string]> = {
 function PlotHistory({ plotId }: { plotId: number }) {
   const [tl, setTl] = useState<PlotTimeline | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [lineageOf, setLineageOf] = useState<number | null>(null);   // A5
   useEffect(() => {
     let live = true;
     getPlotTimeline(plotId)
@@ -79,6 +104,15 @@ function PlotHistory({ plotId }: { plotId: number }) {
                 {e.verify_note && (
                   <span style={{ fontSize: 11, color: "var(--dim, #66716a)" }}> — {e.verify_note}</span>
                 )}
+                {/* A5 — nguồn gốc + tái lập cảnh báo này */}
+                <button
+                  onClick={() => setLineageOf(lineageOf === e.alert_id ? null : e.alert_id)}
+                  style={{ display: "block", marginTop: 3, padding: 0, border: "none",
+                    background: "none", cursor: "pointer", fontSize: 11,
+                    color: "var(--terra, #1f5137)", fontWeight: 600 }}>
+                  🔍 {lineageOf === e.alert_id ? "ẩn nguồn gốc" : "nguồn gốc & cách kiểm chứng"}
+                </button>
+                {lineageOf === e.alert_id && <LineageView alertId={e.alert_id} />}
               </li>
             );
           })}

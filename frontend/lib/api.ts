@@ -1717,6 +1717,23 @@ export function getScorecard(days = 90) {
     "Không tải được sổ điểm");
 }
 
+// A5 — nguồn gốc dữ liệu + công thức tái lập cho một cảnh báo.
+export type AlertLineage = {
+  alert_id: number;
+  inputs: Record<string, unknown>;
+  model: { thresholds: { safe: number; warning: number }; note: string;
+           calibration: Record<string, unknown> };
+  sources: string[];
+  reproduce: { steps: string[]; verify_api: string; backtest_api: string } | null;
+  verification: Record<string, unknown>;
+  lineage_hash: string;
+  lineage_short: string;
+};
+export function getAlertLineage(alertId: number) {
+  return authed<AlertLineage>(`/api/explain/${alertId}/lineage`, { method: "GET" },
+    "Không tải được nguồn gốc");
+}
+
 // A9/G1 — ký tờ trình rủi ro bằng mã băm để bên nhận tự kiểm bản in không bị sửa.
 export type SignedReport = {
   hash: string; short: string; signed_at: string; verify_note: string;
