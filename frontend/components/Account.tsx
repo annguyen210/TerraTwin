@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { login, register, setToken, type AuthUser } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
 
 export default function Account({
   user,
@@ -10,6 +11,7 @@ export default function Account({
   user: AuthUser | null;
   onAuth: (u: AuthUser | null) => void;
 }) {
+  const { t } = useLang();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
@@ -53,7 +55,7 @@ export default function Account({
           </span>
         </div>
         <button className="acct-out" onClick={logout}>
-          Đăng xuất
+          {t("Đăng xuất", "Log out")}
         </button>
       </div>
     );
@@ -63,10 +65,11 @@ export default function Account({
     return (
       <div className="acct">
         <button className="acct-in" onClick={() => setOpen(true)}>
-          🔐 Đăng nhập để lưu thửa đất
+          🔐 {t("Đăng nhập để lưu thửa đất", "Log in to save plots")}
         </button>
         <p className="acct-hint">
-          Chưa đăng nhập vẫn phân tích được — chỉ không lưu được danh mục.
+          {t("Chưa đăng nhập vẫn phân tích được — chỉ không lưu được danh mục.",
+             "You can analyze without logging in — you just can't save a portfolio.")}
         </p>
       </div>
     );
@@ -80,20 +83,20 @@ export default function Account({
           className={mode === "login" ? "on" : ""}
           onClick={() => setMode("login")}
         >
-          Đăng nhập
+          {t("Đăng nhập", "Log in")}
         </button>
         <button
           type="button"
           className={mode === "register" ? "on" : ""}
           onClick={() => setMode("register")}
         >
-          Đăng ký
+          {t("Đăng ký", "Sign up")}
         </button>
       </div>
 
       {mode === "register" && (
         <input
-          placeholder="Tên của bạn"
+          placeholder={t("Tên của bạn", "Your name")}
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={120}
@@ -108,22 +111,25 @@ export default function Account({
       />
       <input
         type="password"
-        placeholder={mode === "register" ? "Mật khẩu (≥8 ký tự, có chữ và số)" : "Mật khẩu"}
+        placeholder={mode === "register"
+          ? t("Mật khẩu (≥8 ký tự, có chữ và số)", "Password (≥8 chars, letters + digits)")
+          : t("Mật khẩu", "Password")}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
         minLength={mode === "register" ? 8 : undefined}
       />
       {mode === "login" && (
-        <a className="acct-forgot" href="/forgot">Quên mật khẩu?</a>
+        <a className="acct-forgot" href="/forgot">{t("Quên mật khẩu?", "Forgot password?")}</a>
       )}
       {err && <p className="acct-err">{err}</p>}
       <div className="acct-actions">
         <button type="submit" disabled={busy}>
-          {busy ? "Đang xử lý…" : mode === "login" ? "Đăng nhập" : "Tạo tài khoản"}
+          {busy ? t("Đang xử lý…", "Working…")
+                : mode === "login" ? t("Đăng nhập", "Log in") : t("Tạo tài khoản", "Create account")}
         </button>
         <button type="button" className="ghost" onClick={() => setOpen(false)}>
-          Đóng
+          {t("Đóng", "Close")}
         </button>
       </div>
     </form>

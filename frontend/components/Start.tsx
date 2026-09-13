@@ -34,15 +34,15 @@ import { searchPlace, type PlaceHit } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 // 16 điểm đã kiểm chứng — cùng bộ dùng để huấn luyện mô hình khí hậu.
-const QUICK: { name: string; lat: number; lon: number; note: string }[] = [
-  { name: "Bến Tre", lat: 10.24, lon: 106.37, note: "đồng bằng sông Cửu Long" },
-  { name: "Cà Mau", lat: 9.18, lon: 105.15, note: "cực Nam, ngập mặn" },
-  { name: "Trà Leng, Quảng Nam", lat: 15.33, lon: 108.05, note: "núi dốc, từng sạt lở" },
-  { name: "Huế", lat: 16.46, lon: 107.59, note: "mưa lớn, từng lũ lịch sử" },
-  { name: "Phan Rang", lat: 11.56, lon: 108.99, note: "khô hạn nhất nước" },
-  { name: "Buôn Ma Thuột", lat: 12.67, lon: 108.05, note: "cao nguyên bazan" },
-  { name: "Hà Nội", lat: 21.03, lon: 105.85, note: "đồng bằng Bắc Bộ" },
-  { name: "Lai Châu", lat: 22.4, lon: 103.47, note: "núi cao Tây Bắc" },
+const QUICK: { name: string; lat: number; lon: number; note: string; note_en: string }[] = [
+  { name: "Bến Tre", lat: 10.24, lon: 106.37, note: "đồng bằng sông Cửu Long", note_en: "Mekong Delta" },
+  { name: "Cà Mau", lat: 9.18, lon: 105.15, note: "cực Nam, ngập mặn", note_en: "southernmost, saline" },
+  { name: "Trà Leng, Quảng Nam", lat: 15.33, lon: 108.05, note: "núi dốc, từng sạt lở", note_en: "steep hills, past landslide" },
+  { name: "Huế", lat: 16.46, lon: 107.59, note: "mưa lớn, từng lũ lịch sử", note_en: "heavy rain, historic floods" },
+  { name: "Phan Rang", lat: 11.56, lon: 108.99, note: "khô hạn nhất nước", note_en: "driest in the country" },
+  { name: "Buôn Ma Thuột", lat: 12.67, lon: 108.05, note: "cao nguyên bazan", note_en: "basalt highlands" },
+  { name: "Hà Nội", lat: 21.03, lon: 105.85, note: "đồng bằng Bắc Bộ", note_en: "Red River Delta" },
+  { name: "Lai Châu", lat: 22.4, lon: 103.47, note: "núi cao Tây Bắc", note_en: "high NW mountains" },
 ];
 
 export default function Start({
@@ -221,7 +221,7 @@ export default function Start({
         {QUICK.map((p) => (
           <button key={p.name} onClick={() => onPick(p.lat, p.lon, p.name)}>
             <b>{p.name}</b>
-            <small>{p.note}</small>
+            <small>{t(p.note, p.note_en)}</small>
           </button>
         ))}
       </div>
