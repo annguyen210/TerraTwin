@@ -20,6 +20,7 @@ yarn-error.log*
 .env
 .env.local
 *.local
+.vapid-keys.txt
 
 # Database cục bộ (SQLite)
 *.db
