@@ -26,6 +26,7 @@ import {
   type TapQuestion,
 } from "@/lib/api";
 import { enablePush, pushState } from "@/lib/push";
+import { getBriefStatus, toggleBrief } from "@/lib/api";
 
 const GRADE_COLOR: Record<string, string> = {
   A: "#2E9E67", B: "#3aa0a0", C: "#B07A2E", D: "#C2412E",
@@ -48,11 +49,18 @@ export default function MyLand({
   const [loaded, setLoaded] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [push, setPush] = useState<string>("");   // M1 — trạng thái web push
+  const [brief, setBrief] = useState<boolean | null>(null);   // M4
 
   useEffect(() => { pushState().then(setPush).catch(() => {}); }, []);
+  useEffect(() => { getBriefStatus().then((r) => setBrief(r.enabled)).catch(() => {}); }, []);
   async function turnOnPush() {
     setPush("...");
     try { setPush(await enablePush()); } catch { setPush("off"); }
+  }
+  async function flipBrief() {
+    const next = !brief;
+    setBrief(next);
+    try { await toggleBrief(next); } catch { setBrief(!next); }
   }
 
   const refresh = useCallback(async () => {
@@ -149,6 +157,15 @@ export default function MyLand({
       {push === "..." && <p className="ml-brief-sub">Đang bật thông báo…</p>}
       {push === "on" && <p className="ml-brief-sub" style={{ color: "var(--ok, #2E9E67)" }}>🔔 Thông báo đẩy đang bật.</p>}
       {push === "denied" && <p className="ml-brief-sub">Thông báo bị chặn trong trình duyệt — mở lại trong cài đặt trang để nhận cảnh báo.</p>}
+
+      {/* M4 — bản tin sáng (opt-in). Hiện khi push đã bật (mới gửi được). */}
+      {push === "on" && brief !== null && (
+        <label style={{ display: "flex", alignItems: "center", gap: 8, margin: "0 0 10px",
+          fontSize: 13, color: "var(--ink-2, #333d36)", cursor: "pointer" }}>
+          <input type="checkbox" checked={brief} onChange={flipBrief} />
+          ☀️ Gửi bản tin sáng mỗi ngày (kể cả khi an toàn) — tạo thói quen theo dõi
+        </label>
+      )}
 
       {/* H6 — CÂU HỎI CHỜ LÊN TRÊN CÙNG (trên cả cảnh báo). Đây là thứ đóng vòng
           lặp tin cậy; nằm dưới màn cuộn thì tỉ lệ trả lời ≈ 0. Đặt trên vì một

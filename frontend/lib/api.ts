@@ -1717,6 +1717,20 @@ export function getScorecard(days = 90) {
     "Không tải được sổ điểm");
 }
 
+// M4 — bản tin sáng.
+export function getBriefStatus() {
+  return authed<{ enabled: boolean }>("/api/brief/status", { method: "GET" },
+    "Không tải được trạng thái bản tin");
+}
+export function toggleBrief(on: boolean) {
+  return authed<{ enabled: boolean }>(`/api/brief/toggle?on=${on}`,
+    { method: "POST" }, "Không đổi được bản tin");
+}
+export function previewBrief() {
+  return authed<{ sent: number; title?: string; body?: string; message?: string }>(
+    "/api/brief/preview", { method: "POST" }, "Không gửi thử được bản tin");
+}
+
 // M1 — Web Push.
 export function getPushKey() {
   return getJson<{ configured: boolean; public_key: string | null }>(

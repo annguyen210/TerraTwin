@@ -65,6 +65,10 @@ class User(Base):
     # Đ11 — phân quyền: "user" (mặc định) · "coop" (hợp tác xã, xem cả nhóm) ·
     # "admin" (xem trang vận hành). Route /api/admin/* chỉ mở cho admin.
     role: Mapped[str] = mapped_column(String(16), default="user", server_default="user")
+    # M4 — bản tin sáng: mặc định TẮT (người dùng tự bật để không spam). brief_last
+    # giữ ngày gửi gần nhất (YYYY-MM-DD) để không gửi trùng trong cùng buổi sáng.
+    morning_brief: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    brief_last: Mapped[str] = mapped_column(String(10), default="", server_default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
     plots: Mapped[list["Plot"]] = relationship(
@@ -457,6 +461,9 @@ _ADDED_COLUMNS = [
     ("observations", "alert_id", "INTEGER"),
     # Đ11 — phân quyền cho database đã chạy trước khi có cột role.
     ("users", "role", "VARCHAR(16) DEFAULT 'user'"),
+    # M4 — bản tin sáng.
+    ("users", "morning_brief", "INTEGER DEFAULT 0"),
+    ("users", "brief_last", "VARCHAR(10) DEFAULT ''"),
 ]
 
 

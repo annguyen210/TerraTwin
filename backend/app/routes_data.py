@@ -600,6 +600,47 @@ def push_test(user: User = Depends(auth.current_user),
     return {"sent": n}
 
 
+# ---------------------------------------------------------------------------
+# M4 — BẢN TIN SÁNG
+# ---------------------------------------------------------------------------
+
+@router.get("/api/brief/status")
+def brief_status(user: User = Depends(auth.current_user)) -> dict:
+    """Người này đã bật bản tin sáng chưa."""
+    return {"enabled": bool(getattr(user, "morning_brief", 0))}
+
+
+@router.post("/api/brief/toggle")
+def brief_toggle(on: bool, user: User = Depends(auth.current_user),
+                 db: Session = Depends(get_session)) -> dict:
+    """Bật/tắt bản tin sáng cho chính mình. Mặc định TẮT — người dùng tự bật."""
+    user.morning_brief = 1 if on else 0
+    db.commit()
+    return {"enabled": bool(user.morning_brief)}
+
+
+@router.post("/api/brief/preview")
+def brief_preview(user: User = Depends(auth.current_user),
+                  db: Session = Depends(get_session)) -> dict:
+    """Gửi thử bản tin sáng cho chính mình ngay bây giờ (không đợi tới sáng)."""
+    from app.services import brief, push
+    composed = brief.compose(db, user)
+    if composed is None:
+        return {"sent": 0, "message": "Chưa lưu thửa nào để làm bản tin."}
+    title, body = composed
+    return {"sent": push.send_to_user(db, user.id, title, body, "/"),
+            "title": title, "body": body}
+
+
+@router.post("/api/brief/run")
+def brief_run(force: bool = False, user: User = Depends(auth.require_admin),
+              db: Session = Depends(get_session)) -> dict:
+    """Cron mỗi sáng gọi endpoint này (admin) để gửi bản tin cho mọi người đã bật.
+    Dedup theo ngày nên gọi nhiều lần trong sáng không gửi trùng."""
+    from app.services import brief
+    return brief.run_all(db, force=force)
+
+
 @router.get("/api/channels/status")
 def channels_status() -> dict:
     """Kênh nào đã cấu hình xong ở phía máy chủ.
