@@ -25,6 +25,7 @@
 import { useEffect, useRef, useState } from "react";
 import { scanAll, trackEvent, type ScanResult, type ScanModule, type ModuleInfo } from "@/lib/api";
 import SpeakButton from "@/components/SpeakButton";
+import { useLang } from "@/lib/i18n";
 import Passport from "./Passport";
 import PlotView from "./PlotView";
 import WhyTrust from "./WhyTrust";
@@ -49,10 +50,12 @@ const TONE_HEX: Record<string, string> = {
   bad: "#C2412E", warn: "#B07A2E", ok: "#2E9E67", pending: "#3aa0a0", wait: "#5a6b73",
 };
 
-function statusLabel(st?: string): string {
-  if (st === "pending") return "đang chạy…";
-  if (st === "need_data") return "chờ ảnh vệ tinh quang mây";
-  if (st === "out_of_scope") return "không áp dụng ở đây";
+type T = (vi: string, en: string) => string;
+
+function statusLabel(st: string | undefined, t: T): string {
+  if (st === "pending") return t("đang chạy…", "running…");
+  if (st === "need_data") return t("chờ ảnh vệ tinh quang mây", "awaiting cloud-free satellite");
+  if (st === "out_of_scope") return t("không áp dụng ở đây", "not applicable here");
   return "";
 }
 
@@ -80,7 +83,7 @@ function Spark({ values, color }: { values: number[]; color: string }) {
   );
 }
 
-function headline(d: ScanResult): { tone: string; big: string; sub: string } {
+function headline(d: ScanResult, t: T): { tone: string; big: string; sub: string } {
   const nguy = d.alerts.filter((a) => a.risk_level === "danger");
   const canh = d.alerts.filter((a) => a.risk_level === "warning");
   // BỐN TRẠNG THÁI, đếm riêng. Gộp lại là tự bôi xấu mình: một mục ĐANG CHẠY
@@ -89,16 +92,20 @@ function headline(d: ScanResult): { tone: string; big: string; sub: string } {
   const chuaBiet = d.modules.filter((m) => m.status === "need_data").length;
 
   const duoi = chuaBiet
-    ? `${chuaBiet} mục chưa đủ dữ liệu để kết luận — xem bên dưới.`
-    : "Mọi mục đều có dữ liệu thật để kết luận.";
+    ? t(`${chuaBiet} mục chưa đủ dữ liệu để kết luận — xem bên dưới.`,
+        `${chuaBiet} item(s) lack enough data to conclude — see below.`)
+    : t("Mọi mục đều có dữ liệu thật để kết luận.",
+        "Every item has real data to conclude on.");
 
   if (nguy.length) {
     return {
       tone: "bad",
       big:
         nguy.length === 1
-          ? `Cần xử lý ngay: ${nguy[0].name.toLowerCase()}`
-          : `Cần xử lý ngay: ${nguy.length} rủi ro`,
+          ? t(`Cần xử lý ngay: ${nguy[0].name.toLowerCase()}`,
+              `Act now: ${nguy[0].name.toLowerCase()}`)
+          : t(`Cần xử lý ngay: ${nguy.length} rủi ro`,
+              `Act now: ${nguy.length} risks`),
       sub: duoi,
     };
   }
@@ -107,8 +114,10 @@ function headline(d: ScanResult): { tone: string; big: string; sub: string } {
       tone: "warn",
       big:
         canh.length === 1
-          ? `Nên chú ý: ${canh[0].name.toLowerCase()}`
-          : `Nên chú ý: ${canh.length} rủi ro`,
+          ? t(`Nên chú ý: ${canh[0].name.toLowerCase()}`,
+              `Worth noting: ${canh[0].name.toLowerCase()}`)
+          : t(`Nên chú ý: ${canh.length} rủi ro`,
+              `Worth noting: ${canh.length} risks`),
       sub: duoi,
     };
   }
@@ -124,17 +133,20 @@ function headline(d: ScanResult): { tone: string; big: string; sub: string } {
   if (chuaBiet > 0 && chuaBiet >= d.modules.length / 3) {
     return {
       tone: "warn",
-      big: `Chưa kết luận được — ${chuaBiet}/${d.modules.length} mục thiếu dữ liệu`,
+      big: t(`Chưa kết luận được — ${chuaBiet}/${d.modules.length} mục thiếu dữ liệu`,
+             `Can't conclude — ${chuaBiet}/${d.modules.length} items lack data`),
       sub:
         dung > 0
-          ? `${dung} mục còn lại chưa thấy rủi ro. Phần thiếu không có nghĩa là an toàn.`
-          : "Chưa mục nào có đủ dữ liệu thật để kết luận.",
+          ? t(`${dung} mục còn lại chưa thấy rủi ro. Phần thiếu không có nghĩa là an toàn.`,
+              `The other ${dung} show no risk. Missing data does NOT mean safe.`)
+          : t("Chưa mục nào có đủ dữ liệu thật để kết luận.",
+              "No item has enough real data to conclude yet."),
     };
   }
 
   return {
     tone: "ok",
-    big: "Bảy ngày tới chưa thấy rủi ro nào",
+    big: t("Bảy ngày tới chưa thấy rủi ro nào", "No risks in the next 7 days"),
     sub: duoi,
   };
 }
@@ -166,6 +178,7 @@ export default function Answer({
   // gọi /api/terrascore lần nữa — đó chính là lời gọi thừa làm chậm gấp năm lần.
   onTerra?: (t: ScanResult["terrascore"]) => void;
 }) {
+  const { t } = useLang();
   const [d, setD] = useState<ScanResult | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -270,7 +283,8 @@ export default function Answer({
         {label && <p className="ans-where">📍 {label}</p>}
         <div className="ans-scanning">
           <span className="ans-spin sm" />
-          <b>Đang quét {modules?.length ?? 18} mũi nhọn cho thửa này{giay ? ` · ${giay}s` : ""}…</b>
+          <b>{t(`Đang quét ${modules?.length ?? 18} mũi nhọn cho thửa này`,
+                `Scanning ${modules?.length ?? 18} spearheads for this plot`)}{giay ? ` · ${giay}s` : ""}…</b>
         </div>
         {/* Lưới SỐNG: hiện ngay mọi mũi nhọn đang được kiểm (skeleton nhấp nháy),
             để 15 giây chờ trở thành bằng chứng phần mềm đang làm RẤT NHIỀU việc —
@@ -288,10 +302,8 @@ export default function Answer({
         )}
         {giay >= 4 && (
           <p className="ans-wait">
-            Lần đầu xem một nơi mới thì lâu hơn — TerraTwin đang tải{" "}
-            <b>10 năm lịch sử thời tiết của đúng toạ độ này</b> để biết thế nào
-            mới là bất thường <i>ở đây</i>, thay vì dùng một ngưỡng chung cho cả
-            nước. Lần sau chỗ này trả lời trong vài giây.
+            {t("Lần đầu xem một nơi mới thì lâu hơn — TerraTwin đang tải 10 năm lịch sử thời tiết của đúng toạ độ này để biết thế nào mới là bất thường ở đây, thay vì dùng một ngưỡng chung cho cả nước. Lần sau chỗ này trả lời trong vài giây.",
+                "First look at a new place takes longer — TerraTwin is loading 10 years of weather history for this exact point to learn what's abnormal HERE, instead of one nationwide threshold. Next time this spot answers in seconds.")}
           </p>
         )}
       </div>
@@ -314,8 +326,8 @@ export default function Answer({
         <div className="ans-head off">
           <b>
             {d.region.kind === "sea"
-              ? "🌊 Chỗ này là mặt nước"
-              : "🗺️ Ngoài phạm vi phục vụ"}
+              ? t("🌊 Chỗ này là mặt nước", "🌊 This is open water")
+              : t("🗺️ Ngoài phạm vi phục vụ", "🗺️ Outside service area")}
           </b>
           <p>{d.region.note}</p>
         </div>
@@ -323,7 +335,7 @@ export default function Answer({
     );
   }
 
-  const h = headline(d);
+  const h = headline(d, t);
   const canLam = d.alerts.filter((a) => a.recommendation);
   const chuaDu = d.modules.filter((m) => m.status === "need_data");
   const dangChay = d.modules.filter((m) => m.status === "pending");
@@ -341,8 +353,7 @@ export default function Answer({
           background: "var(--clay-soft, #f7e9df)", color: "var(--clay, #a0522c)",
           fontSize: 13, fontWeight: 600, border: "1px solid var(--clay, #a0522c)",
         }}>
-          📴 Đang xem kết quả đã lưu lúc {stale} — <b>có thể đã cũ</b>. Mở lại khi
-          có mạng để cập nhật (cảnh báo mới KHÔNG hiện khi offline).
+          📴 {t(`Đang xem kết quả đã lưu lúc ${stale}`, `Showing result saved at ${stale}`)} — <b>{t("có thể đã cũ", "may be stale")}</b>. {t("Mở lại khi có mạng để cập nhật (cảnh báo mới KHÔNG hiện khi offline).", "Reopen when online to refresh (new alerts do NOT show offline).")}
         </p>
       )}
 
@@ -366,7 +377,7 @@ export default function Answer({
 
       {canLam.length > 0 && (
         <div className="ans-todo">
-          <span className="ans-cap">Nên làm gì</span>
+          <span className="ans-cap">{t("Nên làm gì", "What to do")}</span>
           {canLam.map((a) => (
             <div key={a.id} className={`ans-item ${TONE[a.risk_level] ?? ""}`}>
               <button className="ans-name" onClick={() => onSelectModule?.(a.id)}>
@@ -381,8 +392,8 @@ export default function Answer({
 
       {canLam.length === 0 && (
         <p className="ans-calm">
-          Không có việc gì cần làm gấp. Bật cảnh báo để TerraTwin tự báo khi
-          tình hình đổi, thay vì bạn phải mở lên xem.
+          {t("Không có việc gì cần làm gấp. Bật cảnh báo để TerraTwin tự báo khi tình hình đổi, thay vì bạn phải mở lên xem.",
+             "Nothing urgent to do. Turn on alerts so TerraTwin tells you when things change, instead of you having to check.")}
         </p>
       )}
 
@@ -392,7 +403,8 @@ export default function Answer({
       {d.modules.length > 0 && (
         <div className="ans-grid-wrap">
           <span className="ans-cap">
-            Đã quét toàn bộ {d.modules.length} mũi nhọn cho thửa này
+            {t(`Đã quét toàn bộ ${d.modules.length} mũi nhọn cho thửa này`,
+               `Scanned all ${d.modules.length} spearheads for this plot`)}
           </span>
           <div className="ans-grid rich">
             {d.modules.map((m) => {
@@ -420,17 +432,17 @@ export default function Answer({
                   ) : m.status === "ok" ? (
                     <span className="ans-cell-hl">{m.headline}</span>
                   ) : (
-                    <span className="ans-cell-st">{statusLabel(m.status)}</span>
+                    <span className="ans-cell-st">{statusLabel(m.status, t)}</span>
                   )}
                 </button>
               );
             })}
           </div>
           <div className="ans-grid-key">
-            <span><i className="k-bad" /> nguy hiểm</span>
-            <span><i className="k-warn" /> cảnh báo</span>
-            <span><i className="k-ok" /> an toàn</span>
-            <span><i className="k-wait" /> đang/ chờ dữ liệu</span>
+            <span><i className="k-bad" /> {t("nguy hiểm", "danger")}</span>
+            <span><i className="k-warn" /> {t("cảnh báo", "warning")}</span>
+            <span><i className="k-ok" /> {t("an toàn", "safe")}</span>
+            <span><i className="k-wait" /> {t("đang/ chờ dữ liệu", "running/awaiting data")}</span>
           </div>
         </div>
       )}
@@ -439,12 +451,12 @@ export default function Answer({
         <div className="ans-pending">
           <span className="ans-spin sm" />
           <div>
-            <b>Đang kiểm tra thêm {dangChay.length} mục</b>
+            <b>{t(`Đang kiểm tra thêm ${dangChay.length} mục`, `Still checking ${dangChay.length} more`)}</b>
             <p>
-              Những mục này cần ảnh vệ tinh nên lâu hơn hẳn — chúng đang chạy
-              nền, không phải thiếu dữ liệu. Mở{" "}
+              {t("Những mục này cần ảnh vệ tinh nên lâu hơn hẳn — chúng đang chạy nền, không phải thiếu dữ liệu. Mở ",
+                 "These need satellite imagery so they take longer — running in the background, not missing data. Open ")}
               <i>{dangChay.slice(0, 3).map((m) => m.name.toLowerCase()).join(", ")}</i>
-              {dangChay.length > 3 ? "…" : ""} ở cột trái để xem từng cái.
+              {dangChay.length > 3 ? "…" : ""} {t("ở cột trái để xem từng cái.", "in the left column to see each.")}
             </p>
           </div>
         </div>
@@ -452,20 +464,20 @@ export default function Answer({
 
       {khongApDung.length > 0 && (
         <p className="ans-na">
-          {khongApDung.length} mục <b>không áp dụng</b> ở đây (
-          {khongApDung.map((m) => m.name.toLowerCase()).join(", ")}) — đó là câu
-          trả lời đúng cho vị trí này, không phải thiếu sót.
+          {khongApDung.length} {t("mục", "item(s)")} <b>{t("không áp dụng", "not applicable")}</b> {t("ở đây", "here")} (
+          {khongApDung.map((m) => m.name.toLowerCase()).join(", ")}) — {t("đó là câu trả lời đúng cho vị trí này, không phải thiếu sót.", "that's the correct answer for this location, not a gap.")}
         </p>
       )}
 
       {chuaDu.length > 0 && (
         <details className="ans-unknown">
           <summary>
-            {chuaDu.length} mục chưa đủ dữ liệu để kết luận
+            {t(`${chuaDu.length} mục chưa đủ dữ liệu để kết luận`,
+               `${chuaDu.length} item(s) lack enough data to conclude`)}
           </summary>
           <p className="ans-note">
-            Những mục này <b>không phải là an toàn</b> — chỉ là chưa có đủ dữ
-            liệu thật để nói. Phần lớn chờ kết nối ảnh vệ tinh Sentinel-2.
+            {t("Những mục này không phải là an toàn — chỉ là chưa có đủ dữ liệu thật để nói. Phần lớn chờ kết nối ảnh vệ tinh Sentinel-2.",
+               "These are NOT safe — there just isn't enough real data yet. Most await Sentinel-2 satellite imagery.")}
           </p>
           <ul>
             {chuaDu.map((m) => (
@@ -485,9 +497,9 @@ export default function Answer({
       <WhyTrust lat={lat} lon={lon} />
 
       <div className="ans-more">
-        <button onClick={onDetail}>Xem chi tiết từng mục</button>
+        <button onClick={onDetail}>{t("Xem chi tiết từng mục", "See each item in detail")}</button>
         <span className="ans-src">
-          {Math.round((d.real_data_ratio ?? 0) * 100)}% kết luận dựa trên dữ liệu đo được
+          {Math.round((d.real_data_ratio ?? 0) * 100)}% {t("kết luận dựa trên dữ liệu đo được", "of conclusions use measured data")}
         </span>
       </div>
     </div>
