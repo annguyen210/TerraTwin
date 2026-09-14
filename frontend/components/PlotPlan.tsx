@@ -32,18 +32,21 @@ import {
   type PlotPlan as Plan,
   type TapQuestion,
 } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
+
+type T = (vi: string, en: string) => string;
 
 // Tên đặc trưng cho phần "độ hiếm tổ hợp" — đọc được cho người thường.
-const DRIVER_VI: Record<string, string> = {
-  tmax: "Nhiệt tối đa",
-  tmin: "Nhiệt tối thiểu",
-  rain_7d: "Mưa 7 ngày",
-  rain_30d: "Mưa 30 ngày",
-  rain_60d: "Mưa 60 ngày",
-  dry_streak: "Chuỗi ngày khô",
-  wet_streak: "Chuỗi ngày mưa",
-  humidity: "Độ ẩm",
-  wind: "Gió",
+const DRIVER_L: Record<string, [string, string]> = {
+  tmax: ["Nhiệt tối đa", "Max temp"],
+  tmin: ["Nhiệt tối thiểu", "Min temp"],
+  rain_7d: ["Mưa 7 ngày", "7-day rain"],
+  rain_30d: ["Mưa 30 ngày", "30-day rain"],
+  rain_60d: ["Mưa 60 ngày", "60-day rain"],
+  dry_streak: ["Chuỗi ngày khô", "Dry streak"],
+  wet_streak: ["Chuỗi ngày mưa", "Wet streak"],
+  humidity: ["Độ ẩm", "Humidity"],
+  wind: ["Gió", "Wind"],
 };
 
 const RISK_HEX: Record<string, string> = {
@@ -52,11 +55,11 @@ const RISK_HEX: Record<string, string> = {
   safe: "#3ecb83",
 };
 
-function leadBadge(n: number | null): string {
+function leadBadge(n: number | null, t: T): string {
   if (n == null) return "";
-  if (n <= 0) return "hôm nay";
-  if (n === 1) return "ngày mai";
-  return `còn ${n} ngày`;
+  if (n <= 0) return t("hôm nay", "today");
+  if (n === 1) return t("ngày mai", "tomorrow");
+  return t(`còn ${n} ngày`, `in ${n} days`);
 }
 
 export default function PlotPlan({
@@ -70,6 +73,7 @@ export default function PlotPlan({
   area?: number | null;
   onSelectModule?: (id: string) => void;
 }) {
+  const { t } = useLang();
   const [crop, setCrop] = useState("lua");
   const [plan, setPlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(true);
@@ -170,7 +174,7 @@ export default function PlotPlan({
   if (loading && !plan) {
     return (
       <div className="plan plan-skel">
-        <div className="plan-head">🧭 Đang lập kế hoạch cho thửa…</div>
+        <div className="plan-head">🧭 {t("Đang lập kế hoạch cho thửa…", "Building the plot's plan…")}</div>
       </div>
     );
   }
@@ -187,27 +191,30 @@ export default function PlotPlan({
     <div className="plan">
       <div className="plan-head">
         <div className="plan-head-main">
-          🧭 Kế hoạch cho thửa của bạn
+          🧭 {t("Kế hoạch cho thửa của bạn", "Your plot's plan")}
           <span className="plan-sub">
             {plan.n_alerts
-              ? `${plan.n_alerts} việc cần lưu ý · sắp theo mức nguy hiểm`
-              : "Không có cảnh báo — nhưng vẫn có kế hoạch canh nền"}
+              ? t(`${plan.n_alerts} việc cần lưu ý · sắp theo mức nguy hiểm`,
+                  `${plan.n_alerts} things to note · sorted by severity`)
+              : t("Không có cảnh báo — nhưng vẫn có kế hoạch canh nền",
+                  "No alerts — but there's still a background watch plan")}
           </span>
         </div>
         <div className="plan-head-btns">
           <Link
             className="plan-print"
             href={`/plot/${lat.toFixed(5)},${lon.toFixed(5)}`}
-            title="Sổ tay thửa — hồ sơ dữ liệu chia sẻ được (ngân hàng, bảo hiểm, người mua)"
+            title={t("Sổ tay thửa — hồ sơ dữ liệu chia sẻ được (ngân hàng, bảo hiểm, người mua)",
+                     "Land Passport — shareable data record (bank, insurer, buyer)")}
           >
-            📄 Sổ tay thửa
+            📄 {t("Sổ tay thửa", "Land Passport")}
           </Link>
           <button
             className="plan-print"
             onClick={() => window.print()}
-            title="In hoặc lưu PDF để đưa hợp tác xã / cán bộ xã"
+            title={t("In hoặc lưu PDF để đưa hợp tác xã / cán bộ xã", "Print or save PDF for the co-op / commune officer")}
           >
-            🖨️ In / lưu
+            🖨️ {t("In / lưu", "Print / save")}
           </button>
         </div>
       </div>
@@ -216,10 +223,11 @@ export default function PlotPlan({
           cảnh báo cũ tới hạn kiểm chứng. Trả lời ngay tại đây → /api/tap → quan sát. */}
       {questions.length > 0 && (
         <section className="plan-sec plan-ask">
-          <h4 className="plan-h">🌾 Giúp chỉnh mô hình — {questions.length} câu hỏi cho bạn</h4>
+          <h4 className="plan-h">🌾 {t(`Giúp chỉnh mô hình — ${questions.length} câu hỏi cho bạn`,
+                                       `Help tune the model — ${questions.length} question(s) for you`)}</h4>
           <p className="plan-note" style={{ marginTop: 0 }}>
-            Cảnh báo cũ đã tới lúc kiểm chứng. Bạn ở trên thửa — câu trả lời của bạn
-            được ưu tiên hơn số liệu vệ tinh, và giúp chỉnh ngưỡng cho cả vùng.
+            {t("Cảnh báo cũ đã tới lúc kiểm chứng. Bạn ở trên thửa — câu trả lời của bạn được ưu tiên hơn số liệu vệ tinh, và giúp chỉnh ngưỡng cho cả vùng.",
+               "Past alerts are due for verification. You're on the plot — your answer outranks satellite data, and helps tune thresholds for the whole region.")}
           </p>
           <ul className="plan-qs">
             {questions.map((q) => {
@@ -252,11 +260,11 @@ export default function PlotPlan({
 
       {/* 1. VIỆC CẦN LÀM */}
       <section className="plan-sec">
-        <h4 className="plan-h">▶ Việc cần làm{actions.length ? ` (${actions.length})` : ""}</h4>
+        <h4 className="plan-h">▶ {t("Việc cần làm", "To do")}{actions.length ? ` (${actions.length})` : ""}</h4>
         {actions.length === 0 ? (
           <p className="plan-clear">
-            ✅ 7 ngày tới không có mối đe doạ nào dùng dữ liệu thật. Không phải làm gì
-            gấp — TerraTwin vẫn canh nền cho bạn (xem mục Tự canh bên dưới).
+            {t("✅ 7 ngày tới không có mối đe doạ nào dùng dữ liệu thật. Không phải làm gì gấp — TerraTwin vẫn canh nền cho bạn (xem mục Tự canh bên dưới).",
+               "✅ No real-data threats in the next 7 days. Nothing urgent — TerraTwin keeps watching in the background (see Auto-watch below).")}
           </p>
         ) : (
           <ul className="plan-actions">
@@ -268,7 +276,7 @@ export default function PlotPlan({
                     <b
                       className="pa-name"
                       onClick={() => onSelectModule?.(a.id)}
-                      title="Xem chi tiết mũi nhọn này"
+                      title={t("Xem chi tiết mũi nhọn này", "See this spearhead in detail")}
                     >
                       {a.icon} {a.name}
                     </b>
@@ -277,17 +285,17 @@ export default function PlotPlan({
                         className="pa-when"
                         style={{ color: RISK_HEX[a.risk_level] }}
                       >
-                        {a.when_weekday} {a.when.slice(5)} · {leadBadge(a.lead_days)}
+                        {a.when_weekday} {a.when.slice(5)} · {leadBadge(a.lead_days, t)}
                       </span>
                     )}
                   </div>
                   <p className="pa-head">{a.headline}</p>
                   <p className="pa-do">
-                    <span>Nên làm:</span> {a.do}
+                    <span>{t("Nên làm:", "Do:")}</span> {a.do}
                   </p>
                   {a.can_ask &&
                     (r === "loading" ? (
-                      <p className="pa-ask-load">Đang mô phỏng ngược…</p>
+                      <p className="pa-ask-load">{t("Đang mô phỏng ngược…", "Running inverse simulation…")}</p>
                     ) : r ? (
                       <div className="pa-ask">
                         <b>🧭 {r.headline}</b>
@@ -303,7 +311,7 @@ export default function PlotPlan({
                       </div>
                     ) : (
                       <button className="pa-askbtn" onClick={() => doAsk(a.id)}>
-                        🧭 Cần điều kiện gì mới an toàn?
+                        🧭 {t("Cần điều kiện gì mới an toàn?", "What conditions make it safe?")}
                       </button>
                     ))}
                 </li>
@@ -316,13 +324,13 @@ export default function PlotPlan({
       {/* 2. NGÀY AN TOÀN */}
       {sw && (
         <section className="plan-sec">
-          <h4 className="plan-h">📅 Ngày an toàn để làm đồng (7 ngày tới)</h4>
+          <h4 className="plan-h">📅 {t("Ngày an toàn để làm đồng (7 ngày tới)", "Safe days for fieldwork (next 7 days)")}</h4>
           <div className="plan-week">
             {sw.days.map((d) => (
               <div
                 key={d.date}
                 className={`pw-day ${d.safe ? "safe" : "risky"}`}
-                title={d.safe ? "Không cảnh báo" : d.hazards.join(", ")}
+                title={d.safe ? t("Không cảnh báo", "No alerts") : d.hazards.join(", ")}
               >
                 <span className="pw-wd">{d.weekday}</span>
                 <span className="pw-dt">{d.date.slice(5)}</span>
@@ -337,9 +345,9 @@ export default function PlotPlan({
       {/* 3. GIÁ TRỊ ĐANG CHỊU RỦI RO */}
       {value && (
         <section className="plan-sec">
-          <h4 className="plan-h">💰 Giá trị đang chịu rủi ro</h4>
+          <h4 className="plan-h">💰 {t("Giá trị đang chịu rủi ro", "Value at risk")}</h4>
           <div className="plan-crops">
-            <span>Loại canh tác:</span>
+            <span>{t("Loại canh tác:", "Crop type:")}</span>
             {crops.map((c) => (
               <button
                 key={c.id}
@@ -362,7 +370,7 @@ export default function PlotPlan({
                   </span>
                   <span className="pv-stake">{it.stake_text}</span>
                   <span className="pv-pct">
-                    thiệt hại {it.loss_pct[0]}–{it.loss_pct[1]}%
+                    {t("thiệt hại", "loss")} {it.loss_pct[0]}–{it.loss_pct[1]}%
                   </span>
                 </li>
               ))}
@@ -374,20 +382,21 @@ export default function PlotPlan({
 
       {/* 4. TRÍ TUỆ VÙNG (genome) */}
       <section className="plan-sec">
-        <h4 className="plan-h">🛰️ Vùng giống thửa bạn — học từ nơi cùng “bộ gen” đất</h4>
+        <h4 className="plan-h">🛰️ {t("Vùng giống thửa bạn — học từ nơi cùng “bộ gen” đất",
+                                     "Regions like yours — learn from places with the same land “genome”")}</h4>
         {genErr ? (
-          <p className="plan-note">Chưa dựng được vùng tương đồng (kiểm tra mạng).</p>
+          <p className="plan-note">{t("Chưa dựng được vùng tương đồng (kiểm tra mạng).", "Couldn't build similar regions (check network).")}</p>
         ) : !genome ? (
-          <p className="plan-note">Đang tìm vùng cùng địa hình & khí hậu…</p>
+          <p className="plan-note">{t("Đang tìm vùng cùng địa hình & khí hậu…", "Finding regions with the same terrain & climate…")}</p>
         ) : twin ? (
           <>
             <p className="plan-value-head">{genome.headline}</p>
             <div className="plan-twins">
-              {genome.twins!.slice(0, 3).map((t, i) => (
+              {genome.twins!.slice(0, 3).map((tw, i) => (
                 <div key={i} className="pt-cell">
-                  <b>{t.similarity_pct}%</b>
-                  <span>giống</span>
-                  <small>cách {t.distance_km.toFixed(0)} km</small>
+                  <b>{tw.similarity_pct}%</b>
+                  <span>{t("giống", "similar")}</span>
+                  <small>{t("cách", "away")} {tw.distance_km.toFixed(0)} km</small>
                 </div>
               ))}
             </div>
@@ -395,14 +404,14 @@ export default function PlotPlan({
             {genome.caveat && <p className="plan-assume">⚠️ {genome.caveat}</p>}
           </>
         ) : (
-          <p className="plan-note">{genome.message || "Không tìm được vùng tương đồng."}</p>
+          <p className="plan-note">{genome.message || t("Không tìm được vùng tương đồng.", "No similar region found.")}</p>
         )}
       </section>
 
       {/* 6. ĐỘ HIẾM TỔ HỢP — mô hình AI đã huấn luyện, vai trò ĐỐI CHIẾU */}
       {aml?.available && (
         <section className="plan-sec">
-          <h4 className="plan-h">🧠 Độ hiếm tổ hợp thời tiết (mô hình AI đối chiếu)</h4>
+          <h4 className="plan-h">🧠 {t("Độ hiếm tổ hợp thời tiết (mô hình AI đối chiếu)", "Weather-combination rarity (AI cross-check model)")}</h4>
           <div className="plan-aml">
             <div className="aml-meter">
               <div className="aml-bar">
@@ -414,9 +423,9 @@ export default function PlotPlan({
           </div>
           {aml.top_drivers && aml.top_drivers.length > 0 && (
             <div className="aml-drivers">
-              <span>Yếu tố đóng góp:</span>
+              <span>{t("Yếu tố đóng góp:", "Contributing factors:")}</span>
               {aml.top_drivers.slice(0, 3).map((d) => (
-                <span key={d.feature} className="aml-chip">{DRIVER_VI[d.feature] ?? d.feature}</span>
+                <span key={d.feature} className="aml-chip">{DRIVER_L[d.feature] ? t(DRIVER_L[d.feature][0], DRIVER_L[d.feature][1]) : d.feature}</span>
               ))}
             </div>
           )}
@@ -427,7 +436,7 @@ export default function PlotPlan({
       {/* 5. TỰ CANH */}
       {watch && (
         <section className="plan-sec plan-watch">
-          <h4 className="plan-h">🛡️ TerraTwin tự canh thửa này</h4>
+          <h4 className="plan-h">🛡️ {t("TerraTwin tự canh thửa này", "TerraTwin watches this plot for you")}</h4>
           <p className="plan-value-head">{watch.headline}</p>
           <p className="plan-note">{watch.capability}</p>
         </section>
@@ -436,9 +445,9 @@ export default function PlotPlan({
       {/* N7 — câu miễn trừ luôn đi kèm cảnh báo, kèm link sổ điểm để nó là sự
           thật đo được chứ không phải một dòng chối bỏ trách nhiệm. */}
       <p className="plan-disclaimer">
-        ⚠️ Đây là dự báo có sai số, không thay thế chỉ đạo của cơ quan phòng chống
-        thiên tai địa phương.{" "}
-        <a href="/about">Xem tỉ lệ đúng/sai của chúng tôi</a>.
+        ⚠️ {t("Đây là dự báo có sai số, không thay thế chỉ đạo của cơ quan phòng chống thiên tai địa phương.",
+               "This is a forecast with error margins, not a substitute for local disaster-authority guidance.")}{" "}
+        <a href="/about">{t("Xem tỉ lệ đúng/sai của chúng tôi", "See our accuracy record")}</a>.
       </p>
     </div>
   );
