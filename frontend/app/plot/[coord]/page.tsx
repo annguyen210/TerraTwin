@@ -123,6 +123,13 @@ export default function PlotPassportPage() {
                     </tbody>
                   </table>
                 </div>
+                {/* T1 — hai điều giám khảo ngành SẼ hỏi, giải thích ngay cạnh bảng số. */}
+                {pp.method && (
+                  <div className="doc-note" style={{ fontSize: 13, lineHeight: 1.5 }}>
+                    <p style={{ margin: "0 0 6px" }}>📐 {t("Cách đếm", "Counting")}: {pp.method.counting}</p>
+                    <p style={{ margin: 0 }}>⚖️ {t("So sánh", "Comparison")}: {pp.method.cross_module}</p>
+                  </div>
+                )}
               </>
             )}
 

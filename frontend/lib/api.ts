@@ -1158,6 +1158,7 @@ export type Passport = {
   headline?: string | null;
   why_unique: string;
   caveat: string;
+  method?: { counting: string; cross_module: string };
 };
 
 export function getPassport(lat: number, lon: number) {
