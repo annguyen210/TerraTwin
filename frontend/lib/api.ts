@@ -1717,6 +1717,20 @@ export function getScorecard(days = 90) {
     "Không tải được sổ điểm");
 }
 
+// M1 — Web Push.
+export function getPushKey() {
+  return getJson<{ configured: boolean; public_key: string | null }>(
+    "/api/push/key", "Không tải được khoá push");
+}
+export function subscribePush(sub: unknown) {
+  return authed<void>("/api/push/subscribe",
+    { method: "POST", body: JSON.stringify(sub) }, "Không đăng ký được push");
+}
+export function testPush() {
+  return authed<{ sent: number }>("/api/push/test", { method: "POST" },
+    "Không gửi thử được");
+}
+
 // A5 — nguồn gốc dữ liệu + công thức tái lập cho một cảnh báo.
 export type AlertLineage = {
   alert_id: number;

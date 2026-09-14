@@ -83,6 +83,19 @@ def sweep_user(user_id: int, db: Session) -> dict:
     delivery = notify.dispatch(channels, payload)
     db.commit()
 
+    # M1 — đẩy Web Push cho cảnh báo mới. Kênh cảnh báo sống-được-ngay: không cần
+    # người dùng nối Zalo/Telegram, chỉ cần đã bật thông báo trên trình duyệt.
+    # Best-effort: chưa cấu hình VAPID / chưa đăng ký thiết bị thì bỏ qua êm.
+    if created:
+        try:
+            from app.services import push
+            worst = max(created, key=lambda a: {"danger": 2, "warning": 1}.get(a.risk_level, 0))
+            n = len(created)
+            title = "⚠️ TerraTwin — cảnh báo mới" if n == 1 else f"⚠️ TerraTwin — {n} cảnh báo mới"
+            push.send_to_user(db, user_id, title, worst.headline, "/")
+        except Exception:      # noqa: BLE001 — push hỏng không làm hỏng lượt quét
+            pass
+
     # ĐÓNG VÒNG LẶP — hỏi lại về một cảnh báo cũ đã tới lúc biết kết quả.
     #
     # Đặt ở đây, ngay sau khi gửi cảnh báo mới, là có chủ đích: đây là thời điểm

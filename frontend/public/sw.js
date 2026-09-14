@@ -89,3 +89,36 @@ self.addEventListener("fetch", (event) => {
     );
   }
 });
+
+// M1 — WEB PUSH. Nhận payload {title, body, url} từ máy chủ và hiện thông báo,
+// kể cả khi app đã đóng. Thông báo thiên tai là lý do PWA này tồn tại.
+self.addEventListener("push", (event) => {
+  let d = {};
+  try { d = event.data ? event.data.json() : {}; } catch (e) { d = {}; }
+  const title = d.title || "TerraTwin";
+  const body = d.body || "Có cảnh báo mới cho thửa của bạn.";
+  const url = d.url || "/";
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon: "/icon-192.png",
+      badge: "/icon-192.png",
+      data: { url },
+      tag: "terratwin-alert",
+    }),
+  );
+});
+
+// Bấm vào thông báo → mở app (dùng lại tab đang mở nếu có).
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || "/";
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((wins) => {
+      for (const w of wins) {
+        if ("focus" in w) { w.navigate(url); return w.focus(); }
+      }
+      return clients.openWindow(url);
+    }),
+  );
+});

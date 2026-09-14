@@ -13,5 +13,9 @@ email-validator==2.2.0
 # onnxruntime nên phải khai báo tường minh — nếu không CI đỏ ModuleNotFoundError.
 numpy>=1.26,<3
 
+# M1 Web Push — gửi thông báo đẩy tới trình duyệt/PWA. Lo mã hoá payload
+# (RFC 8291) + ký VAPID JWT. VAPID là cặp khoá TỰ SINH, không cần nhà cung cấp.
+pywebpush==2.0.0
+
 # PostgreSQL cho production (SQLite là mặc định, không cần gì thêm):
 # psycopg[binary]==3.2.3

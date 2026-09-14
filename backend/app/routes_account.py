@@ -20,7 +20,7 @@ from app import auth
 from app.services import plans
 from app.db import (
     ActionLog, Alert, ApiKey, AuditLog, Dataset, KnowledgeNote, NotifyChannel,
-    Observation, Plot, Twin, User, get_session,
+    Observation, Plot, PushSub, Twin, User, get_session,
 )
 from app.schemas import Location
 
@@ -319,6 +319,7 @@ _OWNED = [
     ("observations", Observation), ("actions", ActionLog),
     ("knowledge_notes", KnowledgeNote), ("api_keys", ApiKey),
     ("datasets", Dataset), ("alerts", Alert), ("audit_logs", AuditLog),
+    ("push_subs", PushSub),
 ]
 
 

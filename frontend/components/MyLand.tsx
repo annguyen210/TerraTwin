@@ -25,6 +25,7 @@ import {
   type ServerPlot,
   type TapQuestion,
 } from "@/lib/api";
+import { enablePush, pushState } from "@/lib/push";
 
 const GRADE_COLOR: Record<string, string> = {
   A: "#2E9E67", B: "#3aa0a0", C: "#B07A2E", D: "#C2412E",
@@ -46,6 +47,13 @@ export default function MyLand({
   const [answered, setAnswered] = useState<Record<number, string>>({});
   const [loaded, setLoaded] = useState(false);
   const [scanning, setScanning] = useState(false);
+  const [push, setPush] = useState<string>("");   // M1 — trạng thái web push
+
+  useEffect(() => { pushState().then(setPush).catch(() => {}); }, []);
+  async function turnOnPush() {
+    setPush("...");
+    try { setPush(await enablePush()); } catch { setPush("off"); }
+  }
 
   const refresh = useCallback(async () => {
     if (!user) return;
@@ -127,6 +135,20 @@ export default function MyLand({
           {scanning ? "Đang quét…" : "Quét lại ngay"}
         </button>
       </div>
+
+      {/* M1 — bật Web Push. Kênh cảnh báo sống-được-ngay (không cần Zalo/Telegram).
+          Chỉ hiện nút khi bật được mà CHƯA bật. */}
+      {push === "off" && (
+        <button onClick={turnOnPush} style={{
+          margin: "0 0 10px", padding: "9px 14px", borderRadius: 8, cursor: "pointer",
+          border: "1px solid var(--terra, #1f5137)", background: "var(--pine-soft, #dfede5)",
+          color: "var(--pine, #1f5137)", fontWeight: 600, width: "100%" }}>
+          🔔 Bật thông báo đẩy — nhận cảnh báo kể cả khi không mở app
+        </button>
+      )}
+      {push === "..." && <p className="ml-brief-sub">Đang bật thông báo…</p>}
+      {push === "on" && <p className="ml-brief-sub" style={{ color: "var(--ok, #2E9E67)" }}>🔔 Thông báo đẩy đang bật.</p>}
+      {push === "denied" && <p className="ml-brief-sub">Thông báo bị chặn trong trình duyệt — mở lại trong cài đặt trang để nhận cảnh báo.</p>}
 
       {/* H6 — CÂU HỎI CHỜ LÊN TRÊN CÙNG (trên cả cảnh báo). Đây là thứ đóng vòng
           lặp tin cậy; nằm dưới màn cuộn thì tỉ lệ trả lời ≈ 0. Đặt trên vì một

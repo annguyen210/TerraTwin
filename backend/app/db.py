@@ -388,6 +388,24 @@ class AuditLog(Base):
     detail: Mapped[str] = mapped_column(String(200), default="")
 
 
+class PushSub(Base):
+    """M1 — đăng ký nhận thông báo đẩy Web Push của một trình duyệt/thiết bị.
+
+    endpoint là URL push riêng của trình duyệt (duy nhất); p256dh + auth là khoá
+    mã hoá payload theo RFC 8291. Một người dùng có thể có nhiều đăng ký (nhiều
+    thiết bị). Endpoint chết (404/410) thì xoá để không gửi mãi vào chỗ trống.
+    """
+    __tablename__ = "push_subs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    endpoint: Mapped[str] = mapped_column(Text, unique=True)
+    p256dh: Mapped[str] = mapped_column(String(255))
+    auth: Mapped[str] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+
 class ModelVersion(Base):
     """A6 — SỔ ĐĂNG KÝ MÔ HÌNH + quay lui.
 

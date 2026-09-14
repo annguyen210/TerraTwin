@@ -567,6 +567,39 @@ def activate_model(model_id: int, user: User = Depends(auth.require_admin),
     return model_registry.to_dict(mv)
 
 
+# ---------------------------------------------------------------------------
+# M1 — WEB PUSH
+# ---------------------------------------------------------------------------
+
+@router.get("/api/push/key")
+def push_key() -> dict:
+    """Khoá công khai VAPID cho frontend đăng ký. Công khai (khoá công khai vốn
+    để lộ). Chưa cấu hình → configured=false, frontend ẩn nút bật thông báo."""
+    from app.services import push
+    return {"configured": push.configured(), "public_key": push.public_key()}
+
+
+@router.post("/api/push/subscribe", status_code=204, response_class=Response,
+             response_model=None)
+def push_subscribe(sub: dict, user: User = Depends(auth.current_user),
+                   db: Session = Depends(get_session)):
+    """Lưu đăng ký push của thiết bị hiện tại cho người đang đăng nhập."""
+    from app.services import push
+    if not push.save_subscription(db, user.id, sub):
+        raise HTTPException(422, "Đăng ký push không hợp lệ.")
+
+
+@router.post("/api/push/test")
+def push_test(user: User = Depends(auth.current_user),
+              db: Session = Depends(get_session)) -> dict:
+    """Gửi một thông báo thử tới các thiết bị của chính mình — để người dùng
+    xác nhận đã bật thành công."""
+    from app.services import push
+    n = push.send_to_user(db, user.id, "TerraTwin",
+                          "Thông báo đẩy đã bật. Bạn sẽ nhận cảnh báo tại đây.", "/")
+    return {"sent": n}
+
+
 @router.get("/api/channels/status")
 def channels_status() -> dict:
     """Kênh nào đã cấu hình xong ở phía máy chủ.
