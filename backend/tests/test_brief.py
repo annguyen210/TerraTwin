@@ -75,3 +75,18 @@ def test_run_requires_admin():
         c.post("/api/auth/register", json={"email": "brief_u@x.com", "password": "Passw0rd1", "name": "U"})
         tok = c.post("/api/auth/login", json={"email": "brief_u@x.com", "password": "Passw0rd1"}).json()["access_token"]
         assert c.post("/api/brief/run", headers={"Authorization": f"Bearer {tok}"}).status_code == 403
+
+
+def test_run_no_auth_is_401():
+    with TestClient(app) as c:
+        assert c.post("/api/brief/run").status_code == 401
+
+
+def test_run_accepts_cron_key(monkeypatch):
+    monkeypatch.setenv("TERRATWIN_CRON_KEY", "secret-cron-123")
+    with TestClient(app) as c:
+        # Sai key → vẫn 401 (không có admin).
+        assert c.post("/api/brief/run", headers={"X-Cron-Key": "wrong"}).status_code == 401
+        # Đúng key → 200, không cần đăng nhập.
+        r = c.post("/api/brief/run", headers={"X-Cron-Key": "secret-cron-123"})
+        assert r.status_code == 200 and "sent" in r.json()

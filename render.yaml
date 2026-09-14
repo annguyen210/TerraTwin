@@ -67,6 +67,17 @@ services:
       # dữ liệu theo. 0 = không giới hạn.
       - key: TERRATWIN_KEY_MONTHLY_QUOTA
         value: "5000"
+      # M4 — khoá cho cron gọi POST /api/brief/run (workflow brief.yml). Đặt CÙNG
+      # giá trị trong GitHub Secrets tên TERRATWIN_CRON_KEY. Tự sinh chuỗi ngẫu
+      # nhiên, giữ bí mật — ai có nó gọi được endpoint gửi bản tin.
+      - key: TERRATWIN_CRON_KEY
+        sync: false
+      # M1 — Web Push. Cặp VAPID tự sinh (py_vapid). Đặt CẢ HAI; frontend tự lấy
+      # khoá công khai qua /api/push/key nên KHÔNG cần biến ở terratwin-web.
+      - key: TERRATWIN_VAPID_PUBLIC_KEY
+        sync: false
+      - key: TERRATWIN_VAPID_PRIVATE_KEY
+        sync: false
       - key: TERRATWIN_CORS
         sync: false                  # điền URL frontend sau khi dựng xong
       # BẮT BUỘC cho vòng lặp một-chạm: link trong tin cảnh báo (/tap/{token})

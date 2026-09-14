@@ -12,7 +12,7 @@ import io
 import json
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -633,11 +633,31 @@ def brief_preview(user: User = Depends(auth.current_user),
 
 
 @router.post("/api/brief/run")
-def brief_run(force: bool = False, user: User = Depends(auth.require_admin),
+def brief_run(force: bool = False,
+              authorization: str | None = Header(default=None),
+              x_cron_key: str | None = Header(default=None),
               db: Session = Depends(get_session)) -> dict:
-    """Cron mỗi sáng gọi endpoint này (admin) để gửi bản tin cho mọi người đã bật.
-    Dedup theo ngày nên gọi nhiều lần trong sáng không gửi trùng."""
+    """Gửi bản tin sáng cho mọi người đã bật. Dedup theo ngày nên gọi nhiều lần
+    trong sáng không gửi trùng.
+
+    Xác thực HAI đường: (a) header X-Cron-Key khớp TERRATWIN_CRON_KEY — dành cho
+    cron ngoài, KHÔNG hết hạn như JWT; hoặc (b) JWT của một admin. Không có đường
+    nào hợp lệ → 401. Cron dùng đường (a) vì token đăng nhập hết hạn sau 72h thì
+    lịch gửi sẽ chết âm thầm."""
+    import os as _os
     from app.services import brief
+
+    cron_key = _os.environ.get("TERRATWIN_CRON_KEY", "").strip()
+    if cron_key and x_cron_key and auth.constant_time_eq(x_cron_key, cron_key):
+        return brief.run_all(db, force=force)
+
+    # Không có/không khớp cron key → phải là admin đăng nhập.
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(401, "Cần X-Cron-Key hợp lệ hoặc đăng nhập admin.")
+    uid = auth.decode_token(authorization.split(" ", 1)[1].strip())
+    u = db.get(User, uid) if uid else None
+    if u is None or getattr(u, "role", "user") != "admin":
+        raise HTTPException(403, "Chỉ quản trị viên hoặc cron hợp lệ.")
     return brief.run_all(db, force=force)
 
 

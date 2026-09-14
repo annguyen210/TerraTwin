@@ -1,0 +1,41 @@
+name: Morning brief
+
+# M4 — gọi POST /api/brief/run mỗi sáng để bản tin thực sự ĐƯỢC GỬI. Dựng endpoint
+# mà không có cron gọi thì tin không bao giờ tới — đây là chỗ vá lỗi đó.
+#
+# 22:30 UTC = 05:30 giờ VN (UTC+7). Lịch GitHub có thể trễ vài phút lúc tải cao;
+# với bản tin sáng thì trễ 5-10 phút không sao. Dedup theo ngày ở backend nên gọi
+# trùng cũng không gửi hai lần.
+#
+# XÁC THỰC: gửi header X-Cron-Key = secret TERRATWIN_CRON_KEY (đặt cùng giá trị
+# trong GitHub Secrets và biến môi trường terratwin-api). Không dùng token đăng
+# nhập vì JWT hết hạn 72h — lịch sẽ chết âm thầm.
+
+on:
+  schedule:
+    - cron: "30 22 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: morning-brief
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger morning brief
+        env:
+          CRON_KEY: ${{ secrets.TERRATWIN_CRON_KEY }}
+        run: |
+          if [ -z "$CRON_KEY" ]; then
+            echo "::error::Thiếu secret TERRATWIN_CRON_KEY — đặt trong repo Settings → Secrets, cùng giá trị với biến trên terratwin-api."
+            exit 1
+          fi
+          code=$(curl -sS -o /tmp/out.txt -w "%{http_code}" \
+            --max-time 90 --retry 3 --retry-delay 15 --retry-all-errors \
+            -X POST "https://terratwin-api.onrender.com/api/brief/run" \
+            -H "X-Cron-Key: $CRON_KEY")
+          echo "HTTP $code"; cat /tmp/out.txt
+          # Thất bại thật thì BÁO ĐỎ (không nuốt lỗi — bài học keepwarm).
+          [ "$code" = "200" ] || { echo "::error::brief/run trả $code"; exit 1; }
