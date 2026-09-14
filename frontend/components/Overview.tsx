@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { scanAll, type ScanResult, type ScanModule } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
 
 const RISK_COLOR: Record<string, string> = {
   safe: "#2E9E67",
@@ -10,12 +11,12 @@ const RISK_COLOR: Record<string, string> = {
   unknown: "#5a6b73",
   not_implemented: "#5a6b73",
 };
-const RISK_LABEL: Record<string, string> = {
-  safe: "An toàn",
-  warning: "Cảnh báo",
-  danger: "Nguy hiểm",
-  unknown: "—",
-  not_implemented: "—",
+const RISK_LABEL: Record<string, [string, string]> = {
+  safe: ["An toàn", "Safe"],
+  warning: ["Cảnh báo", "Warning"],
+  danger: ["Nguy hiểm", "Danger"],
+  unknown: ["—", "—"],
+  not_implemented: ["—", "—"],
 };
 
 export default function Overview({
@@ -29,6 +30,7 @@ export default function Overview({
   area?: number;
   onSelectModule?: (id: string) => void;
 }) {
+  const { t } = useLang();
   const [data, setData] = useState<ScanResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -48,7 +50,7 @@ export default function Overview({
   return (
     <div className="overview">
       <button className="scan-btn" onClick={run} disabled={loading}>
-        {loading ? "Đang quét…" : "🛰️ Quét toàn cảnh thửa đất"}
+        {loading ? t("Đang quét…", "Scanning…") : t("🛰️ Quét toàn cảnh thửa đất", "🛰️ Full scan of this plot")}
       </button>
       {err && <p className="err">{err}</p>}
 
@@ -57,8 +59,9 @@ export default function Overview({
           <div className="ov-alerts">
             <div className="ov-alerts-head">
               {data.alerts.length > 0
-                ? `⚠️ ${data.alerts.length} cảnh báo (dữ liệu thật) cần chú ý`
-                : "✅ Không có cảnh báo từ dữ liệu thật"}
+                ? t(`⚠️ ${data.alerts.length} cảnh báo (dữ liệu thật) cần chú ý`,
+                    `⚠️ ${data.alerts.length} alert(s) (real data) to note`)
+                : t("✅ Không có cảnh báo từ dữ liệu thật", "✅ No alerts from real data")}
             </div>
             {data.alerts.map((m) => (
               <div
@@ -73,7 +76,7 @@ export default function Overview({
                     className="ov-alert-lvl"
                     style={{ color: RISK_COLOR[m.risk_level] }}
                   >
-                    {RISK_LABEL[m.risk_level]}
+                    {t(RISK_LABEL[m.risk_level][0], RISK_LABEL[m.risk_level][1])}
                   </span>
                 </div>
                 <div className="ov-alert-head">{m.headline}</div>
@@ -83,8 +86,8 @@ export default function Overview({
           </div>
 
           <div className="ov-grid-head">
-            🛰️ dữ liệu thật · 🧪 ước lượng vật lý · ⏳ chưa
-            đưa số (chờ ảnh Sentinel / ngoài phạm vi vùng)
+            {t("🛰️ dữ liệu thật · 🧪 ước lượng vật lý · ⏳ chưa đưa số (chờ ảnh Sentinel / ngoài phạm vi vùng)",
+               "🛰️ real data · 🧪 physical estimate · ⏳ no number yet (awaiting Sentinel / out of region)")}
           </div>
           <div className="ov-grid">
             {data.modules.map((m) => (
@@ -110,19 +113,19 @@ export default function Overview({
             ))}
           </div>
           <p className="ov-foot">
-            Quét lúc {new Date(data.generated_at).toLocaleString("vi-VN")} ·{" "}
-            {Math.round(data.real_data_ratio * 100)}% hiểm họa dùng dữ liệu thật
+            {t("Quét lúc", "Scanned at")} {new Date(data.generated_at).toLocaleString("vi-VN")} ·{" "}
+            {Math.round(data.real_data_ratio * 100)}% {t("hiểm họa dùng dữ liệu thật", "of hazards use real data")}
           </p>
           {data.skipped_heavy && data.skipped_heavy.length > 0 && (
             <p className="ov-skipped">
-              Không chạy trong lượt toàn cảnh:{" "}
+              {t("Không chạy trong lượt toàn cảnh:", "Skipped in the overview scan:")}{" "}
               {data.skipped_heavy.map((id) => (
                 <button key={id} onClick={() => onSelectModule?.(id)}>
                   {id}
                 </button>
               ))}{" "}
-              — mô-đun này quét cả một vùng nên mất khoảng mười giây, mở riêng
-              khi cần.
+              {t("— mô-đun này quét cả một vùng nên mất khoảng mười giây, mở riêng khi cần.",
+                 "— these scan a whole area (~10s each), open individually when needed.")}
             </p>
           )}
         </>
