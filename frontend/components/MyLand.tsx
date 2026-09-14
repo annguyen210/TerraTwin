@@ -27,6 +27,7 @@ import {
 } from "@/lib/api";
 import { enablePush, pushState } from "@/lib/push";
 import { getBriefStatus, toggleBrief } from "@/lib/api";
+import PlotHistory from "@/components/PlotHistory";
 
 const GRADE_COLOR: Record<string, string> = {
   A: "#2E9E67", B: "#3aa0a0", C: "#B07A2E", D: "#C2412E",
@@ -50,6 +51,7 @@ export default function MyLand({
   const [scanning, setScanning] = useState(false);
   const [push, setPush] = useState<string>("");   // M1 — trạng thái web push
   const [brief, setBrief] = useState<boolean | null>(null);   // M4
+  const [openId, setOpenId] = useState<number | null>(null);   // Đ9 — thửa đang mở lịch sử
 
   useEffect(() => { pushState().then(setPush).catch(() => {}); }, []);
   useEffect(() => { getBriefStatus().then((r) => setBrief(r.enabled)).catch(() => {}); }, []);
@@ -233,26 +235,42 @@ export default function MyLand({
       <span className="ml-cap">Thửa của bạn</span>
       <div className="ml-plots">
         {plots.map((p) => (
-          <button
-            key={p.id}
-            className="ml-plot"
-            onClick={() => onOpen(p.lat, p.lon, p.name)}
-          >
-            <span
-              className="ml-grade"
-              style={{ background: GRADE_COLOR[p.grade ?? ""] ?? "#5a6b73" }}
-            >
-              {p.grade ?? "—"}
-            </span>
-            <span className="ml-plot-info">
-              <span className="ml-plot-name">{p.name}</span>
-              <span className="ml-plot-meta">
-                {p.lat.toFixed(3)}, {p.lon.toFixed(3)}
-                {p.area_ha ? ` · ${p.area_ha} ha` : ""}
-              </span>
-            </span>
-            <span className="ml-open">mở →</span>
-          </button>
+          <div key={p.id}>
+            <div style={{ display: "flex", alignItems: "stretch", gap: 4 }}>
+              <button
+                className="ml-plot"
+                style={{ flex: 1 }}
+                onClick={() => onOpen(p.lat, p.lon, p.name)}
+              >
+                <span
+                  className="ml-grade"
+                  style={{ background: GRADE_COLOR[p.grade ?? ""] ?? "#5a6b73" }}
+                >
+                  {p.grade ?? "—"}
+                </span>
+                <span className="ml-plot-info">
+                  <span className="ml-plot-name">{p.name}</span>
+                  <span className="ml-plot-meta">
+                    {p.lat.toFixed(3)}, {p.lon.toFixed(3)}
+                    {p.area_ha ? ` · ${p.area_ha} ha` : ""}
+                  </span>
+                </span>
+                <span className="ml-open">mở →</span>
+              </button>
+              {/* Đ9 — dòng thời gian thửa ngay tại "Thửa của tôi" (gộp H4). */}
+              <button
+                onClick={() => setOpenId(openId === p.id ? null : p.id)}
+                aria-label={openId === p.id ? "Ẩn lịch sử thửa" : "Xem lịch sử thửa"}
+                title={openId === p.id ? "Ẩn lịch sử" : "Lịch sử: đã báo gì, đúng/hụt"}
+                style={{ padding: "0 12px", borderRadius: 8, cursor: "pointer",
+                  border: "1px solid var(--line, #d7ddd8)", background: "transparent",
+                  color: "var(--ink-2, #333d36)", fontSize: 16 }}
+              >
+                📜
+              </button>
+            </div>
+            {openId === p.id && <PlotHistory plotId={p.id} />}
+          </div>
         ))}
       </div>
 

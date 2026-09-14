@@ -1,3 +1,14 @@
+/* Đ8 a11y — TIÊU ĐIỂM BÀN PHÍM luôn thấy. Nhiều nơi trong file này đặt
+   outline:none trên :focus (chặn người dùng bàn phím thấy đang ở đâu). Quy tắc
+   :focus-visible dưới đây CHỈ kích hoạt khi điều hướng bằng bàn phím (không hiện
+   khi bấm chuột), và !important để thắng các outline:none cũ. Quan trọng với
+   người dùng đích mắt kém / không dùng được chuột. */
+*:focus-visible {
+  outline: 3px solid #3ecb83 !important;
+  outline-offset: 2px !important;
+  border-radius: 3px;
+}
+
 :root {
   /* Nền & bề mặt — thang tối chuyên nghiệp, tăng dần độ sáng theo lớp */
   --bg: #0b1218;
