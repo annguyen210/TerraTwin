@@ -3902,7 +3902,7 @@ body {
 
 /* PlotPlan: nút in + câu hỏi chờ (vòng khép kín) */
 .plan-head{ flex-direction:row!important; align-items:center; justify-content:space-between; gap:10px }
-.plan-head-main{ display:flex; flex-direction:column; gap:2px; min-width:0 }
+.plan-head-main{ display:flex; flex-direction:column; gap:2px; min-width:0; flex:1 1 auto }
 .plan-print{ flex:none; padding:6px 12px; border-radius:9px; border:1px solid var(--line-2);
   background:transparent; color:var(--dim); font-size:.78rem; font-weight:600; cursor:pointer; white-space:nowrap }
 .plan-print:hover{ color:var(--terra); border-color:var(--terra) }

@@ -106,16 +106,24 @@ def module_series(module_id: str, lat: float, lon: float):
 
 def scale_note(is_real: bool, is_calibrated: bool) -> str:
     """Câu mô tả thang đo — người dùng phải biết con số này nghĩa là gì."""
+    from app.services.reqlang import tr
     if not is_real:
-        return ("Số liệu MẪU (không lấy được dữ liệu thật) — chỉ minh họa luồng, "
-                "không dùng để ra quyết định.")
+        return tr("Số liệu MẪU (không lấy được dữ liệu thật) — chỉ minh họa luồng, "
+                  "không dùng để ra quyết định.",
+                  "SAMPLE data (couldn't fetch real data) — illustrates the flow only, "
+                  "not for decisions.")
     if is_calibrated:
-        return ("Thang ĐÃ HIỆU CHUẨN theo khí hậu 10 năm của chính điểm này: "
-                "<40 an toàn (dưới phân vi 90) · 40–70 cảnh báo (P90–P97) · "
-                "≥70 nguy hiểm (trên P97, chỉ ~3% số ngày trong năm).")
-    return ("Thang tuyệt đối CHƯA hiệu chuẩn (không tải được khí hậu nền) — "
-            "ở vùng mưa nhiều có thể báo động nhiều hơn thực tế. "
-            "<40 thấp · 40–70 cảnh báo · ≥70 cao.")
+        return tr("Thang ĐÃ HIỆU CHUẨN theo khí hậu 10 năm của chính điểm này: "
+                  "<40 an toàn (dưới phân vi 90) · 40–70 cảnh báo (P90–P97) · "
+                  "≥70 nguy hiểm (trên P97, chỉ ~3% số ngày trong năm).",
+                  "Scale CALIBRATED to this point's 10-year climate: "
+                  "<40 safe (below P90) · 40–70 warning (P90–P97) · "
+                  "≥70 danger (above P97, only ~3% of days a year).")
+    return tr("Thang tuyệt đối CHƯA hiệu chuẩn (không tải được khí hậu nền) — "
+              "ở vùng mưa nhiều có thể báo động nhiều hơn thực tế. "
+              "<40 thấp · 40–70 cảnh báo · ≥70 cao.",
+              "Absolute scale, NOT calibrated (baseline climate unavailable) — "
+              "may over-warn in rainy regions. <40 low · 40–70 warning · ≥70 high.")
 
 
 def peak_of(series) -> float:

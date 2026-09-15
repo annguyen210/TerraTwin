@@ -8,10 +8,11 @@ from app.modules.util import (
 from app.schemas import Assessment, Location
 from app.services import datasources as ds
 from app.services import hazard, optical, sentinel
+from app.services.reqlang import tr
 
 
 class DroughtModule(TwinModule):
-    id = "drought"; name = "Cảnh báo hạn & thiếu nước"; group = "A"; icon = "🌾"; status = "active"
+    id = "drought"; name = "Cảnh báo hạn & thiếu nước"; name_en = "Drought & water-shortage alert"; group = "A"; icon = "🌾"; status = "active"
     data_sources = ["Open-Meteo: lượng mưa & ET₀"]
     users = ["Nông dân", "Đơn vị thủy lợi"]
     description = "Dự báo vùng ruộng sắp thiếu nước để chủ động điều tiết."
@@ -21,22 +22,27 @@ class DroughtModule(TwinModule):
 
         def texts(lvl, pk, fd):
             if fd:
-                return (f"Thiếu nước NGHIÊM TRỌNG từ ~{fd.date} ({fd.value}%)",
-                        "Ưu tiên tưới sớm, trữ nước; cân nhắc cây chịu hạn nếu kéo dài.")
+                return (tr(f"Thiếu nước NGHIÊM TRỌNG từ ~{fd.date} ({fd.value}%)",
+                           f"SEVERE water shortage from ~{fd.date} ({fd.value}%)"),
+                        tr("Ưu tiên tưới sớm, trữ nước; cân nhắc cây chịu hạn nếu kéo dài.",
+                           "Irrigate early, store water; consider drought-tolerant crops if prolonged."))
             if lvl == "warning":
-                return (f"Nguy cơ thiếu nước — đỉnh {pk.value}%",
-                        "Theo dõi độ ẩm, lên lịch tưới tiết kiệm.")
-            return (f"Đủ ẩm trong 7 ngày — đỉnh {pk.value}%", "Chưa cần can thiệp.")
+                return (tr(f"Nguy cơ thiếu nước — đỉnh {pk.value}%", f"Water-shortage risk — peak {pk.value}%"),
+                        tr("Theo dõi độ ẩm, lên lịch tưới tiết kiệm.",
+                           "Monitor moisture, schedule water-saving irrigation."))
+            return (tr(f"Đủ ẩm trong 7 ngày — đỉnh {pk.value}%", f"Adequate moisture for 7 days — peak {pk.value}%"),
+                    tr("Chưa cần can thiệp.", "No intervention needed."))
 
-        detail = ("Chỉ số thiếu ẩm tính từ mưa & bốc thoát hơi ET₀ THẬT (Open-Meteo). "
-                  if real else "Chỉ số thiếu ẩm (mẫu). ") + hazard.scale_note(real, calibrated)
+        detail = (tr("Chỉ số thiếu ẩm tính từ mưa & bốc thoát hơi ET₀ THẬT (Open-Meteo). ",
+                     "Moisture-deficit index from REAL rainfall & ET₀ evapotranspiration (Open-Meteo). ")
+                  if real else tr("Chỉ số thiếu ẩm (mẫu). ", "Moisture-deficit index (sample). ")) + hazard.scale_note(real, calibrated)
         src = ["Open-Meteo: lượng mưa & ET₀ (dữ liệu thật)"] if real else self.data_sources
         return assessment_from_series(self, loc, s, "%", 40, 70, texts, detail,
                                       confidence=0.78 if real else 0.6, is_real=real, data_sources=src)
 
 
 class WildfireModule(TwinModule):
-    id = "wildfire"; name = "Cảnh báo nguy cơ cháy rừng"; group = "A"; icon = "🔥"; status = "active"
+    id = "wildfire"; name = "Cảnh báo nguy cơ cháy rừng"; name_en = "Wildfire risk alert"; group = "A"; icon = "🔥"; status = "active"
     data_sources = ["Open-Meteo: nhiệt độ & lượng mưa", "NASA FIRMS (khi mở rộng)"]
     users = ["Kiểm lâm", "Chính quyền"]
     description = "Vùng khô dễ cháy + phát hiện điểm nóng sớm."
@@ -46,15 +52,19 @@ class WildfireModule(TwinModule):
 
         def texts(lvl, pk, fd):
             if fd:
-                return (f"NGUY CƠ CHÁY CAO (chỉ số {pk.value})",
-                        "Cấm đốt, tăng tuần tra, sẵn sàng lực lượng chữa cháy.")
+                return (tr(f"NGUY CƠ CHÁY CAO (chỉ số {pk.value})", f"HIGH FIRE RISK (index {pk.value})"),
+                        tr("Cấm đốt, tăng tuần tra, sẵn sàng lực lượng chữa cháy.",
+                           "Ban burning, increase patrols, ready firefighting crews."))
             if lvl == "warning":
-                return (f"Nguy cơ cháy trung bình (chỉ số {pk.value})",
-                        "Cảnh báo người dân, hạn chế nguồn lửa.")
-            return (f"Nguy cơ cháy thấp (chỉ số {pk.value})", "Duy trì theo dõi thường lệ.")
+                return (tr(f"Nguy cơ cháy trung bình (chỉ số {pk.value})", f"Moderate fire risk (index {pk.value})"),
+                        tr("Cảnh báo người dân, hạn chế nguồn lửa.",
+                           "Warn residents, limit fire sources."))
+            return (tr(f"Nguy cơ cháy thấp (chỉ số {pk.value})", f"Low fire risk (index {pk.value})"),
+                    tr("Duy trì theo dõi thường lệ.", "Keep routine monitoring."))
 
-        detail = ("Chỉ số nguy cơ cháy từ nhiệt độ & khô hạn THẬT (Open-Meteo). "
-                  if real else "Chỉ số nguy cơ cháy (mẫu). ") + hazard.scale_note(real, calibrated)
+        detail = (tr("Chỉ số nguy cơ cháy từ nhiệt độ & khô hạn THẬT (Open-Meteo). ",
+                     "Fire-risk index from REAL temperature & dryness (Open-Meteo). ")
+                  if real else tr("Chỉ số nguy cơ cháy (mẫu). ", "Fire-risk index (sample). ")) + hazard.scale_note(real, calibrated)
         src = ["Open-Meteo: nhiệt độ & lượng mưa (dữ liệu thật)"] if real else self.data_sources
         return assessment_from_series(self, loc, s, "điểm", 40, 70, texts, detail,
                                       confidence=0.75 if real else 0.6, is_real=real, data_sources=src)
@@ -67,7 +77,7 @@ class PestModule(TwinModule):
     nói được 'bất thường này giống ổ bệnh' hay 'giống hạn toàn vùng' — thứ mà
     một bản tin cấp tỉnh không nói được cho riêng thửa của bạn.
     """
-    id = "pest"; name = "Phát hiện sâu bệnh sớm"; group = "A"; icon = "🌾"
+    id = "pest"; name = "Phát hiện sâu bệnh sớm"; name_en = "Early pest & disease detection"; group = "A"; icon = "🌾"
     # CHẠY NGAY, không cần khoá. Điều kiện cũ gắn trạng thái vào
     # sentinel.configured(), nên khi chưa có khoá Copernicus thì mũi nhọn này
     # tự khai là "preview" — trong khi nó đã chạy thật qua Planetary Computer,
@@ -105,7 +115,7 @@ class PestModule(TwinModule):
                if r["cause_hint"] else
                "Chưa cần hành động. Phần mềm tiếp tục theo dõi mỗi lần vệ tinh bay qua.")
         return Assessment(
-            module_id=self.id, module_name=self.name, location=loc, status="ok",
+            module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=r["level"], headline=head,
             detail=(f"{r['cover'].capitalize()}. {r['method']} {r['caveat']}"),
             recommendation=rec, confidence=0.7, confidence_low=0.6,
@@ -123,7 +133,7 @@ class AquacultureModule(TwinModule):
     tối ưu 28–32°C · >33°C stress nhiệt (giảm ăn, dễ bệnh) · <25°C chậm lớn.
     Sóng lớn đe dọa lồng bè và làm xáo trộn tầng nước ao ven biển.
     """
-    id = "aquaculture"; name = "Cảnh báo môi trường ao nuôi"; group = "A"; icon = "🦐"; status = "active"
+    id = "aquaculture"; name = "Cảnh báo môi trường ao nuôi"; name_en = "Aquaculture environment alert"; group = "A"; icon = "🦐"; status = "active"
     data_sources = ["Open-Meteo Marine: nhiệt mặt nước & sóng",
                     "Open-Meteo: nhiệt không khí",
                     "Sentinel-2 độ đục/tảo (cần key — lộ trình)"]
@@ -148,16 +158,23 @@ class AquacultureModule(TwinModule):
             km = ds.distance_to_coast_km(loc.lat, loc.lon)
             if km > _INLAND_KM:
                 return Assessment(
-                    module_id=self.id, module_name=self.name, location=loc,
+                    module_id=self.id, module_name=self.disp_name(), location=loc,
                     status="out_of_scope", risk_level="unknown", is_real=False,
-                    headline=f"Không áp dụng — cách biển ~{round(km)} km",
-                    detail=(
+                    headline=tr(f"Không áp dụng — cách biển ~{round(km)} km",
+                                f"Not applicable — ~{round(km)} km from the sea"),
+                    detail=tr(
                         f"Vị trí này nằm sâu trong đất liền (~{round(km)} km từ "
                         "bờ), nên không có dữ liệu nhiệt mặt nước hay sóng. Đây "
                         "không phải thiếu sót của phần mềm: nuôi trồng ven biển "
                         "không diễn ra ở đây. Với ao nội đồng thì yếu tố quyết "
                         "định là nhiệt và ôxy TẠI AO, phải đo bằng cảm biến đặt "
-                        "tại chỗ — vệ tinh không nhìn thấy được."),
+                        "tại chỗ — vệ tinh không nhìn thấy được.",
+                        f"This location is well inland (~{round(km)} km from the "
+                        "coast), so there's no sea-surface temperature or wave "
+                        "data. This is not a software gap: coastal aquaculture "
+                        "doesn't happen here. For inland ponds, the deciding "
+                        "factors are IN-POND temperature and oxygen, which need "
+                        "on-site sensors — satellites can't see them."),
                     recommendation="",
                     data_sources=self.data_sources)
             return need_data_assessment(
@@ -170,25 +187,32 @@ class AquacultureModule(TwinModule):
         sst, wave = marine["sst_max"], marine["wave_max"]
         if sst >= self.VERY_HOT:
             lvl = "danger"
-            head = f"Nước quá NÓNG — đỉnh {sst}°C (ngưỡng stress {self.VERY_HOT}°C)"
-            rec = ("Giảm cho ăn, tăng sục khí, nâng mực nước ao; hoãn thả giống "
-                   "tới khi nhiệt hạ.")
+            head = tr(f"Nước quá NÓNG — đỉnh {sst}°C (ngưỡng stress {self.VERY_HOT}°C)",
+                      f"Water too HOT — peak {sst}°C (stress threshold {self.VERY_HOT}°C)")
+            rec = tr("Giảm cho ăn, tăng sục khí, nâng mực nước ao; hoãn thả giống "
+                     "tới khi nhiệt hạ.",
+                     "Reduce feeding, increase aeration, raise pond water level; delay "
+                     "stocking until it cools.")
         elif sst >= self.HOT:
             lvl = "warning"
-            head = f"Nước ấm cần chú ý — đỉnh {sst}°C"
-            rec = "Theo dõi oxy hòa tan lúc rạng sáng, chuẩn bị quạt nước."
+            head = tr(f"Nước ấm cần chú ý — đỉnh {sst}°C", f"Warm water to watch — peak {sst}°C")
+            rec = tr("Theo dõi oxy hòa tan lúc rạng sáng, chuẩn bị quạt nước.",
+                     "Watch dissolved oxygen at dawn, ready the paddlewheels.")
         elif sst <= self.COLD:
             lvl = "warning"
-            head = f"Nước lạnh — chỉ {sst}°C, tôm chậm lớn"
-            rec = "Giữ mực nước sâu, giảm thay nước, cân nhắc lùi lịch thả giống."
+            head = tr(f"Nước lạnh — chỉ {sst}°C, tôm chậm lớn", f"Cold water — only {sst}°C, slow shrimp growth")
+            rec = tr("Giữ mực nước sâu, giảm thay nước, cân nhắc lùi lịch thả giống.",
+                     "Keep water deep, reduce water changes, consider delaying stocking.")
         else:
             lvl = "safe"
-            head = f"Nhiệt nước thuận lợi — đỉnh {sst}°C (tối ưu 28–32°C)"
-            rec = "Duy trì chăm sóc bình thường."
+            head = tr(f"Nhiệt nước thuận lợi — đỉnh {sst}°C (tối ưu 28–32°C)",
+                      f"Favorable water temp — peak {sst}°C (optimal 28–32°C)")
+            rec = tr("Duy trì chăm sóc bình thường.", "Continue normal care.")
 
         if wave is not None and wave >= 2.0:
-            head += f" · sóng cao {wave} m"
-            rec += " Sóng lớn — gia cố lồng bè, kiểm tra bờ ao."
+            head += tr(f" · sóng cao {wave} m", f" · waves up to {wave} m")
+            rec += tr(" Sóng lớn — gia cố lồng bè, kiểm tra bờ ao.",
+                      " High waves — reinforce cages, check pond banks.")
             if lvl == "safe":
                 lvl = "warning"
 
@@ -197,12 +221,16 @@ class AquacultureModule(TwinModule):
             metrics["song_cao_max_m"] = wave
 
         return Assessment(
-            module_id=self.id, module_name=self.name, location=loc, status="ok",
+            module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=lvl, headline=head,
-            detail=(f"Nhiệt mặt nước & sóng THẬT 7 ngày (Open-Meteo Marine). "
-                    f"Ngưỡng tôm: tối ưu 28–32°C, stress ≥{self.VERY_HOT}°C, "
-                    f"chậm lớn ≤{self.COLD}°C. Độ đục/tảo cần ảnh Sentinel — "
-                    "chưa tích hợp nên chưa đưa vào đánh giá."),
+            detail=tr(f"Nhiệt mặt nước & sóng THẬT 7 ngày (Open-Meteo Marine). "
+                      f"Ngưỡng tôm: tối ưu 28–32°C, stress ≥{self.VERY_HOT}°C, "
+                      f"chậm lớn ≤{self.COLD}°C. Độ đục/tảo cần ảnh Sentinel — "
+                      "chưa tích hợp nên chưa đưa vào đánh giá.",
+                      f"REAL 7-day sea-surface temp & waves (Open-Meteo Marine). "
+                      f"Shrimp thresholds: optimal 28–32°C, stress ≥{self.VERY_HOT}°C, "
+                      f"slow growth ≤{self.COLD}°C. Turbidity/algae need Sentinel "
+                      "imagery — not yet integrated, so not included in the assessment."),
             recommendation=rec, confidence=0.72, confidence_low=0.64,
             confidence_high=0.8, is_real=True, metrics=metrics,
             forecast=marine["forecast"],
@@ -210,7 +238,7 @@ class AquacultureModule(TwinModule):
 
 
 class YieldModule(TwinModule):
-    id = "yield"; name = "Dự báo năng suất & thu hoạch"; group = "A"; icon = "🌾"
+    id = "yield"; name = "Dự báo năng suất & thu hoạch"; name_en = "Yield & harvest forecast"; group = "A"; icon = "🌾"
     # CHẠY NGAY, không cần khoá. Điều kiện cũ gắn trạng thái vào
     # sentinel.configured(), nên khi chưa có khoá Copernicus thì mũi nhọn này
     # tự khai là "preview" — trong khi nó đã chạy thật qua Planetary Computer,
@@ -248,7 +276,7 @@ class YieldModule(TwinModule):
         head = (f"{r['stage'].capitalize()} — NDVI {r['ndvi_now']}, "
                 f"đỉnh {r['ndvi_peak']} ngày {r['peak_date']}")
         return Assessment(
-            module_id=self.id, module_name=self.name, location=loc, status="ok",
+            module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=lvl, headline=head,
             detail=f"{r['method']} {r['caveat']}",
             recommendation=r["advice"], confidence=0.68, confidence_low=0.58,
@@ -261,7 +289,7 @@ class YieldModule(TwinModule):
 
 
 class CarbonModule(TwinModule):
-    id = "carbon"; name = "Đo & bán tín chỉ carbon rừng"; group = "A"; icon = "🌲"
+    id = "carbon"; name = "Đo & bán tín chỉ carbon rừng"; name_en = "Forest carbon credits (MRV)"; group = "A"; icon = "🌲"
     # CHẠY NGAY, không cần khoá. Điều kiện cũ gắn trạng thái vào
     # sentinel.configured(), nên khi chưa có khoá Copernicus thì mũi nhọn này
     # tự khai là "preview" — trong khi nó đã chạy thật qua Planetary Computer,
@@ -303,7 +331,7 @@ class CarbonModule(TwinModule):
             lvl = "safe"
 
         return Assessment(
-            module_id=self.id, module_name=self.name, location=loc, status="ok",
+            module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=lvl, headline=r["headline"],
             detail=(f"{r['methodology']['measured_by']} "
                     f"{r['methodology']['not_measured']} "

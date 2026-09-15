@@ -8,10 +8,11 @@ from app.modules.util import (
 from app.schemas import Assessment, Location
 from app.services import datasources as ds
 from app.services import hazard, optical, sentinel
+from app.services.reqlang import tr
 
 
 class FloodModule(TwinModule):
-    id = "flood"; name = "Cảnh báo lũ/ngập sớm"; group = "B"; icon = "🌊"; status = "active"
+    id = "flood"; name = "Cảnh báo lũ/ngập sớm"; name_en = "Early flood warning"; group = "B"; icon = "🌊"; status = "active"
     data_sources = ["Open-Meteo: lượng mưa", "Cao độ DEM (Open-Meteo)",
                     "GloFAS: lưu lượng sông (Open-Meteo Flood API)"]
     users = ["Người dân", "Chính quyền", "Cứu hộ"]
@@ -30,27 +31,36 @@ class FloodModule(TwinModule):
 
         def texts(lvl, pk, fd):
             if fd:
-                head = f"NGUY CƠ NGẬP CAO từ ~{fd.date} (chỉ số {fd.value})"
-                rec = "Kê cao tài sản, sẵn sàng sơ tán; theo dõi thông báo địa phương."
+                head = tr(f"NGUY CƠ NGẬP CAO từ ~{fd.date} (chỉ số {fd.value})",
+                          f"HIGH FLOOD RISK from ~{fd.date} (index {fd.value})")
+                rec = tr("Kê cao tài sản, sẵn sàng sơ tán; theo dõi thông báo địa phương.",
+                         "Raise belongings, be ready to evacuate; follow local announcements.")
             elif lvl == "warning":
-                head = f"Có nguy cơ ngập (chỉ số {pk.value})"
-                rec = "Chuẩn bị phương án thoát nước, theo dõi mưa."
+                head = tr(f"Có nguy cơ ngập (chỉ số {pk.value})", f"Flood risk present (index {pk.value})")
+                rec = tr("Chuẩn bị phương án thoát nước, theo dõi mưa.",
+                         "Prepare drainage, watch the rain.")
             else:
-                head = f"Ít nguy cơ ngập (chỉ số {pk.value})"
-                rec = "Chưa cần hành động."
+                head = tr(f"Ít nguy cơ ngập (chỉ số {pk.value})", f"Low flood risk (index {pk.value})")
+                rec = tr("Chưa cần hành động.", "No action needed.")
             # Đối chứng độc lập bằng lưu lượng sông thật
             if river and river["level"] != "safe":
-                head += f" · lưu lượng sông gấp {river['ratio']}× bình thường"
+                head += tr(f" · lưu lượng sông gấp {river['ratio']}× bình thường",
+                           f" · river discharge {river['ratio']}× normal")
                 if river["level"] == "danger":
-                    rec = ("Sông đang lên rất mạnh — " + rec[0].lower() + rec[1:])
+                    rec = tr("Sông đang lên rất mạnh — ", "River rising fast — ") + rec
             return head, rec
 
-        base = (f"Chỉ số ngập từ lượng mưa THẬT (Open-Meteo), cao độ ~{elev} m." if real
-                else f"Chỉ số ngập (mẫu), cao độ ~{elev} m.")
+        base = (tr(f"Chỉ số ngập từ lượng mưa THẬT (Open-Meteo), cao độ ~{elev} m.",
+                   f"Flood index from REAL rainfall (Open-Meteo), elevation ~{elev} m.") if real
+                else tr(f"Chỉ số ngập (mẫu), cao độ ~{elev} m.",
+                        f"Flood index (sample), elevation ~{elev} m."))
         if river:
-            base += (f" Lưu lượng sông GloFAS: nay {river['now_m3s']} m³/s, đỉnh "
-                     f"{river['peak_m3s']} m³/s ngày {river['peak_date']} — gấp "
-                     f"{river['ratio']}× trung bình khí hậu ({river['mean_m3s']} m³/s).")
+            base += tr(f" Lưu lượng sông GloFAS: nay {river['now_m3s']} m³/s, đỉnh "
+                       f"{river['peak_m3s']} m³/s ngày {river['peak_date']} — gấp "
+                       f"{river['ratio']}× trung bình khí hậu ({river['mean_m3s']} m³/s).",
+                       f" GloFAS river discharge: now {river['now_m3s']} m³/s, peak "
+                       f"{river['peak_m3s']} m³/s on {river['peak_date']} — "
+                       f"{river['ratio']}× climatic mean ({river['mean_m3s']} m³/s).")
         detail = base + " " + hazard.scale_note(real, calibrated)
 
         src = ["Open-Meteo: lượng mưa (thật)", f"Cao độ {elev} m (Open-Meteo)"] if real else list(self.data_sources)
@@ -72,7 +82,7 @@ class FloodModule(TwinModule):
 
 
 class LandslideModule(TwinModule):
-    id = "landslide"; name = "Cảnh báo sạt lở"; group = "B"; icon = "⛰️"; status = "active"
+    id = "landslide"; name = "Cảnh báo sạt lở"; name_en = "Landslide alert"; group = "B"; icon = "⛰️"; status = "active"
     data_sources = ["Open-Meteo: lượng mưa", "Độ dốc (DEM ước lượng)"]
     users = ["Dân miền núi", "Chính quyền"]
     description = "Vùng núi có nguy cơ sạt lở sau mưa lớn."
@@ -83,20 +93,28 @@ class LandslideModule(TwinModule):
 
         def texts(lvl, pk, fd):
             if fd:
-                return (f"NGUY CƠ SẠT LỞ CAO (chỉ số {pk.value})",
-                        "Tránh xa mái dốc khi mưa lớn; sẵn sàng sơ tán.")
+                return (tr(f"NGUY CƠ SẠT LỞ CAO (chỉ số {pk.value})", f"HIGH LANDSLIDE RISK (index {pk.value})"),
+                        tr("Tránh xa mái dốc khi mưa lớn; sẵn sàng sơ tán.",
+                           "Stay away from slopes in heavy rain; be ready to evacuate."))
             if lvl == "warning":
-                return (f"Nguy cơ sạt lở trung bình (chỉ số {pk.value})",
-                        "Theo dõi vết nứt, lượng mưa; cảnh giác ban đêm.")
+                return (tr(f"Nguy cơ sạt lở trung bình (chỉ số {pk.value})", f"Moderate landslide risk (index {pk.value})"),
+                        tr("Theo dõi vết nứt, lượng mưa; cảnh giác ban đêm.",
+                           "Watch for cracks and rainfall; stay alert at night."))
             if slope < 3.0:
-                return (f"Địa hình phẳng — hầu như không có nguy cơ sạt lở (chỉ số {pk.value})",
-                        "Không cần lo sạt lở ở khu vực đồng bằng này.")
-            return (f"Nguy cơ sạt lở thấp (chỉ số {pk.value})", "Duy trì theo dõi.")
+                return (tr(f"Địa hình phẳng — hầu như không có nguy cơ sạt lở (chỉ số {pk.value})",
+                           f"Flat terrain — virtually no landslide risk (index {pk.value})"),
+                        tr("Không cần lo sạt lở ở khu vực đồng bằng này.",
+                           "No need to worry about landslides in this flatland."))
+            return (tr(f"Nguy cơ sạt lở thấp (chỉ số {pk.value})", f"Low landslide risk (index {pk.value})"),
+                    tr("Duy trì theo dõi.", "Keep monitoring."))
 
-        slope_txt = f"độ dốc THẬT ~{slope}° (DEM Open-Meteo)" if slope_real else f"độ dốc ~{slope}° (ước lượng)"
-        detail = ((f"Kết hợp lượng mưa THẬT (Open-Meteo) + {slope_txt}." if real
-                   else f"Chỉ số sạt lở (mẫu), {slope_txt}.")
-                  + " Sạt lở cần địa hình dốc — đồng bằng phẳng gần như không rủi ro. "
+        slope_txt = (tr(f"độ dốc THẬT ~{slope}° (DEM Open-Meteo)", f"REAL slope ~{slope}° (Open-Meteo DEM)") if slope_real
+                     else tr(f"độ dốc ~{slope}° (ước lượng)", f"slope ~{slope}° (estimated)"))
+        detail = ((tr(f"Kết hợp lượng mưa THẬT (Open-Meteo) + {slope_txt}.",
+                      f"Combines REAL rainfall (Open-Meteo) + {slope_txt}.") if real
+                   else tr(f"Chỉ số sạt lở (mẫu), {slope_txt}.", f"Landslide index (sample), {slope_txt}."))
+                  + tr(" Sạt lở cần địa hình dốc — đồng bằng phẳng gần như không rủi ro. ",
+                       " Landslides need steep terrain — flat deltas have almost no risk. ")
                   + hazard.scale_note(real, calibrated))
         src = ["Open-Meteo: lượng mưa (thật)", slope_txt] if real else self.data_sources
         return assessment_from_series(self, loc, s, "điểm", 40, 70, texts, detail,
@@ -104,7 +122,7 @@ class LandslideModule(TwinModule):
 
 
 class StormDamageModule(TwinModule):
-    id = "storm_damage"; name = "Bản đồ thiệt hại sau bão"; group = "B"; icon = "🌪️"
+    id = "storm_damage"; name = "Bản đồ thiệt hại sau bão"; name_en = "Post-storm damage map"; group = "B"; icon = "🌪️"
     # CHẠY NGAY, không cần khoá. Điều kiện cũ gắn trạng thái vào
     # sentinel.configured(), nên khi chưa có khoá Copernicus thì mũi nhọn này
     # tự khai là "preview" — trong khi nó đã chạy thật qua Planetary Computer,
@@ -140,7 +158,7 @@ class StormDamageModule(TwinModule):
         else:
             rec = "Chưa thấy mất thảm thực vật bất thường giữa hai kỳ."
         return Assessment(
-            module_id=self.id, module_name=self.name, location=loc, status="ok",
+            module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=r["level"], headline=head,
             detail=(f"Trước: {r['before_cover']}. Sau: {r['after_cover']}. "
                     f"{r['method']} {r['caveat']}"),
@@ -153,7 +171,7 @@ class StormDamageModule(TwinModule):
 
 
 class LandRiskModule(TwinModule):
-    id = "land_risk"; name = "Rủi ro trước khi mua đất"; group = "B"; icon = "🏘️"; status = "active"
+    id = "land_risk"; name = "Rủi ro trước khi mua đất"; name_en = "Pre-purchase land risk"; group = "B"; icon = "🏘️"; status = "active"
     # Đây là điểm thẩm định MỘT LẦN trước khi mua, không phải sự việc sắp xảy
     # ra. Với thửa đã sở hữu, nhắc lại mỗi sáu giờ rằng "đất này trũng" là phiền
     # chứ không phải cảnh báo — nền đất không đổi từ hôm qua.
@@ -175,25 +193,27 @@ class LandRiskModule(TwinModule):
         salt_pen = max(0.0, 20.0 - dist * 0.4)
         score = int(max(0.0, 100.0 - flood_pen - slide_pen - salt_pen))
         lvl = "safe" if score >= 75 else "warning" if score >= 50 else "danger"
-        head = f"Điểm an toàn đất: {score}/100"
-        rec = ("An toàn để mua/đầu tư." if lvl == "safe"
-               else "Có rủi ro — thương lượng giá & kiểm tra kỹ." if lvl == "warning"
-               else "Rủi ro cao — cân nhắc rất kỹ trước khi mua.")
+        head = tr(f"Điểm an toàn đất: {score}/100", f"Land safety score: {score}/100")
+        rec = (tr("An toàn để mua/đầu tư.", "Safe to buy/invest.") if lvl == "safe"
+               else tr("Có rủi ro — thương lượng giá & kiểm tra kỹ.", "Some risk — negotiate price & inspect carefully.") if lvl == "warning"
+               else tr("Rủi ro cao — cân nhắc rất kỹ trước khi mua.", "High risk — consider very carefully before buying."))
         slope_lbl = "THẬT " if slope_real else ""
-        detail = (f"Cao độ THẬT ~{elev} m · dốc {slope_lbl}~{slope}° · cách biển ~{round(dist,1)} km"
-                  + (f" · mưa dự báo 7 ngày tới ~{precip} mm (Open-Meteo)." if has_rain else " (mưa: mẫu)."))
+        detail = (tr(f"Cao độ THẬT ~{elev} m · dốc {slope_lbl}~{slope}° · cách biển ~{round(dist,1)} km",
+                     f"REAL elevation ~{elev} m · slope ~{slope}° · {round(dist,1)} km from coast")
+                  + (tr(f" · mưa dự báo 7 ngày tới ~{precip} mm (Open-Meteo).", f" · 7-day rain forecast ~{precip} mm (Open-Meteo).") if has_rain
+                     else tr(" (mưa: mẫu).", " (rain: sample).")))
         metrics = {"diem": float(score), "cao_do_m": elev, "do_doc_deg": slope}
         if precip is not None:
             metrics["mua_7ngay_mm"] = precip
         return Assessment(
-            module_id=self.id, module_name=self.name, location=loc, status="ok",
+            module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=lvl, headline=head, score=float(score), detail=detail,
             recommendation=rec, confidence=0.68, confidence_low=0.55, confidence_high=0.78,
             is_real=bool(has_rain and slope_real), metrics=metrics, data_sources=self.data_sources)
 
 
 class IllegalBuildModule(TwinModule):
-    id = "illegal_build"; name = "Giám sát xây dựng trái phép"; group = "B"; icon = "🏗️"
+    id = "illegal_build"; name = "Giám sát xây dựng trái phép"; name_en = "Illegal-construction watch"; group = "B"; icon = "🏗️"
     # CHẠY NGAY, không cần khoá. Điều kiện cũ gắn trạng thái vào
     # sentinel.configured(), nên khi chưa có khoá Copernicus thì mũi nhọn này
     # tự khai là "preview" — trong khi nó đã chạy thật qua Planetary Computer,
@@ -227,7 +247,7 @@ class IllegalBuildModule(TwinModule):
                if r["both_signals"] else
                "Chưa có đầu mối đủ mạnh để đi kiểm tra.")
         return Assessment(
-            module_id=self.id, module_name=self.name, location=loc, status="ok",
+            module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=r["level"], headline=head,
             detail=f"{r['method']} {r['caveat']}",
             recommendation=rec, confidence=0.65, confidence_low=0.54,
@@ -250,7 +270,7 @@ class UpstreamFloodModule(TwinModule):
     chờ mười giây không ai thấy, mà đó lại đúng là lúc cảnh báo có giá trị nhất.
     """
 
-    id = "upstream_flood"; name = "Lũ từ thượng nguồn"; group = "B"; icon = "🏔️"
+    id = "upstream_flood"; name = "Lũ từ thượng nguồn"; name_en = "Upstream flood"; group = "B"; icon = "🏔️"
     status = "active"
     heavy = True
     data_sources = ["DEM: nan quạt cao độ 8 hướng × 3 vòng (Open-Meteo)",
@@ -275,7 +295,7 @@ class UpstreamFloodModule(TwinModule):
         if not r["available"]:
             binh_yen = r["reason"] == "no_upslope"
             return Assessment(
-                module_id=self.id, module_name=self.name, location=loc,
+                module_id=self.id, module_name=self.disp_name(), location=loc,
                 status="ok", risk_level="safe",
                 headline=("Không có sườn nào đổ nước về thửa này"
                           if binh_yen else
@@ -303,7 +323,7 @@ class UpstreamFloodModule(TwinModule):
         }[r["level"]]
 
         return Assessment(
-            module_id=self.id, module_name=self.name, location=loc, status="ok",
+            module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=r["level"],
             headline=(f"{r['verdict'].capitalize()} — mưa thượng nguồn "
                       f"{r['upstream_rain_mm']} mm so với {r['local_rain_mm']} mm "

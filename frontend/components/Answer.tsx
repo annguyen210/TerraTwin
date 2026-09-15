@@ -178,7 +178,7 @@ export default function Answer({
   // gọi /api/terrascore lần nữa — đó chính là lời gọi thừa làm chậm gấp năm lần.
   onTerra?: (t: ScanResult["terrascore"]) => void;
 }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [d, setD] = useState<ScanResult | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -261,7 +261,7 @@ export default function Answer({
     return () => {
       huy = true;
     };
-  }, [lat, lon, area]);
+  }, [lat, lon, area, lang]);
 
   useEffect(() => {
     if (!d || !onRisk) return;

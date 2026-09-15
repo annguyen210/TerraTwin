@@ -13,6 +13,7 @@ from __future__ import annotations
 from app.modules.base import TwinModule
 from app.schemas import Assessment, ForecastPoint, Location
 from app.services.datasources import get_salinity_context
+from app.services.reqlang import tr
 
 SAFE = 1.0     # g/L
 WARNING = 4.0  # g/L
@@ -38,6 +39,7 @@ def _season_label(factor: float) -> str:
 class SalinityModule(TwinModule):
     id = "salinity"
     name = "Cảnh báo xâm nhập mặn"
+    name_en = "Saltwater intrusion alert"
     group = "A"
     icon = "🌾"
     status = "active"
@@ -55,24 +57,29 @@ class SalinityModule(TwinModule):
         if zone is None:
             dist = ctx["distance_to_coast_km"]
             near_sea = dist < 10.0
-            detail = (
+            detail = tr(
                 f"Vị trí cách bờ biển ~{dist} km, cao độ ~{ctx['elevation_m']} m. "
                 "Module này phục vụ xâm nhập mặn NÔNG NGHIỆP ở vùng đồng bằng "
                 "(ĐBSCL, ĐB sông Hồng) — nơi nước mặn theo sông vào ruộng lúa "
                 "trong mùa khô. Vị trí này nằm ngoài hai vùng đó nên KHÔNG áp "
-                "ngưỡng mặn của cây lúa để tránh kết luận sai."
-            )
+                "ngưỡng mặn của cây lúa để tránh kết luận sai.",
+                f"~{dist} km from the coast, elevation ~{ctx['elevation_m']} m. "
+                "This module covers AGRICULTURAL saltwater intrusion in the deltas "
+                "(Mekong, Red River) — where seawater travels up rivers into rice "
+                "fields in the dry season. This location is outside those deltas, so "
+                "rice salinity thresholds are NOT applied, to avoid wrong conclusions.")
             headline = (
-                "Ngoài vùng xâm nhập mặn nông nghiệp — sát biển nên nước lợ/mặn tự nhiên"
+                tr("Ngoài vùng xâm nhập mặn nông nghiệp — sát biển nên nước lợ/mặn tự nhiên",
+                   "Outside the agricultural-salinity zone — near the sea, so brackish/salty water is natural")
                 if near_sea else
-                "Ngoài vùng xâm nhập mặn nông nghiệp"
+                tr("Ngoài vùng xâm nhập mặn nông nghiệp", "Outside the agricultural-salinity zone")
             )
             return Assessment(
-                module_id=self.id, module_name=self.name, location=location,
+                module_id=self.id, module_name=self.disp_name(), location=location,
                 status="out_of_scope", risk_level="unknown", is_real=False,
                 headline=headline, detail=detail,
-                recommendation=("Dùng các mô-đun Lũ/Ngập, Hạn hoặc Rủi ro mua đất "
-                                "cho vị trí này."),
+                recommendation=tr("Dùng các mô-đun Lũ/Ngập, Hạn hoặc Rủi ro mua đất cho vị trí này.",
+                                  "Use the Flood, Drought, or Land-purchase risk modules for this location."),
                 confidence=None, data_sources=self.data_sources,
             )
 
@@ -88,30 +95,40 @@ class SalinityModule(TwinModule):
         season_txt = _season_label(season)
 
         if first_danger:
-            headline = (f"Nguy cơ mặn CAO — vượt ngưỡng ngày {first_danger.date} "
-                        f"(~{first_danger.value} g/L)")
-            rec = (f"Trữ nước ngọt và ĐÓNG CỐNG trước ngày {first_danger.date}. "
-                   "Không lấy nước sông 3–4 ngày tới. Báo hợp tác xã.")
+            headline = tr(f"Nguy cơ mặn CAO — vượt ngưỡng ngày {first_danger.date} (~{first_danger.value} g/L)",
+                          f"HIGH salinity risk — exceeds threshold on {first_danger.date} (~{first_danger.value} g/L)")
+            rec = tr(f"Trữ nước ngọt và ĐÓNG CỐNG trước ngày {first_danger.date}. "
+                     "Không lấy nước sông 3–4 ngày tới. Báo hợp tác xã.",
+                     f"Store fresh water and CLOSE SLUICE GATES before {first_danger.date}. "
+                     "Don't draw river water for the next 3–4 days. Notify the co-op.")
         elif level == "warning":
-            headline = f"Mặn mức CẢNH BÁO — đỉnh ~{peak.value} g/L ngày {peak.date}"
-            rec = ("Theo dõi sát, chuẩn bị trữ nước ngọt; "
-                   "hạn chế lấy nước lúc triều cường.")
+            headline = tr(f"Mặn mức CẢNH BÁO — đỉnh ~{peak.value} g/L ngày {peak.date}",
+                          f"WARNING-level salinity — peak ~{peak.value} g/L on {peak.date}")
+            rec = tr("Theo dõi sát, chuẩn bị trữ nước ngọt; hạn chế lấy nước lúc triều cường.",
+                     "Monitor closely, prepare to store fresh water; limit intake at high tide.")
         else:
-            headline = f"An toàn trong 7 ngày tới — đỉnh chỉ ~{peak.value} g/L"
-            rec = ("Chưa cần hành động. Hệ thống sẽ tự cảnh báo khi vào mùa khô."
+            headline = tr(f"An toàn trong 7 ngày tới — đỉnh chỉ ~{peak.value} g/L",
+                          f"Safe for the next 7 days — peak only ~{peak.value} g/L")
+            rec = (tr("Chưa cần hành động. Hệ thống sẽ tự cảnh báo khi vào mùa khô.",
+                      "No action needed. The system will alert you when the dry season arrives.")
                    if season < 0.4 else
-                   "Chưa cần hành động. Hệ thống sẽ tự cảnh báo nếu tình hình đổi.")
+                   tr("Chưa cần hành động. Hệ thống sẽ tự cảnh báo nếu tình hình đổi.",
+                      "No action needed. The system will alert you if conditions change."))
 
-        detail = (
+        detail = tr(
             f"{zone} · cách bờ biển gần nhất ~{ctx['distance_to_coast_km']} km · "
             f"cao độ ~{ctx['elevation_m']} m · hệ số mùa {season} ({season_txt}). "
             f"Ngưỡng lúa: an toàn <{SAFE}, cảnh báo {SAFE}–{WARNING}, "
             f"nguy hiểm ≥{WARNING} g/L. ƯỚC LƯỢNG VẬT LÝ (bờ biển + cao độ + "
-            "mùa vụ + triều) — CHỜ hiệu chỉnh bằng số đo mặn MRC/trạm tỉnh."
-        )
+            "mùa vụ + triều) — CHỜ hiệu chỉnh bằng số đo mặn MRC/trạm tỉnh.",
+            f"{zone} · nearest coast ~{ctx['distance_to_coast_km']} km · "
+            f"elevation ~{ctx['elevation_m']} m · season factor {season} ({season_txt}). "
+            f"Rice thresholds: safe <{SAFE}, warning {SAFE}–{WARNING}, "
+            f"danger ≥{WARNING} g/L. PHYSICAL ESTIMATE (coast + elevation + season + "
+            "tide) — PENDING calibration against MRC / provincial salinity gauges.")
 
         return Assessment(
-            module_id=self.id, module_name=self.name, location=location,
+            module_id=self.id, module_name=self.disp_name(), location=location,
             status="ok", risk_level=level, headline=headline, detail=detail,
             recommendation=rec, confidence=0.55, confidence_low=0.4, confidence_high=0.7,
             is_real=False, forecast=forecast, data_sources=self.data_sources,

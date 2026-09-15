@@ -1,5 +1,14 @@
 const BASE = process.env.NEXT_PUBLIC_API ?? "http://localhost:8000";
 
+// Ngôn ngữ hiện tại để gửi cho máy chủ (nội dung động: tên mô-đun, headline,
+// recommendation…). LangProvider lưu vào localStorage "terratwin_lang".
+export function curLang(): string {
+  if (typeof window === "undefined") return "vi";
+  try { return localStorage.getItem("terratwin_lang") === "en" ? "en" : "vi"; }
+  catch { return "vi"; }
+}
+const _lp = (extra = ""): string => `${extra ? extra + "&" : "?"}lang=${curLang()}`;
+
 // N6 — đếm sự kiện ẨN DANH. Fire-and-forget: không await, không chặn UI, nuốt
 // mọi lỗi (đo lường KHÔNG bao giờ được làm hỏng luồng chính), không gửi gì định
 // danh. Backend chỉ nhận sáu tên hợp lệ; tên lạ bị bỏ qua.
@@ -143,7 +152,7 @@ export type CopilotAnswer = {
 };
 
 export async function getModules(): Promise<ModuleInfo[]> {
-  const r = await fetch(`${BASE}/api/modules`);
+  const r = await fetch(`${BASE}/api/modules${_lp()}`);
   if (!r.ok) throw new Error("Không tải được danh sách mô-đun");
   return r.json();
 }
@@ -156,7 +165,7 @@ export async function assess(
 ): Promise<Assessment> {
   const body: Record<string, number> = { lat, lon };
   if (areaHa != null) body.area_ha = areaHa;
-  const r = await fetch(`${BASE}/api/assess/${moduleId}`, {
+  const r = await fetch(`${BASE}/api/assess/${moduleId}${_lp()}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -269,7 +278,7 @@ export async function scanAll(
 ): Promise<ScanResult> {
   const body: Record<string, number> = { lat, lon };
   if (areaHa != null) body.area_ha = areaHa;
-  const r = await fetch(`${BASE}/api/scan${deep ? "?deep=true" : ""}`, {
+  const r = await fetch(`${BASE}/api/scan${_lp(deep ? "?deep=true" : "")}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -1162,7 +1171,7 @@ export type Passport = {
 };
 
 export function getPassport(lat: number, lon: number) {
-  return postJson<Passport>("/api/passport", { location: { lat, lon } },
+  return postJson<Passport>(`/api/passport${_lp()}`, { location: { lat, lon } },
     "Không dựng được hồ sơ thửa đất");
 }
 
@@ -1674,7 +1683,7 @@ export type PlotPlan = {
 export function getPlan(lat: number, lon: number, areaHa?: number, crop = "lua") {
   const body: Record<string, number> = { lat, lon };
   if (areaHa != null) body.area_ha = areaHa;
-  return postJson<PlotPlan>(`/api/plan?crop=${encodeURIComponent(crop)}`, body,
+  return postJson<PlotPlan>(`/api/plan?crop=${encodeURIComponent(crop)}&lang=${curLang()}`, body,
     "Không dựng được kế hoạch thửa");
 }
 

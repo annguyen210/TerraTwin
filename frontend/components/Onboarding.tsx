@@ -9,7 +9,7 @@
  * mờ giải thích ba việc, đóng là vào dùng ngay.
  */
 import { useEffect, useState } from "react";
-import { useLang } from "@/lib/i18n";
+import { useLang, LangToggle } from "@/lib/i18n";
 
 const KEY = "tt_onboarded_v1";
 
@@ -53,6 +53,10 @@ export default function Onboarding() {
         color: "var(--ink, #0f1411)", borderRadius: 14, padding: "26px 24px",
         boxShadow: "0 20px 60px -20px rgba(0,0,0,.5)",
       }}>
+        {/* Nút đổi ngôn ngữ NGAY trong thẻ — onboarding không che mất nút EN. */}
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 4 }}>
+          <LangToggle />
+        </div>
         <div style={{ fontSize: 46, textAlign: "center" }}>{s.icon}</div>
         <h2 style={{ fontSize: 20, fontWeight: 800, textAlign: "center", margin: "8px 0 6px" }}>{s.title}</h2>
         <p style={{ textAlign: "center", color: "var(--muted, #66716a)", margin: "0 0 18px", lineHeight: 1.55 }}>{s.body}</p>

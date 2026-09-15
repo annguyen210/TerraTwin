@@ -134,9 +134,20 @@ def gather(tasks: list[Callable[[], T]], limit: int | None = None,
         return []
     n = min(len(tasks), limit or _UPSTREAM_LIMIT)
     out: list[T | None] = [None] * len(tasks)
+    # Ngôn ngữ request KHÔNG tự sang luồng con. Bắt ở luồng request rồi set lại
+    # trong từng luồng con — nếu không nội dung module rơi về tiếng Việt khi EN.
+    from app.services import reqlang
+    _lang = reqlang.cur_lang()
+
+    def _wrap(fn: Callable[[], T]) -> Callable[[], T]:
+        def run() -> T:
+            reqlang.set_lang(_lang)
+            return fn()
+        return run
+
     with ThreadPoolExecutor(max_workers=max(1, n),
                             thread_name_prefix="terratwin-par") as ex:
-        futs = {ex.submit(t): i for i, t in enumerate(tasks)}
+        futs = {ex.submit(_wrap(t)): i for i, t in enumerate(tasks)}
         for f, i in futs.items():
             try:
                 out[i] = f.result(timeout=timeout)

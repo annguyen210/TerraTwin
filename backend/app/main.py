@@ -33,7 +33,7 @@ from app.services import (
     anomaly, anomaly_ml, backtest, calibration, copilot, design, explain,
     future, genome, goalseek,
     hazard, heatmap, imagery, jobs, landcover, llm, mrv, place, region,
-    passport, roadmap, scan, sentinel,
+    passport, reqlang, roadmap, scan, sentinel,
     terrascore, timelapse, timemachine, whatif, whatif_nlp,
 )
 from app.services import twin as twin_service
@@ -217,7 +217,8 @@ def roadmap_status() -> dict:
 
 
 @app.get("/api/modules", response_model=list[ModuleInfo])
-def modules() -> list[ModuleInfo]:
+def modules(lang: str = "vi") -> list[ModuleInfo]:
+    reqlang.set_lang(lang)
     return list_modules()
 
 
@@ -277,7 +278,8 @@ def _off_site(module, loc: Location, reg: dict) -> Assessment:
 
 
 @app.post("/api/assess/{module_id}", response_model=Assessment)
-def assess(module_id: str, location: Location) -> Assessment:
+def assess(module_id: str, location: Location, lang: str = "vi") -> Assessment:
+    reqlang.set_lang(lang)
     module = get_module(module_id)
     if module is None:
         raise HTTPException(status_code=404, detail=f"Không có mô-đun '{module_id}'")
@@ -301,12 +303,13 @@ def terra(location: Location) -> TerraScoreResult:
 
 
 @app.post("/api/scan", response_model=ScanResult)
-def scan_endpoint(location: Location, deep: bool = False) -> ScanResult:
+def scan_endpoint(location: Location, deep: bool = False, lang: str = "vi") -> ScanResult:
     """Quét toàn cảnh thửa đất: mọi mũi nhọn nhẹ + cảnh báo ưu tiên, một lần gọi.
 
     Chặn trước ở đây thay vì để từng mô-đun tự xoay xở: mặt biển và đất nước
     khác không phải chuyện của mười sáu mô-đun, mà là chuyện của toạ độ.
     """
+    reqlang.set_lang(lang)
     reg = region.classify(location.lat, location.lon)
     if not reg["serviceable"]:
         from datetime import datetime, timezone
@@ -329,12 +332,13 @@ def scan_endpoint(location: Location, deep: bool = False) -> ScanResult:
 
 
 @app.post("/api/plan")
-def plan_endpoint(location: Location, crop: str = "lua") -> dict:
+def plan_endpoint(location: Location, crop: str = "lua", lang: str = "vi") -> dict:
     """KẾ HOẠCH THỬA CỦA BẠN — gom cảnh báo thành việc-cần-làm-có-ngày, ngày an
     toàn, giá trị chịu rủi ro (ước lượng thô, khai báo rõ), và trạng thái tự canh.
 
     Cùng cửa chặn như /api/scan: mặt biển / nước khác không có kế hoạch mùa vụ.
     """
+    reqlang.set_lang(lang)
     reg = region.classify(location.lat, location.lon)
     if not reg["serviceable"]:
         return {"serviceable": False, "region": reg,
@@ -532,7 +536,7 @@ def future_endpoint(module_id: str, location: Location) -> dict:
 
 
 @app.post("/api/passport")
-def passport_endpoint(req: ContrastRequest) -> dict:
+def passport_endpoint(req: ContrastRequest, lang: str = "vi") -> dict:
     """Hồ sơ riêng của một thửa: địa hình tương đối + mười năm hiểm hoạ.
 
     Đây là câu trả lời cho "phần mềm này hơn app thời tiết ở chỗ nào". App thời
@@ -540,6 +544,7 @@ def passport_endpoint(req: ContrastRequest) -> dict:
     trũng so với đất xung quanh, và không biết mười năm qua đã có bao nhiêu lần
     nước lên tới đây.
     """
+    reqlang.set_lang(lang)
     off = _off_site_dict(req.location.lat, req.location.lon)
     if off:
         return off

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { useLang } from "@/lib/i18n";
 
 type Pt = [number, number]; // [lng, lat]
 
@@ -57,6 +58,7 @@ export default function MapView({
   // mức rủi ro cao nhất tìm được.
   plot?: { lat: number; lon: number; spanM: number; risk: string } | null;
 }) {
+  const { t } = useLang();
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const ptsRef = useRef<Pt[]>([]);
@@ -303,16 +305,18 @@ export default function MapView({
       <div className="drawbar">
         <span className="db-hint">
           {count === 0
-            ? "Kéo & zoom cho ĐÚNG thửa của bạn vào giữa ô ngắm ✛ — rồi bấm nút xanh"
-            : `${count} điểm${count >= 3 ? " · đã tạo vùng ruộng" : ""}`}
+            ? t("Kéo & zoom cho ĐÚNG thửa của bạn vào giữa ô ngắm ✛ — rồi bấm nút xanh",
+                "Pan & zoom your exact plot into the ✛ crosshair — then tap the green button")
+            : t(`${count} điểm${count >= 3 ? " · đã tạo vùng ruộng" : ""}`,
+                `${count} point(s)${count >= 3 ? " · field area created" : ""}`)}
         </span>
         <button className="db-primary" onClick={analyzeCenter}>
-          📍 Phân tích đúng thửa ở giữa
+          📍 {t("Phân tích đúng thửa ở giữa", "Analyze the plot at center")}
         </button>
         {count > 0 && (
           <>
-            <button onClick={analyze}>Phân tích điểm/vùng đã chấm</button>
-            <button onClick={clear} className="ghost">Xóa</button>
+            <button onClick={analyze}>{t("Phân tích điểm/vùng đã chấm", "Analyze marked point/area")}</button>
+            <button onClick={clear} className="ghost">{t("Xóa", "Clear")}</button>
           </>
         )}
       </div>

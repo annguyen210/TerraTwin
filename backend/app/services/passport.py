@@ -77,6 +77,13 @@ def _group_events(exceed: list[tuple[str, float]],
 
 _TEN = {"flood": "ngập lụt", "landslide": "sạt lở",
         "drought": "hạn thiếu nước", "wildfire": "cháy"}
+_TEN_EN = {"flood": "flooding", "landslide": "landslides",
+           "drought": "drought", "wildfire": "wildfire"}
+
+
+def _ten(mid: str) -> str:
+    from app.services.reqlang import tr
+    return tr(_TEN[mid], _TEN_EN[mid])
 
 
 def _ring_points(lat: float, lon: float) -> list[tuple[float, float]]:
@@ -109,14 +116,20 @@ def terrain(lat: float, lon: float) -> dict | None:
     pct_thap_hon = round(100.0 * cao_hon / len(quanh))
     slope = realdata.slope_deg(lat, lon)
 
+    from app.services.reqlang import tr
     if pct_thap_hon >= 70:
-        y = ("Thửa này TRŨNG hơn hầu hết đất xung quanh — khi mưa lớn, nước từ "
-             "vùng lân cận dồn về đây trước và rút sau cùng.")
+        y = tr("Thửa này TRŨNG hơn hầu hết đất xung quanh — khi mưa lớn, nước từ "
+               "vùng lân cận dồn về đây trước và rút sau cùng.",
+               "This plot is LOWER than most surrounding land — in heavy rain, water "
+               "from nearby drains here first and leaves last.")
     elif pct_thap_hon <= 30:
-        y = ("Thửa này CAO hơn hầu hết đất xung quanh — ít bị nước từ nơi khác "
-             "dồn về, nhưng cũng giữ nước kém hơn khi hạn.")
+        y = tr("Thửa này CAO hơn hầu hết đất xung quanh — ít bị nước từ nơi khác "
+               "dồn về, nhưng cũng giữ nước kém hơn khi hạn.",
+               "This plot is HIGHER than most surrounding land — less water flows in "
+               "from elsewhere, but it also holds water less well during drought.")
     else:
-        y = "Thửa này ở mức trung bình so với đất xung quanh về độ cao."
+        y = tr("Thửa này ở mức trung bình so với đất xung quanh về độ cao.",
+               "This plot is average in elevation compared with surrounding land.")
 
     return {
         "elevation_m": round(me, 1),
@@ -195,14 +208,18 @@ def history(lat: float, lon: float, years: int = 10) -> dict | None:
         # ĐẾM ĐỢT, KHÔNG ĐẾM CỬA SỔ (sửa lỗi "1206 lần").
         events = _group_events(exceed)
 
+        from app.services.reqlang import tr
         if not events:
             out[mid] = {
-                "name": _TEN[mid], "events": 0, "peak_month": None, "latest": None,
+                "name": _ten(mid), "events": 0, "peak_month": None, "latest": None,
                 "worst_value": round(nang_nhat[0], 1), "worst_date": nang_nhat[1],
                 "national_threshold": muc_chung,
-                "note": (f"Mười năm qua thửa này chưa lần nào {_TEN[mid]} vượt "
-                         f"ngưỡng chung cả nước. Mức nặng nhất là "
-                         f"{nang_nhat[0]:.0f} ngày {nang_nhat[1]}."),
+                "note": tr(f"Mười năm qua thửa này chưa lần nào {_TEN[mid]} vượt "
+                           f"ngưỡng chung cả nước. Mức nặng nhất là "
+                           f"{nang_nhat[0]:.0f} ngày {nang_nhat[1]}.",
+                           f"In 10 years this plot has never had {_TEN_EN[mid]} exceed "
+                           f"the national threshold. The most severe was "
+                           f"{nang_nhat[0]:.0f} on {nang_nhat[1]}."),
             }
             continue
 
@@ -211,7 +228,7 @@ def history(lat: float, lon: float, years: int = 10) -> dict | None:
         top, dem = thang.most_common(1)[0]
         latest = peak_dates[-1]
         out[mid] = {
-            "name": _TEN[mid],
+            "name": _ten(mid),
             "events": len(events),               # số ĐỢT, không phải số cửa sổ
             "peak_month": int(top),
             "peak_month_events": dem,
@@ -219,18 +236,24 @@ def history(lat: float, lon: float, years: int = 10) -> dict | None:
             "worst_value": round(nang_nhat[0], 1),
             "worst_date": nang_nhat[1],
             "national_threshold": muc_chung,
-            "note": (f"Mười năm qua thửa này có {len(events)} đợt {_TEN[mid]} vượt "
-                     f"ngưỡng chung cả nước. Tháng {int(top)} nhiều nhất "
-                     f"({dem} đợt). Nặng nhất ngày {nang_nhat[1]}. "
-                     f"Gần nhất {latest}."),
+            "note": tr(f"Mười năm qua thửa này có {len(events)} đợt {_TEN[mid]} vượt "
+                       f"ngưỡng chung cả nước. Tháng {int(top)} nhiều nhất "
+                       f"({dem} đợt). Nặng nhất ngày {nang_nhat[1]}. "
+                       f"Gần nhất {latest}.",
+                       f"In 10 years this plot had {len(events)} {_TEN_EN[mid]} "
+                       f"episode(s) exceeding the national threshold. Month {int(top)} "
+                       f"most ({dem} episode(s)). Most severe on {nang_nhat[1]}. "
+                       f"Latest {latest}."),
         }
     return out or None
 
 
 def build(lat: float, lon: float) -> dict:
     """Hồ sơ đầy đủ. Luôn trả dict, không ném lỗi lên API."""
-    from app.services import cache_store, jobs
-    key = cache_store.make_key("passport", _CACHE_V, round(lat, 3), round(lon, 3))
+    from app.services import cache_store, jobs, reqlang
+    # Ngôn ngữ vào KHOÁ cache: nếu không, người dùng EN nhận bản tiếng Việt đã cache.
+    key = cache_store.make_key("passport", _CACHE_V, reqlang.cur_lang(),
+                               round(lat, 3), round(lon, 3))
     hit = cache_store.get(key)
     if hit is not None:
         return hit
@@ -239,48 +262,70 @@ def build(lat: float, lon: float) -> dict:
 
     if dh is None and ls is None:
         return {"available": False,
-                "message": ("Chưa tải được địa hình và lịch sử cho điểm này. "
-                            "Nguồn dữ liệu đang bận — thử lại sau ít phút.")}
+                "message": reqlang.tr(
+                    "Chưa tải được địa hình và lịch sử cho điểm này. "
+                    "Nguồn dữ liệu đang bận — thử lại sau ít phút.",
+                    "Couldn't load terrain and history for this point. "
+                    "The data source is busy — try again in a few minutes.")}
 
+    tr = reqlang.tr
     diem = []
     if dh:
-        diem.append(f"cao {dh['elevation_m']} m, thấp hơn {dh['lower_than_pct']}% "
-                    f"đất trong bán kính {dh['radius_km']:.0f} km")
+        diem.append(tr(f"cao {dh['elevation_m']} m, thấp hơn {dh['lower_than_pct']}% "
+                       f"đất trong bán kính {dh['radius_km']:.0f} km",
+                       f"{dh['elevation_m']} m elevation, lower than {dh['lower_than_pct']}% "
+                       f"of land within {dh['radius_km']:.0f} km"))
     if ls:
         nhieu = max(ls.values(), key=lambda v: v["events"])
         if nhieu["events"]:
-            diem.append(f"{nhieu['events']} lần {nhieu['name']} chạm ngưỡng nguy "
-                        f"hiểm trong 10 năm, nhiều nhất tháng {nhieu['peak_month']}")
+            diem.append(tr(f"{nhieu['events']} lần {nhieu['name']} chạm ngưỡng nguy "
+                           f"hiểm trong 10 năm, nhiều nhất tháng {nhieu['peak_month']}",
+                           f"{nhieu['events']} {nhieu['name']} episode(s) hit the danger "
+                           f"threshold in 10 years, most in month {nhieu['peak_month']}"))
 
     out = {
         "available": True,
         "terrain": dh,
         "history": ls,
         "headline": " · ".join(diem) if diem else None,
-        "why_unique": (
+        "why_unique": tr(
             "Ba con số trên là của RIÊNG thửa này, không phải của tỉnh hay của "
             "vùng. Một ứng dụng dự báo biết trời sắp mưa bao nhiêu, nhưng không "
             "biết thửa của bạn nằm cao hay trũng so với xung quanh, và không "
-            "biết mười năm qua đã có bao nhiêu lần nước lên tới đây."),
-        "caveat": (
+            "biết mười năm qua đã có bao nhiêu lần nước lên tới đây.",
+            "The three numbers above are for THIS plot, not the province or region. "
+            "A forecast app knows how much rain is coming, but not whether your plot "
+            "sits high or low relative to its surroundings, nor how many times in 10 "
+            "years water has reached here."),
+        "caveat": tr(
             "Cao độ lấy từ mô hình số độ cao ~90 m, nên bờ ruộng và mương nhỏ "
             "không hiện ra. Số lần trong lịch sử đếm theo ngưỡng đã hiệu chuẩn "
             "cho chính nơi này — so được giữa các vùng khí hậu khác nhau, nhưng "
-            "không phải số trận lụt được ghi nhận chính thức."),
-        # T1 — hai điều giám khảo ngành SẼ hỏi, giải thích trước để không trông
-        # như lỗi.
+            "không phải số trận lụt được ghi nhận chính thức.",
+            "Elevation comes from a ~90 m DEM, so field bunds and small ditches "
+            "don't show. History counts use a threshold calibrated to this point — "
+            "comparable across climate zones, but not a count of officially recorded floods."),
         "method": {
-            "counting": (
+            "counting": tr(
                 "Đếm ĐỢT, không đếm cửa sổ. Cửa sổ hiểm hoạ trượt theo ngày nên "
                 "một đợt kéo dài sinh ra nhiều cửa sổ vượt ngưỡng liên tiếp; ta "
                 "gộp các cửa sổ cách nhau ≤14 ngày thành MỘT đợt. (Bản trước đếm "
-                "từng cửa sổ nên ra con số phóng đại như '1206'.)"),
-            "cross_module": (
+                "từng cửa sổ nên ra con số phóng đại như '1206'.)",
+                "Counts EPISODES, not windows. The hazard window slides daily, so one "
+                "long episode spawns many consecutive threshold-crossings; we merge "
+                "windows ≤14 days apart into ONE episode. (An earlier version counted "
+                "each window, giving inflated numbers like '1206'.)"),
+            "cross_module": tr(
                 "KHÔNG so số đợt GIỮA các mô-đun. Mỗi mô-đun có ngưỡng chung cả "
                 "nước riêng (NATIONAL_P97): lũ 95,23 · sạt lở 28,07 · hạn 64,48 · "
                 "cháy 45,28. Ngưỡng sạt lở thấp hơn nhiều nên một nơi có thể ra "
                 "số đợt sạt lở > số đợt ngập dù là vùng lũ — con số so được giữa "
-                "các NƠI cho cùng một mô-đun, không so được giữa các mô-đun."),
+                "các NƠI cho cùng một mô-đun, không so được giữa các mô-đun.",
+                "Do NOT compare episode counts BETWEEN modules. Each has its own "
+                "national threshold (NATIONAL_P97): flood 95.23 · landslide 28.07 · "
+                "drought 64.48 · wildfire 45.28. The landslide threshold is much lower, "
+                "so a place can show more landslide than flood episodes even in a flood "
+                "region — the numbers compare PLACES for one module, not modules to each other."),
         },
     }
     cache_store.put(key, out, ttl_seconds=_TTL)

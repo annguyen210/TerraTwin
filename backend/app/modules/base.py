@@ -14,6 +14,7 @@ from app.schemas import Assessment, Location, ModuleInfo
 class TwinModule(ABC):
     id: str = ""
     name: str = ""
+    name_en: str = ""      # song ngữ: tên tiếng Anh (reqlang chọn theo request)
     group: str = ""
     icon: str = ""
     data_sources: list[str] = []
@@ -41,9 +42,15 @@ class TwinModule(ABC):
     # không còn nhận được nữa. Đây chính là thứ phá tỉ lệ báo động giả 3%.
     threat: bool = True
 
+    def disp_name(self) -> str:
+        """Tên hiển thị theo ngôn ngữ request (mặc định VI). Dùng cho info() và
+        module_name trong Assessment để lưới 18 mũi nhọn hiện đúng ngữ."""
+        from app.services.reqlang import tr
+        return tr(self.name, self.name_en or self.name)
+
     def info(self) -> ModuleInfo:
         return ModuleInfo(
-            id=self.id, name=self.name, group=self.group, status=self.status,
+            id=self.id, name=self.disp_name(), group=self.group, status=self.status,
             icon=self.icon, data_sources=self.data_sources, users=self.users,
             description=self.description, heavy=self.heavy, threat=self.threat,
         )

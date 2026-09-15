@@ -25,6 +25,7 @@ from datetime import date, datetime, timedelta
 
 from app.schemas import Location
 from app.services import hazard, scan
+from app.services.reqlang import tr
 
 # Giá trị vụ tham chiếu (doanh thu gộp/ha/vụ, VND) — khoảng THÔ phổ biến ở Việt
 # Nam, để người dùng đổi được. Không phải đo cho thửa này.
@@ -35,6 +36,8 @@ CROP_VALUE: dict[str, tuple[int, int, str]] = {
     "cayanqua": (100_000_000, 300_000_000, "Cây ăn quả"),
     "tom":      (150_000_000, 500_000_000, "Tôm / thuỷ sản"),
 }
+CROP_LABEL_EN = {"lua": "Rice", "raumau": "Vegetables", "caphe": "Coffee",
+                 "cayanqua": "Fruit trees", "tom": "Shrimp / aquaculture"}
 DEFAULT_CROP = "lua"
 
 # Tỉ lệ thiệt hại điển hình NẾU hiểm họa xảy ra mà không kịp ứng phó. Khoảng, vì
@@ -53,11 +56,13 @@ LOSS_FRACTION: dict[str, tuple[float, float]] = {
 }
 
 _WEEKDAY_VI = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật"]
+_WEEKDAY_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 
 def _weekday_vi(iso: str) -> str:
     try:
-        return _WEEKDAY_VI[datetime.strptime(iso, "%Y-%m-%d").weekday()]
+        i = datetime.strptime(iso, "%Y-%m-%d").weekday()
+        return tr(_WEEKDAY_VI[i], _WEEKDAY_EN[i])
     except ValueError:
         return ""
 
@@ -75,10 +80,10 @@ def _lead_days(first_iso: str | None, today: date) -> int | None:
 def _money(v: float) -> str:
     """Rút gọn tiền cho dễ đọc: 12,5 triệu / 1,2 tỷ."""
     if v >= 1_000_000_000:
-        return f"{v / 1_000_000_000:.1f} tỷ".replace(".", ",")
+        return tr(f"{v / 1_000_000_000:.1f} tỷ".replace(".", ","), f"{v / 1_000_000_000:.1f}B ₫")
     if v >= 1_000_000:
-        return f"{v / 1_000_000:.1f} triệu".replace(".", ",")
-    return f"{v:,.0f} đ".replace(",", ".")
+        return tr(f"{v / 1_000_000:.1f} triệu".replace(".", ","), f"{v / 1_000_000:.1f}M ₫")
+    return tr(f"{v:,.0f} đ".replace(",", "."), f"{v:,.0f} ₫")
 
 
 def build(loc: Location, crop: str = DEFAULT_CROP) -> dict:
@@ -121,15 +126,21 @@ def build(loc: Location, crop: str = DEFAULT_CROP) -> dict:
                      "safe": not hz, "hazards": hz})
     safe_dates = [d["date"] for d in days if d["safe"]]
     if not alerts:
-        sw_headline = "Không có cảnh báo nào trong 7 ngày tới — mọi ngày đều thuận cho việc đồng áng."
+        sw_headline = tr("Không có cảnh báo nào trong 7 ngày tới — mọi ngày đều thuận cho việc đồng áng.",
+                         "No alerts in the next 7 days — every day is fine for fieldwork.")
     elif safe_dates:
         first_safe = days[[d["date"] for d in days].index(safe_dates[0])]
-        sw_headline = (f"Cửa sổ an toàn gần nhất: {first_safe['weekday']} "
-                       f"({first_safe['date'][5:]}) — không cảnh báo nào. "
-                       f"Có {len(safe_dates)}/7 ngày trống.")
+        sw_headline = tr(f"Cửa sổ an toàn gần nhất: {first_safe['weekday']} "
+                         f"({first_safe['date'][5:]}) — không cảnh báo nào. "
+                         f"Có {len(safe_dates)}/7 ngày trống.",
+                         f"Nearest safe window: {first_safe['weekday']} "
+                         f"({first_safe['date'][5:]}) — no alerts. "
+                         f"{len(safe_dates)}/7 days clear.")
     else:
-        sw_headline = ("Cả 7 ngày tới đều có ít nhất một cảnh báo — chọn ngày ít "
-                       "hiểm họa nhất trong lịch, hoặc hoãn việc nhạy cảm.")
+        sw_headline = tr("Cả 7 ngày tới đều có ít nhất một cảnh báo — chọn ngày ít "
+                         "hiểm họa nhất trong lịch, hoặc hoãn việc nhạy cảm.",
+                         "Every day in the next 7 has at least one alert — pick the "
+                         "least-hazardous day, or postpone sensitive work.")
 
     # ============ 3. GIÁ TRỊ ĐANG CHỊU RỦI RO (ước lượng thô) ============
     v_lo, v_hi, crop_label = CROP_VALUE[crop]
@@ -157,11 +168,26 @@ def build(loc: Location, crop: str = DEFAULT_CROP) -> dict:
     # đang được canh giữ", thay vì một câu trống rỗng. Vẫn là giả định, gắn cờ rõ.
     plot_lo = round(unit_area * v_lo)
     plot_hi = round(unit_area * v_hi)
-    on = "trên thửa" if area else "mỗi ha"
+    _on_vi = "trên thửa" if area else "mỗi ha"
+    _on_en = "for this plot" if area else "per ha"
+    _crop_en = CROP_LABEL_EN.get(crop, crop_label)
+    _area_vi = f" × {area} ha" if area else "/ha"
+    _assume_vi = (
+        f"Ước lượng THÔ theo giả định {crop_label} ({_money(v_lo)}–{_money(v_hi)}/ha"
+        + _area_vi + "). "
+        + ("Phần chịu rủi ro = giá trị vụ × tỉ lệ thiệt hại điển hình của hiểm họa. " if items else "")
+        + "KHÔNG phải đo cho thửa này — đổi loại canh tác để tính lại."
+        + ("" if area else " Vẽ hoặc nhập diện tích thửa để ra tổng theo thửa."))
+    _assume_en = (
+        f"ROUGH estimate assuming {_crop_en} ({_money(v_lo)}–{_money(v_hi)}/ha"
+        + _area_vi + "). "
+        + ("At-risk = crop value × the hazard's typical loss rate. " if items else "")
+        + "NOT measured for this plot — change the crop type to recompute."
+        + ("" if area else " Draw or enter the plot area for a per-plot total."))
     value = {
         "available": True,
         "at_risk": bool(items),
-        "crop": crop, "crop_label": crop_label,
+        "crop": crop, "crop_label": tr(crop_label, CROP_LABEL_EN.get(crop, crop_label)),
         "crop_value_range": [v_lo, v_hi],
         "area_ha": area, "per_unit": area is None,
         "items": items,
@@ -169,18 +195,16 @@ def build(loc: Location, crop: str = DEFAULT_CROP) -> dict:
         "plot_lo": plot_lo, "plot_hi": plot_hi,
         "plot_text": f"{_money(plot_lo)} – {_money(plot_hi)}",
         "headline": (
-            (f"Tối đa ~{_money(worst_hi)} {on} đang chịu rủi ro "
-             f"(lấy hiểm họa lớn nhất, KHÔNG cộng dồn).")
+            tr(f"Tối đa ~{_money(worst_hi)} {_on_vi} đang chịu rủi ro "
+               f"(lấy hiểm họa lớn nhất, KHÔNG cộng dồn).",
+               f"Up to ~{_money(worst_hi)} {_on_en} at risk "
+               f"(largest single hazard, NOT summed).")
             if items else
-            (f"✅ Giá trị vụ ~{_money(plot_lo)}–{_money(plot_hi)} {on} đang được "
-             f"canh giữ — không hiểm họa nào đe doạ trong 7 ngày tới.")),
-        "assumption": (
-            f"Ước lượng THÔ theo giả định {crop_label} ({_money(v_lo)}–{_money(v_hi)}/ha"
-            + (f" × {area} ha" if area else "/ha") + "). "
-            + ("Phần chịu rủi ro = giá trị vụ × tỉ lệ thiệt hại điển hình của hiểm họa. "
-               if items else "")
-            + "KHÔNG phải đo cho thửa này — đổi loại canh tác để tính lại."
-            + ("" if area else " Vẽ hoặc nhập diện tích thửa để ra tổng theo thửa.")),
+            tr(f"✅ Giá trị vụ ~{_money(plot_lo)}–{_money(plot_hi)} {_on_vi} đang được "
+               f"canh giữ — không hiểm họa nào đe doạ trong 7 ngày tới.",
+               f"✅ Crop value ~{_money(plot_lo)}–{_money(plot_hi)} {_on_en} is being "
+               f"protected — no hazard threatens it in the next 7 days.")),
+        "assumption": tr(_assume_vi, _assume_en),
     }
 
     # ============ 4. TỰ CANH (song sinh sống) ============
@@ -190,12 +214,16 @@ def build(loc: Location, crop: str = DEFAULT_CROP) -> dict:
         "grade": ts.grade, "score": ts.score,
         "n_alerts": n_alerts,
         "real_data_ratio": sc.real_data_ratio,
-        "headline": (f"Điểm nền {ts.score}/100 ({ts.grade}) · {n_alerts} cảnh báo "
-                     f"đang mở." if n_alerts else
-                     f"Điểm nền {ts.score}/100 ({ts.grade}) · chưa có cảnh báo nào."),
-        "capability": ("Lưu thửa → TerraTwin tự rà nền 6 giờ một lần và báo TRƯỚC "
-                       "qua web / email / webhook, kể cả lúc 3 giờ sáng khi bạn "
-                       "không mở app. Bạn không phải nhớ vào xem."),
+        "headline": (tr(f"Điểm nền {ts.score}/100 ({ts.grade}) · {n_alerts} cảnh báo đang mở.",
+                        f"Baseline score {ts.score}/100 ({ts.grade}) · {n_alerts} open alert(s).") if n_alerts else
+                     tr(f"Điểm nền {ts.score}/100 ({ts.grade}) · chưa có cảnh báo nào.",
+                        f"Baseline score {ts.score}/100 ({ts.grade}) · no alerts yet.")),
+        "capability": tr("Lưu thửa → TerraTwin tự rà nền 6 giờ một lần và báo TRƯỚC "
+                         "qua web / email / webhook, kể cả lúc 3 giờ sáng khi bạn "
+                         "không mở app. Bạn không phải nhớ vào xem.",
+                         "Save the plot → TerraTwin scans in the background every 6 hours "
+                         "and warns you IN ADVANCE via web / email / webhook, even at 3 a.m. "
+                         "when the app is closed. You don't have to remember to check."),
     }
 
     return {
@@ -207,5 +235,6 @@ def build(loc: Location, crop: str = DEFAULT_CROP) -> dict:
                         "headline": sw_headline},
         "value": value,
         "watch": watch,
-        "crops": [{"id": k, "label": v[2]} for k, v in CROP_VALUE.items()],
+        "crops": [{"id": k, "label": tr(v[2], CROP_LABEL_EN.get(k, v[2]))}
+                  for k, v in CROP_VALUE.items()],
     }

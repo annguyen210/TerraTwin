@@ -73,7 +73,7 @@ export default function PlotPlan({
   area?: number | null;
   onSelectModule?: (id: string) => void;
 }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [crop, setCrop] = useState("lua");
   const [plan, setPlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(true);
@@ -98,7 +98,7 @@ export default function PlotPlan({
     return () => {
       live = false;
     };
-  }, [lat, lon, area, crop]);
+  }, [lat, lon, area, crop, lang]);
 
   // Vùng tương đồng gọi RIÊNG: lần đầu phải dựng lưới cả nước nên chậm, không
   // được để nó chặn kế hoạch chính hiện ra.
@@ -195,7 +195,7 @@ export default function PlotPlan({
           <span className="plan-sub">
             {plan.n_alerts
               ? t(`${plan.n_alerts} việc cần lưu ý · sắp theo mức nguy hiểm`,
-                  `${plan.n_alerts} things to note · sorted by severity`)
+                  `${plan.n_alerts} thing${plan.n_alerts === 1 ? "" : "s"} to note · sorted by severity`)
               : t("Không có cảnh báo — nhưng vẫn có kế hoạch canh nền",
                   "No alerts — but there's still a background watch plan")}
           </span>

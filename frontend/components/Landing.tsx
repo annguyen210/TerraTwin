@@ -120,7 +120,7 @@ export default function Landing({
                 <span>{doThat ? t("báo bừa · đo thật", "false alarms · measured")
                               : t("báo bừa · backtest", "false alarms · backtest")}</span>
               </div>
-              <div><b>0đ</b><span>{t("miễn phí dùng thử", "free to try")}</span></div>
+              <div><b>{t("0đ", "$0")}</b><span>{t("miễn phí dùng thử", "free to try")}</span></div>
             </div>
           </div>
 

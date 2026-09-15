@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Callable
 
 from app.schemas import Assessment, ForecastPoint, Location
+from app.services.reqlang import tr
 
 
 def risk_of(v: float, safe: float, warning: float) -> str:
@@ -36,13 +37,17 @@ def need_data_assessment(module, loc: Location, needs: str, will_do: str,
     KHÔNG bịa con số/phát hiện. Nêu rõ cần nguồn gì và module sẽ làm gì khi có.
     """
     return Assessment(
-        module_id=module.id, module_name=module.name, location=loc,
+        module_id=module.id, module_name=module.disp_name(), location=loc,
         status="need_data", risk_level="unknown", is_real=False,
-        headline=f"Chưa đủ dữ liệu để phân tích vùng này — {needs}",
-        detail=(f"Kiến trúc module đã sẵn sàng. Khi tích hợp {needs}, module sẽ "
-                f"{will_do}. Hiện CHƯA có nguồn ảnh nên không đưa ra con số để tránh "
-                "sai lệch."),
-        recommendation=next_step or "Đang trong lộ trình tích hợp nguồn dữ liệu.",
+        headline=tr(f"Chưa đủ dữ liệu để phân tích vùng này — {needs}",
+                    f"Not enough data to analyze this area yet — {needs}"),
+        detail=tr(f"Kiến trúc module đã sẵn sàng. Khi tích hợp {needs}, module sẽ "
+                  f"{will_do}. Hiện CHƯA có nguồn ảnh nên không đưa ra con số để tránh "
+                  "sai lệch.",
+                  f"The module is ready. Once {needs} is integrated, it will "
+                  f"{will_do}. No imagery yet, so no numbers are given, to avoid error."),
+        recommendation=next_step or tr("Đang trong lộ trình tích hợp nguồn dữ liệu.",
+                                       "Data-source integration is on the roadmap."),
         confidence=None, data_sources=module.data_sources,
     )
 
@@ -64,7 +69,7 @@ def assessment_from_series(module, loc: Location, series_data, unit: str,
     head, rec = texts(lvl, pk, fd)
     lo, hi = conf_band(confidence, is_real)
     return Assessment(
-        module_id=module.id, module_name=module.name, location=loc, status="ok",
+        module_id=module.id, module_name=module.disp_name(), location=loc, status="ok",
         risk_level=lvl, headline=head, detail=detail, recommendation=rec,
         confidence=confidence, confidence_low=lo, confidence_high=hi, is_real=is_real,
         forecast=fc, data_sources=data_sources or module.data_sources,
@@ -80,15 +85,22 @@ def _needs_sentinel(what: str) -> str:
     """
     from app.services import sentinel
     if not sentinel.configured():
-        return f"{what} — phần mềm chưa được cấu hình khóa Copernicus"
-    return f"{what} — đã có khóa nhưng chưa lấy được ảnh quang mây cho vùng này"
+        return tr(f"{what} — phần mềm chưa được cấu hình khóa Copernicus",
+                  f"{what} — Copernicus key not configured yet")
+    return tr(f"{what} — đã có khóa nhưng chưa lấy được ảnh quang mây cho vùng này",
+              f"{what} — key present but no cloud-free imagery for this area yet")
 
 
 def _next_sentinel() -> str:
     from app.services import sentinel
     if not sentinel.configured():
-        return ("Đăng ký miễn phí tại dataspace.copernicus.eu, tạo OAuth client, "
-                "rồi đặt TERRATWIN_COPERNICUS_ID và TERRATWIN_COPERNICUS_SECRET. "
-                "Không tốn phí và không cần thẻ.")
-    return ("Sentinel-2 bay qua mỗi khoảng 5 ngày và mùa mưa thường bị mây che. "
-            "Thử lại sau vài ngày — phần mềm tự dùng tấm ảnh quang mây gần nhất.")
+        return tr("Đăng ký miễn phí tại dataspace.copernicus.eu, tạo OAuth client, "
+                  "rồi đặt TERRATWIN_COPERNICUS_ID và TERRATWIN_COPERNICUS_SECRET. "
+                  "Không tốn phí và không cần thẻ.",
+                  "Register free at dataspace.copernicus.eu, create an OAuth client, "
+                  "then set TERRATWIN_COPERNICUS_ID and TERRATWIN_COPERNICUS_SECRET. "
+                  "No cost, no card needed.")
+    return tr("Sentinel-2 bay qua mỗi khoảng 5 ngày và mùa mưa thường bị mây che. "
+              "Thử lại sau vài ngày — phần mềm tự dùng tấm ảnh quang mây gần nhất.",
+              "Sentinel-2 passes every ~5 days and the rainy season is often cloudy. "
+              "Try again in a few days — the app uses the nearest cloud-free image.")

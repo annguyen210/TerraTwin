@@ -23,6 +23,7 @@ from app.modules.util import need_data_assessment
 from app.schemas import Assessment, Location
 from app.services import datasources as ds
 from app.services import osm
+from app.services.reqlang import tr
 
 # ---------------------------------------------------------------- URB-09
 
@@ -57,7 +58,7 @@ class UrbanModule(TwinModule):
     tông hoá từ OSM rồi chạy đường cong dòng chảy SCS cho hai kịch bản.
     """
 
-    id = "urban"; name = "Ngập úng & mảng xanh đô thị"; group = "D"; icon = "🏙️"
+    id = "urban"; name = "Ngập úng & mảng xanh đô thị"; name_en = "Urban flooding & green space"; group = "D"; icon = "🏙️"
     status = "active"
     data_sources = ["OpenStreetMap: nhà, đường, loại đất sử dụng",
                     "Open-Meteo: mưa dự báo 7 ngày tới", "Cao độ DEM",
@@ -70,11 +71,16 @@ class UrbanModule(TwinModule):
         if env is None:
             return need_data_assessment(
                 self, loc,
-                needs="dữ liệu hạ tầng OpenStreetMap cho vùng này",
-                will_do="đo tỉ lệ bê tông hoá rồi tính nước mưa chảy tràn tăng "
-                        "thêm bao nhiêu so với khi chưa đô thị hoá",
-                next_step=("Overpass API đang không phản hồi (dịch vụ công cộng "
-                           "hay quá tải). Thử lại sau vài phút."))
+                needs=tr("dữ liệu hạ tầng OpenStreetMap cho vùng này",
+                         "OpenStreetMap infrastructure data for this area"),
+                will_do=tr("đo tỉ lệ bê tông hoá rồi tính nước mưa chảy tràn tăng "
+                           "thêm bao nhiêu so với khi chưa đô thị hoá",
+                           "measure the built-up fraction, then compute how much more "
+                           "stormwater runs off versus an undeveloped area"),
+                next_step=tr("Overpass API đang không phản hồi (dịch vụ công cộng "
+                             "hay quá tải). Thử lại sau vài phút.",
+                             "The Overpass API isn't responding (public service, "
+                             "possibly overloaded). Try again in a few minutes."))
 
         precip, has_rain = ds.forecast_precip_7d_total(loc.lat, loc.lon)
         rain = precip if has_rain else 0.0
@@ -100,24 +106,35 @@ class UrbanModule(TwinModule):
             env["landuse_ha"].get("farmland", 0.0)
         green_pct = round(100.0 * green_ha / max(0.1, env["area_ha"]), 1)
 
-        head = (f"Bê tông hoá {env['built_pct']}% trong bán kính 1 km"
-                + (f" — cùng trận mưa {rain} mm, nước chảy tràn "
-                   f"{q_now:.0f} mm so với {q_natural:.0f} mm nếu chưa đô thị hoá"
-                   f"{f' (gấp {ratio:.1f} lần)' if ratio else ''}"
-                   if rain > 5 else " — 7 ngày tới chưa dự báo mưa đáng kể để so"))
+        head = (tr(f"Bê tông hoá {env['built_pct']}% trong bán kính 1 km",
+                   f"{env['built_pct']}% built-up within 1 km")
+                + (tr(f" — cùng trận mưa {rain} mm, nước chảy tràn "
+                      f"{q_now:.0f} mm so với {q_natural:.0f} mm nếu chưa đô thị hoá"
+                      f"{f' (gấp {ratio:.1f} lần)' if ratio else ''}",
+                      f" — for {rain} mm of rain, runoff is "
+                      f"{q_now:.0f} mm vs {q_natural:.0f} mm if undeveloped"
+                      f"{f' ({ratio:.1f}× more)' if ratio else ''}")
+                   if rain > 5 else tr(" — no significant rain forecast in 7 days to compare",
+                                       " — no significant rain forecast in 7 days to compare")))
 
         if lvl == "danger":
-            rec = ("Vùng này bê tông hoá cao trên nền thấp. Ưu tiên hồ điều hoà, "
-                   "mặt thấm nước và giữ lại mảng xanh còn sót — trồng cây ven "
-                   "đường không đủ, phải có chỗ cho nước đi.")
+            rec = tr("Vùng này bê tông hoá cao trên nền thấp. Ưu tiên hồ điều hoà, "
+                     "mặt thấm nước và giữ lại mảng xanh còn sót — trồng cây ven "
+                     "đường không đủ, phải có chỗ cho nước đi.",
+                     "High built-up density on low ground. Prioritize retention ponds, "
+                     "permeable surfaces and keeping remaining green space — roadside "
+                     "trees aren't enough, water needs somewhere to go.")
         elif lvl == "warning":
-            rec = ("Cần chú ý thoát nước khi mưa lớn. Giữ mảng xanh hiện có và "
-                   "kiểm tra cống rãnh trước mùa mưa.")
+            rec = tr("Cần chú ý thoát nước khi mưa lớn. Giữ mảng xanh hiện có và "
+                     "kiểm tra cống rãnh trước mùa mưa.",
+                     "Watch drainage in heavy rain. Keep existing green space and "
+                     "check drains before the rainy season.")
         else:
-            rec = "Mức bê tông hoá và địa hình hiện chưa tạo áp lực ngập rõ rệt."
+            rec = tr("Mức bê tông hoá và địa hình hiện chưa tạo áp lực ngập rõ rệt.",
+                     "Current built-up level and terrain pose no clear flood pressure.")
 
         return Assessment(
-            module_id=self.id, module_name=self.name, location=loc, status="ok",
+            module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=lvl, headline=head, score=round(score, 1),
             detail=(f"{env['buildings']} công trình · đường xe cơ giới "
                     f"{env['road_density_km_per_km2']} km/km² · mảng xanh/nông "
@@ -151,7 +168,7 @@ class MiningModule(TwinModule):
     (Open-Meteo). Có ảnh Sentinel thì thêm được đất trần đang mở rộng hay không.
     """
 
-    id = "mining"; name = "An toàn mỏ & công trường"; group = "D"; icon = "⛏️"
+    id = "mining"; name = "An toàn mỏ & công trường"; name_en = "Mine & worksite safety"; group = "D"; icon = "⛏️"
     status = "active"
     data_sources = ["OpenStreetMap: mỏ, khu công nghiệp, công trường",
                     "DEM: độ dốc thật 4 hướng", "Open-Meteo: mưa dự báo 7 ngày tới",
@@ -168,10 +185,14 @@ class MiningModule(TwinModule):
         if sites is None:
             return need_data_assessment(
                 self, loc,
-                needs="dữ liệu OpenStreetMap về mỏ và khu công nghiệp quanh đây",
-                will_do="ghép vị trí khai thác với độ dốc và mưa dồn để cảnh báo "
-                        "nguy cơ mất ổn định mái dốc",
-                next_step="Overpass API đang không phản hồi. Thử lại sau vài phút.")
+                needs=tr("dữ liệu OpenStreetMap về mỏ và khu công nghiệp quanh đây",
+                         "OpenStreetMap data on mines and industrial sites nearby"),
+                will_do=tr("ghép vị trí khai thác với độ dốc và mưa dồn để cảnh báo "
+                           "nguy cơ mất ổn định mái dốc",
+                           "combine excavation sites with slope and concentrated rain to "
+                           "warn of slope-instability risk"),
+                next_step=tr("Overpass API đang không phản hồi. Thử lại sau vài phút.",
+                             "The Overpass API isn't responding. Try again in a few minutes."))
 
         slope, slope_real = ds.slope_context(loc.lat, loc.lon)
         precip, has_rain = ds.forecast_precip_7d_total(loc.lat, loc.lon)
@@ -206,26 +227,41 @@ class MiningModule(TwinModule):
         lvl = "danger" if score >= 70 else "warning" if score >= 45 else "safe"
 
         if not near and (nearest_km is None or nearest_km > 10.0):
-            head = (f"Không thấy mỏ hay khu công nghiệp nào trong 10 km "
-                    f"(OSM) — độ dốc {slope}°, mưa dự báo 7 ngày tới {rain} mm")
-            rec = ("Vị trí này không nằm gần khu vực đào bới theo dữ liệu OSM. "
-                   "Nếu thực tế có công trường chưa được vẽ lên bản đồ, hãy "
-                   "dùng module Sạt lở để đánh giá theo địa hình và mưa.")
+            head = tr(f"Không thấy mỏ hay khu công nghiệp nào trong 10 km "
+                      f"(OSM) — độ dốc {slope}°, mưa dự báo 7 ngày tới {rain} mm",
+                      f"No mine or industrial site within 10 km (OSM) — "
+                      f"slope {slope}°, 7-day rain forecast {rain} mm")
+            rec = tr("Vị trí này không nằm gần khu vực đào bới theo dữ liệu OSM. "
+                     "Nếu thực tế có công trường chưa được vẽ lên bản đồ, hãy "
+                     "dùng module Sạt lở để đánh giá theo địa hình và mưa.",
+                     "This location isn't near any excavation per OSM data. If there's "
+                     "an unmapped worksite in reality, use the Landslide module to "
+                     "assess by terrain and rain.")
         else:
             what = near[0] if near else sites[0]
-            head = (f"{'Có' if near else 'Gần nhất'} khu khai thác/công nghiệp "
-                    f"cách {what['km']} km ({what['name']}) — độ dốc {slope}°, "
-                    f"mưa dự báo 7 ngày tới {rain} mm")
+            head = tr(f"{'Có' if near else 'Gần nhất'} khu khai thác/công nghiệp "
+                      f"cách {what['km']} km ({what['name']}) — độ dốc {slope}°, "
+                      f"mưa dự báo 7 ngày tới {rain} mm",
+                      f"{'A' if near else 'Nearest'} mining/industrial site "
+                      f"{what['km']} km away ({what['name']}) — slope {slope}°, "
+                      f"7-day rain forecast {rain} mm")
             if lvl == "danger":
-                rec = ("Dốc lớn + mưa dồn + đất đã bị xáo trộn: đây đúng là tổ "
-                       "hợp gây trượt bãi thải. Dừng hoạt động trên mái dốc, "
-                       "kiểm tra rãnh thoát nước đỉnh tầng và di dời lán trại "
-                       "khỏi chân mái.")
+                rec = tr("Dốc lớn + mưa dồn + đất đã bị xáo trộn: đây đúng là tổ "
+                         "hợp gây trượt bãi thải. Dừng hoạt động trên mái dốc, "
+                         "kiểm tra rãnh thoát nước đỉnh tầng và di dời lán trại "
+                         "khỏi chân mái.",
+                         "Steep slope + concentrated rain + disturbed ground: exactly "
+                         "the combination that causes spoil-pile slides. Halt work on "
+                         "slopes, check bench-top drainage, and move camps away from "
+                         "slope toes.")
             elif lvl == "warning":
-                rec = ("Theo dõi mái dốc và rãnh thoát nước trong đợt mưa này. "
-                       "Ghi nhận vết nứt mới ở đỉnh tầng nếu có.")
+                rec = tr("Theo dõi mái dốc và rãnh thoát nước trong đợt mưa này. "
+                         "Ghi nhận vết nứt mới ở đỉnh tầng nếu có.",
+                         "Monitor slopes and drainage during this rain. Note any new "
+                         "cracks at bench tops.")
             else:
-                rec = "Điều kiện hiện tại chưa đến ngưỡng cảnh báo mái dốc."
+                rec = tr("Điều kiện hiện tại chưa đến ngưỡng cảnh báo mái dốc.",
+                         "Current conditions are below the slope-alert threshold.")
 
         detail = (f"Độ dốc {'THẬT ' if slope_real else 'ước lượng '}{slope}° · "
                   f"nền {elev} m · {len(sites)} khu khai thác/công nghiệp trong "
@@ -247,7 +283,7 @@ class MiningModule(TwinModule):
             metrics["thay_doi_tham_thuc_vat"] = bare["delta"]
 
         return Assessment(
-            module_id=self.id, module_name=self.name, location=loc, status="ok",
+            module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=lvl, headline=head, score=round(score, 1), detail=detail,
             recommendation=rec, confidence=0.6, confidence_low=0.48,
             confidence_high=0.7, is_real=True, metrics=metrics,
@@ -271,7 +307,7 @@ class SupplyChainModule(TwinModule):
     nhập khẩu và kiểm toán ESG hỏi, và là thứ dữ liệu ERA5 trả lời được ngay.
     """
 
-    id = "supply_chain"; name = "Rủi ro vùng nguyên liệu"; group = "D"; icon = "🔗"
+    id = "supply_chain"; name = "Rủi ro vùng nguyên liệu"; name_en = "Sourcing-region risk"; group = "D"; icon = "🔗"
     status = "active"
     # Nặng: 25 điểm × 2 hiểm họa, mỗi điểm cần khí hậu nền 10 năm riêng để hiệu
     # chuẩn. Chạy song song rồi vẫn ~10 giây lượt đầu, nên không nhét vào lượt
@@ -388,7 +424,7 @@ class SupplyChainModule(TwinModule):
                    "mềm không có dữ liệu.")
 
         return Assessment(
-            module_id=self.id, module_name=self.name, location=loc, status="ok",
+            module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=lvl, headline=head, score=pct, detail=detail,
             recommendation=rec, confidence=0.66, confidence_low=0.55,
             confidence_high=0.75, is_real=True, metrics=metrics,

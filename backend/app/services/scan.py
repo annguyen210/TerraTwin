@@ -8,7 +8,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from app.schemas import Location, ScanModule, ScanResult
-from app.services import terrascore
+from app.services import reqlang, terrascore
 
 _RISK_ORDER = {"danger": 0, "warning": 1, "safe": 2, "unknown": 3, "not_implemented": 4}
 
@@ -84,7 +84,8 @@ def scan(loc: Location, include_heavy: bool = False) -> ScanResult:
         mods.append(ScanModule(
             id=info.id, name=info.name, icon=info.icon, group=info.group,
             risk_level="unknown", status="pending", is_real=False,
-            headline="Đang kiểm tra — mục này cần ảnh vệ tinh nên lâu hơn",
+            headline=reqlang.tr("Đang kiểm tra — mục này cần ảnh vệ tinh nên lâu hơn",
+                                "Still checking — this needs satellite imagery, so it takes longer"),
             recommendation="", threat=info.threat,
         ))
 

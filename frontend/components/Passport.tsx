@@ -20,12 +20,15 @@
 
 import { useEffect, useState } from "react";
 import { getPassport, type Passport as P } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
 
+// Icon theo MODULE ID (ổn định giữa hai ngôn ngữ, không theo tên hiển thị).
 const ICON: Record<string, string> = {
-  "ngập lụt": "🌊", "sạt lở": "⛰️", "hạn thiếu nước": "🌵", "cháy": "🔥",
+  flood: "🌊", landslide: "⛰️", drought: "🌵", wildfire: "🔥",
 };
 
 export default function Passport({ lat, lon }: { lat: number; lon: number }) {
+  const { t: tr, lang } = useLang();
   const [d, setD] = useState<P | null>(null);
   const [busy, setBusy] = useState(false);
   const [mo, setMo] = useState(false);
@@ -41,25 +44,27 @@ export default function Passport({ lat, lon }: { lat: number; lon: number }) {
     return () => {
       huy = true;
     };
-  }, [lat, lon]);
+  }, [lat, lon, lang]);
 
   if (busy) {
     return (
       <div className="ps ps-busy">
         <span className="ans-spin sm" />
-        <p>Đang dựng hồ sơ riêng của thửa này — địa hình và 10 năm lịch sử…</p>
+        <p>{tr("Đang dựng hồ sơ riêng của thửa này — địa hình và 10 năm lịch sử…",
+               "Building this plot's own record — terrain and 10-year history…")}</p>
       </div>
     );
   }
   if (!d || !d.available) return null;
 
   const t = d.terrain;
-  const hz = Object.values(d.history ?? {}).filter((h) => h.events > 0);
-  hz.sort((a, b) => b.events - a.events);
+  const hz = Object.entries(d.history ?? {})
+    .filter(([, h]) => h.events > 0)
+    .sort(([, a], [, b]) => b.events - a.events);
 
   return (
     <div className="ps">
-      <span className="ps-cap">Hồ sơ riêng của thửa này</span>
+      <span className="ps-cap">{tr("Hồ sơ riêng của thửa này", "This plot's own record")}</span>
 
       {t && (
         <div className="ps-terrain">
@@ -68,9 +73,10 @@ export default function Passport({ lat, lon }: { lat: number; lon: number }) {
             <b>{t.lower_than_pct}%</b>
           </div>
           <p className="ps-lead">
-            Thửa này <b>cao {t.elevation_m} m</b>, thấp hơn{" "}
-            <b>{t.lower_than_pct}%</b> đất trong bán kính {t.radius_km} km
-            {t.slope_deg != null && <> · dốc {t.slope_deg}°</>}
+            {tr("Thửa này", "This plot is")} <b>{tr(`cao ${t.elevation_m} m`, `${t.elevation_m} m high`)}</b>,{" "}
+            {tr("thấp hơn", "lower than")} <b>{t.lower_than_pct}%</b>{" "}
+            {tr(`đất trong bán kính ${t.radius_km} km`, `of land within ${t.radius_km} km`)}
+            {t.slope_deg != null && <> · {tr(`dốc ${t.slope_deg}°`, `slope ${t.slope_deg}°`)}</>}
           </p>
           <p className="ps-mean">{t.meaning}</p>
         </div>
@@ -78,21 +84,22 @@ export default function Passport({ lat, lon }: { lat: number; lon: number }) {
 
       {hz.length > 0 && (
         <ul className="ps-hz">
-          {hz.map((h) => (
-            <li key={h.name}>
-              <span className="ps-ic">{ICON[h.name] ?? "•"}</span>
+          {hz.map(([id, h]) => (
+            <li key={id}>
+              <span className="ps-ic">{ICON[id] ?? "•"}</span>
               <div>
                 <b>
-                  {h.events} lần {h.name}
+                  {tr(`${h.events} lần ${h.name}`, `${h.events} ${h.name} episode(s)`)}
                 </b>{" "}
-                vượt ngưỡng chung cả nước trong 10 năm
+                {tr("vượt ngưỡng chung cả nước trong 10 năm", "exceeding the national threshold in 10 years")}
                 {h.peak_month && (
                   <>
-                    {" "}· nhiều nhất <b>tháng {h.peak_month}</b>
+                    {" "}· {tr("nhiều nhất", "most in")} <b>{tr(`tháng ${h.peak_month}`, `month ${h.peak_month}`)}</b>
                   </>
                 )}
                 <span className="ps-sub">
-                  nặng nhất {h.worst_date} · gần nhất {h.latest}
+                  {tr(`nặng nhất ${h.worst_date} · gần nhất ${h.latest}`,
+                      `worst ${h.worst_date} · latest ${h.latest}`)}
                 </span>
               </div>
             </li>
@@ -103,7 +110,7 @@ export default function Passport({ lat, lon }: { lat: number; lon: number }) {
       <p className="ps-why">{d.why_unique}</p>
 
       <button className="ps-more" onClick={() => setMo(!mo)}>
-        {mo ? "Thu gọn" : "Con số này đo thế nào?"}
+        {mo ? tr("Thu gọn", "Collapse") : tr("Con số này đo thế nào?", "How is this measured?")}
       </button>
       {mo && <p className="ps-caveat">{d.caveat}</p>}
     </div>

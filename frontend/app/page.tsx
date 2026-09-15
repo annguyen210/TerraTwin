@@ -43,6 +43,7 @@ import Mrv from "@/components/Mrv";
 import Provenance from "@/components/Provenance";
 import Timeline from "@/components/Timeline";
 import Workspace from "@/components/Workspace";
+import { useLang } from "@/lib/i18n";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
@@ -67,11 +68,11 @@ const DEEP = [
 // hay radar"; họ nghĩ "ruộng tôi sắp mặn không". Cùng một danh sách mô-đun,
 // nhưng xếp theo nỗi lo thì người ta tự tìm được, xếp theo cảm biến thì phải
 // học cấu trúc bên trong phần mềm trước đã.
-const GROUPS: Record<string, string> = {
-  A: "Cây trồng & vật nuôi",
-  B: "Thiên tai & đất đai",
-  C: "Tài chính & năng lượng",
-  D: "Đô thị, mỏ & chuỗi cung ứng",
+const GROUPS: Record<string, [string, string]> = {
+  A: ["Cây trồng & vật nuôi", "Crops & livestock"],
+  B: ["Thiên tai & đất đai", "Disasters & land"],
+  C: ["Tài chính & năng lượng", "Finance & energy"],
+  D: ["Đô thị, mỏ & chuỗi cung ứng", "Urban, mining & supply chain"],
 };
 
 function TerraBadge({ t }: { t: TerraScore }) {
@@ -105,6 +106,7 @@ function TerraBadge({ t }: { t: TerraScore }) {
 }
 
 export default function Home() {
+  const { t, lang } = useLang();
   const [modules, setModules] = useState<ModuleInfo[]>([]);
   const [active, setActive] = useState("salinity");
   const [result, setResult] = useState<Assessment | null>(null);
@@ -136,7 +138,7 @@ export default function Home() {
     getModules()
       .then(setModules)
       .catch((e) => setErr(e.message));
-  }, []);
+  }, [lang]);
 
   // Khôi phục phiên đăng nhập nếu token còn hiệu lực.
   useEffect(() => {
@@ -252,21 +254,23 @@ export default function Home() {
       <aside className={`sidebar${railOpen ? " open" : ""}`}>
         <div className="brand">◵ TerraTwin</div>
         <p className="tag">
-          <b>Bấm vào bản đồ</b> — hoặc vẽ một vùng — là chạy ngay.
+          {lang === "en"
+            ? <><b>Click the map</b> — or draw an area — to run instantly.</>
+            : <><b>Bấm vào bản đồ</b> — hoặc vẽ một vùng — là chạy ngay.</>}
         </p>
         <button
           className="rail-toggle"
           onClick={() => setRailOpen(!railOpen)}
           aria-expanded={railOpen}
         >
-          {railOpen ? "▾" : "▸"} Xem từng loại rủi ro riêng
-          <small>{modules.length || 18} mũi nhọn · chọn để đào sâu một loại</small>
+          {railOpen ? "▾" : "▸"} {t("Xem từng loại rủi ro riêng", "See each risk type")}
+          <small>{modules.length || 18} {t("mũi nhọn · chọn để đào sâu một loại", "spearheads · pick one to dig in")}</small>
         </button>
         {Object.keys(grouped)
           .sort()
           .map((g) => (
             <div key={g} className="group">
-              <div className="ghead">{GROUPS[g] ?? g}</div>
+              <div className="ghead">{GROUPS[g] ? t(GROUPS[g][0], GROUPS[g][1]) : g}</div>
               {grouped[g].map((m) => (
                 <button
                   key={m.id}
@@ -289,12 +293,13 @@ export default function Home() {
           onLoad={loadPlot}
         />
         <button className="ws-open" onClick={() => setWorkspace(true)}>
-          ⚙️ Khu làm việc
-          <small>Twin đã lưu · dữ liệu · kênh cảnh báo · khoá API · vòng học</small>
+          ⚙️ {t("Khu làm việc", "Workspace")}
+          <small>{t("Twin đã lưu · dữ liệu · kênh cảnh báo · khoá API · vòng học",
+                   "Saved twins · data · alert channels · API keys · learning loop")}</small>
         </button>
 
         <p className="foot">
-          {modules.length || 18} mũi nhọn · 12/12 ngành · dữ liệu thật: Open-Meteo ·
+          {modules.length || 18} {t("mũi nhọn · 12/12 ngành · dữ liệu thật:", "spearheads · 12/12 sectors · real data:")} Open-Meteo ·
           NASA POWER · OpenStreetMap · Sentinel-2
         </p>
       </aside>
@@ -309,7 +314,7 @@ export default function Home() {
       </section>
 
       <aside className="results">
-        {loading && <p className="hint">Đang phân tích…</p>}
+        {loading && <p className="hint">{t("Đang phân tích…", "Analyzing…")}</p>}
         {err && (
           <p className="err">
             {err.includes("Việt Nam") ? "🗺️ " : "⚠️ "}
@@ -338,7 +343,7 @@ export default function Home() {
         {coord && (
           <>
             {terra?.region?.serviceable !== false && (
-              <h3 className="ev-h">🔬 Bằng chứng chi tiết — lưới 18 mũi nhọn</h3>
+              <h3 className="ev-h">🔬 {t("Bằng chứng chi tiết — lưới 18 mũi nhọn", "Detailed evidence — the 18-spearhead grid")}</h3>
             )}
             <Answer
               lat={coord.lat}
@@ -384,13 +389,13 @@ export default function Home() {
                 if (coord && !result) run(active, coord.lat, coord.lon, area);
               }}
             >
-              Chi tiết module
+              {t("Chi tiết module", "Module detail")}
             </button>
             <button
               className={tab === "overview" ? "on" : ""}
               onClick={() => setTab("overview")}
             >
-              Toàn cảnh {modules.length || 18} mũi nhọn
+              {t("Toàn cảnh", "Overview of")} {modules.length || 18} {t("mũi nhọn", "spearheads")}
             </button>
           </div>
         )}
