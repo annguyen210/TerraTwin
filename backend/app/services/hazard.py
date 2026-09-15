@@ -40,15 +40,16 @@ def name_unit(module_id: str) -> tuple[str, str]:
 
 def terrain(module_id: str, lat: float, lon: float) -> tuple[float | None, str]:
     """(giá trị địa hình, mô tả). Lũ dùng cao độ, sạt lở dùng độ dốc."""
+    from app.services.reqlang import tr
     if module_id == "flood":
         elev = ds.elevation_proxy(lat, lon)
-        return elev, f"cao độ ~{elev} m"
+        return elev, tr(f"cao độ ~{elev} m", f"elevation ~{elev} m")
     if module_id == "landslide":
         slope, _ = ds.slope_context(lat, lon)
-        return slope, f"độ dốc ~{slope}°"
+        return slope, tr(f"độ dốc ~{slope}°", f"slope ~{slope}°")
     if module_id == "drought":
-        return None, "chỉ số thiếu ẩm (ET₀ − mưa)"
-    return None, "nhiệt & khô hạn"
+        return None, tr("chỉ số thiếu ẩm (ET₀ − mưa)", "moisture-deficit index (ET₀ − rain)")
+    return None, tr("nhiệt & khô hạn", "heat & dryness")
 
 
 def index_series_absolute(module_id: str, lat: float, lon: float, rows):

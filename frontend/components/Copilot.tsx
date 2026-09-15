@@ -12,26 +12,27 @@
 
 import { useState } from "react";
 import { askCopilot, type CopilotAnswer } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
 
-const MOD_NAME: Record<string, string> = {
-  salinity: "Xâm nhập mặn",
-  drought: "Hạn & thiếu nước",
-  flood: "Lũ & ngập",
-  wildfire: "Cháy rừng",
-  landslide: "Sạt lở",
-  land_risk: "Rủi ro mua đất",
-  solar: "Điện mặt trời",
-  pest: "Sâu bệnh",
-  yield: "Năng suất",
+const MOD_NAME: Record<string, [string, string]> = {
+  salinity: ["Xâm nhập mặn", "Salinity"],
+  drought: ["Hạn & thiếu nước", "Drought"],
+  flood: ["Lũ & ngập", "Flood"],
+  wildfire: ["Cháy rừng", "Wildfire"],
+  landslide: ["Sạt lở", "Landslide"],
+  land_risk: ["Rủi ro mua đất", "Land-purchase risk"],
+  solar: ["Điện mặt trời", "Solar"],
+  pest: ["Sâu bệnh", "Pest & disease"],
+  yield: ["Năng suất", "Yield"],
 };
 
-const SUGGESTS = [
-  "Ruộng tôi có bị mặn không?",
-  "Tuần tới có nên xuống giống?",
-  "Chỗ này mua đất có rủi ro gì?",
-];
-
 export default function Copilot({ lat, lon }: { lat: number; lon: number }) {
+  const { t } = useLang();
+  const SUGGESTS = [
+    t("Ruộng tôi có bị mặn không?", "Is my field at risk of salinity?"),
+    t("Tuần tới có nên xuống giống?", "Should I sow next week?"),
+    t("Chỗ này mua đất có rủi ro gì?", "What are the risks of buying land here?"),
+  ];
   const [q, setQ] = useState("");
   const [ans, setAns] = useState<CopilotAnswer | null>(null);
   const [loading, setLoading] = useState(false);
@@ -54,7 +55,7 @@ export default function Copilot({ lat, lon }: { lat: number; lon: number }) {
 
   return (
     <div className="copilot">
-      <div className="chead">🤖 Hỏi trợ lý về vị trí này</div>
+      <div className="chead">🤖 {t("Hỏi trợ lý về vị trí này", "Ask the assistant about this location")}</div>
 
       {!ans && (
         <div className="csuggest">
@@ -68,11 +69,11 @@ export default function Copilot({ lat, lon }: { lat: number; lon: number }) {
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="VD: ruộng tôi có bị mặn không?"
+          placeholder={t("VD: ruộng tôi có bị mặn không?", "e.g. is my field at risk of salinity?")}
           onKeyDown={(e) => { if (e.key === "Enter") ask(); }}
         />
         <button onClick={() => ask()} disabled={loading}>
-          {loading ? "…" : "Hỏi"}
+          {loading ? "…" : t("Hỏi", "Ask")}
         </button>
       </div>
 
@@ -83,35 +84,36 @@ export default function Copilot({ lat, lon }: { lat: number; lon: number }) {
           {/* NGUỒN DẪN — làm cái grounding hiện lên */}
           <div className="csrc">
             <span className="csrc-cap">
-              🔎 Dựa trên
+              🔎 {t("Dựa trên", "Based on")}
               <span className={`cbadge ${ans.llm ? "llm" : "rule"}`}>
-                {ans.llm ? "diễn đạt bằng AI · số liệu đo được" : "trợ lý luật · số liệu đo được"}
+                {ans.llm ? t("diễn đạt bằng AI · số liệu đo được", "AI-phrased · measured data")
+                         : t("trợ lý luật · số liệu đo được", "rule-based · measured data")}
               </span>
             </span>
 
             {ans.used_modules.length > 0 && (
               <div className="csrc-mods">
                 {ans.used_modules.map((m) => (
-                  <span key={m} className="csrc-chip">🛰️ {MOD_NAME[m] ?? m}</span>
+                  <span key={m} className="csrc-chip">🛰️ {MOD_NAME[m] ? t(MOD_NAME[m][0], MOD_NAME[m][1]) : m}</span>
                 ))}
               </div>
             )}
 
             {cites.length > 0 && (
               <div className="csrc-cites">
-                <span className="csrc-sub">🌾 Kinh nghiệm vùng cùng “gen đất” (không phải số đo):</span>
+                <span className="csrc-sub">🌾 {t("Kinh nghiệm vùng cùng “gen đất” (không phải số đo):", "Experience from same-“soil-genome” regions (not measurements):")}</span>
                 {cites.map((c) => (
                   <div key={c.id} className="csrc-cite">
                     <b>{c.title}</b>
-                    <span> — {c.author_name} · tương đồng {c.similarity_pct}% · cách {c.distance_km.toFixed(0)} km</span>
+                    <span> — {c.author_name} · {t("tương đồng", "similarity")} {c.similarity_pct}% · {t("cách", "away")} {c.distance_km.toFixed(0)} km</span>
                   </div>
                 ))}
               </div>
             )}
 
             <p className="csrc-note">
-              Trợ lý chỉ trả lời dựa trên dữ liệu của thửa này — không bịa số. Chỗ nào
-              chưa đủ dữ liệu, nó nói thẳng.
+              {t("Trợ lý chỉ trả lời dựa trên dữ liệu của thửa này — không bịa số. Chỗ nào chưa đủ dữ liệu, nó nói thẳng.",
+                 "The assistant answers only from this plot's data — no fabricated numbers. Where data is missing, it says so plainly.")}
             </p>
           </div>
         </div>

@@ -14,6 +14,7 @@ import {
   type TerraScore,
 } from "@/lib/api";
 import PlotHistory from "@/components/PlotHistory";
+import { useLang } from "@/lib/i18n";
 
 const GRADE_COLOR: Record<string, string> = {
   A: "#2E9E67",
@@ -35,6 +36,7 @@ export default function Portfolio({
   terra: TerraScore | null;
   onLoad: (lat: number, lon: number) => void;
 }) {
+  const { t } = useLang();
   const [plots, setPlots] = useState<ServerPlot[]>([]);
   const [exporting, setExporting] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -120,15 +122,15 @@ export default function Portfolio({
 
   return (
     <div className="portfolio">
-      <div className="pf-head">📁 Danh mục thửa đất</div>
+      <div className="pf-head">📁 {t("Danh mục thửa đất", "Plot portfolio")}</div>
 
       {coord && (
         <div className="pf-actions">
           <button onClick={addCurrent} disabled={!terra || !user || busy}>
-            💾 Lưu thửa đang xem
+            💾 {t("Lưu thửa đang xem", "Save current plot")}
           </button>
           <button className="ghost" onClick={exportReport} disabled={exporting}>
-            {exporting ? "Đang tạo…" : "🖨️ Xuất báo cáo"}
+            {exporting ? t("Đang tạo…", "Generating…") : t("🖨️ Xuất báo cáo", "🖨️ Export report")}
           </button>
         </div>
       )}
@@ -137,15 +139,15 @@ export default function Portfolio({
 
       {!user && (
         <p className="pf-empty">
-          Đăng nhập để lưu thửa đất — dữ liệu nằm trên máy chủ nên đồng bộ mọi
-          thiết bị, không mất khi xóa trình duyệt.
+          {t("Đăng nhập để lưu thửa đất — dữ liệu nằm trên máy chủ nên đồng bộ mọi thiết bị, không mất khi xóa trình duyệt.",
+             "Log in to save plots — data lives on the server, so it syncs across devices and survives clearing the browser.")}
         </p>
       )}
 
       {user && plots.length === 0 && (
         <p className="pf-empty">
-          Chưa lưu thửa nào. Phân tích một vị trí rồi bấm “Lưu thửa đang xem” để
-          so sánh nhiều mảnh đất.
+          {t("Chưa lưu thửa nào. Phân tích một vị trí rồi bấm “Lưu thửa đang xem” để so sánh nhiều mảnh đất.",
+             "No saved plots yet. Analyze a location, then tap “Save current plot” to compare multiple plots.")}
         </p>
       )}
 

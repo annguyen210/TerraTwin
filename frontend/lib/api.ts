@@ -744,13 +744,13 @@ export function runAnomaly(lat: number, lon: number) {
 }
 
 export async function getBacktests(): Promise<BacktestEvent[]> {
-  const r = await fetch(`${BASE}/api/backtest`);
+  const r = await fetch(`${BASE}/api/backtest${_lp()}`);
   if (!r.ok) throw new Error("Không tải được danh sách backtest");
   return r.json();
 }
 
 export async function runBacktest(eventId: string): Promise<BacktestResult> {
-  const r = await fetch(`${BASE}/api/backtest/${eventId}`);
+  const r = await fetch(`${BASE}/api/backtest/${eventId}${_lp()}`);
   if (!r.ok) throw new Error("Không chạy được backtest");
   return r.json();
 }

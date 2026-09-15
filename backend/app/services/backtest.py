@@ -14,6 +14,15 @@ from datetime import date
 from app.services import calibration
 from app.services import hazard
 from app.services import realdata
+from app.services.reqlang import tr
+
+
+def _lbl(ev: dict) -> str:
+    return tr(ev["label"], ev.get("label_en", ev["label"]))
+
+
+def _note(ev: dict) -> str:
+    return tr(ev["note"], ev.get("note_en", ev["note"]))
 
 # Hai tầng cảnh báo sau khi hiệu chuẩn theo khí hậu từng điểm:
 #   CẢNH BÁO (40 ≈ phân vi 90, nổ ~10% số cửa sổ) → "chuẩn bị", cho lead time dài
@@ -25,27 +34,35 @@ DANGER = 70.0
 EVENTS = {
     "hue_flood_2020": {
         "label": "Lũ lịch sử Thừa Thiên Huế – 10/2020",
+        "label_en": "Historic flood, Thừa Thiên Huế – Oct 2020",
         "module": "flood", "lat": 16.46, "lon": 107.59,
         "start": "2020-10-05", "end": "2020-10-15", "event_date": "2020-10-11",
         "note": "Mưa cực lớn gây ngập diện rộng miền Trung.",
+        "note_en": "Extreme rainfall caused widespread flooding in central Vietnam.",
     },
     "quangnam_flood_2022": {
         "label": "Lũ Quảng Nam – Đà Nẵng 10/2022",
+        "label_en": "Quảng Nam – Đà Nẵng flood, Oct 2022",
         "module": "flood", "lat": 15.87, "lon": 108.33,
         "start": "2022-10-08", "end": "2022-10-16", "event_date": "2022-10-14",
         "note": "Mưa lớn do áp thấp, ngập nặng Hội An – Đà Nẵng.",
+        "note_en": "Heavy rain from a depression, severe flooding in Hội An – Đà Nẵng.",
     },
     "traleng_landslide_2020": {
         "label": "Sạt lở Trà Leng, Quảng Nam – 28/10/2020",
+        "label_en": "Trà Leng landslide, Quảng Nam – 28 Oct 2020",
         "module": "landslide", "lat": 15.33, "lon": 108.05,
         "start": "2020-10-20", "end": "2020-10-30", "event_date": "2020-10-28",
         "note": "Bão số 9 + mưa dài ngày gây sạt lở vùi lấp nhiều nhà.",
+        "note_en": "Typhoon no. 9 plus prolonged rain triggered a landslide that buried many homes.",
     },
     "bentre_drought_2020": {
         "label": "Hạn – mặn ĐBSCL (Bến Tre) mùa khô 2020",
+        "label_en": "Mekong Delta drought–salinity (Bến Tre), dry season 2020",
         "module": "drought", "lat": 10.24, "lon": 106.37,
         "start": "2020-02-15", "end": "2020-03-15", "event_date": "2020-03-05",
         "note": "Đợt hạn – xâm nhập mặn khốc liệt, nhiều tỉnh công bố khẩn cấp.",
+        "note_en": "A severe drought–saltwater intrusion; several provinces declared emergencies.",
     },
 }
 
@@ -63,9 +80,10 @@ def run_event(event_id: str) -> dict | None:
     rows = realdata.historical_weather(ev["lat"], ev["lon"], ev["start"], ev["end"])
     if not rows:
         return {
-            "event_id": event_id, "label": ev["label"], "module": ev["module"],
-            "note": ev["note"], "available": False,
-            "message": "Không tải được dữ liệu lịch sử (kiểm tra kết nối mạng).",
+            "event_id": event_id, "label": _lbl(ev), "module": ev["module"],
+            "note": _note(ev), "available": False,
+            "message": tr("Không tải được dữ liệu lịch sử (kiểm tra kết nối mạng).",
+                          "Couldn't load historical data (check network)."),
         }
 
     series, terrain = _index_for(ev["module"], ev["lat"], ev["lon"], rows)
@@ -91,28 +109,38 @@ def run_event(event_id: str) -> dict | None:
 
     peak = max(points, key=lambda p: p["value"]) if points else None
     if lead_warning is not None and lead_warning >= 0:
-        verdict = (f"✅ Mức CẢNH BÁO bật ngày {first_warning['date']} — báo trước "
-                   f"{lead_warning} ngày so với sự kiện {ev['event_date']}")
+        verdict = tr(f"✅ Mức CẢNH BÁO bật ngày {first_warning['date']} — báo trước "
+                     f"{lead_warning} ngày so với sự kiện {ev['event_date']}",
+                     f"✅ WARNING triggered on {first_warning['date']} — "
+                     f"{lead_warning} days before the event {ev['event_date']}")
         if lead_days is not None and lead_days >= 0:
-            verdict += f"; mức NGUY HIỂM bật trước {lead_days} ngày"
+            verdict += tr(f"; mức NGUY HIỂM bật trước {lead_days} ngày",
+                          f"; DANGER triggered {lead_days} days ahead")
         verdict += "."
         if far and far_warn:
-            verdict += (f" Tại điểm này ngưỡng cảnh báo chỉ nổ "
-                        f"{far_warn['alarm_rate_pct']}% và ngưỡng nguy hiểm "
-                        f"{far['alarm_rate_pct']}% số cửa sổ trong 10 năm — "
-                        "không phải báo bừa.")
+            verdict += tr(f" Tại điểm này ngưỡng cảnh báo chỉ nổ "
+                          f"{far_warn['alarm_rate_pct']}% và ngưỡng nguy hiểm "
+                          f"{far['alarm_rate_pct']}% số cửa sổ trong 10 năm — "
+                          "không phải báo bừa.",
+                          f" At this point the warning threshold fires only "
+                          f"{far_warn['alarm_rate_pct']}% and danger "
+                          f"{far['alarm_rate_pct']}% of windows over 10 years — "
+                          "not a false-alarm machine.")
         success = True
     elif first_warning:
-        verdict = (f"⚠️ Chỉ bật cảnh báo ngày {first_warning['date']}, sau mốc sự "
-                   f"kiện {ev['event_date']} ({-lead_warning} ngày).")
+        verdict = tr(f"⚠️ Chỉ bật cảnh báo ngày {first_warning['date']}, sau mốc sự "
+                     f"kiện {ev['event_date']} ({-lead_warning} ngày).",
+                     f"⚠️ Only warned on {first_warning['date']}, after the event "
+                     f"{ev['event_date']} ({-lead_warning} days late).")
         success = False
     else:
-        verdict = "❌ Model không vượt ngưỡng cảnh báo trong cửa sổ này."
+        verdict = tr("❌ Model không vượt ngưỡng cảnh báo trong cửa sổ này.",
+                     "❌ The model didn't cross the warning threshold in this window.")
         success = False
 
     return {
-        "event_id": event_id, "label": ev["label"], "module": ev["module"],
-        "note": ev["note"], "available": True, "location": {"lat": ev["lat"], "lon": ev["lon"]},
+        "event_id": event_id, "label": _lbl(ev), "module": ev["module"],
+        "note": _note(ev), "available": True, "location": {"lat": ev["lat"], "lon": ev["lon"]},
         "event_date": ev["event_date"], "terrain": terrain,
         "threshold": DANGER, "threshold_warning": WARNING,
         "lead_days": lead_days, "lead_days_warning": lead_warning,
@@ -126,10 +154,11 @@ def run_event(event_id: str) -> dict | None:
                          "model vượt ngưỡng tại CHÍNH điểm này. Trước hiệu chuẩn, "
                          "mức nguy hiểm nổ 46–61% số ngày ở miền Trung; sau hiệu "
                          "chuẩn theo phân vi khí hậu còn ~3%."),
-        "data_source": "Open-Meteo Archive (ERA5) — dữ liệu thời tiết lịch sử thật",
+        "data_source": tr("Open-Meteo Archive (ERA5) — dữ liệu thời tiết lịch sử thật",
+                          "Open-Meteo Archive (ERA5) — real historical weather data"),
     }
 
 
 def list_events() -> list[dict]:
-    return [{"id": k, "label": v["label"], "module": v["module"], "note": v["note"]}
+    return [{"id": k, "label": _lbl(v), "module": v["module"], "note": _note(v)}
             for k, v in EVENTS.items()]

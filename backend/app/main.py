@@ -760,13 +760,15 @@ def copilot_endpoint(req: CopilotRequest) -> CopilotAnswer:
 
 
 @app.get("/api/backtest")
-def backtest_list() -> list[dict]:
+def backtest_list(lang: str = "vi") -> list[dict]:
     """Danh sách sự kiện thiên tai lịch sử THẬT để kiểm chứng 'biết trước'."""
+    reqlang.set_lang(lang)
     return backtest.list_events()
 
 
 @app.get("/api/backtest/{event_id}")
-def backtest_run(event_id: str) -> dict:
+def backtest_run(event_id: str, lang: str = "vi") -> dict:
+    reqlang.set_lang(lang)
     result = backtest.run_event(event_id)
     if result is None:
         raise HTTPException(status_code=404, detail=f"Không có sự kiện '{event_id}'")
