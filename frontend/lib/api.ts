@@ -800,7 +800,7 @@ export type GenomeResult = {
 };
 
 export function runGenome(lat: number, lon: number, k = 5) {
-  return postJson<GenomeResult>(`/api/genome?k=${k}`, { lat, lon },
+  return postJson<GenomeResult>(`/api/genome?k=${k}&lang=${curLang()}`, { lat, lon },
     "Không tìm được vùng tương đồng");
 }
 
@@ -1355,7 +1355,7 @@ export type AnomalyMl = {
 };
 
 export function runAnomalyMl(lat: number, lon: number) {
-  return postJson<AnomalyMl>("/api/anomaly-ml", { location: { lat, lon } },
+  return postJson<AnomalyMl>(`/api/anomaly-ml${_lp()}`, { location: { lat, lon } },
     "Không chấm được độ hiếm tổ hợp");
 }
 

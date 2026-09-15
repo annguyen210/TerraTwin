@@ -112,7 +112,7 @@ export default function PlotPlan({
     return () => {
       live = false;
     };
-  }, [lat, lon]);
+  }, [lat, lon, lang]);
 
   async function doAsk(id: string) {
     setAsk((a) => ({ ...a, [id]: "loading" }));
@@ -154,7 +154,7 @@ export default function PlotPlan({
     return () => {
       live = false;
     };
-  }, [lat, lon]);
+  }, [lat, lon, lang]);
 
   async function answerQ(q: TapQuestion, value: "yes" | "no" | "unsure") {
     if (!q.token || qDone[q.alert_id]) return;

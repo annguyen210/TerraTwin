@@ -76,6 +76,7 @@ const GROUPS: Record<string, [string, string]> = {
 };
 
 function TerraBadge({ t }: { t: TerraScore }) {
+  const { t: tr } = useLang();
   const color =
     t.grade === "A"
       ? "#2E9E67"
@@ -92,12 +93,12 @@ function TerraBadge({ t }: { t: TerraScore }) {
       </div>
       <div className="terra-txt">
         <div className="terra-grade" style={{ color }}>
-          TerraScore · Hạng {t.grade}
+          {tr("TerraScore · Hạng", "TerraScore · Grade")} {t.grade}
         </div>
         <div className="terra-sum">{t.summary}</div>
         {t.real_data_ratio != null && (
           <div className="terra-real">
-            🛰️ {Math.round(t.real_data_ratio * 100)}% hiểm họa dùng dữ liệu thật
+            🛰️ {Math.round(t.real_data_ratio * 100)}% {tr("hiểm họa dùng dữ liệu thật", "of hazards use real data")}
           </div>
         )}
       </div>
@@ -359,14 +360,14 @@ export default function Home() {
           </>
         )}
         {area != null && (
-          <p className="areanote">📐 Diện tích vùng: {area} ha</p>
+          <p className="areanote">📐 {t("Diện tích vùng:", "Area:")} {area} ha</p>
         )}
         {terra?.region && !terra.region.serviceable && (
           <div className="offsite">
             <b>
               {terra.region.kind === "sea"
-                ? "🌊 Đây là mặt nước"
-                : `🗺️ Ngoài phạm vi phục vụ${
+                ? t("🌊 Đây là mặt nước", "🌊 This is open water")
+                : `${t("🗺️ Ngoài phạm vi phục vụ", "🗺️ Outside service area")}${
                     terra.region.country
                       ? ` (${terra.region.country.toUpperCase()})`
                       : ""

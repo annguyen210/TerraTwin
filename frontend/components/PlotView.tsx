@@ -27,10 +27,12 @@
 import { useEffect, useRef, useState } from "react";
 import { getImagery, type Imagery } from "@/lib/api";
 import { isDataSaver } from "@/lib/net";
+import { useLang } from "@/lib/i18n";
 
 type Lop = "true" | "ndvi";
 
 export default function PlotView({ lat, lon }: { lat: number; lon: number }) {
+  const { t } = useLang();
   const [d, setD] = useState<Imagery | null>(null);
   const [busy, setBusy] = useState(false);
   const [lop, setLop] = useState<Lop>("true");
@@ -73,9 +75,9 @@ export default function PlotView({ lat, lon }: { lat: number; lon: number }) {
           width: "100%", padding: "14px", borderRadius: 8, cursor: "pointer",
           border: "1px dashed var(--line, #d7ddd8)", background: "var(--surface-2,#f8faf7)",
           color: "var(--ink, #0f1411)", fontWeight: 600 }}>
-          📷 Bấm để tải ảnh vệ tinh (~0,5 MB)
+          📷 {t("Bấm để tải ảnh vệ tinh (~0,5 MB)", "Tap to load satellite image (~0.5 MB)")}
           <br /><small style={{ fontWeight: 400, color: "var(--muted,#66716a)" }}>
-            Đang ở chế độ tiết kiệm dữ liệu — ảnh không tự tải.
+            {t("Đang ở chế độ tiết kiệm dữ liệu — ảnh không tự tải.", "Data-saver on — images don't auto-load.")}
           </small>
         </button>
       </div>
@@ -86,7 +88,7 @@ export default function PlotView({ lat, lon }: { lat: number; lon: number }) {
     return (
       <div className="pv pv-busy">
         <div className="ans-spin" />
-        <p>Đang tìm ảnh vệ tinh gần nhất của thửa này…</p>
+        <p>{t("Đang tìm ảnh vệ tinh gần nhất của thửa này…", "Finding the nearest satellite image for this plot…")}</p>
       </div>
     );
   }
@@ -95,7 +97,7 @@ export default function PlotView({ lat, lon }: { lat: number; lon: number }) {
   if (!d.available) {
     return (
       <div className="pv">
-        <div className="pv-head">🛰️ Ảnh thửa đất</div>
+        <div className="pv-head">🛰️ {t("Ảnh thửa đất", "Plot imagery")}</div>
         <p className="pv-none">{d.message}</p>
       </div>
     );
@@ -112,22 +114,22 @@ export default function PlotView({ lat, lon }: { lat: number; lon: number }) {
   return (
     <div className="pv">
       <div className="pv-head">
-        🛰️ Thửa đất của bạn, nhìn từ vệ tinh
+        🛰️ {t("Thửa đất của bạn, nhìn từ vệ tinh", "Your plot, seen from satellite")}
       </div>
 
       <div className="pv-tabs">
         <button className={lop === "true" ? "on" : ""} onClick={() => setLop("true")}>
-          Màu thật
+          {t("Màu thật", "True color")}
         </button>
         <button className={lop === "ndvi" ? "on" : ""} onClick={() => setLop("ndvi")}>
-          Sức sống cây
+          {t("Sức sống cây", "Plant vigor")}
         </button>
         {coSoSanh && (
           <button
             className={`pv-cmp ${soSanh ? "on" : ""}`}
             onClick={() => setSoSanh(!soSanh)}
           >
-            {soSanh ? "Tắt đối chiếu" : "So với năm ngoái"}
+            {soSanh ? t("Tắt đối chiếu", "Hide compare") : t("So với năm ngoái", "vs last year")}
           </button>
         )}
       </div>
@@ -173,15 +175,15 @@ export default function PlotView({ lat, lon }: { lat: number; lon: number }) {
 
       {lop === "ndvi" && (
         <div className="pv-legend">
-          <span>cây yếu / đất trống</span>
+          <span>{t("cây yếu / đất trống", "weak plants / bare soil")}</span>
           <i className="pv-ramp" />
-          <span>cây khoẻ</span>
+          <span>{t("cây khoẻ", "healthy plants")}</span>
         </div>
       )}
 
       <p className="pv-meta">
-        Chụp <b>{d.now.date}</b> · mây toàn cảnh {d.now.cloud_scene_pct}% ·
-        mỗi điểm ảnh {d.resolution_m}×{d.resolution_m} m
+        {t("Chụp", "Taken")} <b>{d.now.date}</b> · {t("mây toàn cảnh", "scene cloud")} {d.now.cloud_scene_pct}% ·
+        {t(" mỗi điểm ảnh", " each pixel")} {d.resolution_m}×{d.resolution_m} m
       </p>
       {soSanh && <p className="pv-note">{d.compare_note}</p>}
       <p className="pv-src">{d.source}</p>

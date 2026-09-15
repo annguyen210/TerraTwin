@@ -147,14 +147,19 @@ def score(lat: float, lon: float) -> dict | None:
     out = m.score(latest, mu, sd, reg)
     pct = out["percentile"]
 
+    from app.services.reqlang import tr
     if pct >= 99.0:
-        verdict = "Tổ hợp điều kiện hiếm — 1% số ngày hiếm nhất tại chính nơi này"
+        verdict = tr("Tổ hợp điều kiện hiếm — 1% số ngày hiếm nhất tại chính nơi này",
+                     "Rare condition combination — the rarest 1% of days at this very place")
     elif pct >= 98.0:
-        verdict = "Tổ hợp bất thường — nằm trong 2% số ngày hiếm nhất"
+        verdict = tr("Tổ hợp bất thường — nằm trong 2% số ngày hiếm nhất",
+                     "Unusual combination — within the rarest 2% of days")
     elif pct >= 95.0:
-        verdict = "Hơi khác thường, chưa tới ngưỡng đáng lo"
+        verdict = tr("Hơi khác thường, chưa tới ngưỡng đáng lo",
+                     "Slightly unusual, below the concern threshold")
     else:
-        verdict = "Tổ hợp nằm trong dải bình thường của nơi này"
+        verdict = tr("Tổ hợp nằm trong dải bình thường của nơi này",
+                     "Combination within this place's normal range")
 
     return {
         "available": True,
@@ -163,9 +168,14 @@ def score(lat: float, lon: float) -> dict | None:
         "verdict": verdict,
         "regime": reg,
         "top_drivers": out["top_drivers"],
-        "role": ("Chỉ số đối chiếu — KHÔNG thay đổi mức rủi ro của module nào. "
-                 "Ở mức vận hành 2%, mô hình này hoà với cách xét từng biến."),
-        "caveat": ("Đo độ hiếm của TỔ HỢP, không đo mức nguy hiểm. Một tổ hợp "
-                   "hiếm có thể vô hại; một ngày bão điển hình có thể không "
-                   "hiếm. Đọc cùng cảnh báo của module, đừng đọc thay."),
+        "role": tr("Chỉ số đối chiếu — KHÔNG thay đổi mức rủi ro của module nào. "
+                   "Ở mức vận hành 2%, mô hình này hoà với cách xét từng biến.",
+                   "A cross-reference index — it does NOT change any module's risk level. "
+                   "At the 2% operating point, this model ties with per-variable analysis."),
+        "caveat": tr("Đo độ hiếm của TỔ HỢP, không đo mức nguy hiểm. Một tổ hợp "
+                     "hiếm có thể vô hại; một ngày bão điển hình có thể không "
+                     "hiếm. Đọc cùng cảnh báo của module, đừng đọc thay.",
+                     "Measures the RARITY of the combination, not danger. A rare "
+                     "combination can be harmless; a typical storm day may not be "
+                     "rare. Read it alongside the module alerts, not instead of them."),
     }

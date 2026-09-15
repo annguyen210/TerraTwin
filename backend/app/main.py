@@ -587,13 +587,14 @@ class AnomalyMlRequest(BaseModel):
 
 
 @app.post("/api/anomaly-ml")
-def anomaly_ml_endpoint(req: AnomalyMlRequest) -> dict:
+def anomaly_ml_endpoint(req: AnomalyMlRequest, lang: str = "vi") -> dict:
     """Chấm độ hiếm của TỔ HỢP điều kiện hôm nay, bằng mô hình đã huấn luyện.
 
     Đây là chỉ số ĐỐI CHIẾU. Nó không được phép nâng hay hạ mức rủi ro của
     module nào — vì trên 5 năm kiểm tra nó chỉ hoà với cách xét từng biến ở mức
     vận hành 2%.
     """
+    reqlang.set_lang(lang)
     off = _off_site_dict(req.location.lat, req.location.lon)
     if off:
         return off
@@ -669,12 +670,13 @@ def report_verify(signed: dict) -> dict:
 
 
 @app.post("/api/genome")
-def genome_endpoint(location: Location, k: int = 5) -> dict:
+def genome_endpoint(location: Location, k: int = 5, lang: str = "vi") -> dict:
     """S04 Twin Genome — tìm những vùng có 'bộ gen' đất đai giống thửa của bạn.
 
     Lần gọi đầu tiên phải dựng lưới tham chiếu toàn quốc (~1–2 phút); sau đó
     lấy từ cache 30 ngày. Gọi trước /api/genome/warm để dựng sẵn.
     """
+    reqlang.set_lang(lang)
     return genome.find_twins(location.lat, location.lon, k=k)
 
 

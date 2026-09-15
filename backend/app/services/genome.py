@@ -199,16 +199,20 @@ def _compare(a: dict, b: dict) -> list[dict]:
 def find_twins(lat: float, lon: float, k: int = 5) -> dict:
     """Tìm k vùng có bộ gen gần nhất."""
     k = max(1, min(int(k), 20))
+    from app.services.reqlang import tr
     mine = genome_of(lat, lon)
     if mine is None:
         return {"available": False,
-                "message": "Chưa lấy được dữ liệu khí hậu cho vị trí này "
-                           "(kiểm tra kết nối mạng)."}
+                "message": tr("Chưa lấy được dữ liệu khí hậu cho vị trí này "
+                              "(kiểm tra kết nối mạng).",
+                              "Couldn't fetch climate data for this location "
+                              "(check network).")}
 
     ref = build_reference()
     if not ref["cells"]:
         return {"available": False,
-                "message": "Chưa dựng được lưới tham chiếu (kiểm tra kết nối mạng)."}
+                "message": tr("Chưa dựng được lưới tham chiếu (kiểm tra kết nối mạng).",
+                              "Couldn't build the reference grid (check network).")}
 
     scored = []
     for c in ref["cells"]:
@@ -232,10 +236,13 @@ def find_twins(lat: float, lon: float, k: int = 5) -> dict:
 
     best = twins[0] if twins else None
     headline = (
-        f"Vùng giống nhất cách {best['distance_km']:.0f} km "
-        f"({best['similarity_pct']}% tương đồng) — cùng nhóm cao độ, khí hậu và "
-        "vị trí so với biển."
-        if best else "Không tìm được vùng tương đồng."
+        tr(f"Vùng giống nhất cách {best['distance_km']:.0f} km "
+           f"({best['similarity_pct']}% tương đồng) — cùng nhóm cao độ, khí hậu và "
+           "vị trí so với biển.",
+           f"Most similar region is {best['distance_km']:.0f} km away "
+           f"({best['similarity_pct']}% similar) — same elevation, climate and "
+           "distance-to-sea group.")
+        if best else tr("Không tìm được vùng tương đồng.", "No similar region found.")
     )
 
     return {
@@ -252,16 +259,26 @@ def find_twins(lat: float, lon: float, k: int = 5) -> dict:
             "cached": ref["cached"],
         },
         "headline": headline,
-        "why_useful": ("Vùng cùng bộ gen thường gặp cùng loại vấn đề và hợp cùng "
-                       "loại giải pháp — giống cây, lịch mùa vụ, cách phòng hạn/mặn "
-                       "đã hiệu quả ở đó là nơi đáng học hỏi trước tiên."),
-        "caveat": (
+        "why_useful": tr("Vùng cùng bộ gen thường gặp cùng loại vấn đề và hợp cùng "
+                         "loại giải pháp — giống cây, lịch mùa vụ, cách phòng hạn/mặn "
+                         "đã hiệu quả ở đó là nơi đáng học hỏi trước tiên.",
+                         "Regions with the same genome tend to face the same problems and "
+                         "suit the same solutions — the crop varieties, planting calendars "
+                         "and drought/salinity measures that worked there are the first "
+                         "places worth learning from."),
+        "caveat": tr(
             f"Lưới ~{STEP}° (≈80 km) nên tìm được VÙNG tương đồng, không phải thửa "
             f"giống hệt. Khí hậu lấy từ MỘT năm tham chiếu ({REF_YEAR}), không phải "
             "chuẩn khí hậu 30 năm. Điểm trên đất liền lọc bằng cao độ > 0 m nên bỏ "
-            "sót một phần đất ven biển thấp ngang mực nước."
-        ),
-        "method": ("7 đặc trưng (cao độ, độ dốc, cách biển, mưa năm, tỉ lệ mưa mùa "
-                   "khô, nhiệt tối đa, biên độ nhiệt) chuẩn hoá z-score rồi tính "
-                   "khoảng cách Euclid có trọng số."),
+            "sót một phần đất ven biển thấp ngang mực nước.",
+            f"A ~{STEP}° grid (≈80 km) finds a similar REGION, not an identical plot. "
+            f"Climate is from ONE reference year ({REF_YEAR}), not a 30-year normal. "
+            "Land points are filtered by elevation > 0 m, so some low coastal land near "
+            "sea level is missed."),
+        "method": tr("7 đặc trưng (cao độ, độ dốc, cách biển, mưa năm, tỉ lệ mưa mùa "
+                     "khô, nhiệt tối đa, biên độ nhiệt) chuẩn hoá z-score rồi tính "
+                     "khoảng cách Euclid có trọng số.",
+                     "7 features (elevation, slope, distance to sea, annual rain, dry-season "
+                     "rain fraction, max temp, temp range) z-score normalized, then weighted "
+                     "Euclidean distance."),
     }
