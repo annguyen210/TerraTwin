@@ -44,20 +44,24 @@ def _sc_clear() -> None:
 # ---------------------------------------------------------------------------
 
 @router.get("/api/scorecard")
-def get_scorecard(days: int = 90, db: Session = Depends(get_session)) -> dict:
+def get_scorecard(days: int = 90, lang: str = "vi",
+                  db: Session = Depends(get_session)) -> dict:
     """Sổ điểm tự chấm. Không cần đăng nhập — đó là điểm mấu chốt.
 
     Con số này do phần mềm tự chấm về chính mình và không sửa được từ giao diện.
     """
+    from app.services import reqlang
+    reqlang.set_lang(lang)
     days = max(7, min(days, 3650))
     now = _time.time()
-    hit = _SC_CACHE.get(days)
+    ck = (days, reqlang.cur_lang())          # ngôn ngữ vào khoá cache
+    hit = _SC_CACHE.get(ck)
     if hit is not None and now - hit[0] < _SC_TTL:
         return hit[1]
     s = scorecard.summary(db, days)
     s["by_module"] = scorecard.by_module(db, days)
     s["ground_truth"] = scorecard.ground_truth(db)
-    _SC_CACHE[days] = (now, s)
+    _SC_CACHE[ck] = (now, s)
     return s
 
 

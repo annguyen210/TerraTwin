@@ -1723,7 +1723,7 @@ export type Scorecard = ScorecardRates & {
 };
 
 export function getScorecard(days = 90) {
-  return getJson<Scorecard>(`/api/scorecard?days=${days}`,
+  return getJson<Scorecard>(`/api/scorecard?days=${days}&lang=${curLang()}`,
     "Không tải được sổ điểm");
 }
 

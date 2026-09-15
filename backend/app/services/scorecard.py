@@ -35,6 +35,7 @@ from sqlalchemy.orm import Session
 
 from app.db import Alert, Observation
 from app.services import federated, hazard
+from app.services.reqlang import tr
 
 # Dưới ngưỡng này thì công bố số thô, không công bố tỉ lệ.
 MIN_SAMPLE = 10
@@ -152,13 +153,17 @@ def summary(db: Session, days: int = DEFAULT_WINDOW_DAYS,
         **_rates(hit, miss, fa),
     }
     out["headline"] = _headline(out)
-    out["method"] = (
+    out["method"] = tr(
         "Mỗi cảnh báo được chấm lại sau khi cửa sổ dự báo trôi qua, bằng số "
         "liệu thực đo của chính khoảng thời gian đó (Open-Meteo Archive, nền "
         "ERA5). Lần bỏ sót tìm bằng cách quét ngược lịch sử từng thửa, nên tỉ "
         "lệ này KHÔNG chỉ tính trên những lần phần mềm dám báo. Người dùng trả "
-        "lời một chạm được ưu tiên hơn số liệu vệ tinh."
-    )
+        "lời một chạm được ưu tiên hơn số liệu vệ tinh.",
+        "Every alert is re-scored after its forecast window passes, against the "
+        "measured data for that exact period (Open-Meteo Archive, ERA5). Misses "
+        "are found by scanning each plot's history backward, so this rate is NOT "
+        "computed only over the times the software dared to alert. One-tap user "
+        "answers outrank satellite data.")
     return out
 
 
@@ -166,18 +171,25 @@ def _headline(s: dict) -> str:
     """Một câu tiếng Việt cho trang đầu. Không tô hồng khi mẫu còn ít."""
     c = s["counts"]
     # Loại trừ CÓ LÝ DO, nói ra chứ không giấu.
-    excl = (f" (đã loại {s['excluded_dev']} cảnh báo giai đoạn phát triển)"
+    excl = (tr(f" (đã loại {s['excluded_dev']} cảnh báo giai đoạn phát triển)",
+               f" (excluded {s['excluded_dev']} development-phase alerts)")
             if s.get("excluded_dev") else "")
     if s["scored"] == 0:
-        return ("Chưa có cảnh báo prod nào tới hạn chấm. Sổ điểm sẽ tự hiện khi "
-                "cảnh báo thật đầu tiên đủ 13 ngày tuổi." + excl)
-    base = (f"{s['window_days']} ngày qua: báo trước {c['hit'] + c['false_alarm']} đợt, "
-            f"đúng {c['hit']}, báo bừa {c['false_alarm']}, bỏ sót {c['miss']}")
+        return tr("Chưa có cảnh báo prod nào tới hạn chấm. Sổ điểm sẽ tự hiện khi "
+                  "cảnh báo thật đầu tiên đủ 13 ngày tuổi.",
+                  "No production alert is due for scoring yet. The scorecard appears "
+                  "once the first real alert reaches 13 days old.") + excl
+    base = tr(f"{s['window_days']} ngày qua: báo trước {c['hit'] + c['false_alarm']} đợt, "
+              f"đúng {c['hit']}, báo bừa {c['false_alarm']}, bỏ sót {c['miss']}",
+              f"Last {s['window_days']} days: warned of {c['hit'] + c['false_alarm']} events, "
+              f"{c['hit']} correct, {c['false_alarm']} false alarms, {c['miss']} missed")
     if not s["enough"]:
-        return (base + f". Mới {s['scored']} đợt chấm — chưa đủ "
-                f"{MIN_SAMPLE} để công bố tỉ lệ." + excl)
-    return (base + f" — báo bừa {s['far_pct']}%, bắt được {s['pod_pct']}% số đợt "
-            f"thực tế." + excl)
+        return (base + tr(f". Mới {s['scored']} đợt chấm — chưa đủ "
+                          f"{MIN_SAMPLE} để công bố tỉ lệ.",
+                          f". Only {s['scored']} scored so far — fewer than "
+                          f"{MIN_SAMPLE}, not enough to publish rates.") + excl)
+    return (base + tr(f" — báo bừa {s['far_pct']}%, bắt được {s['pod_pct']}% số đợt thực tế.",
+                      f" — {s['far_pct']}% false alarms, caught {s['pod_pct']}% of real events.") + excl)
 
 
 def by_module(db: Session, days: int = DEFAULT_WINDOW_DAYS) -> list[dict]:
@@ -302,6 +314,8 @@ def ground_truth(db: Session) -> dict:
         "by_source": by_source,
         "by_onetap": int(by_source.get("onetap", 0)),
         "cells_covered": distinct_cells,
-        "note": ("Quan sát thực địa là tài sản duy nhất trong TerraTwin không "
-                 "tải được từ vệ tinh và không mua được ở đâu."),
+        "note": tr("Quan sát thực địa là tài sản duy nhất trong TerraTwin không "
+                   "tải được từ vệ tinh và không mua được ở đâu.",
+                   "Field observations are the one asset in TerraTwin that can't be "
+                   "downloaded from a satellite and can't be bought anywhere."),
     }

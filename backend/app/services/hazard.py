@@ -19,6 +19,12 @@ META = {
     "wildfire": ("Cảnh báo nguy cơ cháy rừng", "điểm"),
     "landslide": ("Cảnh báo sạt lở", "điểm"),
 }
+_META_EN = {
+    "drought": ("Drought & water-shortage alert", "%"),
+    "flood": ("Early flood warning", "pts"),
+    "wildfire": ("Wildfire risk alert", "pts"),
+    "landslide": ("Landslide alert", "pts"),
+}
 
 IDS = tuple(META)
 
@@ -28,7 +34,8 @@ def supports(module_id: str) -> bool:
 
 
 def name_unit(module_id: str) -> tuple[str, str]:
-    return META[module_id]
+    from app.services.reqlang import cur_lang
+    return _META_EN[module_id] if cur_lang() == "en" else META[module_id]
 
 
 def terrain(module_id: str, lat: float, lon: float) -> tuple[float | None, str]:

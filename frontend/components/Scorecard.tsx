@@ -114,7 +114,7 @@ export default function Scorecard({ data, onClose }: {
 }) {
   // Chế độ tự-gọi chỉ bật khi KHÔNG được truyền `data` (kể cả null). `null` là
   // "đang tải, do bên ngoài quản"; `undefined` là "không ai truyền → tự lo".
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const selfFetch = data === undefined;
   const [fetched, setFetched] = useState<SC | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -147,7 +147,7 @@ export default function Scorecard({ data, onClose }: {
       .then((d) => live && setFetched(d))
       .catch((e) => live && setErr(e.message));
     return () => { live = false; };
-  }, [selfFetch]);
+  }, [selfFetch, lang]);
 
   useEffect(() => {
     let live = true;

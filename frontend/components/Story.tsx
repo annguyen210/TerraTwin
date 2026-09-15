@@ -36,7 +36,7 @@ export default function Story({ onClose, onExplore }: {
   onClose: () => void;
   onExplore: (lat: number, lon: number, label: string) => void;
 }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [step, setStep] = useState(0);
   const [img, setImg] = useState<Imagery | null>(null);
   const [bt, setBt] = useState<BacktestResult | null>(null);
@@ -50,7 +50,7 @@ export default function Story({ onClose, onExplore }: {
     let dead = false;
     getScorecard(90).then((r) => !dead && setSc(r)).catch(() => {});
     return () => { dead = true; };
-  }, []);
+  }, [lang]);
 
   // Tải dữ liệu cho từng bước khi tới bước đó (lazy) — không nã hết một lúc.
   useEffect(() => {
