@@ -32,7 +32,7 @@ import { useLang } from "@/lib/i18n";
 type Lop = "true" | "ndvi";
 
 export default function PlotView({ lat, lon }: { lat: number; lon: number }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [d, setD] = useState<Imagery | null>(null);
   const [busy, setBusy] = useState(false);
   const [lop, setLop] = useState<Lop>("true");
@@ -56,7 +56,7 @@ export default function PlotView({ lat, lon }: { lat: number; lon: number }) {
     return () => {
       huy = true;
     };
-  }, [lat, lon]);
+  }, [lat, lon, lang]);
 
   function loadNow() {
     setDefer(false);
@@ -159,7 +159,7 @@ export default function PlotView({ lat, lon }: { lat: number; lon: number }) {
               max={100}
               value={keo}
               onChange={(e) => setKeo(Number(e.target.value))}
-              aria-label="Kéo để so hai thời điểm"
+              aria-label={t("Kéo để so hai thời điểm", "Drag to compare the two dates")}
             />
             <span className="pv-tag left">{d.then!.date}</span>
           </>

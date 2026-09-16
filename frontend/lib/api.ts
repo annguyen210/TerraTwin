@@ -1198,7 +1198,7 @@ export type Imagery = {
 };
 
 export function getImagery(lat: number, lon: number, bufferM = 1200) {
-  return postJson<Imagery>("/api/imagery",
+  return postJson<Imagery>(`/api/imagery${_lp()}`,
     { location: { lat, lon }, buffer_m: bufferM },
     "Không lấy được ảnh vệ tinh");
 }

@@ -22,15 +22,18 @@
 
 import { useEffect, useState } from "react";
 import { getContrast, type ModuleContrast } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
 
-const TEN: Record<string, string> = {
-  flood: "Lũ & ngập",
-  landslide: "Sạt lở",
-  drought: "Hạn & thiếu nước",
-  wildfire: "Cháy rừng",
+const TEN: Record<string, [string, string]> = {
+  flood: ["Lũ & ngập", "Flood"],
+  landslide: ["Sạt lở", "Landslide"],
+  drought: ["Hạn & thiếu nước", "Drought"],
+  wildfire: ["Cháy rừng", "Wildfire"],
 };
 
 export default function WhyTrust({ lat, lon }: { lat: number; lon: number }) {
+  const { t, lang } = useLang();
+  const nameOf = (id: string) => (TEN[id] ? t(TEN[id][0], TEN[id][1]) : id);
   const [rows, setRows] = useState<ModuleContrast[] | null>(null);
   const [mo, setMo] = useState(false);
 
@@ -43,7 +46,7 @@ export default function WhyTrust({ lat, lon }: { lat: number; lon: number }) {
     return () => {
       huy = true;
     };
-  }, [lat, lon]);
+  }, [lat, lon, lang]);
 
   if (!rows || rows.length === 0) return null;
 
@@ -69,19 +72,21 @@ export default function WhyTrust({ lat, lon }: { lat: number; lon: number }) {
 
   return (
     <div className="wt">
-      <span className="wt-cap">Vì sao tin được con số này</span>
+      <span className="wt-cap">{t("Vì sao tin được con số này", "Why you can trust this number")}</span>
 
       {dangKe ? (
         <>
           <p className="wt-lead">
-            Ngay tại thửa này, một hệ thống dùng <b>ngưỡng chung cho cả nước</b>{" "}
-            sẽ kêu báo động <b>{noiBat.fixed_days_per_year} ngày mỗi năm</b> cho{" "}
-            {TEN[noiBat.module_id]?.toLowerCase()}. TerraTwin kêu{" "}
-            <b>{noiBat.calibrated_days_per_year} ngày</b>.
+            {t("Ngay tại thửa này, một hệ thống dùng", "Right at this plot, a system using a")}{" "}
+            <b>{t("ngưỡng chung cho cả nước", "nationwide threshold")}</b>{" "}
+            {t("sẽ kêu báo động", "would raise alerts")}{" "}
+            <b>{noiBat.fixed_days_per_year} {t("ngày mỗi năm", "days a year")}</b> {t("cho", "for")}{" "}
+            {nameOf(noiBat.module_id).toLowerCase()}. {t("TerraTwin kêu", "TerraTwin raises")}{" "}
+            <b>{noiBat.calibrated_days_per_year} {t("ngày", "days")}</b>.
           </p>
           <div className="wt-bars">
             <div className="wt-row">
-              <span>Ngưỡng chung</span>
+              <span>{t("Ngưỡng chung", "Nationwide")}</span>
               <div className="wt-bar">
                 <i
                   className="bad"
@@ -104,25 +109,23 @@ export default function WhyTrust({ lat, lon }: { lat: number; lon: number }) {
               </div>
               <b>{noiBat.calibrated_days_per_year}</b>
             </div>
-            <p className="wt-unit">ngày báo động mỗi năm · đo trên 10 năm lịch sử của chính toạ độ này</p>
+            <p className="wt-unit">{t("ngày báo động mỗi năm · đo trên 10 năm lịch sử của chính toạ độ này",
+                                      "alert days per year · measured over 10 years of history at this exact point")}</p>
           </div>
           <p className="wt-why">
-            Một cảnh báo kêu {Math.round(lan)} lần nhiều hơn mức cần thiết thì
-            người ta tắt nó sau tuần thứ hai — và lúc nguy hiểm thật thì không
-            ai còn nghe nữa.
+            {t(`Một cảnh báo kêu ${Math.round(lan)} lần nhiều hơn mức cần thiết thì người ta tắt nó sau tuần thứ hai — và lúc nguy hiểm thật thì không ai còn nghe nữa.`,
+               `An alert that fires ${Math.round(lan)}× more than needed gets muted by week two — and when real danger comes, no one is listening.`)}
           </p>
         </>
       ) : (
         <p className="wt-lead">
-          Ở riêng thửa này, ngưỡng chung cả nước tình cờ cho kết quả gần giống
-          TerraTwin ({noiBat.fixed_days_per_year} so với{" "}
-          {noiBat.calibrated_days_per_year} ngày/năm). Chỗ khác thì lệch rất
-          nhiều — bấm bên dưới để xem.
+          {t(`Ở riêng thửa này, ngưỡng chung cả nước tình cờ cho kết quả gần giống TerraTwin (${noiBat.fixed_days_per_year} so với ${noiBat.calibrated_days_per_year} ngày/năm). Chỗ khác thì lệch rất nhiều — bấm bên dưới để xem.`,
+             `At this particular plot, the nationwide threshold happens to match TerraTwin closely (${noiBat.fixed_days_per_year} vs ${noiBat.calibrated_days_per_year} days/year). Elsewhere it diverges a lot — tap below to see.`)}
         </p>
       )}
 
       <button className="wt-more" onClick={() => setMo(!mo)}>
-        {mo ? "Thu gọn" : "Xem cả bốn hiểm hoạ và cách tính"}
+        {mo ? t("Thu gọn", "Collapse") : t("Xem cả bốn hiểm hoạ và cách tính", "See all four hazards and the method")}
       </button>
 
       {mo && (
@@ -130,37 +133,34 @@ export default function WhyTrust({ lat, lon }: { lat: number; lon: number }) {
           <table>
             <thead>
               <tr>
-                <th>Hiểm hoạ</th>
-                <th>Ngưỡng chung</th>
+                <th>{t("Hiểm hoạ", "Hazard")}</th>
+                <th>{t("Ngưỡng chung", "Nationwide")}</th>
                 <th>TerraTwin</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r) => (
                 <tr key={r.module_id}>
-                  <td>{TEN[r.module_id] ?? r.module_id}</td>
+                  <td>{nameOf(r.module_id)}</td>
                   <td className="n">{r.fixed_days_per_year}</td>
                   <td className="n">{r.calibrated_days_per_year}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <p className="wt-unit">ngày báo động mỗi năm</p>
+          <p className="wt-unit">{t("ngày báo động mỗi năm", "alert days per year")}</p>
 
           {cam.length > 0 && (
             <p className="wt-note">
-              <b>Chú ý chiều ngược lại.</b> Với{" "}
-              {cam.map((r) => TEN[r.module_id]?.toLowerCase()).join(", ")}, ngưỡng
-              chung ở đây kêu <b>0 ngày/năm</b> — tức là <b>điếc hoàn toàn</b>,
-              không phải an toàn. Cùng một ngưỡng cố định vừa kêu oan chỗ này
-              vừa bỏ sót chỗ kia; đó mới là lý do phải hiệu chuẩn theo từng nơi,
-              chứ không phải vì con số nào đẹp hơn.
+              <b>{t("Chú ý chiều ngược lại.", "Note the opposite direction.")}</b> {t("Với", "For")}{" "}
+              {cam.map((r) => nameOf(r.module_id).toLowerCase()).join(", ")}, {t("ngưỡng chung ở đây kêu", "the nationwide threshold here fires")} <b>{t("0 ngày/năm", "0 days/year")}</b> — {t("tức là", "i.e.")} <b>{t("điếc hoàn toàn", "totally deaf")}</b>, {t("không phải an toàn. Cùng một ngưỡng cố định vừa kêu oan chỗ này vừa bỏ sót chỗ kia; đó mới là lý do phải hiệu chuẩn theo từng nơi, chứ không phải vì con số nào đẹp hơn.",
+                 "not safe. The same fixed threshold both over-warns here and misses there; that's why it must be calibrated per place, not because one number looks nicer.")}
             </p>
           )}
 
           <p className="wt-method">
-            {rows[0].method} Cả hai đều đo trên {rows[0].years} năm dữ liệu ERA5
-            thật tại toạ độ này — không phải con số quảng cáo.
+            {rows[0].method} {t(`Cả hai đều đo trên ${rows[0].years} năm dữ liệu ERA5 thật tại toạ độ này — không phải con số quảng cáo.`,
+                                `Both are measured over ${rows[0].years} years of real ERA5 data at this point — not marketing figures.`)}
           </p>
         </div>
       )}

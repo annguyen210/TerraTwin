@@ -34,6 +34,7 @@ import urllib.parse
 from datetime import date, timedelta
 
 from app.services import mpc
+from app.services.reqlang import tr
 
 DATA = "https://planetarycomputer.microsoft.com/api/data/v1/item/bbox"
 
@@ -101,7 +102,8 @@ def _pick(box: list[float], start: date, end: date) -> dict | None:
 def plot_view(lat: float, lon: float, buffer_m: float = DEFAULT_BUFFER_M) -> dict:
     """Ba lớp ảnh cho một thửa. Luôn trả dict — không bao giờ ném lỗi lên API."""
     from app.services import cache_store
-    key = cache_store.make_key("imagery", round(lat, 4), round(lon, 4), int(buffer_m))
+    from app.services import reqlang
+    key = cache_store.make_key("imagery", reqlang.cur_lang(), round(lat, 4), round(lon, 4), int(buffer_m))
     hit = cache_store.get(key)
     if hit is not None:
         return hit
@@ -113,10 +115,14 @@ def plot_view(lat: float, lon: float, buffer_m: float = DEFAULT_BUFFER_M) -> dic
     if now is None:
         kq = {
             "available": False,
-            "message": ("Chưa có ảnh quang mây cho thửa này trong 4 tháng qua. "
-                        "Mùa mưa ở Việt Nam mây che gần như liên tục — vệ tinh "
-                        "quang học không nhìn xuyên mây được. Thử lại sau vài "
-                        "ngày, phần mềm tự lấy tấm gần nhất."),
+            "message": tr("Chưa có ảnh quang mây cho thửa này trong 4 tháng qua. "
+                          "Mùa mưa ở Việt Nam mây che gần như liên tục — vệ tinh "
+                          "quang học không nhìn xuyên mây được. Thử lại sau vài "
+                          "ngày, phần mềm tự lấy tấm gần nhất.",
+                          "No cloud-free image for this plot in the last 4 months. "
+                          "Vietnam's rainy season is almost continuously cloudy — optical "
+                          "satellites can't see through cloud. Try again in a few days; "
+                          "the app picks the nearest image automatically."),
             "reason": "cloud",
         }
         # Cache cả trường hợp KHÔNG có ảnh — nếu không thì mỗi lần mở lại phải
@@ -142,13 +148,17 @@ def plot_view(lat: float, lon: float, buffer_m: float = DEFAULT_BUFFER_M) -> dic
             "true_color": _url(now["item"], box, _TRUE_COLOR),
             "ndvi": _url(now["item"], box, _NDVI),
         },
-        "source": "Sentinel-2 L2A · Microsoft Planetary Computer (không cần khoá)",
+        "source": tr("Sentinel-2 L2A · Microsoft Planetary Computer (không cần khoá)",
+                     "Sentinel-2 L2A · Microsoft Planetary Computer (no key needed)"),
         "resolution_m": 10,
-        "caveat": (
+        "caveat": tr(
             f"Ảnh chụp ngày {now['date']} (mây toàn cảnh {now['cloud_scene_pct']}%), "
             f"không phải hôm nay — Sentinel-2 bay "
             f"qua mỗi ~5 ngày và mùa mưa thường bị mây che. Mỗi điểm ảnh là một "
-            f"ô 10×10 m, nên vật nhỏ hơn thế không nhìn thấy được."),
+            f"ô 10×10 m, nên vật nhỏ hơn thế không nhìn thấy được.",
+            f"Taken {now['date']} (scene cloud {now['cloud_scene_pct']}%), not today — "
+            f"Sentinel-2 passes every ~5 days and the rainy season is often cloudy. "
+            f"Each pixel is a 10×10 m cell, so anything smaller isn't visible."),
     }
 
     if then:
@@ -157,11 +167,15 @@ def plot_view(lat: float, lon: float, buffer_m: float = DEFAULT_BUFFER_M) -> dic
             "true_color": _url(then["item"], box, _TRUE_COLOR),
             "ndvi": _url(then["item"], box, _NDVI),
         }
-        out["compare_note"] = (
+        out["compare_note"] = tr(
             f"Hai ảnh cách nhau khoảng một năm và CÙNG MÙA "
             f"({then['date']} so với {now['date']}). Cùng mùa mới so được: lấy "
             f"ảnh mùa khô đặt cạnh ảnh mùa mưa thì khác biệt nhìn thấy chủ yếu "
-            f"là mùa vụ, không phải thay đổi thật.")
+            f"là mùa vụ, không phải thay đổi thật.",
+            f"The two images are about a year apart and SAME SEASON "
+            f"({then['date']} vs {now['date']}). Same season is required to compare: "
+            f"a dry-season image next to a rainy-season one would show mostly seasonal "
+            f"difference, not real change.")
     else:
         out["compare_note"] = (
             "Không tìm được ảnh quang mây cùng mùa năm ngoái, nên chưa so được "

@@ -34,6 +34,8 @@ import urllib.parse
 import urllib.request
 from datetime import date, timedelta
 
+from app.services.reqlang import tr
+
 STAC = "https://planetarycomputer.microsoft.com/api/stac/v1/search"
 DATA = "https://planetarycomputer.microsoft.com/api/data/v1/item/statistics"
 COLLECTION = "sentinel-2-l2a"
@@ -334,7 +336,8 @@ def index_distribution(lat: float, lon: float, index: str = "NDVI",
         "histogram": {"counts": counts, "edges": edges},
         "cloud_pct": round(float(it["properties"].get("eo:cloud_cover") or 0.0), 1),
         "scene": it["id"],
-        "source": "Microsoft Planetary Computer · Sentinel-2 L2A (không cần khoá)",
+        "source": tr("Microsoft Planetary Computer · Sentinel-2 L2A (không cần khoá)",
+                     "Microsoft Planetary Computer · Sentinel-2 L2A (no key needed)"),
     }
     closed = end < date.today() - timedelta(days=14)
     cache_store.put(key, out, ttl_seconds=_TTL_CLOSED if closed else _TTL_RECENT)

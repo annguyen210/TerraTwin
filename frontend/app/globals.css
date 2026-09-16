@@ -3901,8 +3901,13 @@ body {
 }
 
 /* PlotPlan: nút in + câu hỏi chờ (vòng khép kín) */
-.plan-head{ flex-direction:row!important; align-items:center; justify-content:space-between; gap:10px }
-.plan-head-main{ display:flex; flex-direction:column; gap:2px; min-width:0; flex:1 1 auto }
+/* Đ8/mục 6 — cho phép XUỐNG HÀNG: tiếng Anh ("Your plot's plan" + "Land Passport"
+   + "Print") dài hơn tiếng Việt, để chung một hàng thì hai nút bóp cột tiêu đề
+   đến mức mỗi chữ một dòng. flex-wrap + tiêu đề cần tối thiểu ~220px: đủ rộng thì
+   nút nằm cùng hàng, hẹp thì nút rớt xuống hàng dưới nguyên vẹn. */
+.plan-head{ flex-direction:row!important; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px }
+.plan-head-main{ display:flex; flex-direction:column; gap:2px; flex:1 1 220px; min-width:220px }
+.plan-head-btns{ flex:0 0 auto }
 .plan-print{ flex:none; padding:6px 12px; border-radius:9px; border:1px solid var(--line-2);
   background:transparent; color:var(--dim); font-size:.78rem; font-weight:600; cursor:pointer; white-space:nowrap }
 .plan-print:hover{ color:var(--terra); border-color:var(--terra) }

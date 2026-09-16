@@ -66,7 +66,7 @@ export default function Landing({
   onWorkspace: () => void;
   modules: ModuleInfo[];
 }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const nModules = modules.length || 18;
 
   const [sc, setSc] = useState<SC | null>(null);
@@ -75,7 +75,7 @@ export default function Landing({
     let live = true;
     getScorecard(90).then((r) => live && setSc(r)).catch(() => {});
     return () => { live = false; };
-  }, []);
+  }, [lang]);                                          // lấy lại khi đổi ngôn ngữ
   const doThat = sc?.enough && sc.far_pct !== null;
 
   return (

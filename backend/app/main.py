@@ -473,7 +473,7 @@ class ContrastRequest(BaseModel):
 
 
 @app.post("/api/contrast")
-def contrast_endpoint(req: ContrastRequest) -> dict:
+def contrast_endpoint(req: ContrastRequest, lang: str = "vi") -> dict:
     """Đối chứng: ngưỡng chung cả nước vs hiệu chuẩn theo chính thửa này.
 
     LÝ DO TỒN TẠI. Điểm mạnh nhất của sản phẩm là thứ không nhìn thấy được:
@@ -485,6 +485,7 @@ def contrast_endpoint(req: ContrastRequest) -> dict:
     Không tốn thêm lượt gọi mạng: dùng lại phân bố 10 năm mà bước hiệu chuẩn
     trong lượt quét vừa rồi đã tải và cache.
     """
+    reqlang.set_lang(lang)
     off = _off_site_dict(req.location.lat, req.location.lon)
     if off:
         return off
@@ -505,7 +506,7 @@ class ImageryRequest(BaseModel):
 
 
 @app.post("/api/imagery")
-def imagery_endpoint(req: ImageryRequest) -> dict:
+def imagery_endpoint(req: ImageryRequest, lang: str = "vi") -> dict:
     """Ảnh vệ tinh THẬT của thửa đất — màu thật, sức sống cây, và đối chiếu năm ngoái.
 
     Thứ TerraTwin thiếu suốt từ đầu: người dùng chưa bao giờ NHÌN THẤY mảnh đất
@@ -514,6 +515,7 @@ def imagery_endpoint(req: ImageryRequest) -> dict:
     Trả về ĐƯỜNG DẪN ảnh chứ không tải ảnh qua đây — mỗi tấm nửa megabyte, đẩy
     qua máy chủ gói free là tự bóp cổ mình mà chẳng lợi gì, vì nguồn vốn công khai.
     """
+    reqlang.set_lang(lang)
     off = _off_site_dict(req.location.lat, req.location.lon)
     if off:
         return off

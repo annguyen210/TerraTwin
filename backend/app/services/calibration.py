@@ -29,6 +29,7 @@ from datetime import date, timedelta
 
 from app.services import datasources as ds
 from app.services import realdata
+from app.services.reqlang import tr as _tr
 
 _WINDOW = 7
 _YEARS = 10
@@ -331,10 +332,13 @@ def contrast(module_id: str, lat: float, lon: float,
         "fixed_days_per_year": round(n_fixed / years, 1),
         "calibrated_alarms": n_cal,
         "calibrated_days_per_year": round(n_cal / years, 1),
-        "method": (
+        "method": _tr(
             "Ngưỡng chung = giá trị thô ở phân vị 97 khi gộp 16 điểm phủ cả "
             "nước, 58.336 cửa sổ 7 ngày ERA5. Hiệu chuẩn = phân vị 97 của riêng "
-            "toạ độ này. Cả hai cùng mục tiêu thiết kế, chỉ khác chỗ lấy nền so."),
+            "toạ độ này. Cả hai cùng mục tiêu thiết kế, chỉ khác chỗ lấy nền so.",
+            "Nationwide threshold = the raw P97 value pooled over 16 points across "
+            "the country, 58,336 seven-day ERA5 windows. Calibrated = P97 of this "
+            "point alone. Same design target, only the comparison baseline differs."),
     }
 
 
