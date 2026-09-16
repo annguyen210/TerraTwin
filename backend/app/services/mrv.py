@@ -38,6 +38,7 @@ import json
 from datetime import date, datetime, timezone
 
 from app.services import sentinel
+from app.services.reqlang import tr
 
 # Ngưỡng NDVI coi là có tán cây. 0,55 là mức thận trọng cho vùng nhiệt đới ẩm:
 # đủ cao để loại lúa, cỏ và cây bụi thấp, đủ thấp để không bỏ sót rừng thưa.
@@ -169,11 +170,16 @@ def build(lat: float, lon: float, buffer_m: float = 600.0,
         "measured": measured,
         "estimated": estimated,
         "change_vs_last_year": change,
-        "headline": (
+        "headline": tr(
             f"Che phủ tán {measured['canopy_pct']}% trên {total_ha} ha "
             f"(≈{forest_ha} ha có rừng). Trữ lượng ước tính "
             f"{estimated['stock_tco2']} tCO₂ "
             f"(dải {estimated['stock_tco2_low']}–{estimated['stock_tco2_high']}, "
+            f"{estimated['tier_label']}).",
+            f"Canopy cover {measured['canopy_pct']}% over {total_ha} ha "
+            f"(≈{forest_ha} ha forested). Estimated stock "
+            f"{estimated['stock_tco2']} tCO₂ "
+            f"(range {estimated['stock_tco2_low']}–{estimated['stock_tco2_high']}, "
             f"{estimated['tier_label']})."),
         "methodology": {
             "measured_by": ("Sentinel-2 L2A, NDVI mỗi pixel 10 m, lọc mây bằng "

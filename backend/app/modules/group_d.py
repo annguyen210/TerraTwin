@@ -338,9 +338,12 @@ class SupplyChainModule(TwinModule):
         if not any(weather):
             return need_data_assessment(
                 self, loc,
-                needs="dự báo thời tiết cho lưới vùng thu mua",
-                will_do="đếm bao nhiêu phần vùng nguyên liệu đang ở mức cảnh báo",
-                next_step="Nguồn thời tiết đang không phản hồi. Thử lại sau ít phút.")
+                needs=tr("dự báo thời tiết cho lưới vùng thu mua",
+                         "weather forecast across the sourcing-area grid"),
+                will_do=tr("đếm bao nhiêu phần vùng nguyên liệu đang ở mức cảnh báo",
+                           "count how much of the sourcing region is at alert level"),
+                next_step=tr("Nguồn thời tiết đang không phản hồi. Thử lại sau ít phút.",
+                             "The weather source isn't responding. Try again in a few minutes."))
 
         # Chạy hai hiểm họa nặng nhất với nông sản trên từng điểm của lưới.
         #
@@ -371,9 +374,11 @@ class SupplyChainModule(TwinModule):
 
         if counted == 0:
             return need_data_assessment(
-                self, loc, needs="dữ liệu thời tiết cho vùng thu mua",
-                will_do="đo tỉ lệ diện tích vùng nguyên liệu đang gặp rủi ro",
-                next_step="Thử lại sau ít phút.")
+                self, loc, needs=tr("dữ liệu thời tiết cho vùng thu mua",
+                                    "weather data for the sourcing area"),
+                will_do=tr("đo tỉ lệ diện tích vùng nguyên liệu đang gặp rủi ro",
+                           "measure what share of the sourcing area is at risk"),
+                next_step=tr("Thử lại sau ít phút.", "Try again in a few minutes."))
 
         worst_id, worst_n = max(at_risk.items(), key=lambda kv: kv[1])
         pct = round(100.0 * worst_n / counted, 1)

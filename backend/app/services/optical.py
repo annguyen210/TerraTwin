@@ -19,6 +19,7 @@ import statistics
 from datetime import date, timedelta
 
 from app.services import sentinel
+from app.services.reqlang import tr
 
 # Ngưỡng đọc NDVI cho vùng nhiệt đới ẩm. Tổng hợp từ thực hành viễn thám phổ
 # thông; là mốc ĐỊNH HƯỚNG, không phải hằng số vật lý.
@@ -36,12 +37,14 @@ def _clear(series):
 
 def cover_label(ndvi: float) -> str:
     if ndvi >= NDVI_HEALTHY:
-        return "tán kín, cây khỏe"
+        return tr("tán kín, cây khỏe", "closed canopy, healthy plants")
     if ndvi >= NDVI_SPARSE:
-        return "thảm thực vật vừa phải"
+        return tr("thảm thực vật vừa phải", "moderate vegetation")
     if ndvi >= NDVI_BARE:
-        return "thưa — mới gieo, vừa thu hoạch, hoặc đang suy"
-    return "gần như trống — đất trần, mặt nước hoặc bề mặt cứng"
+        return tr("thưa — mới gieo, vừa thu hoạch, hoặc đang suy",
+                  "sparse — freshly sown, just harvested, or declining")
+    return tr("gần như trống — đất trần, mặt nước hoặc bề mặt cứng",
+              "nearly bare — bare soil, water, or hard surface")
 
 
 # --------------------------------------------------------------- sâu bệnh
@@ -74,25 +77,31 @@ def stress(lat: float, lon: float, buffer_m: float = 300.0) -> dict | None:
                   if hist_std > 0.005 else None)
 
     if latest["mean"] < NDVI_BARE:
-        level, verdict = "danger", "thửa gần như không còn thảm thực vật"
+        level, verdict = "danger", tr("thửa gần như không còn thảm thực vật", "the plot has almost no vegetation left")
     elif z <= -2.0 or drop_pct <= -25.0:
-        level, verdict = "danger", "sức sống cây giảm mạnh bất thường"
+        level, verdict = "danger", tr("sức sống cây giảm mạnh bất thường", "plant vigor dropped abnormally sharply")
     elif z <= -1.0 or drop_pct <= -12.0:
-        level, verdict = "warning", "sức sống cây đang giảm so với chính thửa này"
+        level, verdict = "warning", tr("sức sống cây đang giảm so với chính thửa này", "plant vigor is declining vs this plot's own baseline")
     else:
-        level, verdict = "safe", "sức sống cây trong khoảng bình thường của thửa"
+        level, verdict = "safe", tr("sức sống cây trong khoảng bình thường của thửa", "plant vigor within this plot's normal range")
 
     if level == "safe":
         cause = None
     elif patchiness is not None and patchiness >= 1.4:
-        cause = ("LOANG LỔ — mức độ không đều trong thửa tăng "
-                 f"{patchiness}× so với bình thường. Kiểu này hợp với sâu bệnh, "
-                 "nấm hoặc ngập cục bộ hơn là hạn (hạn thường làm giảm đều).")
+        cause = tr("LOANG LỔ — mức độ không đều trong thửa tăng "
+                   f"{patchiness}× so với bình thường. Kiểu này hợp với sâu bệnh, "
+                   "nấm hoặc ngập cục bộ hơn là hạn (hạn thường làm giảm đều).",
+                   "PATCHY — in-field unevenness is up "
+                   f"{patchiness}× vs normal. This pattern fits pests, fungus or "
+                   "local flooding more than drought (drought usually dims evenly).")
     elif patchiness is not None and patchiness <= 0.9:
-        cause = ("ĐỀU khắp thửa — hợp với nguyên nhân toàn vùng (hạn, mặn, rét, "
-                 "vừa thu hoạch) hơn là ổ sâu bệnh.")
+        cause = tr("ĐỀU khắp thửa — hợp với nguyên nhân toàn vùng (hạn, mặn, rét, "
+                   "vừa thu hoạch) hơn là ổ sâu bệnh.",
+                   "EVEN across the plot — fits a whole-area cause (drought, salinity, "
+                   "cold, recent harvest) more than a pest outbreak.")
     else:
-        cause = "Mức độ không đều chưa rõ rệt để phân biệt nguyên nhân."
+        cause = tr("Mức độ không đều chưa rõ rệt để phân biệt nguyên nhân.",
+                   "Unevenness isn't clear enough to distinguish the cause.")
 
     return {
         "available": True, "level": level, "verdict": verdict, "cause_hint": cause,
@@ -142,24 +151,33 @@ def growth(lat: float, lon: float, buffer_m: float = 300.0) -> dict | None:
     integral = round(sum(r["mean"] for r in s) * 10.0 / 30.0, 2)  # đơn vị "NDVI·tháng"
 
     if latest["mean"] < NDVI_BARE:
-        stage = "đất trống / vừa thu hoạch"
-        advice = "Chưa có cây trên thửa. Theo dõi lại sau khi xuống giống."
+        stage = tr("đất trống / vừa thu hoạch", "bare / just harvested")
+        advice = tr("Chưa có cây trên thửa. Theo dõi lại sau khi xuống giống.",
+                    "No crop on the plot yet. Check again after sowing.")
     elif slope > 0.02:
-        stage = "đang sinh trưởng, chưa tới đỉnh"
-        advice = ("Cây còn đang lên. Đây là lúc bón thúc và giữ nước có hiệu quả "
-                  "nhất — sau đỉnh thì can thiệp gần như không thay đổi được nữa.")
+        stage = tr("đang sinh trưởng, chưa tới đỉnh", "growing, not yet at peak")
+        advice = tr("Cây còn đang lên. Đây là lúc bón thúc và giữ nước có hiệu quả "
+                    "nhất — sau đỉnh thì can thiệp gần như không thay đổi được nữa.",
+                    "The crop is still rising. This is when top-dressing and water "
+                    "retention work best — after the peak, intervention barely changes anything.")
     elif since_peak <= 15 and abs(slope) <= 0.02:
-        stage = "quanh đỉnh sinh trưởng"
-        advice = ("Cây đạt tán tối đa. Từ đây NDVI giảm là chín tự nhiên, không "
-                  "phải hỏng — đừng nhầm hai thứ đó.")
+        stage = tr("quanh đỉnh sinh trưởng", "around peak growth")
+        advice = tr("Cây đạt tán tối đa. Từ đây NDVI giảm là chín tự nhiên, không "
+                    "phải hỏng — đừng nhầm hai thứ đó.",
+                    "The canopy is at maximum. From here, falling NDVI is natural "
+                    "ripening, not damage — don't confuse the two.")
     elif slope < -0.02:
-        stage = f"đang chín / xuống lá (qua đỉnh {since_peak} ngày)"
-        advice = ("Đang vào giai đoạn chín. Với lúa, thu hoạch thường rơi vào "
-                  "khoảng 25–35 ngày sau đỉnh NDVI — bám thêm khuyến cáo giống "
-                  "và quan sát trực tiếp bông.")
+        stage = tr(f"đang chín / xuống lá (qua đỉnh {since_peak} ngày)",
+                   f"ripening / senescing ({since_peak} days past peak)")
+        advice = tr("Đang vào giai đoạn chín. Với lúa, thu hoạch thường rơi vào "
+                    "khoảng 25–35 ngày sau đỉnh NDVI — bám thêm khuyến cáo giống "
+                    "và quan sát trực tiếp bông.",
+                    "Entering ripening. For rice, harvest usually falls around 25–35 "
+                    "days after the NDVI peak — also follow variety guidance and "
+                    "inspect the panicles directly.")
     else:
-        stage = "ổn định"
-        advice = "Chưa thấy chuyển giai đoạn rõ rệt."
+        stage = tr("ổn định", "stable")
+        advice = tr("Chưa thấy chuyển giai đoạn rõ rệt.", "No clear stage transition yet.")
 
     return {
         "available": True,
@@ -210,13 +228,13 @@ def vegetation_loss(lat: float, lon: float, gap_days: int = 45,
 
     d = ch["delta"]
     if d <= -0.25:
-        level, verdict = "danger", "thảm thực vật mất trên diện rộng"
+        level, verdict = "danger", tr("thảm thực vật mất trên diện rộng", "vegetation lost over a wide area")
     elif d <= -0.12:
-        level, verdict = "warning", "thảm thực vật suy giảm rõ rệt"
+        level, verdict = "warning", tr("thảm thực vật suy giảm rõ rệt", "vegetation noticeably declined")
     elif d >= 0.12:
-        level, verdict = "safe", "thảm thực vật đang phục hồi / phát triển"
+        level, verdict = "safe", tr("thảm thực vật đang phục hồi / phát triển", "vegetation recovering / growing")
     else:
-        level, verdict = "safe", "không thấy thay đổi đáng kể"
+        level, verdict = "safe", tr("không thấy thay đổi đáng kể", "no significant change")
 
     return {
         "available": True, "level": level, "verdict": verdict,
@@ -224,8 +242,10 @@ def vegetation_loss(lat: float, lon: float, gap_days: int = 45,
         "before_cover": cover_label(ch["before"]["mean"]),
         "after_cover": cover_label(ch["after"]["mean"]),
         "possible_causes": (
-            ["bão hoặc gió mạnh", "ngập lụt kéo dài", "cháy", "chặt/phá",
-             "thu hoạch theo lịch"] if d <= -0.12 else []),
+            [tr("bão hoặc gió mạnh", "storm or strong wind"),
+             tr("ngập lụt kéo dài", "prolonged flooding"), tr("cháy", "fire"),
+             tr("chặt/phá", "clearing/logging"),
+             tr("thu hoạch theo lịch", "scheduled harvest")] if d <= -0.12 else []),
         "method": ("So NDVI trung bình hai cửa sổ Sentinel-2 "
                    f"({window} ngày mỗi kỳ, cách nhau {gap_days} ngày), đã lọc mây."),
         "caveat": ("Vệ tinh đo MẤT THẢM THỰC VẬT, không tự biết nguyên nhân. "
@@ -254,16 +274,18 @@ def new_construction(lat: float, lon: float, gap_days: int = 365,
 
     if both and ndbi["delta"] >= 0.15:
         level = "danger"
-        verdict = "bề mặt cứng mới xuất hiện trên diện đáng kể"
+        verdict = tr("bề mặt cứng mới xuất hiện trên diện đáng kể", "new hard surface over a notable area")
     elif both:
         level = "warning"
-        verdict = "có dấu hiệu bề mặt cứng mới"
+        verdict = tr("có dấu hiệu bề mặt cứng mới", "signs of new hard surface")
     elif built_up:
         level = "safe"
-        verdict = ("chỉ số xây dựng tăng nhưng cây không giảm — nhiều khả năng "
-                   "là đất khô theo mùa, chưa đủ cơ sở kết luận")
+        verdict = tr("chỉ số xây dựng tăng nhưng cây không giảm — nhiều khả năng "
+                     "là đất khô theo mùa, chưa đủ cơ sở kết luận",
+                     "built-up index rose but vegetation didn't drop — likely seasonal "
+                     "dry soil, not enough basis to conclude")
     else:
-        level, verdict = "safe", "không thấy bề mặt xây dựng mới"
+        level, verdict = "safe", tr("không thấy bề mặt xây dựng mới", "no new built surface")
 
     return {
         "available": True, "level": level, "verdict": verdict,

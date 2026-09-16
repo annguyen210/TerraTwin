@@ -152,11 +152,15 @@ class StormDamageModule(TwinModule):
         head = (f"{r['verdict'].capitalize()} — NDVI {r['before']['mean']} → "
                 f"{r['after']['mean']} ({r['delta']:+.3f})")
         if r["possible_causes"]:
-            rec = ("Đối chiếu với việc bạn biết đã xảy ra trên thửa ("
-                   + ", ".join(r["possible_causes"]) + "). Nếu là thiên tai, ảnh "
-                   "hai kỳ này dùng được làm chứng cứ ban đầu cho hồ sơ bồi thường.")
+            rec = (tr("Đối chiếu với việc bạn biết đã xảy ra trên thửa (",
+                      "Compare with what you know happened on the plot (")
+                   + ", ".join(r["possible_causes"]) + tr("). Nếu là thiên tai, ảnh "
+                     "hai kỳ này dùng được làm chứng cứ ban đầu cho hồ sơ bồi thường.",
+                     "). If it's a disaster, this two-date pair works as initial "
+                     "evidence for a compensation claim."))
         else:
-            rec = "Chưa thấy mất thảm thực vật bất thường giữa hai kỳ."
+            rec = tr("Chưa thấy mất thảm thực vật bất thường giữa hai kỳ.",
+                     "No unusual vegetation loss between the two dates.")
         return Assessment(
             module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=r["level"], headline=head,
@@ -241,11 +245,15 @@ class IllegalBuildModule(TwinModule):
                 next_step=_next_sentinel())
 
         head = (f"{r['verdict'].capitalize()} — NDBI {r['ndbi']['delta']:+.3f}, "
-                f"NDVI {r['ndvi']['delta']:+.3f} so cùng kỳ năm trước")
-        rec = ("Có đầu mối để đi kiểm tra thực địa và tra hồ sơ địa chính. "
-               "Phần mềm KHÔNG kết luận công trình có phép hay không."
+                + tr(f"NDVI {r['ndvi']['delta']:+.3f} so cùng kỳ năm trước",
+                     f"NDVI {r['ndvi']['delta']:+.3f} vs same period last year"))
+        rec = (tr("Có đầu mối để đi kiểm tra thực địa và tra hồ sơ địa chính. "
+                  "Phần mềm KHÔNG kết luận công trình có phép hay không.",
+                  "A lead worth checking on the ground and against cadastral records. "
+                  "The software does NOT conclude whether the construction is licensed.")
                if r["both_signals"] else
-               "Chưa có đầu mối đủ mạnh để đi kiểm tra.")
+               tr("Chưa có đầu mối đủ mạnh để đi kiểm tra.",
+                  "No strong enough lead to warrant an inspection."))
         return Assessment(
             module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=r["level"], headline=head,
@@ -285,10 +293,14 @@ class UpstreamFloodModule(TwinModule):
         if r is None:
             return need_data_assessment(
                 self, loc,
-                needs="cao độ và mưa dự báo cho vùng quanh thửa",
-                will_do="đo lượng mưa rơi trên phần đất cao hơn rồi cân theo độ "
-                        "dốc về phía thửa, để cảnh báo nước dồn xuống",
-                next_step="Nguồn dữ liệu đang không phản hồi. Thử lại sau ít phút.")
+                needs=tr("cao độ và mưa dự báo cho vùng quanh thửa",
+                         "elevation and rain forecast for the area around the plot"),
+                will_do=tr("đo lượng mưa rơi trên phần đất cao hơn rồi cân theo độ "
+                           "dốc về phía thửa, để cảnh báo nước dồn xuống",
+                           "measure rain falling on higher ground and weight it by slope "
+                           "toward the plot, to warn of water flowing down"),
+                next_step=tr("Nguồn dữ liệu đang không phản hồi. Thử lại sau ít phút.",
+                             "The data source isn't responding. Try again in a few minutes."))
 
         # Địa hình phẳng hoặc thửa nằm ở chỗ cao: KHÔNG phải "chưa đủ dữ liệu" —
         # là một câu trả lời đầy đủ, và với người dùng còn là tin tốt.

@@ -110,10 +110,13 @@ class PestModule(TwinModule):
             metrics["do_loang_lo"] = r["patchiness_ratio"]
 
         head = (f"{r['verdict'].capitalize()} — NDVI {r['ndvi_now']} "
-                f"({r['change_pct']:+.1f}% so nền thửa), ảnh ngày {r['observed_on']}")
-        rec = (r["cause_hint"] + " Ra thăm đúng chỗ và chụp lá gửi lại qua Field Mode."
+                + tr(f"({r['change_pct']:+.1f}% so nền thửa), ảnh ngày {r['observed_on']}",
+                     f"({r['change_pct']:+.1f}% vs plot baseline), image {r['observed_on']}"))
+        rec = (r["cause_hint"] + tr(" Ra thăm đúng chỗ và chụp lá gửi lại qua Field Mode.",
+                                    " Visit the exact spot and send a leaf photo via Field Mode.")
                if r["cause_hint"] else
-               "Chưa cần hành động. Phần mềm tiếp tục theo dõi mỗi lần vệ tinh bay qua.")
+               tr("Chưa cần hành động. Phần mềm tiếp tục theo dõi mỗi lần vệ tinh bay qua.",
+                  "No action needed. The app keeps watching on each satellite pass."))
         return Assessment(
             module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=r["level"], headline=head,
@@ -274,7 +277,8 @@ class YieldModule(TwinModule):
         # Chỉ báo động khi thửa mất thảm thực vật ngoài dự kiến.
         lvl = "danger" if r["ndvi_now"] < optical.NDVI_BARE else "safe"
         head = (f"{r['stage'].capitalize()} — NDVI {r['ndvi_now']}, "
-                f"đỉnh {r['ndvi_peak']} ngày {r['peak_date']}")
+                + tr(f"đỉnh {r['ndvi_peak']} ngày {r['peak_date']}",
+                     f"peak {r['ndvi_peak']} on {r['peak_date']}"))
         return Assessment(
             module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=lvl, headline=head,
@@ -336,10 +340,13 @@ class CarbonModule(TwinModule):
             detail=(f"{r['methodology']['measured_by']} "
                     f"{r['methodology']['not_measured']} "
                     f"{r['limitations'][0]}"),
-            recommendation=("Che phủ đang giảm — kiểm tra thực địa ngay, đây là "
-                            "thứ trực tiếp làm mất tín chỉ."
+            recommendation=(tr("Che phủ đang giảm — kiểm tra thực địa ngay, đây là "
+                               "thứ trực tiếp làm mất tín chỉ.",
+                               "Canopy is declining — inspect on the ground now; this "
+                               "directly costs credits.")
                             if lvl != "safe" else
-                            "Muốn lên chuẩn phát hành tín chỉ: " +
+                            tr("Muốn lên chuẩn phát hành tín chỉ: ",
+                               "To reach credit-issuance grade: ") +
                             r["to_reach_credit_grade"][0]),
             confidence=0.6, confidence_low=0.45, confidence_high=0.72,
             is_real=True,
