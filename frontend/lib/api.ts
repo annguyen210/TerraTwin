@@ -189,7 +189,7 @@ export async function askCopilot(
   lat: number,
   lon: number,
 ): Promise<CopilotAnswer> {
-  const r = await fetch(`${BASE}/api/copilot`, {
+  const r = await fetch(`${BASE}/api/copilot${_lp()}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ question, location: { lat, lon } }),
@@ -668,7 +668,7 @@ export function runAsk(
   lon: number,
   moduleId = "flood",
 ) {
-  return postJson<AskResult>("/api/ask",
+  return postJson<AskResult>(`/api/ask${_lp()}`,
     { question, location: { lat, lon }, module_id: moduleId },
     "Không hỏi được");
 }
@@ -724,22 +724,22 @@ async function postJson<T>(path: string, body: unknown, err: string): Promise<T>
 }
 
 export function runExplain(moduleId: string, lat: number, lon: number) {
-  return postJson<ExplainResult>(`/api/explain/${moduleId}`, { lat, lon },
+  return postJson<ExplainResult>(`/api/explain/${moduleId}${_lp()}`, { lat, lon },
     "Không phân tích được nguyên nhân");
 }
 
 export function runGoalSeek(moduleId: string, lat: number, lon: number) {
-  return postJson<GoalSeekResult>(`/api/goalseek/${moduleId}`, { lat, lon },
+  return postJson<GoalSeekResult>(`/api/goalseek/${moduleId}${_lp()}`, { lat, lon },
     "Không chạy được mô phỏng ngược");
 }
 
 export function runTimeMachine(moduleId: string, lat: number, lon: number) {
-  return postJson<TimeMachineResult>(`/api/timemachine/${moduleId}`, { lat, lon },
+  return postJson<TimeMachineResult>(`/api/timemachine/${moduleId}${_lp()}`, { lat, lon },
     "Không chạy được cỗ máy thời gian");
 }
 
 export function runAnomaly(lat: number, lon: number) {
-  return postJson<AnomalyResult>("/api/anomaly", { lat, lon },
+  return postJson<AnomalyResult>(`/api/anomaly${_lp()}`, { lat, lon },
     "Không so sánh được với khí hậu nền");
 }
 
@@ -1268,7 +1268,7 @@ export type ModuleContrast = {
 
 export function getContrast(lat: number, lon: number) {
   return postJson<{ available: boolean; modules: ModuleContrast[]; message?: string }>(
-    "/api/contrast", { location: { lat, lon } }, "Không tính được đối chứng");
+    `/api/contrast${_lp()}`, { location: { lat, lon } }, "Không tính được đối chứng");
 }
 
 // ---- Tìm địa điểm theo tên ----
@@ -1462,7 +1462,7 @@ export type MrvReport = {
 };
 
 export function runMrv(lat: number, lon: number, projectName = "", agbTHa?: number) {
-  return postJson<MrvReport>("/api/mrv", {
+  return postJson<MrvReport>(`/api/mrv${_lp()}`, {
     location: { lat, lon }, project_name: projectName,
     agb_t_ha: agbTHa ?? null,
   }, "Không lập được báo cáo MRV");

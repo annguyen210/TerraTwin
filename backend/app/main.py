@@ -362,9 +362,10 @@ def whatif_endpoint(module_id: str, location: Location) -> WhatIfResult:
 
 
 @app.post("/api/explain/{module_id}")
-def explain_endpoint(module_id: str, location: Location) -> dict:
+def explain_endpoint(module_id: str, location: Location, lang: str = "vi") -> dict:
     """S07 Causal Explain — VÌ SAO chỉ số cao: phân rã đóng góp từng yếu tố
     bằng leave-one-out chính xác trên chính mô hình cảnh báo."""
+    reqlang.set_lang(lang)
     result = explain.explain(module_id, location.lat, location.lon)
     if result is None:
         raise HTTPException(status_code=404, detail=_HAZARD_ONLY)
@@ -373,9 +374,10 @@ def explain_endpoint(module_id: str, location: Location) -> dict:
 
 @app.post("/api/goalseek/{module_id}")
 def goalseek_endpoint(module_id: str, location: Location,
-                      target: float | None = None) -> dict:
+                      target: float | None = None, lang: str = "vi") -> dict:
     """S03 Goal-Seek — mô phỏng ngược: cần điều kiện gì để an toàn, hoặc
     hiện còn chịu được bao nhiêu trước khi vượt ngưỡng."""
+    reqlang.set_lang(lang)
     result = goalseek.run(module_id, location.lat, location.lon, target)
     if result is None:
         raise HTTPException(status_code=404, detail=_HAZARD_ONLY)
@@ -384,9 +386,10 @@ def goalseek_endpoint(module_id: str, location: Location,
 
 @app.post("/api/timemachine/{module_id}")
 def timemachine_endpoint(module_id: str, location: Location,
-                         years: int = 10) -> dict:
+                         years: int = 10, lang: str = "vi") -> dict:
     """S02 Counterfactual Time Machine — xác suất vượt ngưỡng suy từ analog
     ensemble: cùng cửa sổ lịch của N năm THẬT (ERA5) tại chính toạ độ này."""
+    reqlang.set_lang(lang)
     result = timemachine.run(module_id, location.lat, location.lon,
                              years=max(3, min(years, 30)))
     if result is None:
@@ -443,8 +446,9 @@ def probability_endpoint(module_id: str, location: Location) -> dict:
 
 
 @app.post("/api/anomaly")
-def anomaly_endpoint(location: Location, years: int = 10) -> dict:
+def anomaly_endpoint(location: Location, years: int = 10, lang: str = "vi") -> dict:
     """C10 Anomaly — tuần tới có bất thường so với khí hậu nền cùng kỳ không."""
+    reqlang.set_lang(lang)
     return anomaly.run(location.lat, location.lon, years=max(3, min(years, 30)))
 
 
@@ -625,8 +629,9 @@ class MrvRequest(BaseModel):
 
 
 @app.post("/api/mrv")
-def mrv_endpoint(req: MrvRequest) -> dict:
+def mrv_endpoint(req: MrvRequest, lang: str = "vi") -> dict:
     """C07 — Báo cáo MRV carbon/ESG, có mã băm chống sửa."""
+    reqlang.set_lang(lang)
     return mrv.build(req.location.lat, req.location.lon,
                      agb_t_ha=req.agb_t_ha, project_name=req.project_name)
 
@@ -731,11 +736,12 @@ class AskRequest(BaseModel):
 
 
 @app.post("/api/ask")
-def ask_endpoint(req: AskRequest) -> dict:
+def ask_endpoint(req: AskRequest, lang: str = "vi") -> dict:
     """C03 What-If NLP — hỏi bằng lời, chạy mô phỏng thật.
 
     Câu hỏi chỉ dùng để CHỌN THAM SỐ; con số do mô hình vật lý tính.
     """
+    reqlang.set_lang(lang)
     return whatif_nlp.ask(req.question, req.location.lat, req.location.lon,
                           req.module_id)
 
@@ -759,7 +765,8 @@ def guard_stats() -> dict:
 
 
 @app.post("/api/copilot", response_model=CopilotAnswer)
-def copilot_endpoint(req: CopilotRequest) -> CopilotAnswer:
+def copilot_endpoint(req: CopilotRequest, lang: str = "vi") -> CopilotAnswer:
+    reqlang.set_lang(lang)
     return copilot.answer(req.question, req.location)
 
 

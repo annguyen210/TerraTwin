@@ -20,35 +20,54 @@ _RAIN_MEETS_ET0 = lambda r: {**r, "precip": r["et0"]}   # mưa vừa đủ bù b
 _NO_ET0 = lambda r: {**r, "et0": 0.0}
 _MILD_HEAT = lambda r: {**r, "tmax": min(r["tmax"], 30.0)}
 
+from app.services.reqlang import tr
+
+# (label_vi, fn, note_vi, label_en, note_en)
 _FACTORS = {
     "flood": [
         ("Lượng mưa dự báo", _NO_RAIN,
-         "Nếu 7 ngày tới không mưa, chỉ số ngập còn lại là phần do địa hình."),
+         "Nếu 7 ngày tới không mưa, chỉ số ngập còn lại là phần do địa hình.",
+         "Forecast rainfall",
+         "With zero rain in the next 7 days, the remaining flood index is the terrain part."),
     ],
     "landslide": [
         ("Mưa tích lũy", _NO_RAIN,
-         "Sạt lở cần nước làm bão hòa đất — bỏ mưa thì chỉ còn nền địa hình."),
+         "Sạt lở cần nước làm bão hòa đất — bỏ mưa thì chỉ còn nền địa hình.",
+         "Accumulated rain",
+         "Landslides need water to saturate soil — remove rain and only terrain remains."),
     ],
     "drought": [
         ("Thiếu mưa", _RAIN_MEETS_ET0,
-         "Nếu mưa đủ bù lượng bốc thoát hơi ET₀ thì không tích lũy thiếu ẩm."),
+         "Nếu mưa đủ bù lượng bốc thoát hơi ET₀ thì không tích lũy thiếu ẩm.",
+         "Rain deficit",
+         "If rain matched evapotranspiration (ET₀), no moisture deficit would build up."),
         ("Bốc thoát hơi ET₀", _NO_ET0,
-         "ET₀ cao (nắng, gió, khô) rút ẩm khỏi ruộng nhanh hơn."),
+         "ET₀ cao (nắng, gió, khô) rút ẩm khỏi ruộng nhanh hơn.",
+         "Evapotranspiration ET₀",
+         "High ET₀ (sun, wind, dryness) pulls moisture from the field faster."),
     ],
     "wildfire": [
         ("Chuỗi ngày khô", _NO_RAIN,
-         "Không mưa liên tiếp làm vật liệu cháy khô dần."),
+         "Không mưa liên tiếp làm vật liệu cháy khô dần.",
+         "Dry-day streak",
+         "Consecutive rainless days dry out the fuel."),
         ("Nhiệt độ cao", _MILD_HEAT,
-         "Phần nhiệt vượt 30°C cộng thẳng vào chỉ số nguy cơ cháy."),
+         "Phần nhiệt vượt 30°C cộng thẳng vào chỉ số nguy cơ cháy.",
+         "High temperature",
+         "The part of temperature above 30°C adds straight into the fire-risk index."),
     ],
 }
 
-# Yếu tố địa hình: tắt bằng cách thay giá trị địa hình sang mức "vô hại".
+# Yếu tố địa hình: (label_vi, neutral, note_vi, label_en, note_en).
 _TERRAIN = {
     "flood": ("Địa hình trũng", 60.0,
-              "Nền càng thấp càng dễ đọng nước; giả sử nền cao 60 m thì hết yếu tố này."),
+              "Nền càng thấp càng dễ đọng nước; giả sử nền cao 60 m thì hết yếu tố này.",
+              "Low-lying terrain",
+              "Lower ground pools water more; assuming 60 m elevation removes this factor."),
     "landslide": ("Độ dốc sườn", 0.0,
-                  "Sạt lở nhân với độ dốc — địa hình phẳng thì rủi ro ~0 dù mưa lớn."),
+                  "Sạt lở nhân với độ dốc — địa hình phẳng thì rủi ro ~0 dù mưa lớn.",
+                  "Slope steepness",
+                  "Landslide scales with slope — flat terrain is ~0 risk even in heavy rain."),
 }
 
 
@@ -82,8 +101,10 @@ def explain(module_id: str, lat: float, lon: float) -> dict | None:
         return {
             "module_id": module_id, "module_name": name, "unit": unit,
             "is_real": False, "available": False,
-            "message": "Chưa lấy được dữ liệu thời tiết thật để giải thích "
-                       "(kiểm tra kết nối). Không giải thích trên số liệu mẫu.",
+            "message": tr("Chưa lấy được dữ liệu thời tiết thật để giải thích "
+                          "(kiểm tra kết nối). Không giải thích trên số liệu mẫu.",
+                          "Couldn't fetch real weather to explain (check connection). "
+                          "No explanation on sample data."),
             "factors": [], "peak": 0.0,
         }
 
@@ -94,25 +115,25 @@ def explain(module_id: str, lat: float, lon: float) -> dict | None:
     factors: list[dict] = []
 
     # 1) Yếu tố thời tiết
-    for label, off, note in _FACTORS.get(module_id, []):
+    for label, off, note, label_en, note_en in _FACTORS.get(module_id, []):
         without = hazard.index_series(module_id, lat, lon, [off(r) for r in rows])
         peak_wo = hazard.peak_of(without)
         factors.append({
-            "factor": label,
+            "factor": tr(label, label_en),
             "peak_without": round(peak_wo, 1),
             "contribution": round(base_peak - peak_wo, 1),
-            "note": note,
+            "note": tr(note, note_en),
         })
 
     # 2) Yếu tố địa hình (chỉ lũ & sạt lở)
     if module_id in _TERRAIN:
-        label, neutral, note = _TERRAIN[module_id]
+        label, neutral, note, label_en, note_en = _TERRAIN[module_id]
         peak_wo = hazard.peak_of(_terrain_off_series(module_id, lat, lon, rows, neutral))
         factors.append({
-            "factor": label,
+            "factor": tr(label, label_en),
             "peak_without": round(peak_wo, 1),
             "contribution": round(base_peak - peak_wo, 1),
-            "note": note,
+            "note": tr(note, note_en),
         })
 
     # % đóng góp, chuẩn hóa trên tổng phần giải thích được (bỏ đóng góp âm)
@@ -128,10 +149,13 @@ def explain(module_id: str, lat: float, lon: float) -> dict | None:
 
     top = factors[0]["factor"] if factors and factors[0]["contribution"] > 0 else None
     if top:
-        headline = (f"Chỉ số đỉnh {round(base_peak,1)} {unit} — chủ yếu do "
-                    f"{top.lower()} ({factors[0]['share_pct']}%).")
+        headline = tr(f"Chỉ số đỉnh {round(base_peak,1)} {unit} — chủ yếu do "
+                      f"{top.lower()} ({factors[0]['share_pct']}%).",
+                      f"Peak index {round(base_peak,1)} {unit} — mainly from "
+                      f"{top.lower()} ({factors[0]['share_pct']}%).")
     else:
-        headline = f"Chỉ số đỉnh {round(base_peak,1)} {unit} — không có yếu tố nào nổi trội."
+        headline = tr(f"Chỉ số đỉnh {round(base_peak,1)} {unit} — không có yếu tố nào nổi trội.",
+                      f"Peak index {round(base_peak,1)} {unit} — no single dominant factor.")
 
     return {
         "module_id": module_id, "module_name": name, "unit": unit,
@@ -142,6 +166,8 @@ def explain(module_id: str, lat: float, lon: float) -> dict | None:
         "headline": headline,
         "factors": factors,
         "wettest_day": {"date": wettest["date"], "precip_mm": round(wettest["precip"], 1)},
-        "method": ("Leave-one-out CHÍNH XÁC: tắt từng yếu tố rồi chạy lại đúng mô "
-                   "hình cảnh báo. Không phải xấp xỉ, không phải hộp đen."),
+        "method": tr("Leave-one-out CHÍNH XÁC: tắt từng yếu tố rồi chạy lại đúng mô "
+                     "hình cảnh báo. Không phải xấp xỉ, không phải hộp đen.",
+                     "EXACT leave-one-out: turn off each factor and re-run the actual alert "
+                     "model. Not an approximation, not a black box."),
     }

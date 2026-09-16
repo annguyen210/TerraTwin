@@ -80,15 +80,19 @@ def build(lat: float, lon: float, buffer_m: float = 600.0,
         return {
             "available": False,
             "reason": "no_clear_image",
-            "message": ("Chưa lấy được ảnh quang mây cho lô này trong 60 ngày "
-                        "qua. Mùa mưa thường phải chờ vài tuần. Không lập báo "
-                        "cáo từ ảnh có mây."),
+            "message": tr("Chưa lấy được ảnh quang mây cho lô này trong 60 ngày "
+                          "qua. Mùa mưa thường phải chờ vài tuần. Không lập báo "
+                          "cáo từ ảnh có mây.",
+                          "No cloud-free image for this plot in the last 60 days. "
+                          "The rainy season often means a few weeks' wait. No report "
+                          "is made from cloudy imagery."),
         }
 
     canopy_frac = sentinel.fraction_above(dist, CANOPY_NDVI)
     if canopy_frac is None:
         return {"available": False, "reason": "no_histogram",
-                "message": "Không dựng được phân bố NDVI cho lô này."}
+                "message": tr("Không dựng được phân bố NDVI cho lô này.",
+                              "Couldn't build an NDVI distribution for this plot.")}
 
     total_ha = dist["area_ha"]
     forest_ha = _round(total_ha * canopy_frac)
@@ -121,9 +125,9 @@ def build(lat: float, lon: float, buffer_m: float = 600.0,
                 "current_canopy_pct": _round(canopy_frac * 100, 1),
                 "delta_ha": d_ha,
                 "delta_tco2": _round(d_ha * co2_t_ha),
-                "verdict": ("mất rừng" if d_ha < -0.2
-                            else "tăng che phủ" if d_ha > 0.2
-                            else "gần như không đổi"),
+                "verdict": (tr("mất rừng", "forest loss") if d_ha < -0.2
+                            else tr("tăng che phủ", "cover gain") if d_ha > 0.2
+                            else tr("gần như không đổi", "nearly unchanged")),
                 "window": [prev["observed_window"][0], dist["observed_window"][1]],
             }
     except Exception:
@@ -146,9 +150,11 @@ def build(lat: float, lon: float, buffer_m: float = 600.0,
 
     estimated = {
         "tier": tier,
-        "tier_label": ("Tier 1 — hệ số mặc định IPCC cho vùng"
+        "tier_label": (tr("Tier 1 — hệ số mặc định IPCC cho vùng",
+                          "Tier 1 — IPCC regional default factors")
                        if tier == 1 else
-                       "Tier 2 — hệ số sinh khối do người dùng cung cấp"),
+                       tr("Tier 2 — hệ số sinh khối do người dùng cung cấp",
+                          "Tier 2 — user-supplied biomass factors")),
         "agb_t_ha": _round(agb), "bgb_t_ha": _round(bgb),
         "root_shoot_ratio": ROOT_SHOOT,
         "carbon_fraction": CARBON_FRACTION,
@@ -182,20 +188,32 @@ def build(lat: float, lon: float, buffer_m: float = 600.0,
             f"(range {estimated['stock_tco2_low']}–{estimated['stock_tco2_high']}, "
             f"{estimated['tier_label']})."),
         "methodology": {
-            "measured_by": ("Sentinel-2 L2A, NDVI mỗi pixel 10 m, lọc mây bằng "
-                            "băng SCL, lấy tổ hợp ít mây nhất trong cửa sổ 60 ngày. "
-                            "Tỉ lệ che phủ nội suy tuyến tính từ histogram 20 bin."),
-            "estimated_by": ("IPCC 2006 Guidelines Vol.4 (AFOLU) Ch.4: bảng 4.7 "
-                             "sinh khối trên mặt đất, bảng 4.4 tỉ lệ rễ/thân, "
-                             "mục 4.2.1 tỉ lệ carbon, hệ số 44/12 quy sang CO₂."),
-            "not_measured": ("Vệ tinh quang học nhìn thấy TÁN, không thấy THÂN. "
-                             "Rừng non tán kín và rừng già tán kín cho NDVI gần "
-                             "như nhau nhưng chênh nhau nhiều lần về sinh khối. "
-                             "Toàn bộ phần từ tán sang tấn là hệ số, không phải đo."),
+            "measured_by": tr("Sentinel-2 L2A, NDVI mỗi pixel 10 m, lọc mây bằng "
+                              "băng SCL, lấy tổ hợp ít mây nhất trong cửa sổ 60 ngày. "
+                              "Tỉ lệ che phủ nội suy tuyến tính từ histogram 20 bin.",
+                              "Sentinel-2 L2A, NDVI per 10 m pixel, cloud-masked via the "
+                              "SCL band, least-cloudy composite over a 60-day window. "
+                              "Cover fraction linearly interpolated from a 20-bin histogram."),
+            "estimated_by": tr("IPCC 2006 Guidelines Vol.4 (AFOLU) Ch.4: bảng 4.7 "
+                               "sinh khối trên mặt đất, bảng 4.4 tỉ lệ rễ/thân, "
+                               "mục 4.2.1 tỉ lệ carbon, hệ số 44/12 quy sang CO₂.",
+                               "IPCC 2006 Guidelines Vol.4 (AFOLU) Ch.4: table 4.7 "
+                               "above-ground biomass, table 4.4 root:shoot ratio, "
+                               "section 4.2.1 carbon fraction, 44/12 factor to CO₂."),
+            "not_measured": tr("Vệ tinh quang học nhìn thấy TÁN, không thấy THÂN. "
+                               "Rừng non tán kín và rừng già tán kín cho NDVI gần "
+                               "như nhau nhưng chênh nhau nhiều lần về sinh khối. "
+                               "Toàn bộ phần từ tán sang tấn là hệ số, không phải đo.",
+                               "Optical satellites see the CANOPY, not the TRUNK. Young "
+                               "closed-canopy and old closed-canopy forest give nearly the "
+                               "same NDVI but differ several-fold in biomass. The whole "
+                               "canopy→tonnes step is a factor, not a measurement."),
         },
         "limitations": [
-            "ĐÂY KHÔNG PHẢI SỐ LIỆU ĐỦ CHUẨN PHÁT HÀNH TÍN CHỈ. Đây là ước lượng "
-            "sơ bộ để biết có đáng theo đuổi dự án carbon hay không.",
+            tr("ĐÂY KHÔNG PHẢI SỐ LIỆU ĐỦ CHUẨN PHÁT HÀNH TÍN CHỈ. Đây là ước lượng "
+               "sơ bộ để biết có đáng theo đuổi dự án carbon hay không.",
+               "THIS IS NOT CREDIT-ISSUANCE-GRADE DATA. It's a preliminary estimate to "
+               "judge whether a carbon project is worth pursuing."),
             f"Sai số Tier {tier}: ±{_round(unc * 100, 0)}%. Hệ số mặc định IPCC là "
             "trung bình cho cả một vùng sinh thái, có thể lệch rất xa một lô cụ thể.",
             "Chưa có đường cơ sở (baseline) và chứng minh tính bổ sung "
@@ -205,8 +223,10 @@ def build(lat: float, lon: float, buffer_m: float = 600.0,
             "với rừng trung bình bằng chỉ số quang học đơn thuần.",
         ],
         "to_reach_credit_grade": [
-            "Lập ô mẫu thực địa (thường 0,1 ha/ô, tối thiểu 3–5 ô) đo đường kính "
-            "ngang ngực và chiều cao, áp phương trình sinh khối của loài.",
+            tr("Lập ô mẫu thực địa (thường 0,1 ha/ô, tối thiểu 3–5 ô) đo đường kính "
+               "ngang ngực và chiều cao, áp phương trình sinh khối của loài.",
+               "Set up field sample plots (typically 0.1 ha each, at least 3–5) measuring "
+               "diameter at breast height and height, applying species biomass equations."),
             "Nhập hệ số sinh khối địa phương thu được vào phần mềm để lên Tier 2.",
             "Chọn tiêu chuẩn (VCS, Gold Standard, hoặc cơ chế trong nước) và lập "
             "đường cơ sở theo đúng phương pháp luận của tiêu chuẩn đó.",

@@ -18,11 +18,14 @@ _WINDOW = 7
 _LAG_DAYS = 10
 
 # (khóa, nhãn, đơn vị, hàm gộp 7 ngày, ngưỡng z đáng báo, hướng "cao là bất lợi")
+from app.services.reqlang import tr
+
+# (khóa, (nhãn_vi, nhãn_en), đơn vị, hàm gộp, ngưỡng z, hướng "cao là bất lợi")
 _METRICS = [
-    ("precip", "Tổng lượng mưa 7 ngày", "mm", sum, 1.5, True),
-    ("tmax", "Nhiệt độ tối đa trung bình", "°C",
+    ("precip", ("Tổng lượng mưa 7 ngày", "7-day total rainfall"), "mm", sum, 1.5, True),
+    ("tmax", ("Nhiệt độ tối đa trung bình", "Mean max temperature"), "°C",
      lambda xs: sum(xs) / len(xs) if xs else 0.0, 1.5, True),
-    ("et0", "Tổng bốc thoát hơi ET₀", "mm", sum, 1.5, True),
+    ("et0", ("Tổng bốc thoát hơi ET₀", "Total evapotranspiration ET₀"), "mm", sum, 1.5, True),
 ]
 
 
@@ -39,13 +42,15 @@ def _mean_std(xs: list[float]) -> tuple[float, float]:
 def _verdict(z: float, high_is_bad: bool) -> tuple[str, str]:
     a = abs(z)
     if a < 1.0:
-        return "normal", "trong mức bình thường"
+        return "normal", tr("trong mức bình thường", "within normal range")
     if a < 1.5:
-        return "notable", "hơi lệch so với bình thường"
-    direction = "CAO" if z > 0 else "THẤP"
+        return "notable", tr("hơi lệch so với bình thường", "slightly off normal")
+    direction = tr("CAO", "HIGH") if z > 0 else tr("THẤP", "LOW")
     if a < 2.5:
-        return "anomaly", f"BẤT THƯỜNG — {direction} rõ rệt so với cùng kỳ mọi năm"
-    return "extreme", f"CỰC ĐOAN — {direction} hiếm gặp trong lịch sử cùng kỳ"
+        return "anomaly", tr(f"BẤT THƯỜNG — {direction} rõ rệt so với cùng kỳ mọi năm",
+                             f"ANOMALOUS — clearly {direction} vs the same period every year")
+    return "extreme", tr(f"CỰC ĐOAN — {direction} hiếm gặp trong lịch sử cùng kỳ",
+                         f"EXTREME — {direction}, rarely seen in the same-period history")
 
 
 def _verdict_flat(cur: float, mean: float) -> tuple[float | None, str, str]:
@@ -57,10 +62,12 @@ def _verdict_flat(cur: float, mean: float) -> tuple[float | None, str, str]:
     delta = abs(cur - mean)
     scale = max(abs(mean), 1.0)
     if delta <= 0.1 * scale:
-        return 0.0, "normal", "trong mức bình thường"
-    direction = "CAO" if cur > mean else "THẤP"
-    return None, "extreme", (f"CỰC ĐOAN — {direction} hẳn so với nền lịch sử gần như "
-                             "không đổi ở cùng kỳ")
+        return 0.0, "normal", tr("trong mức bình thường", "within normal range")
+    direction = tr("CAO", "HIGH") if cur > mean else tr("THẤP", "LOW")
+    return None, "extreme", tr(f"CỰC ĐOAN — {direction} hẳn so với nền lịch sử gần như "
+                               "không đổi ở cùng kỳ",
+                               f"EXTREME — {direction} vs an almost-flat historical baseline "
+                               "for this period")
 
 
 def run(lat: float, lon: float, years: int = 10,
@@ -76,8 +83,10 @@ def run(lat: float, lon: float, years: int = 10,
     if not hist or not now:
         return {
             "available": False,
-            "message": ("Cần cả dữ liệu lịch sử ERA5 và dự báo hiện tại để so sánh "
-                        "(kiểm tra kết nối mạng)."),
+            "message": tr("Cần cả dữ liệu lịch sử ERA5 và dự báo hiện tại để so sánh "
+                          "(kiểm tra kết nối mạng).",
+                          "Needs both ERA5 history and a current forecast to compare "
+                          "(check network)."),
             "metrics": [],
         }
 
@@ -101,11 +110,13 @@ def run(lat: float, lon: float, years: int = 10,
 
     if not windows:
         return {"available": False,
-                "message": "Không đủ dữ liệu lịch sử cho cửa sổ ngày này.",
+                "message": tr("Không đủ dữ liệu lịch sử cho cửa sổ ngày này.",
+                              "Not enough historical data for this date window."),
                 "metrics": []}
 
     metrics = []
-    for key, label, unit, agg, z_alert, high_bad in _METRICS:
+    for key, label_pair, unit, agg, z_alert, high_bad in _METRICS:
+        label = tr(label_pair[0], label_pair[1])
         hist_vals = sorted(agg([r[key] for r in w]) for w in windows)
         cur = agg([r[key] for r in now])
         mean, std = _mean_std(hist_vals)
@@ -125,18 +136,23 @@ def run(lat: float, lon: float, years: int = 10,
             "z_score": round(z, 2) if z is not None else None,
             "percentile": rank,
             "level": level,
-            "verdict": f"{round(cur,1)} {unit} — {text} (TB cùng kỳ {round(mean,1)} {unit}).",
+            "verdict": tr(f"{round(cur,1)} {unit} — {text} (TB cùng kỳ {round(mean,1)} {unit}).",
+                          f"{round(cur,1)} {unit} — {text} (same-period avg {round(mean,1)} {unit})."),
             "alert": alert,
         })
 
     alerts = [m for m in metrics if m["alert"]]
     if alerts:
         top = max(alerts, key=lambda m: abs(m["z_score"]) if m["z_score"] is not None else 99.0)
-        headline = (f"⚠️ {len(alerts)} chỉ số bất thường — nổi bật: "
-                    f"{top['label'].lower()} {top['current']} {top['unit']}, "
-                    f"cao hơn {top['percentile']}% số năm cùng kỳ.")
+        headline = tr(f"⚠️ {len(alerts)} chỉ số bất thường — nổi bật: "
+                      f"{top['label'].lower()} {top['current']} {top['unit']}, "
+                      f"cao hơn {top['percentile']}% số năm cùng kỳ.",
+                      f"⚠️ {len(alerts)} anomalous metric(s) — top: "
+                      f"{top['label'].lower()} {top['current']} {top['unit']}, "
+                      f"higher than {top['percentile']}% of same-period years.")
     else:
-        headline = "✅ Tuần tới trong mức bình thường so với cùng kỳ nhiều năm."
+        headline = tr("✅ Tuần tới trong mức bình thường so với cùng kỳ nhiều năm.",
+                      "✅ Next week is within normal range vs many years' same period.")
 
     return {
         "available": True, "is_real": True,
@@ -144,7 +160,10 @@ def run(lat: float, lon: float, years: int = 10,
         "window_days": _WINDOW,
         "headline": headline,
         "metrics": metrics,
-        "method": ("So dự báo 7 ngày với khí hậu nền ERA5 cùng ngày/tháng tại chính "
-                   "toạ độ này; z-score = (hiện tại − trung bình) / độ lệch chuẩn."),
-        "data_source": "Open-Meteo Archive (ERA5) + dự báo Open-Meteo",
+        "method": tr("So dự báo 7 ngày với khí hậu nền ERA5 cùng ngày/tháng tại chính "
+                     "toạ độ này; z-score = (hiện tại − trung bình) / độ lệch chuẩn.",
+                     "Compares the 7-day forecast with ERA5 baseline climate for the same "
+                     "day/month at this exact point; z-score = (current − mean) / std."),
+        "data_source": tr("Open-Meteo Archive (ERA5) + dự báo Open-Meteo",
+                          "Open-Meteo Archive (ERA5) + Open-Meteo forecast"),
     }

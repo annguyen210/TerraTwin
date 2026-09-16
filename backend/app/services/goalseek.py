@@ -12,6 +12,7 @@ from __future__ import annotations
 from app.services import datasources as ds
 from app.services import hazard
 from app.services import realdata
+from app.services.reqlang import tr
 
 _ITERS = 40          # đủ để sai số < 1e-6 trên khoảng tìm kiếm
 _RAIN_MAX = 20.0     # trần hệ số mưa khi dò biên an toàn
@@ -72,7 +73,8 @@ def run(module_id: str, lat: float, lon: float,
         return {
             "module_id": module_id, "module_name": name, "unit": unit,
             "available": False, "is_real": False,
-            "message": "Chưa lấy được thời tiết thật — không mô phỏng ngược trên số liệu mẫu.",
+            "message": tr("Chưa lấy được thời tiết thật — không mô phỏng ngược trên số liệu mẫu.",
+                          "Couldn't fetch real weather — no inverse simulation on sample data."),
             "levers": [],
         }
 
@@ -86,15 +88,18 @@ def run(module_id: str, lat: float, lon: float,
         x = _solve(f_rain, 1.0, _RAIN_MAX, target, rising=True)
         if x is None:
             levers.append({
-                "lever": "Lượng mưa", "kind": "headroom", "feasible": True,
-                "answer": f"Chịu được mưa gấp hơn {_RAIN_MAX:.0f} lần mà vẫn dưới ngưỡng.",
+                "lever": tr("Lượng mưa", "Rainfall"), "kind": "headroom", "feasible": True,
+                "answer": tr(f"Chịu được mưa gấp hơn {_RAIN_MAX:.0f} lần mà vẫn dưới ngưỡng.",
+                             f"Can take over {_RAIN_MAX:.0f}× the rain and still stay below threshold."),
                 "value": None,
             })
         else:
             levers.append({
-                "lever": "Lượng mưa", "kind": "headroom", "feasible": True,
-                "answer": (f"Còn chịu được mưa gấp {_fmt_mult(x)} lần dự báo "
-                           f"(+{(x-1)*100:.0f}%) trước khi chạm ngưỡng {target:.0f}."),
+                "lever": tr("Lượng mưa", "Rainfall"), "kind": "headroom", "feasible": True,
+                "answer": tr(f"Còn chịu được mưa gấp {_fmt_mult(x)} lần dự báo "
+                             f"(+{(x-1)*100:.0f}%) trước khi chạm ngưỡng {target:.0f}.",
+                             f"Can still take {_fmt_mult(x)}× the forecast rain "
+                             f"(+{(x-1)*100:.0f}%) before hitting threshold {target:.0f}."),
                 "value": round(x, 4),
             })
     else:
@@ -104,17 +109,22 @@ def run(module_id: str, lat: float, lon: float,
         x = None if peak_no_rain >= target else _solve(f_rain, 0.0, 1.0, target, rising=True)
         if x is None:
             levers.append({
-                "lever": "Lượng mưa", "kind": "required", "feasible": False,
-                "answer": (f"Dù không mưa một giọt, chỉ số vẫn là {peak_no_rain:.1f} "
-                           f"(≥ ngưỡng {target:.0f}) — rủi ro nền đến từ địa hình, "
-                           "không phải mưa sắp tới. Giảm mưa một mình không đủ."),
+                "lever": tr("Lượng mưa", "Rainfall"), "kind": "required", "feasible": False,
+                "answer": tr(f"Dù không mưa một giọt, chỉ số vẫn là {peak_no_rain:.1f} "
+                             f"(≥ ngưỡng {target:.0f}) — rủi ro nền đến từ địa hình, "
+                             "không phải mưa sắp tới. Giảm mưa một mình không đủ.",
+                             f"Even with zero rain, the index is still {peak_no_rain:.1f} "
+                             f"(≥ threshold {target:.0f}) — the base risk comes from terrain, "
+                             "not the incoming rain. Cutting rain alone isn't enough."),
                 "value": None,
             })
         else:
             levers.append({
-                "lever": "Lượng mưa", "kind": "required", "feasible": True,
-                "answer": (f"Phải giảm {(1-x)*100:.0f}% lượng mưa dự báo "
-                           f"(còn {_fmt_mult(x)} lần) mới xuống dưới ngưỡng {target:.0f}."),
+                "lever": tr("Lượng mưa", "Rainfall"), "kind": "required", "feasible": True,
+                "answer": tr(f"Phải giảm {(1-x)*100:.0f}% lượng mưa dự báo "
+                             f"(còn {_fmt_mult(x)} lần) mới xuống dưới ngưỡng {target:.0f}.",
+                             f"Would need {(1-x)*100:.0f}% less forecast rain "
+                             f"({_fmt_mult(x)}× left) to drop below threshold {target:.0f}."),
                 "value": round(x, 4),
             })
 
@@ -125,19 +135,24 @@ def run(module_id: str, lat: float, lon: float,
         x = _solve(f_elev, elev_now, elev_now + 60.0, target, rising=False)
         if x is None:
             levers.append({
-                "lever": "Cao độ nền", "kind": "required", "feasible": False,
-                "answer": (f"Nền hiện ~{elev_now} m. Tôn nền tới +60 m vẫn không đủ — "
-                           "chỉ số ngập đang do lượng mưa chi phối."),
+                "lever": tr("Cao độ nền", "Ground elevation"), "kind": "required", "feasible": False,
+                "answer": tr(f"Nền hiện ~{elev_now} m. Tôn nền tới +60 m vẫn không đủ — "
+                             "chỉ số ngập đang do lượng mưa chi phối.",
+                             f"Ground is ~{elev_now} m. Raising it +60 m still isn't enough — "
+                             "the flood index is rain-driven here."),
                 "value": None,
             })
         else:
             need = max(0.0, x - elev_now)
             levers.append({
-                "lever": "Cao độ nền", "kind": "required", "feasible": True,
-                "answer": (f"Nền hiện ~{elev_now} m; cần cao ~{x:.1f} m "
-                           f"(tôn thêm ~{need:.1f} m) để xuống dưới ngưỡng."
+                "lever": tr("Cao độ nền", "Ground elevation"), "kind": "required", "feasible": True,
+                "answer": (tr(f"Nền hiện ~{elev_now} m; cần cao ~{x:.1f} m "
+                              f"(tôn thêm ~{need:.1f} m) để xuống dưới ngưỡng.",
+                              f"Ground is ~{elev_now} m; needs ~{x:.1f} m "
+                              f"(raise ~{need:.1f} m) to drop below threshold.")
                            if need > 0.05 else
-                           f"Nền hiện ~{elev_now} m đã đủ cao so với ngưỡng."),
+                           tr(f"Nền hiện ~{elev_now} m đã đủ cao so với ngưỡng.",
+                              f"Ground is ~{elev_now} m — already high enough vs threshold.")),
                 "value": round(x, 1),
             })
 
@@ -147,16 +162,20 @@ def run(module_id: str, lat: float, lon: float,
         x = _solve(f_slope, 0.0, max(slope_now, 1.0), target, rising=True)
         if x is None:
             levers.append({
-                "lever": "Độ dốc sườn", "kind": "info", "feasible": True,
-                "answer": (f"Độ dốc ~{slope_now}° — với lượng mưa này, mọi độ dốc "
-                           "trong khoảng đều dưới ngưỡng."),
+                "lever": tr("Độ dốc sườn", "Slope"), "kind": "info", "feasible": True,
+                "answer": tr(f"Độ dốc ~{slope_now}° — với lượng mưa này, mọi độ dốc "
+                             "trong khoảng đều dưới ngưỡng.",
+                             f"Slope ~{slope_now}° — with this rain, every slope in range "
+                             "stays below threshold."),
                 "value": None,
             })
         else:
             levers.append({
-                "lever": "Độ dốc sườn", "kind": "required", "feasible": True,
-                "answer": (f"Độ dốc hiện ~{slope_now}°. Ngưỡng an toàn với lượng mưa "
-                           f"này là ~{x:.1f}° — sườn dốc hơn mức đó cần gia cố/di dời."),
+                "lever": tr("Độ dốc sườn", "Slope"), "kind": "required", "feasible": True,
+                "answer": tr(f"Độ dốc hiện ~{slope_now}°. Ngưỡng an toàn với lượng mưa "
+                             f"này là ~{x:.1f}° — sườn dốc hơn mức đó cần gia cố/di dời.",
+                             f"Slope is ~{slope_now}°. The safe threshold at this rain is "
+                             f"~{x:.1f}° — steeper than that needs reinforcement/relocation."),
                 "value": round(x, 1),
             })
 
@@ -173,30 +192,41 @@ def run(module_id: str, lat: float, lon: float,
             x = _solve(f, 0.0, 1.0, target, rising=True)
             if x is not None:
                 combined = {
-                    "answer": (f"Không đòn bẩy đơn lẻ nào đủ. Phương án kết hợp: tôn nền "
-                               f"thêm ~{extra:.0f} m (lên ~{e:.1f} m) VÀ giảm "
-                               f"{(1-x)*100:.0f}% lượng nước đọng (thoát nước/bơm) "
-                               f"thì mới xuống dưới ngưỡng {target:.0f}."),
+                    "answer": tr(f"Không đòn bẩy đơn lẻ nào đủ. Phương án kết hợp: tôn nền "
+                                 f"thêm ~{extra:.0f} m (lên ~{e:.1f} m) VÀ giảm "
+                                 f"{(1-x)*100:.0f}% lượng nước đọng (thoát nước/bơm) "
+                                 f"thì mới xuống dưới ngưỡng {target:.0f}.",
+                                 f"No single lever is enough. Combined: raise the ground "
+                                 f"~{extra:.0f} m (to ~{e:.1f} m) AND cut standing water "
+                                 f"by {(1-x)*100:.0f}% (drainage/pumping) to drop below "
+                                 f"threshold {target:.0f}."),
                     "elevation_gain_m": extra, "rain_mult": round(x, 4),
                 }
                 break
         if combined is None:
             combined = {
-                "answer": ("Không có phương án nào trong tầm khảo sát (tôn nền tới +8 m, "
-                           "thoát nước tới 100%) đưa được về dưới ngưỡng. Lô đất này "
-                           "chịu rủi ro ngập nền cao — nên cân nhắc vị trí khác."),
+                "answer": tr("Không có phương án nào trong tầm khảo sát (tôn nền tới +8 m, "
+                             "thoát nước tới 100%) đưa được về dưới ngưỡng. Lô đất này "
+                             "chịu rủi ro ngập nền cao — nên cân nhắc vị trí khác.",
+                             "No option in the searched range (raise up to +8 m, drainage up "
+                             "to 100%) drops it below threshold. This plot has high base flood "
+                             "risk — consider a different location."),
                 "elevation_gain_m": None, "rain_mult": None,
             }
 
-    headline = (f"Đang an toàn ({current:.1f} {unit}) — còn dư địa trước ngưỡng {target:.0f}."
+    headline = (tr(f"Đang an toàn ({current:.1f} {unit}) — còn dư địa trước ngưỡng {target:.0f}.",
+                   f"Currently safe ({current:.1f} {unit}) — headroom before threshold {target:.0f}.")
                 if safe_now else
-                f"Đang vượt ngưỡng ({current:.1f} {unit}) — đây là điều kiện để trở lại an toàn.")
+                tr(f"Đang vượt ngưỡng ({current:.1f} {unit}) — đây là điều kiện để trở lại an toàn.",
+                   f"Currently over threshold ({current:.1f} {unit}) — here's what it takes to get back to safe."))
 
     return {
         "module_id": module_id, "module_name": name, "unit": unit,
         "available": True, "is_real": True,
         "current_peak": round(current, 1), "target": target, "safe_now": safe_now,
         "headline": headline, "levers": levers, "combined": combined,
-        "method": ("Tìm kiếm nhị phân trên chính mô hình cảnh báo đang chạy "
-                   "(40 vòng lặp) — kết quả tái lập được, không phải AI phỏng đoán."),
+        "method": tr("Tìm kiếm nhị phân trên chính mô hình cảnh báo đang chạy "
+                     "(40 vòng lặp) — kết quả tái lập được, không phải AI phỏng đoán.",
+                     "Binary search on the live alert model (40 iterations) — reproducible, "
+                     "not an AI guess."),
     }
