@@ -42,6 +42,8 @@ import math
 import urllib.parse
 import urllib.request
 
+from app.services.reqlang import tr
+
 NOMINATIM = "https://nominatim.openstreetmap.org/reverse"
 # Chính sách Nominatim bắt buộc User-Agent nhận dạng được. Phải THUẦN ASCII —
 # header HTTP mã hoá latin-1, một chữ tiếng Việt có dấu là hỏng cả lời gọi.
@@ -118,9 +120,13 @@ def classify(lat: float, lon: float, check_country: bool = True) -> dict:
     elif elev is None:
         return {"kind": "unknown", "elevation_m": None, "country": None,
                 "in_vietnam": None, "serviceable": True,
-                "note": ("Chưa lấy được cao độ nên không xác định được đây là "
-                         "đất hay mặt nước. Kết quả bên dưới cứ đọc bình thường, "
-                         "nhưng nếu bạn đang bấm ngoài biển thì đừng tin nó.")}
+                "note": tr(
+                    "Chưa lấy được cao độ nên không xác định được đây là "
+                    "đất hay mặt nước. Kết quả bên dưới cứ đọc bình thường, "
+                    "nhưng nếu bạn đang bấm ngoài biển thì đừng tin nó.",
+                    "Couldn't fetch elevation, so land vs. water here is "
+                    "unknown. The results below can still be read normally, "
+                    "but don't trust them if you clicked out at sea.")}
     else:
         ring = _ring(lat, lon, RING_KM, RING_N)
         vals = [v for v in (realdata.elevation_multi(ring) or []) if v is not None]
@@ -134,14 +140,25 @@ def classify(lat: float, lon: float, check_country: bool = True) -> dict:
         return {
             "kind": "sea", "elevation_m": elev, "land_neighbours": land_n,
             "country": None, "in_vietnam": None, "serviceable": False,
-            "note": ("Điểm này là MẶT NƯỚC. TerraTwin phục vụ đất liền và đảo "
-                     "có dân cư — mọi chỉ số đất đai ở đây đều vô nghĩa, nên "
-                     "phần mềm không chấm thay vì đưa ra con số trông có vẻ "
-                     "đúng. Bấm lại vào phần đất gần nhất."),
-            "caveat": ("Nhận biết bằng cao độ DEM: điểm này và ít nhất 7/8 điểm "
-                       f"quanh trong bán kính {RING_KM:.0f} km đều ở mực nước "
-                       "biển. Đảo nhỏ và bãi cạn mà DEM toàn cầu không phân giải "
-                       "được cũng sẽ bị xếp vào đây."),
+            "note": tr(
+                "Điểm này là MẶT NƯỚC. TerraTwin phục vụ đất liền và đảo "
+                "có dân cư — mọi chỉ số đất đai ở đây đều vô nghĩa, nên "
+                "phần mềm không chấm thay vì đưa ra con số trông có vẻ "
+                "đúng. Bấm lại vào phần đất gần nhất.",
+                "This point is OPEN WATER. TerraTwin serves mainland and "
+                "inhabited islands — every land metric here would be "
+                "meaningless, so the app skips scoring instead of showing a "
+                "number that only looks correct. Click the nearest land "
+                "instead."),
+            "caveat": tr(
+                "Nhận biết bằng cao độ DEM: điểm này và ít nhất 7/8 điểm "
+                f"quanh trong bán kính {RING_KM:.0f} km đều ở mực nước "
+                "biển. Đảo nhỏ và bãi cạn mà DEM toàn cầu không phân giải "
+                "được cũng sẽ bị xếp vào đây.",
+                "Detected via DEM elevation: this point and at least 7/8 "
+                f"points sampled within a {RING_KM:.0f} km radius are all at "
+                "sea level. Small islands and shoals the global DEM can't "
+                "resolve will also fall into this bucket."),
         }
 
     cc = country_code(lat, lon) if check_country else None
@@ -151,17 +168,26 @@ def classify(lat: float, lon: float, check_country: bool = True) -> dict:
         return {
             "kind": "foreign", "elevation_m": elev, "country": cc,
             "in_vietnam": False, "serviceable": False,
-            "note": (f"Toạ độ này thuộc {cc.upper()}, ngoài phạm vi TerraTwin "
-                     "phục vụ. Toàn bộ mô hình được hiệu chuẩn theo khí hậu và "
-                     "địa hình Việt Nam — chạy ở nước khác sẽ ra số, nhưng số "
-                     "đó không có cơ sở."),
+            "note": tr(
+                f"Toạ độ này thuộc {cc.upper()}, ngoài phạm vi TerraTwin "
+                "phục vụ. Toàn bộ mô hình được hiệu chuẩn theo khí hậu và "
+                "địa hình Việt Nam — chạy ở nước khác sẽ ra số, nhưng số "
+                "đó không có cơ sở.",
+                f"This coordinate is in {cc.upper()}, outside TerraTwin's "
+                "service area. Every model here is calibrated to Vietnam's "
+                "climate and terrain — running it elsewhere still produces a "
+                "number, but that number has no grounding."),
         }
 
     return {
         "kind": "land", "elevation_m": elev, "land_neighbours": land_n,
         "country": cc, "in_vietnam": in_vn, "serviceable": True,
-        "note": None if in_vn else (
+        "note": None if in_vn else tr(
             "Chưa xác nhận được quốc gia (dịch vụ tra cứu không phản hồi). "
             "Vẫn phục vụ bình thường — thà cho một toạ độ ngoài biên dùng nhầm "
-            "còn hơn chặn cả nước vì một dịch vụ ngoài đang bảo trì."),
+            "còn hơn chặn cả nước vì một dịch vụ ngoài đang bảo trì.",
+            "Couldn't confirm the country (lookup service didn't respond). "
+            "Still serving normally — better to let one out-of-bounds "
+            "coordinate through by mistake than block the whole country over "
+            "an external service outage."),
     }

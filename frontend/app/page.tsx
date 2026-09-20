@@ -169,6 +169,14 @@ export default function Home() {
     [],
   );
 
+  // Đổi ngôn ngữ khi tab "Chi tiết module" đã có kết quả rồi thì phải gọi lại
+  // — nếu không, assess/terrascore vẫn giữ nguyên bản tiếng Việt đã tải trước
+  // đó (URL có ?lang= nhưng không ai gọi lại thì vô nghĩa).
+  useEffect(() => {
+    if (coord && result) run(active, coord.lat, coord.lon, area);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
+
   const onPick = useCallback(
     (lat: number, lon: number, areaHa?: number) => {
       setCoord({ lat, lon });

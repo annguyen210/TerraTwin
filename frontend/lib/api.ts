@@ -175,7 +175,7 @@ export async function assess(
 }
 
 export async function getTerraScore(lat: number, lon: number): Promise<TerraScore> {
-  const r = await fetch(`${BASE}/api/terrascore`, {
+  const r = await fetch(`${BASE}/api/terrascore${_lp()}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ lat, lon }),

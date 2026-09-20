@@ -248,7 +248,7 @@ def _off_site_dict(lat: float, lon: float) -> dict | None:
     return {
         "available": False,
         "region": reg,
-        "message": reg.get("note") or "Ngoài phạm vi phục vụ.",
+        "message": reg.get("note") or reqlang.tr("Ngoài phạm vi phục vụ.", "Out of service area."),
     }
 
 
@@ -264,13 +264,19 @@ def _off_site(module, loc: Location, reg: dict) -> Assessment:
         module_name=getattr(module, "name", "?"),
         location=loc, status="out_of_scope", risk_level="unknown",
         is_real=False,
-        headline=("Đây là mặt nước — TerraTwin phục vụ đất liền và đảo có dân cư"
+        headline=(reqlang.tr(
+                      "Đây là mặt nước — TerraTwin phục vụ đất liền và đảo có dân cư",
+                      "This is open water — TerraTwin serves mainland and inhabited islands")
                   if reg["kind"] == "sea" else
-                  f"Toạ độ ngoài phạm vi phục vụ ({(reg.get('country') or '?').upper()})"),
+                  reqlang.tr(
+                      f"Toạ độ ngoài phạm vi phục vụ ({(reg.get('country') or '?').upper()})",
+                      f"Coordinate outside the service area ({(reg.get('country') or '?').upper()})")),
         detail=reg.get("note") or "",
-        recommendation=("Bấm lại vào phần đất gần nhất."
+        recommendation=(reqlang.tr("Bấm lại vào phần đất gần nhất.",
+                                   "Click the nearest land instead.")
                         if reg["kind"] == "sea" else
-                        "TerraTwin hiệu chuẩn theo khí hậu và địa hình Việt Nam."),
+                        reqlang.tr("TerraTwin hiệu chuẩn theo khí hậu và địa hình Việt Nam.",
+                                   "TerraTwin is calibrated to Vietnam's climate and terrain.")),
         confidence=None,
         data_sources=["Cao độ DEM (Open-Meteo)"]
         + (["Nominatim / OpenStreetMap"] if reg.get("country") else []),
@@ -290,12 +296,13 @@ def assess(module_id: str, location: Location, lang: str = "vi") -> Assessment:
 
 
 @app.post("/api/terrascore", response_model=TerraScoreResult)
-def terra(location: Location) -> TerraScoreResult:
+def terra(location: Location, lang: str = "vi") -> TerraScoreResult:
+    reqlang.set_lang(lang)
     reg = region.classify(location.lat, location.lon)
     if not reg["serviceable"]:
         return TerraScoreResult(
             location=location, score=0, grade="—",
-            summary=reg.get("note") or "Ngoài phạm vi phục vụ.",
+            summary=reg.get("note") or reqlang.tr("Ngoài phạm vi phục vụ.", "Out of service area."),
             real_data_ratio=0.0, region=reg)
     r = terrascore.compute(location)
     r.region = reg
@@ -317,7 +324,7 @@ def scan_endpoint(location: Location, deep: bool = False, lang: str = "vi") -> S
             location=location,
             terrascore=TerraScoreResult(
                 location=location, score=0, grade="—",
-                summary=reg.get("note") or "Ngoài phạm vi phục vụ.",
+                summary=reg.get("note") or reqlang.tr("Ngoài phạm vi phục vụ.", "Out of service area."),
                 real_data_ratio=0.0),
             modules=[], alerts=[], real_data_ratio=0.0, region=reg,
             generated_at=datetime.now(timezone.utc).isoformat(timespec="seconds"))
@@ -342,7 +349,7 @@ def plan_endpoint(location: Location, crop: str = "lua", lang: str = "vi") -> di
     reg = region.classify(location.lat, location.lon)
     if not reg["serviceable"]:
         return {"serviceable": False, "region": reg,
-                "message": reg.get("note") or "Ngoài phạm vi phục vụ."}
+                "message": reg.get("note") or reqlang.tr("Ngoài phạm vi phục vụ.", "Out of service area.")}
     out = advisor.build(location, crop=crop)
     out["region"] = reg
     out["serviceable"] = True
@@ -500,7 +507,8 @@ def contrast_endpoint(req: ContrastRequest, lang: str = "vi") -> dict:
             out.append(c)
     if not out:
         return {"available": False,
-                "message": "Chưa tải được lịch sử 10 năm cho điểm này."}
+                "message": reqlang.tr("Chưa tải được lịch sử 10 năm cho điểm này.",
+                                      "Couldn't load the 10-year history for this point.")}
     return {"available": True, "modules": out}
 
 
@@ -607,8 +615,11 @@ def anomaly_ml_endpoint(req: AnomalyMlRequest, lang: str = "vi") -> dict:
     r = anomaly_ml.score(req.location.lat, req.location.lon)
     if r is None:
         return {"available": False,
-                "message": ("Chưa có mô hình hoặc không đủ dữ liệu lịch sử cho "
-                            "điểm này. Huấn luyện: python -m app.ml.train")}
+                "message": reqlang.tr(
+                    "Chưa có mô hình hoặc không đủ dữ liệu lịch sử cho "
+                    "điểm này. Huấn luyện: python -m app.ml.train",
+                    "No trained model or not enough historical data for this "
+                    "point yet. Train with: python -m app.ml.train")}
     return r
 
 

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from app.schemas import CopilotAnswer, KnowledgeCitation, Location
 from app.services import llm
+from app.services.reqlang import tr
 
 # Số ghi chép thực địa tối đa nạp vào ngữ cảnh. Giữ nhỏ có chủ đích: nhồi 20
 # mẩu kinh nghiệm vào prompt làm loãng chính dữ liệu đo được, mà dữ liệu đo
@@ -16,8 +17,15 @@ from app.services import llm
 _RAG_K = 3
 _RAG_MIN_SIMILARITY = 35.0
 NL = "\n"
-KNOW_HEAD = ("Kinh nghiệm thực địa từ vùng có bộ gen đất tương đồng (do người "
-             "dùng khác chia sẻ, KHÔNG phải số đo — nói rõ điều đó nếu dùng tới):")
+
+
+def _know_head() -> str:
+    return tr(
+        "Kinh nghiệm thực địa từ vùng có bộ gen đất tương đồng (do người "
+        "dùng khác chia sẻ, KHÔNG phải số đo — nói rõ điều đó nếu dùng tới):",
+        "Field experience from areas with a similar soil genome (shared by "
+        "other users, NOT a measurement — say so if you use it):",
+    )
 
 
 def _route(question: str) -> list[str]:
@@ -37,11 +45,15 @@ def _route(question: str) -> list[str]:
     return ["salinity", "drought", "flood"]
 
 
-_SYSTEM = (
-    "Bạn là trợ lý nông nghiệp/đất đai của TerraTwin. Trả lời NGẮN GỌN, rõ ràng "
-    "bằng tiếng Việt, CHỈ dựa trên dữ liệu được cung cấp. Tuyệt đối không bịa "
-    "thêm số liệu. Nếu dữ liệu không đủ để trả lời, hãy nói thẳng là chưa đủ."
-)
+def _system() -> str:
+    return tr(
+        "Bạn là trợ lý nông nghiệp/đất đai của TerraTwin. Trả lời NGẮN GỌN, rõ ràng "
+        "bằng tiếng Việt, CHỈ dựa trên dữ liệu được cung cấp. Tuyệt đối không bịa "
+        "thêm số liệu. Nếu dữ liệu không đủ để trả lời, hãy nói thẳng là chưa đủ.",
+        "You are TerraTwin's land/farming assistant. Answer BRIEFLY and clearly "
+        "in English, based ONLY on the data provided. Never invent numbers. If "
+        "the data isn't enough to answer, say so plainly.",
+    )
 
 
 # Từ quá phổ biến trong tiếng Việt, xuất hiện ở mọi ghi chép nên không phân
@@ -152,8 +164,10 @@ def _knowledge(question: str, loc: Location) -> tuple[list[KnowledgeCitation], s
                                   similarity_pct=sim, distance_km=round(km, 0))
                 for sim, km, n in top
             ]
-            lines = [f"- [{n.author_name}, vùng tương đồng {sim}%] {n.title}: "
-                     f"{n.body[:400]}" for sim, _, n in top]
+            lines = [tr(
+                f"- [{n.author_name}, vùng tương đồng {sim}%] {n.title}: {n.body[:400]}",
+                f"- [{n.author_name}, {sim}% similar area] {n.title}: {n.body[:400]}",
+            ) for sim, _, n in top]
             return cites, "\n".join(lines)
         finally:
             session.close()
@@ -163,6 +177,12 @@ def _knowledge(question: str, loc: Location) -> tuple[list[KnowledgeCitation], s
 
 _HAZ_VI = {"flood": "Lũ/ngập", "landslide": "Sạt lở", "drought": "Hạn/thiếu nước",
            "wildfire": "Cháy rừng", "salinity": "Xâm nhập mặn"}
+_HAZ_EN = {"flood": "Flood", "landslide": "Landslide", "drought": "Drought",
+           "wildfire": "Wildfire", "salinity": "Salinity intrusion"}
+
+
+def _haz_label(r: str) -> str:
+    return tr(_HAZ_VI.get(r, r), _HAZ_EN.get(r, r))
 
 
 def _history_facts(loc: Location, routes: list[str]) -> str:
@@ -183,10 +203,14 @@ def _history_facts(loc: Location, routes: list[str]) -> str:
             if not row or not row.get("events"):
                 continue
             pm = row.get("peak_month")
-            when = f", cao điểm tháng {pm}" if pm else ""
-            latest = f", gần nhất {row['latest']}" if row.get("latest") else ""
-            lines.append(f"- {_HAZ_VI.get(r, r)}: {row['events']} đợt vượt ngưỡng "
-                         f"trong 10 năm{when}{latest}.")
+            when = tr(f", cao điểm tháng {pm}", f", peaking in month {pm}") if pm else ""
+            latest = (tr(f", gần nhất {row['latest']}", f", most recent {row['latest']}")
+                      if row.get("latest") else "")
+            lines.append(tr(
+                f"- {_haz_label(r)}: {row['events']} đợt vượt ngưỡng trong 10 năm{when}{latest}.",
+                f"- {_haz_label(r)}: {row['events']} threshold-exceeding episodes in "
+                f"10 years{when}{latest}.",
+            ))
         return "\n".join(lines)
     except Exception:
         return ""
@@ -203,39 +227,55 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
         if module is None:
             continue
         a = module.assess(loc)
-        facts.append(f"- {a.module_name}: {a.headline} | Khuyến nghị: {a.recommendation}")
+        facts.append(tr(f"- {a.module_name}: {a.headline} | Khuyến nghị: {a.recommendation}",
+                        f"- {a.module_name}: {a.headline} | Recommendation: {a.recommendation}"))
     ts = terrascore.compute(loc)
-    facts.append(f"- TerraScore: {ts.score}/100 (hạng {ts.grade}) — {ts.summary}")
+    facts.append(tr(f"- TerraScore: {ts.score}/100 (hạng {ts.grade}) — {ts.summary}",
+                    f"- TerraScore: {ts.score}/100 (grade {ts.grade}) — {ts.summary}"))
     facts_txt = "\n".join(facts)
 
     hist = _history_facts(loc, routes)
-    hist_block = ((NL + "Lịch sử 10 năm tại đây (đo từ ERA5, kiểm chứng được):"
+    hist_block = ((NL + tr("Lịch sử 10 năm tại đây (đo từ ERA5, kiểm chứng được):",
+                           "10-year history here (measured from ERA5, verifiable):")
                    + NL + hist) if hist else "")
 
     cites, know_txt = _knowledge(question, loc)
-    know_block = ((NL + NL + KNOW_HEAD + NL + know_txt) if know_txt else '')
+    know_block = ((NL + NL + _know_head() + NL + know_txt) if know_txt else '')
 
+    system = _system()
     prompt = (
-        f"Dữ liệu về vị trí ({loc.lat:.4f}, {loc.lon:.4f}):\n{facts_txt}"
+        f"{tr('Dữ liệu về vị trí', 'Data for location')} "
+        f"({loc.lat:.4f}, {loc.lon:.4f}):\n{facts_txt}"
         f"{hist_block}{know_block}\n\n"
-        f"Câu hỏi của người dùng: {question}\n\nTrả lời:"
+        f"{tr('Câu hỏi của người dùng', 'User question')}: {question}\n\n"
+        f"{tr('Trả lời', 'Answer')}:"
     )
 
-    text = llm.complete(prompt, system=_SYSTEM, max_tokens=600)
+    text = llm.complete(prompt, system=system, max_tokens=600)
     if text:
         # A2 — cưỡng chế "LLM chỉ dịch, không sinh số": ẩn mọi số model bịa ra
         # ngoài dữ liệu thật đã đưa cho nó (facts + lịch sử + kiến thức + system).
         from app.services import guard
-        text, _ = guard.guard_llm(text, _SYSTEM + NL + prompt)
+        text, _ = guard.guard_llm(text, system + NL + prompt)
         return CopilotAnswer(answer=text, used_modules=routes,
                              llm=True, knowledge_used=cites)
 
-    ans = (f"TerraScore {ts.score}/100 (hạng {ts.grade}). {ts.summary}\n{facts_txt}"
-           f"{hist_block}{know_block}\n\n"
-           "[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY để bật trả lời bằng LLM. "
-           "Nhà cung cấp openai-compatible (DeepSeek, Groq, OpenRouter, Together, "
-           "xAI, Qwen, Ollama) chỉ cần thêm TERRATWIN_LLM_BASE_URL. Gemini hoặc "
-           "Anthropic PHẢI đặt thêm TERRATWIN_LLM_PROVIDER=gemini|anthropic — "
-           "thiếu biến đó thì khóa bị gửi sai giao thức và im lặng không chạy.]")
+    ans = tr(
+        f"TerraScore {ts.score}/100 (hạng {ts.grade}). {ts.summary}\n{facts_txt}"
+        f"{hist_block}{know_block}\n\n"
+        "[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY để bật trả lời bằng LLM. "
+        "Nhà cung cấp openai-compatible (DeepSeek, Groq, OpenRouter, Together, "
+        "xAI, Qwen, Ollama) chỉ cần thêm TERRATWIN_LLM_BASE_URL. Gemini hoặc "
+        "Anthropic PHẢI đặt thêm TERRATWIN_LLM_PROVIDER=gemini|anthropic — "
+        "thiếu biến đó thì khóa bị gửi sai giao thức và im lặng không chạy.]",
+        f"TerraScore {ts.score}/100 (grade {ts.grade}). {ts.summary}\n{facts_txt}"
+        f"{hist_block}{know_block}\n\n"
+        "[Rule-based assistant. Set TERRATWIN_LLM_API_KEY to enable LLM answers. "
+        "OpenAI-compatible providers (DeepSeek, Groq, OpenRouter, Together, xAI, "
+        "Qwen, Ollama) only need TERRATWIN_LLM_BASE_URL added. Gemini or "
+        "Anthropic MUST also set TERRATWIN_LLM_PROVIDER=gemini|anthropic — "
+        "without it the key is sent with the wrong protocol and silently does "
+        "nothing.]",
+    )
     return CopilotAnswer(answer=ans, used_modules=routes, llm=False,
                          knowledge_used=cites)
