@@ -234,6 +234,33 @@ def run_radar(user: User = Depends(auth.current_user),
     return radar.sweep_user(user.id, db)
 
 
+@router.post("/api/radar/sweep-all")
+def run_radar_sweep_all(authorization: str | None = Header(default=None),
+                        x_cron_key: str | None = Header(default=None),
+                        db: Session = Depends(get_session)) -> dict:
+    """Quét NỀN cho mọi người dùng (sweep_all) + quét bỏ sót (sweep_misses,
+    tự throttle ~1 lần/ngày) — endpoint cho cron ngoài gọi, vì gói Render/Fly
+    miễn phí không có cron riêng và bộ hẹn giờ trong tiến trình chỉ sống được
+    khi dyno không ngủ.
+
+    Xác thực giống /api/brief/run: header X-Cron-Key khớp TERRATWIN_CRON_KEY
+    (không hết hạn như JWT — cron ngoài dùng đường này), hoặc JWT của admin.
+    """
+    import os as _os
+
+    cron_key = _os.environ.get("TERRATWIN_CRON_KEY", "").strip()
+    if cron_key and x_cron_key and auth.constant_time_eq(x_cron_key, cron_key):
+        return radar.sweep_all(db)
+
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(401, "Cần X-Cron-Key hợp lệ hoặc đăng nhập admin.")
+    uid = auth.decode_token(authorization.split(" ", 1)[1].strip())
+    u = db.get(User, uid) if uid else None
+    if u is None or getattr(u, "role", "user") != "admin":
+        raise HTTPException(403, "Chỉ quản trị viên hoặc cron hợp lệ.")
+    return radar.sweep_all(db)
+
+
 # ---------- C01 Twin Builder ----------
 
 class TwinIn(BaseModel):

@@ -29,20 +29,26 @@ class Location(BaseModel):
     @classmethod
     def _lat_in_vn(cls, v: float) -> float:
         if not (VN_LAT_MIN <= v <= VN_LAT_MAX):
-            raise ValueError(
+            from app.services.reqlang import tr
+            raise ValueError(tr(
                 f"Vĩ độ phải trong khoảng {VN_LAT_MIN}–{VN_LAT_MAX} "
-                "(khung bao quanh Việt Nam). Toạ độ này nằm quá xa."
-            )
+                "(khung bao quanh Việt Nam). Toạ độ này nằm quá xa.",
+                f"Latitude must be within {VN_LAT_MIN}–{VN_LAT_MAX} "
+                "(bounding box around Vietnam). This coordinate is too far outside it."
+            ))
         return v
 
     @field_validator("lon")
     @classmethod
     def _lon_in_vn(cls, v: float) -> float:
         if not (VN_LON_MIN <= v <= VN_LON_MAX):
-            raise ValueError(
+            from app.services.reqlang import tr
+            raise ValueError(tr(
                 f"Kinh độ phải trong khoảng {VN_LON_MIN}–{VN_LON_MAX} "
-                "(khung bao quanh Việt Nam). Toạ độ này nằm quá xa."
-            )
+                "(khung bao quanh Việt Nam). Toạ độ này nằm quá xa.",
+                f"Longitude must be within {VN_LON_MIN}–{VN_LON_MAX} "
+                "(bounding box around Vietnam). This coordinate is too far outside it."
+            ))
         return v
 
 

@@ -134,6 +134,15 @@ def _ask_one(user_id: int, channels: list, db: Session) -> dict:
         return {"asked": 0, "error": type(e).__name__}
 
 
+_LAST_SWEEP_KEY = "radar:last_sweep"
+_LAST_MISS_SWEEP_KEY = "radar:last_miss_sweep"
+# sweep_misses quét ngược 90 ngày × mọi thửa — nặng hơn hẳn lượt quét cảnh báo
+# thường (7 ngày tới). Không nên chạy mỗi lần sweep_all được gọi (cron ngoài
+# gọi mỗi 6h) — throttle về ~1 lần/ngày. 20h chứ không phải 24h để chừa biên
+# cho lịch cron lệch giờ (xem ghi chú keepwarm.yml).
+MISS_SWEEP_MIN_GAP_H = 20
+
+
 def sweep_all(db: Session) -> dict:
     """Quét cho MỌI người dùng có thửa đã lưu. Dùng cho lượt chạy nền."""
     ids = db.execute(
@@ -164,7 +173,69 @@ def sweep_all(db: Session) -> dict:
         db.rollback()
         scored = {"error": type(e).__name__}
 
-    return {"notifications_asked": asked, "scored": scored,
-            "users_scanned": users, "plots_scanned": plots,
-            "new_alerts": alerts, "notifications_sent": sent,
-            "notifications_failed": failed}
+    # A — LẦN BỎ SÓT PHẢI ĐƯỢC QUÉT, KHÔNG CHỈ CHẤM CẢNH BÁO ĐÃ PHÁT.
+    #
+    # Trước đây sweep_all() không hề gọi verify.sweep_misses() ở đâu cả — nghĩa
+    # là số "miss" trong sổ điểm luôn = 0 và POD tự động = 100%, bất kể phần
+    # mềm thật sự bỏ sót bao nhiêu lần. Gọi ở đây, cùng chỗ với verify.sweep(),
+    # vì lý do y hệt: không dựng thêm một tiến trình nền thứ hai.
+    misses = _maybe_sweep_misses(db)
+
+    result = {"notifications_asked": asked, "scored": scored, "misses": misses,
+              "users_scanned": users, "plots_scanned": plots,
+              "new_alerts": alerts, "notifications_sent": sent,
+              "notifications_failed": failed}
+    _log_sweep(result)
+    return result
+
+
+def _maybe_sweep_misses(db: Session) -> dict:
+    from datetime import datetime, timedelta, timezone
+
+    from app.services import cache_store, verify as verify_svc
+
+    now = datetime.now(timezone.utc)
+    last = cache_store.get(_LAST_MISS_SWEEP_KEY)
+    if last:
+        try:
+            if now - datetime.fromisoformat(last) < timedelta(hours=MISS_SWEEP_MIN_GAP_H):
+                return {"skipped": "đã quét trong ~24h qua"}
+        except ValueError:
+            pass
+    try:
+        r = verify_svc.sweep_misses(db)
+    except Exception as e:
+        db.rollback()
+        return {"error": type(e).__name__}
+    cache_store.put(_LAST_MISS_SWEEP_KEY, now.isoformat(), ttl_seconds=7 * 86400)
+    return r
+
+
+def _log_sweep(result: dict) -> None:
+    """Ghi lại MỌI lượt quét (kể cả 0 cảnh báo) vào nơi bền (bảng kv_cache),
+    để /api/health có thể báo lần quét gần nhất thật sự chạy khi nào — kể cả
+    khi nó hoàn toàn im lặng vì không có gì để báo."""
+    from datetime import datetime, timezone
+
+    from app.services import cache_store
+
+    misses = result.get("misses") or {}
+    scored = result.get("scored") or {}
+    cache_store.put(_LAST_SWEEP_KEY, {
+        "at": datetime.now(timezone.utc).isoformat(),
+        "users_scanned": result["users_scanned"],
+        "plots_scanned": result["plots_scanned"],
+        "plots_with_real_data": misses.get("plots_scanned"),
+        "plots_skipped_429": misses.get("plots_failed"),
+        "new_alerts": result["new_alerts"],
+        "notifications_sent": result["notifications_sent"],
+        "notifications_failed": result["notifications_failed"],
+        "verified": scored.get("verified"),
+        "misses_recorded": misses.get("misses_recorded"),
+    }, ttl_seconds=7 * 86400)
+
+
+def last_sweep() -> dict | None:
+    """Bản ghi lượt quét nền gần nhất, cho /api/health. None nếu chưa quét lần nào."""
+    from app.services import cache_store
+    return cache_store.get(_LAST_SWEEP_KEY)

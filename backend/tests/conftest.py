@@ -16,6 +16,7 @@ os.environ.setdefault("TERRATWIN_SECRET", "test-secret-khong-dung-cho-production
 # Bộ hẹn giờ rà soát nền không được chạy trong test: nó sẽ tự gọi Open-Meteo và
 # ghi cảnh báo giữa chừng, làm test khác thấy dữ liệu lạ xuất hiện từ hư không.
 os.environ["TERRATWIN_RADAR_INTERVAL_H"] = "0"
+os.environ["TERRATWIN_RADAR_RETRY_INTERVAL_MIN"] = "0"
 
 
 # CSDL RIÊNG CHO MỖI LẦN CHẠY TEST.

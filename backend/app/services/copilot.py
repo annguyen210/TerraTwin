@@ -7,7 +7,7 @@ tự nhiên.
 """
 from __future__ import annotations
 
-from app.schemas import CopilotAnswer, KnowledgeCitation, Location
+from app.schemas import Assessment, CopilotAnswer, KnowledgeCitation, Location
 from app.services import llm
 from app.services.reqlang import tr
 
@@ -222,14 +222,26 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
 
     routes = _route(question)
     facts = []
+    assessed: dict[str, Assessment] = {}
     for r in routes:
         module = get_module(r)
         if module is None:
             continue
         a = module.assess(loc)
-        facts.append(tr(f"- {a.module_name}: {a.headline} | Khuyến nghị: {a.recommendation}",
-                        f"- {a.module_name}: {a.headline} | Recommendation: {a.recommendation}"))
-    ts = terrascore.compute(loc)
+        assessed[r] = a
+        # Đánh dấu thật/mẫu NGAY TRÊN từng dòng — nếu không, một chỉ số từ mô
+        # hình mẫu (fallback khi mất mạng/hết hạn mức) đọc y hệt số đo thật,
+        # và đứng cạnh dòng TerraScore "chưa đủ dữ liệu thật" bên dưới sẽ trông
+        # như phần mềm tự mâu thuẫn — trong khi thực ra cả hai đều đang nói
+        # đúng MỘT sự thật: lúc này không có dữ liệu thật cho hiểm họa đó.
+        tag = tr("dữ liệu thật", "real data") if a.is_real else tr("mô hình mẫu", "sample model")
+        facts.append(tr(f"- {a.module_name} ({tag}): {a.headline} | Khuyến nghị: {a.recommendation}",
+                        f"- {a.module_name} ({tag}): {a.headline} | Recommendation: {a.recommendation}"))
+    # Tái dùng assessment đã tính thay vì để terrascore.compute() gọi lại từ
+    # đầu — trước đây nó luôn tự assess() lại CẢ 5 hiểm họa kể cả khi câu hỏi
+    # chỉ hỏi về lũ, nên TerraScore có thể đọc is_real KHÁC với dòng flood vừa
+    # in ở trên (mỗi bên tự gọi module một lần, độc lập).
+    ts = terrascore.compute(loc, assessments=assessed)
     facts.append(tr(f"- TerraScore: {ts.score}/100 (hạng {ts.grade}) — {ts.summary}",
                     f"- TerraScore: {ts.score}/100 (grade {ts.grade}) — {ts.summary}"))
     facts_txt = "\n".join(facts)

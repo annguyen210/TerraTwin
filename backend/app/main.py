@@ -45,6 +45,12 @@ from app.safelog import log
 # 0 = tắt (dùng khi chạy nhiều worker hoặc đã có cron ngoài gọi /api/radar/run).
 _RADAR_INTERVAL_H = float(os.environ.get("TERRATWIN_RADAR_INTERVAL_H", "6") or 0)
 
+# Bộ hẹn giờ THỬ LẠI riêng cho các thửa bị 429 trong lần quét bỏ sót gần nhất
+# (xem verify.retry_due_misses). Tách khỏi _RADAR_INTERVAL_H (mặc định 6 giờ)
+# vì "thử lại sau 20-30 phút" cần một nhịp mịn hơn hẳn — nhưng rẻ: không làm
+# gì cả (chỉ một lượt đọc kv_cache) trừ khi có thửa nào tới hạn thử lại.
+_RADAR_RETRY_INTERVAL_MIN = float(os.environ.get("TERRATWIN_RADAR_RETRY_INTERVAL_MIN", "10") or 0)
+
 
 async def _radar_loop() -> None:
     """Quét định kỳ cho mọi người dùng.
@@ -85,6 +91,45 @@ async def _radar_loop() -> None:
             log(f"[TerraTwin] Rà soát nền lỗi: {type(e).__name__}: {e}")
 
 
+async def _radar_retry_loop() -> None:
+    """Thử lại các thửa bị bỏ qua vì 429 ở lượt quét bỏ sót gần nhất.
+
+    Tách khỏi _radar_loop vì nhịp khác hẳn: _radar_loop chạy mỗi
+    TERRATWIN_RADAR_INTERVAL_H (mặc định 6 giờ, khớp cron ngoài); vòng này
+    chạy dày hơn (mặc định 10 phút) NHƯNG hầu như mỗi lần thức dậy đều không
+    làm gì — verify.retry_due_misses() tự bỏ qua nếu hàng đợi rỗng hoặc chưa
+    tới hạn (xem verify.RETRY_DELAY_MIN).
+    """
+    import asyncio
+
+    from app.db import SessionLocal
+    from app.services import verify as verify_svc
+
+    interval = _RADAR_RETRY_INTERVAL_MIN * 60.0
+    while True:
+        try:
+            await asyncio.sleep(interval)
+        except asyncio.CancelledError:
+            return
+        try:
+            def _retry() -> dict:
+                db = SessionLocal()
+                try:
+                    return verify_svc.retry_due_misses(db)
+                finally:
+                    db.close()
+
+            r = await asyncio.to_thread(_retry)
+            if r.get("retried"):
+                log(f"[TerraTwin] Thử lại bỏ sót sau 429: {r['retried']} thửa · "
+                      f"phục hồi {r.get('recovered', 0)} · vẫn hỏng "
+                      f"{r.get('still_failed', 0)} · ghi thêm {r.get('misses_recorded', 0)} bỏ sót.")
+        except asyncio.CancelledError:
+            return
+        except Exception as e:      # nền hỏng không được kéo sập API
+            log(f"[TerraTwin] Thử lại bỏ sót lỗi: {type(e).__name__}: {e}")
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     import asyncio
@@ -103,15 +148,20 @@ async def lifespan(_app: FastAPI):
     else:
         log("[TerraTwin] Rà soát chủ động: bộ hẹn giờ nội bộ TẮT — cảnh báo chỉ "
               "sinh khi có người gọi /api/radar/run.")
+
+    retry_task = None
+    if _RADAR_RETRY_INTERVAL_MIN > 0:
+        retry_task = asyncio.create_task(_radar_retry_loop())
     try:
         yield
     finally:
-        if task is not None:
-            task.cancel()
-            try:
-                await task
-            except (asyncio.CancelledError, Exception):
-                pass
+        for t in (task, retry_task):
+            if t is not None:
+                t.cancel()
+                try:
+                    await t
+                except (asyncio.CancelledError, Exception):
+                    pass
 
 
 app = FastAPI(title="TerraTwin API", version="0.5.0", lifespan=lifespan)
@@ -166,6 +216,21 @@ def _client_ip(request: Request) -> str:
 
 
 @app.middleware("http")
+async def set_request_lang(request: Request, call_next):
+    """Đặt ngôn ngữ request TRƯỚC KHI Pydantic validate body.
+
+    VÌ SAO CẦN Ở ĐÂY, KHÔNG PHẢI TRONG ENDPOINT: mỗi endpoint tự gọi
+    `reqlang.set_lang(lang)` bằng một dependency/tham số — nhưng Pydantic
+    validate body (field_validator trên Location, ví dụ toạ độ ngoài khung
+    Việt Nam) chạy TRƯỚC KHI vào tới thân hàm endpoint. Kết quả: lỗi 422 từ
+    validator luôn tiếng Việt dù có ?lang=en, vì contextvar còn giữ giá trị
+    mặc định lúc đó. Đặt ở middleware — chạy sớm hơn cả routing — để tránh.
+    """
+    reqlang.set_lang(request.query_params.get("lang"))
+    return await call_next(request)
+
+
+@app.middleware("http")
 async def rate_limit(request: Request, call_next):
     if _RATE > 0 and request.url.path.startswith("/api/"):
         ip = _client_ip(request)
@@ -202,12 +267,18 @@ def health() -> dict:
     Người vận hành phải phân biệt được ngay "hết quota, mai lại chạy" với "code
     hỏng", nếu không sẽ đi sửa nhầm chỗ.
     """
+    from app.services import radar as radar_svc
     from app.services import realdata
 
     q = realdata.quota_status()
+    last = radar_svc.last_sweep()
     return {"status": "degraded" if q["exhausted"] else "ok",
             "service": "terratwin", "modules": len(list_modules()),
-            "quota": q, "jobs": jobs.stats()}
+            "quota": q, "jobs": jobs.stats(),
+            "radar": {
+                "last_sweep_at": last.get("at") if last else None,
+                "last_sweep": last,
+            }}
 
 
 @app.get("/api/roadmap")

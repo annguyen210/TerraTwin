@@ -100,12 +100,18 @@ _seq = [0]
 
 
 def _seed(Session, *, outcomes=(), retro_misses=0, coord=BEN_TRE,
-          module="flood", age_days=20):
+          module="flood", age_days=20, plot_age_days=365):
     """Tạo một người + một thửa + các cảnh báo đã chấm sẵn. Trả (user_id, plot_id).
 
     Email phải TĂNG DẦN, không lấy theo id(Session): một test gọi _seed hai lần
     sẽ nhận cùng một Session và đâm vào ràng buộc unique — lỗi giả không liên
     quan gì tới thứ đang được kiểm tra.
+
+    `plot_age_days` backdate `Plot.created_at` — mặc định 365 ngày, đủ cũ hơn
+    mọi cửa sổ quét bỏ sót (MISS_LOOKBACK_DAYS=90) trong bộ test này. Không
+    backdate thì thửa "vừa lưu hôm nay" sẽ bị verify.sweep_misses cắt cửa sổ
+    quét về đúng lúc nó được tạo (điểm B đã sửa), làm mọi test bỏ sót cũ mất
+    dữ liệu mẫu — test nào cố ý muốn thửa mới thì tự truyền plot_age_days=0.
     """
     from app.db import Alert, Plot, User
     from app import auth
@@ -116,7 +122,8 @@ def _seed(Session, *, outcomes=(), retro_misses=0, coord=BEN_TRE,
              password_hash=auth.hash_password(GOOD_PW), name="Seed")
     s.add(u)
     s.commit()
-    p = Plot(user_id=u.id, name="Ruong", lat=coord[0], lon=coord[1])
+    p = Plot(user_id=u.id, name="Ruong", lat=coord[0], lon=coord[1],
+             created_at=_now() - timedelta(days=plot_age_days))
     s.add(p)
     s.commit()
 
@@ -560,6 +567,81 @@ def test_quet_bo_sot_hai_lan_khong_ghi_trung(env, monkeypatch):
     n = len(s.execute(select(Alert).where(Alert.retro == 1)).scalars().all())
     s.close()
     assert n == 1
+
+
+def test_thua_moi_khong_bi_tinh_bo_sot_truoc_ngay_tao(env, monkeypatch):
+    """Điểm B — thửa lưu hôm nay không thể 'bị bỏ sót' cho giai đoạn TRƯỚC khi
+    nó tồn tại trong hệ thống. Đợt vượt ngưỡng 30 ngày trước (trước ngày tạo
+    thửa) → 0 miss; đợt vượt ngưỡng SAU ngày tạo mà không có cảnh báo → đúng 1
+    miss."""
+    c, Session = env
+    uid, pid = _seed(Session, plot_age_days=15)
+    from app.db import Alert
+
+    s = Session()
+    today = date.today()
+    lead = today - timedelta(days=96)
+    n_days = (today - lead).days + 1
+    rows = _rows(lead, n_days)
+
+    series = []
+    for i in range(n_days):
+        d = lead + timedelta(days=i)
+        days_ago = (today - d).days
+        # Đợt TRƯỚC ngày tạo thửa (15 ngày trước) — không được tính.
+        if 28 <= days_ago <= 30:
+            series.append((0, 0, 85.0))
+        # Đợt SAU ngày tạo, chưa từng có cảnh báo nào — phải tính.
+        elif 9 <= days_ago <= 10:
+            series.append((0, 0, 85.0))
+        else:
+            series.append((0, 0, 10.0))
+
+    monkeypatch.setattr(verify.realdata, "historical_weather",
+                        lambda la, lo, st, en: rows)
+    monkeypatch.setattr(verify.hazard, "index_series",
+                        lambda m, la, lo, r: series)
+    monkeypatch.setattr(verify.hazard, "IDS", ("flood",))
+
+    out = verify.sweep_misses(s, days=90)
+    misses = s.execute(select(Alert).where(Alert.retro == 1)).scalars().all()
+    s.close()
+
+    assert out["misses_recorded"] == 1, "chỉ đợt SAU ngày tạo mới được tính là bỏ sót"
+    assert len(misses) == 1
+    # Đợt bị bỏ qua (trước ngày tạo) không được để lại DẤU VẾT nào — không
+    # phải "ghi rồi ẩn đi", mà là CHƯA BAO GIỜ được coi là bỏ sót.
+    assert (today - misses[0].created_at.date()).days in (9, 10)
+
+
+def test_radar_sweep_all_goi_sweep_misses(env, monkeypatch):
+    """Điểm A — trước đây sweep_all() không gọi verify.sweep_misses() ở bất kỳ
+    đâu, nên số 'miss' trong sổ điểm luôn bằng 0 và POD tự động 100% bất kể
+    phần mềm thật sự bỏ sót bao nhiêu lần. Giờ phải gọi — nhưng chỉ throttle
+    còn khoảng 1 lần/ngày, vì quét ngược 90 ngày × mọi thửa là lệnh nặng."""
+    c, Session = env
+    from app.services import radar as radar_svc
+
+    calls = []
+
+    def _fake_sweep_misses(db, **k):
+        calls.append(1)
+        return {"misses_recorded": 0, "plots_scanned": 0, "plots_failed": 0,
+                "plots_skipped_new": 0, "retry_queued": 0}
+
+    monkeypatch.setattr(verify, "sweep_misses", _fake_sweep_misses)
+
+    s = Session()
+    radar_svc.sweep_all(s)
+    s.close()
+    assert calls == [1], "sweep_all phải gọi verify.sweep_misses"
+
+    # Gọi lại ngay trong cùng lượt (chưa qua MISS_SWEEP_MIN_GAP_H) không được
+    # quét lại — nếu không mỗi lượt cron 6h lại quét ngược 90 ngày một lần.
+    s = Session()
+    radar_svc.sweep_all(s)
+    s.close()
+    assert calls == [1], "chưa tới hạn thì không được quét bỏ sót lần hai"
 
 
 # ---------------------------------------------------------------------------

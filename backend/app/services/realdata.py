@@ -21,13 +21,22 @@ import urllib.request
 # cho hai tình huống khác hẳn nhau — một cái tự khỏi, một cái phải đi sửa.
 #
 # QUAN SÁT THỰC TẾ, không phải đọc tài liệu: Open-Meteo trả nguyên văn "Daily
-# API request limit exceeded. Please try again tomorrow." nhưng ĐO ĐƯỢC là nó
-# phục hồi sau khoảng mười phút. Nghĩa là giới hạn thực chất theo cửa sổ trượt
-# chứ không khoá cả ngày. Vì vậy thông báo ở đây nói đúng thứ đã đo, không chép
-# lại câu "chờ tới mai" của họ — chép lại là làm người vận hành ngồi chờ vô ích
-# một ngày trong khi mười phút nữa là chạy lại được.
-_QUOTA: dict[str, float] = {}      # host -> thời điểm phát hiện cạn hạn mức
+# API request limit exceeded. Please try again tomorrow." Ghi chú cũ ở đây nói
+# "phục hồi sau khoảng mười phút" — ĐÍNH CHÍNH (đo lại 2026-09-17): chặn liên
+# tục 18 phút, 12 lần đo cách nhau 90 giây đều bị chặn, không hồi lần nào. Con
+# số "mười phút" lạc quan hơn thực tế đo được — KHÔNG hứa hẹn thời gian phục
+# hồi cụ thể trong thông báo nữa, chỉ nói sự thật đo được: đây là hạn mức, tự
+# nó có thể qua, không phải lỗi cần đi sửa code.
+_QUOTA: dict[str, float] = {}      # host -> thời điểm phát hiện cạn hạn mức gần nhất
 _QUOTA_TTL = 1800.0                # sau nửa giờ không tái diễn thì coi như đã qua
+_QUOTA_LOG: dict[str, list[float]] = {}   # host -> mọi thời điểm bị 429, để đếm 24h
+_QUOTA_LOG_WINDOW = 86400.0
+
+
+def _count_recent_429(host: str, now: float) -> int:
+    log = [t for t in _QUOTA_LOG.get(host, []) if now - t < _QUOTA_LOG_WINDOW]
+    _QUOTA_LOG[host] = log      # dọn luôn, không để list phình vô hạn
+    return len(log)
 
 
 def quota_status() -> dict:
@@ -35,13 +44,16 @@ def quota_status() -> dict:
     now = time.time()
     hit = {h: round((now - t) / 60.0, 1)
            for h, t in _QUOTA.items() if now - t < _QUOTA_TTL}
+    counts_24h = {h: _count_recent_429(h, now) for h in _QUOTA_LOG}
     return {
         "exhausted": sorted(hit),
         "minutes_since_detected": hit,
+        "count_429_24h": counts_24h,
         "message": (
             "Đang bị nguồn dữ liệu chặn vì gọi quá nhiều: " + ", ".join(sorted(hit))
-            + ". Đo thực tế cho thấy phục hồi sau khoảng mười phút, nên thường "
-              "chỉ cần chờ chứ không phải đi sửa. Nếu lặp lại liên tục khi có "
+            + ". Đây là hạn mức của nguồn miễn phí, thường tự qua — nhưng đo "
+              "thực tế 2026-09-17 cho thấy có lúc kéo dài hơn 18 phút liên tục, "
+              "không phải mười phút như từng ghi. Nếu lặp lại nhiều khi có "
               "người dùng thật thì tăng thời gian cache hoặc nâng gói Open-Meteo."
             if hit else "Chưa nguồn nào bị chặn vì quá hạn mức."),
     }
@@ -80,12 +92,13 @@ def _fetch(url: str, timeout: float):
         except urllib.error.HTTPError as e:
             if e.code == 429:
                 host = url.split("/")[2] if "//" in url else url[:40]
-                if host not in _QUOTA or time.time() - _QUOTA[host] > _QUOTA_TTL:
+                now = time.time()
+                if host not in _QUOTA or now - _QUOTA[host] > _QUOTA_TTL:
                     from app.safelog import log
                     log(f"[TerraTwin] {host}: bi chan vi qua han muc (HTTP 429). "
-                        f"Moi ket qua se bao 'chua du du lieu'. Do thuc te: "
-                        f"phuc hoi sau khoang 10 phut.")
-                _QUOTA[host] = time.time()
+                        f"Moi ket qua se bao 'chua du du lieu'.")
+                _QUOTA[host] = now
+                _QUOTA_LOG.setdefault(host, []).append(now)
             return None
         except Exception:
             return None

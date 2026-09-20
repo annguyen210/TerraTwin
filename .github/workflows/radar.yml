@@ -1,0 +1,38 @@
+name: Radar sweep
+
+# C05 — gọi POST /api/radar/sweep-all mỗi 6 giờ. Bộ hẹn giờ trong tiến trình
+# (_radar_loop, cùng chu kỳ mặc định) chỉ sống được khi dyno KHÔNG ngủ; gói
+# Render free ngủ sau ~15 phút không có request, nên cron ngoài là đường bảo
+# đảm duy nhất trước khi có thửa thật. sweep-all gọi cả sweep_all (cảnh báo
+# mới) LẪN sweep_misses (lần bỏ sót, tự throttle còn ~1 lần/ngày ở backend).
+#
+# XÁC THỰC: header X-Cron-Key = secret TERRATWIN_CRON_KEY, giống brief.yml.
+
+on:
+  schedule:
+    - cron: "15 */6 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: radar-sweep
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger radar sweep-all
+        env:
+          CRON_KEY: ${{ secrets.TERRATWIN_CRON_KEY }}
+        run: |
+          if [ -z "$CRON_KEY" ]; then
+            echo "::error::Thiếu secret TERRATWIN_CRON_KEY — đặt trong repo Settings → Secrets, cùng giá trị với biến trên terratwin-api."
+            exit 1
+          fi
+          code=$(curl -sS -o /tmp/out.txt -w "%{http_code}" \
+            --max-time 180 --retry 3 --retry-delay 15 --retry-all-errors \
+            -X POST "https://terratwin-api.onrender.com/api/radar/sweep-all" \
+            -H "X-Cron-Key: $CRON_KEY")
+          echo "HTTP $code"; cat /tmp/out.txt
+          # Thất bại thật thì BÁO ĐỎ (không nuốt lỗi — bài học keepwarm).
+          [ "$code" = "200" ] || { echo "::error::radar/sweep-all trả $code"; exit 1; }

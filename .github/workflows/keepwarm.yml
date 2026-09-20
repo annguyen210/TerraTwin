@@ -46,3 +46,17 @@ jobs:
           # Một cron keepwarm im lặng thất bại thì chẳng khác gì không có: phải
           # đỏ để còn biết service chết mà xử lý.
           exit $fail
+      - name: Cảnh báo nếu API đang degraded (hạn mức Open-Meteo)
+        run: |
+          # degraded = hết hạn mức nguồn dữ liệu miễn phí — KHÔNG phải service
+          # chết (health vẫn trả 200), nên chỉ ::warning:: chứ không fail job
+          # trước đó. Dùng ::warning:: (không phải ::error::) vì đây thường tự
+          # qua — xem realdata.quota_status().
+          body=$(curl -fsS --max-time 30 "https://terratwin-api.onrender.com/api/health" || echo "")
+          if [ -z "$body" ]; then
+            echo "::warning::Không đọc được /api/health để kiểm tra degraded."
+            exit 0
+          fi
+          if echo "$body" | grep -q '"status":"degraded"'; then
+            echo "::warning::terratwin-api đang degraded — nguồn dữ liệu miễn phí (Open-Meteo) bị chặn vì quá hạn mức. Xem trường quota trong /api/health."
+          fi

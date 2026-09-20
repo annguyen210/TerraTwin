@@ -215,34 +215,127 @@ def sweep_misses(db: Session, days: int = MISS_LOOKBACK_DAYS,
     Chỉ tính là bỏ sót khi đỉnh thực đo đạt ngưỡng NGUY HIỂM. Ngưỡng thấp hơn
     sẽ sinh ra vô số "bỏ sót" cho những đợt mưa vừa mà không ai coi là hiểm
     họa, và sổ điểm sẽ vô dụng vì quá bi quan.
+
+    Cắt cửa sổ quét theo `Plot.created_at`: một thửa vừa lưu hôm nay không thể
+    "bị bỏ sót" cho giai đoạn TRƯỚC KHI nó tồn tại trong hệ thống — phần mềm
+    không thể báo trước cho một thửa nó chưa từng biết tới. Không cắt sẽ ghi
+    hàng hồi cứu với câu "phần mềm ĐÃ KHÔNG báo trước" SAI SỰ THẬT cho đúng
+    khoảng thời gian mà phần mềm còn chưa theo dõi thửa đó.
     """
     now = _now()
     end = (now - timedelta(days=SETTLE_DAYS)).replace(
         hour=0, minute=0, second=0, microsecond=0)
-    start = end - timedelta(days=days)
+    global_start = end - timedelta(days=days)
 
     plots = db.execute(select(Plot).limit(max_plots)).scalars().all()
-    found, scanned, failed = 0, 0, 0
+    found, scanned, failed, skipped_new = 0, 0, 0, 0
+    retry_ids: list[int] = []
 
     for p in plots:
-        lead = start - timedelta(days=WARMUP_DAYS)
-        rows = realdata.historical_weather(
-            p.lat, p.lon, lead.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d"))
-        if not rows:
+        added, outcome = _scan_plot_misses(db, p, global_start, end, now)
+        found += added
+        if outcome == "scanned":
+            scanned += 1
+        elif outcome == "failed":
             failed += 1
-            continue
-        scanned += 1
-
-        for module_id in hazard.IDS:
-            series = hazard.index_series(module_id, p.lat, p.lon, rows)
-            if not series or len(series) != len(rows):
-                continue
-            found += _record_misses(db, p, module_id, rows, series, start, now)
+            if realdata.quota_status()["exhausted"]:
+                retry_ids.append(p.id)
+        elif outcome == "too_new":
+            skipped_new += 1
 
     db.commit()
+    if retry_ids:
+        _queue_retry(retry_ids)
     return {"plots_scanned": scanned, "plots_failed": failed,
+            "plots_skipped_new": skipped_new,
             "misses_recorded": found, "lookback_days": days,
-            "threshold": hazard.WARNING}
+            "threshold": hazard.WARNING, "retry_queued": len(retry_ids)}
+
+
+def _scan_plot_misses(db: Session, p: Plot, global_start: datetime,
+                      end: datetime, now: datetime) -> tuple[int, str]:
+    """Quét bỏ sót cho MỘT thửa, cắt theo `p.created_at`. Trả (số bỏ sót ghi
+    được, trạng thái: 'scanned' | 'failed' | 'too_new')."""
+    created = p.created_at
+    p_start = max(global_start, created) if created else global_start
+    if p_start >= end:
+        # Thửa mới hơn cả biên an toàn (SETTLE_DAYS) — chưa có gì để chấm.
+        return 0, "too_new"
+
+    lead = p_start - timedelta(days=WARMUP_DAYS)
+    rows = realdata.historical_weather(
+        p.lat, p.lon, lead.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d"))
+    if not rows:
+        return 0, "failed"
+
+    added = 0
+    for module_id in hazard.IDS:
+        series = hazard.index_series(module_id, p.lat, p.lon, rows)
+        if not series or len(series) != len(rows):
+            continue
+        added += _record_misses(db, p, module_id, rows, series, p_start, now)
+    return added, "scanned"
+
+
+# ---------------------------------------------------------------------------
+# THỬ LẠI SAU 429 — một thửa bị chặn hạn mức không nên chờ tới lượt quét sau
+# (tối đa ~1 lần/ngày, xem radar._maybe_sweep_misses) mới có cơ hội thứ hai.
+# Đo thực tế Open-Meteo Archive: 429 liên tục 18 phút không hồi phục lần nào
+# trong 12 lần đo cách nhau 90 giây — lạc quan hơn ghi chú "~10 phút" cũ ở
+# realdata.py. Đặt biên an toàn RỘNG hơn số đo được, không phải bằng số đo được.
+# ---------------------------------------------------------------------------
+
+_RETRY_KEY = "radar:retry_plots"
+RETRY_DELAY_MIN = 25
+
+
+def _queue_retry(plot_ids: list[int]) -> None:
+    from app.services import cache_store
+    not_before = (_now() + timedelta(minutes=RETRY_DELAY_MIN)).isoformat()
+    pending = cache_store.get(_RETRY_KEY) or {}
+    for pid in plot_ids:
+        pending[str(pid)] = not_before
+    cache_store.put(_RETRY_KEY, pending, ttl_seconds=6 * 3600)
+
+
+def retry_due_misses(db: Session) -> dict:
+    """Thử lại MỘT LẦN các thửa bị bỏ qua vì 429 lần quét trước, nếu đã qua
+    thời gian chờ. Xử lý xong (thành công hay vẫn hỏng) đều bỏ khỏi hàng đợi —
+    "một lần" nghĩa là một lần, không phải vòng lặp vô hạn cho thửa hỏng vĩnh viễn.
+    """
+    from app.services import cache_store
+
+    pending = cache_store.get(_RETRY_KEY) or {}
+    if not pending:
+        return {"retried": 0, "pending": 0}
+
+    now = _now()
+    due_ids = [int(pid) for pid, nb in pending.items()
+              if datetime.fromisoformat(nb) <= now]
+    if not due_ids:
+        return {"retried": 0, "pending": len(pending)}
+
+    end = (now - timedelta(days=SETTLE_DAYS)).replace(
+        hour=0, minute=0, second=0, microsecond=0)
+    global_start = end - timedelta(days=MISS_LOOKBACK_DAYS)
+
+    plots = db.execute(select(Plot).where(Plot.id.in_(due_ids))).scalars().all()
+    found, recovered, still_failed = 0, 0, 0
+    for p in plots:
+        added, outcome = _scan_plot_misses(db, p, global_start, end, now)
+        found += added
+        if outcome == "failed":
+            still_failed += 1
+        else:
+            recovered += 1
+    db.commit()
+
+    remaining = {pid: nb for pid, nb in pending.items() if int(pid) not in due_ids}
+    cache_store.put(_RETRY_KEY, remaining, ttl_seconds=6 * 3600)
+
+    return {"retried": len(due_ids), "recovered": recovered,
+            "still_failed": still_failed, "misses_recorded": found,
+            "pending": len(remaining)}
 
 
 def _record_misses(db: Session, p: Plot, module_id: str, rows, series,
