@@ -14,6 +14,7 @@ class ParametricInsuranceModule(TwinModule):
     # sách cảnh báo là báo hai lần cùng một sự việc.
     threat = False
     data_sources = ["Open-Meteo: chỉ số hạn (mưa & ET₀)"]
+    data_sources_en = ["Open-Meteo: drought index (rain & ET₀)"]
     users = ["Nông dân", "Công ty bảo hiểm"]
     description = "Tự chi trả khi hạn/lũ vượt ngưỡng đo bằng vệ tinh."
 
@@ -49,7 +50,7 @@ class ParametricInsuranceModule(TwinModule):
             risk_level=lvl, headline=head, detail=detail, recommendation=rec,
             confidence=0.75 if real else 0.6, is_real=real,
             metrics={"chi_so": idx, "nguong": threshold, "vuot_nguong": over},
-            data_sources=["Open-Meteo (thật)"] if real else self.data_sources)
+            data_sources=[tr("Open-Meteo (thật)", "Open-Meteo (real)")] if real else self.disp_data_sources())
 
 
 class SolarModule(TwinModule):
@@ -58,6 +59,7 @@ class SolarModule(TwinModule):
     # tuyệt đối không phải mối đe doạ với mảnh đất.
     threat = False
     data_sources = ["NASA POWER: bức xạ mặt trời"]
+    data_sources_en = ["NASA POWER: solar irradiance"]
     users = ["Nhà đầu tư điện mặt trời", "Hộ lắp mái"]
     description = "Bức xạ/che khuất của mái/khu đất → sản lượng dự kiến."
 
@@ -79,4 +81,4 @@ class SolarModule(TwinModule):
             risk_level=lvl, headline=head, detail=detail, recommendation=rec,
             confidence=0.8 if real else 0.6, is_real=real,
             metrics={"buc_xa_kwh_m2_ngay": rad, "san_luong_kwh_kwp_nam": annual},
-            data_sources=["NASA POWER (thật)"] if real else self.data_sources)
+            data_sources=[tr("NASA POWER (thật)", "NASA POWER (real)")] if real else self.disp_data_sources())

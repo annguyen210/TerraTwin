@@ -443,5 +443,9 @@ def change_between(lat: float, lon: float, index: str,
 
 
 def source_note(index: str) -> str:
-    return (f"Sentinel-2 L2A ({index}) qua Copernicus Data Space, ô "
-            f"600×600 m quanh thửa, đã lọc mây bằng băng SCL.")
+    from app.services.reqlang import tr
+    return tr(
+        f"Sentinel-2 L2A ({index}) qua Copernicus Data Space, ô "
+        f"600×600 m quanh thửa, đã lọc mây bằng băng SCL.",
+        f"Sentinel-2 L2A ({index}) via Copernicus Data Space, 600×600 m tile "
+        f"around the plot, cloud-filtered using the SCL band.")

@@ -48,7 +48,7 @@ def need_data_assessment(module, loc: Location, needs: str, will_do: str,
                   f"{will_do}. No imagery yet, so no numbers are given, to avoid error."),
         recommendation=next_step or tr("Đang trong lộ trình tích hợp nguồn dữ liệu.",
                                        "Data-source integration is on the roadmap."),
-        confidence=None, data_sources=module.data_sources,
+        confidence=None, data_sources=module.disp_data_sources(),
     )
 
 
@@ -72,7 +72,7 @@ def assessment_from_series(module, loc: Location, series_data, unit: str,
         module_id=module.id, module_name=module.disp_name(), location=loc, status="ok",
         risk_level=lvl, headline=head, detail=detail, recommendation=rec,
         confidence=confidence, confidence_low=lo, confidence_high=hi, is_real=is_real,
-        forecast=fc, data_sources=data_sources or module.data_sources,
+        forecast=fc, data_sources=data_sources or module.disp_data_sources(),
     )
 
 

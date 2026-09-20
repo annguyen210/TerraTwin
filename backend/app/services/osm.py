@@ -27,6 +27,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+from app.services.reqlang import tr
+
 # Overpass công cộng chỉ cho MỖI IP 2 slot chạy cùng lúc; quá thì trả 429 hoặc
 # 504. Trần chung của phần mềm là 6 lượt gọi ra ngoài, nên nếu không có cổng
 # riêng cho OSM thì chính phần mềm tự làm hỏng lời gọi của mình — đúng lỗi đã
@@ -197,19 +199,27 @@ out geom;"""
     # được xếp "đầy đủ" — trong khi 0 nhà chính là bằng chứng rõ nhất rằng chưa
     # ai vẽ nhà ở đó.
     if buildings == 0:
-        completeness, comp_note = "thưa", (
+        completeness, comp_note = tr("thưa", "sparse"), tr(
             "OSM chưa vẽ công trình nào ở đây. Gần như chắc chắn là CHƯA AI VẼ "
             "chứ không phải thực địa trống — không được đọc con số này như bằng "
-            "chứng vắng công trình.")
+            "chứng vắng công trình.",
+            "OSM has no buildings mapped here. This almost certainly means "
+            "NO ONE HAS MAPPED IT YET, not that the ground is empty — don't "
+            "read this number as evidence of no buildings.")
     elif buildings >= 200 and roads_m >= 10_000:
-        completeness, comp_note = "tốt", "OSM ở đây được vẽ khá đầy đủ."
+        completeness, comp_note = tr("tốt", "good"), tr(
+            "OSM ở đây được vẽ khá đầy đủ.", "OSM coverage here is fairly complete.")
     elif buildings >= 20:
-        completeness, comp_note = "vừa", (
-            "OSM ở đây vẽ ở mức trung bình; số nhà thực tế có thể cao hơn.")
+        completeness, comp_note = tr("vừa", "moderate"), tr(
+            "OSM ở đây vẽ ở mức trung bình; số nhà thực tế có thể cao hơn.",
+            "OSM coverage here is moderate; the real building count may be higher.")
     else:
-        completeness, comp_note = "thưa", (
+        completeness, comp_note = tr("thưa", "sparse"), tr(
             "OSM ở đây rất thưa. Con số thấp có thể do CHƯA AI VẼ chứ không phải "
-            "do thực địa trống — đừng đọc là bằng chứng vắng công trình.")
+            "do thực địa trống — đừng đọc là bằng chứng vắng công trình.",
+            "OSM coverage here is very sparse. A low count may mean NO ONE HAS "
+            "MAPPED IT YET, not that the ground is empty — don't read it as "
+            "evidence of no buildings.")
 
     return {
         "radius_m": radius_m,
@@ -228,7 +238,8 @@ out geom;"""
         "amenities": amenities,
         "completeness": completeness,
         "completeness_note": comp_note,
-        "source": "OpenStreetMap qua Overpass API (dữ liệu mở, cộng đồng đóng góp)",
+        "source": tr("OpenStreetMap qua Overpass API (dữ liệu mở, cộng đồng đóng góp)",
+                     "OpenStreetMap via Overpass API (open data, community-contributed)"),
     }
 
 
@@ -260,7 +271,7 @@ out center;"""
         km = ds._haversine_km(lat, lon, c["lat"], c["lon"])
         tags = el.get("tags") or {}
         out.append({"lat": c["lat"], "lon": c["lon"], "km": round(km, 2),
-                    "name": tags.get("name") or "(không tên)",
+                    "name": tags.get("name") or tr("(không tên)", "(unnamed)"),
                     "tags": {k: v for k, v in tags.items()
                              if k in ("highway", "landuse", "man_made",
                                       "industrial", "amenity", "name")}})

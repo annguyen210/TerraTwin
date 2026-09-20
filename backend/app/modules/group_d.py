@@ -63,6 +63,9 @@ class UrbanModule(TwinModule):
     data_sources = ["OpenStreetMap: nhà, đường, loại đất sử dụng",
                     "Open-Meteo: mưa dự báo 7 ngày tới", "Cao độ DEM",
                     "Sentinel-2 NDVI cho mảng xanh (khi có khóa)"]
+    data_sources_en = ["OpenStreetMap: buildings, roads, land use",
+                       "Open-Meteo: 7-day rain forecast", "DEM elevation",
+                       "Sentinel-2 NDVI for green space (when key is set)"]
     users = ["Quản lý đô thị", "Nhà quy hoạch", "Người mua nhà trong đô thị"]
     description = "Bê tông hoá làm nước chảy tràn tăng bao nhiêu, mảng xanh còn bao nhiêu."
 
@@ -114,7 +117,7 @@ class UrbanModule(TwinModule):
                       f" — for {rain} mm of rain, runoff is "
                       f"{q_now:.0f} mm vs {q_natural:.0f} mm if undeveloped"
                       f"{f' ({ratio:.1f}× more)' if ratio else ''}")
-                   if rain > 5 else tr(" — no significant rain forecast in 7 days to compare",
+                   if rain > 5 else tr(" — không có mưa đáng kể dự báo trong 7 ngày để so sánh",
                                        " — no significant rain forecast in 7 days to compare")))
 
         if lvl == "danger":
@@ -136,12 +139,19 @@ class UrbanModule(TwinModule):
         return Assessment(
             module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=lvl, headline=head, score=round(score, 1),
-            detail=(f"{env['buildings']} công trình · đường xe cơ giới "
-                    f"{env['road_density_km_per_km2']} km/km² · mảng xanh/nông "
-                    f"nghiệp {green_pct}% · nền {elev} m. Dòng chảy tính bằng "
-                    f"phương pháp SCS Curve Number (USDA TR-55), CN pha trộn "
-                    f"{cn_now:.0f}. Độ đầy đủ dữ liệu OSM: {env['completeness']} — "
-                    f"{env['completeness_note']}"),
+            detail=tr(
+                f"{env['buildings']} công trình · đường xe cơ giới "
+                f"{env['road_density_km_per_km2']} km/km² · mảng xanh/nông "
+                f"nghiệp {green_pct}% · nền {elev} m. Dòng chảy tính bằng "
+                f"phương pháp SCS Curve Number (USDA TR-55), CN pha trộn "
+                f"{cn_now:.0f}. Độ đầy đủ dữ liệu OSM: {env['completeness']} — "
+                f"{env['completeness_note']}",
+                f"{env['buildings']} buildings · road density "
+                f"{env['road_density_km_per_km2']} km/km² · green/farm "
+                f"space {green_pct}% · ground {elev} m. Runoff computed with the "
+                f"SCS Curve Number method (USDA TR-55), blended CN "
+                f"{cn_now:.0f}. OSM data completeness: {env['completeness']} — "
+                f"{env['completeness_note']}"),
             recommendation=rec, confidence=0.62, confidence_low=0.5,
             confidence_high=0.72, is_real=True,
             metrics={"be_tong_hoa_pct": env["built_pct"],
@@ -152,7 +162,8 @@ class UrbanModule(TwinModule):
                      "chay_tran_tu_nhien_mm": round(q_natural, 1),
                      "cao_do_m": elev},
             data_sources=[env["source"],
-                          "Open-Meteo: mưa dự báo 7 ngày tới" if has_rain else "Mưa: chưa lấy được",
+                          tr("Open-Meteo: mưa dự báo 7 ngày tới", "Open-Meteo: 7-day rain forecast")
+                          if has_rain else tr("Mưa: chưa lấy được", "Rain: not yet available"),
                           "SCS Curve Number (USDA-NRCS TR-55)"])
 
 
@@ -173,6 +184,9 @@ class MiningModule(TwinModule):
     data_sources = ["OpenStreetMap: mỏ, khu công nghiệp, công trường",
                     "DEM: độ dốc thật 4 hướng", "Open-Meteo: mưa dự báo 7 ngày tới",
                     "Sentinel-2: đất trần mở rộng (khi có khóa)"]
+    data_sources_en = ["OpenStreetMap: mines, industrial sites, worksites",
+                       "DEM: real 4-direction slope", "Open-Meteo: 7-day rain forecast",
+                       "Sentinel-2: bare-ground expansion (when key is set)"]
     users = ["Chủ mỏ", "Nhà thầu hạ tầng", "Cơ quan an toàn lao động",
              "Dân cư quanh mỏ"]
     description = "Nguy cơ mất ổn định mái dốc trên đất đã bị đào bới, sau mưa."
@@ -263,17 +277,27 @@ class MiningModule(TwinModule):
                 rec = tr("Điều kiện hiện tại chưa đến ngưỡng cảnh báo mái dốc.",
                          "Current conditions are below the slope-alert threshold.")
 
-        detail = (f"Độ dốc {'THẬT ' if slope_real else 'ước lượng '}{slope}° · "
-                  f"nền {elev} m · {len(sites)} khu khai thác/công nghiệp trong "
-                  f"15 km theo OSM. ")
+        detail = tr(
+            f"Độ dốc {'THẬT ' if slope_real else 'ước lượng '}{slope}° · "
+            f"nền {elev} m · {len(sites)} khu khai thác/công nghiệp trong "
+            f"15 km theo OSM. ",
+            f"Slope {'REAL ' if slope_real else 'estimated '}{slope}° · "
+            f"ground {elev} m · {len(sites)} mining/industrial sites within "
+            f"15 km per OSM. ")
         if bare is not None:
-            detail += (f"Ảnh Sentinel: thảm thực vật đổi {bare['delta']:+.3f} so "
-                       f"cùng kỳ năm trước ({bare['verdict']}). ")
+            detail += tr(f"Ảnh Sentinel: thảm thực vật đổi {bare['delta']:+.3f} so "
+                        f"cùng kỳ năm trước ({bare['verdict']}). ",
+                        f"Sentinel imagery: vegetation changed {bare['delta']:+.3f} "
+                        f"vs the same period last year ({bare['verdict']}). ")
         else:
-            detail += ("Chưa ghép được ảnh Sentinel nên chưa biết diện đất trần "
-                       "có đang mở rộng hay không. ")
-        detail += ("OSM chỉ có những mỏ đã được cộng đồng vẽ; mỏ nhỏ và công "
-                   "trường tạm thường chưa có trên bản đồ.")
+            detail += tr("Chưa ghép được ảnh Sentinel nên chưa biết diện đất trần "
+                        "có đang mở rộng hay không. ",
+                        "No Sentinel imagery yet, so it's unknown whether bare "
+                        "ground is expanding. ")
+        detail += tr("OSM chỉ có những mỏ đã được cộng đồng vẽ; mỏ nhỏ và công "
+                     "trường tạm thường chưa có trên bản đồ.",
+                     "OSM only has mines the community has mapped; small mines "
+                     "and temporary worksites are often missing from the map.")
 
         metrics = {"do_doc_deg": slope, "mua_7ngay_mm": rain,
                    "cao_do_m": elev, "so_khu_khai_thac_15km": float(len(sites))}
@@ -287,9 +311,10 @@ class MiningModule(TwinModule):
             risk_level=lvl, headline=head, score=round(score, 1), detail=detail,
             recommendation=rec, confidence=0.6, confidence_low=0.48,
             confidence_high=0.7, is_real=True, metrics=metrics,
-            data_sources=["OpenStreetMap: mỏ & khu công nghiệp",
-                          "DEM: độ dốc 4 hướng", "Open-Meteo: mưa dự báo 7 ngày tới"]
-            + (["Sentinel-2: biến động thảm thực vật"] if bare else []))
+            data_sources=[tr("OpenStreetMap: mỏ & khu công nghiệp", "OpenStreetMap: mines & industrial sites"),
+                          tr("DEM: độ dốc 4 hướng", "DEM: 4-direction slope"),
+                          tr("Open-Meteo: mưa dự báo 7 ngày tới", "Open-Meteo: 7-day rain forecast")]
+            + ([tr("Sentinel-2: biến động thảm thực vật", "Sentinel-2: vegetation change")] if bare else []))
 
 
 # ---------------------------------------------------------------- SUP-12
@@ -316,6 +341,9 @@ class SupplyChainModule(TwinModule):
     data_sources = ["Open-Meteo: dự báo 7 ngày trên lưới vùng thu mua",
                     "Open-Meteo ERA5: lịch sử cả vụ cho hồ sơ truy xuất",
                     "OpenStreetMap: đường trục & chợ đầu mối"]
+    data_sources_en = ["Open-Meteo: 7-day forecast on the sourcing-area grid",
+                       "Open-Meteo ERA5: season history for traceability records",
+                       "OpenStreetMap: trunk roads & wholesale markets"]
     users = ["Nhà máy chế biến", "Hợp tác xã", "Thương lái", "DN xuất khẩu"]
     description = "Bao nhiêu phần vùng thu mua đang gặp rủi ro, và hồ sơ truy xuất nguồn gốc."
 
@@ -382,7 +410,7 @@ class SupplyChainModule(TwinModule):
 
         worst_id, worst_n = max(at_risk.items(), key=lambda kv: kv[1])
         pct = round(100.0 * worst_n / counted, 1)
-        names = {"flood": "lũ/ngập", "drought": "hạn"}
+        names = {"flood": tr("lũ/ngập", "flood"), "drought": tr("hạn", "drought")}
 
         lvl = "danger" if pct >= 50 else "warning" if pct >= 20 else "safe"
 
@@ -392,21 +420,32 @@ class SupplyChainModule(TwinModule):
                            radius_m=30_000.0, limit=1)
         road_km = road[0]["km"] if road else None
 
-        head = (f"{pct}% vùng thu mua bán kính {self.RADIUS_KM:.0f} km đang ở mức "
-                f"cảnh báo {names[worst_id]}"
+        head = (tr(f"{pct}% vùng thu mua bán kính {self.RADIUS_KM:.0f} km đang ở mức "
+                   f"cảnh báo {names[worst_id]}",
+                   f"{pct}% of the {self.RADIUS_KM:.0f} km sourcing area is at "
+                   f"{names[worst_id]} alert level")
                 if pct > 0 else
-                f"Cả {counted} điểm trong vùng thu mua đều an toàn 7 ngày tới")
+                tr(f"Cả {counted} điểm trong vùng thu mua đều an toàn 7 ngày tới",
+                   f"All {counted} points in the sourcing area are safe for the next 7 days"))
 
         if lvl == "danger":
-            rec = (f"Quá nửa vùng nguyên liệu gặp {names[worst_id]}. Cân nhắc "
-                   "chốt hợp đồng nguồn thay thế ngoài vùng, giãn lịch giao và "
-                   "báo trước cho khách hàng cuối — báo sớm rẻ hơn bồi thường muộn.")
+            rec = tr(f"Quá nửa vùng nguyên liệu gặp {names[worst_id]}. Cân nhắc "
+                    "chốt hợp đồng nguồn thay thế ngoài vùng, giãn lịch giao và "
+                    "báo trước cho khách hàng cuối — báo sớm rẻ hơn bồi thường muộn.",
+                    f"Over half the sourcing area is hit by {names[worst_id]}. Consider "
+                    "locking in a backup supplier outside the area, stretching delivery "
+                    "schedules, and warning end customers early — early warning is "
+                    "cheaper than late compensation.")
         elif lvl == "warning":
-            rec = (f"Một phần vùng nguyên liệu đang gặp {names[worst_id]}. Theo "
-                   "dõi sát các hộ ở vùng trũng/khô nhất và chuẩn bị phương án "
-                   "thu mua bù.")
+            rec = tr(f"Một phần vùng nguyên liệu đang gặp {names[worst_id]}. Theo "
+                    "dõi sát các hộ ở vùng trũng/khô nhất và chuẩn bị phương án "
+                    "thu mua bù.",
+                    f"Part of the sourcing area is hit by {names[worst_id]}. Watch "
+                    "the lowest-lying/driest growers closely and prepare a backup "
+                    "sourcing plan.")
         else:
-            rec = "Nguồn cung 7 ngày tới chưa thấy rủi ro thời tiết đáng kể."
+            rec = tr("Nguồn cung 7 ngày tới chưa thấy rủi ro thời tiết đáng kể.",
+                     "No significant weather risk to supply over the next 7 days.")
 
         metrics = {
             "diem_kiem_tra": float(counted),
@@ -418,23 +457,33 @@ class SupplyChainModule(TwinModule):
         if road_km is not None:
             metrics["duong_truc_gan_nhat_km"] = road_km
 
-        detail = (f"Chạy mô hình hiểm họa trên lưới {self.SIDE}×{self.SIDE} phủ "
-                  f"bán kính {self.RADIUS_KM:.0f} km ({counted} điểm có dữ liệu). "
-                  f"Lũ: {at_risk['flood']}/{counted} điểm · hạn: "
-                  f"{at_risk['drought']}/{counted} điểm.")
+        detail = tr(
+            f"Chạy mô hình hiểm họa trên lưới {self.SIDE}×{self.SIDE} phủ "
+            f"bán kính {self.RADIUS_KM:.0f} km ({counted} điểm có dữ liệu). "
+            f"Lũ: {at_risk['flood']}/{counted} điểm · hạn: "
+            f"{at_risk['drought']}/{counted} điểm.",
+            f"Ran the hazard model on a {self.SIDE}×{self.SIDE} grid covering a "
+            f"{self.RADIUS_KM:.0f} km radius ({counted} points with data). "
+            f"Flood: {at_risk['flood']}/{counted} points · drought: "
+            f"{at_risk['drought']}/{counted} points.")
         if road_km is not None:
-            detail += f" Đường trục gần nhất cách {road_km} km."
-        detail += (" Đây là rủi ro THỜI TIẾT của vùng nguyên liệu, chưa tính giá "
-                   "thị trường, hợp đồng hay năng lực kho vận — những thứ phần "
-                   "mềm không có dữ liệu.")
+            detail += tr(f" Đường trục gần nhất cách {road_km} km.",
+                        f" Nearest trunk road is {road_km} km away.")
+        detail += tr(" Đây là rủi ro THỜI TIẾT của vùng nguyên liệu, chưa tính giá "
+                     "thị trường, hợp đồng hay năng lực kho vận — những thứ phần "
+                     "mềm không có dữ liệu.",
+                     " This is WEATHER risk for the sourcing area only — it doesn't "
+                     "account for market prices, contracts, or logistics capacity, "
+                     "which the app has no data on.")
 
         return Assessment(
             module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=lvl, headline=head, score=pct, detail=detail,
             recommendation=rec, confidence=0.66, confidence_low=0.55,
             confidence_high=0.75, is_real=True, metrics=metrics,
-            data_sources=["Open-Meteo: dự báo 7 ngày trên lưới vùng thu mua"]
-            + (["OpenStreetMap: đường trục"] if road_km is not None else []))
+            data_sources=[tr("Open-Meteo: dự báo 7 ngày trên lưới vùng thu mua",
+                             "Open-Meteo: 7-day forecast on the sourcing-area grid")]
+            + ([tr("OpenStreetMap: đường trục", "OpenStreetMap: trunk road")] if road_km is not None else []))
 
 
 def provenance(loc: Location, start: str, end: str,

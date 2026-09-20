@@ -261,7 +261,7 @@ def _off_site(module, loc: Location, reg: dict) -> Assessment:
     """
     return Assessment(
         module_id=getattr(module, "id", "?"),
-        module_name=getattr(module, "name", "?"),
+        module_name=module.disp_name() if hasattr(module, "disp_name") else getattr(module, "name", "?"),
         location=loc, status="out_of_scope", risk_level="unknown",
         is_real=False,
         headline=(reqlang.tr(
@@ -278,7 +278,7 @@ def _off_site(module, loc: Location, reg: dict) -> Assessment:
                         reqlang.tr("TerraTwin hiệu chuẩn theo khí hậu và địa hình Việt Nam.",
                                    "TerraTwin is calibrated to Vietnam's climate and terrain.")),
         confidence=None,
-        data_sources=["Cao độ DEM (Open-Meteo)"]
+        data_sources=[reqlang.tr("Cao độ DEM (Open-Meteo)", "DEM elevation (Open-Meteo)")]
         + (["Nominatim / OpenStreetMap"] if reg.get("country") else []),
     )
 

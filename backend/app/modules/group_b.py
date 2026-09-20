@@ -15,6 +15,8 @@ class FloodModule(TwinModule):
     id = "flood"; name = "Cảnh báo lũ/ngập sớm"; name_en = "Early flood warning"; group = "B"; icon = "🌊"; status = "active"
     data_sources = ["Open-Meteo: lượng mưa", "Cao độ DEM (Open-Meteo)",
                     "GloFAS: lưu lượng sông (Open-Meteo Flood API)"]
+    data_sources_en = ["Open-Meteo: rainfall", "DEM elevation (Open-Meteo)",
+                       "GloFAS: river discharge (Open-Meteo Flood API)"]
     users = ["Người dân", "Chính quyền", "Cứu hộ"]
     description = "Vùng dân cư nào sắp ngập, sâu bao nhiêu, khi nào."
 
@@ -63,11 +65,13 @@ class FloodModule(TwinModule):
                        f"{river['ratio']}× climatic mean ({river['mean_m3s']} m³/s).")
         detail = base + " " + hazard.scale_note(real, calibrated)
 
-        src = ["Open-Meteo: lượng mưa (thật)", f"Cao độ {elev} m (Open-Meteo)"] if real else list(self.data_sources)
+        src = [tr("Open-Meteo: lượng mưa (thật)", "Open-Meteo: rainfall (real)"),
+               tr(f"Cao độ {elev} m (Open-Meteo)", f"Elevation {elev} m (Open-Meteo)")] \
+            if real else list(self.disp_data_sources())
         metrics: dict[str, float] = {}
         conf = 0.75 if real else 0.6
         if river:
-            src.append("GloFAS: lưu lượng sông (thật)")
+            src.append(tr("GloFAS: lưu lượng sông (thật)", "GloFAS: river discharge (real)"))
             metrics = {"luu_luong_hien_tai_m3s": river["now_m3s"],
                        "luu_luong_dinh_m3s": river["peak_m3s"],
                        "luu_luong_tb_m3s": river["mean_m3s"],
@@ -75,7 +79,7 @@ class FloodModule(TwinModule):
             # Hai nguồn độc lập cùng chỉ một hướng ⇒ tin cậy hơn.
             if real:
                 conf = min(0.88, conf + 0.08)
-        a = assessment_from_series(self, loc, s, "điểm", 40, 70, texts, detail,
+        a = assessment_from_series(self, loc, s, tr("điểm", "pts"), 40, 70, texts, detail,
                                    confidence=conf, is_real=real, data_sources=src)
         a.metrics = metrics
         return a
@@ -84,6 +88,7 @@ class FloodModule(TwinModule):
 class LandslideModule(TwinModule):
     id = "landslide"; name = "Cảnh báo sạt lở"; name_en = "Landslide alert"; group = "B"; icon = "⛰️"; status = "active"
     data_sources = ["Open-Meteo: lượng mưa", "Độ dốc (DEM ước lượng)"]
+    data_sources_en = ["Open-Meteo: rainfall", "Slope (DEM estimated)"]
     users = ["Dân miền núi", "Chính quyền"]
     description = "Vùng núi có nguy cơ sạt lở sau mưa lớn."
 
@@ -116,8 +121,9 @@ class LandslideModule(TwinModule):
                   + tr(" Sạt lở cần địa hình dốc — đồng bằng phẳng gần như không rủi ro. ",
                        " Landslides need steep terrain — flat deltas have almost no risk. ")
                   + hazard.scale_note(real, calibrated))
-        src = ["Open-Meteo: lượng mưa (thật)", slope_txt] if real else self.data_sources
-        return assessment_from_series(self, loc, s, "điểm", 40, 70, texts, detail,
+        src = [tr("Open-Meteo: lượng mưa (thật)", "Open-Meteo: rainfall (real)"), slope_txt] \
+            if real else self.disp_data_sources()
+        return assessment_from_series(self, loc, s, tr("điểm", "pts"), 40, 70, texts, detail,
                                       confidence=0.7 if real else 0.6, is_real=real, data_sources=src)
 
 
@@ -136,6 +142,7 @@ class StormDamageModule(TwinModule):
     # khi thấy bất cứ thứ gì. Chạy riêng khi được yêu cầu, kết quả có cache.
     heavy = True
     data_sources = ["Sentinel-2 NDVI hai kỳ (Copernicus)"]
+    data_sources_en = ["Sentinel-2 NDVI two-date pair (Copernicus)"]
     users = ["Cứu trợ", "Bảo hiểm", "Nhà nước"]
     description = "So ảnh hai kỳ để đo mất thảm thực vật đột ngột."
 
@@ -144,9 +151,12 @@ class StormDamageModule(TwinModule):
         if r is None:
             return need_data_assessment(
                 self, loc,
-                needs=_needs_sentinel("ảnh Sentinel-2 hai kỳ trước & sau"),
-                will_do="đo mức mất thảm thực vật giữa hai kỳ để làm căn cứ cứu trợ "
-                        "và hồ sơ bồi thường",
+                needs=_needs_sentinel(tr("ảnh Sentinel-2 hai kỳ trước & sau",
+                                         "before-and-after Sentinel-2 image pair")),
+                will_do=tr("đo mức mất thảm thực vật giữa hai kỳ để làm căn cứ cứu trợ "
+                           "và hồ sơ bồi thường",
+                           "measure vegetation loss between the two dates as evidence "
+                           "for relief and compensation claims"),
                 next_step=_next_sentinel())
 
         head = (f"{r['verdict'].capitalize()} — NDVI {r['before']['mean']} → "
@@ -164,8 +174,10 @@ class StormDamageModule(TwinModule):
         return Assessment(
             module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=r["level"], headline=head,
-            detail=(f"Trước: {r['before_cover']}. Sau: {r['after_cover']}. "
-                    f"{r['method']} {r['caveat']}"),
+            detail=tr(f"Trước: {r['before_cover']}. Sau: {r['after_cover']}. "
+                      f"{r['method']} {r['caveat']}",
+                      f"Before: {r['before_cover']}. After: {r['after_cover']}. "
+                      f"{r['method']} {r['caveat']}"),
             recommendation=rec, confidence=0.72, confidence_low=0.62,
             confidence_high=0.8, is_real=True,
             metrics={"ndvi_truoc": r["before"]["mean"],
@@ -181,6 +193,7 @@ class LandRiskModule(TwinModule):
     # chứ không phải cảnh báo — nền đất không đổi từ hôm qua.
     threat = False
     data_sources = ["Cao độ (Open-Meteo)", "Open-Meteo: lượng mưa", "Khoảng cách biển"]
+    data_sources_en = ["Elevation (Open-Meteo)", "Open-Meteo: rainfall", "Distance to coast"]
     users = ["Người mua nhà đất", "Môi giới", "Ngân hàng"]
     description = "Nhập vị trí → lô này có ngập/sạt lở không, an toàn không."
 
@@ -213,7 +226,7 @@ class LandRiskModule(TwinModule):
             module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=lvl, headline=head, score=float(score), detail=detail,
             recommendation=rec, confidence=0.68, confidence_low=0.55, confidence_high=0.78,
-            is_real=bool(has_rain and slope_real), metrics=metrics, data_sources=self.data_sources)
+            is_real=bool(has_rain and slope_real), metrics=metrics, data_sources=self.disp_data_sources())
 
 
 class IllegalBuildModule(TwinModule):
@@ -231,6 +244,7 @@ class IllegalBuildModule(TwinModule):
     # khi thấy bất cứ thứ gì. Chạy riêng khi được yêu cầu, kết quả có cache.
     heavy = True
     data_sources = ["Sentinel-2 NDBI + NDVI, hai kỳ cách nhau 1 năm (Copernicus)"]
+    data_sources_en = ["Sentinel-2 NDBI + NDVI, two dates one year apart (Copernicus)"]
     users = ["Quản lý đô thị", "Địa chính"]
     description = "Bề mặt cứng mới xuất hiện so với cùng kỳ năm trước."
 
@@ -239,9 +253,12 @@ class IllegalBuildModule(TwinModule):
         if r is None:
             return need_data_assessment(
                 self, loc,
-                needs=_needs_sentinel("ảnh Sentinel-2 hai kỳ cách nhau một năm"),
-                will_do="đối chiếu NDBI và NDVI giữa hai kỳ để chỉ ra chỗ có bề mặt "
-                        "cứng mới, làm đầu mối đi kiểm tra hồ sơ",
+                needs=_needs_sentinel(tr("ảnh Sentinel-2 hai kỳ cách nhau một năm",
+                                         "Sentinel-2 images one year apart")),
+                will_do=tr("đối chiếu NDBI và NDVI giữa hai kỳ để chỉ ra chỗ có bề mặt "
+                           "cứng mới, làm đầu mối đi kiểm tra hồ sơ",
+                           "compare NDBI and NDVI between the two dates to flag new "
+                           "hard surfaces, as a lead for a records check"),
                 next_step=_next_sentinel())
 
         head = (f"{r['verdict'].capitalize()} — NDBI {r['ndbi']['delta']:+.3f}, "
@@ -283,6 +300,8 @@ class UpstreamFloodModule(TwinModule):
     heavy = True
     data_sources = ["DEM: nan quạt cao độ 8 hướng × 3 vòng (Open-Meteo)",
                     "Open-Meteo: mưa dự báo trên lưới thượng nguồn"]
+    data_sources_en = ["DEM: 8-bearing × 3-ring elevation fan (Open-Meteo)",
+                       "Open-Meteo: rain forecast on the upstream grid"]
     users = ["Dân vùng núi và hạ lưu", "Chính quyền", "Cứu hộ"]
     description = "Trên cao có đang mưa không, và nước đó có dồn về phía bạn không."
 
@@ -309,42 +328,66 @@ class UpstreamFloodModule(TwinModule):
             return Assessment(
                 module_id=self.id, module_name=self.disp_name(), location=loc,
                 status="ok", risk_level="safe",
-                headline=("Không có sườn nào đổ nước về thửa này"
+                headline=(tr("Không có sườn nào đổ nước về thửa này",
+                             "No slope drains toward this plot")
                           if binh_yen else
-                          f"Địa hình quá phẳng để nói chuyện thượng nguồn "
-                          f"(chênh cao {r['relief_m']} m)"),
+                          tr(f"Địa hình quá phẳng để nói chuyện thượng nguồn "
+                             f"(chênh cao {r['relief_m']} m)",
+                             f"Terrain too flat to talk about upstream "
+                             f"(relief {r['relief_m']} m)")),
                 detail=r["message"],
                 recommendation=(
-                    "Nguy cơ nước từ trên dồn xuống gần như không có. Vẫn theo "
-                    "dõi module Lũ cho mưa tại chỗ."
+                    tr("Nguy cơ nước từ trên dồn xuống gần như không có. Vẫn theo "
+                       "dõi module Lũ cho mưa tại chỗ.",
+                       "Risk of water flowing down from above is nearly zero. Still "
+                       "watch the Flood module for local rain.")
                     if binh_yen else
-                    "Ở đồng bằng, hãy theo dõi module Lũ (mưa tại chỗ + lưu "
-                    "lượng sông GloFAS) và thông báo đóng/mở cống của địa phương."),
+                    tr("Ở đồng bằng, hãy theo dõi module Lũ (mưa tại chỗ + lưu "
+                       "lượng sông GloFAS) và thông báo đóng/mở cống của địa phương.",
+                       "On flat delta terrain, watch the Flood module (local rain + "
+                       "GloFAS river discharge) and local sluice-gate announcements.")),
                 confidence=0.6, confidence_low=0.5, confidence_high=0.7,
                 is_real=True,
                 metrics={"cao_do_m": r["here_m"], "chenh_cao_m": r["relief_m"]},
-                data_sources=["DEM cao độ (Open-Meteo)"])
+                data_sources=[tr("DEM cao độ (Open-Meteo)", "DEM elevation (Open-Meteo)")])
 
         rec = {
-            "danger": ("Trên cao đang mưa rất lớn và nước sẽ dồn xuống. Nguy cơ "
-                       "đến NGAY CẢ KHI ở đây chưa mưa — kê cao tài sản, tránh "
-                       "lòng suối và chân mái dốc, sẵn sàng di dời."),
-            "warning": ("Thượng nguồn mưa đáng kể. Theo dõi mực nước suối và "
-                        "tránh qua ngầm tràn khi nước lên."),
-            "safe": "Chưa thấy nước bất thường dồn về từ phía trên.",
+            "danger": tr("Trên cao đang mưa rất lớn và nước sẽ dồn xuống. Nguy cơ "
+                        "đến NGAY CẢ KHI ở đây chưa mưa — kê cao tài sản, tránh "
+                        "lòng suối và chân mái dốc, sẵn sàng di dời.",
+                        "Heavy rain upstream and water will flow down. The risk "
+                        "exists EVEN IF it hasn't rained here yet — raise "
+                        "belongings, stay away from streambeds and slope toes, "
+                        "be ready to move."),
+            "warning": tr("Thượng nguồn mưa đáng kể. Theo dõi mực nước suối và "
+                         "tránh qua ngầm tràn khi nước lên.",
+                         "Significant rain upstream. Watch stream levels and avoid "
+                         "low-water crossings when the water rises."),
+            "safe": tr("Chưa thấy nước bất thường dồn về từ phía trên.",
+                      "No unusual water flowing down from above yet."),
         }[r["level"]]
 
         return Assessment(
             module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=r["level"],
-            headline=(f"{r['verdict'].capitalize()} — mưa thượng nguồn "
-                      f"{r['upstream_rain_mm']} mm so với {r['local_rain_mm']} mm "
-                      f"tại chỗ ({r['extra_vs_local_mm']:+} mm)"),
-            detail=(f"{r['upslope_points']}/{r['total_points']} điểm quanh thửa "
-                    f"cao hơn, chênh cao {r['relief_m']} m. Sườn dốc nhất: cách "
-                    f"{r['steepest']['km']} km, cao hơn {r['steepest']['drop_m']} m, "
-                    f"mưa {r['steepest']['rain_7d_mm']} mm. {r['method']} "
-                    f"{r['caveat']}"),
+            headline=tr(
+                f"{r['verdict'].capitalize()} — mưa thượng nguồn "
+                f"{r['upstream_rain_mm']} mm so với {r['local_rain_mm']} mm "
+                f"tại chỗ ({r['extra_vs_local_mm']:+} mm)",
+                f"{r['verdict'].capitalize()} — upstream rain "
+                f"{r['upstream_rain_mm']} mm vs {r['local_rain_mm']} mm "
+                f"locally ({r['extra_vs_local_mm']:+} mm)"),
+            detail=tr(
+                f"{r['upslope_points']}/{r['total_points']} điểm quanh thửa "
+                f"cao hơn, chênh cao {r['relief_m']} m. Sườn dốc nhất: cách "
+                f"{r['steepest']['km']} km, cao hơn {r['steepest']['drop_m']} m, "
+                f"mưa {r['steepest']['rain_7d_mm']} mm. {r['method']} "
+                f"{r['caveat']}",
+                f"{r['upslope_points']}/{r['total_points']} points around the plot "
+                f"are higher, relief {r['relief_m']} m. Steepest slope: "
+                f"{r['steepest']['km']} km away, {r['steepest']['drop_m']} m higher, "
+                f"{r['steepest']['rain_7d_mm']} mm rain. {r['method']} "
+                f"{r['caveat']}"),
             recommendation=rec, confidence=0.6, confidence_low=0.48,
             confidence_high=0.7, is_real=True,
             metrics={"mua_thuong_nguon_mm": r["upstream_rain_mm"],
@@ -352,5 +395,6 @@ class UpstreamFloodModule(TwinModule):
                      "lech_mm": r["extra_vs_local_mm"] or 0.0,
                      "diem_cao_hon": float(r["upslope_points"]),
                      "chenh_cao_m": r["relief_m"]},
-            data_sources=["DEM nan quạt cao độ (thật)",
-                          "Open-Meteo: mưa trên lưới thượng nguồn (thật)"])
+            data_sources=[tr("DEM nan quạt cao độ (thật)", "DEM elevation fan (real)"),
+                          tr("Open-Meteo: mưa trên lưới thượng nguồn (thật)",
+                             "Open-Meteo: rain on upstream grid (real)")])

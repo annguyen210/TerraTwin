@@ -25,6 +25,63 @@ const LABELS: Record<string, [string, string]> = {
   chi_tra_uoc_tinh_vnd: ["Chi trả (đ)", "Payout (₫)"],
   buc_xa_kwh_m2_ngay: ["Bức xạ (kWh/m²/ngày)", "Irradiance (kWh/m²/day)"],
   san_luong_kwh_kwp_nam: ["Sản lượng (kWh/kWp/năm)", "Output (kWh/kWp/yr)"],
+  vuot_nguong: ["Vượt ngưỡng", "Over threshold"],
+  // pest
+  ndvi_hien_tai: ["NDVI hiện tại", "Current NDVI"],
+  ndvi_nen: ["NDVI nền", "Baseline NDVI"],
+  thay_doi_pct: ["Thay đổi (%)", "Change (%)"],
+  z_score: ["Z-score", "Z-score"],
+  do_loang_lo: ["Độ loang lổ", "Patchiness"],
+  // yield
+  ndvi_dinh: ["NDVI đỉnh", "Peak NDVI"],
+  ngay_qua_dinh: ["Ngày qua đỉnh", "Days past peak"],
+  tich_phan_ndvi: ["Tích phân NDVI", "NDVI integral"],
+  suc_song_so_dinh_pct: ["Sức sống so đỉnh (%)", "Vigor vs peak (%)"],
+  // carbon
+  che_phu_tan_pct: ["Che phủ tán (%)", "Canopy cover (%)"],
+  dien_tich_rung_ha: ["Diện tích rừng (ha)", "Forest area (ha)"],
+  tru_luong_tco2: ["Trữ lượng (tCO₂)", "Stock (tCO₂)"],
+  sai_so_pct: ["Sai số (%)", "Uncertainty (%)"],
+  // aquaculture
+  nhiet_mat_nuoc_max_c: ["Nhiệt mặt nước đỉnh (°C)", "Peak sea-surface temp (°C)"],
+  song_cao_max_m: ["Sóng cao đỉnh (m)", "Peak wave height (m)"],
+  // storm damage / illegal build
+  ndvi_truoc: ["NDVI trước", "NDVI before"],
+  ndvi_sau: ["NDVI sau", "NDVI after"],
+  thay_doi: ["Thay đổi", "Change"],
+  ndbi_thay_doi: ["NDBI thay đổi", "NDBI change"],
+  ndvi_thay_doi: ["NDVI thay đổi", "NDVI change"],
+  // flood
+  luu_luong_hien_tai_m3s: ["Lưu lượng sông hiện tại (m³/s)", "River discharge now (m³/s)"],
+  luu_luong_dinh_m3s: ["Lưu lượng sông đỉnh (m³/s)", "Peak river discharge (m³/s)"],
+  luu_luong_tb_m3s: ["Lưu lượng sông TB (m³/s)", "Mean river discharge (m³/s)"],
+  ty_so_so_binh_thuong: ["Tỉ số so bình thường", "Ratio vs normal"],
+  // land risk
+  mua_7ngay_mm: ["Mưa 7 ngày (mm)", "7-day rain (mm)"],
+  // upstream flood
+  mua_thuong_nguon_mm: ["Mưa thượng nguồn (mm)", "Upstream rain (mm)"],
+  mua_tai_cho_mm: ["Mưa tại chỗ (mm)", "Local rain (mm)"],
+  lech_mm: ["Lệch (mm)", "Difference (mm)"],
+  diem_cao_hon: ["Điểm cao hơn", "Higher points"],
+  chenh_cao_m: ["Chênh cao (m)", "Relief (m)"],
+  // urban
+  be_tong_hoa_pct: ["Bê tông hoá (%)", "Built-up (%)"],
+  cong_trinh: ["Công trình", "Buildings"],
+  mat_do_duong_km_km2: ["Mật độ đường (km/km²)", "Road density (km/km²)"],
+  mang_xanh_pct: ["Mảng xanh (%)", "Green space (%)"],
+  chay_tran_mm: ["Chảy tràn (mm)", "Runoff (mm)"],
+  chay_tran_tu_nhien_mm: ["Chảy tràn tự nhiên (mm)", "Natural runoff (mm)"],
+  // mining
+  so_khu_khai_thac_15km: ["Khu khai thác trong 15km", "Mining sites within 15km"],
+  khu_gan_nhat_km: ["Khu gần nhất (km)", "Nearest site (km)"],
+  thay_doi_tham_thuc_vat: ["Thay đổi thảm thực vật", "Vegetation change"],
+  // supply chain
+  diem_kiem_tra: ["Điểm kiểm tra", "Points checked"],
+  ban_kinh_km: ["Bán kính (km)", "Radius (km)"],
+  ty_le_rui_ro_pct: ["Tỉ lệ rủi ro (%)", "At-risk share (%)"],
+  diem_canh_bao_lu: ["Điểm cảnh báo lũ", "Flood-alert points"],
+  diem_canh_bao_han: ["Điểm cảnh báo hạn", "Drought-alert points"],
+  duong_truc_gan_nhat_km: ["Đường trục gần nhất (km)", "Nearest trunk road (km)"],
 };
 
 function fmt(v: number): string {

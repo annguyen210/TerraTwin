@@ -112,12 +112,20 @@ def stress(lat: float, lon: float, buffer_m: float = 300.0) -> dict | None:
         "observations": len(ndvi),
         "cover": cover_label(latest["mean"]),
         "series": ndvi,
-        "method": ("NDVI Sentinel-2 mỗi 10 ngày trong 120 ngày. Nền so sánh là "
-                   "trung vị của chính thửa này, không phải ngưỡng cố định. Độ "
-                   "loang lổ = std hiện tại / std nền."),
-        "caveat": ("Vệ tinh thấy CÂY YẾU, không thấy CON SÂU. Kết quả này nói "
-                   "'chỗ này bất thường, ra xem ngay', không nói bệnh gì. Ô đo "
-                   "600×600 m nên ổ nhỏ hơn ~0,1 ha có thể bị trung bình hoá mất."),
+        "method": tr(
+            "NDVI Sentinel-2 mỗi 10 ngày trong 120 ngày. Nền so sánh là "
+            "trung vị của chính thửa này, không phải ngưỡng cố định. Độ "
+            "loang lổ = std hiện tại / std nền.",
+            "Sentinel-2 NDVI every 10 days over 120 days. The baseline is "
+            "this plot's own median, not a fixed threshold. Patchiness = "
+            "current std / baseline std."),
+        "caveat": tr(
+            "Vệ tinh thấy CÂY YẾU, không thấy CON SÂU. Kết quả này nói "
+            "'chỗ này bất thường, ra xem ngay', không nói bệnh gì. Ô đo "
+            "600×600 m nên ổ nhỏ hơn ~0,1 ha có thể bị trung bình hoá mất.",
+            "Satellites see WEAK PLANTS, not the PEST itself. This result says "
+            "'this spot is abnormal, go check it', not what disease it is. The "
+            "600×600 m tile can average away outbreaks smaller than ~0.1 ha."),
     }
 
 
@@ -191,13 +199,22 @@ def growth(lat: float, lon: float, buffer_m: float = 300.0) -> dict | None:
         "ndvi_integral": integral,
         "observations": len(s), "peak_index": i_peak,
         "series": s,
-        "method": ("NDVI Sentinel-2 mỗi 10 ngày trong 180 ngày. Giai đoạn suy ra "
-                   "từ vị trí so với đỉnh và độ dốc 30 ngày gần nhất. Tích phân "
-                   "NDVI là chỉ báo sinh khối tích luỹ."),
-        "caveat": ("KHÔNG quy ra tấn/ha. Muốn có con số sản lượng phải hiệu chuẩn "
-                   "bằng năng suất thật đã thu của chính vùng này với chính giống "
-                   "đó — hãy gửi kết quả thu hoạch qua mục Ghi nhận thực tế, đủ "
-                   "vài vụ là phần mềm hiệu chuẩn được."),
+        "method": tr(
+            "NDVI Sentinel-2 mỗi 10 ngày trong 180 ngày. Giai đoạn suy ra "
+            "từ vị trí so với đỉnh và độ dốc 30 ngày gần nhất. Tích phân "
+            "NDVI là chỉ báo sinh khối tích luỹ.",
+            "Sentinel-2 NDVI every 10 days over 180 days. Stage is inferred "
+            "from position relative to the peak and the last-30-day slope. "
+            "The NDVI integral is a proxy for accumulated biomass."),
+        "caveat": tr(
+            "KHÔNG quy ra tấn/ha. Muốn có con số sản lượng phải hiệu chuẩn "
+            "bằng năng suất thật đã thu của chính vùng này với chính giống "
+            "đó — hãy gửi kết quả thu hoạch qua mục Ghi nhận thực tế, đủ "
+            "vài vụ là phần mềm hiệu chuẩn được.",
+            "Does NOT convert to tons/ha. A yield figure needs calibration "
+            "against real harvests from this same area and variety — submit "
+            "harvest results via Field Report, and after a few seasons the "
+            "app can calibrate."),
     }
 
 
@@ -246,11 +263,18 @@ def vegetation_loss(lat: float, lon: float, gap_days: int = 45,
              tr("ngập lụt kéo dài", "prolonged flooding"), tr("cháy", "fire"),
              tr("chặt/phá", "clearing/logging"),
              tr("thu hoạch theo lịch", "scheduled harvest")] if d <= -0.12 else []),
-        "method": ("So NDVI trung bình hai cửa sổ Sentinel-2 "
-                   f"({window} ngày mỗi kỳ, cách nhau {gap_days} ngày), đã lọc mây."),
-        "caveat": ("Vệ tinh đo MẤT THẢM THỰC VẬT, không tự biết nguyên nhân. "
-                   "Thu hoạch đúng lịch cũng làm NDVI sụt y hệt bão. Hãy đối "
-                   "chiếu với việc bạn biết đã xảy ra trên thửa."),
+        "method": tr(
+            "So NDVI trung bình hai cửa sổ Sentinel-2 "
+            f"({window} ngày mỗi kỳ, cách nhau {gap_days} ngày), đã lọc mây.",
+            "Compares mean NDVI between two Sentinel-2 windows "
+            f"({window} days each, {gap_days} days apart), cloud-filtered."),
+        "caveat": tr(
+            "Vệ tinh đo MẤT THẢM THỰC VẬT, không tự biết nguyên nhân. "
+            "Thu hoạch đúng lịch cũng làm NDVI sụt y hệt bão. Hãy đối "
+            "chiếu với việc bạn biết đã xảy ra trên thửa.",
+            "Satellites measure VEGETATION LOSS, not the cause. A scheduled "
+            "harvest drops NDVI just like a storm does. Compare against what "
+            "you know happened on the plot."),
     }
 
 
@@ -292,12 +316,22 @@ def new_construction(lat: float, lon: float, gap_days: int = 365,
         "ndbi": ndbi, "ndvi": ndvi,
         "built_up_signal": built_up, "vegetation_loss_signal": veg_lost,
         "both_signals": both,
-        "method": ("So hai kỳ Sentinel-2 cách nhau "
-                   f"{gap_days} ngày ({window} ngày mỗi kỳ). Kết luận chỉ đưa ra "
-                   "khi NDBI tăng ≥0,08 VÀ NDVI giảm ≥0,10 — đòi hỏi cả hai để "
-                   "loại báo nhầm do mùa khô."),
-        "caveat": ("ĐÂY KHÔNG PHẢI KẾT LUẬN PHÁP LÝ. Phần mềm chỉ nói 'chỗ này "
-                   "có thay đổi, đi kiểm tra'. Việc công trình có phép hay không "
-                   "phải tra hồ sơ địa chính — vệ tinh không biết giấy phép. Ô đo "
-                   "600×600 m nên một căn nhà lẻ có thể chìm trong trung bình."),
+        "method": tr(
+            "So hai kỳ Sentinel-2 cách nhau "
+            f"{gap_days} ngày ({window} ngày mỗi kỳ). Kết luận chỉ đưa ra "
+            "khi NDBI tăng ≥0,08 VÀ NDVI giảm ≥0,10 — đòi hỏi cả hai để "
+            "loại báo nhầm do mùa khô.",
+            "Compares two Sentinel-2 periods "
+            f"{gap_days} days apart ({window} days each). Only flags a change "
+            "when NDBI rises ≥0.08 AND NDVI falls ≥0.10 — requiring both rules "
+            "out most dry-season false alarms."),
+        "caveat": tr(
+            "ĐÂY KHÔNG PHẢI KẾT LUẬN PHÁP LÝ. Phần mềm chỉ nói 'chỗ này "
+            "có thay đổi, đi kiểm tra'. Việc công trình có phép hay không "
+            "phải tra hồ sơ địa chính — vệ tinh không biết giấy phép. Ô đo "
+            "600×600 m nên một căn nhà lẻ có thể chìm trong trung bình.",
+            "THIS IS NOT A LEGAL CONCLUSION. The app only says 'this spot "
+            "changed, go check it'. Whether construction is licensed requires "
+            "cadastral records — satellites don't know about permits. The "
+            "600×600 m tile can average away a single house."),
     }

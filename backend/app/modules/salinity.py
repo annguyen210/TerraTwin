@@ -30,10 +30,10 @@ def _risk(v: float) -> str:
 def _season_label(factor: float) -> str:
     """Diễn giải hệ số mùa vụ cho người dùng."""
     if factor >= 0.75:
-        return "ĐỈNH mùa mặn (mùa khô, sông cạn)"
+        return tr("ĐỈNH mùa mặn (mùa khô, sông cạn)", "PEAK salinity season (dry season, low rivers)")
     if factor >= 0.40:
-        return "chuyển mùa — mặn đang lên/xuống"
-    return "mùa mưa lũ — nước ngọt đẩy mặn ra biển"
+        return tr("chuyển mùa — mặn đang lên/xuống", "transitional season — salinity rising/falling")
+    return tr("mùa mưa lũ — nước ngọt đẩy mặn ra biển", "rainy/flood season — fresh water pushes salt back to sea")
 
 
 class SalinityModule(TwinModule):
@@ -46,6 +46,9 @@ class SalinityModule(TwinModule):
     data_sources = ["Đường bờ biển VN", "Cao độ DEM (Open-Meteo)",
                     "Chu kỳ mùa khô/mùa lũ", "Bảng thủy triều",
                     "Dữ liệu mặn Ủy hội Mekong (chờ tích hợp)"]
+    data_sources_en = ["Vietnam coastline", "DEM elevation (Open-Meteo)",
+                       "Dry/flood season cycle", "Tide table",
+                       "Mekong River Commission salinity data (pending integration)"]
     users = ["Nông dân lúa ĐBSCL", "Hợp tác xã", "Sở NN&PTNT"]
     description = "Báo trước 5–7 ngày khi nước mặn sắp tới ruộng, kèm việc nên làm."
 
@@ -80,7 +83,7 @@ class SalinityModule(TwinModule):
                 headline=headline, detail=detail,
                 recommendation=tr("Dùng các mô-đun Lũ/Ngập, Hạn hoặc Rủi ro mua đất cho vị trí này.",
                                   "Use the Flood, Drought, or Land-purchase risk modules for this location."),
-                confidence=None, data_sources=self.data_sources,
+                confidence=None, data_sources=self.disp_data_sources(),
             )
 
         # --- Trong vùng đồng bằng: đánh giá đầy đủ ---
@@ -131,5 +134,5 @@ class SalinityModule(TwinModule):
             module_id=self.id, module_name=self.disp_name(), location=location,
             status="ok", risk_level=level, headline=headline, detail=detail,
             recommendation=rec, confidence=0.55, confidence_low=0.4, confidence_high=0.7,
-            is_real=False, forecast=forecast, data_sources=self.data_sources,
+            is_real=False, forecast=forecast, data_sources=self.disp_data_sources(),
         )

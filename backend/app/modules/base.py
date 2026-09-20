@@ -18,6 +18,7 @@ class TwinModule(ABC):
     group: str = ""
     icon: str = ""
     data_sources: list[str] = []
+    data_sources_en: list[str] = []  # song ngữ tuỳ chọn cho data_sources (xem disp_data_sources)
     users: list[str] = []
     description: str = ""
     status: str = "planned"
@@ -48,10 +49,15 @@ class TwinModule(ABC):
         from app.services.reqlang import tr
         return tr(self.name, self.name_en or self.name)
 
+    def disp_data_sources(self) -> list[str]:
+        """data_sources theo ngôn ngữ request nếu module khai báo data_sources_en."""
+        from app.services.reqlang import tr
+        return tr(self.data_sources, self.data_sources_en or self.data_sources)
+
     def info(self) -> ModuleInfo:
         return ModuleInfo(
             id=self.id, name=self.disp_name(), group=self.group, status=self.status,
-            icon=self.icon, data_sources=self.data_sources, users=self.users,
+            icon=self.icon, data_sources=self.disp_data_sources(), users=self.users,
             description=self.description, heavy=self.heavy, threat=self.threat,
         )
 

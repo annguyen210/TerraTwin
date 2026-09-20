@@ -105,9 +105,9 @@ def solar_radiation(lat: float, lon: float):
 # vào ruộng lúa" → module trả 'ngoài phạm vi' thay vì áp ngưỡng lúa cho
 # trung tâm Đà Nẵng / bãi biển Nha Trang.
 _SALINITY_ZONES = [
-    # (tên, lat_min, lat_max, lon_min, lon_max)
-    ("Đồng bằng sông Cửu Long", 8.40, 11.05, 104.40, 106.85),
-    ("Đồng bằng sông Hồng", 19.90, 21.20, 105.70, 106.90),
+    # (tên VI, tên EN, lat_min, lat_max, lon_min, lon_max)
+    ("Đồng bằng sông Cửu Long", "Mekong Delta", 8.40, 11.05, 104.40, 106.85),
+    ("Đồng bằng sông Hồng", "Red River Delta", 19.90, 21.20, 105.70, 106.90),
 ]
 
 # Đỉnh mùa mặn ~15/3 (ngày thứ 74). Đáy ~giữa tháng 9.
@@ -117,9 +117,10 @@ _SALINITY_FLOOR = 0.12   # mùa lũ vẫn còn nền mặn nhẹ sát cửa sôn
 
 def salinity_zone(lat: float, lon: float) -> str | None:
     """Tên vùng đồng bằng nhiễm mặn nông nghiệp, hoặc None nếu ngoài phạm vi."""
-    for name, la0, la1, lo0, lo1 in _SALINITY_ZONES:
+    from app.services.reqlang import tr
+    for name_vi, name_en, la0, la1, lo0, lo1 in _SALINITY_ZONES:
         if la0 <= lat <= la1 and lo0 <= lon <= lo1:
-            return name
+            return tr(name_vi, name_en)
     return None
 
 

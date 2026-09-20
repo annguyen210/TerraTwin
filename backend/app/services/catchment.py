@@ -32,6 +32,8 @@ from __future__ import annotations
 
 import math
 
+from app.services.reqlang import tr
+
 # Nan quạt lấy mẫu: 8 hướng × 3 vòng = 24 điểm, gọn trong một lượt gọi
 # Open-Meteo (trần 100 toạ độ) cho cả cao độ lẫn mưa.
 BEARINGS = 8
@@ -91,11 +93,16 @@ def upstream(lat: float, lon: float) -> dict | None:
             "reason": "flat",
             "here_m": here,
             "relief_m": round(relief, 1),
-            "message": (
+            "message": tr(
                 f"Chênh cao quanh thửa chỉ {relief:.0f} m trong bán kính "
                 f"{RADII_KM[-1]:.0f} km — nằm trong sai số đứng của DEM toàn cầu. "
                 "Ở địa hình này nước đi đâu là do đê bao, cống và kênh quyết "
-                "định, không do độ dốc; phần mềm không đoán thay."),
+                "định, không do độ dốc; phần mềm không đoán thay.",
+                f"Relief around the plot is only {relief:.0f} m within a "
+                f"{RADII_KM[-1]:.0f} km radius — within the global DEM's "
+                "vertical error margin. On terrain like this, where water goes "
+                "is decided by dikes, culverts and canals, not slope; the app "
+                "doesn't guess."),
         }
 
     # Giữ lại phần đất CAO HƠN — nước từ đó chảy về phía thửa.
@@ -114,9 +121,13 @@ def upstream(lat: float, lon: float) -> dict | None:
         return {
             "available": False, "reason": "no_upslope",
             "here_m": here, "relief_m": round(relief, 1),
-            "message": ("Thửa này nằm ở phần cao của khu vực — không có sườn "
-                        "nào đáng kể đổ nước về đây. Đó là tin tốt cho nguy cơ "
-                        "ngập từ thượng nguồn."),
+            "message": tr(
+                "Thửa này nằm ở phần cao của khu vực — không có sườn "
+                "nào đáng kể đổ nước về đây. Đó là tin tốt cho nguy cơ "
+                "ngập từ thượng nguồn.",
+                "This plot sits on the high ground of the area — no slope "
+                "of any size drains toward it. That's good news for "
+                "upstream flood risk."),
         }
 
     rain = realdata.weather_multi([(u["lat"], u["lon"]) for u in up])
@@ -143,16 +154,19 @@ def upstream(lat: float, lon: float) -> dict | None:
 
     if weighted >= 200 and (extra is None or extra > 20):
         level = "danger"
-        verdict = "thượng nguồn đang mưa rất lớn và nước sẽ dồn về đây"
+        verdict = tr("thượng nguồn đang mưa rất lớn và nước sẽ dồn về đây",
+                     "upstream is getting very heavy rain and water will flow down here")
     elif weighted >= 100 and (extra is None or extra > 10):
         level = "warning"
-        verdict = "thượng nguồn mưa đáng kể, cần tính tới nước từ trên xuống"
+        verdict = tr("thượng nguồn mưa đáng kể, cần tính tới nước từ trên xuống",
+                     "significant rain upstream — factor in water coming down")
     elif extra is not None and extra < -20:
         level = "safe"
-        verdict = "thượng nguồn khô hơn tại chỗ — nước dồn về ít"
+        verdict = tr("thượng nguồn khô hơn tại chỗ — nước dồn về ít",
+                     "upstream is drier than here — little water flowing down")
     else:
         level = "safe"
-        verdict = "thượng nguồn không mưa bất thường"
+        verdict = tr("thượng nguồn không mưa bất thường", "no unusual rain upstream")
 
     up.sort(key=lambda u: u["w"], reverse=True)
     top = up[0]
@@ -170,16 +184,24 @@ def upstream(lat: float, lon: float) -> dict | None:
         "extra_vs_local_mm": round(extra, 1) if extra is not None else None,
         "steepest": {"km": top["km"], "drop_m": top["drop_m"],
                      "rain_7d_mm": top.get("rain_7d_mm")},
-        "method": (
+        "method": tr(
             f"Lấy mẫu {BEARINGS} hướng × {len(RADII_KM)} vòng "
             f"({', '.join(f'{r:.0f}' for r in RADII_KM)} km), giữ lại điểm cao "
             f"hơn thửa ≥{MIN_DROP_M:.0f} m, cân theo độ dốc về phía thửa "
-            "(mét chênh cao trên mỗi km)."),
-        "caveat": (
+            "(mét chênh cao trên mỗi km).",
+            f"Samples {BEARINGS} bearings × {len(RADII_KM)} rings "
+            f"({', '.join(f'{r:.0f}' for r in RADII_KM)} km), keeps points at "
+            f"least {MIN_DROP_M:.0f} m higher than the plot, weighted by slope "
+            "toward the plot (meters of drop per km)."),
+        "caveat": tr(
             "KHÔNG phải lưu vực được phân định đúng cách — là nan quạt lấy mẫu "
             "theo hướng dốc lên, giả định nước chảy thẳng xuống dốc. Bỏ qua "
             "lòng sông, đê bao, cống và hồ chứa. Dùng như một đối chứng, không "
-            "thay cho cảnh báo của cơ quan thuỷ văn."),
+            "thay cho cảnh báo của cơ quan thuỷ văn.",
+            "NOT a properly delineated watershed — it's a fan sample uphill, "
+            "assuming water flows straight downslope. Ignores riverbeds, dikes, "
+            "culverts and reservoirs. Use as a cross-check, not a replacement "
+            "for official hydrological warnings."),
     }
 
 

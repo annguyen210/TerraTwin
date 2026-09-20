@@ -14,6 +14,7 @@ from app.services.reqlang import tr
 class DroughtModule(TwinModule):
     id = "drought"; name = "Cảnh báo hạn & thiếu nước"; name_en = "Drought & water-shortage alert"; group = "A"; icon = "🌾"; status = "active"
     data_sources = ["Open-Meteo: lượng mưa & ET₀"]
+    data_sources_en = ["Open-Meteo: rainfall & ET₀"]
     users = ["Nông dân", "Đơn vị thủy lợi"]
     description = "Dự báo vùng ruộng sắp thiếu nước để chủ động điều tiết."
 
@@ -36,7 +37,8 @@ class DroughtModule(TwinModule):
         detail = (tr("Chỉ số thiếu ẩm tính từ mưa & bốc thoát hơi ET₀ THẬT (Open-Meteo). ",
                      "Moisture-deficit index from REAL rainfall & ET₀ evapotranspiration (Open-Meteo). ")
                   if real else tr("Chỉ số thiếu ẩm (mẫu). ", "Moisture-deficit index (sample). ")) + hazard.scale_note(real, calibrated)
-        src = ["Open-Meteo: lượng mưa & ET₀ (dữ liệu thật)"] if real else self.data_sources
+        src = [tr("Open-Meteo: lượng mưa & ET₀ (dữ liệu thật)",
+                  "Open-Meteo: rainfall & ET₀ (real data)")] if real else self.disp_data_sources()
         return assessment_from_series(self, loc, s, "%", 40, 70, texts, detail,
                                       confidence=0.78 if real else 0.6, is_real=real, data_sources=src)
 
@@ -44,6 +46,7 @@ class DroughtModule(TwinModule):
 class WildfireModule(TwinModule):
     id = "wildfire"; name = "Cảnh báo nguy cơ cháy rừng"; name_en = "Wildfire risk alert"; group = "A"; icon = "🔥"; status = "active"
     data_sources = ["Open-Meteo: nhiệt độ & lượng mưa", "NASA FIRMS (khi mở rộng)"]
+    data_sources_en = ["Open-Meteo: temperature & rainfall", "NASA FIRMS (planned expansion)"]
     users = ["Kiểm lâm", "Chính quyền"]
     description = "Vùng khô dễ cháy + phát hiện điểm nóng sớm."
 
@@ -65,8 +68,9 @@ class WildfireModule(TwinModule):
         detail = (tr("Chỉ số nguy cơ cháy từ nhiệt độ & khô hạn THẬT (Open-Meteo). ",
                      "Fire-risk index from REAL temperature & dryness (Open-Meteo). ")
                   if real else tr("Chỉ số nguy cơ cháy (mẫu). ", "Fire-risk index (sample). ")) + hazard.scale_note(real, calibrated)
-        src = ["Open-Meteo: nhiệt độ & lượng mưa (dữ liệu thật)"] if real else self.data_sources
-        return assessment_from_series(self, loc, s, "điểm", 40, 70, texts, detail,
+        src = [tr("Open-Meteo: nhiệt độ & lượng mưa (dữ liệu thật)",
+                  "Open-Meteo: temperature & rainfall (real data)")] if real else self.disp_data_sources()
+        return assessment_from_series(self, loc, s, tr("điểm", "pts"), 40, 70, texts, detail,
                                       confidence=0.75 if real else 0.6, is_real=real, data_sources=src)
 
 
@@ -91,6 +95,7 @@ class PestModule(TwinModule):
     # khi thấy bất cứ thứ gì. Chạy riêng khi được yêu cầu, kết quả có cache.
     heavy = True
     data_sources = ["Sentinel-2 NDVI (Copernicus)", "Ảnh lá người dùng (lộ trình)"]
+    data_sources_en = ["Sentinel-2 NDVI (Copernicus)", "User leaf photos (roadmap)"]
     users = ["Nông dân", "DN nông nghiệp"]
     description = "Khoanh vùng cây stress bất thường + phân biệt đều hay loang lổ."
 
@@ -99,9 +104,13 @@ class PestModule(TwinModule):
         if r is None:
             return need_data_assessment(
                 self, loc,
-                needs=_needs_sentinel("ảnh Sentinel-2 (NDVI) cho thửa này"),
-                will_do="so sức sống cây hiện tại với chính thửa này 4 tháng qua và "
-                        "cho biết bất thường đang ĐỀU hay LOANG LỔ",
+                needs=_needs_sentinel(tr("ảnh Sentinel-2 (NDVI) cho thửa này",
+                                         "Sentinel-2 (NDVI) imagery for this plot")),
+                will_do=tr("so sức sống cây hiện tại với chính thửa này 4 tháng qua và "
+                           "cho biết bất thường đang ĐỀU hay LOANG LỔ",
+                           "compare current plant vigor with this same plot over the "
+                           "past 4 months and say whether the anomaly is UNIFORM or "
+                           "PATCHY"),
                 next_step=_next_sentinel())
 
         metrics = {"ndvi_hien_tai": r["ndvi_now"], "ndvi_nen": r["ndvi_baseline"],
@@ -140,6 +149,9 @@ class AquacultureModule(TwinModule):
     data_sources = ["Open-Meteo Marine: nhiệt mặt nước & sóng",
                     "Open-Meteo: nhiệt không khí",
                     "Sentinel-2 độ đục/tảo (cần key — lộ trình)"]
+    data_sources_en = ["Open-Meteo Marine: sea-surface temp & waves",
+                       "Open-Meteo: air temperature",
+                       "Sentinel-2 turbidity/algae (needs key — roadmap)"]
     users = ["Hộ/DN nuôi thủy sản"]
     description = "Nhiệt nước/sóng ảnh hưởng tôm cá → cảnh báo sớm."
 
@@ -179,13 +191,20 @@ class AquacultureModule(TwinModule):
                         "factors are IN-POND temperature and oxygen, which need "
                         "on-site sensors — satellites can't see them."),
                     recommendation="",
-                    data_sources=self.data_sources)
+                    data_sources=self.disp_data_sources())
             return need_data_assessment(
                 self, loc,
-                needs="dữ liệu nhiệt mặt nước cho đúng toạ độ này",
-                will_do="theo dõi nhiệt nước, sóng và độ đục để cảnh báo môi trường ao xấu",
-                next_step=(f"Điểm này chỉ cách bờ ~{round(km)} km nên lẽ ra phải "
-                           "có dữ liệu biển. Nguồn đang không trả về — thử lại sau."))
+                needs=tr("dữ liệu nhiệt mặt nước cho đúng toạ độ này",
+                         "sea-surface temperature data for this exact coordinate"),
+                will_do=tr("theo dõi nhiệt nước, sóng và độ đục để cảnh báo môi trường ao xấu",
+                           "monitor water temperature, waves and turbidity to warn of "
+                           "bad pond conditions"),
+                next_step=tr(
+                    f"Điểm này chỉ cách bờ ~{round(km)} km nên lẽ ra phải "
+                    "có dữ liệu biển. Nguồn đang không trả về — thử lại sau.",
+                    f"This point is only ~{round(km)} km from the coast, so sea "
+                    "data should exist. The source isn't responding — try again "
+                    "later."))
 
         sst, wave = marine["sst_max"], marine["wave_max"]
         if sst >= self.VERY_HOT:
@@ -237,7 +256,8 @@ class AquacultureModule(TwinModule):
             recommendation=rec, confidence=0.72, confidence_low=0.64,
             confidence_high=0.8, is_real=True, metrics=metrics,
             forecast=marine["forecast"],
-            data_sources=["Open-Meteo Marine: nhiệt mặt nước & sóng (thật)"])
+            data_sources=[tr("Open-Meteo Marine: nhiệt mặt nước & sóng (thật)",
+                             "Open-Meteo Marine: sea-surface temp & waves (real)")])
 
 
 class YieldModule(TwinModule):
@@ -260,6 +280,7 @@ class YieldModule(TwinModule):
     # của thửa nên không nhầm thu hoạch thành thảm hoạ.
     threat = False
     data_sources = ["Chuỗi NDVI Sentinel-2 180 ngày (Copernicus)"]
+    data_sources_en = ["180-day Sentinel-2 NDVI series (Copernicus)"]
     users = ["Nông dân", "Thương lái", "DN xuất khẩu"]
     description = "Cây đang ở giai đoạn nào, đỉnh sinh trưởng khi nào, còn bao lâu tới thu."
 
@@ -268,9 +289,12 @@ class YieldModule(TwinModule):
         if r is None:
             return need_data_assessment(
                 self, loc,
-                needs=_needs_sentinel("chuỗi ảnh Sentinel-2 180 ngày"),
-                will_do="dựng đường cong sinh trưởng NDVI của thửa và cho biết cây "
-                        "đang lên hay đang chín, đỉnh rơi vào ngày nào",
+                needs=_needs_sentinel(tr("chuỗi ảnh Sentinel-2 180 ngày",
+                                         "180-day Sentinel-2 image series")),
+                will_do=tr("dựng đường cong sinh trưởng NDVI của thửa và cho biết cây "
+                           "đang lên hay đang chín, đỉnh rơi vào ngày nào",
+                           "build the plot's NDVI growth curve and say whether the "
+                           "crop is growing or ripening, and when it peaks"),
                 next_step=_next_sentinel())
 
         # Giai đoạn sinh trưởng KHÔNG phải hiểm họa: cây chín không phải rủi ro.
@@ -308,6 +332,8 @@ class CarbonModule(TwinModule):
     heavy = True
     data_sources = ["Sentinel-2 NDVI theo pixel (Copernicus)",
                     "Hệ số IPCC 2006 Tier 1 (AFOLU Ch.4)"]
+    data_sources_en = ["Sentinel-2 per-pixel NDVI (Copernicus)",
+                       "IPCC 2006 Tier 1 factors (AFOLU Ch.4)"]
     users = ["Chủ rừng", "DN", "Quỹ carbon"]
     description = "Đo che phủ tán thật + ước lượng trữ lượng có công bố bậc và sai số."
 
@@ -318,9 +344,13 @@ class CarbonModule(TwinModule):
         if not r.get("available"):
             return need_data_assessment(
                 self, loc,
-                needs=_needs_sentinel("ảnh Sentinel-2 để đo che phủ tán"),
-                will_do="đo che phủ tán thật rồi ước lượng trữ lượng tCO₂ theo hệ số "
-                        "IPCC Tier 1, kèm dải sai số và mã băm chống sửa",
+                needs=_needs_sentinel(tr("ảnh Sentinel-2 để đo che phủ tán",
+                                         "Sentinel-2 imagery to measure canopy cover")),
+                will_do=tr("đo che phủ tán thật rồi ước lượng trữ lượng tCO₂ theo hệ số "
+                           "IPCC Tier 1, kèm dải sai số và mã băm chống sửa",
+                           "measure real canopy cover, then estimate tCO₂ stock using "
+                           "IPCC Tier 1 factors, with an uncertainty range and a "
+                           "tamper-evident hash"),
                 next_step=_next_sentinel())
 
         m, e = r["measured"], r["estimated"]
