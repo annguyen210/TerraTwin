@@ -14,7 +14,7 @@ import hashlib
 import json
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete as _sa_delete, select
 
 # Tham chiếu MODULE chứ không import trực tiếp `SessionLocal`: import trực tiếp
 # sẽ khóa cứng vào engine tại thời điểm nạp module, nên đổi engine lúc chạy
@@ -43,11 +43,22 @@ def clear_prefix(prefix: str) -> int:
     try:
         with _session() as s:
             n = s.execute(
-                delete(KVCache).where(KVCache.key.like(f"{prefix}:%"))).rowcount
+                _sa_delete(KVCache).where(KVCache.key.like(f"{prefix}:%"))).rowcount
             s.commit()
             return n or 0
     except Exception:
         return 0
+
+
+def delete(key: str) -> None:
+    """Xoá đúng MỘT khoá. Khác clear_prefix (xoá cả nhóm) — dùng khi một entry
+    cụ thể đã biết là hỏng (vd realdata._bust khi response thiếu trường)."""
+    try:
+        with _session() as s:
+            s.execute(_sa_delete(KVCache).where(KVCache.key == key))
+            s.commit()
+    except Exception:
+        pass
 
 
 def get(key: str):
@@ -87,7 +98,7 @@ def purge_expired() -> int:
     try:
         now = datetime.now(timezone.utc).replace(tzinfo=None)
         with _session() as s:
-            n = s.execute(delete(KVCache).where(KVCache.expires_at <= now)).rowcount
+            n = s.execute(_sa_delete(KVCache).where(KVCache.expires_at <= now)).rowcount
             s.commit()
             return n or 0
     except Exception:

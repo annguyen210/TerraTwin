@@ -122,10 +122,10 @@ def test_can_han_muc_khac_voi_mat_mang(monkeypatch):
     """
     import urllib.error
 
-    from app.services import realdata
+    from app.services import cache_store, realdata
 
-    realdata._QUOTA.clear()
-    realdata._CACHE.clear()
+    cache_store.clear_prefix("quota")
+    cache_store.clear_prefix("realdata")
 
     def _429(req, timeout=None):
         raise urllib.error.HTTPError(
@@ -137,19 +137,20 @@ def test_can_han_muc_khac_voi_mat_mang(monkeypatch):
     q = realdata.quota_status()
     assert "api.open-meteo.com" in q["exhausted"]
     assert "quá nhiều" in q["message"]
-    # Phải nói đúng thứ ĐO ĐƯỢC (phục hồi sau ~10 phút), không chép lại câu
-    # "thử lại ngày mai" của Open-Meteo — chép lại là bắt người vận hành ngồi
-    # chờ vô ích cả ngày trong khi mười phút nữa là chạy lại được.
-    assert "mười phút" in q["message"]
+    # KHÔNG được hứa hẹn một thời gian phục hồi cụ thể — đo lại 2026-09-17 cho
+    # thấy có lúc chặn liên tục 18 phút, lâu hơn hẳn ghi chú "mười phút" cũ mà
+    # bản thân ghi chú đó từng làm người vận hành tưởng chắc chắn chờ 10 phút
+    # là xong. Không được chép lại câu "thử lại ngày mai" của Open-Meteo — thế
+    # còn tệ hơn theo hướng ngược lại (bắt chờ vô ích cả ngày).
     assert "ngày mai" not in q["message"]
-    realdata._QUOTA.clear()
+    cache_store.clear_prefix("quota")
 
 
 def test_loi_mang_thuong_khong_bi_ghi_la_can_han_muc(monkeypatch):
-    from app.services import realdata
+    from app.services import cache_store, realdata
 
-    realdata._QUOTA.clear()
-    realdata._CACHE.clear()
+    cache_store.clear_prefix("quota")
+    cache_store.clear_prefix("realdata")
 
     def _boom(req, timeout=None):
         raise OSError("mat mang")
@@ -157,6 +158,42 @@ def test_loi_mang_thuong_khong_bi_ghi_la_can_han_muc(monkeypatch):
     monkeypatch.setattr("urllib.request.urlopen", _boom)
     assert realdata._get("https://api.open-meteo.com/v1/forecast?y=1") is None
     assert realdata.quota_status()["exhausted"] == []
+
+
+def test_cache_song_qua_restart_va_lam_phao_cuu_sinh(monkeypatch):
+    """2026-09-21 — _CACHE cũ nằm trong RAM: mất sạch mỗi lần Render tự dựng
+    lại tiến trình (đo được: count_429_24h đọc 38 rồi về rỗng mà không có
+    deploy nào ở giữa). Hậu quả kép: (a) mỗi restart nã lại Open-Meteo cho mọi
+    toạ độ đang hoạt động — chính nguyên nhân sinh ra 38 lần 429 đó; (b) khi bị
+    429 giữa lúc cache vừa hết hạn, phần mềm rơi thẳng xuống None (mô hình mẫu)
+    dù vẫn còn một bản đo thật cũ hơn 30 phút nhưng chưa quá cũ để dùng được.
+
+    Test này không mô phỏng "restart" trực tiếp (đó là cache_store, đã có test
+    riêng ở test_cache.py/test_cache_survives_and_expires) mà khoá chặt HAI
+    hành vi mới của realdata._get(): (1) cache vẫn đọc được qua một "tiến
+    trình mới" — tức là qua cache_store, không phải dict trong RAM của chính
+    module này; (2) gọi mạng hỏng thì dùng bản CŨ làm phao cứu sinh thay vì None.
+    """
+    import time
+
+    from app.services import cache_store, realdata
+
+    url = "https://api.open-meteo.com/v1/forecast?lat=1.0&lon=1.0"
+    key = realdata._cache_key(url)
+    cache_store.clear_prefix("realdata")
+
+    # Bản cache "cũ" — quá 30 phút (_TTL) nên không còn tính là MỚI, nhưng
+    # trong hạn 6 giờ (_STALE_MAX) nên còn dùng làm phao cứu sinh được.
+    stale_at = time.time() - 3600
+    cache_store.put(key, {"at": stale_at, "data": {"daily": {"time": ["x"]}}},
+                    ttl_seconds=6 * 3600)
+
+    # Không dùng dict `realdata._CACHE` nào cả — đọc thẳng từ cache_store, đúng
+    # như một tiến trình MỚI (sau restart) sẽ làm. Mạng THẬT SỰ được thử (không
+    # bị chặn ở đây) nhưng trả về hỏng (429/mất mạng) — điều cần khoá chặt là
+    # phần mềm KHÔNG rơi xuống None chỉ vì lần thử đó hỏng.
+    monkeypatch.setattr(realdata, "_fetch", lambda u, t: None)
+    assert realdata._get(url) == {"daily": {"time": ["x"]}}
 
 
 @pytest.fixture
@@ -168,15 +205,13 @@ def client():
 
 
 def test_health_bao_degraded_khi_can_han_muc(client, monkeypatch):
-    import time as _t
+    from app.services import cache_store, realdata
 
-    from app.services import realdata
-
-    realdata._QUOTA.clear()
+    cache_store.clear_prefix("quota")
     assert client.get("/api/health").json()["status"] == "ok"
 
-    realdata._QUOTA["api.open-meteo.com"] = _t.time()
+    realdata._record_429("api.open-meteo.com")
     d = client.get("/api/health").json()
     assert d["status"] == "degraded"
     assert "api.open-meteo.com" in d["quota"]["exhausted"]
-    realdata._QUOTA.clear()
+    cache_store.clear_prefix("quota")

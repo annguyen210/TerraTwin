@@ -52,7 +52,8 @@ def _rain(mm):
 
 @pytest.fixture
 def no_cache(monkeypatch):
-    monkeypatch.setattr(realdata, "_CACHE", {})
+    from app.services import cache_store
+    cache_store.clear_prefix("realdata")
     return True
 
 

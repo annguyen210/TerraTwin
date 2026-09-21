@@ -58,8 +58,17 @@ async def _radar_loop() -> None:
     Chờ TRƯỚC rồi mới quét: khi Render/Fly khởi động lại container (chuyện xảy
     ra thường xuyên trên gói miễn phí) ta không muốn mỗi lần restart lại nã một
     loạt request vào Open-Meteo.
+
+    KHÔNG đếm mù từ lúc tiến trình khởi động: một bộ đếm `sleep(interval)` đơn
+    thuần bắt đầu lại từ 0 mỗi lần restart — nếu khoảng cách giữa hai lần
+    restart luôn NGẮN HƠN interval (6 giờ, chuyện bình thường trên gói free)
+    thì vòng lặp này KHÔNG BAO GIỜ quét được dù tiến trình luôn "đang chạy".
+    Đo được đúng chuyện đó: /api/health.radar.last_sweep_at đứng yên ở null
+    nhiều ngày liền. Sửa: đọc lần quét gần nhất đã LƯU BỀN (kv_cache, sống qua
+    restart — xem radar.last_sweep) và chỉ còn chờ phần thời gian CÒN LẠI.
     """
     import asyncio
+    from datetime import datetime, timezone
 
     from app.db import SessionLocal
     from app.services import radar as radar_svc
@@ -67,7 +76,20 @@ async def _radar_loop() -> None:
     interval = _RADAR_INTERVAL_H * 3600.0
     while True:
         try:
-            await asyncio.sleep(interval)
+            def _remaining_wait() -> float:
+                last = radar_svc.last_sweep()
+                if not last or not last.get("at"):
+                    return 0.0      # chưa từng quét lần nào trong đời database — quét ngay
+                try:
+                    last_dt = datetime.fromisoformat(last["at"])
+                except ValueError:
+                    return 0.0
+                elapsed = (datetime.now(timezone.utc) - last_dt).total_seconds()
+                return max(0.0, interval - elapsed)
+
+            wait = await asyncio.to_thread(_remaining_wait)
+            if wait > 0:
+                await asyncio.sleep(wait)
         except asyncio.CancelledError:
             return
         try:

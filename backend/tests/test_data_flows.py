@@ -303,7 +303,6 @@ def test_heatmap_sat_lo_khong_goi_mang_tung_o(monkeypatch):
 
     monkeypatch.setattr(realdata, "_fetch", spy)
     monkeypatch.setattr(cache_store, "get", lambda k: None)
-    monkeypatch.setattr(realdata, "_CACHE", {})
 
     heatmap.build("landslide", 15.36, 107.90, radius_km=8.0, side=7)
 

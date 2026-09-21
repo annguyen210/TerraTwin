@@ -27,24 +27,67 @@ import urllib.request
 # số "mười phút" lạc quan hơn thực tế đo được — KHÔNG hứa hẹn thời gian phục
 # hồi cụ thể trong thông báo nữa, chỉ nói sự thật đo được: đây là hạn mức, tự
 # nó có thể qua, không phải lỗi cần đi sửa code.
-_QUOTA: dict[str, float] = {}      # host -> thời điểm phát hiện cạn hạn mức gần nhất
+#
+# BỀN QUA RESTART (2026-09-21): trước đây _QUOTA/_QUOTA_LOG/_CACHE là dict
+# trong RAM. Render free dựng lại tiến trình liên tục (ngủ rồi thức, redeploy,
+# OOM) — đo được thật: count_429_24h đọc 38 rồi về 0 mà KHÔNG có deploy nào ở
+# giữa, tức tiến trình tự restart và bộ đếm mất sạch. Tệ hơn: mất _CACHE nghĩa
+# là MỌI lần restart đều nã lại Open-Meteo cho mọi toạ độ đang hoạt động —
+# chính nguyên nhân sinh ra 38 lần 429 mà công cụ đo lại không sống nổi để đo.
+# Chuyển cả ba xuống kv_cache (bảng DB, đã dùng cho passport/scorecard/heatmap)
+# — cùng cách đã làm cho nhật ký lượt quét radar.
 _QUOTA_TTL = 1800.0                # sau nửa giờ không tái diễn thì coi như đã qua
-_QUOTA_LOG: dict[str, list[float]] = {}   # host -> mọi thời điểm bị 429, để đếm 24h
 _QUOTA_LOG_WINDOW = 86400.0
 
 
-def _count_recent_429(host: str, now: float) -> int:
-    log = [t for t in _QUOTA_LOG.get(host, []) if now - t < _QUOTA_LOG_WINDOW]
-    _QUOTA_LOG[host] = log      # dọn luôn, không để list phình vô hạn
-    return len(log)
+def _quota_key(host: str) -> str:
+    from app.services import cache_store
+    return cache_store.make_key("quota", host)
+
+
+def _record_429(host: str) -> None:
+    from app.services import cache_store
+
+    now = time.time()
+    key = _quota_key(host)
+    row = cache_store.get(key) or {"last": 0.0, "log": []}
+    if now - row.get("last", 0.0) > _QUOTA_TTL:
+        from app.safelog import log
+        log(f"[TerraTwin] {host}: bi chan vi qua han muc (HTTP 429). "
+            f"Moi ket qua se bao 'chua du du lieu'.")
+    log_ = [t for t in row.get("log", []) if now - t < _QUOTA_LOG_WINDOW]
+    log_.append(now)
+    cache_store.put(key, {"last": now, "log": log_},
+                    ttl_seconds=int(_QUOTA_LOG_WINDOW) + 3600)
+
+
+# Danh sách CỐ ĐỊNH — chỉ 5 host thật sự được gọi trong file này. kv_cache
+# không hỗ trợ "liệt kê mọi khoá khớp tiền tố kèm giá trị", nên phải biết
+# trước tên để tự đọc từng cái thay vì dò động như bản dict cũ.
+_KNOWN_HOSTS = (
+    "api.open-meteo.com", "archive-api.open-meteo.com",
+    "flood-api.open-meteo.com", "marine-api.open-meteo.com",
+    "power.larc.nasa.gov",
+)
 
 
 def quota_status() -> dict:
     """Nguồn nào đang bị chặn vì quá hạn mức, và cách đây bao lâu."""
+    from app.services import cache_store
+
     now = time.time()
-    hit = {h: round((now - t) / 60.0, 1)
-           for h, t in _QUOTA.items() if now - t < _QUOTA_TTL}
-    counts_24h = {h: _count_recent_429(h, now) for h in _QUOTA_LOG}
+    hit: dict[str, float] = {}
+    counts_24h: dict[str, int] = {}
+    for host in _KNOWN_HOSTS:
+        row = cache_store.get(_quota_key(host))
+        if not row:
+            continue
+        last = row.get("last", 0.0)
+        if now - last < _QUOTA_TTL:
+            hit[host] = round((now - last) / 60.0, 1)
+        n = len([t for t in row.get("log", []) if now - t < _QUOTA_LOG_WINDOW])
+        if n:
+            counts_24h[host] = n
     return {
         "exhausted": sorted(hit),
         "minutes_since_detected": hit,
@@ -58,8 +101,8 @@ def quota_status() -> dict:
             if hit else "Chưa nguồn nào bị chặn vì quá hạn mức."),
     }
 
-_CACHE: dict[str, tuple[float, object]] = {}
-_TTL = 1800  # giây
+_TTL = 1800            # giây — dữ liệu trong khoảng này coi là MỚI
+_STALE_MAX = 6 * 3600  # còn dùng làm phao cứu sinh tới 6 giờ khi gọi mạng hỏng
 
 
 def _fetch(url: str, timeout: float):
@@ -92,51 +135,69 @@ def _fetch(url: str, timeout: float):
         except urllib.error.HTTPError as e:
             if e.code == 429:
                 host = url.split("/")[2] if "//" in url else url[:40]
-                now = time.time()
-                if host not in _QUOTA or now - _QUOTA[host] > _QUOTA_TTL:
-                    from app.safelog import log
-                    log(f"[TerraTwin] {host}: bi chan vi qua han muc (HTTP 429). "
-                        f"Moi ket qua se bao 'chua du du lieu'.")
-                _QUOTA[host] = now
-                _QUOTA_LOG.setdefault(host, []).append(now)
+                _record_429(host)
             return None
         except Exception:
             return None
 
 
+def _cache_key(url: str) -> str:
+    from app.services import cache_store
+    return cache_store.make_key("realdata", url)
+
+
 def _get(url: str, timeout: float = 8.0):
-    """Lấy JSON có cache, và GỘP những lời gọi trùng nhau đang chạy cùng lúc.
+    """Lấy JSON có cache BỀN (kv_cache, sống qua restart) + GỘP những lời gọi
+    trùng nhau đang chạy cùng lúc.
 
     Cache thường chỉ cứu từ lượt thứ hai trở đi. Khi nhiều người cùng hỏi một
     toạ độ trong cùng một giây — chuyện xảy ra ngay trong một lượt quét toàn
     cảnh, trong bản đồ nhiệt, và trong mọi lần demo trước đám đông — thì tất cả
     đều thấy cache rỗng và cùng gọi ra ngoài. `single_flight` để đúng MỘT lượt
     chạy, số còn lại chờ chung kết quả đó.
-    """
-    from app.services import jobs
 
+    PHAO CỨU SINH KHI GỌI MẠNG HỎNG: nếu fetch thất bại (mất mạng HOẶC 429)
+    nhưng có bản cache CŨ (quá 30 phút nhưng chưa quá _STALE_MAX), trả bản cũ
+    đó thay vì None. Đây VẪN LÀ dữ liệu thật, chỉ không mới bằng bình thường —
+    trung thực hơn hẳn so với rơi xuống mô hình mẫu chỉ vì cache vừa hết hạn
+    đúng lúc nguồn đang bị hạn mức chặn.
+    """
+    from app.services import cache_store, jobs
+
+    key = _cache_key(url)
     now = time.time()
-    hit = _CACHE.get(url)
-    if hit and now - hit[0] < _TTL:
-        return hit[1]
+    cached = cache_store.get(key)
+    if cached and now - cached["at"] < _TTL:
+        return cached["data"]
 
     def _work():
         # Kiểm lại trong "phòng chờ": người dẫn đầu có thể vừa ghi cache xong
         # ngay trước khi ta bước vào đây.
-        h = _CACHE.get(url)
-        if h and time.time() - h[0] < _TTL:
-            return h[1]
+        h = cache_store.get(key)
+        now2 = time.time()
+        if h and now2 - h["at"] < _TTL:
+            return h["data"]
         data = _fetch(url, timeout)
         if data is not None:
-            _CACHE[url] = (time.time(), data)
-        return data
+            cache_store.put(key, {"at": now2, "data": data}, _STALE_MAX)
+            return data
+        # Gọi mạng hỏng — dùng bản CŨ nếu còn trong hạn phao cứu sinh.
+        if h and now2 - h["at"] < _STALE_MAX:
+            return h["data"]
+        return None
 
     return jobs.single_flight(f"om:{url}", _work)
 
 
 def _bust(url: str) -> None:
-    """Xóa cache một URL để lần gọi sau fetch lại (tự lành khi response hỏng)."""
-    _CACHE.pop(url, None)
+    """Xóa cache một URL để lần gọi sau fetch lại (tự lành khi response hỏng).
+
+    CỐ Ý xoá hẳn thay vì chỉ đánh dấu hết hạn: response từng lưu là HỎNG (thiếu
+    trường, mảng toàn null) — không phải thứ muốn dùng làm phao cứu sinh cho
+    lần gọi sau.
+    """
+    from app.services import cache_store
+    cache_store.delete(_cache_key(url))
 
 
 def _num(x):
