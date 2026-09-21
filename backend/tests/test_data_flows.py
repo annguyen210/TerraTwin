@@ -297,9 +297,9 @@ def test_heatmap_sat_lo_khong_goi_mang_tung_o(monkeypatch):
     n = {"c": 0}
     orig = realdata._fetch
 
-    def spy(url, timeout):
+    def spy(url, timeout, headers=None):
         n["c"] += 1
-        return orig(url, timeout)
+        return orig(url, timeout, headers=headers)
 
     monkeypatch.setattr(realdata, "_fetch", spy)
     monkeypatch.setattr(cache_store, "get", lambda k: None)

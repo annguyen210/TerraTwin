@@ -51,6 +51,9 @@ _RADAR_INTERVAL_H = float(os.environ.get("TERRATWIN_RADAR_INTERVAL_H", "6") or 0
 # gì cả (chỉ một lượt đọc kv_cache) trừ khi có thửa nào tới hạn thử lại.
 _RADAR_RETRY_INTERVAL_MIN = float(os.environ.get("TERRATWIN_RADAR_RETRY_INTERVAL_MIN", "10") or 0)
 
+# Hâm nóng cache ngay sau khi dựng lại tiến trình. "0" = tắt; mặc định bật.
+_STARTUP_WARMUP = os.environ.get("TERRATWIN_STARTUP_WARMUP", "1").strip() != "0"
+
 
 async def _radar_loop() -> None:
     """Quét định kỳ cho mọi người dùng.
@@ -152,6 +155,34 @@ async def _radar_retry_loop() -> None:
             log(f"[TerraTwin] Thử lại bỏ sót lỗi: {type(e).__name__}: {e}")
 
 
+async def _startup_warmup() -> None:
+    """Nạp trước 8 địa điểm mẫu (app.warm.DEMO) NGAY sau khi dựng lại tiến
+    trình — demo trước giám khảo không được rơi vào mô hình mẫu chỉ vì Render
+    vừa restart mất cache.
+
+    `app.warm` vốn là script CLI chạy TAY trước buổi thi (`python -m app.warm
+    --demo`) — đúng nhưng không tự động: quên chạy tay một lần là mất tác
+    dụng. Ở đây chạy CHÍNH warm_one() (tức chạy đúng lượt quét thật, không
+    phải mẹo nạp riêng phần hiệu chuẩn — xem chú thích trong app/warm.py) một
+    cách tự động mỗi khi tiến trình khởi động, giãn cách vài giây một điểm để
+    không tự trói mình bằng chính lượt hâm nóng.
+    """
+    import asyncio
+
+    from app.warm import DEMO, warm_one
+
+    for lat, lon, name in DEMO:
+        try:
+            ok, total = await asyncio.to_thread(warm_one, lat, lon)
+            if ok < total:
+                log(f"[TerraTwin] Hâm nóng {name}: {ok}/{total} mô-đun có dữ liệu thật.")
+        except asyncio.CancelledError:
+            return
+        except Exception as e:      # một điểm hỏng không được chặn các điểm sau
+            log(f"[TerraTwin] Hâm nóng {name} lỗi: {type(e).__name__}: {e}")
+        await asyncio.sleep(3.0)
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     import asyncio
@@ -174,10 +205,14 @@ async def lifespan(_app: FastAPI):
     retry_task = None
     if _RADAR_RETRY_INTERVAL_MIN > 0:
         retry_task = asyncio.create_task(_radar_retry_loop())
+
+    warmup_task = None
+    if _STARTUP_WARMUP:
+        warmup_task = asyncio.create_task(_startup_warmup())
     try:
         yield
     finally:
-        for t in (task, retry_task):
+        for t in (task, retry_task, warmup_task):
             if t is not None:
                 t.cancel()
                 try:
@@ -297,6 +332,11 @@ def health() -> dict:
     return {"status": "degraded" if q["exhausted"] else "ok",
             "service": "terratwin", "modules": len(list_modules()),
             "quota": q, "jobs": jobs.stats(),
+            # Đếm lời gọi ra ngoài từ lúc tiến trình này khởi động + tỉ lệ
+            # trúng cache — chẩn đoán "đang gọi thừa ở đâu" thay vì đoán. Có 6
+            # nhóm URL Open-Meteo/MET Norway khác nhau; hit_rate_pct thấp là
+            # dấu hiệu một mô-đun đang tự gọi riêng thay vì dùng chung cache.
+            "calls": realdata.call_stats(),
             "radar": {
                 "last_sweep_at": last.get("at") if last else None,
                 "last_sweep": last,

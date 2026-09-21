@@ -182,18 +182,84 @@ def test_cache_song_qua_restart_va_lam_phao_cuu_sinh(monkeypatch):
     key = realdata._cache_key(url)
     cache_store.clear_prefix("realdata")
 
-    # Bản cache "cũ" — quá 30 phút (_TTL) nên không còn tính là MỚI, nhưng
-    # trong hạn 6 giờ (_STALE_MAX) nên còn dùng làm phao cứu sinh được.
-    stale_at = time.time() - 3600
+    # Bản cache "cũ" — quá TTL dự báo (3 giờ, xem _ttl_for) nên không còn tính
+    # là MỚI, nhưng trong hạn phao cứu sinh (12 giờ) nên còn dùng được.
+    stale_at = time.time() - 4 * 3600
     cache_store.put(key, {"at": stale_at, "data": {"daily": {"time": ["x"]}}},
-                    ttl_seconds=6 * 3600)
+                    ttl_seconds=12 * 3600)
 
     # Không dùng dict `realdata._CACHE` nào cả — đọc thẳng từ cache_store, đúng
     # như một tiến trình MỚI (sau restart) sẽ làm. Mạng THẬT SỰ được thử (không
     # bị chặn ở đây) nhưng trả về hỏng (429/mất mạng) — điều cần khoá chặt là
     # phần mềm KHÔNG rơi xuống None chỉ vì lần thử đó hỏng.
-    monkeypatch.setattr(realdata, "_fetch", lambda u, t: None)
+    monkeypatch.setattr(realdata, "_fetch", lambda u, t, headers=None: None)
     assert realdata._get(url) == {"daily": {"time": ["x"]}}
+
+
+def _metno_fake_body():
+    """8 ngày × 4 mốc/ngày (mỗi 6 giờ) — đủ để weather_7d_metno() gộp ra 7
+    ngày lịch với cả nhiệt độ lẫn mưa ở mọi ngày."""
+    from datetime import datetime, timedelta, timezone
+
+    start = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
+    series = []
+    for h in range(0, 8 * 24, 6):
+        t = start + timedelta(hours=h)
+        series.append({
+            "time": t.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "data": {
+                "instant": {"details": {"air_temperature": 26.0 + (h % 24) / 4.0}},
+                "next_6_hours": {"details": {"precipitation_amount": 1.5}},
+            },
+        })
+    return {"properties": {"timeseries": series}}
+
+
+def test_open_meteo_429_thi_weather_7d_chuyen_sang_metno(monkeypatch):
+    """VIỆC QUAN TRỌNG NHẤT của đợt vá 2026-09-21: production đo được 100%
+    lượt gọi /v1/forecast từ Render bị 429 (hạn mức dùng chung theo IP), trong
+    khi gọi CÙNG toạ độ từ máy ngoài Render vẫn bình thường — nghĩa là chờ hạn
+    mức tự qua là vô ích, và phao cứu sinh 6-12h không đỡ được lượt gọi ĐẦU
+    TIÊN cho một toạ độ chưa từng quét (cache rỗng → gọi → bị chặn → vẫn rỗng).
+    Không có nguồn thứ hai thì is_real=False VĨNH VIỄN cho bất kỳ ai bấm vào
+    chỗ chưa ai bấm trước — bắt buộc phải có MET Norway làm dự phòng.
+    """
+    import io
+    import json
+    import urllib.error
+
+    from app.services import cache_store, realdata
+
+    cache_store.clear_prefix("quota")
+    cache_store.clear_prefix("realdata")
+
+    body = json.dumps(_metno_fake_body()).encode("utf-8")
+
+    def _urlopen(req, timeout=None):
+        url = req.full_url
+        if "api.open-meteo.com" in url:
+            raise urllib.error.HTTPError(url, 429, "Too Many Requests", {}, None)
+        if "api.met.no" in url:
+            assert "User-Agent" in req.headers or "User-agent" in req.headers, (
+                "MET Norway bắt buộc User-Agent nhận dạng được ứng dụng")
+            return io.BytesIO(body)
+        raise AssertionError(f"URL không mong đợi trong test này: {url}")
+
+    monkeypatch.setattr("urllib.request.urlopen", _urlopen)
+
+    rows = realdata.weather_7d(16.46, 107.59)
+    assert rows is not None, "429 ở Open-Meteo không được làm mất dữ liệu thật"
+    assert len(rows) >= 4
+    assert all(r["source"] == "metno" for r in rows)
+    assert all(r["precip"] >= 0.0 and r["tmax"] > 0.0 for r in rows)
+
+    # Open-Meteo VẪN bị ghi nhận là đang chặn — không được nuốt luôn 429 chỉ
+    # vì đã có nguồn thay thế; người vận hành vẫn cần biết để theo dõi.
+    q = realdata.quota_status()
+    assert "api.open-meteo.com" in q["exhausted"]
+
+    cache_store.clear_prefix("quota")
+    cache_store.clear_prefix("realdata")
 
 
 @pytest.fixture

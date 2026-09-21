@@ -19,7 +19,7 @@ class DroughtModule(TwinModule):
     description = "Dự báo vùng ruộng sắp thiếu nước để chủ động điều tiết."
 
     def assess(self, loc: Location) -> Assessment:
-        s, real, calibrated = hazard.module_series(self.id, loc.lat, loc.lon)
+        s, real, calibrated, source = hazard.module_series(self.id, loc.lat, loc.lon)
 
         def texts(lvl, pk, fd):
             if fd:
@@ -37,8 +37,7 @@ class DroughtModule(TwinModule):
         detail = (tr("Chỉ số thiếu ẩm tính từ mưa & bốc thoát hơi ET₀ THẬT (Open-Meteo). ",
                      "Moisture-deficit index from REAL rainfall & ET₀ evapotranspiration (Open-Meteo). ")
                   if real else tr("Chỉ số thiếu ẩm (mẫu). ", "Moisture-deficit index (sample). ")) + hazard.scale_note(real, calibrated)
-        src = [tr("Open-Meteo: lượng mưa & ET₀ (dữ liệu thật)",
-                  "Open-Meteo: rainfall & ET₀ (real data)")] if real else self.disp_data_sources()
+        src = [hazard.source_label(source, "lượng mưa & ET₀", "rainfall & ET₀")] if real else self.disp_data_sources()
         return assessment_from_series(self, loc, s, "%", 40, 70, texts, detail,
                                       confidence=0.78 if real else 0.6, is_real=real, data_sources=src)
 
@@ -51,7 +50,7 @@ class WildfireModule(TwinModule):
     description = "Vùng khô dễ cháy + phát hiện điểm nóng sớm."
 
     def assess(self, loc: Location) -> Assessment:
-        s, real, calibrated = hazard.module_series(self.id, loc.lat, loc.lon)
+        s, real, calibrated, source = hazard.module_series(self.id, loc.lat, loc.lon)
 
         def texts(lvl, pk, fd):
             if fd:
@@ -68,8 +67,7 @@ class WildfireModule(TwinModule):
         detail = (tr("Chỉ số nguy cơ cháy từ nhiệt độ & khô hạn THẬT (Open-Meteo). ",
                      "Fire-risk index from REAL temperature & dryness (Open-Meteo). ")
                   if real else tr("Chỉ số nguy cơ cháy (mẫu). ", "Fire-risk index (sample). ")) + hazard.scale_note(real, calibrated)
-        src = [tr("Open-Meteo: nhiệt độ & lượng mưa (dữ liệu thật)",
-                  "Open-Meteo: temperature & rainfall (real data)")] if real else self.disp_data_sources()
+        src = [hazard.source_label(source, "nhiệt độ & lượng mưa", "temperature & rainfall")] if real else self.disp_data_sources()
         return assessment_from_series(self, loc, s, tr("điểm", "pts"), 40, 70, texts, detail,
                                       confidence=0.75 if real else 0.6, is_real=real, data_sources=src)
 

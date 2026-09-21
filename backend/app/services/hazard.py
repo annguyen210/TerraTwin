@@ -38,6 +38,17 @@ def name_unit(module_id: str) -> tuple[str, str]:
     return _META_EN[module_id] if cur_lang() == "en" else META[module_id]
 
 
+def source_label(source: str | None, vi_desc: str, en_desc: str) -> str:
+    """Nhãn nguồn ĐÚNG với dữ liệu vừa dùng cho data_sources của Assessment.
+
+    KHÔNG hardcode "Open-Meteo" trong từng module — khi weather_7d() rơi về
+    nguồn dự phòng (MET Norway) lúc Open-Meteo bị chặn, module phải nói đúng
+    nguồn thật đang dùng, không phải nguồn thường dùng."""
+    from app.services.reqlang import tr
+    name = "MET Norway" if source == "metno" else "Open-Meteo"
+    return tr(f"{name}: {vi_desc} (thật)", f"{name}: {en_desc} (real)")
+
+
 def terrain(module_id: str, lat: float, lon: float) -> tuple[float | None, str]:
     """(giá trị địa hình, mô tả). Lũ dùng cao độ, sạt lở dùng độ dốc."""
     from app.services.reqlang import tr
@@ -92,24 +103,30 @@ _FALLBACK = {
 
 
 def module_series(module_id: str, lat: float, lon: float):
-    """(series, is_real, is_calibrated) — điểm vào DUY NHẤT cho 4 module hiểm họa.
+    """(series, is_real, is_calibrated, source) — điểm vào DUY NHẤT cho 4
+    module hiểm họa.
 
     Trước đây các module gọi thẳng ds.*_series() nên vẫn chạy thang TUYỆT ĐỐI,
     trong khi explain/goal-seek/heatmap/backtest đã dùng thang ĐÃ HIỆU CHUẨN.
     Hậu quả: cùng một toạ độ, thẻ module báo "nguy hiểm 74.5" còn bản đồ nhiệt
     báo an toàn. Hàm này buộc mọi nơi dùng chung một thang.
+
+    `source` = "open-meteo" | "metno" | None (None khi real=False, dữ liệu mẫu)
+    — để module tự ghi ĐÚNG nguồn trong data_sources thay vì hardcode
+    "Open-Meteo" ngay cả lúc dữ liệu thật ra đến từ nguồn dự phòng.
     """
     from app.services import realdata
 
     rows = realdata.weather_7d(lat, lon)
     if rows:
         series, calibrated = index_series_calibrated(module_id, lat, lon, rows)
-        return series, True, calibrated
+        source = rows[0].get("source", "open-meteo") if rows else "open-meteo"
+        return series, True, calibrated, source
     fb = _FALLBACK.get(module_id)
     if fb is None:
-        return [], False, False
+        return [], False, False, None
     series, _ = fb(lat, lon)
-    return series, False, False
+    return series, False, False, None
 
 
 def scale_note(is_real: bool, is_calibrated: bool) -> str:

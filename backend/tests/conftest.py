@@ -18,6 +18,10 @@ os.environ.setdefault("TERRATWIN_SECRET", "test-secret-khong-dung-cho-production
 os.environ["TERRATWIN_RADAR_INTERVAL_H"] = "0"
 os.environ["TERRATWIN_RADAR_RETRY_INTERVAL_MIN"] = "0"
 
+# Hâm nóng khởi động (8 điểm mẫu) cũng KHÔNG được chạy trong test — cùng lý do:
+# 8 lượt quét thật ra Open-Meteo/MET Norway mỗi lần TestClient(app) mở lifespan.
+os.environ["TERRATWIN_STARTUP_WARMUP"] = "0"
+
 
 # CSDL RIÊNG CHO MỖI LẦN CHẠY TEST.
 #

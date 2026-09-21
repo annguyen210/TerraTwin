@@ -21,7 +21,7 @@ class FloodModule(TwinModule):
     description = "Vùng dân cư nào sắp ngập, sâu bao nhiêu, khi nào."
 
     def assess(self, loc: Location) -> Assessment:
-        s, real, calibrated = hazard.module_series(self.id, loc.lat, loc.lon)
+        s, real, calibrated, source = hazard.module_series(self.id, loc.lat, loc.lon)
         elev = ds.elevation_proxy(loc.lat, loc.lon)
 
         # Mưa THƯỢNG NGUỒN cố ý KHÔNG nằm ở đây mà tách thành mô-đun riêng
@@ -65,7 +65,7 @@ class FloodModule(TwinModule):
                        f"{river['ratio']}× climatic mean ({river['mean_m3s']} m³/s).")
         detail = base + " " + hazard.scale_note(real, calibrated)
 
-        src = [tr("Open-Meteo: lượng mưa (thật)", "Open-Meteo: rainfall (real)"),
+        src = [hazard.source_label(source, "lượng mưa", "rainfall"),
                tr(f"Cao độ {elev} m (Open-Meteo)", f"Elevation {elev} m (Open-Meteo)")] \
             if real else list(self.disp_data_sources())
         metrics: dict[str, float] = {}
@@ -93,7 +93,7 @@ class LandslideModule(TwinModule):
     description = "Vùng núi có nguy cơ sạt lở sau mưa lớn."
 
     def assess(self, loc: Location) -> Assessment:
-        s, real, calibrated = hazard.module_series(self.id, loc.lat, loc.lon)
+        s, real, calibrated, source = hazard.module_series(self.id, loc.lat, loc.lon)
         slope, slope_real = ds.slope_context(loc.lat, loc.lon)
 
         def texts(lvl, pk, fd):
@@ -121,7 +121,7 @@ class LandslideModule(TwinModule):
                   + tr(" Sạt lở cần địa hình dốc — đồng bằng phẳng gần như không rủi ro. ",
                        " Landslides need steep terrain — flat deltas have almost no risk. ")
                   + hazard.scale_note(real, calibrated))
-        src = [tr("Open-Meteo: lượng mưa (thật)", "Open-Meteo: rainfall (real)"), slope_txt] \
+        src = [hazard.source_label(source, "lượng mưa", "rainfall"), slope_txt] \
             if real else self.disp_data_sources()
         return assessment_from_series(self, loc, s, tr("điểm", "pts"), 40, 70, texts, detail,
                                       confidence=0.7 if real else 0.6, is_real=real, data_sources=src)

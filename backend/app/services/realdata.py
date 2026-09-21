@@ -2,14 +2,18 @@
 
 - Open-Meteo (nền ECMWF): dự báo mưa, bốc thoát hơi (ET₀), nhiệt độ, cao độ.
 - NASA POWER: bức xạ mặt trời (climatology).
+- MET Norway Locationforecast 2.0: dự phòng dự báo mưa/nhiệt khi Open-Meteo bị
+  chặn vì hạn mức — xem weather_7d_metno().
 
-Có cache 30 phút + tự fallback (trả None) khi offline/timeout để app luôn chạy.
-Ảnh vệ tinh Sentinel (quang học/radar) cần API key → thêm ở đây khi triển khai.
+Có cache BỀN qua restart (kv_cache) + tự fallback khi offline/timeout để app
+luôn chạy. Ảnh vệ tinh Sentinel (quang học/radar) cần API key → thêm ở đây khi
+triển khai.
 """
 from __future__ import annotations
 
 import json
 import math
+import os
 import time
 import urllib.error
 import urllib.request
@@ -61,13 +65,15 @@ def _record_429(host: str) -> None:
                     ttl_seconds=int(_QUOTA_LOG_WINDOW) + 3600)
 
 
-# Danh sách CỐ ĐỊNH — chỉ 5 host thật sự được gọi trong file này. kv_cache
-# không hỗ trợ "liệt kê mọi khoá khớp tiền tố kèm giá trị", nên phải biết
-# trước tên để tự đọc từng cái thay vì dò động như bản dict cũ.
+# Danh sách CỐ ĐỊNH — mọi host thật sự được gọi trong file này (+ probabilistic
+# .py, dùng chung realdata._get). kv_cache không hỗ trợ "liệt kê mọi khoá khớp
+# tiền tố kèm giá trị", nên phải biết trước tên để tự đọc từng cái thay vì dò
+# động như bản dict cũ.
 _KNOWN_HOSTS = (
     "api.open-meteo.com", "archive-api.open-meteo.com",
     "flood-api.open-meteo.com", "marine-api.open-meteo.com",
-    "power.larc.nasa.gov",
+    "ensemble-api.open-meteo.com", "power.larc.nasa.gov",
+    "api.met.no",
 )
 
 
@@ -101,11 +107,49 @@ def quota_status() -> dict:
             if hit else "Chưa nguồn nào bị chặn vì quá hạn mức."),
     }
 
-_TTL = 1800            # giây — dữ liệu trong khoảng này coi là MỚI
-_STALE_MAX = 6 * 3600  # còn dùng làm phao cứu sinh tới 6 giờ khi gọi mạng hỏng
+# THỜI GIAN CACHE THEO TỪNG NGUỒN (2026-09-21) — trước đây MỘT hằng số 1800s
+# áp cho mọi URL. Sai ở cả hai đầu: cao độ mặt đất KHÔNG BAO GIỜ đổi mà bị gọi
+# lại mỗi 30 phút (lãng phí lượt gọi vô ích, góp phần đốt hạn mức); dự báo thời
+# tiết mà Open-Meteo cũng chỉ CHẠY MÔ HÌNH mới vài giờ một lần, nên cache 30
+# phút không "tươi" hơn cache 3 giờ chút nào, chỉ tốn thêm 6x lượt gọi.
+_TTL_FOREVER = 3650 * 86400   # ~10 năm — cao độ, không đổi theo thời gian
+_TTL_30D = 30 * 86400         # ERA5 lịch sử — dữ liệu quá khứ, không đổi
+_TTL_3H = 3 * 3600            # dự báo (forecast/marine/ensemble/MET Norway)
+_TTL_6H = 6 * 3600            # lưu lượng sông (flood-api)
+_STALE_MAX = 12 * 3600        # phao cứu sinh khi gọi mạng hỏng — nâng từ 6h
 
 
-def _fetch(url: str, timeout: float):
+def _ttl_for(url: str) -> tuple[int, int]:
+    """(TTL mới, hạn phao cứu sinh) theo loại nguồn suy từ chính URL."""
+    if "/v1/elevation" in url:
+        return _TTL_FOREVER, _TTL_FOREVER
+    if "archive-api." in url:
+        return _TTL_30D, _TTL_30D
+    if "flood-api." in url:
+        return _TTL_6H, _STALE_MAX
+    # /v1/forecast (Open-Meteo), marine-api, ensemble-api, api.met.no —
+    # đều là dự báo, đổi theo giờ chứ không theo phút.
+    return _TTL_3H, _STALE_MAX
+
+
+# ĐẾM LỜI GỌI — cho /api/health biết một lượt quét 18 mô-đun thật sự tốn bao
+# nhiêu lượt ra ngoài và tỉ lệ trúng cache, để chẩn đoán "đang gọi thừa ở đâu"
+# thay vì đoán. Chỉ là đồng hồ đo TỪ LÚC TIẾN TRÌNH NÀY khởi động — không cần
+# bền qua restart vì đây là chỉ báo sống, không phải dữ liệu cần giữ.
+_CALLS_TOTAL = 0
+_CALLS_HIT = 0
+
+
+def call_stats() -> dict:
+    return {
+        "total": _CALLS_TOTAL,
+        "cache_hits": _CALLS_HIT,
+        "hit_rate_pct": (round(100.0 * _CALLS_HIT / _CALLS_TOTAL, 1)
+                        if _CALLS_TOTAL else None),
+    }
+
+
+def _fetch(url: str, timeout: float, headers: dict | None = None):
     """Gọi mạng thật. Đi qua trần đồng thời để không nã dồn nguồn miễn phí.
 
     GIỚI HẠN CẦN BIẾT: `timeout` chỉ chi phối lúc kết nối và lúc đọc, KHÔNG chi
@@ -129,7 +173,7 @@ def _fetch(url: str, timeout: float):
             return None
         try:
             req = urllib.request.Request(
-                url, headers={"User-Agent": "TerraTwin/0.2"})
+                url, headers=headers or {"User-Agent": "TerraTwin/0.2"})
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return json.loads(r.read().decode("utf-8"))
         except urllib.error.HTTPError as e:
@@ -146,7 +190,7 @@ def _cache_key(url: str) -> str:
     return cache_store.make_key("realdata", url)
 
 
-def _get(url: str, timeout: float = 8.0):
+def _get(url: str, timeout: float = 8.0, headers: dict | None = None):
     """Lấy JSON có cache BỀN (kv_cache, sống qua restart) + GỘP những lời gọi
     trùng nhau đang chạy cùng lúc.
 
@@ -157,17 +201,21 @@ def _get(url: str, timeout: float = 8.0):
     chạy, số còn lại chờ chung kết quả đó.
 
     PHAO CỨU SINH KHI GỌI MẠNG HỎNG: nếu fetch thất bại (mất mạng HOẶC 429)
-    nhưng có bản cache CŨ (quá 30 phút nhưng chưa quá _STALE_MAX), trả bản cũ
-    đó thay vì None. Đây VẪN LÀ dữ liệu thật, chỉ không mới bằng bình thường —
-    trung thực hơn hẳn so với rơi xuống mô hình mẫu chỉ vì cache vừa hết hạn
-    đúng lúc nguồn đang bị hạn mức chặn.
+    nhưng có bản cache CŨ (quá TTL nhưng chưa quá hạn phao cứu sinh), trả bản
+    cũ đó thay vì None. Đây VẪN LÀ dữ liệu thật, chỉ không mới bằng bình
+    thường — trung thực hơn hẳn so với rơi xuống mô hình mẫu chỉ vì cache vừa
+    hết hạn đúng lúc nguồn đang bị hạn mức chặn.
     """
+    global _CALLS_TOTAL, _CALLS_HIT
     from app.services import cache_store, jobs
 
     key = _cache_key(url)
+    ttl, stale_max = _ttl_for(url)
     now = time.time()
+    _CALLS_TOTAL += 1
     cached = cache_store.get(key)
-    if cached and now - cached["at"] < _TTL:
+    if cached and now - cached["at"] < ttl:
+        _CALLS_HIT += 1
         return cached["data"]
 
     def _work():
@@ -175,14 +223,14 @@ def _get(url: str, timeout: float = 8.0):
         # ngay trước khi ta bước vào đây.
         h = cache_store.get(key)
         now2 = time.time()
-        if h and now2 - h["at"] < _TTL:
+        if h and now2 - h["at"] < ttl:
             return h["data"]
-        data = _fetch(url, timeout)
+        data = _fetch(url, timeout, headers=headers)
         if data is not None:
-            cache_store.put(key, {"at": now2, "data": data}, _STALE_MAX)
+            cache_store.put(key, {"at": now2, "data": data}, max(ttl, stale_max))
             return data
         # Gọi mạng hỏng — dùng bản CŨ nếu còn trong hạn phao cứu sinh.
-        if h and now2 - h["at"] < _STALE_MAX:
+        if h and now2 - h["at"] < stale_max:
             return h["data"]
         return None
 
@@ -211,11 +259,21 @@ def _num(x):
 
 
 def weather_7d(lat: float, lon: float):
-    """Dự báo 7 ngày THẬT. Trả list dict {day,date,precip,et0,tmax} hoặc None.
+    """Dự báo 7 ngày THẬT. Trả list dict {day,date,precip,et0,tmax,source} hoặc
+    None. `source` = "open-meteo" hoặc "metno" — xem weather_7d_metno().
 
     Phân biệt null (thiếu dữ liệu) vs 0.0 (thật sự không mưa). Nếu Open-Meteo trả
     mảng mưa toàn null (dữ liệu chưa sẵn), coi như KHÔNG hợp lệ → None + xóa cache
     để lần sau fetch lại (tránh 'khô giả' bị kẹt 30 phút).
+
+    NGUỒN DỰ PHÒNG (2026-09-21): Open-Meteo dùng CHUNG hạn mức cho mọi tiến
+    trình chạy trên IP dùng chung của Render — đo được thật: 100% lượt gọi
+    /v1/forecast từ production bị 429, trong khi gọi cùng toạ độ từ máy ngoài
+    Render vẫn bình thường. Cache dài hơn (xem _ttl_for) giảm SỐ LƯỢT gọi,
+    nhưng không cứu được lượt gọi ĐẦU TIÊN cho một toạ độ chưa từng quét — lúc
+    đó bắt buộc phải có nguồn thứ hai, nếu không is_real=False vĩnh viễn cho
+    bất kỳ ai bấm vào chỗ chưa ai bấm trước. MET Norway Locationforecast dùng
+    IP khác, hạn mức khác — không cùng bị chặn.
     """
     url = (
         "https://api.open-meteo.com/v1/forecast"
@@ -224,32 +282,150 @@ def weather_7d(lat: float, lon: float):
         "&forecast_days=7&timezone=auto"
     )
     d = _get(url)
-    if not d or "daily" not in d:
+    if d and "daily" in d:
+        dd = d["daily"]
+        try:
+            times = dd["time"]
+            precip = [_num(v) for v in dd.get("precipitation_sum", [])]
+            et0 = [_num(v) for v in dd.get("et0_fao_evapotranspiration", [])]
+            tmax = [_num(v) for v in dd.get("temperature_2m_max", [])]
+        except (KeyError, TypeError):
+            times = None
+        else:
+            # Bắt buộc có ≥ nửa số ngày với lượng mưa thật; nếu không → dữ
+            # liệu chưa sẵn.
+            valid_precip = [p for p in precip if p is not None]
+            if not times or len(valid_precip) < max(1, len(times) // 2):
+                times = None
+
+        if times:
+            return [
+                {
+                    "day": i, "date": times[i],
+                    "precip": precip[i] if i < len(precip) and precip[i] is not None else 0.0,
+                    "et0": et0[i] if i < len(et0) and et0[i] is not None else 0.0,
+                    "tmax": tmax[i] if i < len(tmax) and tmax[i] is not None else 0.0,
+                    "source": "open-meteo",
+                }
+                for i in range(len(times))
+            ]
+        _bust(url)   # response có nhưng hỏng (thiếu trường/toàn null) — xoá hẳn
+
+    return weather_7d_metno(lat, lon)
+
+
+# ---------------------------------------------------------------------------
+# NGUỒN DỰ PHÒNG — MET Norway Locationforecast 2.0 (miễn phí, không khoá)
+# ---------------------------------------------------------------------------
+
+_METNO_URL = "https://api.met.no/weatherapi/locationforecast/2.0/compact"
+
+
+def _metno_headers() -> dict:
+    # BẮT BUỘC theo điều kiện dùng của MET Norway: User-Agent nhận dạng được
+    # ứng dụng + cách liên hệ. Không đặt TERRATWIN_METNO_CONTACT vẫn chạy được
+    # (repo công khai đủ để họ liên hệ nếu cần), nhưng nên đặt thật khi deploy.
+    contact = os.environ.get("TERRATWIN_METNO_CONTACT",
+                             "https://github.com/annguyen210/TerraTwin")
+    return {"User-Agent": f"TerraTwin/1.0 ({contact})"}
+
+
+def _extraterrestrial_radiation_mm(lat_deg: float, doy: int) -> float:
+    """Bức xạ ngoài khí quyển Ra, quy đổi ra mm/ngày tương đương (FAO-56 #21-25).
+
+    Tính được thẳng từ vĩ độ + ngày trong năm — KHÔNG cần đo bức xạ thật, nên
+    dùng được để ước lượng ET0 khi nguồn chỉ cho nhiệt độ (MET Norway không có
+    et0_fao_evapotranspiration sẵn như Open-Meteo).
+    """
+    phi = math.radians(lat_deg)
+    dr = 1 + 0.033 * math.cos(2 * math.pi * doy / 365)
+    delta = 0.409 * math.sin(2 * math.pi * doy / 365 - 1.39)
+    x = max(-1.0, min(1.0, -math.tan(phi) * math.tan(delta)))
+    ws = math.acos(x)
+    ra_mj = ((24 * 60 / math.pi) * 0.0820 * dr *
+             (ws * math.sin(phi) * math.sin(delta)
+              + math.cos(phi) * math.cos(delta) * math.sin(ws)))
+    return max(0.0, ra_mj * 0.408)   # MJ/m²/ngày → mm/ngày tương đương
+
+
+def _hargreaves_et0(tmin: float, tmax: float, tmean: float,
+                    lat: float, doy: int) -> float:
+    """ET0 kiểu Hargreaves-Samani — chỉ cần tmin/tmax/vĩ độ. ƯỚC LƯỢNG VẬT LÝ
+    thật (công thức FAO-56 chuẩn), không phải số bịa, nhưng thô hơn phiên bản
+    Penman-Monteith đầy đủ mà Open-Meteo dùng (cần độ ẩm, gió, bức xạ đo thật)."""
+    if tmax <= tmin:
+        return 0.0
+    ra = _extraterrestrial_radiation_mm(lat, doy)
+    return max(0.0, 0.0023 * (tmean + 17.8) * math.sqrt(tmax - tmin) * ra)
+
+
+def weather_7d_metno(lat: float, lon: float):
+    """Dự phòng cho weather_7d() khi Open-Meteo bị chặn/mất mạng. Trả cùng
+    khuôn {day,date,precip,et0,tmax,source} hoặc None — is_real=True vẫn đúng,
+    đây LÀ dữ liệu đo thật, chỉ khác nguồn.
+
+    Gộp timeseries theo giờ/6 giờ của MET Norway thành từng ngày lịch (quy đổi
+    thô sang giờ VN = UTC+7, đủ cho tổng mưa/đỉnh nhiệt theo ngày, không cần
+    múi giờ chính xác tuyệt đối). Chỉ dùng field `next_6_hours` cho mưa — đó
+    là field duy nhất phủ đều suốt cả tuần dự báo trong sản phẩm "compact"
+    (next_1_hours co lại chỉ còn vài chục giờ đầu, next_12_hours thô hơn).
+    """
+    from datetime import datetime as _dt
+    from datetime import timedelta as _td
+
+    url = f"{_METNO_URL}?lat={lat:.4f}&lon={lon:.4f}"
+    d = _get(url, timeout=10.0, headers=_metno_headers())
+    if not d:
         return None
-    dd = d["daily"]
     try:
-        times = dd["time"]
-        precip = [_num(v) for v in dd.get("precipitation_sum", [])]
-        et0 = [_num(v) for v in dd.get("et0_fao_evapotranspiration", [])]
-        tmax = [_num(v) for v in dd.get("temperature_2m_max", [])]
+        series = d["properties"]["timeseries"]
     except (KeyError, TypeError):
-        _bust(url)
         return None
 
-    # Bắt buộc có ≥ nửa số ngày với lượng mưa thật; nếu không → dữ liệu chưa sẵn.
-    valid_precip = [p for p in precip if p is not None]
-    if not times or len(valid_precip) < max(1, len(times) // 2):
-        _bust(url)
-        return None
+    by_day: dict[str, dict] = {}
+    for entry in series:
+        try:
+            t = _dt.fromisoformat(entry["time"].replace("Z", "+00:00"))
+        except (KeyError, ValueError, TypeError):
+            continue
+        local = t + _td(hours=7)
+        day_key = local.strftime("%Y-%m-%d")
+        info = by_day.setdefault(day_key, {"precip": 0.0, "temps": [], "has_precip": False})
 
+        data = entry.get("data") or {}
+        inst = (data.get("instant") or {}).get("details") or {}
+        temp = inst.get("air_temperature")
+        if isinstance(temp, (int, float)):
+            info["temps"].append(float(temp))
+
+        six = (data.get("next_6_hours") or {}).get("details") or {}
+        precip6 = six.get("precipitation_amount")
+        if isinstance(precip6, (int, float)):
+            info["precip"] += float(precip6)
+            info["has_precip"] = True
+
+    days = sorted(by_day)[:7]
     rows = []
-    for i in range(len(times)):
+    for i, day_key in enumerate(days):
+        info = by_day[day_key]
+        temps = info["temps"]
+        if not temps:
+            continue
+        tmax, tmin = max(temps), min(temps)
+        tmean = sum(temps) / len(temps)
+        doy = _dt.strptime(day_key, "%Y-%m-%d").timetuple().tm_yday
         rows.append({
-            "day": i, "date": times[i],
-            "precip": precip[i] if i < len(precip) and precip[i] is not None else 0.0,
-            "et0": et0[i] if i < len(et0) and et0[i] is not None else 0.0,
-            "tmax": tmax[i] if i < len(tmax) and tmax[i] is not None else 0.0,
+            "day": i, "date": day_key,
+            "precip": round(info["precip"], 1),
+            "et0": round(_hargreaves_et0(tmin, tmax, tmean, lat, doy), 2),
+            "tmax": round(tmax, 1),
+            "source": "metno",
         })
+
+    # Cùng tiêu chí với weather_7d(): cần đủ mẫu để không phải 'khô giả'.
+    valid_precip_days = sum(1 for r, dk in zip(rows, days) if by_day[dk]["has_precip"])
+    if len(rows) < 4 or valid_precip_days < max(1, len(rows) // 2):
+        return None
     return rows
 
 
