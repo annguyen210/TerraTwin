@@ -1,0 +1,82 @@
+name: Database backup
+
+# N2 — pg_dump Postgres mỗi ngày, MÃ HOÁ (gpg AES256), lưu trong nhánh `backups`
+# của CHÍNH repo này — không cần tài khoản lưu trữ ngoài. AN TOÀN dù repo công
+# khai: mọi file trong nhánh backups đều đã mã hoá trước khi commit (xem
+# ops/backup.sh); không có TERRATWIN_BACKUP_PASSPHRASE thì không đọc được gì.
+#
+# Giữ 7 bản ngày + 4 bản tuần (ops/backup.sh tự xoay vòng, xoá bản cũ trước
+# khi commit — nhánh backups không phình vô hạn).
+#
+# BẮT BUỘC đặt hai secret trong repo Settings → Secrets → Actions:
+#   TERRATWIN_DB_EXTERNAL_URL   — External Database URL từ Render (Postgres →
+#                                 Connect → External). KHÔNG dùng Internal URL,
+#                                 GitHub Actions không nằm trong mạng nội bộ Render.
+#   TERRATWIN_BACKUP_PASSPHRASE — chuỗi ngẫu nhiên dài, sinh một lần và CẤT GIỮ
+#                                 an toàn ngoài repo (mất chuỗi này = mất khả
+#                                 năng đọc mọi bản sao lưu cũ).
+
+on:
+  schedule:
+    - cron: "0 19 * * *"   # 19:00 UTC = 02:00 sáng hôm sau giờ VN (UTC+7)
+  workflow_dispatch: {}
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Kiểm secret bắt buộc
+        run: |
+          fail=0
+          if [ -z "${{ secrets.TERRATWIN_DB_EXTERNAL_URL }}" ]; then
+            echo "::error::Thiếu secret TERRATWIN_DB_EXTERNAL_URL (External Database URL từ Render)."
+            fail=1
+          fi
+          if [ -z "${{ secrets.TERRATWIN_BACKUP_PASSPHRASE }}" ]; then
+            echo "::error::Thiếu secret TERRATWIN_BACKUP_PASSPHRASE — repo công khai, KHÔNG được sao lưu chưa mã hoá."
+            fail=1
+          fi
+          [ "$fail" = "0" ]
+
+      - name: Cài pg_dump
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+
+      - name: Chuẩn bị nhánh backups (checkout nếu có, tạo mới nếu chưa)
+        run: |
+          git config --global user.name "terratwin-backup-bot"
+          git config --global user.email "actions@users.noreply.github.com"
+          REMOTE="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          if git ls-remote --exit-code --heads "$REMOTE" backups >/dev/null 2>&1; then
+            git clone --branch backups --single-branch --depth 1 "$REMOTE" ../backups-wt
+          else
+            mkdir -p ../backups-wt
+            git -C ../backups-wt init -q -b backups
+            git -C ../backups-wt commit -q --allow-empty -m "khoi tao nhanh sao luu"
+          fi
+
+      - name: Sao lưu + mã hoá (ops/backup.sh)
+        env:
+          TERRATWIN_DATABASE_URL: ${{ secrets.TERRATWIN_DB_EXTERNAL_URL }}
+          TERRATWIN_BACKUP_PASSPHRASE: ${{ secrets.TERRATWIN_BACKUP_PASSPHRASE }}
+          TERRATWIN_BACKUP_DIR: ${{ github.workspace }}/../backups-wt
+        run: bash ops/backup.sh
+
+      - name: Commit + đẩy bản sao lưu đã mã hoá
+        run: |
+          cd ../backups-wt
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Không có gì mới (đã có bản hôm nay?)."
+          else
+            git commit -q -m "backup $(date -u +%Y%m%d-%H%M)Z"
+            git push -q "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" backups
+          fi

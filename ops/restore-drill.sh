@@ -10,7 +10,9 @@
 # CÁCH DÙNG:
 #   TERRATWIN_DATABASE_URL=postgresql://...      # DB gốc (để đếm đối chiếu)
 #   TERRATWIN_SCRATCH_URL=postgresql://.../scratch  # DB trống để khôi phục vào
-#   TERRATWIN_BACKUP_DIR=/data/backups  bash ops/restore-drill.sh
+#   TERRATWIN_BACKUP_DIR=/data/backups
+#   TERRATWIN_BACKUP_PASSPHRASE=...              # CHỈ cần nếu bản mới nhất đã mã hoá (.gpg)
+#   bash ops/restore-drill.sh
 # ============================================================================
 set -euo pipefail
 
@@ -20,11 +22,19 @@ DIR="${TERRATWIN_BACKUP_DIR:-./backups}"
 SRC="${TERRATWIN_DATABASE_URL/postgresql+psycopg:/postgresql:}"
 DST="${TERRATWIN_SCRATCH_URL/postgresql+psycopg:/postgresql:}"
 
-LATEST="$(ls -1t "$DIR"/daily/*.sql.gz 2>/dev/null | head -1)"
+# `|| true` sau ls BẮT BUỘC dưới set -e + pipefail — xem ghi chú trong backup.sh.
+LATEST="$({ ls -1t "$DIR"/daily/*.sql.gz* 2>/dev/null || true; } | head -1)"
 test -n "$LATEST" || { echo "Không tìm thấy bản sao lưu trong $DIR/daily"; exit 1; }
 echo "[drill] khôi phục $LATEST → scratch"
 
-gunzip -c "$LATEST" | psql "$DST" >/dev/null
+if [[ "$LATEST" == *.gpg ]]; then
+  : "${TERRATWIN_BACKUP_PASSPHRASE:?Bản mới nhất đã mã hoá — cần TERRATWIN_BACKUP_PASSPHRASE để giải mã}"
+  gpg --batch --yes --pinentry-mode loopback \
+      --passphrase-fd 3 3<<< "$TERRATWIN_BACKUP_PASSPHRASE" \
+      --decrypt "$LATEST" | gunzip -c | psql "$DST" >/dev/null
+else
+  gunzip -c "$LATEST" | psql "$DST" >/dev/null
+fi
 
 count() { psql "$1" -tAc "SELECT count(*) FROM observations" 2>/dev/null || echo 0; }
 A="$(count "$SRC")"; B="$(count "$DST")"
