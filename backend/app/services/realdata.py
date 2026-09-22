@@ -65,6 +65,24 @@ def _record_429(host: str) -> None:
                     ttl_seconds=int(_QUOTA_LOG_WINDOW) + 3600)
 
 
+def _host_exhausted(host: str, now: float | None = None) -> bool:
+    """Host này có đang trong cửa sổ BIẾT LÀ bị chặn không (đo lần 429 gần
+    nhất, xem _QUOTA_TTL)?
+
+    2026-09-22 (đo production sau khi bật MET Norway): count_429_24h vọt lên
+    288 — vì weather_7d() vẫn cứ THỬ Open-Meteo trước ở MỖI lượt gọi rồi mới
+    rơi xuống MET Norway, kể cả khi ĐÃ BIẾT chắc host đang bị chặn từ lần 429
+    trước đó vài giây. Gọi hàm này TRƯỚC khi thử một host — biết chắc đang bị
+    chặn thì bỏ qua thẳng, đỡ một lượt gọi vô ích (và đỡ làm phồng bộ đếm 429
+    bằng chính những lượt gọi mà ta đã biết trước kết quả)."""
+    from app.services import cache_store
+    now = time.time() if now is None else now
+    row = cache_store.get(_quota_key(host))
+    if not row:
+        return False
+    return now - row.get("last", 0.0) < _QUOTA_TTL
+
+
 # Danh sách CỐ ĐỊNH — mọi host thật sự được gọi trong file này (+ probabilistic
 # .py, dùng chung realdata._get). kv_cache không hỗ trợ "liệt kê mọi khoá khớp
 # tiền tố kèm giá trị", nên phải biết trước tên để tự đọc từng cái thay vì dò
@@ -225,11 +243,18 @@ def _get(url: str, timeout: float = 8.0, headers: dict | None = None):
         now2 = time.time()
         if h and now2 - h["at"] < ttl:
             return h["data"]
-        data = _fetch(url, timeout, headers=headers)
+
+        # BIẾT TRƯỚC là host này đang bị chặn (429 gần đây, còn trong
+        # _QUOTA_TTL) thì bỏ qua thẳng, không thử lại — đo được production
+        # 2026-09-22: không bỏ qua thì count_429_24h vọt lên 288 vì mỗi lượt
+        # gọi đều tự lặp lại đúng lượt gọi ĐÃ BIẾT TRƯỚC là sẽ bị chặn.
+        host = url.split("/")[2] if "//" in url else url[:40]
+        data = None if _host_exhausted(host, now2) else _fetch(url, timeout, headers=headers)
         if data is not None:
             cache_store.put(key, {"at": now2, "data": data}, max(ttl, stale_max))
             return data
-        # Gọi mạng hỏng — dùng bản CŨ nếu còn trong hạn phao cứu sinh.
+        # Gọi mạng hỏng (hoặc bỏ qua vì đã biết bị chặn) — dùng bản CŨ nếu còn
+        # trong hạn phao cứu sinh.
         if h and now2 - h["at"] < stale_max:
             return h["data"]
         return None

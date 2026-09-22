@@ -262,6 +262,55 @@ def test_open_meteo_429_thi_weather_7d_chuyen_sang_metno(monkeypatch):
     cache_store.clear_prefix("realdata")
 
 
+def test_host_da_biet_bi_chan_thi_bo_qua_khong_thu_lai(monkeypatch):
+    """2026-09-22 — đo lại trên production SAU khi bật MET Norway:
+    count_429_24h vọt lên 288/ngày. Nguyên nhân: mỗi lượt gọi weather_7d()
+    vẫn cứ THỬ Open-Meteo trước rồi mới rơi xuống MET Norway, kể cả khi ĐÃ
+    BIẾT CHẮC (từ chính 429 vài giây trước) là host đang bị chặn.
+
+    Lượt gọi ĐẦU chưa biết gì thì vẫn phải thử — không có cách nào biết
+    trước lần đầu. Nhưng lượt gọi THỨ HAI (toạ độ khác, không trúng cache
+    toạ độ đầu) trong cùng cửa sổ chặn (_QUOTA_TTL) thì phải đi THẲNG MET
+    Norway, không lặp lại đúng lượt gọi đã biết trước kết quả.
+    """
+    import io
+    import json
+    import urllib.error
+
+    from app.services import cache_store, realdata
+
+    cache_store.clear_prefix("quota")
+    cache_store.clear_prefix("realdata")
+
+    body = json.dumps(_metno_fake_body()).encode("utf-8")
+    calls_to_open_meteo = {"n": 0}
+
+    def _urlopen(req, timeout=None):
+        url = req.full_url
+        if "api.open-meteo.com" in url:
+            calls_to_open_meteo["n"] += 1
+            raise urllib.error.HTTPError(url, 429, "Too Many Requests", {}, None)
+        if "api.met.no" in url:
+            return io.BytesIO(body)
+        raise AssertionError(f"URL không mong đợi trong test này: {url}")
+
+    monkeypatch.setattr("urllib.request.urlopen", _urlopen)
+
+    # Lượt 1 (Huế) — CHƯA biết bị chặn, buộc phải thử Open-Meteo thật (ăn 429).
+    r1 = realdata.weather_7d(16.46, 107.59)
+    assert r1 is not None and r1[0]["source"] == "metno"
+    assert calls_to_open_meteo["n"] == 1
+
+    # Lượt 2 (Cà Mau — toạ độ khác, KHÔNG trúng cache của lượt 1) — đã biết
+    # host bị chặn từ lượt 1, phải bỏ qua thẳng, không thử Open-Meteo lần nữa.
+    r2 = realdata.weather_7d(9.18, 105.15)
+    assert r2 is not None and r2[0]["source"] == "metno"
+    assert calls_to_open_meteo["n"] == 1, "phải bỏ qua Open-Meteo vì đã biết đang bị chặn"
+
+    cache_store.clear_prefix("quota")
+    cache_store.clear_prefix("realdata")
+
+
 @pytest.fixture
 def client():
     from fastapi.testclient import TestClient
