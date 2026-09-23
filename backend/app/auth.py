@@ -173,6 +173,18 @@ def require_admin(user: User = Depends(current_user)) -> User:
     return user
 
 
+def require_coop(user: User = Depends(current_user)) -> User:
+    """Đ11 — vai trò 'coop' (hợp tác xã): xem thửa của THÀNH VIÊN ĐÃ ĐỒNG Ý
+    chia sẻ trong cùng hợp tác xã (xem routes_trust.coop_plots). admin cũng
+    qua được — admin vốn đã xem được nhiều hơn mục này."""
+    role = getattr(user, "role", "user")
+    if role not in ("coop", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Chỉ vai trò hợp tác xã (coop) hoặc quản trị viên mới xem được mục này.")
+    return user
+
+
 def optional_user(
     authorization: str | None = Header(default=None),
     x_api_key: str | None = Header(default=None),

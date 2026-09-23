@@ -18,7 +18,7 @@ import {
   buildTwin, createChannel, createKey, deleteChannel, deleteDataset, getPlans,
   deleteTwin, listChannels, listDatasets, listKeys, listTwins, revokeKey,
   scoreDataset, testChannel, uploadDataset, getChannelStatus,
-  exportMyData, deleteMyAccount, getAccountAudit, setToken, updateConsent,
+  exportMyData, deleteMyAccount, getAccountAudit, setToken, updateConsent, updateCoop,
   type ApiKeyRow, type AuditEntry, type AuthUser, type ChannelRow, type ChannelStatus, type DatasetRow,
   type TwinSummary,
   type Plan,
@@ -445,6 +445,52 @@ function ConsentBlock({ user }: { user: AuthUser | null }) {
                onChange={(e) => toggle("consent_research", e.target.checked, setResearch)} />
         <span><b>Phục vụ nghiên cứu</b> — dữ liệu ẩn danh được dùng để cải thiện mô hình chung. Mặc định TẮT — bạn chủ động bật.</span>
       </label>
+
+      <CoopShareBlock user={user} />
+    </div>
+  );
+}
+
+/**
+ * Đ11 — mọi người dùng (không chỉ vai trò 'coop') tự đặt mã nhóm + bật/tắt
+ * chia sẻ, VÌ người bị xem thửa thường là nông dân thường ('user'), không
+ * phải người có vai trò coop (người đó chỉ ĐỌC). Đặt ở đây (Khu làm việc,
+ * ai đăng nhập cũng vào được) chứ không phải /admin (chỉ coop/admin vào được)
+ * — nếu chỉ đặt ở /admin thì chính chủ thửa không có chỗ nào để tự bật.
+ */
+function CoopShareBlock({ user }: { user: AuthUser | null }) {
+  const [code, setCode] = useState(user?.coop_code || "");
+  const [share, setShare] = useState(user?.share_with_coop === true);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [ok, setOk] = useState(false);
+
+  async function save() {
+    setBusy(true); setErr(null); setOk(false);
+    try {
+      await updateCoop({ coop_code: code.trim(), share_with_coop: share });
+      setOk(true);
+    } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
+  }
+
+  return (
+    <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--line-2, #e8ece8)" }}>
+      <p className="ws-hint" style={{ marginBottom: 8 }}>
+        🤝 <b>Hợp tác xã</b> — gõ cùng một mã với các thành viên khác để vào
+        chung nhóm. Người có vai trò coop trong nhóm chỉ xem được thửa của bạn
+        nếu bạn BẬT RIÊNG "chia sẻ với nhóm" bên dưới — đặt mã thôi chưa lộ gì.
+      </p>
+      <div className="ws-row">
+        <input placeholder="Mã hợp tác xã, vd HTX-BEN-TRE-01" value={code}
+               onChange={(e) => setCode(e.target.value)} />
+        <label className="ws-check" style={{ margin: 0 }}>
+          <input type="checkbox" checked={share} onChange={(e) => setShare(e.target.checked)} />
+          <span>Chia sẻ thửa của tôi với nhóm</span>
+        </label>
+        <button onClick={save} disabled={busy}>Lưu</button>
+      </div>
+      {err && <p className="ws-err">⚠️ {err}</p>}
+      {ok && <p className="ws-ok">✓ Đã lưu.</p>}
     </div>
   );
 }

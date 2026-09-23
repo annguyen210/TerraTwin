@@ -91,6 +91,16 @@ class User(Base):
     consent_alerts: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
     consent_observations: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
     consent_research: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    # Đ11 — vai trò "coop" cần biết THÀNH VIÊN NÀO CÙNG NHÓM và AI ĐỒNG Ý cho
+    # xem. coop_code là chuỗi bất kỳ người dùng tự đặt để "vào cùng nhóm" với
+    # người khác gõ đúng chuỗi đó (không có bảng Nhóm riêng — cố tình đơn giản,
+    # một HTX thật thường chỉ vài chục người, chuỗi chung đủ dùng). Rỗng =
+    # chưa vào nhóm nào, coop KHÔNG thấy người này dù role='coop' đọc được.
+    # share_with_coop TÁCH RIÊNG khỏi coop_code: đặt mã nhóm không có nghĩa là
+    # đồng ý lộ thửa — phải bật rõ ràng, mặc định TẮT (giống consent_research,
+    # đây cũng là mục đích RỘNG lộ toạ độ cho người khác ngoài chủ thửa).
+    coop_code: Mapped[str] = mapped_column(String(64), default="", server_default="")
+    share_with_coop: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
     plots: Mapped[list["Plot"]] = relationship(
@@ -495,6 +505,10 @@ _ADDED_COLUMNS = [
     ("users", "consent_alerts", "INTEGER DEFAULT 1"),
     ("users", "consent_observations", "INTEGER DEFAULT 1"),
     ("users", "consent_research", "INTEGER DEFAULT 0"),
+    # Đ11 — vai trò coop thật (trước chỉ là bình luận trong code, chưa ai dùng
+    # được). Mặc định rỗng/tắt nên không tự lộ dữ liệu người dùng cũ cho ai cả.
+    ("users", "coop_code", "VARCHAR(64) DEFAULT ''"),
+    ("users", "share_with_coop", "INTEGER DEFAULT 0"),
 ]
 
 

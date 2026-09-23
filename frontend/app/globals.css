@@ -4073,6 +4073,14 @@ a.plan-print{ text-decoration:none; display:inline-flex; align-items:center }
 .ws-check span{ font-size:.82rem; line-height:1.5; color:var(--text); opacity:.9 }
 .ws-check b{ opacity:1 }
 
+/* Đ11 — bảng/khối JSON trong trang quản trị */
+.ws-table{ width:100%; border-collapse:collapse; margin:10px 0; font-size:.85rem }
+.ws-table th, .ws-table td{ text-align:left; padding:7px 10px; border-bottom:1px solid var(--line-2, #e8ece8) }
+.ws-table th{ color:var(--muted, #66716a); font-weight:600 }
+.ws-pre{ background:var(--panel-2, #f3f5f2); border:1px solid var(--line-2, #e8ece8);
+  border-radius:10px; padding:12px 14px; font-size:.78rem; overflow-x:auto;
+  white-space:pre; max-height:480px; overflow-y:auto }
+
 /* N7 — câu miễn trừ dưới cảnh báo */
 .plan-disclaimer, .ml-disclaimer{ margin:12px 0 0; padding:9px 12px; border-radius:9px;
   background:rgba(224,164,74,.08); border:1px solid rgba(224,164,74,.25);

@@ -70,6 +70,8 @@ class UserOut(BaseModel):
     consent_alerts: bool = True         # N8
     consent_observations: bool = True   # N8
     consent_research: bool = False      # N8
+    coop_code: str = ""                 # Đ11
+    share_with_coop: bool = False       # Đ11
 
 
 class PlotIn(BaseModel):
@@ -117,7 +119,9 @@ def _out(u: User) -> UserOut:
                    email_verified=bool(getattr(u, "email_verified", 0)),
                    consent_alerts=bool(getattr(u, "consent_alerts", 1)),
                    consent_observations=bool(getattr(u, "consent_observations", 1)),
-                   consent_research=bool(getattr(u, "consent_research", 0)))
+                   consent_research=bool(getattr(u, "consent_research", 0)),
+                   coop_code=getattr(u, "coop_code", "") or "",
+                   share_with_coop=bool(getattr(u, "share_with_coop", 0)))
 
 
 def _plot_out(p: Plot) -> PlotOut:
@@ -194,6 +198,28 @@ def update_consent(body: ConsentIn, user: User = Depends(auth.current_user),
     if body.consent_research is not None:
         user.consent_research = 1 if body.consent_research else 0
     log_audit(db, user.id, "update_consent")            # Đ12
+    db.commit()
+    db.refresh(user)
+    return _out(user)
+
+
+# Đ11 — vai trò coop thật: người dùng tự gõ MÃ NHÓM (coop_code) để "vào cùng
+# nhóm" với ai gõ đúng chuỗi đó, và BẬT RIÊNG share_with_coop mới bị người có
+# vai trò coop trong nhóm nhìn thấy thửa. Đặt mã nhóm không tự động đồng ý lộ
+# thửa — hai việc tách nhau như N8 tách consent_alerts khỏi consent_research.
+class CoopIn(BaseModel):
+    coop_code: str | None = Field(default=None, max_length=64)
+    share_with_coop: bool | None = None
+
+
+@router.put("/api/account/coop", response_model=UserOut)
+def update_coop(body: CoopIn, user: User = Depends(auth.current_user),
+                db: Session = Depends(get_session)) -> UserOut:
+    if body.coop_code is not None:
+        user.coop_code = body.coop_code.strip()
+    if body.share_with_coop is not None:
+        user.share_with_coop = 1 if body.share_with_coop else 0
+    log_audit(db, user.id, "update_coop")                # Đ12
     db.commit()
     db.refresh(user)
     return _out(user)
@@ -400,6 +426,7 @@ _AUDIT_LABELS = {
     "revoke_api_key": "Thu hồi khoá API",
     "verify_email": "Xác thực email",
     "update_consent": "Đổi lựa chọn đồng ý",
+    "update_coop": "Đổi mã/chia sẻ hợp tác xã",
 }
 
 

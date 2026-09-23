@@ -22,7 +22,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import auth
-from app.db import Alert, User, get_session
+from app.db import Alert, Plot, User, get_session
 from app.services import onetap, scorecard, verify
 
 router = APIRouter(tags=["trust"])
@@ -245,7 +245,11 @@ def backup_status(user: User = Depends(auth.require_admin)) -> dict:
     import time as _t
 
     d = os.environ.get("TERRATWIN_BACKUP_DIR", "./backups")
-    files = glob.glob(os.path.join(d, "daily", "*.sql.gz"))
+    # Đ11 — sửa: ops/backup.sh (N2) mã hoá GPG khi có TERRATWIN_BACKUP_PASSPHRASE
+    # nên tên file thật là *.sql.gz.gpg, không phải *.sql.gz trần. Glob cũ chỉ
+    # khớp bản CHƯA mã hoá nên trên prod (luôn có passphrase) mục này báo sai
+    # "chưa có bản sao lưu nào" dù cron vẫn chạy đều — *.sql.gz* khớp cả hai.
+    files = glob.glob(os.path.join(d, "daily", "*.sql.gz*"))
     if not files:
         return {"configured": False, "stale": True,
                 "message": ("Chưa có bản sao lưu nào. Đặt cron ngoài gọi "
@@ -260,4 +264,46 @@ def backup_status(user: User = Depends(auth.require_admin)) -> dict:
         "stale": age_h > 36.0,
         "message": ("⚠️ Sao lưu gần nhất quá 36 giờ — kiểm tra cron."
                     if age_h > 36.0 else "Sao lưu đang cập nhật đều."),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Đ11 — VAI TRÒ COOP THẬT (trước đây chỉ là một dòng bình luận trong db.py,
+# chưa route nào dùng tới). Xem thửa của THÀNH VIÊN CÙNG NHÓM đã BẬT RIÊNG
+# share_with_coop — đặt coop_code không tự đồng ý lộ thửa (xem CoopIn trong
+# routes_account.py).
+# ---------------------------------------------------------------------------
+
+@router.get("/api/coop/plots")
+def coop_plots(user: User = Depends(auth.require_coop),
+               db: Session = Depends(get_session)) -> dict:
+    code = (getattr(user, "coop_code", "") or "").strip()
+    if not code:
+        return {"coop_code": "", "members": 0, "plots": [],
+                "message": "Bạn chưa đặt mã hợp tác xã trong Khu làm việc — "
+                           "không có nhóm nào để xem."}
+
+    members = db.execute(
+        select(User).where(User.coop_code == code, User.share_with_coop == 1)
+    ).scalars().all()
+    member_ids = [m.id for m in members]
+    plots: list[Plot] = []
+    if member_ids:
+        plots = db.execute(
+            select(Plot).where(Plot.user_id.in_(member_ids))
+        ).scalars().all()
+    by_id = {m.id: m for m in members}
+
+    return {
+        "coop_code": code,
+        "members": len(members),
+        "plots": [
+            {
+                "id": p.id, "name": p.name, "lat": p.lat, "lon": p.lon,
+                "area_ha": p.area_ha, "score": p.score, "grade": p.grade,
+                "owner_name": (by_id.get(p.user_id).name or by_id.get(p.user_id).email)
+                              if by_id.get(p.user_id) else "?",
+            }
+            for p in plots
+        ],
     }

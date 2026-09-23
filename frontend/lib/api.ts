@@ -413,6 +413,7 @@ export type AnomalyResult = {
 export type AuthUser = {
   id: number; email: string; name: string; role?: string; email_verified?: boolean;
   consent_alerts?: boolean; consent_observations?: boolean; consent_research?: boolean;
+  coop_code?: string; share_with_coop?: boolean;   // Đ11
 };
 export type TokenResponse = { access_token: string; user: AuthUser };
 
@@ -1457,6 +1458,37 @@ export type HealthStatus = {
 };
 export function getHealth() {
   return getJson<HealthStatus>("/api/health", "Không tải được trạng thái hệ thống");
+}
+
+// Đ11 — trang quản trị. Bốn endpoint này đòi role='admin' (403 nếu không) —
+// kiểu trả về giữ lỏng (dict) vì đây là dữ liệu vận hành nội bộ, không phải
+// hợp đồng công khai cần khoá kiểu chặt.
+export function getFunnel(days = 30) {
+  return authed<{ window_days: number; counts: Record<string, number>;
+    steps: { step: string; count: number; pct_of_open: number | null }[]; note: string }>(
+    `/api/admin/funnel?days=${days}`, { method: "GET" }, "Không tải được phễu người dùng");
+}
+export function getBackupStatus() {
+  return authed<{ configured: boolean; stale: boolean; message: string;
+    latest?: string; age_hours?: number; count?: number }>(
+    "/api/admin/backup-status", { method: "GET" }, "Không tải được trạng thái sao lưu");
+}
+export function getDrift() {
+  return authed<Record<string, unknown>>(
+    "/api/admin/drift", { method: "GET" }, "Không tải được báo cáo trôi");
+}
+
+// Đ11 — vai trò coop: xem thửa của thành viên cùng mã nhóm đã bật share_with_coop.
+export type CoopPlot = { id: number; name: string; lat: number; lon: number;
+  area_ha: number | null; score: number | null; grade: string | null; owner_name: string };
+export function getCoopPlots() {
+  return authed<{ coop_code: string; members: number; plots: CoopPlot[]; message?: string }>(
+    "/api/coop/plots", { method: "GET" }, "Không tải được thửa hợp tác xã");
+}
+export function updateCoop(body: { coop_code?: string; share_with_coop?: boolean }) {
+  return authed<AuthUser>("/api/account/coop",
+    { method: "PUT", body: JSON.stringify(body) },
+    "Không lưu được cài đặt hợp tác xã");
 }
 
 // H4 — dòng thời gian của MỘT thửa: đã báo gì, hoá ra đúng/hụt/đang chờ, và câu
