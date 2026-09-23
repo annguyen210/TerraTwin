@@ -21,12 +21,15 @@ import unicodedata
 from app.modules.util import risk_of
 from app.services import hazard, llm
 from app.services import realdata
+from app.services.reqlang import tr
 
 _MODULE_WORDS = {
-    "flood": ["lũ", "lụt", "ngập", "úng", "nước dâng", "flood"],
-    "drought": ["hạn", "khô", "thiếu nước", "tưới", "drought"],
-    "wildfire": ["cháy", "lửa", "hỏa hoạn", "fire"],
-    "landslide": ["sạt", "lở", "trượt đất", "landslide"],
+    "flood": ["lũ", "lụt", "ngập", "úng", "nước dâng",
+             "flood", "flooding", "inundation", "waterlogged"],
+    "drought": ["hạn", "khô", "thiếu nước", "tưới",
+               "drought", "dry spell", "water shortage"],
+    "wildfire": ["cháy", "lửa", "hỏa hoạn", "fire", "wildfire", "bushfire"],
+    "landslide": ["sạt", "lở", "trượt đất", "landslide", "mudslide", "slope failure"],
 }
 
 _MAX_MULT = 10.0
@@ -68,33 +71,51 @@ def _detect_module(q: str, fallback: str) -> str:
 
 
 def parse_rules(question: str) -> dict | None:
-    """Bộ luật tiếng Việt — không cần key. None nếu không bắt được mẫu nào."""
+    """Bộ luật tiếng Việt VÀ tiếng Anh — không cần key. None nếu không bắt
+    được mẫu nào. _norm() đã bỏ dấu + hạ chữ thường nên từ tiếng Anh đi qua
+    không đổi — chỉ cần thêm nhánh khớp song song với tiếng Việt trong mỗi
+    OR-pattern, không cần chuẩn hoá riêng."""
     plain = _norm(question)
     rain: float | None = None
     temp = 0.0
 
-    if re.search(r"gap\s*(doi|2)|x\s*2\b", plain):
+    if re.search(r"gap\s*(doi|2)|x\s*2\b|double|twice|twofold", plain):
         rain = 2.0
-    elif re.search(r"gap\s*(ba|3)|x\s*3\b", plain):
+    elif re.search(r"gap\s*(ba|3)|x\s*3\b|triple|threefold", plain):
         rain = 3.0
-    elif re.search(r"gap\s*(ruoi|1[.,]5)", plain):
+    elif re.search(r"gap\s*(ruoi|1[.,]5)|1[.,]5\s*x|one\s*and\s*a\s*half", plain):
         rain = 1.5
-    elif (m := re.search(r"(tang|them)\s*(\d{1,3})\s*%", plain)):
-        rain = 1.0 + int(m.group(2)) / 100.0
-    elif (m := re.search(r"(giam|bot)\s*(\d{1,3})\s*%", plain)):
-        rain = max(0.0, 1.0 - int(m.group(2)) / 100.0)
-    elif re.search(r"khong\s*mua|het\s*mua|ngung\s*mua|kho\s*han\s*keo\s*dai", plain):
+    elif (m := re.search(r"(tang|them|increases?|up|more)\s*(?:by\s*)?(\d{1,3})\s*%|\+\s*(\d{1,3})\s*%", plain)):
+        pct = int(m.group(2) or m.group(3))
+        rain = 1.0 + pct / 100.0
+    elif (m := re.search(r"(giam|bot|decreases?|down|less|reduce[ds]?|drops?)\s*(?:by\s*)?(\d{1,3})\s*%|-\s*(\d{1,3})\s*%", plain)):
+        pct = int(m.group(2) or m.group(3))
+        rain = max(0.0, 1.0 - pct / 100.0)
+    elif re.search(r"khong\s*mua|het\s*mua|ngung\s*mua|kho\s*han\s*keo\s*dai|"
+                  r"no\s*rain|stop\s*raining|drought\s*continu|rain\s*stops?", plain):
         rain = 0.0
-    elif re.search(r"mua\s*(to|lon|nhieu|rat to)", plain):
+    elif re.search(r"mua\s*(to|lon|nhieu|rat to)|heavy\s*rain|more\s*rain|"
+                  r"torrential|downpour", plain):
         rain = 2.0
-    elif re.search(r"mua\s*(nho|it)", plain):
+    elif re.search(r"mua\s*(nho|it)|light\s*rain|less\s*rain|drizzle", plain):
         rain = 0.5
 
-    if (m := re.search(r"(nong|tang nhiet)\s*(them\s*)?(\d{1,2})\s*do", plain)):
+    # Tiếng Việt/dạng "hotter by N degrees": từ khoá ĐỨNG TRƯỚC số. Tiếng Anh tự
+    # nhiên hay nói NGƯỢC LẠI: "N degrees hotter" — số đứng trước từ khoá. Bắt
+    # cả hai thứ tự, không chỉ một.
+    if (m := re.search(r"(nong|tang nhiet|hotter|warmer|warm up|heat up)\s*(them\s*|by\s*)?(\d{1,2})\s*(do|degree)", plain)):
         temp = float(m.group(3))
-    elif (m := re.search(r"(lanh|giam nhiet)\s*(di\s*)?(\d{1,2})\s*do", plain)):
+    elif (m := re.search(r"(\d{1,2})\s*(do|degree)s?\s*(hotter|warmer|nong hon)", plain)):
+        temp = float(m.group(1))
+    elif (m := re.search(r"\+\s*(\d{1,2})\s*(do|degree)", plain)):
+        temp = float(m.group(1))
+    elif (m := re.search(r"(lanh|giam nhiet|colder|cooler|cool down)\s*(di\s*|by\s*)?(\d{1,2})\s*(do|degree)", plain)):
         temp = -float(m.group(3))
-    elif re.search(r"nong\s*hon|nang\s*nong", plain):
+    elif (m := re.search(r"(\d{1,2})\s*(do|degree)s?\s*(colder|cooler|lanh hon)", plain)):
+        temp = -float(m.group(1))
+    elif (m := re.search(r"-\s*(\d{1,2})\s*(do|degree)", plain)):
+        temp = -float(m.group(1))
+    elif re.search(r"nong\s*hon|nang\s*nong|hotter|heatwave|heat\s*wave", plain):
         temp = 2.0
 
     if rain is None and temp == 0.0:
@@ -103,19 +124,21 @@ def parse_rules(question: str) -> dict | None:
             "source": "rule"}
 
 
+# N3 — câu hỏi có thể là tiếng Việt HOẶC tiếng Anh (parse_rules() đã bắt cả
+# hai bằng regex; đây là lớp dự phòng khi câu hỏi tự do hơn bộ luật bắt được).
 _LLM_SYSTEM = (
-    "Bạn dịch câu hỏi tiếng Việt về thời tiết thành THAM SỐ MÔ PHỎNG. "
-    "Chỉ trả về JSON, không giải thích, không markdown. Khóa: "
+    "You translate a weather what-if question — in Vietnamese OR English — "
+    "into SIMULATION PARAMETERS. Reply ONLY JSON, no explanation, no markdown. Keys: "
     '{"module": "flood|drought|wildfire|landslide", '
-    '"rain_mult": số (1.0 = như dự báo, 2.0 = gấp đôi, 0.0 = không mưa), '
-    '"temp_delta": số (độ C cộng thêm, âm là lạnh đi)}. '
-    "TUYỆT ĐỐI không tự đoán kết quả — bạn chỉ dịch câu hỏi thành tham số."
+    '"rain_mult": number (1.0 = as forecast, 2.0 = double, 0.0 = no rain), '
+    '"temp_delta": number (degrees C added, negative = cooler)}. '
+    "NEVER predict the outcome yourself — you only translate the question into parameters."
 )
 
 
 def parse_llm(question: str, fallback_module: str) -> dict | None:
     raw = llm.complete(
-        f"Câu hỏi: {question}\nModule đang xem: {fallback_module}\nJSON:",
+        f"Question: {question}\nModule in view: {fallback_module}\nJSON:",
         system=_LLM_SYSTEM, max_tokens=150)
     if not raw:
         return None
@@ -153,9 +176,14 @@ def ask(question: str, lat: float, lon: float,
         return {
             "understood": False,
             "question": question,
-            "message": ("Chưa hiểu câu hỏi. Thử diễn đạt kiểu: “nếu mưa gấp đôi "
-                        "thì có ngập không?”, “mưa giảm 60% thì hạn thế nào?”, "
-                        "“nóng thêm 3 độ thì nguy cơ cháy ra sao?”."),
+            "message": tr(
+                "Chưa hiểu câu hỏi. Thử diễn đạt kiểu: “nếu mưa gấp đôi "
+                "thì có ngập không?”, “mưa giảm 60% thì hạn thế nào?”, "
+                "“nóng thêm 3 độ thì nguy cơ cháy ra sao?”.",
+                "Didn't understand the question. Try phrasing it like: "
+                "\"if rain doubles, will it flood?\", \"if rain drops 60%, "
+                "how bad is the drought?\", \"if it's 3 degrees hotter, "
+                "what's the wildfire risk?\"."),
             "llm_available": llm.available(),
         }
 
@@ -168,7 +196,8 @@ def ask(question: str, lat: float, lon: float,
     if not rows:
         return {"understood": True, "available": False, "question": question,
                 "module_id": module_id, "module_name": name,
-                "message": "Chưa lấy được thời tiết thật — không mô phỏng trên số liệu mẫu."}
+                "message": tr("Chưa lấy được thời tiết thật — không mô phỏng trên số liệu mẫu.",
+                             "Couldn't fetch real weather data — not simulating on sample data.")}
 
     base = hazard.peak_of(hazard.index_series(module_id, lat, lon, rows))
     scen = hazard.peak_of(hazard.index_series(
@@ -177,19 +206,29 @@ def ask(question: str, lat: float, lon: float,
 
     changes = []
     if abs(rain - 1.0) > 0.01:
-        changes.append(f"mưa {'gấp ' + format(rain, '.2g') + '×' if rain > 1 else f'giảm còn {rain:.0%}'}")
+        changes.append(tr(
+            f"mưa {'gấp ' + format(rain, '.2g') + '×' if rain > 1 else f'giảm còn {rain:.0%}'}",
+            f"rain {format(rain, '.2g') + 'x' if rain > 1 else f'down to {rain:.0%}'}"))
     if abs(temp) > 0.01:
-        changes.append(f"nhiệt {'+' if temp > 0 else ''}{temp:g}°C")
-    change_txt = " và ".join(changes) if changes else "giữ nguyên dự báo"
+        changes.append(tr(f"nhiệt {'+' if temp > 0 else ''}{temp:g}°C",
+                          f"temp {'+' if temp > 0 else ''}{temp:g}°C"))
+    change_txt = tr(" và ", " and ").join(changes) if changes else tr("giữ nguyên dự báo", "unchanged from forecast")
 
-    verdict = {"danger": "NGUY HIỂM", "warning": "CẢNH BÁO", "safe": "an toàn"}[risk]
+    verdict = {"danger": tr("NGUY HIỂM", "DANGER"),
+              "warning": tr("CẢNH BÁO", "WARNING"),
+              "safe": tr("an toàn", "safe")}[risk]
     delta = scen - base
-    direction = ("tăng" if delta > 0.05 else "giảm" if delta < -0.05 else "gần như không đổi")
+    direction = (tr("tăng", "up") if delta > 0.05
+                else tr("giảm", "down") if delta < -0.05
+                else tr("gần như không đổi", "almost unchanged"))
     # Bỏ tiền tố "Cảnh báo " khỏi tên module, nếu không câu thành
     # "cảnh báo lũ/ngập sớm ở mức an toàn" — đọc rất lấn cấn.
     subject = name[len("Cảnh báo "):] if name.startswith("Cảnh báo ") else name
-    headline = (f"Nếu {change_txt}: {subject.lower()} ở mức {verdict} "
-                f"({scen:.1f} {unit}, {direction} so với {base:.1f} hiện tại).")
+    headline = tr(
+        f"Nếu {change_txt}: {subject.lower()} ở mức {verdict} "
+        f"({scen:.1f} {unit}, {direction} so với {base:.1f} hiện tại).",
+        f"If {change_txt}: {subject.lower()} is at {verdict} level "
+        f"({scen:.1f} {unit}, {direction} from {base:.1f} now).")
 
     return {
         "understood": True, "available": True, "question": question,
@@ -200,7 +239,9 @@ def ask(question: str, lat: float, lon: float,
         "delta": round(delta, 1), "risk_level": risk,
         "safe": hazard.SAFE, "warning": hazard.WARNING,
         "headline": headline,
-        "method": ("Câu hỏi chỉ được dùng để CHỌN THAM SỐ; con số do chính mô hình "
-                   "cảnh báo tính trên nền thời tiết thật, không phải LLM đoán."),
+        "method": tr("Câu hỏi chỉ được dùng để CHỌN THAM SỐ; con số do chính mô hình "
+                    "cảnh báo tính trên nền thời tiết thật, không phải LLM đoán.",
+                    "The question is only used to CHOOSE PARAMETERS; the numbers come "
+                    "from the actual warning model run on real weather, not an LLM guess."),
         "llm_available": llm.available(),
     }

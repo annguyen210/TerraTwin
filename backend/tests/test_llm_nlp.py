@@ -138,6 +138,50 @@ def test_module_detected_from_question(offline, q, mid):
     assert whatif_nlp.ask(q, LAT, LON)["module_id"] == mid
 
 
+# ---------- N3 — bộ luật cũng hiểu tiếng Anh, không chỉ tiếng Việt ----------
+
+@pytest.mark.parametrize("q,mult", [
+    ("what if rain doubles", 2.0),
+    ("if it rains twice as much", 2.0),
+    ("rain triples this week", 3.0),
+    ("rain increases 50%", 1.5),
+    ("rain decreases 60%", 0.4),
+    ("what if there's no rain at all", 0.0),
+    ("heavy rain this week", 2.0),
+])
+def test_rules_parse_rain_english(q, mult):
+    assert whatif_nlp.parse_rules(q)["rain_mult"] == pytest.approx(mult, abs=0.01)
+
+
+@pytest.mark.parametrize("q,temp", [
+    ("what if it's 3 degrees hotter", 3.0),
+    ("if it's 2 degrees colder", -2.0),
+    ("a heatwave hits", 2.0),
+])
+def test_rules_parse_temperature_english(q, temp):
+    assert whatif_nlp.parse_rules(q)["temp_delta"] == pytest.approx(temp)
+
+
+@pytest.mark.parametrize("q,mid", [
+    ("if rain doubles will it flood", "flood"),
+    ("if rain drops 70% how bad is the drought", "drought"),
+    ("if it's 5 degrees hotter is there wildfire risk", "wildfire"),
+    ("if rain doubles is there a landslide risk", "landslide"),
+])
+def test_module_detected_from_english_question(offline, q, mid):
+    assert whatif_nlp.ask(q, LAT, LON)["module_id"] == mid
+
+
+def test_english_question_gets_english_headline(offline):
+    r = whatif_nlp.ask("what if rain doubles, will it flood", LAT, LON, "flood")
+    assert r["understood"] is True
+    # tr() không đọc được lang tại đây (mặc định "vi" ngoài request context) —
+    # bài test này chỉ xác nhận câu hỏi tiếng Anh vẫn PARSE được và chạy được,
+    # không rớt về "chưa hiểu câu hỏi". Xem reqlang.set_lang() ở tầng route
+    # cho việc chọn ngôn ngữ trả lời.
+    assert r["rain_mult"] == pytest.approx(2.0, abs=0.01)
+
+
 # ---------- Ranh giới quan trọng nhất ----------
 
 def test_numbers_come_from_the_model_not_the_llm(offline, clean_env):
