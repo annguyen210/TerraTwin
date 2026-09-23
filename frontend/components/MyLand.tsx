@@ -18,6 +18,7 @@ import {
   getMyQuestions,
   listAlerts,
   listPlots,
+  resendVerification,
   runRadar,
   sendTapAnswer,
   type AlertRow,
@@ -52,6 +53,17 @@ export default function MyLand({
   const [push, setPush] = useState<string>("");   // M1 — trạng thái web push
   const [brief, setBrief] = useState<boolean | null>(null);   // M4
   const [openId, setOpenId] = useState<number | null>(null);   // Đ9 — thửa đang mở lịch sử
+  const [verifyMsg, setVerifyMsg] = useState<string | null>(null);   // N1
+
+  async function resend() {
+    setVerifyMsg("Đang gửi…");
+    try {
+      const r = await resendVerification();
+      setVerifyMsg(r.message);
+    } catch (e) {
+      setVerifyMsg((e as Error).message);
+    }
+  }
 
   useEffect(() => { pushState().then(setPush).catch(() => {}); }, []);
   useEffect(() => { getBriefStatus().then((r) => setBrief(r.enabled)).catch(() => {}); }, []);
@@ -159,6 +171,22 @@ export default function MyLand({
       {push === "..." && <p className="ml-brief-sub">Đang bật thông báo…</p>}
       {push === "on" && <p className="ml-brief-sub" style={{ color: "var(--ok, #2E9E67)" }}>🔔 Thông báo đẩy đang bật.</p>}
       {push === "denied" && <p className="ml-brief-sub">Thông báo bị chặn trong trình duyệt — mở lại trong cài đặt trang để nhận cảnh báo.</p>}
+
+      {/* N1 — email chưa xác thực thì cảnh báo vẫn TẠO nhưng KHÔNG gửi ra kênh
+          ngoài (email/Zalo/Telegram/webhook) — nói rõ ở đúng màn nói về cảnh
+          báo, không phải chôn trong trang tài khoản không ai mở. */}
+      {user.email_verified === false && (
+        <p className="ml-brief-sub" style={{ color: "var(--warn, #B07A2E)" }}>
+          ⚠️ Email {user.email} chưa xác thực — cảnh báo vẫn hiện ở đây nhưng KHÔNG
+          gửi ra kênh ngoài (email/Zalo/Telegram) cho tới khi xác thực.{" "}
+          <button onClick={resend} style={{ border: "none", background: "none",
+            color: "var(--terra, #1f5137)", textDecoration: "underline", cursor: "pointer",
+            font: "inherit", padding: 0 }}>
+            Gửi lại liên kết xác thực
+          </button>
+          {verifyMsg && <span> — {verifyMsg}</span>}
+        </p>
+      )}
 
       {/* M4 — bản tin sáng (opt-in). Hiện khi push đã bật (mới gửi được). */}
       {push === "on" && brief !== null && (

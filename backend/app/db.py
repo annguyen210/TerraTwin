@@ -69,6 +69,11 @@ class User(Base):
     # giữ ngày gửi gần nhất (YYYY-MM-DD) để không gửi trùng trong cùng buổi sáng.
     morning_brief: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     brief_last: Mapped[str] = mapped_column(String(10), default="", server_default="")
+    # N1 — email CHƯA XÁC THỰC vẫn dùng app bình thường (lưu thửa, xem cảnh
+    # báo trong app), nhưng KHÔNG được gửi cảnh báo ra kênh ngoài (email/Zalo/
+    # Telegram/webhook) thay họ — một địa chỉ gõ sai hoặc tài khoản bot tạo
+    # hàng loạt không được phép biến TerraTwin thành máy gửi thư rác hộ.
+    email_verified: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
     plots: Mapped[list["Plot"]] = relationship(
@@ -464,6 +469,8 @@ _ADDED_COLUMNS = [
     # M4 — bản tin sáng.
     ("users", "morning_brief", "INTEGER DEFAULT 0"),
     ("users", "brief_last", "VARCHAR(10) DEFAULT ''"),
+    # N1 — xác thực email.
+    ("users", "email_verified", "INTEGER DEFAULT 0"),
 ]
 
 
@@ -494,6 +501,14 @@ def _ensure_columns() -> None:
         try:
             with engine.begin() as conn:
                 conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {decl}"))
+                # N1 — GRANDFATHER mọi tài khoản đã tồn tại TRƯỚC khi cột này
+                # ra đời: họ chưa từng được yêu cầu xác thực, nên đột ngột cắt
+                # cảnh báo của họ vì một yêu cầu MỚI thêm là một cách hỏng âm
+                # thầm, khó chịu hơn hẳn không có tính năng này. Chỉ chạy ĐÚNG
+                # MỘT LẦN — vòng lặp này bỏ qua cột đã tồn tại ở lần khởi động
+                # sau, nên không backfill nhầm người đăng ký MỚI sau lần này.
+                if table == "users" and col == "email_verified":
+                    conn.execute(text("UPDATE users SET email_verified = 1"))
         except Exception as e:                       # noqa: BLE001
             print(f"[TerraTwin] Không thêm được cột {table}.{col} ({decl}): "
                   f"{type(e).__name__}: {e}")

@@ -77,9 +77,19 @@ def sweep_user(user_id: int, db: Session) -> dict:
                 "recommendation": a.recommendation} for a in created]
 
     # U01 — đưa cảnh báo ra khỏi phần mềm. Gửi hỏng không được làm hỏng lượt quét.
-    channels = db.execute(
+    #
+    # N1 — email CHƯA XÁC THỰC thì KHÔNG gửi ra kênh ngoài nào (email/Zalo/
+    # Telegram/webhook): một địa chỉ gõ sai lúc đăng ký hoặc một tài khoản tạo
+    # hàng loạt không được phép biến TerraTwin thành máy gửi thư rác hộ tới
+    # một hộp thư không phải của người đăng ký. Cảnh báo vẫn được TẠO VÀ LƯU
+    # (đã add() ở trên) — người dùng vẫn thấy trong app/sổ điểm, chỉ không
+    # phát ra ngoài cho tới khi xác thực.
+    user_row = db.get(User, user_id)
+    verified = bool(user_row and getattr(user_row, "email_verified", 0))
+    channels = (db.execute(
         select(NotifyChannel).where(NotifyChannel.user_id == user_id,
                                     NotifyChannel.enabled == 1)).scalars().all()
+               if verified else [])
     delivery = notify.dispatch(channels, payload)
     db.commit()
 

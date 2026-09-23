@@ -409,7 +409,7 @@ export type AnomalyResult = {
 };
 
 // ---- Tài khoản & thửa đất (thay localStorage) ----
-export type AuthUser = { id: number; email: string; name: string; role?: string };
+export type AuthUser = { id: number; email: string; name: string; role?: string; email_verified?: boolean };
 export type TokenResponse = { access_token: string; user: AuthUser };
 
 export type ServerPlot = {
@@ -516,6 +516,16 @@ export function changePassword(oldPassword: string, newPassword: string) {
   return authed<{ message: string }>("/api/auth/change-password",
     { method: "POST", body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }) },
     "Không đổi được mật khẩu");
+}
+
+// N1 — xác thực email.
+export function verifyEmail(token: string) {
+  return postJson<{ message: string; already_verified: boolean }>(
+    "/api/auth/verify-email", { token }, "Không xác thực được email");
+}
+export function resendVerification() {
+  return authed<{ message: string; sent: boolean }>("/api/auth/resend-verification",
+    { method: "POST" }, "Không gửi lại được liên kết xác thực");
 }
 
 // Quyền riêng tư: xuất toàn bộ dữ liệu / xoá tài khoản.
@@ -1409,6 +1419,31 @@ export type ChannelStatus = {
 export function getChannelStatus() {
   return getJson<ChannelStatus>("/api/channels/status",
     "Không tải được trạng thái kênh");
+}
+
+// P5/N1 — sức khoẻ máy chủ công khai (trang /status + banner SMTP ở /forgot).
+export type HealthStatus = {
+  status: "ok" | "degraded";
+  service: string;
+  modules: number;
+  quota: {
+    exhausted: string[];
+    minutes_since_detected: Record<string, number>;
+    count_429_24h: Record<string, number>;
+    message: string;
+  };
+  jobs: Record<string, unknown>;
+  email: {
+    smtp_configured: boolean;
+    forgot_password_works: boolean;
+    email_verification_works: boolean;
+    message: string | null;
+  };
+  calls: { total: number; cache_hits: number; hit_rate_pct: number | null };
+  radar: { last_sweep_at: string | null; last_sweep: Record<string, unknown> | null };
+};
+export function getHealth() {
+  return getJson<HealthStatus>("/api/health", "Không tải được trạng thái hệ thống");
 }
 
 // H4 — dòng thời gian của MỘT thửa: đã báo gì, hoá ra đúng/hụt/đang chờ, và câu

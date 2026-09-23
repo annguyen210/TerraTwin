@@ -324,14 +324,36 @@ def health() -> dict:
     Người vận hành phải phân biệt được ngay "hết quota, mai lại chạy" với "code
     hỏng", nếu không sẽ đi sửa nhầm chỗ.
     """
-    from app.services import radar as radar_svc
+    from app.services import notify, radar as radar_svc
     from app.services import realdata
 
     q = realdata.quota_status()
     last = radar_svc.last_sweep()
+
+    # N1 — SMTP chưa cấu hình thì "quên mật khẩu" và "xác thực email" đều lặng
+    # lẽ không hoạt động (đăng ký/forgot vẫn trả 200 để không lộ email nào tồn
+    # tại — xem routes_account.py), nên phải BÁO RÕ ở đây, đặc biệt khi đang
+    # chạy prod, để người vận hành biết mà không phải đoán qua một ticket
+    # "sao tôi không nhận được email đặt lại mật khẩu".
+    smtp_ok = notify.smtp_configured()
+    is_prod = os.environ.get("TERRATWIN_ENV", "prod").strip().lower() != "dev"
+    email = {
+        "smtp_configured": smtp_ok,
+        "forgot_password_works": smtp_ok,
+        "email_verification_works": smtp_ok,
+        "message": (
+            None if smtp_ok else
+            ("CẢNH BÁO: chưa đặt TERRATWIN_SMTP_* — \"quên mật khẩu\" và \"xác "
+             "thực email\" KHÔNG hoạt động trên production. Người dùng bấm quên "
+             "mật khẩu vẫn thấy thông báo đã gửi (cố ý, chống dò email) nhưng "
+             "KHÔNG có gì tới hộp thư." if is_prod else
+             "Chưa đặt TERRATWIN_SMTP_* — bình thường ở dev, trang /forgot trả "
+             "kèm dev_link để thử không cần email thật.")),
+    }
+
     return {"status": "degraded" if q["exhausted"] else "ok",
             "service": "terratwin", "modules": len(list_modules()),
-            "quota": q, "jobs": jobs.stats(),
+            "quota": q, "jobs": jobs.stats(), "email": email,
             # Đếm lời gọi ra ngoài từ lúc tiến trình này khởi động + tỉ lệ
             # trúng cache — chẩn đoán "đang gọi thừa ở đâu" thay vì đoán. Có 6
             # nhóm URL Open-Meteo/MET Norway khác nhau; hit_rate_pct thấp là

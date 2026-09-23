@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { forgotPassword } from "@/lib/api";
+import { forgotPassword, getHealth } from "@/lib/api";
 import { LangToggle, useLang } from "@/lib/i18n";
+
+const SUPPORT_URL = "https://github.com/annguyen210/TerraTwin/issues";
 
 export default function ForgotPage() {
   const { t } = useLang();
@@ -11,6 +13,14 @@ export default function ForgotPage() {
   const [msg, setMsg] = useState<string | null>(null);
   const [devLink, setDevLink] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // N1 — SMTP chưa cấu hình thì nút này KHÔNG hoạt động dù vẫn trả 200 (cố ý,
+  // chống dò email) — phải nói trước, không để người dùng chờ một email không
+  // bao giờ tới rồi mới biết.
+  const [smtpDown, setSmtpDown] = useState(false);
+
+  useEffect(() => {
+    getHealth().then((h) => setSmtpDown(!h.email.smtp_configured)).catch(() => {});
+  }, []);
 
   async function submit() {
     if (!email.trim() || busy) return;
@@ -38,6 +48,15 @@ export default function ForgotPage() {
           {t("Nhập email tài khoản — chúng tôi sẽ gửi liên kết đặt lại (hết hạn sau 1 giờ).",
              "Enter your account email — we'll send a reset link (expires in 1 hour).")}
         </p>
+        {smtpDown && (
+          <p className="auth-dev" role="alert">
+            {t("⚠️ Máy chủ hiện CHƯA gửi được email. Nút dưới vẫn bấm được nhưng sẽ " +
+               "không có thư nào tới hộp thư của bạn. Dùng đường liên hệ dự phòng: ",
+               "⚠️ The server currently CANNOT send email. The button below still " +
+               "works but no message will reach your inbox. Use this fallback contact: ")}
+            <a href={SUPPORT_URL} target="_blank" rel="noreferrer">{SUPPORT_URL}</a>
+          </p>
+        )}
         <div className="auth-form">
           <input type="email" placeholder="email@..." value={email}
                  onChange={(e) => setEmail(e.target.value)}

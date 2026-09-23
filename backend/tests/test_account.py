@@ -220,3 +220,161 @@ def test_long_password_not_silently_truncated():
 def test_same_password_different_hash():
     from app import auth
     assert auth.hash_password(GOOD_PW) != auth.hash_password(GOOD_PW)   # có salt
+
+
+# ---------- N1 — Xác thực email ----------
+
+def test_dang_ky_moi_chua_xac_thuc(client):
+    """Tài khoản MỚI phải bắt đầu email_verified=False — SMTP chưa cấu hình
+    trong môi trường test nên _send_verification_email() tự bỏ qua êm, đăng ký
+    vẫn phải thành công (201)."""
+    tok = _register(client)
+    me = client.get("/api/auth/me", headers=_hdr(tok)).json()
+    assert me["email_verified"] is False
+
+
+def test_xac_thuc_email_dung_token(client):
+    from app.routes_account import _make_verify_token
+    from app import db as dbmod
+
+    tok = _register(client)
+    with dbmod.SessionLocal() as s:
+        uid = s.query(dbmod.User).filter_by(email="a@x.com").first().id
+    verify_token = _make_verify_token(uid)
+
+    r = client.post("/api/auth/verify-email", json={"token": verify_token})
+    assert r.status_code == 200, r.text
+    assert r.json()["already_verified"] is False
+
+    me = client.get("/api/auth/me", headers=_hdr(tok)).json()
+    assert me["email_verified"] is True
+
+    # Xác thực lần hai — no-op vô hại, KHÔNG lỗi (khác hẳn token reset mật
+    # khẩu, cố ý không cần cơ chế dùng-một-lần vì xác thực lại không nguy hiểm).
+    r2 = client.post("/api/auth/verify-email", json={"token": verify_token})
+    assert r2.status_code == 200
+    assert r2.json()["already_verified"] is True
+
+
+def test_token_xac_thuc_sai_bi_tu_choi(client):
+    r = client.post("/api/auth/verify-email", json={"token": "rac-khong-hop-le"})
+    assert r.status_code == 400
+
+
+def test_token_dang_nhap_khong_xac_thuc_duoc_email(client):
+    """Token đăng nhập thường (kind khác 'verify') không được lọt qua đây —
+    cùng lớp lỗi đã bắt ở token một chạm (xem test_trust_loop.py)."""
+    tok = _register(client)
+    r = client.post("/api/auth/verify-email", json={"token": tok})
+    assert r.status_code == 400
+
+
+def test_resend_khi_chua_cau_hinh_smtp_bao_ro_khong_gui(client):
+    tok = _register(client)
+    r = client.post("/api/auth/resend-verification", headers=_hdr(tok))
+    assert r.status_code == 200
+    assert r.json()["sent"] is False
+
+
+def test_resend_khi_da_xac_thuc_thi_khong_gui_lai(client):
+    from app.routes_account import _make_verify_token
+    from app import db as dbmod
+
+    tok = _register(client)
+    with dbmod.SessionLocal() as s:
+        uid = s.query(dbmod.User).filter_by(email="a@x.com").first().id
+    client.post("/api/auth/verify-email", json={"token": _make_verify_token(uid)})
+
+    r = client.post("/api/auth/resend-verification", headers=_hdr(tok))
+    assert r.json()["sent"] is False
+    assert "đã được xác thực" in r.json()["message"]
+
+
+def test_radar_khong_gui_canh_bao_ra_ngoai_khi_chua_xac_thuc(client, monkeypatch):
+    """Cốt lõi của N1: cảnh báo vẫn được TẠO (user thấy trong app) nhưng
+    KHÔNG được DISPATCH ra kênh ngoài khi email chưa xác thực — một tài khoản
+    gõ sai email hoặc tạo hàng loạt không được phép spam hộ TerraTwin."""
+    from app import db as dbmod
+    from app.db import NotifyChannel, Plot
+    from app.schemas import Location, ScanModule, ScanResult, TerraScoreResult
+    from app.services import radar, scan as scan_svc
+
+    # Mô phỏng một lượt quét LUÔN có đúng 1 cảnh báo thật — không chạm mạng,
+    # và giữ đúng cốt lõi đang kiểm: dispatch có bị chặn hay không.
+    fake_alert = ScanModule(
+        id="flood", name="Lũ", icon="🌊", group="B", risk_level="danger",
+        headline="Test", recommendation="Test", is_real=True)
+
+    def fake_scan(loc, include_heavy=False):
+        ts = TerraScoreResult(location=loc, score=50, grade="C", summary="test")
+        return ScanResult(location=loc, terrascore=ts, modules=[fake_alert],
+                          alerts=[fake_alert], real_data_ratio=1.0,
+                          generated_at="2026-01-01T00:00:00")
+
+    monkeypatch.setattr(scan_svc, "scan", fake_scan)
+    from app.services import notify
+    monkeypatch.setattr(notify, "send_webhook", lambda url, payload: None)  # None = gửi thành công, không chạm mạng
+
+    tok = _register(client)
+    with dbmod.SessionLocal() as s:
+        u = s.query(dbmod.User).filter_by(email="a@x.com").first()
+        assert bool(u.email_verified) is False
+        s.add(Plot(user_id=u.id, name="Ruong", lat=BEN_TRE["lat"], lon=BEN_TRE["lon"]))
+        s.add(NotifyChannel(user_id=u.id, kind="webhook",
+                            target="https://example.com/hook", enabled=1))
+        s.commit()
+        uid = u.id
+
+    with dbmod.SessionLocal() as s:
+        r = radar.sweep_user(uid, s)
+    assert r["new_alerts"] == 1, "cảnh báo vẫn phải được tạo và lưu"
+    # Không xác thực → channels rỗng → dispatch không gửi/thử tới đâu cả.
+    assert r["delivery"]["sent"] == 0 and r["delivery"]["failed"] == 0
+
+    with dbmod.SessionLocal() as s:
+        u = s.query(dbmod.User).filter_by(email="a@x.com").first()
+        u.email_verified = 1
+        s.commit()
+        s.execute(dbmod.Alert.__table__.delete())   # xoá bản ghi cũ để dedup 12h không nuốt lượt sau
+        s.commit()
+
+    with dbmod.SessionLocal() as s:
+        r2 = radar.sweep_user(uid, s)
+    # Đã xác thực → channel webhook được THỬ (và ở đây giả lập thành công).
+    assert r2["delivery"]["sent"] == 1
+
+
+def test_tai_khoan_cu_duoc_grandfather_khi_them_cot(tmp_path):
+    """Tài khoản đã tồn tại TRƯỚC khi cột email_verified ra đời không được
+    đột ngột mất quyền nhận cảnh báo vì một yêu cầu MỚI thêm — _ensure_columns()
+    phải tự backfill email_verified=1 cho họ, ĐÚNG MỘT LẦN lúc thêm cột."""
+    from sqlalchemy import create_engine, text
+
+    from app import db as dbmod
+
+    engine = create_engine(f"sqlite:///{tmp_path / 'old.db'}")
+    # Bảng users kiểu CŨ — dựng tay, KHÔNG có cột email_verified (mô phỏng
+    # database đã chạy production trước khi tính năng này ra đời).
+    with engine.begin() as conn:
+        conn.execute(text("""
+            CREATE TABLE users (
+                id INTEGER PRIMARY KEY, email VARCHAR(255) UNIQUE,
+                password_hash VARCHAR(255), name VARCHAR(120) DEFAULT '',
+                role VARCHAR(16) DEFAULT 'user', morning_brief INTEGER DEFAULT 0,
+                brief_last VARCHAR(10) DEFAULT '', created_at TIMESTAMP
+            )
+        """))
+        conn.execute(text(
+            "INSERT INTO users (email, password_hash, name, created_at) "
+            "VALUES ('cu@x.com', 'x', 'Cu', '2020-01-01')"))
+
+    original_engine = dbmod.engine
+    dbmod.engine = engine
+    try:
+        dbmod._ensure_columns()
+        with engine.begin() as conn:
+            row = conn.execute(text(
+                "SELECT email_verified FROM users WHERE email='cu@x.com'")).fetchone()
+        assert row[0] == 1, "tài khoản cũ phải được grandfather thành đã xác thực"
+    finally:
+        dbmod.engine = original_engine

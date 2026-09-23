@@ -66,6 +66,7 @@ class UserOut(BaseModel):
     email: str
     name: str
     role: str = "user"        # Đ11 — để giao diện ẩn/hiện mục quản trị
+    email_verified: bool = False   # N1 — giao diện hiện banner nhắc xác thực
 
 
 class PlotIn(BaseModel):
@@ -109,7 +110,8 @@ TokenOut.model_rebuild()
 
 def _out(u: User) -> UserOut:
     return UserOut(id=u.id, email=u.email, name=u.name,
-                   role=getattr(u, "role", "user") or "user")
+                   role=getattr(u, "role", "user") or "user",
+                   email_verified=bool(getattr(u, "email_verified", 0)))
 
 
 def _plot_out(p: Plot) -> PlotOut:
@@ -139,6 +141,7 @@ def register(body: RegisterIn, db: Session = Depends(get_session)) -> TokenOut:
         db.rollback()
         raise HTTPException(409, "Email này đã được đăng ký.")
     db.refresh(user)
+    _send_verification_email(user)   # N1 — best-effort, không làm hỏng đăng ký
     return TokenOut(access_token=auth.create_token(user.id), user=_out(user))
 
 
@@ -518,3 +521,98 @@ def change_password(body: ChangePwIn, user: User = Depends(auth.current_user),
     log_audit(db, user.id, "change_password")          # Đ12
     db.commit()
     return {"message": "Đã đổi mật khẩu."}
+
+
+# ---------------------------------------------------------------------------
+# N1 — XÁC THỰC EMAIL
+# ---------------------------------------------------------------------------
+#
+# Không xác thực thì tài khoản vẫn dùng app đầy đủ (lưu thửa, xem cảnh báo
+# trong app) — chỉ KHÔNG được gửi cảnh báo ra kênh ngoài (email/Zalo/Telegram/
+# webhook) thay họ, xem radar.sweep_user(). Một địa chỉ gõ sai lúc đăng ký
+# hoặc một tài khoản tạo hàng loạt không được phép biến TerraTwin thành máy
+# gửi thư rác hộ tới một hộp thư không phải của người đăng ký.
+#
+# Token dùng lại đúng cơ chế JWT ký số của reset mật khẩu — nhưng KHÔNG cần
+# vân tay dùng-một-lần: xác thực hai lần chỉ là no-op vô hại, không như đặt
+# lại mật khẩu (đổi trạng thái nhạy cảm, phải chặn dùng lại).
+
+_VERIFY_TTL_MIN = 24 * 60   # 24 giờ — không khẩn như reset (1h), người dùng mở email chậm vẫn kịp
+
+
+def _make_verify_token(user_id: int) -> str:
+    now = datetime.now(timezone.utc)
+    return _jwt.encode(
+        {"u": int(user_id), "k": "verify", "iat": now,
+         "exp": now + timedelta(minutes=_VERIFY_TTL_MIN)},
+        _AUTH_SECRET, algorithm=_AUTH_ALGO)
+
+
+def _read_verify_token(token: str) -> dict | None:
+    try:
+        d = _jwt.decode(token, _AUTH_SECRET, algorithms=[_AUTH_ALGO])
+    except _jwt.PyJWTError:
+        return None
+    if d.get("k") != "verify":
+        return None
+    return d
+
+
+def _send_verification_email(user: User) -> None:
+    """Best-effort tuyệt đối — KHÔNG được làm hỏng đăng ký nếu SMTP hỏng hoặc
+    chưa cấu hình. Im lặng bỏ qua nếu chưa cấu hình SMTP; xem /api/health và
+    /api/auth/resend-verification cho đường xử lý khi người dùng cần biết."""
+    from app.services import notify, onetap
+    if not notify.smtp_configured():
+        return
+    token = _make_verify_token(user.id)
+    link = f"{onetap.base_url()}/verify-email/{token}"
+    try:
+        notify.send_email(
+            user.email, "TerraTwin — xác thực email",
+            f"Bấm vào liên kết để xác thực email (hết hạn sau 24 giờ):\n\n{link}\n\n"
+            "Chưa xác thực thì bạn vẫn dùng app bình thường — chỉ là chưa nhận "
+            "được cảnh báo gửi qua email/Zalo/Telegram/webhook.")
+    except Exception:      # noqa: BLE001 — gửi hỏng không được làm hỏng đăng ký
+        pass
+
+
+class VerifyEmailIn(BaseModel):
+    token: str
+
+
+@router.post("/api/auth/verify-email")
+def verify_email(body: VerifyEmailIn, db: Session = Depends(get_session)) -> dict:
+    d = _read_verify_token(body.token)
+    if d is None:
+        raise HTTPException(400, "Liên kết xác thực không hợp lệ hoặc đã hết hạn (24 giờ).")
+    try:
+        uid = int(d["u"])
+    except (KeyError, TypeError, ValueError):
+        raise HTTPException(400, "Liên kết xác thực không hợp lệ hoặc đã hết hạn (24 giờ).")
+    user = db.get(User, uid)
+    if user is None:
+        raise HTTPException(400, "Tài khoản không còn tồn tại.")
+    already = bool(getattr(user, "email_verified", 0))
+    user.email_verified = 1
+    if not already:
+        log_audit(db, user.id, "verify_email")          # Đ12
+    db.commit()
+    return {"message": ("Email này đã xác thực từ trước." if already
+                        else "Đã xác thực email. Giờ bạn nhận được cảnh báo qua các kênh đã nối."),
+            "already_verified": already}
+
+
+@router.post("/api/auth/resend-verification")
+def resend_verification(user: User = Depends(auth.current_user),
+                        db: Session = Depends(get_session)) -> dict:
+    if getattr(user, "email_verified", 0):
+        return {"message": "Email của bạn đã được xác thực rồi.", "sent": False}
+    from app.services import notify
+    if not notify.smtp_configured():
+        return {"message": ("Máy chủ chưa cấu hình gửi email (SMTP) — liên hệ người "
+                            "vận hành để được xác thực thủ công."),
+                "sent": False}
+    _send_verification_email(user)
+    return {"message": "Đã gửi lại liên kết xác thực — kiểm tra hộp thư (kể cả mục spam).",
+            "sent": True}
