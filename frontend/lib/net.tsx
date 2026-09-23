@@ -10,6 +10,8 @@
  *
  * Người dùng cũng tự bật/tắt được (localStorage), ghi đè phát hiện tự động.
  */
+import { useEffect, useState } from "react";
+
 const KEY = "tt_datasaver";
 
 export function isDataSaver(): boolean {
@@ -30,4 +32,33 @@ export function setDataSaver(on: boolean | null): void {
     if (on === null) localStorage.removeItem(KEY);
     else localStorage.setItem(KEY, on ? "1" : "0");
   } catch { /* */ }
+}
+
+/**
+ * P2 — công tắc TỰ TAY, đặt cạnh LangToggle. Trước đây isDataSaver/setDataSaver
+ * đã có sẵn trong lib này nhưng KHÔNG có chỗ nào trong giao diện gọi
+ * setDataSaver() — công tắc tồn tại trong code nhưng người dùng không bấm được.
+ */
+export function DataSaverToggle() {
+  const [on, setOn] = useState(false);
+  useEffect(() => { setOn(isDataSaver()); }, []);
+
+  function toggle() {
+    const next = !on;
+    setDataSaver(next);
+    setOn(next);
+  }
+
+  return (
+    <button
+      className={`ds-toggle${on ? " on" : ""}`}
+      onClick={toggle}
+      aria-pressed={on}
+      title={on
+        ? "Tiết kiệm dữ liệu đang BẬT — ảnh vệ tinh & mục nặng chờ bạn bấm mới tải"
+        : "Bật tiết kiệm dữ liệu — hoãn tải ảnh vệ tinh & mục nặng tới khi bạn bấm"}
+    >
+      📶 {on ? "Tiết kiệm: BẬT" : "Tiết kiệm dữ liệu"}
+    </button>
+  );
 }

@@ -25,6 +25,7 @@
 import { useEffect, useRef, useState } from "react";
 import { scanAll, trackEvent, type ScanResult, type ScanModule, type ModuleInfo } from "@/lib/api";
 import SpeakButton from "@/components/SpeakButton";
+import { isDataSaver } from "@/lib/net";
 import { useLang } from "@/lib/i18n";
 import Passport from "./Passport";
 import PlotView from "./PlotView";
@@ -186,6 +187,10 @@ export default function Answer({
   // gian để không ai nhầm là mới. null = đang xem kết quả tươi.
   const [stale, setStale] = useState<string | null>(null);
   const [giay, setGiay] = useState(0);
+  // P2 — tiết kiệm dữ liệu: bảy mũi nhọn NẶNG (cần ảnh vệ tinh) không tự gọi
+  // nền khi đang bật — chờ người dùng chủ động bấm tải, giống PlotView.tsx.
+  const [deepSkipped, setDeepSkipped] = useState(false);
+  const [deepLoading, setDeepLoading] = useState(false);
   const dong = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Đếm giây khi chờ. LÝ DO CÓ CÁI NÀY: đo thật cho thấy nơi đã có cache trả
@@ -227,6 +232,7 @@ export default function Answer({
     setErr(null);
     setD(null);
     setStale(null);
+    setDeepSkipped(false);
     trackEvent("scan");                               // N6
     scanAll(lat, lon, area)
       .then((r) => {
@@ -238,6 +244,11 @@ export default function Answer({
         // trạng thái "đang kiểm tra" thì chúng treo vĩnh viễn, và trông y hệt
         // như thiếu dữ liệu — đúng thứ làm người dùng thấy phần mềm sơ sài.
         // Gọi tiếp và thay kết quả vào khi xong.
+        //
+        // P2 — TRỪ khi đang tiết kiệm dữ liệu: bảy mũi nhọn này kéo ảnh vệ
+        // tinh, nặng nhất trong toàn bộ lượt quét. Chờ người dùng chủ động
+        // bấm tải (nút bên dưới) thay vì tự động kéo về.
+        if (isDataSaver()) { setDeepSkipped(true); return; }
         scanAll(lat, lon, area, true)
           .then((sau) => { if (!huy) { setD(sau); save(sau); } })
           .catch(() => {});
@@ -262,6 +273,23 @@ export default function Answer({
       huy = true;
     };
   }, [lat, lon, area, lang]);
+
+  // P2 — tải bảy mũi nhọn nặng lúc người dùng CHỦ ĐỘNG bấm, dù đang tiết kiệm
+  // dữ liệu. Không lưu localStorage riêng — cùng "save" ở effect trên đã đủ.
+  function loadDeepNow() {
+    setDeepLoading(true);
+    scanAll(lat, lon, area, true)
+      .then((sau) => {
+        setD(sau);
+        setDeepSkipped(false);
+        try {
+          localStorage.setItem(`tt_scan:${lat.toFixed(3)},${lon.toFixed(3)}`,
+            JSON.stringify({ at: Date.now(), result: sau }));
+        } catch { /* */ }
+      })
+      .catch(() => {})
+      .finally(() => setDeepLoading(false));
+  }
 
   useEffect(() => {
     if (!d || !onRisk) return;
@@ -447,7 +475,24 @@ export default function Answer({
         </div>
       )}
 
-      {dangChay.length > 0 && (
+      {/* P2 — đang tiết kiệm dữ liệu: KHÔNG tự kéo ảnh vệ tinh về, phải nói
+          thẳng vì sao những mục này còn "chờ" mãi thay vì tự hết trong vài
+          chục giây như bình thường, và cho nút bấm để tự chọn tải. */}
+      {dangChay.length > 0 && deepSkipped && (
+        <div className="ans-pending">
+          <div>
+            <b>{t("📶 Đang tiết kiệm dữ liệu", "📶 Data saver is on")}</b>
+            <p>
+              {t(`${dangChay.length} mục cần ảnh vệ tinh (nặng nhất trong lượt quét) chưa tự tải — bật tiết kiệm dữ liệu thì TerraTwin chờ bạn chủ động bấm.`,
+                 `${dangChay.length} items need satellite imagery (the heaviest part of the scan) and haven't auto-loaded — with data saver on, TerraTwin waits for you to tap.`)}
+            </p>
+            <button onClick={loadDeepNow} disabled={deepLoading}>
+              {deepLoading ? t("Đang tải…", "Loading…") : t("Tải chi tiết đầy đủ", "Load full detail")}
+            </button>
+          </div>
+        </div>
+      )}
+      {dangChay.length > 0 && !deepSkipped && (
         <div className="ans-pending">
           <span className="ans-spin sm" />
           <div>

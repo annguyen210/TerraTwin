@@ -17,6 +17,7 @@ import Scorecard from "./Scorecard";
 import Start from "./Start";
 import { getScorecard, trackEvent, type AuthUser, type ModuleInfo, type Scorecard as SC } from "@/lib/api";
 import { LangToggle, useLang } from "@/lib/i18n";
+import { DataSaverToggle } from "@/lib/net";
 
 const FEATURES = [
   {
@@ -84,6 +85,7 @@ export default function Landing({
         <div className="lp-brand">◵ TerraTwin</div>
         <div className="lp-top-actions">
           <LangToggle />
+          <DataSaverToggle />
           <button className="lp-ws" onClick={onWorkspace}>
             ⚙️ {t("Khu làm việc", "Workspace")}
           </button>
