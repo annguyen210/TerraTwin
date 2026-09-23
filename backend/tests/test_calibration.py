@@ -1,155 +1,103 @@
-"""Tầng hiệu chuẩn theo khí hậu từng điểm — sửa gốc bệnh báo động giả.
-
-Bối cảnh đo được trước khi sửa (2026-08-17): thang tuyệt đối bão hòa, mức
-"nguy hiểm" nổ 45.8% số ngày ở Huế và 60.6% ở Quảng Nam trong năm 2022.
-
-Test chạy OFFLINE: tự dựng phân bố khí hậu, không gọi mạng.
+"""A13 — hiệu chỉnh trực tuyến: mặc định TẮT (không vùng nào đủ 30 quan sát,
+và cờ TERRATWIN_ONLINE_CALIBRATION mặc định tắt luôn cả khi đủ dữ liệu).
+Test bằng dữ liệu giả lập — không chạm DB thật, không chạm mạng.
 """
-from datetime import date, timedelta
+from __future__ import annotations
 
+from types import SimpleNamespace
+
+import numpy as np
 import pytest
 
-from app.services import calibration as cal
-from app.services import hazard, realdata
-
-LAT, LON = 15.87, 108.33
+from app.services import calibration
 
 
-def _rows(precips, et0=4.0, tmax=33.0, start="2026-08-17"):
-    d0 = date.fromisoformat(start)
-    return [{"day": i, "date": (d0 + timedelta(days=i)).isoformat(),
-             "precip": p, "et0": et0, "tmax": tmax}
-            for i, p in enumerate(precips)]
+def _obs(lat, lon, module_id, model_index, outcome):
+    return SimpleNamespace(lat=lat, lon=lon, module_id=module_id,
+                           model_index=model_index, outcome=outcome)
 
 
-@pytest.fixture
-def terrain(monkeypatch):
-    monkeypatch.setattr(realdata, "elevation_m", lambda la, lo: 3.0)
-    monkeypatch.setattr(realdata, "slope_deg", lambda la, lo, step_m=500.0: 22.0)
+def test_pava_lam_don_dieu_dung():
+    # 3, 1, 4 → không đơn điệu ở (3,1). Gộp hai điểm đầu thành 2,2 → [2,2,4].
+    y = np.array([3.0, 1.0, 4.0])
+    out = calibration._pava(y)
+    np.testing.assert_array_almost_equal(out, [2.0, 2.0, 4.0])
+    assert np.all(np.diff(out) >= -1e-9), "Kết quả PAVA phải không giảm"
 
 
-# ---------- Ánh xạ phân vi ----------
-
-def test_percentile_mapping_hits_design_points():
-    assert cal.map_percentile(0) == pytest.approx(0.0)
-    assert cal.map_percentile(90) == pytest.approx(40.0)   # ngưỡng cảnh báo
-    assert cal.map_percentile(97) == pytest.approx(70.0)   # ngưỡng nguy hiểm
-    assert cal.map_percentile(100) == pytest.approx(100.0)
+def test_pava_da_don_dieu_thi_giu_nguyen():
+    y = np.array([1.0, 2.0, 3.0, 5.0])
+    out = calibration._pava(y)
+    np.testing.assert_array_almost_equal(out, y)
 
 
-def test_percentile_mapping_is_monotonic():
-    vals = [cal.map_percentile(p) for p in range(0, 101)]
-    assert vals == sorted(vals)
+def test_mac_dinh_tat_khong_doi_gia_tri():
+    """Cờ ENABLED mặc định đọc từ môi trường — session test không đặt
+    TERRATWIN_ONLINE_CALIBRATION nên phải là tắt."""
+    assert calibration.ENABLED is False, (
+        "A13 phải mặc định TẮT — không được tự bật khi chưa ai gạt cờ")
 
 
-def test_percentile_of_positions_correctly():
-    dist = list(range(100))          # 0..99
-    assert cal.percentile_of(-5, dist) == 0.0
-    assert cal.percentile_of(50, dist) == pytest.approx(50.0)
-    assert cal.percentile_of(999, dist) == pytest.approx(100.0)
+def test_calibrate_tra_ve_nguyen_khi_tat(monkeypatch):
+    monkeypatch.setattr(calibration, "ENABLED", False)
+    obs = [_obs(10.0, 106.0, "flood", 70.0, "occurred") for _ in range(50)]
+    r = calibration.calibrate(obs, "10.0,106.0", "flood", raw_index=55.0)
+    assert r["calibrated_index"] == 55.0
+    assert r["used_calibration"] is False
+    assert r["reason"] == "off_by_flag"
 
 
-# ---------- Động lực thô KHÔNG bị chặn trần (gốc bệnh cũ) ----------
-
-def test_raw_flood_does_not_saturate(terrain):
-    """Thang cũ chạm trần 100; thang thô phải còn phân biệt được mưa to/rất to."""
-    from app.services import datasources as ds
-    big = _rows([50.0] * 7)
-    huge = _rows([200.0] * 7)
-    old_big = max(v for _, _, v in ds.flood_index(big, 3.0))
-    old_huge = max(v for _, _, v in ds.flood_index(huge, 3.0))
-    assert old_big == old_huge == 100.0          # bằng chứng bão hòa của bản cũ
-
-    new_big = max(v for _, _, v in cal.raw_flood(big, 3.0))
-    new_huge = max(v for _, _, v in cal.raw_flood(huge, 3.0))
-    assert new_huge > new_big * 2                # thang thô vẫn phân biệt được
+def test_calibrate_tra_ve_nguyen_khi_thieu_du_lieu(monkeypatch):
+    monkeypatch.setattr(calibration, "ENABLED", True)
+    # Chỉ 5 quan sát — dưới MIN_OBS_CALIBRATION (30).
+    obs = [_obs(10.0, 106.0, "flood", 70.0, "occurred") for _ in range(5)]
+    r = calibration.calibrate(obs, "10.0,106.0", "flood", raw_index=55.0)
+    assert r["calibrated_index"] == 55.0
+    assert r["used_calibration"] is False
+    assert r["reason"] == "not_enough_observations"
+    assert r["observations"] == 5
 
 
-def test_raw_landslide_zero_on_flat_ground():
-    heavy = _rows([120.0] * 7)
-    assert max(v for _, _, v in cal.raw_landslide(heavy, slope=0.0)) == 0.0
-    assert max(v for _, _, v in cal.raw_landslide(heavy, slope=25.0)) > 50.0
+def test_calibrate_chi_tinh_quan_sat_dung_vung_dung_module(monkeypatch):
+    monkeypatch.setattr(calibration, "ENABLED", True)
+    same = [_obs(10.0, 106.0, "flood", float(i), "none") for i in range(20)]
+    other_cell = [_obs(20.0, 116.0, "flood", 90.0, "occurred") for _ in range(20)]
+    other_module = [_obs(10.0, 106.0, "drought", 90.0, "occurred") for _ in range(20)]
+    r = calibration.calibrate(same + other_cell + other_module,
+                              "10.0,106.0", "flood", raw_index=50.0)
+    # Chỉ 20 quan sát "same" hợp lệ — vẫn dưới 30 dù tổng truyền vào là 60.
+    assert r["observations"] == 20
+    assert r["used_calibration"] is False
 
 
-# ---------- Tỉ lệ báo động theo THIẾT KẾ ----------
+def test_calibrate_hieu_chinh_khi_du_du_lieu_va_bat_co(monkeypatch):
+    monkeypatch.setattr(calibration, "ENABLED", True)
+    # Model báo cao (70-100) nhưng THỰC TẾ hiếm khi xảy ra ("none") → model
+    # đang lạc quan quá — hiệu chỉnh phải kéo calibrated_index XUỐNG so với raw.
+    obs = []
+    for i in range(40):
+        idx = 60.0 + i  # 60..99
+        outcome = "occurred" if i < 3 else "none"   # hầu hết KHÔNG xảy ra dù model báo cao
+        obs.append(_obs(10.0, 106.0, "flood", idx, outcome))
 
-def _synthetic_dist(n=2000, top=200.0):
-    """Phân bố khí hậu giả lập, lệch phải như mưa thật.
-
-    `top` là đỉnh mưa tích lũy 7 ngày của vùng — đặt quá cao thì ngay cả mưa
-    cực đoan cũng chỉ là phân vi tầm thường (chính bẫy đã làm test đầu sai).
-    """
-    return sorted((i / n) ** 2 * top for i in range(n))
-
-
-def test_alarm_rate_is_about_3pct_by_design(terrain, monkeypatch):
-    dist = _synthetic_dist()
-    monkeypatch.setattr(cal, "climatology", lambda *a, **k: dist)
-    ar = cal.alarm_rate("flood", LAT, LON, threshold=70.0)
-    assert 0.0 <= ar["alarm_rate_pct"] <= 4.0     # thiết kế ~3%
-
-
-def test_warning_rate_is_about_10pct_by_design(terrain, monkeypatch):
-    dist = _synthetic_dist()
-    monkeypatch.setattr(cal, "climatology", lambda *a, **k: dist)
-    ar = cal.alarm_rate("flood", LAT, LON, threshold=40.0)
-    assert 5.0 <= ar["alarm_rate_pct"] <= 12.0    # thiết kế ~10%
+    r = calibration.calibrate(obs, "10.0,106.0", "flood", raw_index=90.0)
+    assert r["used_calibration"] is True
+    assert r["observations"] == 40
+    assert r["calibrated_index"] < 90.0, (
+        f"Model lạc quan quá mà quan sát cho thấy hiếm khi xảy ra thật — "
+        f"hiệu chỉnh phải kéo XUỐNG, kết quả: {r}")
 
 
-def test_calibrated_series_stays_in_range(terrain, monkeypatch):
-    dist = _synthetic_dist()
-    monkeypatch.setattr(cal, "climatology", lambda *a, **k: dist)
-    s, ok = cal.calibrated_series("flood", LAT, LON, _rows([80.0] * 7))
-    assert ok
-    assert all(0.0 <= v <= 100.0 for _, _, v in s)
-
-
-# ---------- Chốt tuyệt đối: cực đoan so với hư không ----------
-
-def test_absolute_floor_blocks_alarm_in_dry_climate(terrain, monkeypatch):
-    """Vùng gần như không mưa: 3 mm là P100 nhưng KHÔNG được báo nguy hiểm."""
-    bone_dry = sorted([0.0] * 1900 + [0.1 * i for i in range(100)])
-    monkeypatch.setattr(cal, "climatology", lambda *a, **k: bone_dry)
-    s, ok = cal.calibrated_series("flood", LAT, LON, _rows([3.0] * 7))
-    assert ok
-    assert max(v for _, _, v in s) < 40.0        # bị chốt về an toàn
-
-
-def test_floor_does_not_block_genuinely_heavy_rain(terrain, monkeypatch):
-    """Mưa vượt hẳn đỉnh lịch sử của vùng thì PHẢI nổ mức nguy hiểm."""
-    dist = _synthetic_dist()
-    monkeypatch.setattr(cal, "climatology", lambda *a, **k: dist)
-    s, ok = cal.calibrated_series("flood", LAT, LON, _rows([150.0] * 7))
-    assert max(v for _, _, v in s) >= 70.0
-
-
-def test_index_rises_with_rain(terrain, monkeypatch):
-    """Tính đơn điệu — điều kiện cần để Goal-Seek tìm kiếm nhị phân đúng."""
-    dist = _synthetic_dist()
-    monkeypatch.setattr(cal, "climatology", lambda *a, **k: dist)
-    peaks = []
-    for mm in (5.0, 20.0, 50.0, 100.0):
-        s, _ = cal.calibrated_series("flood", LAT, LON, _rows([mm] * 7))
-        peaks.append(max(v for _, _, v in s))
-    assert peaks == sorted(peaks)
-
-
-# ---------- Lùi an toàn khi offline ----------
-
-def test_falls_back_to_absolute_when_no_climatology(terrain, monkeypatch):
-    monkeypatch.setattr(cal, "climatology", lambda *a, **k: None)
-    s, ok = hazard.index_series_calibrated("flood", LAT, LON, _rows([40.0] * 7))
-    assert ok is False                            # phải báo rõ là CHƯA hiệu chuẩn
-    assert s                                      # nhưng vẫn có kết quả để app chạy
-
-
-def test_terrain_override_uses_same_calibration(terrain, monkeypatch):
-    """Explain/Goal-Seek ép địa hình phải đi qua cùng thang, nếu không phần
-    chênh lệch là chênh giữa hai thang đo chứ không phải đóng góp thật."""
-    dist = _synthetic_dist()
-    monkeypatch.setattr(cal, "climatology", lambda *a, **k: dist)
-    rows = _rows([60.0] * 7)
-    low, ok1 = cal.calibrated_with_terrain("flood", LAT, LON, rows, terrain=2.0)
-    high, ok2 = cal.calibrated_with_terrain("flood", LAT, LON, rows, terrain=60.0)
-    assert ok1 and ok2
-    assert max(v for _, _, v in high) <= max(v for _, _, v in low)
+def test_do_dich_chuyen_bi_chan_tran():
+    monkeypatch_target = calibration
+    monkeypatch_target.ENABLED = True
+    try:
+        # Cực đoan: model báo 100 nhưng CHƯA BAO GIỜ xảy ra — không hiệu chỉnh
+        # nào được đẩy calibrated_index xuống quá MAX_DISPLACEMENT so với raw.
+        obs = [_obs(10.0, 106.0, "flood", 100.0, "none") for _ in range(40)]
+        r = calibration.calibrate(obs, "10.0,106.0", "flood", raw_index=100.0)
+        assert r["used_calibration"] is True
+        assert abs(r["displacement"]) <= calibration.MAX_DISPLACEMENT + 1e-6
+        assert r["raw_index"] + r["displacement"] == pytest.approx(r["calibrated_index"])
+    finally:
+        monkeypatch_target.ENABLED = False
