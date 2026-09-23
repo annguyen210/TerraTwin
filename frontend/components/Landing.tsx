@@ -127,6 +127,13 @@ export default function Landing({
           <div className="lp-entry">
             {user && <MyLand user={user} onOpen={onStart} />}
             <Start onPick={onStart} onStory={onStory} />
+            {/* G4 — đường vào RIÊNG cho người đang định MUA/THUÊ đất, không phải
+                chủ thửa. Khung "thửa của bạn" ở trên sai ngữ cảnh cho họ — cần
+                một cửa khác dẫn thẳng tới Sổ tay thửa (đã viết sẵn cho người mua). */}
+            <Link href="/buyer" className="lp-buyer-cta">
+              🏠 {t("Định mua/thuê đất? Kiểm tra trước khi trả tiền",
+                    "Planning to buy or rent land? Check before you pay")}
+            </Link>
           </div>
         </section>
 

@@ -3579,6 +3579,13 @@ body {
 /* Trong trang đón, Start/MyLand không cần nền riêng (đã có card .lp-entry bọc) */
 .lp-entry .myland { margin-bottom: 14px; }
 
+/* G4 — cửa vào riêng cho người mua/thuê đất */
+.lp-buyer-cta { display: block; margin-top: 14px; padding: 12px 16px; border-radius: 12px;
+  background: var(--card); border: 1px dashed var(--line-2); text-align: center;
+  font-size: 13.5px; font-weight: 600; color: var(--text); text-decoration: none;
+  transition: border-color .15s, background .15s; }
+.lp-buyer-cta:hover { border-color: var(--terra); background: var(--panel); }
+
 @media (max-width: 860px) {
   .lp-hero { grid-template-columns: 1fr; gap: 26px; }
   .lp-feats { grid-template-columns: 1fr 1fr; }
