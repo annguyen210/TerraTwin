@@ -10,6 +10,12 @@ name: Keep warm
 # LƯU Ý: lịch của GitHub Actions có thể trễ vài phút lúc tải cao, nên đây là giải
 # pháp "đủ tốt & miễn phí", không phải bảo đảm 100%. Muốn chắc hơn: cron-job.org
 # (đáng tin hơn) hoặc nâng Render lên gói trả phí (không ngủ).
+#
+# N11 — TUỲ CHỌN: báo qua Telegram khi health đổi trạng thái (ok/degraded/
+# broken), CHỈ khi đổi (xem ops/keepwarm_alert.py). Đặt hai secret để bật:
+#   TERRATWIN_ALERT_BOT_TOKEN — token bot Telegram (từ @BotFather).
+#   TERRATWIN_ALERT_CHAT_ID   — chat_id nhận báo (từ @userinfobot).
+# Thiếu một trong hai thì bỏ qua ÊM — không secret nào là bắt buộc.
 
 on:
   schedule:
@@ -21,10 +27,18 @@ concurrency:
   group: keepwarm
   cancel-in-progress: false
 
+# N11 cần push trạng thái (ok/degraded/broken) vào nhánh ops-state để lần
+# chạy SAU biết lần chạy TRƯỚC là gì — GITHUB_TOKEN mặc định chỉ đọc, phải
+# xin quyền ghi contents tường minh (giống backup.yml).
+permissions:
+  contents: write
+
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: Ping api + web
         run: |
           fail=0
@@ -59,4 +73,41 @@ jobs:
           fi
           if echo "$body" | grep -q '"status":"degraded"'; then
             echo "::warning::terratwin-api đang degraded — nguồn dữ liệu miễn phí (Open-Meteo) bị chặn vì quá hạn mức. Xem trường quota trong /api/health."
+          fi
+
+      # N11 — báo Telegram khi trạng thái ĐỔI (không báo lặp mỗi 10 phút lúc vẫn
+      # hỏng). if: always() vì bước "Ping api + web" ở trên có thể đã exit 1 —
+      # đúng lúc đó (health hỏng) là lúc N11 cần chạy nhất, không được bị bỏ qua.
+      - name: Chuẩn bị nhánh ops-state (lưu trạng thái lần trước)
+        if: always()
+        run: |
+          git config --global user.name "terratwin-keepwarm-bot"
+          git config --global user.email "actions@users.noreply.github.com"
+          REMOTE="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          if git ls-remote --exit-code --heads "$REMOTE" ops-state >/dev/null 2>&1; then
+            git clone --branch ops-state --single-branch --depth 1 "$REMOTE" ../ops-state-wt
+          else
+            mkdir -p ../ops-state-wt
+            git -C ../ops-state-wt init -q -b ops-state
+            git -C ../ops-state-wt commit -q --allow-empty -m "khoi tao nhanh trang thai"
+          fi
+
+      - name: N11 — báo Telegram nếu health đổi trạng thái
+        if: always()
+        env:
+          TERRATWIN_ALERT_BOT_TOKEN: ${{ secrets.TERRATWIN_ALERT_BOT_TOKEN }}
+          TERRATWIN_ALERT_CHAT_ID: ${{ secrets.TERRATWIN_ALERT_CHAT_ID }}
+          TERRATWIN_STATE_FILE: ${{ github.workspace }}/../ops-state-wt/keepwarm-state.txt
+        run: python3 ops/keepwarm_alert.py
+
+      - name: Đẩy trạng thái mới lên ops-state (chỉ khi đổi)
+        if: always()
+        run: |
+          cd ../ops-state-wt
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Trạng thái không đổi — không commit."
+          else
+            git commit -q -m "trang thai $(date -u +%Y%m%d-%H%M)Z"
+            git push -q "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" ops-state
           fi
