@@ -25,9 +25,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 let API_ORIGIN = "";
 try { if (process.env.NEXT_PUBLIC_API) API_ORIGIN = new URL(process.env.NEXT_PUBLIC_API).origin; } catch {}
 
+// Lỗi dev-mode đã báo trước: `next dev` biên dịch bundle bằng eval() (webpack
+// devtool eval-source-map) để Fast Refresh vá module tại chỗ mà không tải lại
+// trang — CSP không có 'unsafe-eval' thì trình duyệt chặn eval, Fast Refresh
+// gãy và console ngập lỗi "unsafe-eval". Production KHÔNG dùng eval để build
+// (Next tự đổi devtool khi build) nên production giữ chặt, không nới.
+const IS_DEV = process.env.NODE_ENV !== "production";
+
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${IS_DEV ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",

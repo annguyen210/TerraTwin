@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "node scripts/test-csp.mjs"
   },
   "dependencies": {
     "next": "^14.2.0",
