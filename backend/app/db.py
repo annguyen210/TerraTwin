@@ -74,6 +74,23 @@ class User(Base):
     # Telegram/webhook) thay họ — một địa chỉ gõ sai hoặc tài khoản bot tạo
     # hàng loạt không được phép biến TerraTwin thành máy gửi thư rác hộ.
     email_verified: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    # N8 — đồng ý TÁCH TỪNG MỤC ĐÍCH, không phải một ô "đồng ý điều khoản" gộp
+    # hết. Ba mục KHÁC NHAU về mức nhạy cảm nên mặc định khác nhau:
+    #   consent_alerts        — gửi cảnh báo ra kênh đã nối. Mặc định BẬT: đây
+    #                            là lý do chính người dùng đăng ký, tắt mặc
+    #                            định là phá chức năng cốt lõi ngay từ đầu.
+    #   consent_observations  — dùng quan sát thực địa (đã ẩn danh, làm tròn
+    #                            về ô ~55 km, xem /privacy) để hiệu chỉnh
+    #                            ngưỡng CHUNG cho cả vùng. Mặc định BẬT: đây
+    #                            là cách duy nhất mô hình tốt lên, và dữ liệu
+    #                            đã ẩn danh trước khi dùng.
+    #   consent_research      — dùng cho nghiên cứu/xuất bản rộng hơn hiệu
+    #                            chỉnh vận hành. Mặc định TẮT — người dùng tự
+    #                            bật, đây là mục đích RỘNG NHẤT nên đòi hỏi rõ
+    #                            ràng nhất.
+    consent_alerts: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    consent_observations: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    consent_research: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
     plots: Mapped[list["Plot"]] = relationship(
@@ -471,6 +488,13 @@ _ADDED_COLUMNS = [
     ("users", "brief_last", "VARCHAR(10) DEFAULT ''"),
     # N1 — xác thực email.
     ("users", "email_verified", "INTEGER DEFAULT 0"),
+    # N8 — đồng ý tách từng mục đích. Không cần grandfather đặc biệt: DEFAULT
+    # của ALTER TABLE áp cho hàng cũ luôn đúng ý nghĩa muốn có (alerts/
+    # observations giữ nguyên hành vi cũ = bật; research là tính năng MỚI nên
+    # tắt cho tất cả, kể cả người dùng cũ, là đúng — trước đây chưa ai được hỏi).
+    ("users", "consent_alerts", "INTEGER DEFAULT 1"),
+    ("users", "consent_observations", "INTEGER DEFAULT 1"),
+    ("users", "consent_research", "INTEGER DEFAULT 0"),
 ]
 
 

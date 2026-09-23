@@ -81,15 +81,19 @@ def sweep_user(user_id: int, db: Session) -> dict:
     # N1 — email CHƯA XÁC THỰC thì KHÔNG gửi ra kênh ngoài nào (email/Zalo/
     # Telegram/webhook): một địa chỉ gõ sai lúc đăng ký hoặc một tài khoản tạo
     # hàng loạt không được phép biến TerraTwin thành máy gửi thư rác hộ tới
-    # một hộp thư không phải của người đăng ký. Cảnh báo vẫn được TẠO VÀ LƯU
-    # (đã add() ở trên) — người dùng vẫn thấy trong app/sổ điểm, chỉ không
-    # phát ra ngoài cho tới khi xác thực.
+    # một hộp thư không phải của người đăng ký.
+    #
+    # N8 — VÀ phải đồng ý "nhận cảnh báo" (consent_alerts, mặc định BẬT — tắt
+    # là lựa chọn chủ động). Cảnh báo vẫn được TẠO VÀ LƯU (đã add() ở trên) —
+    # người dùng vẫn thấy trong app/sổ điểm dù thiếu MỘT trong hai điều kiện,
+    # chỉ không phát ra kênh ngoài.
     user_row = db.get(User, user_id)
-    verified = bool(user_row and getattr(user_row, "email_verified", 0))
+    can_dispatch = bool(user_row and getattr(user_row, "email_verified", 0)
+                        and getattr(user_row, "consent_alerts", 1))
     channels = (db.execute(
         select(NotifyChannel).where(NotifyChannel.user_id == user_id,
                                     NotifyChannel.enabled == 1)).scalars().all()
-               if verified else [])
+               if can_dispatch else [])
     delivery = notify.dispatch(channels, payload)
     db.commit()
 
@@ -113,7 +117,13 @@ def sweep_user(user_id: int, db: Session) -> dict:
     # Hỏi bằng một lượt gửi riêng chứ không kèm vào cảnh báo mới, vì trộn "sắp
     # có lũ" với "hôm trước có lũ thật không" trong cùng một tin là cách chắc
     # chắn để không nhận được câu trả lời nào.
-    asking = _ask_one(user_id, channels, db)
+    #
+    # N8 — góp quan sát là một MỤC ĐÍCH riêng với "nhận cảnh báo": người đồng ý
+    # nhận cảnh báo nhưng từ chối bị hỏi góp quan sát vẫn phải được tôn trọng,
+    # kể cả khi kênh gửi (channels) đang mở vì consent_alerts đang bật.
+    wants_asked = bool(user_row and getattr(user_row, "consent_observations", 1))
+    asking = (_ask_one(user_id, channels, db) if wants_asked
+              else {"asked": 0, "reason": "người dùng đã tắt góp quan sát"})
 
     return {
         "plots_scanned": len(plots),

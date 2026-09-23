@@ -4067,6 +4067,12 @@ a.plan-print{ text-decoration:none; display:inline-flex; align-items:center }
 .ws-privacy{ margin-top:22px; padding-top:16px; border-top:1px solid var(--line) }
 .ws-privacy h4{ margin:0 0 10px; font-size:.92rem; color:var(--text) }
 
+/* N8 — công tắc đồng ý theo mục đích */
+.ws-check{ display:flex; align-items:flex-start; gap:9px; margin:0 0 10px; cursor:pointer }
+.ws-check input{ margin-top:3px; flex-shrink:0 }
+.ws-check span{ font-size:.82rem; line-height:1.5; color:var(--text); opacity:.9 }
+.ws-check b{ opacity:1 }
+
 /* N7 — câu miễn trừ dưới cảnh báo */
 .plan-disclaimer, .ml-disclaimer{ margin:12px 0 0; padding:9px 12px; border-radius:9px;
   background:rgba(224,164,74,.08); border:1px solid rgba(224,164,74,.25);

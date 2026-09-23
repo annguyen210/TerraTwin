@@ -50,6 +50,18 @@ export default function PrivacyPage() {
              "To analyze a coordinate, the app calls public services (Open-Meteo, GloFAS, NASA POWER, Microsoft Planetary Computer, OpenStreetMap). Only the point coordinate is sent to fetch weather/imagery — never your identity.")}
         </p>
 
+        <h2>{t("Đồng ý theo mục đích", "Purpose-separated consent")}</h2>
+        <p>
+          {t("Trong Khu làm việc, bạn bật/tắt riêng ba mục đích: nhận cảnh báo, góp quan sát (được hỏi một-chạm), và phục vụ nghiên cứu (dữ liệu ẩn danh cải thiện mô hình chung — mặc định TẮT, bạn chủ động bật). Tắt một mục đích không ảnh hưởng hai mục còn lại.",
+             "In the Workspace, you toggle three purposes independently: receiving alerts, contributing observations (one-tap prompts), and research use (anonymized data to improve the shared model — OFF by default, opt-in only). Turning one off does not affect the others.")}
+        </p>
+
+        <h2>{t("Thời gian lưu trữ", "Retention")}</h2>
+        <p>
+          {t("Dữ liệu tài khoản/thửa/quan sát/cảnh báo được giữ trong lúc tài khoản còn hoạt động. Xoá tài khoản xoá NGAY khỏi ứng dụng đang chạy. Vì hệ thống có sao lưu mã hoá định kỳ để chống mất dữ liệu do sự cố, một bản sao có thể còn tồn tại thêm tối đa 7 ngày (sao lưu hằng ngày) hoặc 4 tuần (sao lưu hằng tuần) trước khi tự động bị ghi đè/hết hạn.",
+             "Account/plot/observation/alert data is kept while the account is active. Deleting your account removes it from the running app IMMEDIATELY. Because the system keeps encrypted periodic backups to protect against data loss, a copy may persist for up to 7 days (daily backups) or 4 weeks (weekly backups) before being automatically overwritten/expired.")}
+        </p>
+
         <h2>{t("Quyền của bạn", "Your rights")}</h2>
         <p>
           {t("Bạn có thể xoá thửa và tài khoản bất cứ lúc nào trong Khu làm việc. Yêu cầu xuất hoặc xoá toàn bộ dữ liệu: liên hệ qua repo/kênh hỗ trợ của phần mềm.",

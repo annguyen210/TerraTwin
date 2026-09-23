@@ -378,3 +378,115 @@ def test_tai_khoan_cu_duoc_grandfather_khi_them_cot(tmp_path):
         assert row[0] == 1, "tài khoản cũ phải được grandfather thành đã xác thực"
     finally:
         dbmod.engine = original_engine
+
+
+# ---------- N8 — đồng ý tách mục đích ----------
+
+def test_mac_dinh_dong_y_canh_bao_va_quan_sat_tat_nghien_cuu(client):
+    """Mặc định: nhận cảnh báo BẬT, góp quan sát BẬT (đây là hành vi vốn có,
+    không được đổi hành vi người dùng cũ khi thêm tính năng), nghiên cứu TẮT
+    (đây là mục đích MỚI, không nghiễm nhiên đồng ý cho ai)."""
+    tok = _register(client)
+    me = client.get("/api/auth/me", headers=_hdr(tok)).json()
+    assert me["consent_alerts"] is True
+    assert me["consent_observations"] is True
+    assert me["consent_research"] is False
+
+
+def test_doi_dong_y_tung_muc_rieng(client):
+    tok = _register(client)
+    r = client.put("/api/account/consent", json={"consent_research": True}, headers=_hdr(tok))
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["consent_research"] is True
+    # Không gửi consent_alerts/consent_observations → không đổi giá trị đang có.
+    assert body["consent_alerts"] is True
+    assert body["consent_observations"] is True
+
+    r2 = client.put("/api/account/consent", json={"consent_alerts": False}, headers=_hdr(tok))
+    assert r2.json()["consent_alerts"] is False
+    assert r2.json()["consent_research"] is True, "đổi mục này không được xoá mục đã đổi trước đó"
+
+
+def test_can_dang_nhap_moi_doi_duoc_dong_y(client):
+    r = client.put("/api/account/consent", json={"consent_alerts": False})
+    assert r.status_code == 401
+
+
+def test_radar_khong_gui_canh_bao_khi_tat_consent_alerts(client, monkeypatch):
+    """Cốt lõi N8: đã xác thực email NHƯNG tắt 'nhận cảnh báo' → vẫn không
+    dispatch ra kênh ngoài, dù channels đã cấu hình sẵn."""
+    from app import db as dbmod
+    from app.db import NotifyChannel, Plot
+    from app.schemas import Location, ScanModule, ScanResult, TerraScoreResult
+    from app.services import notify, radar
+    from app.services import scan as scan_svc
+
+    fake_alert = ScanModule(
+        id="flood", name="Lũ", icon="🌊", group="B", risk_level="danger",
+        headline="Test", recommendation="Test", is_real=True)
+
+    def fake_scan(loc, include_heavy=False):
+        ts = TerraScoreResult(location=loc, score=50, grade="C", summary="test")
+        return ScanResult(location=loc, terrascore=ts, modules=[fake_alert],
+                          alerts=[fake_alert], real_data_ratio=1.0,
+                          generated_at="2026-01-01T00:00:00")
+
+    monkeypatch.setattr(scan_svc, "scan", fake_scan)
+    monkeypatch.setattr(notify, "send_webhook", lambda url, payload: None)
+
+    tok = _register(client)
+    with dbmod.SessionLocal() as s:
+        u = s.query(dbmod.User).filter_by(email="a@x.com").first()
+        u.email_verified = 1
+        u.consent_alerts = 0
+        s.add(Plot(user_id=u.id, name="Ruong", lat=BEN_TRE["lat"], lon=BEN_TRE["lon"]))
+        s.add(NotifyChannel(user_id=u.id, kind="webhook",
+                            target="https://example.com/hook", enabled=1))
+        s.commit()
+        uid = u.id
+
+    with dbmod.SessionLocal() as s:
+        r = radar.sweep_user(uid, s)
+    assert r["new_alerts"] == 1, "cảnh báo vẫn phải được tạo và lưu dù tắt gửi ra ngoài"
+    assert r["delivery"]["sent"] == 0 and r["delivery"]["failed"] == 0
+
+
+def test_radar_khong_hoi_gop_quan_sat_khi_tat_consent_observations(client, monkeypatch):
+    """Tắt riêng 'góp quan sát' không được ảnh hưởng việc gửi cảnh báo — hai
+    mục đích độc lập với nhau."""
+    from app import db as dbmod
+    from app.db import NotifyChannel, Plot
+    from app.schemas import Location, ScanModule, ScanResult, TerraScoreResult
+    from app.services import notify, radar
+    from app.services import scan as scan_svc
+
+    fake_alert = ScanModule(
+        id="flood", name="Lũ", icon="🌊", group="B", risk_level="danger",
+        headline="Test", recommendation="Test", is_real=True)
+
+    def fake_scan(loc, include_heavy=False):
+        ts = TerraScoreResult(location=loc, score=50, grade="C", summary="test")
+        return ScanResult(location=loc, terrascore=ts, modules=[fake_alert],
+                          alerts=[fake_alert], real_data_ratio=1.0,
+                          generated_at="2026-01-01T00:00:00")
+
+    monkeypatch.setattr(scan_svc, "scan", fake_scan)
+    monkeypatch.setattr(notify, "send_webhook", lambda url, payload: None)
+
+    tok = _register(client)
+    with dbmod.SessionLocal() as s:
+        u = s.query(dbmod.User).filter_by(email="a@x.com").first()
+        u.email_verified = 1
+        u.consent_observations = 0
+        s.add(Plot(user_id=u.id, name="Ruong", lat=BEN_TRE["lat"], lon=BEN_TRE["lon"]))
+        s.add(NotifyChannel(user_id=u.id, kind="webhook",
+                            target="https://example.com/hook", enabled=1))
+        s.commit()
+        uid = u.id
+
+    with dbmod.SessionLocal() as s:
+        r = radar.sweep_user(uid, s)
+    assert r["delivery"]["sent"] == 1, "cảnh báo vẫn gửi bình thường"
+    assert r["asked"]["asked"] == 0
+    assert r["asked"].get("reason") == "người dùng đã tắt góp quan sát"

@@ -67,6 +67,9 @@ class UserOut(BaseModel):
     name: str
     role: str = "user"        # Đ11 — để giao diện ẩn/hiện mục quản trị
     email_verified: bool = False   # N1 — giao diện hiện banner nhắc xác thực
+    consent_alerts: bool = True         # N8
+    consent_observations: bool = True   # N8
+    consent_research: bool = False      # N8
 
 
 class PlotIn(BaseModel):
@@ -111,7 +114,10 @@ TokenOut.model_rebuild()
 def _out(u: User) -> UserOut:
     return UserOut(id=u.id, email=u.email, name=u.name,
                    role=getattr(u, "role", "user") or "user",
-                   email_verified=bool(getattr(u, "email_verified", 0)))
+                   email_verified=bool(getattr(u, "email_verified", 0)),
+                   consent_alerts=bool(getattr(u, "consent_alerts", 1)),
+                   consent_observations=bool(getattr(u, "consent_observations", 1)),
+                   consent_research=bool(getattr(u, "consent_research", 0)))
 
 
 def _plot_out(p: Plot) -> PlotOut:
@@ -164,6 +170,32 @@ def login(body: LoginIn, db: Session = Depends(get_session)) -> TokenOut:
 
 @router.get("/api/auth/me", response_model=UserOut)
 def me(user: User = Depends(auth.current_user)) -> UserOut:
+    return _out(user)
+
+
+# N8 — đồng ý TÁCH TỪNG MỤC ĐÍCH, không phải một ô "đồng ý điều khoản" gộp
+# hết. Đổi được bất cứ lúc nào (không chỉ lúc đăng ký) — tắt "nhận cảnh báo"
+# thì radar.sweep_user() ngừng gửi ra kênh ngoài (cộng dồn với N1: cả hai
+# điều kiện — đã xác thực email VÀ đồng ý — đều phải đạt); tắt "góp quan sát"
+# thì không còn bị hỏi câu một chạm (xem radar._ask_one).
+class ConsentIn(BaseModel):
+    consent_alerts: bool | None = None
+    consent_observations: bool | None = None
+    consent_research: bool | None = None
+
+
+@router.put("/api/account/consent", response_model=UserOut)
+def update_consent(body: ConsentIn, user: User = Depends(auth.current_user),
+                   db: Session = Depends(get_session)) -> UserOut:
+    if body.consent_alerts is not None:
+        user.consent_alerts = 1 if body.consent_alerts else 0
+    if body.consent_observations is not None:
+        user.consent_observations = 1 if body.consent_observations else 0
+    if body.consent_research is not None:
+        user.consent_research = 1 if body.consent_research else 0
+    log_audit(db, user.id, "update_consent")            # Đ12
+    db.commit()
+    db.refresh(user)
     return _out(user)
 
 
@@ -366,6 +398,8 @@ _AUDIT_LABELS = {
     "reset_password": "Đặt lại mật khẩu",
     "create_api_key": "Tạo khoá API",
     "revoke_api_key": "Thu hồi khoá API",
+    "verify_email": "Xác thực email",
+    "update_consent": "Đổi lựa chọn đồng ý",
 }
 
 

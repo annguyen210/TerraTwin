@@ -18,7 +18,7 @@ import {
   buildTwin, createChannel, createKey, deleteChannel, deleteDataset, getPlans,
   deleteTwin, listChannels, listDatasets, listKeys, listTwins, revokeKey,
   scoreDataset, testChannel, uploadDataset, getChannelStatus,
-  exportMyData, deleteMyAccount, getAccountAudit, setToken,
+  exportMyData, deleteMyAccount, getAccountAudit, setToken, updateConsent,
   type ApiKeyRow, type AuditEntry, type AuthUser, type ChannelRow, type ChannelStatus, type DatasetRow,
   type TwinSummary,
   type Plan,
@@ -389,8 +389,63 @@ function ChannelsPanel({ user }: { user: AuthUser | null }) {
         phần mềm làm bàn đạp gọi vào mạng riêng của máy chủ.
       </p>
 
+      <ConsentBlock user={user} />
       <DataPrivacyBlock />
     </>
+  );
+}
+
+/**
+ * N8 — ba mục đích TÁCH RIÊNG, mỗi mục một công tắc: nhận cảnh báo có thể cần
+ * mà không muốn bị hỏi góp quan sát; ai đó có thể góp quan sát nhưng từ chối
+ * dữ liệu của mình phục vụ nghiên cứu. Một ô "Tôi đồng ý" chung cho tất cả là
+ * không trung thực về việc dữ liệu thực sự được dùng vào đâu.
+ */
+function ConsentBlock({ user }: { user: AuthUser | null }) {
+  const [alerts, setAlerts] = useState(user?.consent_alerts !== false);
+  const [observations, setObservations] = useState(user?.consent_observations !== false);
+  const [research, setResearch] = useState(user?.consent_research === true);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function toggle(
+    key: "consent_alerts" | "consent_observations" | "consent_research",
+    next: boolean,
+    setLocal: (v: boolean) => void,
+  ) {
+    const prev = { alerts, observations, research };
+    setLocal(next);
+    setErr(null); setBusy(true);
+    try {
+      await updateConsent({ [key]: next });
+    } catch (e: any) {
+      setErr(e.message);
+      setAlerts(prev.alerts); setObservations(prev.observations); setResearch(prev.research);
+    } finally { setBusy(false); }
+  }
+
+  if (!user) return null;
+
+  return (
+    <div className="ws-privacy" style={{ marginTop: 16 }}>
+      <h4>🎛️ Đồng ý theo mục đích</h4>
+      {err && <p className="ws-err">⚠️ {err}</p>}
+      <label className="ws-check">
+        <input type="checkbox" checked={alerts} disabled={busy}
+               onChange={(e) => toggle("consent_alerts", e.target.checked, setAlerts)} />
+        <span><b>Nhận cảnh báo</b> — email/webhook khi thửa của bạn có rủi ro. Tắt thì cảnh báo vẫn lưu trong app, chỉ không gửi ra ngoài.</span>
+      </label>
+      <label className="ws-check">
+        <input type="checkbox" checked={observations} disabled={busy}
+               onChange={(e) => toggle("consent_observations", e.target.checked, setObservations)} />
+        <span><b>Góp quan sát</b> — thỉnh thoảng được hỏi một-chạm "cảnh báo trước có đúng không" để mô hình học được.</span>
+      </label>
+      <label className="ws-check">
+        <input type="checkbox" checked={research} disabled={busy}
+               onChange={(e) => toggle("consent_research", e.target.checked, setResearch)} />
+        <span><b>Phục vụ nghiên cứu</b> — dữ liệu ẩn danh được dùng để cải thiện mô hình chung. Mặc định TẮT — bạn chủ động bật.</span>
+      </label>
+    </div>
   );
 }
 
@@ -461,6 +516,15 @@ function DataPrivacyBlock() {
         </div>
       )}
 
+      {/* N8 — chính sách lưu trữ hiện NGAY tại nơi quyết định xoá, không chỉ ở
+          trang /privacy xa xôi mà lúc này không ai còn muốn bấm sang đọc. */}
+      <p className="ws-hint" style={{ borderTop: "1px solid var(--line-2, #e8ece8)", paddingTop: 10, marginTop: 6 }}>
+        📦 <b>Chính sách lưu trữ:</b> dữ liệu thửa/quan sát/cảnh báo được giữ
+        trong lúc tài khoản còn hoạt động. Xoá tài khoản xoá NGAY khỏi ứng dụng;
+        bản sao trong sao lưu mã hoá định kỳ tự hết hạn sau tối đa 7 ngày (sao
+        lưu hằng ngày) hoặc 4 tuần (sao lưu hằng tuần) — xem chi tiết ở{" "}
+        <a href="/privacy">trang quyền riêng tư</a>.
+      </p>
       <p className="ws-hint">
         Xoá tài khoản là <b>vĩnh viễn</b> — mọi thửa, quan sát, cảnh báo, khoá API sẽ mất.
         Gõ <b>XOA</b> để xác nhận.

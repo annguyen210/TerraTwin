@@ -409,7 +409,11 @@ export type AnomalyResult = {
 };
 
 // ---- Tài khoản & thửa đất (thay localStorage) ----
-export type AuthUser = { id: number; email: string; name: string; role?: string; email_verified?: boolean };
+// N8 — ba mục đích tách riêng: nhận cảnh báo · góp quan sát · phục vụ nghiên cứu.
+export type AuthUser = {
+  id: number; email: string; name: string; role?: string; email_verified?: boolean;
+  consent_alerts?: boolean; consent_observations?: boolean; consent_research?: boolean;
+};
 export type TokenResponse = { access_token: string; user: AuthUser };
 
 export type ServerPlot = {
@@ -516,6 +520,15 @@ export function changePassword(oldPassword: string, newPassword: string) {
   return authed<{ message: string }>("/api/auth/change-password",
     { method: "POST", body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }) },
     "Không đổi được mật khẩu");
+}
+
+// N8 — đổi lựa chọn đồng ý theo từng mục đích. Chỉ gửi trường muốn đổi.
+export function updateConsent(consent: {
+  consent_alerts?: boolean; consent_observations?: boolean; consent_research?: boolean;
+}) {
+  return authed<AuthUser>("/api/account/consent",
+    { method: "PUT", body: JSON.stringify(consent) },
+    "Không lưu được lựa chọn đồng ý");
 }
 
 // N1 — xác thực email.
