@@ -835,6 +835,16 @@ def change_detect_endpoint(location: Location, months: int = 24) -> dict:
     return change_detect.detect(location.lat, location.lon, months=max(6, min(months, 36)))
 
 
+@app.post("/api/auto-boundary")
+def auto_boundary_endpoint(location: Location, buffer_m: float = 500.0) -> dict:
+    """A8 — tự vẽ ranh thửa bằng watershed trên độ dốc NDVI quanh điểm bấm
+    (khung ~1km, ảnh Sentinel-2 gần nhất qua Planetary Computer)."""
+    from app.services import watershed
+
+    return watershed.extract_boundary(location.lat, location.lon,
+                                      buffer_m=max(100.0, min(buffer_m, 1500.0)))
+
+
 @app.post("/api/report/sign")
 def report_sign(facts: dict) -> dict:
     """A9/G1 — ký tờ trình rủi ro (băm SHA-256 + dấu thời gian) để ngân hàng /
