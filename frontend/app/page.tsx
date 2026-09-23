@@ -23,29 +23,34 @@ import MyLand from "@/components/MyLand";
 import Landing from "@/components/Landing";
 import Onboarding from "@/components/Onboarding";
 import Alerts from "@/components/Alerts";
-import FieldMode from "@/components/FieldMode";
 import Heatmap from "@/components/Heatmap";
 import ResultsPanel from "@/components/ResultsPanel";
 import Copilot from "@/components/Copilot";
 import Backtest from "@/components/Backtest";
 import Overview from "@/components/Overview";
-import WhatIf from "@/components/WhatIf";
-import Future from "@/components/Future";
-import Insights from "@/components/Insights";
 import Portfolio from "@/components/Portfolio";
-import TimeLapse from "@/components/TimeLapse";
-import Genome from "@/components/Genome";
-import DesignStudio from "@/components/DesignStudio";
-import Knowledge from "@/components/Knowledge";
-import Feedback from "@/components/Feedback";
 import ModelCard from "@/components/ModelCard";
-import Mrv from "@/components/Mrv";
-import Provenance from "@/components/Provenance";
-import Timeline from "@/components/Timeline";
-import Workspace from "@/components/Workspace";
 import { useLang } from "@/lib/i18n";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
+
+// P4 — 13 panel "xem sâu" chỉ tải mã khi người dùng THỰC SỰ bấm vào (mỗi cái
+// gate sau `deep === "..."` hoặc mở như lớp phủ riêng, xem DEEP/Workspace bên
+// dưới) — trước đây cả 13 nằm chung bundle ban đầu dù phần lớn người dùng
+// không bao giờ mở tới quá vài cái, nặng cho trang đón vốn cần tải nhanh.
+const FieldMode = dynamic(() => import("@/components/FieldMode"));
+const WhatIf = dynamic(() => import("@/components/WhatIf"));
+const Future = dynamic(() => import("@/components/Future"));
+const Insights = dynamic(() => import("@/components/Insights"));
+const TimeLapse = dynamic(() => import("@/components/TimeLapse"));
+const Genome = dynamic(() => import("@/components/Genome"));
+const DesignStudio = dynamic(() => import("@/components/DesignStudio"));
+const Knowledge = dynamic(() => import("@/components/Knowledge"));
+const Feedback = dynamic(() => import("@/components/Feedback"));
+const Mrv = dynamic(() => import("@/components/Mrv"));
+const Provenance = dynamic(() => import("@/components/Provenance"));
+const Timeline = dynamic(() => import("@/components/Timeline"));
+const Workspace = dynamic(() => import("@/components/Workspace"));
 
 // Sáu luồng "xem sâu" gắn với một thửa cụ thể. Gom vào một dãy nút thay vì đổ
 // hết ra: mỗi cái tốn từ vài giây tới hai phút để chạy, mở tất cả cùng lúc vừa
