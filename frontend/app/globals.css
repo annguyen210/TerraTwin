@@ -3998,6 +3998,8 @@ body {
 .doc-brand{ font-weight:800; color:var(--terra); text-decoration:none; font-size:1.05rem }
 .doc-actions{ display:flex; align-items:center; gap:12px }
 .doc-home{ color:var(--dim); text-decoration:none; font-size:.85rem } .doc-home:hover{ color:var(--text) }
+.doc-link-btn{ background:none; border:none; padding:0; color:var(--terra); font-size:inherit;
+  cursor:pointer; text-decoration:underline } .doc-link-btn:hover{ opacity:.8 }
 .doc-body{ max-width:760px; margin:0 auto; padding:40px 22px 80px }
 .doc-body h1{ font-size:clamp(24px,4vw,36px); font-weight:800; letter-spacing:-.02em; margin:0 0 14px; color:var(--text); line-height:1.15 }
 .doc-lede{ font-size:1.08rem; color:var(--dim); line-height:1.6; margin:0 0 8px }

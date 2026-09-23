@@ -182,6 +182,8 @@ export default function Landing({
             <Link href="/privacy">{t("Quyền riêng tư", "Privacy")}</Link>
             <span>·</span>
             <Link href="/terms">{t("Điều khoản", "Terms")}</Link>
+            <span>·</span>
+            <Link href="/status">{t("Trạng thái hệ thống", "System status")}</Link>
           </div>
         </footer>
       </div>
