@@ -15,7 +15,7 @@ export default function PrivacyPage() {
         </div>
       </header>
 
-      <article className="doc-body">
+      <main className="doc-body">
         <h1>{t("Chính sách quyền riêng tư", "Privacy Policy")}</h1>
         <p className="doc-note">
           {t("Bản tóm tắt trung thực về dữ liệu TerraTwin thu thập và cách dùng. Cần rà soát pháp lý trước khi phát hành thương mại chính thức.",
@@ -75,7 +75,7 @@ export default function PrivacyPage() {
           <span>·</span>
           <span>© {new Date().getFullYear()} TerraTwin</span>
         </footer>
-      </article>
+      </main>
     </div>
   );
 }

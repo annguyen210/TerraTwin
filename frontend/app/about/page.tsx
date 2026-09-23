@@ -23,7 +23,7 @@ export default function AboutPage() {
         </div>
       </header>
 
-      <article className="doc-body">
+      <main className="doc-body">
         <h1>{t("TerraTwin hoạt động thế nào — và vì sao tin được",
                "How TerraTwin works — and why to trust it")}</h1>
         <p className="doc-lede">
@@ -73,7 +73,7 @@ export default function AboutPage() {
           <span>·</span>
           <span>© {new Date().getFullYear()} TerraTwin</span>
         </footer>
-      </article>
+      </main>
     </div>
   );
 }

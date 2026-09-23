@@ -43,7 +43,7 @@ export default function StatusPage() {
         <div className="doc-actions"><LangToggle /><Link href="/" className="doc-home">{t("← Về trang chính", "← Home")}</Link></div>
       </header>
 
-      <article className="doc-body" style={{ maxWidth: 640 }}>
+      <main className="doc-body" style={{ maxWidth: 640 }}>
         <h1>{t("Trạng thái hệ thống", "System status")}</h1>
 
         {err && (
@@ -110,7 +110,7 @@ export default function StatusPage() {
             <button className="doc-link-btn" onClick={load}>{t("làm mới", "refresh")}</button>
           </p>
         )}
-      </article>
+      </main>
     </div>
   );
 }

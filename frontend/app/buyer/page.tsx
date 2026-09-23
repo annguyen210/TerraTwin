@@ -29,7 +29,7 @@ export default function BuyerPage() {
         <div className="doc-actions"><LangToggle /><Link href="/" className="doc-home">{t("← Về trang chính", "← Home")}</Link></div>
       </header>
 
-      <article className="doc-body" style={{ maxWidth: 640 }}>
+      <main className="doc-body" style={{ maxWidth: 640 }}>
         <div className="pp-badge">{t("TRƯỚC KHI KÝ", "BEFORE YOU SIGN")}</div>
         <h1>{t("Định mua hay thuê đất?", "Planning to buy or rent land?")}</h1>
         <p className="doc-lede">
@@ -48,7 +48,7 @@ export default function BuyerPage() {
         <div style={{ marginTop: 24 }}>
           <Start onPick={goToPlot} />
         </div>
-      </article>
+      </main>
     </div>
   );
 }

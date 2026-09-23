@@ -31,7 +31,7 @@ export default function PricingPage() {
         </div>
       </header>
 
-      <article className="doc-body">
+      <main className="doc-body">
         <h1>{t("Bảng giá", "Pricing")}</h1>
         <p className="doc-lede">
           {t("Toàn bộ 18 mũi nhọn chạy MIỄN PHÍ ngay. Gói trả phí thêm hạn mức và tính năng cho hợp tác xã / doanh nghiệp.",
@@ -70,7 +70,7 @@ export default function PricingPage() {
           <span>·</span>
           <span>© {new Date().getFullYear()} TerraTwin</span>
         </footer>
-      </article>
+      </main>
     </div>
   );
 }

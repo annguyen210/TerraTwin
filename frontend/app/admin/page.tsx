@@ -249,7 +249,7 @@ export default function AdminPage() {
         <Link href="/" className="doc-brand">◵ TerraTwin</Link>
         <div className="doc-actions"><LangToggle /><Link href="/" className="doc-home">{t("← Về trang chính", "← Home")}</Link></div>
       </header>
-      <article className="doc-body" style={{ maxWidth: 820 }}>
+      <main className="doc-body" style={{ maxWidth: 820 }}>
         <h1>Quản trị</h1>
 
         {user === undefined && <p className="ws-hint">Đang tải…</p>}
@@ -278,7 +278,7 @@ export default function AdminPage() {
             </div>
           </>
         )}
-      </article>
+      </main>
     </div>
   );
 }

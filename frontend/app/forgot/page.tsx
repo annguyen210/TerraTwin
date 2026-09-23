@@ -42,7 +42,7 @@ export default function ForgotPage() {
         <Link href="/" className="doc-brand">◵ TerraTwin</Link>
         <div className="doc-actions"><LangToggle /><Link href="/" className="doc-home">{t("← Về trang chính", "← Home")}</Link></div>
       </header>
-      <article className="doc-body" style={{ maxWidth: 460 }}>
+      <main className="doc-body" style={{ maxWidth: 460 }}>
         <h1>{t("Quên mật khẩu", "Forgot password")}</h1>
         <p className="doc-lede">
           {t("Nhập email tài khoản — chúng tôi sẽ gửi liên kết đặt lại (hết hạn sau 1 giờ).",
@@ -73,7 +73,7 @@ export default function ForgotPage() {
           </p>
         )}
         <footer className="doc-foot"><Link href="/">{t("Đăng nhập", "Sign in")}</Link><span>·</span><Link href="/help">{t("Trợ giúp", "Help")}</Link></footer>
-      </article>
+      </main>
     </div>
   );
 }

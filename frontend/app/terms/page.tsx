@@ -15,7 +15,7 @@ export default function TermsPage() {
         </div>
       </header>
 
-      <article className="doc-body">
+      <main className="doc-body">
         <h1>{t("Điều khoản sử dụng", "Terms of Use")}</h1>
         <p className="doc-note">
           {t("Bản tóm tắt cho giai đoạn thử nghiệm. Cần rà soát pháp lý trước khi phát hành thương mại.",
@@ -53,7 +53,7 @@ export default function TermsPage() {
           <span>·</span>
           <span>© {new Date().getFullYear()} TerraTwin</span>
         </footer>
-      </article>
+      </main>
     </div>
   );
 }

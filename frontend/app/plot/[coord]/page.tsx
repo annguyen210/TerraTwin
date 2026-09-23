@@ -66,7 +66,7 @@ export default function PlotPassportPage() {
         </div>
       </header>
 
-      <article className="doc-body pp">
+      <main className="doc-body pp">
         <div className="pp-badge">{t("SỔ TAY THỬA · Hồ sơ dữ liệu", "LAND PASSPORT · Data record")}</div>
         <h1>{t("Sổ tay thửa đất", "Land Passport")}</h1>
         {valid && (
@@ -156,7 +156,7 @@ export default function PlotPassportPage() {
           <span>·</span>
           <span>© {new Date().getFullYear()} TerraTwin</span>
         </footer>
-      </article>
+      </main>
     </div>
   );
 }

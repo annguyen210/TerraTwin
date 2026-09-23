@@ -53,7 +53,7 @@ export default function HelpPage() {
         </div>
       </header>
 
-      <article className="doc-body">
+      <main className="doc-body">
         <h1>{t("Trợ giúp & Câu hỏi thường gặp", "Help & FAQ")}</h1>
         <div className="faq">
           {FAQ.map(([qv, qe, av, ae]) => (
@@ -77,7 +77,7 @@ export default function HelpPage() {
           <span>·</span>
           <span>© {new Date().getFullYear()} TerraTwin</span>
         </footer>
-      </article>
+      </main>
     </div>
   );
 }

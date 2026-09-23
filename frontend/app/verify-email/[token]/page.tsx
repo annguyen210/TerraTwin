@@ -26,7 +26,7 @@ export default function VerifyEmailPage() {
         <Link href="/" className="doc-brand">◵ TerraTwin</Link>
         <div className="doc-actions"><LangToggle /><Link href="/" className="doc-home">{t("← Về trang chính", "← Home")}</Link></div>
       </header>
-      <article className="doc-body" style={{ maxWidth: 460 }}>
+      <main className="doc-body" style={{ maxWidth: 460 }}>
         <h1>{t("Xác thực email", "Verify email")}</h1>
         {ok === null && <p className="doc-lede">{t("Đang xác thực…", "Verifying…")}</p>}
         {ok === true && (
@@ -44,7 +44,7 @@ export default function VerifyEmailPage() {
             </p>
           </>
         )}
-      </article>
+      </main>
     </div>
   );
 }

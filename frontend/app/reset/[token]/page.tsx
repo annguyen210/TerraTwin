@@ -34,7 +34,7 @@ export default function ResetPage() {
         <Link href="/" className="doc-brand">◵ TerraTwin</Link>
         <div className="doc-actions"><LangToggle /><Link href="/" className="doc-home">{t("← Về trang chính", "← Home")}</Link></div>
       </header>
-      <article className="doc-body" style={{ maxWidth: 460 }}>
+      <main className="doc-body" style={{ maxWidth: 460 }}>
         <h1>{t("Đặt lại mật khẩu", "Reset password")}</h1>
         {done ? (
           <>
@@ -55,7 +55,7 @@ export default function ResetPage() {
             {msg && <p className="auth-msg">{msg}</p>}
           </>
         )}
-      </article>
+      </main>
     </div>
   );
 }

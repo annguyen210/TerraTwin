@@ -3492,8 +3492,10 @@ body {
   transform: translateY(-1px); border-color: var(--accent); background: #1b2b38; }
 .start-quick b { font-weight: 700; }
 
-/* Đường phân mục "hoặc" mảnh hơn, chữ nhạt */
-.start-or { color: #6f8290; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+/* Đường phân mục "hoặc" mảnh hơn, chữ nhạt.
+   Đ8 a11y — #6f8290 cũ chỉ đạt tỉ lệ tương phản 4,32:1 trên nền --panel, dưới
+   ngưỡng WCAG AA 4,5:1. Đổi sang var(--dim) — cùng tông, đã qua ngưỡng. */
+.start-or { color: var(--dim); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
 
 /* Nút định vị (map) & drawbar — nền kính mờ hiện đại */
 .drawbar { backdrop-filter: blur(8px); background: rgba(13,20,26,.82);
@@ -3519,9 +3521,13 @@ body {
     radial-gradient(900px 500px at 0% 8%, rgba(58,160,160,.10), transparent 55%),
     var(--bg); }
 
+/* Đ8 a11y — .72 alpha khiến công cụ đo tương phản (và mắt người trên màn hình
+   chói) không đoán chắc được màu nền thật phía sau lớp mờ, có lúc rơi về giả
+   định nền trắng cho chữ .lang-toggle — nâng lên .92 để nền gần như đặc, vẫn
+   giữ chút hiệu ứng kính mờ phía sau khi cuộn. */
 .lp-top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center;
   justify-content: space-between; padding: 14px 28px;
-  background: rgba(11,18,24,.72); backdrop-filter: blur(10px);
+  background: rgba(11,18,24,.92); backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line); }
 .lp-brand { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
 .lp-brand::first-letter { color: var(--terra); }
