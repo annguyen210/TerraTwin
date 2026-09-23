@@ -825,6 +825,16 @@ def mrv_verify(report: dict) -> dict:
     return mrv.verify(report)
 
 
+@app.post("/api/change-detect")
+def change_detect_endpoint(location: Location, months: int = 24) -> dict:
+    """A7 — phát hiện mất tán cây bền vững trên chuỗi NDVI 24 tháng
+    (BFAST/CUSUM rút gọn) — phân biệt được với dao động mùa vụ (vd lúa ba vụ),
+    khác mrv.build() vốn chỉ so hai lát cắt (năm nay vs năm ngoái)."""
+    from app.services import change_detect
+
+    return change_detect.detect(location.lat, location.lon, months=max(6, min(months, 36)))
+
+
 @app.post("/api/report/sign")
 def report_sign(facts: dict) -> dict:
     """A9/G1 — ký tờ trình rủi ro (băm SHA-256 + dấu thời gian) để ngân hàng /
