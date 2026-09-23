@@ -542,6 +542,14 @@ export function resendVerification() {
     { method: "POST" }, "Không gửi lại được liên kết xác thực");
 }
 
+// M5 — "bạn đã góp N quan sát · khu vực của bạn đã được xác minh M lần" trên
+// trang cá nhân. Số thật lấy từ Observation/Alert của chính người dùng.
+export type Contribution = { observations_contributed: number; alerts_verified: number; alerts_hit: number };
+export function getContribution() {
+  return authed<Contribution>("/api/account/contribution", { method: "GET" },
+    "Không tải được đóng góp của bạn");
+}
+
 // Quyền riêng tư: xuất toàn bộ dữ liệu / xoá tài khoản.
 export function exportMyData() {
   return authed<Record<string, unknown>>("/api/account/export", { method: "GET" },

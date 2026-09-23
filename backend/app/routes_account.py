@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -175,6 +175,31 @@ def login(body: LoginIn, db: Session = Depends(get_session)) -> TokenOut:
 @router.get("/api/auth/me", response_model=UserOut)
 def me(user: User = Depends(auth.current_user)) -> UserOut:
     return _out(user)
+
+
+# M5 — "bạn đã góp N quan sát · khu vực của bạn đã được xác minh M lần". Số
+# THẬT lấy từ chính dữ liệu (Observation/Alert của người dùng), không phải
+# con số trang trí — trước đây _contribution() trong onetap.py chỉ hiện MỘT
+# LẦN ngay sau khi trả lời một chạm, tài khoản có sẵn không có chỗ xem lại.
+@router.get("/api/account/contribution")
+def my_contribution(user: User = Depends(auth.current_user),
+                    db: Session = Depends(get_session)) -> dict:
+    observations = db.execute(
+        select(func.count(Observation.id)).where(Observation.user_id == user.id)
+    ).scalar_one()
+    verified = db.execute(
+        select(func.count(Alert.id)).where(
+            Alert.user_id == user.id, Alert.outcome.is_not(None))
+    ).scalar_one()
+    hits = db.execute(
+        select(func.count(Alert.id)).where(
+            Alert.user_id == user.id, Alert.outcome == "hit")
+    ).scalar_one()
+    return {
+        "observations_contributed": int(observations),
+        "alerts_verified": int(verified),
+        "alerts_hit": int(hits),
+    }
 
 
 # N8 — đồng ý TÁCH TỪNG MỤC ĐÍCH, không phải một ô "đồng ý điều khoản" gộp

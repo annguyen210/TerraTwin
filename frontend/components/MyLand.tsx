@@ -15,6 +15,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   ackAlert,
+  getContribution,
   getMyQuestions,
   listAlerts,
   listPlots,
@@ -23,6 +24,7 @@ import {
   sendTapAnswer,
   type AlertRow,
   type AuthUser,
+  type Contribution,
   type ServerPlot,
   type TapQuestion,
 } from "@/lib/api";
@@ -54,6 +56,7 @@ export default function MyLand({
   const [brief, setBrief] = useState<boolean | null>(null);   // M4
   const [openId, setOpenId] = useState<number | null>(null);   // Đ9 — thửa đang mở lịch sử
   const [verifyMsg, setVerifyMsg] = useState<string | null>(null);   // N1
+  const [contribution, setContribution] = useState<Contribution | null>(null);   // M5
 
   async function resend() {
     setVerifyMsg("Đang gửi…");
@@ -67,6 +70,7 @@ export default function MyLand({
 
   useEffect(() => { pushState().then(setPush).catch(() => {}); }, []);
   useEffect(() => { getBriefStatus().then((r) => setBrief(r.enabled)).catch(() => {}); }, []);
+  useEffect(() => { getContribution().then(setContribution).catch(() => {}); }, []);   // M5
   async function turnOnPush() {
     setPush("...");
     try { setPush(await enablePush()); } catch { setPush("off"); }
@@ -152,6 +156,18 @@ export default function MyLand({
             )}
           </p>
           <p className="ml-brief-sub">Tự quét nền và báo trước khi có rủi ro — bạn không cần nhớ mở.</p>
+          {/* M5 — đóng góp CÓ ÍCH, không chỉ "cảm ơn" thoáng qua lúc trả lời một
+              chạm (xem onetap._contribution). Chỉ hiện khi có gì để khoe — tài
+              khoản mới toanh chưa góp gì thì một dòng "0 · 0" chỉ gây rối. */}
+          {contribution && (contribution.observations_contributed > 0 || contribution.alerts_verified > 0) && (
+            <p className="ml-brief-sub">
+              🌱 Bạn đã góp <b>{contribution.observations_contributed}</b> quan sát
+              {contribution.alerts_verified > 0 && (
+                <> · cảnh báo của bạn đã được xác minh <b>{contribution.alerts_verified}</b> lần
+                  {contribution.alerts_hit > 0 && ` (đúng ${contribution.alerts_hit} lần)`}</>
+              )}
+            </p>
+          )}
         </div>
         <button onClick={scanNow} disabled={scanning}>
           {scanning ? "Đang quét…" : "Quét lại ngay"}

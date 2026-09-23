@@ -490,3 +490,59 @@ def test_radar_khong_hoi_gop_quan_sat_khi_tat_consent_observations(client, monke
     assert r["delivery"]["sent"] == 1, "cảnh báo vẫn gửi bình thường"
     assert r["asked"]["asked"] == 0
     assert r["asked"].get("reason") == "người dùng đã tắt góp quan sát"
+
+
+# ---------- M5 — đóng góp trên trang cá nhân ----------
+
+def test_contribution_bat_dau_bang_khong(client):
+    tok = _register(client)
+    r = client.get("/api/account/contribution", headers=_hdr(tok))
+    assert r.status_code == 200
+    body = r.json()
+    assert body == {"observations_contributed": 0, "alerts_verified": 0, "alerts_hit": 0}
+
+
+def test_contribution_dem_dung_quan_sat_va_canh_bao_da_xac_minh(client):
+    from app import db as dbmod
+    from app.db import Alert, Observation, Plot
+
+    tok = _register(client)
+    # Quan sát của NGƯỜI KHÁC không được tính vào của mình — tạo và commit TRƯỚC,
+    # đóng session lại hẳn rồi mới mở session thứ hai (SQLite chỉ cho MỘT giao
+    # dịch ghi mở cùng lúc trên cùng file — hai session ghi chồng lên nhau sẽ
+    # "database is locked").
+    _register(client, email="b@x.com")
+    with dbmod.SessionLocal() as s2:
+        ob = s2.query(dbmod.User).filter_by(email="b@x.com").first()
+        s2.add(Observation(user_id=ob.id, plot_id=None, lat=1.0, lon=1.0,
+                           module_id="flood", observed_on="2026-01-01", outcome="occurred"))
+        s2.commit()
+
+    with dbmod.SessionLocal() as s:
+        u = s.query(dbmod.User).filter_by(email="a@x.com").first()
+        p = Plot(user_id=u.id, name="Ruong", lat=BEN_TRE["lat"], lon=BEN_TRE["lon"])
+        s.add(p)
+        s.flush()
+        # Hai quan sát của CHÍNH người này.
+        s.add(Observation(user_id=u.id, plot_id=p.id, lat=p.lat, lon=p.lon,
+                          module_id="flood", observed_on="2026-01-01", outcome="occurred"))
+        s.add(Observation(user_id=u.id, plot_id=p.id, lat=p.lat, lon=p.lon,
+                          module_id="flood", observed_on="2026-01-05", outcome="none"))
+        # Ba cảnh báo: hai đã chấm (một hit, một miss), một CHƯA tới hạn chấm.
+        s.add(Alert(user_id=u.id, plot_id=p.id, module_id="flood", risk_level="danger",
+                    headline="x", outcome="hit"))
+        s.add(Alert(user_id=u.id, plot_id=p.id, module_id="flood", risk_level="warning",
+                    headline="x", outcome="miss"))
+        s.add(Alert(user_id=u.id, plot_id=p.id, module_id="flood", risk_level="warning",
+                    headline="x", outcome=None))
+        s.commit()
+
+    r = client.get("/api/account/contribution", headers=_hdr(tok))
+    body = r.json()
+    assert body["observations_contributed"] == 2
+    assert body["alerts_verified"] == 2
+    assert body["alerts_hit"] == 1
+
+
+def test_contribution_can_dang_nhap(client):
+    assert client.get("/api/account/contribution").status_code == 401
