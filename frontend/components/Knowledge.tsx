@@ -16,8 +16,17 @@ import {
   type AuthUser,
   type KnowledgeResult,
 } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
 
-const TOPICS = ["mặn", "hạn", "lũ", "sâu bệnh", "giống", "thị trường", "khác"];
+const TOPICS: { id: string; vi: string; en: string }[] = [
+  { id: "mặn", vi: "mặn", en: "salinity" },
+  { id: "hạn", vi: "hạn", en: "drought" },
+  { id: "lũ", vi: "lũ", en: "flood" },
+  { id: "sâu bệnh", vi: "sâu bệnh", en: "pests" },
+  { id: "giống", vi: "giống", en: "seed variety" },
+  { id: "thị trường", vi: "thị trường", en: "market" },
+  { id: "khác", vi: "khác", en: "other" },
+];
 
 export default function Knowledge({
   lat,
@@ -28,13 +37,14 @@ export default function Knowledge({
   lon: number;
   user: AuthUser | null;
 }) {
+  const { t } = useLang();
   const [data, setData] = useState<KnowledgeResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [writing, setWriting] = useState(false);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [topic, setTopic] = useState(TOPICS[0]);
+  const [topic, setTopic] = useState(TOPICS[0].id);
 
   const load = useCallback(async () => {
     setBusy(true);
@@ -78,28 +88,29 @@ export default function Knowledge({
 
   return (
     <div className="pan">
-      <div className="pan-head">🤝 Kinh nghiệm từ vùng giống thửa của bạn</div>
+      <div className="pan-head">🤝 {t("Kinh nghiệm từ vùng giống thửa của bạn", "Experience from areas similar to your plot")}</div>
 
-      {busy && !data && <p className="pan-sub">Đang tìm…</p>}
+      {busy && !data && <p className="pan-sub">{t("Đang tìm…", "Searching…")}</p>}
       {err && <p className="pan-err">⚠️ {err}</p>}
 
       {data && data.notes.length === 0 && (
         <p className="pan-sub">
-          {data.message ?? "Chưa có ai chia sẻ kinh nghiệm cho vùng này."}
+          {data.message ?? t("Chưa có ai chia sẻ kinh nghiệm cho vùng này.",
+                             "No one has shared experience for this area yet.")}
         </p>
       )}
 
       {data && data.notes.length > 0 && (
         <>
           {data.matched_by && (
-            <p className="kn-match">Ghép theo {data.matched_by}</p>
+            <p className="kn-match">{t(`Ghép theo ${data.matched_by}`, `Matched by ${data.matched_by}`)}</p>
           )}
           {data.notes.map((n) => (
             <div key={n.id} className="kn-note">
               <div className="kn-top">
                 <b>{n.title}</b>
                 {n.similarity_pct != null && (
-                  <span className="kn-sim">{n.similarity_pct}% giống</span>
+                  <span className="kn-sim">{t(`${n.similarity_pct}% giống`, `${n.similarity_pct}% similar`)}</span>
                 )}
               </div>
               <p className="kn-body">{n.body}</p>
@@ -108,7 +119,7 @@ export default function Knowledge({
                   {n.author_name} · {n.topic}
                 </span>
                 <button onClick={() => helpful(n.id)} disabled={!user}>
-                  👍 hữu ích ({n.helpful_count})
+                  👍 {t(`hữu ích (${n.helpful_count})`, `helpful (${n.helpful_count})`)}
                 </button>
               </div>
             </div>
@@ -118,32 +129,34 @@ export default function Knowledge({
       )}
 
       {!user && (
-        <p className="pan-note">Đăng nhập để chia sẻ kinh nghiệm của bạn.</p>
+        <p className="pan-note">{t("Đăng nhập để chia sẻ kinh nghiệm của bạn.", "Log in to share your experience.")}</p>
       )}
 
       {user && !writing && (
         <button className="pan-ghost" onClick={() => setWriting(true)}>
-          + Chia sẻ kinh nghiệm của tôi
+          + {t("Chia sẻ kinh nghiệm của tôi", "Share my experience")}
         </button>
       )}
 
       {user && writing && (
         <div className="kn-form">
           <select value={topic} onChange={(e) => setTopic(e.target.value)}>
-            {TOPICS.map((t) => (
-              <option key={t} value={t}>
-                {t}
+            {TOPICS.map((tp) => (
+              <option key={tp.id} value={tp.id}>
+                {t(tp.vi, tp.en)}
               </option>
             ))}
           </select>
           <input
-            placeholder="Tóm tắt một câu — vd. Đắp bờ bao trước Tết giữ được vụ"
+            placeholder={t("Tóm tắt một câu — vd. Đắp bờ bao trước Tết giữ được vụ",
+                           "One-sentence summary — e.g. Building up the dike before Tết saved the crop")}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={200}
           />
           <textarea
-            placeholder="Bạn đã làm gì, vào lúc nào, kết quả ra sao? Càng cụ thể càng dùng được cho người cùng vùng."
+            placeholder={t("Bạn đã làm gì, vào lúc nào, kết quả ra sao? Càng cụ thể càng dùng được cho người cùng vùng.",
+                           "What did you do, when, and what was the result? The more specific, the more useful for people in the same area.")}
             value={body}
             onChange={(e) => setBody(e.target.value)}
             maxLength={5000}
@@ -151,10 +164,10 @@ export default function Knowledge({
           />
           <div className="kn-actions">
             <button onClick={submit} disabled={!canSubmit}>
-              Chia sẻ
+              {t("Chia sẻ", "Share")}
             </button>
             <button className="ghost" onClick={() => setWriting(false)}>
-              Huỷ
+              {t("Huỷ", "Cancel")}
             </button>
           </div>
         </div>

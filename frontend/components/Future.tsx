@@ -16,6 +16,7 @@ import {
   type FutureResult,
   type FutureScenario,
 } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
 
 export default function Future({
   moduleId,
@@ -26,6 +27,7 @@ export default function Future({
   lat: number;
   lon: number;
 }) {
+  const { t } = useLang();
   const [d, setD] = useState<FutureResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [pick, setPick] = useState(0);
@@ -68,16 +70,16 @@ export default function Future({
   if (busy) {
     return (
       <div className="fut">
-        <div className="fut-head">🔮 Ảnh tương lai theo kịch bản</div>
-        <p className="hint">Đang ghép ảnh vệ tinh thật với dự phóng…</p>
+        <div className="fut-head">🔮 {t("Ảnh tương lai theo kịch bản", "Future imagery by scenario")}</div>
+        <p className="hint">{t("Đang ghép ảnh vệ tinh thật với dự phóng…", "Combining real satellite imagery with the projection…")}</p>
       </div>
     );
   }
   if (!d || d.available === false || !d.scenarios?.length) {
     return (
       <div className="fut">
-        <div className="fut-head">🔮 Ảnh tương lai theo kịch bản</div>
-        <p className="hint">{d?.message ?? "Chưa dựng được ảnh tương lai."}</p>
+        <div className="fut-head">🔮 {t("Ảnh tương lai theo kịch bản", "Future imagery by scenario")}</div>
+        <p className="hint">{d?.message ?? t("Chưa dựng được ảnh tương lai.", "Couldn't build a future projection.")}</p>
       </div>
     );
   }
@@ -88,7 +90,7 @@ export default function Future({
 
   return (
     <div className="fut">
-      <div className="fut-head">🔮 Ảnh tương lai — thửa của bạn nếu kịch bản xảy ra</div>
+      <div className="fut-head">🔮 {t("Ảnh tương lai — thửa của bạn nếu kịch bản xảy ra", "Future imagery — your plot if this scenario happens")}</div>
 
       <div className="fut-scen">
         {scenarios.map((sc, i) => (
@@ -109,7 +111,8 @@ export default function Future({
           <img
             className="fut-img"
             src={d.base_image.true_color}
-            alt={`Ảnh vệ tinh thật của thửa, chụp ${d.base_image.date}`}
+            alt={t(`Ảnh vệ tinh thật của thửa, chụp ${d.base_image.date}`,
+                   `Real satellite image of the plot, captured ${d.base_image.date}`)}
             onLoad={() => setLoaded(true)}
           />
           {/* Lớp phủ DỰ PHÓNG — tách khỏi ảnh: có vân sọc + nhãn nên không ai
@@ -121,16 +124,17 @@ export default function Future({
               opacity: s.opacity,
             }}
           />
-          <span className="fut-badge">DỰ PHÓNG · không phải ảnh chụp</span>
-          <span className="fut-date">nền: ảnh thật {d.base_image.date}</span>
+          <span className="fut-badge">{t("DỰ PHÓNG · không phải ảnh chụp", "PROJECTION · not a real photo")}</span>
+          <span className="fut-date">{t(`nền: ảnh thật ${d.base_image.date}`, `base: real image ${d.base_image.date}`)}</span>
           <span className="fut-layerlabel" style={{ color }}>
             ▩ {d.layer_label} · {s.risk_vi}
           </span>
         </div>
       ) : (
         <p className="hint">
-          {d.base_message ?? "Chưa có ảnh quang mây cho thửa này (mùa mưa mây che)."}
-          {" "}Vẫn xem được dự phóng dạng số bên dưới.
+          {d.base_message ?? t("Chưa có ảnh quang mây cho thửa này (mùa mưa mây che).",
+                               "No cloud-free image for this plot yet (rainy season cloud cover).")}
+          {" "}{t("Vẫn xem được dự phóng dạng số bên dưới.", "You can still see the numeric projection below.")}
         </p>
       )}
 
@@ -138,15 +142,15 @@ export default function Future({
 
       {d.confidence != null && (
         <p className="fut-conf">
-          Độ tin cậy dự phóng: <b>{Math.round(d.confidence * 100)}%</b>
+          {t("Độ tin cậy dự phóng:", "Projection confidence:")} <b>{Math.round(d.confidence * 100)}%</b>
           {d.confidence_low != null && d.confidence_high != null && (
             <>
-              {" "}(khoảng {Math.round(d.confidence_low * 100)}–
+              {" "}({t("khoảng", "range")} {Math.round(d.confidence_low * 100)}–
               {Math.round(d.confidence_high * 100)}%)
             </>
           )}
           {" · "}
-          {d.is_real ? "trên nền thời tiết thật" : "mô phỏng"}
+          {d.is_real ? t("trên nền thời tiết thật", "on real weather data") : t("mô phỏng", "simulated")}
         </p>
       )}
 

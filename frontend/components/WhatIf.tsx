@@ -6,6 +6,7 @@ import {
   WHATIF_MODULES,
   type WhatIfResult,
 } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
 
 const RISK_COLOR: Record<string, string> = {
   safe: "#2E9E67",
@@ -22,6 +23,7 @@ export default function WhatIf({
   lat: number;
   lon: number;
 }) {
+  const { t } = useLang();
   const [data, setData] = useState<WhatIfResult | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -55,8 +57,8 @@ export default function WhatIf({
 
   return (
     <div className="whatif">
-      <div className="wi-head">🔮 Kịch bản song song — điều gì xảy ra NẾU…?</div>
-      {loading && <p className="hint">Đang mô phỏng các tương lai…</p>}
+      <div className="wi-head">🔮 {t("Kịch bản song song — điều gì xảy ra NẾU…?", "Parallel scenarios — what happens IF…?")}</div>
+      {loading && <p className="hint">{t("Đang mô phỏng các tương lai…", "Simulating futures…")}</p>}
       {data && (
         <>
           <p className="wi-note">{data.note}</p>
@@ -73,7 +75,7 @@ export default function WhatIf({
                         color: danger ? RISK_COLOR.danger : RISK_COLOR.safe,
                       }}
                     >
-                      đỉnh {s.peak}
+                      {t("đỉnh", "peak")} {s.peak}
                       {data.unit === "%" ? "%" : ""}
                     </span>
                   </div>
@@ -92,7 +94,7 @@ export default function WhatIf({
                   </div>
                   {s.first_danger_date && (
                     <div className="wi-sc-danger">
-                      ⚠️ Vượt ngưỡng nguy hiểm từ {s.first_danger_date.slice(5)}
+                      ⚠️ {t("Vượt ngưỡng nguy hiểm từ", "Crosses the danger threshold from")} {s.first_danger_date.slice(5)}
                     </div>
                   )}
                 </div>
@@ -100,8 +102,8 @@ export default function WhatIf({
             })}
           </div>
           <p className="wi-foot">
-            Ngưỡng: an toàn &lt;{data.safe} · cảnh báo {data.safe}–{data.warning} ·
-            nguy hiểm ≥{data.warning}
+            {t("Ngưỡng", "Thresholds")}: {t("an toàn", "safe")} &lt;{data.safe} · {t("cảnh báo", "warning")} {data.safe}–{data.warning} ·
+            {" "}{t("nguy hiểm", "danger")} ≥{data.warning}
           </p>
         </>
       )}

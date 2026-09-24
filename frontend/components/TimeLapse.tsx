@@ -10,12 +10,13 @@
 
 import { useState } from "react";
 import { runTimeLapse, type TimeLapseResult } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
 
-const HAZARDS = [
-  { id: "flood", name: "Lũ / ngập" },
-  { id: "drought", name: "Hạn" },
-  { id: "wildfire", name: "Cháy rừng" },
-  { id: "landslide", name: "Sạt lở" },
+const HAZARDS: { id: string; vi: string; en: string }[] = [
+  { id: "flood", vi: "Lũ / ngập", en: "Flood" },
+  { id: "drought", vi: "Hạn", en: "Drought" },
+  { id: "wildfire", vi: "Cháy rừng", en: "Wildfire" },
+  { id: "landslide", vi: "Sạt lở", en: "Landslide" },
 ];
 
 const COLOR: Record<string, string> = {
@@ -24,10 +25,10 @@ const COLOR: Record<string, string> = {
   safe: "#2E9E67",
 };
 
-const TREND: Record<string, { icon: string; text: string; color: string }> = {
-  worsening: { icon: "↗", text: "đang xấu đi", color: "#C2412E" },
-  improving: { icon: "↘", text: "đang tốt lên", color: "#2E9E67" },
-  stable: { icon: "→", text: "gần như không đổi", color: "#9fb2bf" },
+const TREND: Record<string, { icon: string; vi: string; en: string; color: string }> = {
+  worsening: { icon: "↗", vi: "đang xấu đi", en: "worsening", color: "#C2412E" },
+  improving: { icon: "↘", vi: "đang tốt lên", en: "improving", color: "#2E9E67" },
+  stable: { icon: "→", vi: "gần như không đổi", en: "nearly unchanged", color: "#9fb2bf" },
 };
 
 export default function TimeLapse({
@@ -41,6 +42,7 @@ export default function TimeLapse({
 }) {
   // Module đang chọn có thể không phải hiểm họa (vd. điện mặt trời) — khi đó
   // mặc định về lũ thay vì hiện lỗi 404 khó hiểu.
+  const { t } = useLang();
   const initial = HAZARDS.some((h) => h.id === moduleId) ? moduleId : "flood";
   const [mid, setMid] = useState(initial);
   const [data, setData] = useState<TimeLapseResult | null>(null);
@@ -67,18 +69,18 @@ export default function TimeLapse({
 
   return (
     <div className="pan">
-      <div className="pan-head">⏳ Tua 10 năm — rủi ro thửa này đã đổi thế nào</div>
+      <div className="pan-head">⏳ {t("Tua 10 năm — rủi ro thửa này đã đổi thế nào", "10-year rewind — how this plot's risk has changed")}</div>
 
       <div className="pan-controls">
         <select value={mid} onChange={(e) => setMid(e.target.value)}>
           {HAZARDS.map((h) => (
             <option key={h.id} value={h.id}>
-              {h.name}
+              {t(h.vi, h.en)}
             </option>
           ))}
         </select>
         <button className="pan-go" disabled={busy} onClick={() => run(mid)}>
-          {busy ? "Đang chạy 10 năm…" : "Tua lại"}
+          {busy ? t("Đang chạy 10 năm…", "Running 10 years…") : t("Tua lại", "Rewind again")}
         </button>
       </div>
 
@@ -90,8 +92,8 @@ export default function TimeLapse({
 
           {tr && (
             <p className="tl-trend" style={{ color: tr.color }}>
-              {tr.icon} Xu thế {tr.text} ({data.trend_change! > 0 ? "+" : ""}
-              {data.trend_change} {data.unit}) · trung bình{" "}
+              {tr.icon} {t("Xu thế", "Trend")} {t(tr.vi, tr.en)} ({data.trend_change! > 0 ? "+" : ""}
+              {data.trend_change} {data.unit}) · {t("trung bình", "average")}{" "}
               {data.early_mean} → {data.late_mean}
             </p>
           )}
@@ -115,13 +117,13 @@ export default function TimeLapse({
 
           <div className="tl-legend">
             <span>
-              <i style={{ background: COLOR.safe }} /> an toàn
+              <i style={{ background: COLOR.safe }} /> {t("an toàn", "safe")}
             </span>
             <span>
-              <i style={{ background: COLOR.warning }} /> cảnh báo
+              <i style={{ background: COLOR.warning }} /> {t("cảnh báo", "warning")}
             </span>
             <span>
-              <i style={{ background: COLOR.danger }} /> nguy hiểm
+              <i style={{ background: COLOR.danger }} /> {t("nguy hiểm", "danger")}
             </span>
           </div>
 

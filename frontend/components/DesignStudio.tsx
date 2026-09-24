@@ -10,6 +10,7 @@
 
 import { useState } from "react";
 import { runDesign, type DesignResult } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
 
 const PRIO: Record<string, string> = {
   cao: "#C2412E",
@@ -18,6 +19,7 @@ const PRIO: Record<string, string> = {
 };
 
 export default function DesignStudio({ lat, lon }: { lat: number; lon: number }) {
+  const { t } = useLang();
   const [data, setData] = useState<DesignResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -39,16 +41,16 @@ export default function DesignStudio({ lat, lon }: { lat: number; lon: number })
 
   return (
     <div className="pan">
-      <div className="pan-head">🎨 Phương án canh tác — trồng gì, làm gì trước</div>
+      <div className="pan-head">🎨 {t("Phương án canh tác — trồng gì, làm gì trước", "Farming plan — what to grow, what to build first")}</div>
 
       {!data && (
         <>
           <p className="pan-sub">
-            Tổng hợp phương án từ chính các ràng buộc đo được của thửa: cao độ,
-            độ dốc, mặn đỉnh, khoảng cách biển, mưa năm, nhiệt.
+            {t("Tổng hợp phương án từ chính các ràng buộc đo được của thửa: cao độ, độ dốc, mặn đỉnh, khoảng cách biển, mưa năm, nhiệt.",
+               "Options are synthesized from this plot's own measured constraints: elevation, slope, peak salinity, distance to sea, annual rainfall, temperature.")}
           </p>
           <button className="pan-go" disabled={busy} onClick={run}>
-            {busy ? "Đang tổng hợp…" : "Sinh phương án"}
+            {busy ? t("Đang tổng hợp…", "Synthesizing…") : t("Sinh phương án", "Generate options")}
           </button>
         </>
       )}
@@ -94,7 +96,7 @@ export default function DesignStudio({ lat, lon }: { lat: number; lon: number })
             })}
           </div>
 
-          <div className="ds-infra-h">Hạ tầng nên làm, theo thứ tự</div>
+          <div className="ds-infra-h">{t("Hạ tầng nên làm, theo thứ tự", "Infrastructure to build, in order")}</div>
           {data.infrastructure.map((it, i) => (
             <div key={i} className="ds-infra">
               <span className="ds-prio" style={{ color: PRIO[it.priority] ?? "#9fb2bf" }}>
@@ -110,7 +112,7 @@ export default function DesignStudio({ lat, lon }: { lat: number; lon: number })
           <p className="pan-method">{data.generative_note}</p>
           <p className="pan-caveat">{data.caveat}</p>
           <button className="pan-ghost" onClick={run} disabled={busy}>
-            Chạy lại
+            {t("Chạy lại", "Run again")}
           </button>
         </>
       )}

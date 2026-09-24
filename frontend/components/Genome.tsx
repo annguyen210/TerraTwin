@@ -10,8 +10,10 @@
 
 import { useState } from "react";
 import { runGenome, type GenomeResult } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
 
 export default function Genome({ lat, lon }: { lat: number; lon: number }) {
+  const { t } = useLang();
   const [data, setData] = useState<GenomeResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -30,25 +32,25 @@ export default function Genome({ lat, lon }: { lat: number; lon: number }) {
 
   return (
     <div className="pan">
-      <div className="pan-head">🧬 Bộ gen thửa đất — tìm vùng “song sinh”</div>
+      <div className="pan-head">🧬 {t("Bộ gen thửa đất — tìm vùng “song sinh”", "Plot genome — find “twin” regions")}</div>
 
       {!data && !busy && (
         <>
           <p className="pan-sub">
-            So 7 đặc trưng của thửa này với lưới toàn quốc để tìm những vùng có
-            cùng “bộ gen” đất đai — nơi kinh nghiệm của họ dùng được cho bạn.
+            {t("So 7 đặc trưng của thửa này với lưới toàn quốc để tìm những vùng có cùng “bộ gen” đất đai — nơi kinh nghiệm của họ dùng được cho bạn.",
+               "Compares 7 traits of this plot against a nationwide grid to find regions with the same land “genome” — places whose experience applies to you.")}
           </p>
           <button className="pan-go" onClick={run}>
-            Tìm vùng tương đồng
+            {t("Tìm vùng tương đồng", "Find similar regions")}
           </button>
           <p className="pan-note">
-            Lần đầu có thể mất 1–2 phút vì phải dựng lưới tham chiếu; sau đó lấy
-            từ bộ nhớ đệm.
+            {t("Lần đầu có thể mất 1–2 phút vì phải dựng lưới tham chiếu; sau đó lấy từ bộ nhớ đệm.",
+               "The first run can take 1–2 minutes to build the reference grid; after that it's served from cache.")}
           </p>
         </>
       )}
 
-      {busy && <p className="pan-sub">Đang quét lưới toàn quốc…</p>}
+      {busy && <p className="pan-sub">{t("Đang quét lưới toàn quốc…", "Scanning the nationwide grid…")}</p>}
       {err && <p className="pan-err">⚠️ {err}</p>}
 
       {data && !data.available && (
@@ -61,7 +63,7 @@ export default function Genome({ lat, lon }: { lat: number; lon: number }) {
 
           {data.your_genome && data.feature_labels && (
             <div className="gen-mine">
-              <div className="gen-mine-h">Bộ gen thửa của bạn</div>
+              <div className="gen-mine-h">{t("Bộ gen thửa của bạn", "Your plot's genome")}</div>
               {Object.entries(data.your_genome).map(([k, v]) => (
                 <div key={k} className="gen-row">
                   <span>{data.feature_labels![k]?.label ?? k}</span>
@@ -73,15 +75,15 @@ export default function Genome({ lat, lon }: { lat: number; lon: number }) {
             </div>
           )}
 
-          {data.twins?.map((t, i) => (
+          {data.twins?.map((tw, i) => (
             <div key={i} className="gen-twin">
               <div className="gen-twin-h">
-                <b>{t.similarity_pct}% giống</b>
+                <b>{tw.similarity_pct}% {t("giống", "similar")}</b>
                 <span>
-                  {t.lat.toFixed(2)}, {t.lon.toFixed(2)} · cách {t.distance_km} km
+                  {tw.lat.toFixed(2)}, {tw.lon.toFixed(2)} · {t("cách", "distance")} {tw.distance_km} km
                 </span>
               </div>
-              {t.comparison.slice(0, 4).map((c) => (
+              {tw.comparison.slice(0, 4).map((c) => (
                 <div key={c.feature} className="gen-cmp">
                   <span>{c.label}</span>
                   <span className="gen-vals">

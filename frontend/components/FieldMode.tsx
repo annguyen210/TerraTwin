@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { runAsk, type AskResult } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
 
 /** C09 Field Mode — hỏi bằng GIỌNG NÓI, dùng được ngay ngoài đồng.
  *
@@ -51,6 +52,7 @@ export default function FieldMode({
   lat: number;
   lon: number;
 }) {
+  const { t } = useLang();
   const [supported, setSupported] = useState(false);
   const [listening, setListening] = useState(false);
   const [text, setText] = useState("");
@@ -85,8 +87,8 @@ export default function FieldMode({
     r.onerror = (e: any) => {
       setErr(
         e?.error === "not-allowed"
-          ? "Trình duyệt chưa được cấp quyền micro."
-          : "Không nghe được — thử lại hoặc gõ tay.",
+          ? t("Trình duyệt chưa được cấp quyền micro.", "The browser hasn't been granted microphone access.")
+          : t("Không nghe được — thử lại hoặc gõ tay.", "Couldn't hear you — try again or type instead."),
       );
       setListening(false);
     };
@@ -112,14 +114,14 @@ export default function FieldMode({
 
   return (
     <div className="field">
-      <div className="fm-head">🎤 Chế độ ngoài đồng — hỏi bằng lời</div>
+      <div className="fm-head">🎤 {t("Chế độ ngoài đồng — hỏi bằng lời", "Field mode — ask out loud")}</div>
 
       <div className="fm-row">
         <button
           className={`fm-mic ${listening ? "on" : ""}`}
           onClick={toggleMic}
           disabled={!supported || busy}
-          title={supported ? "Bấm rồi nói" : "Trình duyệt không hỗ trợ giọng nói"}
+          title={supported ? t("Bấm rồi nói", "Tap and speak") : t("Trình duyệt không hỗ trợ giọng nói", "This browser doesn't support voice input")}
         >
           {listening ? "⏹" : "🎤"}
         </button>
@@ -128,18 +130,18 @@ export default function FieldMode({
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && submit(text)}
           placeholder={
-            listening ? "Đang nghe…" : "Nói hoặc gõ: nếu mưa gấp đôi thì sao?"
+            listening ? t("Đang nghe…", "Listening…") : t("Nói hoặc gõ: nếu mưa gấp đôi thì sao?", "Speak or type: what if rain doubles?")
           }
         />
         <button className="fm-go" onClick={() => submit(text)} disabled={busy}>
-          {busy ? "…" : "Hỏi"}
+          {busy ? "…" : t("Hỏi", "Ask")}
         </button>
       </div>
 
       {!supported && (
         <p className="fm-note">
-          Trình duyệt này không hỗ trợ nhập bằng giọng nói — bạn vẫn gõ tay được
-          bình thường. (Chrome và Edge hỗ trợ tốt nhất.)
+          {t("Trình duyệt này không hỗ trợ nhập bằng giọng nói — bạn vẫn gõ tay được bình thường. (Chrome và Edge hỗ trợ tốt nhất.)",
+             "This browser doesn't support voice input — you can still type normally. (Chrome and Edge support it best.)")}
         </p>
       )}
 
@@ -166,13 +168,13 @@ export default function FieldMode({
               <p className="fm-headline">{result.headline}</p>
               <div className="fm-bars">
                 <span>
-                  Hiện tại <b>{result.baseline_peak}</b>
+                  {t("Hiện tại", "Currently")} <b>{result.baseline_peak}</b>
                 </span>
                 <span className="fm-arrow">→</span>
                 <span
                   className={`fm-scen ${result.risk_level}`}
                 >
-                  Kịch bản <b>{result.scenario_peak}</b>
+                  {t("Kịch bản", "Scenario")} <b>{result.scenario_peak}</b>
                 </span>
               </div>
               <p className="fm-method">{result.method}</p>

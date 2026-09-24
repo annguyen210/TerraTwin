@@ -28,6 +28,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   runTimeline, type HeatmapResult, type TimelineResult,
 } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
 
 // Thang màu theo NGÀY ĐẾN — chuyển từ đỏ (ngay) sang xanh (còn xa).
 // Cố ý khác hẳn thang màu mức độ, để không ai đọc nhầm hai bản đồ.
@@ -54,6 +55,7 @@ export default function Timeline({
   lon: number;
   onHeat: (h: HeatmapResult | null) => void;
 }) {
+  const { t } = useLang();
   const [d, setD] = useState<TimelineResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -156,28 +158,33 @@ export default function Timeline({
   const legend = useMemo(
     () =>
       mode === "arrival"
-        ? ARRIVAL_COLORS.map((c, i) => ({ c, t: i === 0 ? "hôm nay" : `+${i}` }))
+        ? ARRIVAL_COLORS.map((c, i) => ({ c, t: i === 0 ? t("hôm nay", "today") : `+${i}` }))
         : [
-            { c: "#2E9E67", t: "an toàn" },
-            { c: "#B07A2E", t: "cảnh báo" },
-            { c: "#C2412E", t: "nguy hiểm" },
+            { c: "#2E9E67", t: t("an toàn", "safe") },
+            { c: "#B07A2E", t: t("cảnh báo", "warning") },
+            { c: "#C2412E", t: t("nguy hiểm", "danger") },
           ],
-    [mode],
+    [mode, t],
   );
 
   return (
     <div className="pan">
-      <div className="pan-head">🎬 Diễn tiến trên bản đồ — khi nào, kéo dài bao lâu</div>
+      <div className="pan-head">🎬 {t("Diễn tiến trên bản đồ — khi nào, kéo dài bao lâu", "Timeline on the map — when, and for how long")}</div>
 
       {!d && (
         <>
           <p className="pan-sub">
-            Bản đồ nhiệt chỉ cho biết <b>mức độ cao nhất</b> trong 7 ngày. Khối
-            này cho biết <b>ngày nào rủi ro tới</b> và <b>kéo dài mấy ngày</b> —
-            hai thứ quyết định bạn làm gì, và tốn đúng bằng một lượt bản đồ nhiệt.
+            {t("Bản đồ nhiệt chỉ cho biết ", "The heatmap only tells you the ")}
+            <b>{t("mức độ cao nhất", "peak level")}</b>
+            {t(" trong 7 ngày. Khối này cho biết ", " over 7 days. This block tells you ")}
+            <b>{t("ngày nào rủi ro tới", "which day the risk arrives")}</b>
+            {t(" và ", " and ")}
+            <b>{t("kéo dài mấy ngày", "how many days it lasts")}</b>
+            {t(" — hai thứ quyết định bạn làm gì, và tốn đúng bằng một lượt bản đồ nhiệt.",
+               " — two things that decide what you do, at the same cost as one heatmap run.")}
           </p>
           <button className="pan-go" disabled={busy} onClick={run}>
-            {busy ? "Đang dựng…" : "Dựng diễn tiến"}
+            {busy ? t("Đang dựng…", "Building…") : t("Dựng diễn tiến", "Build timeline")}
           </button>
         </>
       )}
@@ -192,7 +199,7 @@ export default function Timeline({
           {/* ② cảnh báo độ phân giải — ngay trên khung, không giấu xuống dưới */}
           {d.resolution?.oversampled && (
             <div className="tl-res">
-              <b>⚠️ Bản đồ mịn hơn dữ liệu</b>
+              <b>⚠️ {t("Bản đồ mịn hơn dữ liệu", "Map is finer than the data")}</b>
               <p>{d.resolution.note}</p>
             </div>
           )}
@@ -217,13 +224,13 @@ export default function Timeline({
                 setPlaying(false);
               }}
             >
-              Ngày rủi ro tới
+              {t("Ngày rủi ro tới", "Day risk arrives")}
             </button>
             <button
               className={mode === "day" ? "on" : ""}
               onClick={() => setMode("day")}
             >
-              Xem từng ngày
+              {t("Xem từng ngày", "View day by day")}
             </button>
           </div>
 
@@ -231,21 +238,21 @@ export default function Timeline({
           <div className="tl-stats">
             <div>
               <b>{s.cells_affected}</b>
-              <span>/{total} ô chạm ngưỡng</span>
+              <span>/{total} {t("ô chạm ngưỡng", "cells over threshold")}</span>
             </div>
             <div>
               <b>
                 {s.first_arrival_day === null
                   ? "—"
                   : s.first_arrival_day === 0
-                    ? "hôm nay"
-                    : `+${s.first_arrival_day} ngày`}
+                    ? t("hôm nay", "today")
+                    : `+${s.first_arrival_day} ${t("ngày", "days")}`}
               </b>
-              <span>sớm nhất</span>
+              <span>{t("sớm nhất", "earliest")}</span>
             </div>
             <div>
               <b>{s.max_days_over}</b>
-              <span>ngày kéo dài nhất</span>
+              <span>{t("ngày kéo dài nhất", "longest streak (days)")}</span>
             </div>
           </div>
 
@@ -255,7 +262,7 @@ export default function Timeline({
                 <button
                   className="tl-play"
                   onClick={() => setPlaying((p) => !p)}
-                  aria-label={playing ? "Dừng" : "Chạy"}
+                  aria-label={playing ? t("Dừng", "Pause") : t("Chạy", "Play")}
                 >
                   {playing ? "❚❚" : "▶"}
                 </button>
@@ -271,15 +278,15 @@ export default function Timeline({
                 />
               </div>
               <p className="tl-frame">
-                <b>{d.dates?.[day]}</b> · {overToday}/{total} ô vượt ngưỡng
-                {reduced && playing && " · đã tắt tự chạy theo thiết lập hệ thống"}
+                <b>{d.dates?.[day]}</b> · {overToday}/{total} {t("ô vượt ngưỡng", "cells over threshold")}
+                {reduced && playing && t(" · đã tắt tự chạy theo thiết lập hệ thống", " · autoplay disabled per your system setting")}
               </p>
               <div className="tl-spark">
                 {s.n_over_by_day.map((n, i) => (
                   <button
                     key={i}
                     className={`tl-bar ${i === day ? "on" : ""}`}
-                    title={`${d.dates?.[i]}: ${n}/${total} ô`}
+                    title={`${d.dates?.[i]}: ${n}/${total} ${t("ô", "cells")}`}
                     onClick={() => {
                       setPlaying(false);
                       setDay(i);

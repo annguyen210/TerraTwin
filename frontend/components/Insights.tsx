@@ -14,14 +14,15 @@ import {
   type ProbForecast,
   type TimeMachineResult,
 } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
 
 type Tab = "explain" | "goal" | "time" | "anomaly";
 
-const TABS: { id: Tab; label: string; hazardOnly: boolean }[] = [
-  { id: "explain", label: "🧠 Vì sao", hazardOnly: true },
-  { id: "goal", label: "🎯 Cần gì để an toàn", hazardOnly: true },
-  { id: "time", label: "⏳ Xác suất từ lịch sử", hazardOnly: true },
-  { id: "anomaly", label: "📈 Bất thường", hazardOnly: false },
+const TABS: { id: Tab; label_vi: string; label_en: string; hazardOnly: boolean }[] = [
+  { id: "explain", label_vi: "🧠 Vì sao", label_en: "🧠 Why", hazardOnly: true },
+  { id: "goal", label_vi: "🎯 Cần gì để an toàn", label_en: "🎯 What it takes to be safe", hazardOnly: true },
+  { id: "time", label_vi: "⏳ Xác suất từ lịch sử", label_en: "⏳ Probability from history", hazardOnly: true },
+  { id: "anomaly", label_vi: "📈 Bất thường", label_en: "📈 Anomalies", hazardOnly: false },
 ];
 
 const LEVEL_COLOR: Record<string, string> = {
@@ -32,15 +33,18 @@ const LEVEL_COLOR: Record<string, string> = {
 };
 
 function Loading() {
-  return <p className="hint">Đang tính…</p>;
+  const { t } = useLang();
+  return <p className="hint">{t("Đang tính…", "Computing…")}</p>;
 }
 
 function Unavailable({ msg }: { msg?: string }) {
-  return <p className="in-empty">{msg ?? "Chưa có dữ liệu cho mục này."}</p>;
+  const { t } = useLang();
+  return <p className="in-empty">{msg ?? t("Chưa có dữ liệu cho mục này.", "No data for this yet.")}</p>;
 }
 
 /* ---------- S07 Causal Explain ---------- */
 function ExplainView({ d }: { d: ExplainResult }) {
+  const { t } = useLang();
   if (!d.available) return <Unavailable msg={d.message} />;
   const max = Math.max(...d.factors.map((f) => f.contribution), 1);
   return (
@@ -59,12 +63,12 @@ function ExplainView({ d }: { d: ExplainResult }) {
             />
           </div>
           <div className="in-note">
-            Bỏ yếu tố này → chỉ số còn {f.peak_without}. {f.note}
+            {t("Bỏ yếu tố này → chỉ số còn", "Remove this factor → the index would be")} {f.peak_without}. {f.note}
           </div>
         </div>
       ))}
       <p className="in-foot">
-        {d.terrain} · ngày mưa lớn nhất {d.wettest_day?.date.slice(5)} (
+        {d.terrain} · {t("ngày mưa lớn nhất", "wettest day")} {d.wettest_day?.date.slice(5)} (
         {d.wettest_day?.precip_mm} mm)
       </p>
       <p className="in-method">{d.method}</p>
@@ -74,6 +78,7 @@ function ExplainView({ d }: { d: ExplainResult }) {
 
 /* ---------- S03 Goal-Seek ---------- */
 function GoalView({ d }: { d: GoalSeekResult }) {
+  const { t } = useLang();
   if (!d.available) return <Unavailable msg={d.message} />;
   return (
     <>
@@ -85,14 +90,14 @@ function GoalView({ d }: { d: GoalSeekResult }) {
           style={{ borderLeftColor: l.feasible ? "#2E9E67" : "#C2412E" }}
         >
           <div className="in-lever-top">
-            {l.lever} {l.feasible ? "" : "· không đủ một mình"}
+            {l.lever} {l.feasible ? "" : `· ${t("không đủ một mình", "not enough on its own")}`}
           </div>
           <div className="in-lever-ans">{l.answer}</div>
         </div>
       ))}
       {d.combined && (
         <div className="in-lever" style={{ borderLeftColor: "#B07A2E" }}>
-          <div className="in-lever-top">Phương án kết hợp</div>
+          <div className="in-lever-top">{t("Phương án kết hợp", "Combined option")}</div>
           <div className="in-lever-ans">{d.combined.answer}</div>
         </div>
       )}
@@ -103,6 +108,7 @@ function GoalView({ d }: { d: GoalSeekResult }) {
 
 /* ---------- S02 Time Machine ---------- */
 function TimeView({ d }: { d: TimeMachineResult }) {
+  const { t } = useLang();
   if (!d.available) return <Unavailable msg={d.message} />;
   const max = Math.max(...d.members.map((m) => m.peak), d.threshold_warning ?? 70, 1);
   return (
@@ -111,7 +117,7 @@ function TimeView({ d }: { d: TimeMachineResult }) {
       <div className="in-prob">
         <div className="in-prob-big">{d.prob_danger_pct}%</div>
         <div className="in-prob-txt">
-          khả năng vượt ngưỡng nguy hiểm
+          {t("khả năng vượt ngưỡng nguy hiểm", "chance of exceeding the danger threshold")}
           <br />
           <small>
             {d.from_year}–{d.to_year} · P10 {d.p10} · P50 {d.p50} · P90 {d.p90}
@@ -123,7 +129,7 @@ function TimeView({ d }: { d: TimeMachineResult }) {
           <div
             key={m.year}
             className="in-year"
-            title={`${m.year}: đỉnh ${m.peak}, mưa ${m.rain_total_mm} mm`}
+            title={`${m.year}: ${t("đỉnh", "peak")} ${m.peak}, ${t("mưa", "rain")} ${m.rain_total_mm} mm`}
           >
             <div className="in-year-track">
               <div
@@ -139,8 +145,8 @@ function TimeView({ d }: { d: TimeMachineResult }) {
         ))}
       </div>
       <p className="in-foot">
-        Xấu nhất {d.worst_year?.year} (đỉnh {d.worst_year?.peak}) · nhẹ nhất{" "}
-        {d.best_year?.year} (đỉnh {d.best_year?.peak})
+        {t("Xấu nhất", "Worst")} {d.worst_year?.year} ({t("đỉnh", "peak")} {d.worst_year?.peak}) · {t("nhẹ nhất", "mildest")}{" "}
+        {d.best_year?.year} ({t("đỉnh", "peak")} {d.best_year?.peak})
       </p>
       <p className="in-method">{d.method}</p>
     </>
@@ -149,6 +155,7 @@ function TimeView({ d }: { d: TimeMachineResult }) {
 
 /* ---------- C10 Anomaly ---------- */
 function AnomalyView({ d }: { d: AnomalyResult }) {
+  const { t } = useLang();
   if (!d.available) return <Unavailable msg={d.message} />;
   return (
     <>
@@ -162,13 +169,13 @@ function AnomalyView({ d }: { d: AnomalyResult }) {
             </b>
           </div>
           <div className="in-metric-sub">
-            TB cùng kỳ {m.normal_mean} {m.unit} · cao hơn {m.percentile}% số năm
+            {t("TB cùng kỳ", "Same-period average")} {m.normal_mean} {m.unit} · {t("cao hơn", "higher than")} {m.percentile}% {t("số năm", "of years")}
             {m.z_score != null && <> · z={m.z_score}</>}
           </div>
         </div>
       ))}
       <p className="in-foot">
-        Nền khí hậu {d.from_year}–{d.to_year} ({d.years} năm) tại chính toạ độ này
+        {t("Nền khí hậu", "Climate baseline")} {d.from_year}–{d.to_year} ({d.years} {t("năm", "years")}) {t("tại chính toạ độ này", "for this exact coordinate")}
       </p>
       <p className="in-method">{d.method}</p>
     </>
@@ -179,6 +186,7 @@ function AnomalyView({ d }: { d: AnomalyResult }) {
 function ForecastProbability({ moduleId, lat, lon }: {
   moduleId: string; lat: number; lon: number;
 }) {
+  const { t } = useLang();
   const [d, setD] = useState<ProbForecast | null>(null);
   useEffect(() => {
     let alive = true;
@@ -197,8 +205,8 @@ function ForecastProbability({ moduleId, lat, lon }: {
     <div style={{ margin: "0 0 12px", padding: "11px 14px", borderRadius: 8,
       background: "var(--surface-2, #f8faf7)", border: "1px solid var(--line, #d7ddd8)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
-        <b style={{ fontSize: 13.5 }}>🎲 Xác suất 7 ngày tới</b>
-        <span style={{ fontSize: 11, color: "var(--muted,#66716a)" }}>{d.members} thành viên tổ hợp</span>
+        <b style={{ fontSize: 13.5 }}>🎲 {t("Xác suất 7 ngày tới", "7-day probability")}</b>
+        <span style={{ fontSize: 11, color: "var(--muted,#66716a)" }}>{d.members} {t("thành viên tổ hợp", "ensemble members")}</span>
       </div>
       <p style={{ margin: "5px 0 8px", fontSize: 14, fontWeight: 600, color: tone }}>{d.sentence}</p>
       {/* dải quạt */}
@@ -228,15 +236,16 @@ export default function Insights({
   lat: number;
   lon: number;
 }) {
+  const { t, lang } = useLang();
   const isHazard = WHATIF_MODULES.includes(moduleId);
-  const tabs = TABS.filter((t) => !t.hazardOnly || isHazard);
+  const tabs = TABS.filter((tb) => !tb.hazardOnly || isHazard);
   const [tab, setTab] = useState<Tab>(isHazard ? "explain" : "anomaly");
   const [data, setData] = useState<unknown>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!tabs.some((t) => t.id === tab)) setTab(isHazard ? "explain" : "anomaly");
+    if (!tabs.some((tb) => tb.id === tab)) setTab(isHazard ? "explain" : "anomaly");
   }, [isHazard]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -263,17 +272,17 @@ export default function Insights({
 
   return (
     <div className="insights">
-      <div className="in-head-row">🔬 Phân tích sâu</div>
+      <div className="in-head-row">🔬 {t("Phân tích sâu", "Deep analysis")}</div>
       {/* A3 — xác suất 7 ngày tới, nổi bật trên cùng vì đó là số quyết định. */}
       {isHazard && <ForecastProbability moduleId={moduleId} lat={lat} lon={lon} />}
       <div className="in-tabs">
-        {tabs.map((t) => (
+        {tabs.map((tb) => (
           <button
-            key={t.id}
-            className={tab === t.id ? "on" : ""}
-            onClick={() => setTab(t.id)}
+            key={tb.id}
+            className={tab === tb.id ? "on" : ""}
+            onClick={() => setTab(tb.id)}
           >
-            {t.label}
+            {lang === "en" ? tb.label_en : tb.label_vi}
           </button>
         ))}
       </div>
