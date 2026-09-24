@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { runHeatmap, WHATIF_MODULES, type HeatmapResult } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
 
 export default function Heatmap({
   moduleId,
@@ -14,6 +15,7 @@ export default function Heatmap({
   lon: number;
   onResult: (h: HeatmapResult | null) => void;
 }) {
+  const { t } = useLang();
   const [data, setData] = useState<HeatmapResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -44,11 +46,11 @@ export default function Heatmap({
 
   return (
     <div className="heat">
-      <div className="heat-head">🗺️ Bản đồ nhiệt rủi ro quanh thửa</div>
+      <div className="heat-head">🗺️ {t("Bản đồ nhiệt rủi ro quanh thửa", "Risk heatmap around this plot")}</div>
 
       <div className="heat-controls">
         <label>
-          Lưới
+          {t("Lưới", "Grid")}
           <select value={side} onChange={(e) => setSide(Number(e.target.value))}>
             {[5, 7, 9, 11].map((n) => (
               <option key={n} value={n}>
@@ -58,7 +60,7 @@ export default function Heatmap({
           </select>
         </label>
         <label>
-          Bán kính
+          {t("Bán kính", "Radius")}
           <select value={radius} onChange={(e) => setRadius(Number(e.target.value))}>
             {[3, 5, 8, 15, 25].map((n) => (
               <option key={n} value={n}>
@@ -71,11 +73,11 @@ export default function Heatmap({
 
       <div className="heat-actions">
         <button onClick={run} disabled={loading}>
-          {loading ? "Đang quét lưới…" : "Quét vùng"}
+          {loading ? t("Đang quét lưới…", "Scanning grid…") : t("Quét vùng", "Scan area")}
         </button>
         {data && (
           <button className="ghost" onClick={clear}>
-            Xóa lớp
+            {t("Xóa lớp", "Clear layer")}
           </button>
         )}
       </div>
@@ -87,23 +89,23 @@ export default function Heatmap({
           <p className="heat-line">{data.headline}</p>
           <div className="heat-legend">
             <span>
-              <i style={{ background: "#2E9E67" }} /> an toàn
+              <i style={{ background: "#2E9E67" }} /> {t("an toàn", "safe")}
             </span>
             <span>
-              <i style={{ background: "#B07A2E" }} /> cảnh báo
+              <i style={{ background: "#B07A2E" }} /> {t("cảnh báo", "warning")}
             </span>
             <span>
-              <i style={{ background: "#C2412E" }} /> nguy hiểm
+              <i style={{ background: "#C2412E" }} /> {t("nguy hiểm", "danger")}
             </span>
           </div>
           {!data.calibrated && (
             <p className="heat-warn">
-              ⚠️ Chưa hiệu chuẩn được theo khí hậu vùng — con số có thể báo động
-              nhiều hơn thực tế.
+              ⚠️ {t("Chưa hiệu chuẩn được theo khí hậu vùng — con số có thể báo động nhiều hơn thực tế.",
+                    "Not yet calibrated to regional climate — numbers may over-alarm compared to reality.")}
             </p>
           )}
           <p className="heat-caveat">{data.caveat}</p>
-          {data.cached && <p className="heat-caveat">Kết quả lấy từ bộ nhớ đệm.</p>}
+          {data.cached && <p className="heat-caveat">{t("Kết quả lấy từ bộ nhớ đệm.", "Result served from cache.")}</p>}
         </>
       )}
     </div>

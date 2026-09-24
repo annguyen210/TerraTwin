@@ -12,6 +12,7 @@ import { useCallback, useState } from "react";
 import {
   getPortfolioOverview, type AuthUser, type PortfolioOverview as PO,
 } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
 
 const COLOR: Record<string, string> = {
   danger: "#C2412E",
@@ -19,11 +20,11 @@ const COLOR: Record<string, string> = {
   safe: "#2E9E67",
   unknown: "#7E8D84",
 };
-const LABEL: Record<string, string> = {
-  danger: "nguy hiểm",
-  warning: "cảnh báo",
-  safe: "an toàn",
-  unknown: "chưa rõ",
+const LABEL: Record<string, [string, string]> = {
+  danger: ["nguy hiểm", "danger"],
+  warning: ["cảnh báo", "warning"],
+  safe: ["an toàn", "safe"],
+  unknown: ["chưa rõ", "unknown"],
 };
 
 export default function PortfolioOverview({
@@ -33,6 +34,7 @@ export default function PortfolioOverview({
   user: AuthUser | null;
   onOpen?: (lat: number, lon: number) => void;
 }) {
+  const { t } = useLang();
   const [d, setD] = useState<PO | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -52,8 +54,8 @@ export default function PortfolioOverview({
   if (!user) {
     return (
       <p className="ws-hint">
-        Đăng nhập để xem toàn cảnh danh mục — vùng nào trong số thửa của bạn
-        đang gặp rủi ro nặng nhất.
+        {t("Đăng nhập để xem toàn cảnh danh mục — vùng nào trong số thửa của bạn đang gặp rủi ro nặng nhất.",
+           "Log in to see your portfolio overview — which of your plots is facing the heaviest risk.")}
       </p>
     );
   }
@@ -61,14 +63,15 @@ export default function PortfolioOverview({
   return (
     <>
       <p className="ws-sub">
-        Quét đồng thời mọi thửa đã lưu rồi gộp theo vùng ~11 km. Chỉ tính những
-        mô-đun <b>thật sự là mối đe doạ</b> và <b>có dữ liệu thật</b> — tiềm
-        năng điện mặt trời kém không phải rủi ro cho mảnh đất, và “chưa đủ dữ
-        liệu” không phải một đánh giá.
+        {t("Quét đồng thời mọi thửa đã lưu rồi gộp theo vùng ~11 km. Chỉ tính những mô-đun ", "Scans every saved plot at once and groups them into ~11 km cells. Only counts modules that are ")}
+        <b>{t("thật sự là mối đe doạ", "genuine threats")}</b>{t(" và ", " and ")}
+        <b>{t("có dữ liệu thật", "backed by real data")}</b>
+        {t(" — tiềm năng điện mặt trời kém không phải rủi ro cho mảnh đất, và “chưa đủ dữ liệu” không phải một đánh giá.",
+           " — poor solar potential isn't a risk to the land, and \"not enough data\" isn't a verdict.")}
       </p>
 
       <button className="ws-row-btn" disabled={busy} onClick={run}>
-        {busy ? "Đang quét cả danh mục…" : "Quét toàn cảnh danh mục"}
+        {busy ? t("Đang quét cả danh mục…", "Scanning the whole portfolio…") : t("Quét toàn cảnh danh mục", "Scan portfolio overview")}
       </button>
 
       {err && <p className="ws-err">⚠️ {err}</p>}
@@ -82,16 +85,16 @@ export default function PortfolioOverview({
             {(["danger", "warning", "safe", "unknown"] as const).map((k) => (
               <div key={k} className="po-count">
                 <b style={{ color: COLOR[k] }}>{d.counts?.[k] ?? 0}</b>
-                <span>{LABEL[k]}</span>
+                <span>{t(...LABEL[k])}</span>
               </div>
             ))}
             <div className="po-count">
               <b>{d.at_risk_ha}</b>
-              <span>ha rủi ro / {d.total_ha} ha</span>
+              <span>{t(`ha rủi ro / ${d.total_ha} ha`, `ha at risk / ${d.total_ha} ha`)}</span>
             </div>
           </div>
 
-          <div className="po-sec">Vùng — nặng nhất trước</div>
+          <div className="po-sec">{t("Vùng — nặng nhất trước", "Zones — heaviest first")}</div>
           {d.cells?.map((c) => (
             <div key={c.cell} className="po-cell">
               <div className="po-cell-bar">
@@ -105,20 +108,21 @@ export default function PortfolioOverview({
               <div className="po-cell-txt">
                 <b>{c.cell}</b>
                 <span>
-                  {c.plots} thửa · {c.area_ha} ha · rủi ro {c.at_risk_pct}%
-                  {c.top_driver && ` · chủ yếu do ${c.top_driver}`}
+                  {t(`${c.plots} thửa · ${c.area_ha} ha · rủi ro ${c.at_risk_pct}%`,
+                     `${c.plots} plots · ${c.area_ha} ha · ${c.at_risk_pct}% at risk`)}
+                  {c.top_driver && t(` · chủ yếu do ${c.top_driver}`, ` · mainly from ${c.top_driver}`)}
                 </span>
               </div>
             </div>
           ))}
 
-          <div className="po-sec">Từng thửa</div>
+          <div className="po-sec">{t("Từng thửa", "Individual plots")}</div>
           {d.plots?.map((p) => (
             <div key={p.plot_id} className="po-plot">
               <button
                 className="po-plot-h"
                 onClick={() => onOpen?.(p.lat, p.lon)}
-                title="Mở thửa này trên bản đồ"
+                title={t("Mở thửa này trên bản đồ", "Open this plot on the map")}
               >
                 <i style={{ background: COLOR[p.risk_level] }} />
                 <b>{p.name}</b>

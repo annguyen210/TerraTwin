@@ -10,9 +10,11 @@
  */
 import { useEffect, useState } from "react";
 import { getAlertLineage, getPlotTimeline, type AlertLineage, type PlotTimeline } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
 
 /* A5 — nguồn gốc + tái lập cho MỘT cảnh báo, mở ngay dưới sự kiện. */
 function LineageView({ alertId }: { alertId: number }) {
+  const { t } = useLang();
   const [d, setD] = useState<AlertLineage | null>(null);
   const [err, setErr] = useState<string | null>(null);
   useEffect(() => {
@@ -21,28 +23,29 @@ function LineageView({ alertId }: { alertId: number }) {
     return () => { live = false; };
   }, [alertId]);
   if (err) return <p className="pf-empty" style={{ margin: "2px 0" }}>{err}</p>;
-  if (!d) return <p className="pf-empty" style={{ margin: "2px 0" }}>Đang tải nguồn gốc…</p>;
+  if (!d) return <p className="pf-empty" style={{ margin: "2px 0" }}>{t("Đang tải nguồn gốc…", "Loading lineage…")}</p>;
   return (
     <div style={{ margin: "4px 0 2px", padding: "6px 10px", fontSize: 11.5,
       background: "var(--surface, #fff)", borderRadius: 6, border: "1px solid var(--line-2, #e8ece8)" }}>
-      <div><b>Nguồn dữ liệu:</b> {d.sources.join(" · ")}</div>
-      <div><b>Ngưỡng:</b> chú ý {d.model.thresholds.safe} · nguy hiểm {d.model.thresholds.warning} (hiệu chuẩn theo chính điểm này)</div>
-      {d.reproduce && <div><b>Chạy lại:</b> <span style={{ fontFamily: "monospace" }}>{d.reproduce.verify_api}</span></div>}
+      <div><b>{t("Nguồn dữ liệu:", "Data sources:")}</b> {d.sources.join(" · ")}</div>
+      <div><b>{t("Ngưỡng:", "Thresholds:")}</b> {t("chú ý", "caution")} {d.model.thresholds.safe} · {t("nguy hiểm", "danger")} {d.model.thresholds.warning} {t("(hiệu chuẩn theo chính điểm này)", "(calibrated to this exact point)")}</div>
+      {d.reproduce && <div><b>{t("Chạy lại:", "Reproduce:")}</b> <span style={{ fontFamily: "monospace" }}>{d.reproduce.verify_api}</span></div>}
       <div style={{ color: "var(--dim, #66716a)", marginTop: 2 }}>🔏 {d.lineage_short}</div>
     </div>
   );
 }
 
 // H4 — nhãn + màu cho kết quả mỗi cảnh báo trong dòng thời gian thửa.
-const OUTCOME: Record<string, [string, string]> = {
-  hit: ["✓ báo đúng", "var(--ok, #3ecb83)"],
-  false_alarm: ["✗ báo bừa", "var(--bad, #e5705a)"],
-  miss: ["⚠ bỏ sót", "var(--clay, #a0522c)"],
-  pending: ["⏳ đang chờ chấm", "var(--dim, #66716a)"],
-  expired: ["— hết hạn", "var(--dim, #66716a)"],
+const OUTCOME: Record<string, [string, string, string]> = {
+  hit: ["✓ báo đúng", "✓ correct", "var(--ok, #3ecb83)"],
+  false_alarm: ["✗ báo bừa", "✗ false alarm", "var(--bad, #e5705a)"],
+  miss: ["⚠ bỏ sót", "⚠ missed", "var(--clay, #a0522c)"],
+  pending: ["⏳ đang chờ chấm", "⏳ awaiting result", "var(--dim, #66716a)"],
+  expired: ["— hết hạn", "— expired", "var(--dim, #66716a)"],
 };
 
 export default function PlotHistory({ plotId }: { plotId: number }) {
+  const { t, lang } = useLang();
   const [tl, setTl] = useState<PlotTimeline | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [lineageOf, setLineageOf] = useState<number | null>(null);   // A5
@@ -55,7 +58,9 @@ export default function PlotHistory({ plotId }: { plotId: number }) {
   }, [plotId]);
 
   if (err) return <p className="pf-err" style={{ margin: "4px 0 10px" }}>{err}</p>;
-  if (!tl) return <p className="pf-empty" style={{ margin: "4px 0 10px" }}>Đang tải lịch sử…</p>;
+  if (!tl) return <p className="pf-empty" style={{ margin: "4px 0 10px" }}>{t("Đang tải lịch sử…", "Loading history…")}</p>;
+
+  const dateFmt = lang === "en" ? "en-US" : "vi-VN";
 
   return (
     <div style={{
@@ -64,30 +69,31 @@ export default function PlotHistory({ plotId }: { plotId: number }) {
       border: "1px solid var(--line, #e8ece8)",
     }}>
       <p style={{ fontSize: 11.5, color: "var(--dim, #66716a)", margin: 0 }}>
-        Đang trông coi từ {new Date(tl.watching_since).toLocaleDateString("vi-VN")}
-        {" · "}<b style={{ color: "var(--ok, #3ecb83)" }}>{tl.tally.hit ?? 0} đúng</b>
-        {" · "}<b style={{ color: "var(--clay, #a0522c)" }}>{tl.tally.miss ?? 0} sót</b>
-        {" · "}<b style={{ color: "var(--bad, #e5705a)" }}>{tl.tally.false_alarm ?? 0} bừa</b>
-        {" · "}{tl.tally.pending ?? 0} chờ
+        {t("Đang trông coi từ", "Watching since")} {new Date(tl.watching_since).toLocaleDateString(dateFmt)}
+        {" · "}<b style={{ color: "var(--ok, #3ecb83)" }}>{tl.tally.hit ?? 0} {t("đúng", "correct")}</b>
+        {" · "}<b style={{ color: "var(--clay, #a0522c)" }}>{tl.tally.miss ?? 0} {t("sót", "missed")}</b>
+        {" · "}<b style={{ color: "var(--bad, #e5705a)" }}>{tl.tally.false_alarm ?? 0} {t("bừa", "false")}</b>
+        {" · "}{tl.tally.pending ?? 0} {t("chờ", "pending")}
       </p>
       {tl.events.length === 0 ? (
         <p className="pf-empty" style={{ margin: "6px 0 0" }}>
-          Chưa có cảnh báo nào cho thửa này trong {tl.window_days} ngày qua.
+          {t(`Chưa có cảnh báo nào cho thửa này trong ${tl.window_days} ngày qua.`,
+             `No alerts for this plot in the last ${tl.window_days} days.`)}
         </p>
       ) : (
         <ul style={{ listStyle: "none", padding: 0, margin: "8px 0 0" }}>
           {tl.events.map((e) => {
-            const [lbl, color] = OUTCOME[e.outcome ?? "pending"] ?? OUTCOME.pending;
+            const [lblVi, lblEn, color] = OUTCOME[e.outcome ?? "pending"] ?? OUTCOME.pending;
             return (
               <li key={e.alert_id} style={{ borderLeft: `2px solid ${color}`, paddingLeft: 9, margin: "8px 0" }}>
                 <div style={{ fontSize: 11, color: "var(--dim, #66716a)" }}>
-                  {new Date(e.at).toLocaleDateString("vi-VN")} · {e.module_id}
+                  {new Date(e.at).toLocaleDateString(dateFmt)} · {e.module_id}
                   {!e.was_warned && (
-                    <b style={{ color: "var(--clay, #a0522c)" }}> · HỒI CỨU (phần mềm đã bỏ sót)</b>
+                    <b style={{ color: "var(--clay, #a0522c)" }}> · {t("HỒI CỨU (phần mềm đã bỏ sót)", "RETROSPECTIVE (the software missed this)")}</b>
                   )}
                 </div>
                 <div style={{ fontSize: 13 }}>{e.headline}</div>
-                <span style={{ fontSize: 11, fontWeight: 700, color }}>{lbl}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color }}>{t(lblVi, lblEn)}</span>
                 {e.verify_note && (
                   <span style={{ fontSize: 11, color: "var(--dim, #66716a)" }}> — {e.verify_note}</span>
                 )}
@@ -96,7 +102,7 @@ export default function PlotHistory({ plotId }: { plotId: number }) {
                   style={{ display: "block", marginTop: 3, padding: 0, border: "none",
                     background: "none", cursor: "pointer", fontSize: 11,
                     color: "var(--terra, #1f5137)", fontWeight: 600 }}>
-                  🔍 {lineageOf === e.alert_id ? "ẩn nguồn gốc" : "nguồn gốc & cách kiểm chứng"}
+                  🔍 {lineageOf === e.alert_id ? t("ẩn nguồn gốc", "hide lineage") : t("nguồn gốc & cách kiểm chứng", "lineage & how to verify")}
                 </button>
                 {lineageOf === e.alert_id && <LineageView alertId={e.alert_id} />}
               </li>
@@ -106,7 +112,8 @@ export default function PlotHistory({ plotId }: { plotId: number }) {
       )}
       {tl.questions.length > 0 && (
         <p className="pf-empty" style={{ margin: "8px 0 0", color: "var(--clay, #a0522c)" }}>
-          📩 {tl.questions.length} câu đang chờ bạn xác nhận — mở thửa (bấm vào để phân tích) để trả lời.
+          📩 {t(`${tl.questions.length} câu đang chờ bạn xác nhận — mở thửa (bấm vào để phân tích) để trả lời.`,
+                `${tl.questions.length} question(s) awaiting your confirmation — open this plot (click to analyze) to answer.`)}
         </p>
       )}
     </div>
