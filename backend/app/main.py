@@ -32,7 +32,7 @@ from app.services import (
     advisor,
     anomaly, anomaly_ml, backtest, calibration, copilot, design, explain,
     future, genome, goalseek,
-    hazard, heatmap, imagery, jobs, landcover, llm, mrv, place, region,
+    hazard, heatmap, imagery, jobs, jobs_db, landcover, llm, mrv, place, region,
     passport, reqlang, roadmap, scan, sentinel,
     terrascore, timelapse, timemachine, whatif, whatif_nlp,
 )
@@ -53,6 +53,11 @@ _RADAR_RETRY_INTERVAL_MIN = float(os.environ.get("TERRATWIN_RADAR_RETRY_INTERVAL
 
 # Hâm nóng cache ngay sau khi dựng lại tiến trình. "0" = tắt; mặc định bật.
 _STARTUP_WARMUP = os.environ.get("TERRATWIN_STARTUP_WARMUP", "1").strip() != "0"
+
+# Đ10 — nhịp thăm dò hàng đợi việc dài BỀN (bảng jobs, xem services/jobs_db.py).
+# 0 = tắt (test đặt biến này về 0 — không muốn một luồng nền tự chạy khi test
+# đang thao túng database trực tiếp).
+_JOBS_POLL_INTERVAL_S = float(os.environ.get("TERRATWIN_JOBS_POLL_INTERVAL_S", "2") or 0)
 
 
 async def _radar_loop() -> None:
@@ -155,6 +160,44 @@ async def _radar_retry_loop() -> None:
             log(f"[TerraTwin] Thử lại bỏ sót lỗi: {type(e).__name__}: {e}")
 
 
+async def _jobs_poll_loop() -> None:
+    """Đ10 — nhịp thăm dò hàng đợi việc dài BỀN (bảng jobs).
+
+    Thức dậy mỗi TERRATWIN_JOBS_POLL_INTERVAL_S giây, giành lấy MỘT việc đang
+    chờ (nếu có, an toàn với nhiều worker nhờ SKIP LOCKED — xem jobs_db.py) và
+    chạy nó. Chạy LIÊN TỤC cho tới khi hàng đợi rỗng trước khi ngủ lại, để
+    nhiều việc dồn lại không phải chờ hết interval từng cái một.
+    """
+    import asyncio
+
+    from app.db import SessionLocal
+    from app.services import jobs_db
+
+    interval = _JOBS_POLL_INTERVAL_S
+    while True:
+        try:
+            def _drain() -> int:
+                db = SessionLocal()
+                n = 0
+                try:
+                    while jobs_db.poll_and_run_one(db):
+                        n += 1
+                    jobs_db.prune(db)
+                finally:
+                    db.close()
+                return n
+
+            await asyncio.to_thread(_drain)
+        except asyncio.CancelledError:
+            return
+        except Exception as e:      # nền hỏng không được kéo sập API
+            log(f"[TerraTwin] Hàng đợi việc dài lỗi: {type(e).__name__}: {e}")
+        try:
+            await asyncio.sleep(interval)
+        except asyncio.CancelledError:
+            return
+
+
 async def _startup_warmup() -> None:
     """Nạp trước 8 địa điểm mẫu (app.warm.DEMO) NGAY sau khi dựng lại tiến
     trình — demo trước giám khảo không được rơi vào mô hình mẫu chỉ vì Render
@@ -209,10 +252,14 @@ async def lifespan(_app: FastAPI):
     warmup_task = None
     if _STARTUP_WARMUP:
         warmup_task = asyncio.create_task(_startup_warmup())
+
+    jobs_task = None
+    if _JOBS_POLL_INTERVAL_S > 0:
+        jobs_task = asyncio.create_task(_jobs_poll_loop())
     try:
         yield
     finally:
-        for t in (task, retry_task, warmup_task):
+        for t in (task, retry_task, warmup_task, jobs_task):
             if t is not None:
                 t.cancel()
                 try:
@@ -873,6 +920,15 @@ def genome_endpoint(location: Location, k: int = 5, lang: str = "vi") -> dict:
     return genome.find_twins(location.lat, location.lon, k=k)
 
 
+@jobs_db.register("genome_warm")
+def _genome_warm_handler(args: dict) -> dict:
+    """Đ10 — hàm xử lý thật của việc 'genome_warm', tra được từ registry bằng
+    kind lúc worker chạy (xem jobs_db.py) — KHÔNG lưu closure xuống database,
+    chỉ lưu `args` (JSON), registry tra ra hàm này bằng chuỗi 'genome_warm'."""
+    ref = genome.build_reference(force=bool(args.get("force", False)))
+    return {k: v for k, v in ref.items() if k != "cells"}
+
+
 @app.post("/api/genome/warm")
 def genome_warm(force: bool = False, background: bool = True) -> dict:
     """Dựng sẵn lưới tham chiếu để lần hỏi đầu của người dùng không phải chờ.
@@ -881,16 +937,22 @@ def genome_warm(force: bool = False, background: bool = True) -> dict:
     phần lớn proxy cắt kết nối trước đó — người dùng thấy lỗi trong khi máy chủ
     vẫn đang chạy đúng. Đặt background=false nếu muốn chờ tại chỗ (dùng cho
     script triển khai, không dùng cho trình duyệt).
+
+    Đ10 — hàng đợi BỀN (bảng jobs, không còn RAM): sống qua restart, và an
+    toàn nếu sau này chạy nhiều worker cùng lúc (SELECT...FOR UPDATE SKIP
+    LOCKED, xem services/jobs_db.py).
     """
     if not background:
         ref = genome.build_reference(force=force)
         return {k: v for k, v in ref.items() if k != "cells"}
 
-    def _work():
-        ref = genome.build_reference(force=force)
-        return {k: v for k, v in ref.items() if k != "cells"}
-
-    job_id = jobs.submit("genome_warm", _work, "Dựng lưới bộ gen toàn quốc")
+    from app.db import SessionLocal
+    db = SessionLocal()
+    try:
+        job_id = jobs_db.submit(db, "genome_warm", {"force": force},
+                                "Dựng lưới bộ gen toàn quốc")
+    finally:
+        db.close()
     return {"job_id": job_id, "state": "queued",
             "poll": f"/api/jobs/{job_id}",
             "message": ("Đang dựng lưới ở chế độ nền (1–2 phút). Hỏi lại "
@@ -899,20 +961,36 @@ def genome_warm(force: bool = False, background: bool = True) -> dict:
 
 @app.get("/api/jobs/{job_id}")
 def job_status(job_id: str) -> dict:
-    """Trạng thái một việc chạy nền."""
-    st = jobs.status(job_id)
+    """Trạng thái một việc chạy nền — đọc từ bảng jobs BỀN (Đ10), sống qua
+    restart máy chủ."""
+    from app.db import SessionLocal
+    db = SessionLocal()
+    try:
+        st = jobs_db.status(db, job_id)
+    finally:
+        db.close()
     if st is None:
         raise HTTPException(
             status_code=404,
-            detail=("Không có việc nào mang mã này. Hàng đợi nằm trong bộ nhớ "
-                    "nên khởi động lại máy chủ là mất; kết quả cũng chỉ giữ 30 phút."))
+            detail="Không có việc nào mang mã này — có thể đã dọn quá 30 phút sau khi xong.")
     return st
 
 
 @app.get("/api/jobs")
 def jobs_overview() -> dict:
-    """Sức khoẻ hàng đợi và trần gọi ra ngoài."""
-    return jobs.stats()
+    """Sức khoẻ hàng đợi và trần gọi ra ngoài.
+
+    Gộp hai tầng: jobs.stats() (bể luồng/gộp việc trùng trong tiến trình,
+    KHÔNG đổi ở Đ10) + jobs_db.stats() (hàng đợi việc dài BỀN, bảng jobs)."""
+    from app.db import SessionLocal
+    out = jobs.stats()
+    db = SessionLocal()
+    try:
+        out["persistent_queue"] = jobs_db.stats(db)
+        out["persistent_queue"]["poll_interval_s"] = _JOBS_POLL_INTERVAL_S
+    finally:
+        db.close()
+    return out
 
 
 class AskRequest(BaseModel):

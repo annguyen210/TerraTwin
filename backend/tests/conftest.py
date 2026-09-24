@@ -22,6 +22,11 @@ os.environ["TERRATWIN_RADAR_RETRY_INTERVAL_MIN"] = "0"
 # 8 lượt quét thật ra Open-Meteo/MET Norway mỗi lần TestClient(app) mở lifespan.
 os.environ["TERRATWIN_STARTUP_WARMUP"] = "0"
 
+# Đ10 — vòng lặp thăm dò hàng đợi việc dài BỀN cũng tắt trong test: test thao
+# túng bảng jobs trực tiếp (claim_next/submit) trên một session riêng, một
+# luồng nền tự chạy song song sẽ giành việc trước khi test kịp kiểm tra.
+os.environ["TERRATWIN_JOBS_POLL_INTERVAL_S"] = "0"
+
 
 # CSDL RIÊNG CHO MỖI LẦN CHẠY TEST.
 #

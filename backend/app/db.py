@@ -442,6 +442,33 @@ class PushSub(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
 
+class Job(Base):
+    """Đ10 — hàng đợi việc dài BỀN, thay hàng đợi trong bộ nhớ (jobs.py).
+
+    jobs.py (in-RAM) mất sạch việc đang chờ mỗi lần restart, và không chia sẻ
+    được giữa nhiều tiến trình worker (Render có thể chạy >1 instance). Bảng
+    này giải đúng hai vấn đề đó — dùng SELECT...FOR UPDATE SKIP LOCKED để
+    NHIỀU worker cùng đọc bảng mà không tranh nhau một việc (xem services/
+    jobs_db.py). `args_json`/`result_json` bắt buộc phải TUẦN TỰ HOÁ ĐƯỢC
+    (JSON) — khác jobs.py cũ nhận thẳng một closure Python, không thể lưu
+    xuống database được. Đây LÀ lý do phải có một bảng REGISTRY ánh xạ `kind`
+    → hàm xử lý (xem jobs_db.register()), thay vì truyền thẳng hàm.
+    """
+    __tablename__ = "jobs"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(64), index=True)
+    label: Mapped[str] = mapped_column(String(255), default="")
+    args_json: Mapped[str] = mapped_column(Text, default="{}")
+    # queued | running | done | error
+    state: Mapped[str] = mapped_column(String(16), default="queued", index=True)
+    result_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    error: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
 class ModelVersion(Base):
     """A6 — SỔ ĐĂNG KÝ MÔ HÌNH + quay lui.
 
