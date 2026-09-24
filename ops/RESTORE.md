@@ -12,6 +12,9 @@ Nếu một bước báo lỗi, dừng lại và đọc đúng dòng lỗi trư�
 - Máy có cài [git](https://git-scm.com), [PostgreSQL client](https://www.postgresql.org/download/) (để có lệnh `psql`), và [GnuPG](https://gnupg.org) (để có lệnh `gpg` — Mac/Linux thường có sẵn).
 - **Chuỗi mật khẩu sao lưu** (`TERRATWIN_BACKUP_PASSPHRASE`) — chuỗi này KHÔNG nằm trong repo, phải lấy từ nơi bạn đã cất giữ khi tạo (trình quản lý mật khẩu, GitHub Secrets…). **Mất chuỗi này = mất khả năng đọc mọi bản sao lưu cũ, không ai cứu được kể cả người viết phần mềm.**
 - Một URL Postgres để khôi phục vào — KHÔNG bao giờ khôi phục thẳng vào production khi mới diễn tập.
+- **Quyền đọc repo sao lưu riêng tư** (`TERRATWIN_BACKUP_REPO`, xem mục 3) —
+  repo này KHÔNG PHẢI TerraTwin công khai; bạn cần tài khoản GitHub có quyền
+  vào đó (chủ tài khoản đã tạo nó khi đặt secret `TERRATWIN_BACKUP_REPO`).
 
 ## 1. Diễn tập (làm trước, không đụng dữ liệu thật)
 
@@ -19,9 +22,11 @@ Nếu một bước báo lỗi, dừng lại và đọc đúng dòng lỗi trư�
 git clone https://github.com/annguyen210/TerraTwin.git
 cd TerraTwin
 
-# Tải nhánh chứa các bản sao lưu đã mã hoá.
-git fetch origin backups:backups
-git worktree add ../terratwin-backups backups
+# Tải bản sao lưu từ repo RIÊNG TƯ (KHÁC repo TerraTwin công khai này) —
+# thay <chủ-sở-hữu>/<tên-repo> bằng đúng giá trị đã đặt trong secret
+# TERRATWIN_BACKUP_REPO. Repo này private nên `git clone` cần bạn đã đăng
+# nhập/có quyền (SSH key hoặc `gh auth login`).
+git clone https://github.com/<chủ-sở-hữu>/<tên-repo-sao-lưu>.git ../terratwin-backups
 ```
 
 Tạo một Postgres TRỐNG để khôi phục thử vào — cách nhanh nhất là mở một
@@ -83,19 +88,43 @@ thửa/cảnh báo còn nguyên.
   `.github/workflows/backup.yml`. Kiểm tra chạy được hay không tại tab
   **Actions** trên GitHub (tìm workflow "Database backup").
 - **Giữ 7 bản gần nhất** (mỗi ngày) + **4 bản Chủ Nhật gần nhất** (mỗi tuần).
-  Bản cũ hơn tự động bị xoá khỏi nhánh `backups` — không cần dọn tay.
-- Mọi bản đều **đã mã hoá** trước khi lưu — kể cả khi kẻ xấu đọc được toàn bộ
-  repo công khai này, họ vẫn không đọc được nội dung nếu không có chuỗi mật
-  khẩu sao lưu.
+  Bản cũ hơn tự động bị xoá — không cần dọn tay.
+- **Nằm ở repo RIÊNG TƯ KHÁC**, không phải nhánh của repo TerraTwin công khai
+  này — xem secret `TERRATWIN_BACKUP_REPO` để biết chính xác tên repo đó.
+  ĐÂY LÀ THAY ĐỔI so với bản thiết kế đầu tiên (từng lưu trong nhánh `backups`
+  của chính repo công khai — đã sửa vì mã hoá chỉ trễ việc đọc được, không
+  cứu được việc một repo công khai bị `git clone` và giữ bản mãi mãi).
+- Mọi bản đều **đã mã hoá** trước khi lưu — hai lớp bảo vệ cộng lại (repo
+  riêng tư + mã hoá), không chỉ dựa vào một lớp.
 
-## 4. Nếu workflow báo đỏ trên GitHub Actions
+## 4. Thiết lập repo sao lưu riêng tư LẦN ĐẦU (chỉ chủ dự án làm, một lần)
 
-Nguyên nhân thường gặp nhất là thiếu hoặc sai một trong hai secret sau
-(Settings → Secrets and variables → Actions, trên repo):
+1. Tạo một repo GitHub MỚI, đặt **Private**, không cần file nào bên trong
+   (không cần README, không cần .gitignore).
+2. Vào GitHub → ảnh đại diện góc phải → **Settings** → **Developer settings**
+   → **Personal access tokens** → **Fine-grained tokens** → **Generate new
+   token**.
+   - **Repository access**: chọn **Only select repositories**, chọn ĐÚNG repo
+     vừa tạo ở bước 1. TUYỆT ĐỐI không chọn repo TerraTwin công khai.
+   - **Permissions** → **Repository permissions** → **Contents**: chọn
+     **Read and write**.
+   - Tạo token, copy lại ngay (chỉ hiện một lần).
+3. Vào repo **TerraTwin** (repo công khai, repo đang chạy code) → **Settings**
+   → **Secrets and variables** → **Actions**, thêm hai secret:
+   - `TERRATWIN_BACKUP_REPO` = `<chủ-sở-hữu>/<tên-repo-vừa-tạo>` (vd
+     `annguyen210/terratwin-backups`)
+   - `TERRATWIN_BACKUP_REPO_PAT` = token vừa copy ở bước 2
+
+## 5. Nếu workflow báo đỏ trên GitHub Actions
+
+Nguyên nhân thường gặp nhất là thiếu hoặc sai một trong bốn secret sau
+(Settings → Secrets and variables → Actions, trên repo **TerraTwin**):
 
 | Secret | Lấy ở đâu |
 |---|---|
 | `TERRATWIN_DB_EXTERNAL_URL` | Render → database `terratwin-db` → tab Connect → **External Database URL** (không phải Internal — GitHub Actions không nằm trong mạng nội bộ Render) |
 | `TERRATWIN_BACKUP_PASSPHRASE` | Chuỗi bạn tự sinh một lần và cất giữ — nếu chưa có, sinh mới bằng `openssl rand -base64 32` rồi lưu an toàn (đổi chuỗi này thì các bản sao lưu CŨ giải mã bằng chuỗi cũ vẫn đọc được, chỉ bản MỚI dùng chuỗi mới) |
+| `TERRATWIN_BACKUP_REPO` | Xem mục 4 — tạo repo riêng tư trước, rồi mới đặt secret này |
+| `TERRATWIN_BACKUP_REPO_PAT` | Xem mục 4 — fine-grained PAT chỉ cấp quyền cho ĐÚNG repo `TERRATWIN_BACKUP_REPO` |
 
 Đọc chi tiết lỗi trong tab Actions → chọn lần chạy đỏ → xem log.

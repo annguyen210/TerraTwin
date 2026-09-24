@@ -6,10 +6,8 @@
 # gói Postgres miễn phí của Render CÓ THỜI HẠN. Một cơ sở dữ liệu chưa ai sao
 # lưu lần nào là một quả bom hẹn giờ.
 #
-# VÌ SAO PHẢI MÃ HOÁ: repo này CÔNG KHAI, và .github/workflows/backup.yml lưu
-# bản sao lưu ngay trong repo (nhánh `backups`) để khỏi cần tài khoản lưu trữ
-# ngoài. Một bản dump Postgres thô chứa email, hash mật khẩu, và toạ độ thửa —
-# lộ những thứ đó ra công khai còn tệ hơn không sao lưu. Đặt
+# VÌ SAO PHẢI MÃ HOÁ: bản dump Postgres thô chứa email, hash mật khẩu, và toạ
+# độ thửa — lộ những thứ đó ra ngoài còn tệ hơn không sao lưu. Đặt
 # TERRATWIN_BACKUP_PASSPHRASE thì script mã hoá bằng gpg (AES256, đối xứng)
 # trước khi ghi ra đĩa; KHÔNG đặt thì cảnh báo đỏ và vẫn để bản THÔ (chỉ dùng
 # khi chạy tay, backup cục bộ, không đẩy đi đâu).
@@ -20,7 +18,13 @@
 #
 # Giữ 7 bản NGÀY + 4 bản TUẦN. Sau khi tạo bản local, ĐẨY sang nơi khác — bản
 # sao nằm cùng máy với bản gốc thì không cứu được khi mất cả máy.
-# backup.yml đẩy vào nhánh `backups` của chính repo này.
+#
+# backup.yml đẩy vào một REPO RIÊNG TƯ KHÁC (TERRATWIN_BACKUP_REPO) — TUYỆT
+# ĐỐI không đẩy vào repo TerraTwin này (repo này CÔNG KHAI). Mã hoá GPG chỉ
+# trễ việc đọc được, không cứu được việc PHÁT TÁN: ai `git clone` một nhánh
+# công khai cũng tải được các bản .sql.gz.gpg đó vĩnh viễn, kể cả sau khi xoá
+# nhánh — đây là lý do bắt buộc phải là repo riêng tư, không phải chỉ mã hoá
+# là đủ.
 #
 # QUAN TRỌNG: một bản sao lưu CHƯA TỪNG khôi phục thử thì CHƯA phải bản sao lưu.
 # Xem ops/restore-drill.sh — phải chạy thành công một lần trước khi tin nó.

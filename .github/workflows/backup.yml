@@ -1,20 +1,37 @@
 name: Database backup
 
-# N2 — pg_dump Postgres mỗi ngày, MÃ HOÁ (gpg AES256), lưu trong nhánh `backups`
-# của CHÍNH repo này — không cần tài khoản lưu trữ ngoài. AN TOÀN dù repo công
-# khai: mọi file trong nhánh backups đều đã mã hoá trước khi commit (xem
-# ops/backup.sh); không có TERRATWIN_BACKUP_PASSPHRASE thì không đọc được gì.
+# N2 → SỬA SAU KIỂM TOÁN: pg_dump Postgres mỗi ngày, MÃ HOÁ (gpg AES256), đẩy
+# vào một REPO RIÊNG TƯ khác — KHÔNG còn đẩy vào nhánh `backups` của chính
+# repo công khai này nữa.
 #
-# Giữ 7 bản ngày + 4 bản tuần (ops/backup.sh tự xoay vòng, xoá bản cũ trước
-# khi commit — nhánh backups không phình vô hạn).
+# VÌ SAO ĐỔI. Mã hoá GPG chỉ trễ việc đọc được, không cứu được việc PHÁT TÁN.
+# Nhánh `backups` của một repo công khai là công khai — ai `git clone` cũng
+# tải được các bản .sql.gz.gpg đó VĨNH VIỄN, kể cả sau khi ta xoá nhánh (đã
+# clone thì họ giữ bản riêng). Một bản sao lưu chứa email + hash mật khẩu +
+# toạ độ thửa của người dùng thật không được phép nằm trong tầm với đó, dù có
+# mã hoá hay không — bài toán ở đây là NGƯỜI LẠ CÓ TẢI ĐƯỢC FILE hay không,
+# GPG chỉ trả lời được câu "tải được rồi thì đọc được không".
 #
-# BẮT BUỘC đặt hai secret trong repo Settings → Secrets → Actions:
+# BẮT BUỘC đặt BỐN secret trong repo Settings → Secrets → Actions:
 #   TERRATWIN_DB_EXTERNAL_URL   — External Database URL từ Render (Postgres →
 #                                 Connect → External). KHÔNG dùng Internal URL,
 #                                 GitHub Actions không nằm trong mạng nội bộ Render.
 #   TERRATWIN_BACKUP_PASSPHRASE — chuỗi ngẫu nhiên dài, sinh một lần và CẤT GIỮ
 #                                 an toàn ngoài repo (mất chuỗi này = mất khả
 #                                 năng đọc mọi bản sao lưu cũ).
+#   TERRATWIN_BACKUP_REPO       — "chủ-sở-hữu/tên-repo" của repo RIÊNG TƯ dùng
+#                                 riêng để chứa sao lưu (vd "annguyen210/
+#                                 terratwin-backups"). Tạo repo này TRƯỚC, để
+#                                 Private, không cần file nào bên trong.
+#   TERRATWIN_BACKUP_REPO_PAT   — fine-grained Personal Access Token CHỈ cấp
+#                                 quyền cho ĐÚNG repo TERRATWIN_BACKUP_REPO ở
+#                                 trên, quyền Contents: Read and write. Tạo ở
+#                                 GitHub → Settings (tài khoản) → Developer
+#                                 settings → Fine-grained tokens. KHÔNG cấp
+#                                 quyền cho repo TerraTwin công khai này.
+#
+# Giữ 7 bản ngày + 4 bản tuần (ops/backup.sh tự xoay vòng, xoá bản cũ trước
+# khi commit — repo sao lưu không phình vô hạn).
 
 on:
   schedule:
@@ -25,8 +42,10 @@ concurrency:
   group: db-backup
   cancel-in-progress: false
 
+# KHÔNG cần contents:write cho repo NÀY nữa — sao lưu đẩy sang repo khác bằng
+# PAT riêng, không dùng GITHUB_TOKEN của repo công khai này để ghi bất cứ đâu.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   backup:
@@ -42,7 +61,15 @@ jobs:
             fail=1
           fi
           if [ -z "${{ secrets.TERRATWIN_BACKUP_PASSPHRASE }}" ]; then
-            echo "::error::Thiếu secret TERRATWIN_BACKUP_PASSPHRASE — repo công khai, KHÔNG được sao lưu chưa mã hoá."
+            echo "::error::Thiếu secret TERRATWIN_BACKUP_PASSPHRASE — KHÔNG được sao lưu chưa mã hoá."
+            fail=1
+          fi
+          if [ -z "${{ secrets.TERRATWIN_BACKUP_REPO }}" ]; then
+            echo "::error::Thiếu secret TERRATWIN_BACKUP_REPO — cần repo RIÊNG TƯ để chứa sao lưu, không được đẩy vào repo công khai này."
+            fail=1
+          fi
+          if [ -z "${{ secrets.TERRATWIN_BACKUP_REPO_PAT }}" ]; then
+            echo "::error::Thiếu secret TERRATWIN_BACKUP_REPO_PAT — token ghi vào TERRATWIN_BACKUP_REPO."
             fail=1
           fi
           [ "$fail" = "0" ]
@@ -50,17 +77,17 @@ jobs:
       - name: Cài pg_dump
         run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
 
-      - name: Chuẩn bị nhánh backups (checkout nếu có, tạo mới nếu chưa)
+      - name: Chuẩn bị repo sao lưu RIÊNG TƯ (checkout nếu có, tạo mới nếu chưa)
         run: |
           git config --global user.name "terratwin-backup-bot"
           git config --global user.email "actions@users.noreply.github.com"
-          REMOTE="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
-          if git ls-remote --exit-code --heads "$REMOTE" backups >/dev/null 2>&1; then
-            git clone --branch backups --single-branch --depth 1 "$REMOTE" ../backups-wt
+          REMOTE="https://x-access-token:${{ secrets.TERRATWIN_BACKUP_REPO_PAT }}@github.com/${{ secrets.TERRATWIN_BACKUP_REPO }}.git"
+          if git ls-remote --exit-code --heads "$REMOTE" main >/dev/null 2>&1; then
+            git clone --branch main --single-branch --depth 1 "$REMOTE" ../backups-wt
           else
             mkdir -p ../backups-wt
-            git -C ../backups-wt init -q -b backups
-            git -C ../backups-wt commit -q --allow-empty -m "khoi tao nhanh sao luu"
+            git -C ../backups-wt init -q -b main
+            git -C ../backups-wt commit -q --allow-empty -m "khoi tao repo sao luu"
           fi
 
       - name: Sao lưu + mã hoá (ops/backup.sh)
@@ -70,7 +97,7 @@ jobs:
           TERRATWIN_BACKUP_DIR: ${{ github.workspace }}/../backups-wt
         run: bash ops/backup.sh
 
-      - name: Commit + đẩy bản sao lưu đã mã hoá
+      - name: Commit + đẩy bản sao lưu đã mã hoá vào repo RIÊNG TƯ
         run: |
           cd ../backups-wt
           git add -A
@@ -78,5 +105,5 @@ jobs:
             echo "Không có gì mới (đã có bản hôm nay?)."
           else
             git commit -q -m "backup $(date -u +%Y%m%d-%H%M)Z"
-            git push -q "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" backups
+            git push -q "https://x-access-token:${{ secrets.TERRATWIN_BACKUP_REPO_PAT }}@github.com/${{ secrets.TERRATWIN_BACKUP_REPO }}.git" main
           fi
