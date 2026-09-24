@@ -136,6 +136,19 @@ def _check_password_strength(pw: str) -> None:
         raise HTTPException(422, "Mật khẩu cần có cả chữ và số.")
 
 
+# Đ11 sửa sau kiểm toán — trước đây role="admin" CHỈ gán được bằng cách sửa
+# thẳng database, không có đường cấp quyền nào qua phần mềm. Đọc MỖI LẦN gọi
+# (không cache ở import-time) để đổi biến môi trường có hiệu lực ngay không
+# cần khởi động lại — quan trọng lúc mới triển khai, chưa muốn restart để thử.
+def _admin_emails() -> set[str]:
+    raw = os.environ.get("TERRATWIN_ADMIN_EMAILS", "")
+    return {e.strip().lower() for e in raw.split(",") if e.strip()}
+
+
+def _is_admin_email(email: str) -> bool:
+    return email.strip().lower() in _admin_emails()
+
+
 # ---------- Tài khoản ----------
 
 @router.post("/api/auth/register", response_model=TokenOut, status_code=201)
@@ -143,7 +156,8 @@ def register(body: RegisterIn, db: Session = Depends(get_session)) -> TokenOut:
     _check_password_strength(body.password)
     email = body.email.strip().lower()
     user = User(email=email, password_hash=auth.hash_password(body.password),
-                name=body.name.strip())
+                name=body.name.strip(),
+                role="admin" if _is_admin_email(email) else "user")
     db.add(user)
     try:
         db.commit()
@@ -167,6 +181,14 @@ def login(body: LoginIn, db: Session = Depends(get_session)) -> TokenOut:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Email hoặc mật khẩu không đúng.")
     if not auth.verify_password(body.password, user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Email hoặc mật khẩu không đúng.")
+    # Đ11 sửa sau kiểm toán — email nằm trong TERRATWIN_ADMIN_EMAILS được
+    # NÂNG lên admin mỗi lần đăng nhập (bắt được cả trường hợp tài khoản đã
+    # tồn tại TRƯỚC khi email được thêm vào danh sách). CỐ Ý không tự động
+    # HẠ quyền khi email bị rút khỏi danh sách — gõ nhầm biến môi trường một
+    # lần không được phép âm thầm khoá admin ra khỏi chính hệ thống của họ;
+    # hạ quyền là việc phải làm CHỦ ĐỘNG (sửa thẳng database).
+    if user.role != "admin" and _is_admin_email(email):
+        user.role = "admin"
     log_audit(db, user.id, "login")                    # Đ12
     db.commit()
     return TokenOut(access_token=auth.create_token(user.id), user=_out(user))
