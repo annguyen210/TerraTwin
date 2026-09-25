@@ -873,19 +873,21 @@ def mrv_verify(report: dict) -> dict:
 
 
 @app.post("/api/change-detect")
-def change_detect_endpoint(location: Location, months: int = 24) -> dict:
-    """A7 — phát hiện mất tán cây bền vững trên chuỗi NDVI 24 tháng
-    (BFAST/CUSUM rút gọn) — phân biệt được với dao động mùa vụ (vd lúa ba vụ),
-    khác mrv.build() vốn chỉ so hai lát cắt (năm nay vs năm ngoái)."""
+def change_detect_endpoint(location: Location, months: int = 24, lang: str = "vi") -> dict:
+    """A7 — phát hiện mất tán cây bền vững trên chuỗi NDVI (BFAST/CUSUM rút
+    gọn) — phân biệt được với dao động mùa vụ (vd lúa ba vụ), khác mrv.build()
+    vốn chỉ so hai lát cắt (năm nay vs năm ngoái)."""
+    reqlang.set_lang(lang)
     from app.services import change_detect
 
     return change_detect.detect(location.lat, location.lon, months=max(6, min(months, 36)))
 
 
 @app.post("/api/auto-boundary")
-def auto_boundary_endpoint(location: Location, buffer_m: float = 500.0) -> dict:
+def auto_boundary_endpoint(location: Location, buffer_m: float = 500.0, lang: str = "vi") -> dict:
     """A8 — tự vẽ ranh thửa bằng watershed trên độ dốc NDVI quanh điểm bấm
     (khung ~1km, ảnh Sentinel-2 gần nhất qua Planetary Computer)."""
+    reqlang.set_lang(lang)
     from app.services import watershed
 
     return watershed.extract_boundary(location.lat, location.lon,

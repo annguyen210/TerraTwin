@@ -28,10 +28,21 @@ import zlib
 
 import numpy as np
 
+from app.services.reqlang import tr
+
 
 # ---------------------------------------------------------------------------
-# Decode PNG xám 8-bit thuần Python (không Pillow/opencv) — chỉ chunk IHDR/IDAT,
-# color type 0 (xám) hoặc 2 (RGB, lấy trung bình kênh phòng khi titiler trả RGB).
+# Decode PNG xám 8-bit thuần Python (không Pillow/opencv) — chỉ chunk IHDR/IDAT.
+# Hỗ trợ color type 0 (xám), 2 (RGB), 4 (xám+alpha), 6 (RGBA) — kênh alpha bị
+# BỎ (không dùng làm mặt nạ nodata), kênh màu lấy trung bình nếu nhiều hơn 1.
+#
+# titiler (máy chủ ảnh của Planetary Computer) MẶC ĐỊNH gắn kênh alpha (mặt nạ
+# nodata) vào mọi PNG xuất ra, kể cả khi không có colormap — nghĩa là một cảnh
+# NDVI 1 kênh thực ra trả về color type 4 (xám+alpha), KHÔNG PHẢI color type 0
+# như code gốc giả định. Đã kiểm chứng bằng cách gọi thật endpoint và đọc IHDR:
+# color_type=4. Cách sửa CHÍNH ở extract_boundary() là thêm &return_mask=false
+# vào query để titiler trả đúng color type 0 — hỗ trợ 4/6 ở đây chỉ là lưới an
+# toàn phòng khi return_mask không được tôn trọng.
 # ---------------------------------------------------------------------------
 
 _PNG_SIG = b"\x89PNG\r\n\x1a\n"
@@ -51,7 +62,7 @@ def decode_png_grayscale(data: bytes) -> np.ndarray:
     """Trả mảng (H, W) float64 trong [0,255] — GIÁ TRỊ THÔ của kênh (không tự
     rescale về NDVI, người gọi tự làm việc đó vì biết rescale range đã yêu cầu)."""
     if data[:8] != _PNG_SIG:
-        raise ValueError("Không phải file PNG hợp lệ.")
+        raise ValueError(tr("Không phải file PNG hợp lệ.", "Not a valid PNG file."))
 
     pos = 8
     width = height = bit_depth = color_type = None
@@ -69,11 +80,13 @@ def decode_png_grayscale(data: bytes) -> np.ndarray:
         pos += 8 + length + 4   # 4 = CRC
 
     if width is None:
-        raise ValueError("Thiếu IHDR — file PNG hỏng.")
-    if bit_depth != 8 or color_type not in (0, 2):
-        raise ValueError(f"Chỉ hỗ trợ PNG xám/RGB 8-bit, gặp depth={bit_depth} type={color_type}.")
+        raise ValueError(tr("Thiếu IHDR — file PNG hỏng.", "Missing IHDR — corrupt PNG file."))
+    if bit_depth != 8 or color_type not in (0, 2, 4, 6):
+        raise ValueError(tr(
+            f"Chỉ hỗ trợ PNG 8-bit xám/RGB/xám-alpha/RGBA, gặp depth={bit_depth} type={color_type}.",
+            f"Only 8-bit gray/RGB/gray-alpha/RGBA PNG supported, got depth={bit_depth} type={color_type}."))
 
-    channels = 1 if color_type == 0 else 3
+    channels = {0: 1, 2: 3, 4: 2, 6: 4}[color_type]
     raw = zlib.decompress(bytes(idat))
     stride = width * channels
     out = np.zeros((height, width, channels), dtype=np.float64)
@@ -106,12 +119,15 @@ def decode_png_grayscale(data: bytes) -> np.ndarray:
                 up_left = prev[i - channels] if i >= channels else 0
                 recon[i] = (recon[i] + _paeth(int(left), int(up), int(up_left))) & 0xFF
         else:
-            raise ValueError(f"Kiểu filter PNG không hỗ trợ: {ftype}")
+            raise ValueError(tr(f"Kiểu filter PNG không hỗ trợ: {ftype}",
+                                f"Unsupported PNG filter type: {ftype}"))
 
         out[y] = recon.reshape(width, channels)
         prev = recon
 
-    return out.mean(axis=2) if channels == 3 else out[:, :, 0]
+    # Bỏ kênh alpha (nếu có) rồi trung bình các kênh màu còn lại.
+    color = out[:, :, :3] if channels == 4 else out[:, :, :1] if channels == 2 else out
+    return color.mean(axis=2)
 
 
 # ---------------------------------------------------------------------------
@@ -195,7 +211,8 @@ def extract_boundary(lat: float, lon: float, buffer_m: float = 500.0,
                        max_cloud=mpc.MAX_CLOUD, limit=5)
     if not items:
         return {"available": False, "reason": "no_imagery",
-                "message": "Không có ảnh Sentinel-2 đủ quang mây gần đây cho vị trí này."}
+                "message": tr("Không có ảnh Sentinel-2 đủ quang mây gần đây cho vị trí này.",
+                              "No cloud-free-enough Sentinel-2 imagery recently for this location.")}
     item = items[0]
 
     rescale_lo, rescale_hi = -0.2, 0.9
@@ -206,6 +223,13 @@ def extract_boundary(lat: float, lon: float, buffer_m: float = 500.0,
         "rescale": f"{rescale_lo},{rescale_hi}",
         # CỐ Ý không có colormap_name — PNG xám tuyến tính, đọc lại được đúng
         # giá trị NDVI qua rescale, không phải đảo bảng màu.
+        # return_mask=false — titiler MẶC ĐỊNH gắn thêm kênh alpha (mặt nạ
+        # nodata) vào PNG dù không colormap, biến 1 kênh NDVI thành color type
+        # 4 (xám+alpha) mà decode_png_grayscale() cũ không đọc được (chỉ nhận
+        # type 0/2) → mọi lời gọi thật đều rơi vào "Không đọc được PNG:
+        # ValueError". Đã kiểm chứng bằng cách gọi thật endpoint và đọc IHDR
+        # trước/sau khi thêm cờ này: type 4 → type 0.
+        "return_mask": "false",
     })
     bb = ",".join(f"{v:.5f}" for v in box)
     url = f"{CROP_DATA}/{bb}.png?{q}"
@@ -215,13 +239,15 @@ def extract_boundary(lat: float, lon: float, buffer_m: float = 500.0,
             png_bytes = r.read()
     except Exception as e:
         return {"available": False, "reason": "fetch_failed",
-                "message": f"Không tải được ảnh: {type(e).__name__}"}
+                "message": tr(f"Không tải được ảnh: {type(e).__name__}",
+                              f"Couldn't fetch imagery: {type(e).__name__}")}
 
     try:
         raw = decode_png_grayscale(png_bytes)
     except Exception as e:
         return {"available": False, "reason": "decode_failed",
-                "message": f"Không đọc được PNG: {type(e).__name__}"}
+                "message": tr(f"Không đọc được PNG: {type(e).__name__}",
+                              f"Couldn't decode PNG: {type(e).__name__}")}
 
     ndvi = rescale_lo + (raw / 255.0) * (rescale_hi - rescale_lo)
     seed = (ndvi.shape[0] // 2, ndvi.shape[1] // 2)   # điểm bấm luôn ở tâm khung crop
@@ -244,8 +270,10 @@ def extract_boundary(lat: float, lon: float, buffer_m: float = 500.0,
         "area_ha": round(area_ha, 3),
         "pixel_size_m": round(pixel_size_m, 2),
         "grid_size": ndvi.shape[0],
+        "bbox": box,   # [lon_min, lat_min, lon_max, lat_max] — frontend quy đổi hàng/cột sang toạ độ
         "scene": item["id"],
         "scene_date": item["properties"]["datetime"][:10],
         "outline_rows": outline_px,   # [(hàng, cột_trái, cột_phải), ...]
-        "message": f"Ranh thửa tự vẽ ~{round(area_ha, 2)} ha từ ảnh {item['properties']['datetime'][:10]}.",
+        "message": tr(f"Ranh thửa tự vẽ ~{round(area_ha, 2)} ha từ ảnh {item['properties']['datetime'][:10]}.",
+                     f"Auto-drawn boundary ~{round(area_ha, 2)} ha from the {item['properties']['datetime'][:10]} scene."),
     }

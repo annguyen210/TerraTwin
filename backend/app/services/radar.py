@@ -25,6 +25,7 @@ from sqlalchemy.orm import Session
 from app.db import Alert, NotifyChannel, Plot, User
 from app.schemas import Location
 from app.services import notify, verify
+from app.services.reqlang import tr
 
 DEDUP_HOURS = 12       # cùng một cảnh báo trong 12 h thì không ghi lại
 
@@ -37,7 +38,8 @@ def sweep_user(user_id: int, db: Session) -> dict:
         select(Plot).where(Plot.user_id == user_id)).scalars().all()
     if not plots:
         return {"plots_scanned": 0, "new_alerts": 0, "alerts": [],
-                "message": "Chưa có thửa nào được lưu. Lưu thửa rồi chạy lại."}
+                "message": tr("Chưa có thửa nào được lưu. Lưu thửa rồi chạy lại.",
+                             "No plot saved yet. Save a plot then run this again.")}
 
     since = (datetime.now(timezone.utc).replace(tzinfo=None)
              - timedelta(hours=DEDUP_HOURS))

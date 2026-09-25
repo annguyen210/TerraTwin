@@ -254,6 +254,104 @@ def index_series(lat: float, lon: float, index: str = "NDVI",
     return rows
 
 
+def _add_months(d: date, delta: int) -> date:
+    m = d.month - 1 + delta
+    y = d.year + m // 12
+    return date(y, m % 12 + 1, 1)
+
+
+MONTHLY_MAX_PER_MONTH = 2   # trần số cảnh dò mỗi tháng — giữ tổng lời gọi trong tầm
+
+
+def monthly_index_series(lat: float, lon: float, index: str = "NDVI",
+                         months: int = 24, buffer_m: float = 300.0,
+                         end: date | None = None,
+                         max_per_month: int = MONTHLY_MAX_PER_MONTH) -> list[dict] | None:
+    """Chuỗi THÁNG cho A7 (change_detect) — mỗi điểm là TRUNG VỊ của các cảnh
+    quang mây trong đúng tháng đó, không phải một cảnh đơn lẻ hay N cảnh sạch
+    tuyệt đối rải khắp cả cửa sổ.
+
+    VÌ SAO: Sentinel-2 bay qua vị trí bất kỳ ở Việt Nam ~5 ngày/lần (hai vệ
+    tinh chồng quỹ đạo có nơi dày hơn), nên 24 tháng thường có trên trăm cảnh
+    thô. index_series() ở trên đòi MAX_SCENES cảnh "sạch tuyệt đối" xếp hạng
+    theo độ quang toàn chuỗi — với ngưỡng CLEAR_MIN=70% tại đúng thửa, mùa mưa
+    có thể chỉ còn 5-6 cảnh sống sót cho CẢ HAI NĂM, dưới hẳn MIN_POINTS=8 mà
+    change_detect.detect_from_series() cần. Gộp trung vị theo tháng khoan
+    dung hơn: chỉ cần MỘT cảnh quang mây trong một tháng là tháng đó có điểm,
+    và trung vị của vài cảnh (khi tháng đó có nhiều) khử nhiễu tốt hơn hẳn một
+    cảnh đơn lẻ xui gặp mây rìa.
+    """
+    if index not in EXPR:
+        raise ValueError(f"Chỉ số không hỗ trợ: {index}")
+
+    end = end or date.today()
+    end_month = date(end.year, end.month, 1)
+    start = _add_months(end_month, -(months - 1))
+    box = bbox_around(lat, lon, buffer_m)
+
+    from app.services import cache_store, jobs
+
+    key = cache_store.make_key("mpc-monthly", index, round(lat, 4), round(lon, 4),
+                               months, int(buffer_m), end.isoformat())
+    hit = cache_store.get(key)
+    if hit is not None:
+        return hit
+
+    items = search(box, start, end, max_cloud=MAX_CLOUD, limit=400)
+    if items is None:
+        return None
+    if not items:
+        return []
+
+    buckets: dict[tuple[int, int], list[dict]] = {}
+    for it in items:
+        d = date.fromisoformat(it["properties"]["datetime"][:10])
+        if d < start:
+            continue
+        mk = (d.year, d.month)
+        buckets.setdefault(mk, []).append(it)
+
+    probe_pairs: list[tuple[tuple[int, int], dict]] = []
+    for mk, its in buckets.items():
+        chosen_probe = _spread(sorted(its, key=lambda x: x["properties"]["datetime"]),
+                               min(max_per_month, len(its)))
+        probe_pairs.extend((mk, it) for it in chosen_probe)
+
+    fracs = jobs.gather([
+        lambda p=p: (p[0], p[1], clear_fraction(p[1]["id"], box))
+        for p in probe_pairs
+    ])
+    good_by_month: dict[tuple[int, int], list[dict]] = {}
+    for res in fracs:
+        if res is None:
+            continue
+        mk, it, frac = res
+        if frac is not None and frac >= CLEAR_MIN:
+            good_by_month.setdefault(mk, []).append(it)
+
+    rows: list[dict] = []
+    for mk in sorted(good_by_month):
+        its = good_by_month[mk]
+        stats = jobs.gather([lambda it=it: _stats_one(it["id"], box, index) for it in its])
+        vals = sorted(st["mean"] for st in stats if st)
+        if not vals:
+            continue
+        n = len(vals)
+        median = vals[n // 2] if n % 2 else (vals[n // 2 - 1] + vals[n // 2]) / 2.0
+        rows.append({
+            "date": date(mk[0], mk[1], 15).isoformat(),
+            "mean": round(median, 4),
+            "n_scenes": n,
+        })
+
+    if not rows:
+        return None
+
+    closed = end < date.today() - timedelta(days=14)
+    cache_store.put(key, rows, ttl_seconds=_TTL_CLOSED if closed else _TTL_RECENT)
+    return rows
+
+
 def index_distribution(lat: float, lon: float, index: str = "NDVI",
                        days: int = 60, buffer_m: float = 600.0,
                        bins: int = 20, end: date | None = None) -> dict | None:

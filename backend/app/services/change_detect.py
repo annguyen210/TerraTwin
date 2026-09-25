@@ -26,6 +26,8 @@ from datetime import date
 
 import numpy as np
 
+from app.services.reqlang import tr
+
 # Phải sụt sâu, không chỉ lệch nhẹ mùa vụ — 0,15 là khoảng cách hợp lý giữa
 # tán rừng khép kín (NDVI 0,6–0,8) và đất trống/dọn quang (NDVI 0,1–0,3).
 MIN_LEVEL_DROP = 0.15
@@ -58,8 +60,12 @@ def detect_from_series(dates: list[str], values: list[float]) -> dict:
         return {
             "available": False,
             "reason": "not_enough_points",
-            "message": f"Cần ít nhất {MIN_POINTS} cảnh sống trong 24 tháng, "
-                       f"chỉ có {n}. Không đủ để phân biệt mùa vụ với đổi thật.",
+            "message": tr(
+                f"Cần ít nhất {MIN_POINTS} tháng có cảnh quang mây trong cửa sổ "
+                f"đã chọn, chỉ có {n}. Không đủ để phân biệt mùa vụ với đổi thật.",
+                f"Need at least {MIN_POINTS} months with a clear scene in the "
+                f"chosen window, only {n} available. Not enough to tell season "
+                f"from real change."),
         }
 
     d0 = date.fromisoformat(dates[0])
@@ -97,12 +103,17 @@ def detect_from_series(dates: list[str], values: list[float]) -> dict:
         "test_statistic": round(test_stat, 3),
         "threshold": CUSUM_THRESHOLD,
         "message": (
-            f"Phát hiện mất tán cây quanh {dates[k]} — NDVI giảm "
-            f"{abs(level_shift):.3f} và không hồi phục trong phần còn lại "
-            f"của chuỗi 24 tháng."
+            tr(f"Phát hiện mất tán cây quanh {dates[k]} — NDVI giảm "
+              f"{abs(level_shift):.3f} và không hồi phục trong phần còn lại "
+              f"của chuỗi.",
+              f"Canopy loss detected around {dates[k]} — NDVI dropped "
+              f"{abs(level_shift):.3f} and did not recover for the rest of "
+              f"the series.")
             if changed else
-            "Không phát hiện đổi bền vững — dao động quan sát được nằm trong "
-            "biên độ mùa vụ hoặc nhiễu bình thường."
+            tr("Không phát hiện đổi bền vững — dao động quan sát được nằm trong "
+              "biên độ mùa vụ hoặc nhiễu bình thường.",
+              "No sustained change detected — the observed fluctuation stays "
+              "within normal seasonal range or noise.")
         ),
     }
 
@@ -114,12 +125,14 @@ def detect(lat: float, lon: float, buffer_m: float = 300.0,
     test được không chạm mạng."""
     from app.services import mpc
 
-    series = mpc.index_series(lat, lon, "NDVI", days=months * 31, buffer_m=buffer_m)
+    series = mpc.monthly_index_series(lat, lon, "NDVI", months=months, buffer_m=buffer_m)
     if series is None:
         return {"available": False, "reason": "no_imagery",
-                "message": "Không lấy được ảnh Sentinel-2 cho vị trí này."}
+                "message": tr("Không lấy được ảnh Sentinel-2 cho vị trí này.",
+                              "Couldn't fetch Sentinel-2 imagery for this location.")}
     if not series:
         return {"available": False, "reason": "no_clear_scenes",
-                "message": "Không có cảnh đủ quang mây trong 24 tháng qua."}
+                "message": tr(f"Không có tháng nào đủ quang mây trong {months} tháng qua.",
+                              f"No month had a clear-enough scene in the last {months} months.")}
 
     return detect_from_series([r["date"] for r in series], [r["mean"] for r in series])
