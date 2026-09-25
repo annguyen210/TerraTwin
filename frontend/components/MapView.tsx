@@ -8,6 +8,9 @@ import { autoBoundary } from "@/lib/api";
 
 type Pt = [number, number]; // [lng, lat]
 
+// A8 — cờ tắt cứng. Xem chú thích ở nút "Tự vẽ ranh thửa" bên dưới.
+const AUTO_BOUNDARY_READY = false;
+
 function areaHa(pts: Pt[]): number {
   if (pts.length < 3) return 0;
   const latMean = (pts.reduce((s, p) => s + p[1], 0) / pts.length) * (Math.PI / 180);
@@ -351,14 +354,22 @@ export default function MapView({
         <button className="db-primary" onClick={analyzeCenter}>
           📍 {t("Phân tích đúng thửa ở giữa", "Analyze the plot at center")}
         </button>
-        {/* A8 — tự vẽ ranh thửa (watershed trên NDVI) quanh tâm ô ngắm. Không
-            thay việc vẽ tay — chỉ là điểm khởi đầu nhanh, sửa lại bằng
-            "Xoá" + vẽ tay nếu ranh trả về không khớp thực địa. */}
-        <button onClick={autoDraw} disabled={autoDrawing}>
-          {autoDrawing
-            ? t("Đang tự vẽ ranh…", "Auto-drawing boundary…")
-            : `🪄 ${t("Tự vẽ ranh thửa", "Auto-draw plot boundary")}`}
-        </button>
+        {/* A8 — TẠM ẨN. watershed_from_seed() luôn lan tới đúng trần an toàn
+            MAX_AREA_PX_RATIO bất kể kích cỡ khung (đo thật: 500m→85.0ha,
+            150m→7.65ha, 1000m→333.9ha — luôn = 0,85×khung) vì hàng đợi ưu
+            tiên toàn cục rò qua nhiễu ảnh thật thay vì dừng ở bờ ruộng. Diện
+            tích sai này từng chảy thẳng vào onPick() → lưu làm diện tích
+            thửa. Chỉ bật lại sau khi watershed.py trả available:false đúng
+            lúc chạm trần thay vì trả con số trần ra, và diện tích ổn định
+            qua nhiều cỡ khung tại toạ độ ruộng thật (xem AUTO_BOUNDARY_READY
+            bên dưới). */}
+        {AUTO_BOUNDARY_READY && (
+          <button onClick={autoDraw} disabled={autoDrawing}>
+            {autoDrawing
+              ? t("Đang tự vẽ ranh…", "Auto-drawing boundary…")
+              : `🪄 ${t("Tự vẽ ranh thửa", "Auto-draw plot boundary")}`}
+          </button>
+        )}
         {count > 0 && (
           <>
             <button onClick={analyze}>{t("Phân tích điểm/vùng đã chấm", "Analyze marked point/area")}</button>
