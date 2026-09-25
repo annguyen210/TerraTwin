@@ -11,7 +11,7 @@ import { changeDetect, type ChangeDetectResult } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 export default function ChangeDetect({ lat, lon }: { lat: number; lon: number }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [d, setD] = useState<ChangeDetectResult | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -23,7 +23,7 @@ export default function ChangeDetect({ lat, lon }: { lat: number; lon: number })
       .then((r) => live && setD(r))
       .catch((e) => live && setErr((e as Error).message));
     return () => { live = false; };
-  }, [lat, lon]);
+  }, [lat, lon, lang]);
 
   if (err) return null;   // im lặng — đây là khối bổ sung, hỏng không được chặn kết quả carbon chính
   if (!d) return (
