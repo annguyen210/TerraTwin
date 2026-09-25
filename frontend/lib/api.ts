@@ -770,6 +770,42 @@ export function runTimeMachine(moduleId: string, lat: number, lon: number) {
     "Không chạy được cỗ máy thời gian");
 }
 
+// A7 — phát hiện mất tán cây bền vững trên chuỗi NDVI theo tháng (BFAST/CUSUM).
+export type ChangeDetectResult = {
+  available: boolean;
+  reason?: string;
+  message: string;
+  n_scenes?: number;
+  window?: [string, string];
+  change_detected?: boolean;
+  change_date?: string | null;
+  level_shift_ndvi?: number;
+  test_statistic?: number;
+  threshold?: number;
+};
+export function changeDetect(lat: number, lon: number, months = 24) {
+  return postJson<ChangeDetectResult>(`/api/change-detect${_lp(`months=${months}`)}`, { lat, lon },
+    "Không phát hiện được biến động");
+}
+
+// A8 — tự vẽ ranh thửa bằng watershed trên độ dốc NDVI quanh điểm bấm.
+export type AutoBoundaryResult = {
+  available: boolean;
+  reason?: string;
+  message: string;
+  area_ha?: number;
+  pixel_size_m?: number;
+  grid_size?: number;
+  bbox?: [number, number, number, number];
+  scene?: string;
+  scene_date?: string;
+  outline_rows?: [number, number, number][];
+};
+export function autoBoundary(lat: number, lon: number, bufferM = 500) {
+  return postJson<AutoBoundaryResult>(`/api/auto-boundary${_lp(`buffer_m=${bufferM}`)}`, { lat, lon },
+    "Không tự vẽ được ranh thửa");
+}
+
 export function runAnomaly(lat: number, lon: number) {
   return postJson<AnomalyResult>(`/api/anomaly${_lp()}`, { lat, lon },
     "Không so sánh được với khí hậu nền");

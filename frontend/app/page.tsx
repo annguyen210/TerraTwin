@@ -30,6 +30,7 @@ import Backtest from "@/components/Backtest";
 import Overview from "@/components/Overview";
 import Portfolio from "@/components/Portfolio";
 import ModelCard from "@/components/ModelCard";
+import ChangeDetect from "@/components/ChangeDetect";
 import { useLang } from "@/lib/i18n";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
@@ -426,6 +427,10 @@ export default function Home() {
         {tab === "detail" && (
           <>
             {result && <ResultsPanel a={result} />}
+            {/* A7 — mất tán cây bền vững, chỉ có ý nghĩa cạnh kết quả carbon. */}
+            {coord && result && active === "carbon" && (
+              <ChangeDetect lat={coord.lat} lon={coord.lon} />
+            )}
             {coord && result && (
               <WhatIf moduleId={active} lat={coord.lat} lon={coord.lon} />
             )}

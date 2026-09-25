@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useLang } from "@/lib/i18n";
+import { autoBoundary } from "@/lib/api";
 
 type Pt = [number, number]; // [lng, lat]
 
@@ -63,6 +64,8 @@ export default function MapView({
   const mapRef = useRef<maplibregl.Map | null>(null);
   const ptsRef = useRef<Pt[]>([]);
   const [count, setCount] = useState(0);
+  const [autoDrawing, setAutoDrawing] = useState(false);   // A8
+  const [autoMsg, setAutoMsg] = useState<string | null>(null);
 
   function refresh() {
     const map = mapRef.current;
@@ -289,6 +292,41 @@ export default function MapView({
   function clear() {
     ptsRef.current = [];
     refresh();
+    setAutoMsg(null);
+  }
+
+  // A8 — gọi watershed tại tâm ô ngắm, vẽ ranh trả về lên bản đồ dưới dạng đa
+  // giác THƯỜNG (cùng cơ chế với vẽ tay): nếu ranh sai, người dùng bấm "Xoá"
+  // rồi tự vẽ lại bằng tay — không cần một cơ chế kéo-sửa riêng.
+  async function autoDraw() {
+    const map = mapRef.current;
+    if (!map) return;
+    const c = map.getCenter();
+    setAutoDrawing(true);
+    setAutoMsg(null);
+    try {
+      const r = await autoBoundary(c.lat, c.lng, 500);
+      if (!r.available || !r.outline_rows || !r.bbox || !r.grid_size) {
+        setAutoMsg(r.message);
+        return;
+      }
+      const [lonMin, latMin, lonMax, latMax] = r.bbox;
+      const g = r.grid_size;
+      const rc = (row: number, col: number): Pt => [
+        lonMin + ((col + 0.5) / g) * (lonMax - lonMin),
+        latMax - ((row + 0.5) / g) * (latMax - latMin),
+      ];
+      const left = r.outline_rows.map(([row, cLeft]) => rc(row, cLeft));
+      const right = r.outline_rows.slice().reverse().map(([row, , cRight]) => rc(row, cRight));
+      ptsRef.current = [...left, ...right];
+      refresh();
+      setAutoMsg(r.message);
+      if (r.area_ha != null) onPick(c.lat, c.lng, r.area_ha);
+    } catch (e) {
+      setAutoMsg((e as Error).message);
+    } finally {
+      setAutoDrawing(false);
+    }
   }
 
   return (
@@ -313,12 +351,21 @@ export default function MapView({
         <button className="db-primary" onClick={analyzeCenter}>
           📍 {t("Phân tích đúng thửa ở giữa", "Analyze the plot at center")}
         </button>
+        {/* A8 — tự vẽ ranh thửa (watershed trên NDVI) quanh tâm ô ngắm. Không
+            thay việc vẽ tay — chỉ là điểm khởi đầu nhanh, sửa lại bằng
+            "Xoá" + vẽ tay nếu ranh trả về không khớp thực địa. */}
+        <button onClick={autoDraw} disabled={autoDrawing}>
+          {autoDrawing
+            ? t("Đang tự vẽ ranh…", "Auto-drawing boundary…")
+            : `🪄 ${t("Tự vẽ ranh thửa", "Auto-draw plot boundary")}`}
+        </button>
         {count > 0 && (
           <>
             <button onClick={analyze}>{t("Phân tích điểm/vùng đã chấm", "Analyze marked point/area")}</button>
             <button onClick={clear} className="ghost">{t("Xóa", "Clear")}</button>
           </>
         )}
+        {autoMsg && <span className="db-hint">{autoMsg}</span>}
       </div>
     </div>
   );
