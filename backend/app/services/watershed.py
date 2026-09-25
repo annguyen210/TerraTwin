@@ -214,6 +214,13 @@ def _box_blur3(a: np.ndarray) -> np.ndarray:
 # Vượt ngưỡng này thì một "thửa" tự vẽ không còn đáng tin — hoặc watershed
 # đang rò qua nhiễu, hoặc điểm bấm không nằm trong một thửa canh tác nhỏ.
 MAX_PLAUSIBLE_HA = 20.0
+# Chốt theo TỈ LỆ KHUNG, tách riêng khỏi MAX_AREA_PX_RATIO (0,85) và
+# MAX_PLAUSIBLE_HA — cả hai đều lọt một ca thật đo trên production: buffer
+# 150m → 7,04 ha trong khung 9 ha (chiếm 78%, dưới 20ha VÀ dưới 85% điểm ảnh,
+# nhưng vẫn là tràn). Một thửa thật, hạt giống bấm gần giữa, không có lý do gì
+# phải chiếm quá nửa khung tìm — quá mức này thì hoặc thửa lớn hơn khung, hoặc
+# đang rò nhiễu, cả hai đều phải từ chối chứ không đoán.
+MAX_FRAME_FRACTION = 0.5
 # Hai lần đo ở hai cỡ khung khác nhau phải cho diện tích gần bằng nhau — MỘT
 # RANH THẬT không phụ thuộc vào khung tìm rộng hay hẹp (miễn khung ⊇ thửa).
 # Lệch quá mức này thì coi là không ổn định, từ chối trả kết quả thay vì đoán
@@ -230,9 +237,11 @@ def _grow_from_ndvi(ndvi: np.ndarray, buffer_m: float, size_px: int) -> dict:
     seed = (smooth.shape[0] // 2, smooth.shape[1] // 2)
     mask = watershed_from_seed(smooth, seed)
 
-    max_px = int(smooth.shape[0] * smooth.shape[1] * MAX_AREA_PX_RATIO)
+    n_px = smooth.shape[0] * smooth.shape[1]
+    max_px = int(n_px * MAX_AREA_PX_RATIO)
     pixel_size_m = (buffer_m * 2.0) / size_px
     area_ha = mask_to_area_ha(mask, pixel_size_m)
+    frame_fraction = float(mask.sum()) / n_px
 
     if int(mask.sum()) >= max_px:
         return {"ok": False, "reason": "hit_safety_cap",
@@ -248,6 +257,13 @@ def _grow_from_ndvi(ndvi: np.ndarray, buffer_m: float, size_px: int) -> dict:
                     "nhiều khả năng đã lan qua nhiễu.",
                     f"Auto-drawn boundary came out to {round(area_ha, 1)} ha — larger than a typical "
                     "farm plot, likely leaked through noise.")}
+    if frame_fraction > MAX_FRAME_FRACTION:
+        return {"ok": False, "reason": "too_large_fraction_of_frame",
+                "message": tr(
+                    f"Vùng lan chiếm {round(frame_fraction * 100)}% khung ảnh — quá rộng so với "
+                    "một thửa thật, nhiều khả năng đã lan qua nhiễu thay vì dừng ở bờ ruộng.",
+                    f"The region covers {round(frame_fraction * 100)}% of the frame — too large for "
+                    "a real plot, likely leaked through noise rather than stopping at a field edge.")}
     return {"ok": True, "area_ha": area_ha, "mask": mask, "pixel_size_m": pixel_size_m}
 
 

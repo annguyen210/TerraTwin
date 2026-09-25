@@ -166,6 +166,28 @@ def test_grow_tu_choi_khi_dien_tich_phi_ly_du_bien_sach():
     assert out["reason"] == "implausibly_large"
 
 
+def test_grow_tu_choi_khi_chiem_qua_nua_khung_du_nho_va_sach():
+    """Kẽ hở thật đo trên production: buffer 150m → 7,04 ha trong khung 9 ha
+    (chiếm 78%) — dưới CẢ HAI trần cũ (MAX_PLAUSIBLE_HA=20 và
+    MAX_AREA_PX_RATIO=0,85 điểm ảnh) nên lọt lưới, dù rõ ràng vẫn là tràn.
+    Mô phỏng đúng tỉ lệ: khung nhỏ (buffer 150m → mỗi pixel 5m, khung 9 ha),
+    thửa sạch nhưng chiếm ~63% khung.
+
+    Dùng RNG RIÊNG (không phải RNG dùng chung ở đầu file) — kết quả của test
+    này không được phụ thuộc thứ tự chạy trước nó bao nhiêu test khác đã rút
+    số ngẫu nhiên từ RNG dùng chung."""
+    local_rng = np.random.default_rng(2024)
+    h, w = 60, 60
+    # 79% khung — watershed (có blur) thường VẼ HẸP HƠN hình chữ nhật thật một
+    # chút, nên cần biên dư so với ngưỡng 50% để không phụ thuộc may rủi RNG.
+    r0, r1, c0, c1 = 2, 58, 2, 52
+    g = np.full((h, w), 0.22) + local_rng.normal(0, 0.01, (h, w))
+    g[r0:r1, c0:c1] = 0.62 + local_rng.normal(0, 0.01, (r1 - r0, c1 - c0))
+    out = ws._grow_from_ndvi(g, buffer_m=150.0, size_px=w)   # khung 9 ha, đúng ca thật
+    assert out["ok"] is False
+    assert out["reason"] == "too_large_fraction_of_frame"
+
+
 def test_box_blur3_giu_nguyen_mang_dong_nhat():
     a = np.full((10, 10), 0.42)
     np.testing.assert_array_almost_equal(ws._box_blur3(a), a)
