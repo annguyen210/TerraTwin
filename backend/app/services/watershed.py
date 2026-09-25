@@ -190,11 +190,71 @@ def mask_to_area_ha(mask: np.ndarray, pixel_size_m: float) -> float:
     return float(mask.sum()) * (pixel_size_m ** 2) / 10_000.0
 
 
-def extract_boundary(lat: float, lon: float, buffer_m: float = 500.0,
-                     size_px: int = 100) -> dict:
-    """A8 — mặt tiền: tải PNG xám (không colormap) qua MPC, đọc lại NDVI, chạy
-    watershed từ tâm ảnh (điểm người dùng bấm), trả diện tích + đa giác lưới
-    thô (danh sách toạ độ hàng-cột) cho frontend vẽ lên bản đồ."""
+def _box_blur3(a: np.ndarray) -> np.ndarray:
+    """Làm mượt 3×3 (lấy trung bình 9 ô lân cận, biên lặp lại giá trị mép).
+
+    VÌ SAO CẦN: NDVI ảnh thật (khác hẳn dữ liệu giả lập sạch trong test) có
+    nhiễu điểm ảnh rải rác — vài điểm rời rạc có độ dốc gần 0 do trùng hợp,
+    dù không nằm trong "thửa". watershed_from_seed() (hàng đợi ưu tiên toàn
+    cục theo độ dốc) LAN QUA những điểm rời rạc đó như một hành lang thông
+    thoáng nối sang vùng khác — đo thật thấy vùng lan luôn LUÔN chạm đúng
+    trần an toàn MAX_AREA_PX_RATIO bất kể cỡ khung (500m/150m/1000m), nghĩa
+    là nó chưa từng thực sự dừng ở một bờ ruộng. Làm mượt trước khi tính độ
+    dốc xoá phần lớn các "khe hở" nhiễu đơn lẻ đó, trong khi bờ ruộng thật
+    (chênh lệch NDVI trên một dải nhiều điểm ảnh) vẫn còn nguyên.
+    """
+    p = np.pad(a, 1, mode="edge")
+    out = np.zeros_like(a, dtype=np.float64)
+    for dr in (0, 1, 2):
+        for dc in (0, 1, 2):
+            out += p[dr:dr + a.shape[0], dc:dc + a.shape[1]]
+    return out / 9.0
+
+
+# Vượt ngưỡng này thì một "thửa" tự vẽ không còn đáng tin — hoặc watershed
+# đang rò qua nhiễu, hoặc điểm bấm không nằm trong một thửa canh tác nhỏ.
+MAX_PLAUSIBLE_HA = 20.0
+# Hai lần đo ở hai cỡ khung khác nhau phải cho diện tích gần bằng nhau — MỘT
+# RANH THẬT không phụ thuộc vào khung tìm rộng hay hẹp (miễn khung ⊇ thửa).
+# Lệch quá mức này thì coi là không ổn định, từ chối trả kết quả thay vì đoán
+# xem lần đo nào đúng.
+CROSS_SCALE_TOLERANCE = 0.35
+
+
+def _grow_from_ndvi(ndvi: np.ndarray, buffer_m: float, size_px: int) -> dict:
+    """Chạy watershed trên một khung NDVI đã tải, kèm MỌI chốt chặn an toàn.
+    Trả {"ok": True, "area_ha": ..., "mask": ...} hoặc {"ok": False, "reason": ..., "message": ...}.
+    KHÔNG BAO GIỜ trả "ok": True nếu vùng lan chạm trần an toàn — con số đó
+    không phải một phép đo, nó là điểm dừng ép buộc."""
+    smooth = _box_blur3(ndvi)
+    seed = (smooth.shape[0] // 2, smooth.shape[1] // 2)
+    mask = watershed_from_seed(smooth, seed)
+
+    max_px = int(smooth.shape[0] * smooth.shape[1] * MAX_AREA_PX_RATIO)
+    pixel_size_m = (buffer_m * 2.0) / size_px
+    area_ha = mask_to_area_ha(mask, pixel_size_m)
+
+    if int(mask.sum()) >= max_px:
+        return {"ok": False, "reason": "hit_safety_cap",
+                "message": tr(
+                    "Không tách được ranh — vùng lan chạm trần an toàn thay vì dừng ở bờ ruộng "
+                    "(ảnh quá nhiễu hoặc thửa lớn hơn khung đang xét).",
+                    "Couldn't isolate a boundary — the region hit the safety cap instead of "
+                    "stopping at a field edge (imagery too noisy, or the plot is larger than the window).")}
+    if area_ha > MAX_PLAUSIBLE_HA:
+        return {"ok": False, "reason": "implausibly_large",
+                "message": tr(
+                    f"Ranh tự vẽ ra {round(area_ha, 1)} ha — lớn hơn một thửa canh tác thông thường, "
+                    "nhiều khả năng đã lan qua nhiễu.",
+                    f"Auto-drawn boundary came out to {round(area_ha, 1)} ha — larger than a typical "
+                    "farm plot, likely leaked through noise.")}
+    return {"ok": True, "area_ha": area_ha, "mask": mask, "pixel_size_m": pixel_size_m}
+
+
+def _fetch_ndvi_crop(lat: float, lon: float, buffer_m: float, size_px: int):
+    """Tải PNG xám (không colormap) qua MPC quanh (lat, lon), đọc lại NDVI.
+    Trả (mảng_ndvi, item_stac) khi thành công, hoặc dict {"available": False, ...}
+    khi hỏng — người gọi kiểm bằng isinstance(kết_quả, dict)."""
     import urllib.parse
     import urllib.request
 
@@ -250,11 +310,55 @@ def extract_boundary(lat: float, lon: float, buffer_m: float = 500.0,
                               f"Couldn't decode PNG: {type(e).__name__}")}
 
     ndvi = rescale_lo + (raw / 255.0) * (rescale_hi - rescale_lo)
-    seed = (ndvi.shape[0] // 2, ndvi.shape[1] // 2)   # điểm bấm luôn ở tâm khung crop
-    mask = watershed_from_seed(ndvi, seed)
+    return ndvi, item
 
-    pixel_size_m = (buffer_m * 2.0) / size_px
-    area_ha = mask_to_area_ha(mask, pixel_size_m)
+
+def extract_boundary(lat: float, lon: float, buffer_m: float = 500.0,
+                     size_px: int = 100) -> dict:
+    """A8 — mặt tiền: tải PNG xám (không colormap) qua MPC, đọc lại NDVI, chạy
+    watershed từ tâm ảnh (điểm người dùng bấm), trả diện tích + đa giác lưới
+    thô (danh sách toạ độ hàng-cột) cho frontend vẽ lên bản đồ.
+
+    Đo hai lần ở hai cỡ khung khác nhau và đòi khớp nhau (xem
+    CROSS_SCALE_TOLERANCE) — đây chính là phép thử đã phơi bày lỗi rò nhiễu
+    ban đầu (đo thật: 500m→85.0ha, 150m→7.65ha, 1000m→333.9ha, luôn đúng bằng
+    trần an toàn), giờ dùng lại chính nó làm chốt chặn runtime thay vì chỉ là
+    một bài kiểm tra thủ công."""
+    ndvi_a = _fetch_ndvi_crop(lat, lon, buffer_m, size_px)
+    if isinstance(ndvi_a, dict):   # lỗi tải/giải mã ảnh
+        return ndvi_a
+    ndvi, item = ndvi_a
+
+    grown = _grow_from_ndvi(ndvi, buffer_m, size_px)
+    if not grown["ok"]:
+        return {"available": False, "reason": grown["reason"], "message": grown["message"]}
+
+    check_buffer = max(150.0, buffer_m * 0.6)
+    if abs(check_buffer - buffer_m) > 30.0:
+        ndvi_b = _fetch_ndvi_crop(lat, lon, check_buffer, size_px)
+        if isinstance(ndvi_b, dict):
+            return ndvi_b
+        grown_b = _grow_from_ndvi(ndvi_b[0], check_buffer, size_px)
+        if not grown_b["ok"]:
+            return {"available": False, "reason": "unstable_across_scale",
+                    "message": tr(
+                        "Ranh không ổn định qua các cỡ khung khác nhau — có thể đang lan qua nhiễu "
+                        "thay vì dừng ở bờ ruộng thật.",
+                        "The boundary isn't stable across window sizes — it may be leaking through "
+                        "noise rather than stopping at a real field edge.")}
+        lo, hi = sorted([grown["area_ha"], grown_b["area_ha"]])
+        if hi > 0 and (hi - lo) / hi > CROSS_SCALE_TOLERANCE:
+            return {"available": False, "reason": "unstable_across_scale",
+                    "message": tr(
+                        f"Ranh không ổn định qua các cỡ khung khác nhau ({round(lo, 2)} ha vs "
+                        f"{round(hi, 2)} ha) — có thể đang lan qua nhiễu thay vì dừng ở bờ ruộng thật.",
+                        f"The boundary isn't stable across window sizes ({round(lo, 2)} ha vs "
+                        f"{round(hi, 2)} ha) — it may be leaking through noise rather than stopping "
+                        "at a real field edge.")}
+
+    mask = grown["mask"]
+    pixel_size_m = grown["pixel_size_m"]
+    area_ha = grown["area_ha"]
 
     # Đường viền thô: với mỗi hàng có điểm thuộc thửa, lấy cột trái/phải cùng —
     # đủ để frontend vẽ một đa giác gần đúng lên bản đồ, không cần contour-
@@ -265,6 +369,8 @@ def extract_boundary(lat: float, lon: float, buffer_m: float = 500.0,
         cols = np.where(mask[row])[0]
         outline_px.append((int(row), int(cols.min()), int(cols.max())))
 
+    from app.services import mpc
+    box = mpc.bbox_around(lat, lon, buffer_m)
     return {
         "available": True,
         "area_ha": round(area_ha, 3),
