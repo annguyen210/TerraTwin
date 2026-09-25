@@ -784,7 +784,7 @@ export type ChangeDetectResult = {
   threshold?: number;
 };
 export function changeDetect(lat: number, lon: number, months = 24) {
-  return postJson<ChangeDetectResult>(`/api/change-detect${_lp(`months=${months}`)}`, { lat, lon },
+  return postJson<ChangeDetectResult>(`/api/change-detect?${_lp(`months=${months}`)}`, { lat, lon },
     "Không phát hiện được biến động");
 }
 
@@ -802,7 +802,7 @@ export type AutoBoundaryResult = {
   outline_rows?: [number, number, number][];
 };
 export function autoBoundary(lat: number, lon: number, bufferM = 500) {
-  return postJson<AutoBoundaryResult>(`/api/auto-boundary${_lp(`buffer_m=${bufferM}`)}`, { lat, lon },
+  return postJson<AutoBoundaryResult>(`/api/auto-boundary?${_lp(`buffer_m=${bufferM}`)}`, { lat, lon },
     "Không tự vẽ được ranh thửa");
 }
 
