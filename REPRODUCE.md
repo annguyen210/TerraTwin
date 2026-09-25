@@ -100,6 +100,66 @@ python -m app.ml.train        # mô hình chấm bất thường tổ hợp (A-s
 # thì lớp học sâu IM LẶNG trả None, phần còn lại của phần mềm vẫn chạy bình thường.
 ```
 
+## 6. A7 (biến động tán cây) — đã kiểm bằng dữ liệu tổng hợp, CHƯA bằng sự kiện thật
+
+```bash
+curl -X POST "http://localhost:8000/api/change-detect?months=24" \
+  -H "Content-Type: application/json" \
+  -d '{"lat":16.4637,"lon":107.5909}'
+```
+
+**Đã chứng minh, tái lập được ngay:**
+- `pytest tests/test_change_detect.py` — dữ liệu NDVI tổng hợp có kiểm soát:
+  lúa ba vụ (dao động mùa vụ đều, không xu hướng) KHÔNG bị báo mất tán; một đợt
+  phá rừng dựng sẵn ở một THÁNG biết trước THÌ bị báo đúng khoảng đó.
+- Trên dữ liệu thật (không mock): chạy tại Huế, Đắk Lắk, Trà Leng, An Giang —
+  mọi nơi đều `available: true` với 9–19 tháng ảnh quang mây trong 24–36 tháng.
+  Tại An Giang (ruộng lúa ba vụ thật) `change_detected: false`, `test_statistic
+  0.33` dưới hẳn ngưỡng `1.36` — đúng như tiêu chí "không báo giả ở ruộng lúa
+  ba vụ".
+
+**CHƯA chứng minh được — chưa có một sự kiện phá rừng THẬT, đã xác minh độc
+lập, được A7 báo đúng tháng.** Đã thử nghiêm túc trong phạm vi công cụ không
+cần tài khoản nào, bốn hướng đều không ra kết quả dùng được, ghi lại đây để
+không ai phải tin lời suông:
+
+1. **Sân bay Long Thành**, Đồng Nai (10.7725, 107.04528 — nguồn: Wikipedia,
+   bàn giao mặt bằng 25/8/2023). NDVI thấp (0,01–0,06) suốt CẢ cửa sổ 36
+   tháng — san nền thật đã bắt đầu từ 2021, trước cả mốc xa nhất A7 với tới
+   (giới hạn `months<=36` tính lùi từ hôm chạy). Không có mốc trước/sau nào
+   để so — đây là giới hạn tầm với của cửa sổ, không phải lỗi thuật toán.
+2. **KCN Sông Công II giai đoạn 2**, Thái Nguyên (21.5072382, 105.8438183 —
+   toạ độ OSM cho tên "Khu công nghiệp Sông Công II"; khởi công 3/2025, giải
+   phóng 120ha trong 9 tháng theo báo Thái Nguyên). Cùng triệu chứng: NDVI
+   thấp (0,08–0,16) suốt cửa sổ, kể cả điểm đầu tiên (10/2023) — nhiều khả
+   năng toạ độ rơi vào phần đã xây từ giai đoạn trước, không phải mảnh đất
+   MỚI giải phóng năm 2025.
+3. **Hầm Bình Đê**, cao tốc Quảng Ngãi–Hoài Nhơn (hai cửa hầm theo OSM:
+   14.6743472/109.0028425 và 14.6745070/109.0033681; khởi công tuyến
+   1/1/2023). NDVI ổn định 0,38–0,58 suốt 36 tháng, không có đợt giảm bền
+   vững nào.
+4. **Quét lưới tự động** — 200 điểm cách nhau 500m tại hai vùng áp lực phá
+   rừng (Đắk Nông huyện Tuy Đức/Đắk Song, Quảng Nam huyện Nam Trà My), sàng
+   lọc bằng so sánh NDVI hai lát cắt nhanh (không lọc mây theo pixel). Kết
+   quả ban đầu: một cụm 14 điểm liền kề ở Đắk Nông (quanh 12,25–12,27°N
+   107,42–107,47°Đ) có vẻ giảm mạnh (tới −0,39). Kiểm lại bằng đúng hàm
+   `mpc.monthly_index_series()` mà A7 thật sự dùng (có lọc `clear_fraction`
+   theo lớp SCL) tại chính các toạ độ đó thì KHÔNG thấy đợt giảm nào — NDVI
+   ổn định 0,33–0,53 suốt 36 tháng. Kết luận: cụm "giảm mạnh" ban đầu là SAI
+   — do phép sàng lọc nhanh chỉ chọn cảnh theo % mây CẢ CẢNH mà bỏ qua lọc
+   mây THEO ĐÚNG ĐIỂM ẢNH, nên bị một cảnh có mây/sương mù cục bộ đánh lừa.
+   Đây cũng là bằng chứng gián tiếp cho thấy bước lọc `clear_fraction` trong
+   pipeline thật đang làm đúng việc của nó — nó đã tự loại bỏ chính cái tín
+   hiệu giả này.
+
+**Vì sao vẫn chưa xong**: cả bốn hướng trên đều cần biết TRƯỚC toạ độ và
+khoảng thời gian một mảnh đất THẬT SỰ mất tán — thứ duy nhất cung cấp đúng dữ
+liệu đó (toạ độ điểm ảnh + ngày, đã xác minh) là các dịch vụ cảnh báo vệ tinh
+chuyên dụng (vd Global Forest Watch GLAD/RADD), và các dịch vụ đó cần tài
+khoản/API key — ngoài phạm vi "không cần gì từ chủ dự án" của việc này. Cách
+đóng nốt: (a) chủ dự án cung cấp một toạ độ + tháng mình biết chắc đã mất
+rừng, hoặc (b) tạo tài khoản GFW Data API rồi truy vấn toạ độ cảnh báo thật.
+
 ## Nếu một bước không ra kết quả
 
 - **Gọi mạng hụt / rate-limit Open-Meteo**: các endpoint mục 1–3 gọi API thời
