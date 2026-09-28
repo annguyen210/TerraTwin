@@ -24,6 +24,7 @@ from app.db import (
 )
 from app.schemas import Location
 from app.services import federated, hazard, model_engine
+from app.services.reqlang import tr
 
 router = APIRouter(tags=["learning"])
 
@@ -163,9 +164,12 @@ def federated_shift(lat: float, lon: float, module_id: str,
         "cell": federated.cell_of(lat, lon), "module_id": module_id,
         "threshold_shift": shift,
         "applied": shift != 0.0,
-        "note": ("Ngưỡng vùng này đã được hiệu chỉnh từ quan sát thực địa."
+        "note": (tr("Ngưỡng vùng này đã được hiệu chỉnh từ quan sát thực địa.",
+                    "This area's threshold has been calibrated from field observations.")
                  if shift else
-                 f"Vùng này chưa đủ {federated.MIN_OBS} quan sát nên chưa hiệu chỉnh."),
+                 tr(f"Vùng này chưa đủ {federated.MIN_OBS} quan sát nên chưa hiệu chỉnh.",
+                    f"This area has fewer than {federated.MIN_OBS} observations, so it "
+                    "isn't calibrated yet.")),
     }
 
 
@@ -361,7 +365,8 @@ def find_knowledge(lat: float, lon: float, topic: str | None = None,
     notes = db.execute(q).scalars().all()
     if not notes:
         return {"available": True, "matched_by": None, "notes": [],
-                "message": "Chưa có ai chia sẻ kinh nghiệm cho chủ đề này."}
+                "message": tr("Chưa có ai chia sẻ kinh nghiệm cho chủ đề này.",
+                              "No one has shared experience on this topic yet.")}
 
     mine = None
     try:
@@ -373,14 +378,14 @@ def find_knowledge(lat: float, lon: float, topic: str | None = None,
 
     scored = []
     for n in notes:
-        sim, how = None, "khoảng cách địa lý"
+        sim, how = None, tr("khoảng cách địa lý", "geographic distance")
         if mine is not None and stats is not None:
             try:
                 theirs = genome.genome_of(n.lat, n.lon)
                 if theirs is not None:
                     d = genome._distance(mine, theirs, stats)
                     sim = round(100.0 / (1.0 + d), 1)
-                    how = "bộ gen đất đai"
+                    how = tr("bộ gen đất đai", "land genome")
             except Exception:
                 pass
         if sim is None:
@@ -396,11 +401,16 @@ def find_knowledge(lat: float, lon: float, topic: str | None = None,
         "matched_by": top[0][1] if top else None,
         "notes": [{**_note_out(n).model_dump(), "similarity_pct": sim}
                   for sim, _, n in top],
-        "why": ("Ghép theo bộ gen đất đai, không theo khoảng cách: một hộ cách "
-                "200 km nhưng cùng cao độ, chế độ mưa và mức mặn thì kinh nghiệm "
-                "dùng được ngay; một hộ cách 20 km nhưng ở trên đồi thì không."),
-        "note": ("Chợ TRI THỨC, không có thanh toán. Chợ có giao dịch tiền cần "
-                 "cổng thanh toán và pháp lý — chưa làm."),
+        "why": tr("Ghép theo bộ gen đất đai, không theo khoảng cách: một hộ cách "
+                  "200 km nhưng cùng cao độ, chế độ mưa và mức mặn thì kinh nghiệm "
+                  "dùng được ngay; một hộ cách 20 km nhưng ở trên đồi thì không.",
+                  "Matched by land genome, not distance: a farm 200 km away with the "
+                  "same elevation, rainfall regime and salinity has experience you can "
+                  "use right away; a farm 20 km away but up on a hill does not."),
+        "note": tr("Chợ TRI THỨC, không có thanh toán. Chợ có giao dịch tiền cần "
+                   "cổng thanh toán và pháp lý — chưa làm.",
+                   "A KNOWLEDGE market, with no payments. A market with money changing "
+                   "hands needs a payment gateway and legal work — not built yet."),
     }
 
 

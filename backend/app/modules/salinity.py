@@ -51,6 +51,8 @@ class SalinityModule(TwinModule):
                        "Mekong River Commission salinity data (pending integration)"]
     users = ["Nông dân lúa ĐBSCL", "Hợp tác xã", "Sở NN&PTNT"]
     description = "Báo trước 5–7 ngày khi nước mặn sắp tới ruộng, kèm việc nên làm."
+    users_en = ["Mekong Delta rice farmers", "Cooperatives", "Provincial agriculture departments"]
+    description_en = "Warns 5–7 days before saline water reaches the field, with what to do."
 
     def assess(self, location: Location) -> Assessment:
         ctx = get_salinity_context(location.lat, location.lon)

@@ -16,16 +16,23 @@ from __future__ import annotations
 
 from app.schemas import Location
 from app.services import hazard, imagery, whatif
+from app.services.reqlang import tr
 
 # (màu lớp phủ, nhãn lớp) theo từng hiểm họa thời tiết.
-_OVERLAY = {
-    "flood": ("#2E6BB0", "Vùng ngập dự phóng"),
-    "drought": ("#C08A2E", "Mức khô hạn dự phóng"),
-    "wildfire": ("#C2412E", "Nguy cơ cháy dự phóng"),
-    "landslide": ("#8A5A2B", "Nguy cơ sạt lở dự phóng"),
+_OVERLAY = {   # (màu, nhãn VI, nhãn EN)
+    "flood": ("#2E6BB0", "Vùng ngập dự phóng", "Projected flood area"),
+    "drought": ("#C08A2E", "Mức khô hạn dự phóng", "Projected drought level"),
+    "wildfire": ("#C2412E", "Nguy cơ cháy dự phóng", "Projected fire risk"),
+    "landslide": ("#8A5A2B", "Nguy cơ sạt lở dự phóng", "Projected landslide risk"),
 }
 
-_RISK_VI = {"safe": "an toàn", "warning": "cảnh báo", "danger": "nguy hiểm"}
+# Tên trường "risk_vi" giữ nguyên cho giao diện cũ; GIÁ TRỊ đổi theo ngôn ngữ.
+_RISK_TXT = {"safe": ("an toàn", "safe"), "warning": ("cảnh báo", "warning"),
+             "danger": ("nguy hiểm", "danger")}
+
+
+def _risk_txt(risk: str) -> str:
+    return tr(*_RISK_TXT[risk])
 
 
 def _risk_of(peak: float, safe: float, warning: float) -> str:
@@ -40,16 +47,20 @@ def build(module_id: str, lat: float, lon: float) -> dict:
     """Ảnh tương lai cho 1 thửa + 1 hiểm họa thời tiết. Luôn trả dict."""
     if not hazard.supports(module_id):
         return {"available": False, "reason": "unsupported",
-                "message": ("Ảnh tương lai chỉ áp dụng cho hiểm họa thời tiết: "
-                            + ", ".join(hazard.IDS) + ".")}
+                "message": tr("Ảnh tương lai chỉ áp dụng cho hiểm họa thời tiết: ",
+                              "Future images only apply to weather hazards: ")
+                + ", ".join(hazard.IDS) + "."}
 
     loc = Location(lat=lat, lon=lon)
     wi = whatif.run(module_id, loc)
     if wi is None:
         return {"available": False, "reason": "unsupported",
-                "message": "Module không hỗ trợ kịch bản."}
+                "message": tr("Module không hỗ trợ kịch bản.",
+                              "This module doesn't support scenarios.")}
 
-    color, layer_label = _OVERLAY.get(module_id, ("#2E6BB0", "Vùng dự phóng"))
+    color, lbl_vi, lbl_en = _OVERLAY.get(
+        module_id, ("#2E6BB0", "Vùng dự phóng", "Projected area"))
+    layer_label = tr(lbl_vi, lbl_en)
 
     scenarios = []
     for s in wi.scenarios:
@@ -58,21 +69,23 @@ def build(module_id: str, lat: float, lon: float) -> dict:
         # Độ mờ lớp phủ: đủ để thấy mức độ, đủ trong để vẫn nhìn xuyên tới ảnh
         # thật bên dưới (hàng rào 1 — không che mất quan sát).
         opacity = round(0.12 + 0.48 * intensity, 2)
-        danger_txt = (f" · vượt ngưỡng từ {s.first_danger_date[5:]}"
+        danger_txt = (tr(f" · vượt ngưỡng từ {s.first_danger_date[5:]}",
+                         f" · over threshold from {s.first_danger_date[5:]}")
                       if s.first_danger_date else "")
+        unit_txt = "%" if wi.unit == "%" else tr(" điểm", " pts")
         scenarios.append({
             "label": s.label,
             "rain_mult": s.rain_mult,
             "temp_delta": s.temp_delta,
             "peak": s.peak,
             "risk": risk,
-            "risk_vi": _RISK_VI[risk],
+            "risk_vi": _risk_txt(risk),
             "first_danger_date": s.first_danger_date,
             "intensity": intensity,
             "opacity": opacity,
-            "caption": (f"Kịch bản '{s.label}': chỉ số đỉnh {s.peak}"
-                        f"{'%' if wi.unit == '%' else ' điểm'} — {_RISK_VI[risk]}"
-                        f"{danger_txt}."),
+            "caption": (tr(f"Kịch bản '{s.label}': chỉ số đỉnh {s.peak}",
+                           f"Scenario '{s.label}': peak index {s.peak}")
+                        + f"{unit_txt} — {_risk_txt(risk)}{danger_txt}."),
         })
 
     # Ảnh nền thật (có thể bị mây che → available=False, khi đó vẫn trả kịch bản
@@ -95,10 +108,14 @@ def build(module_id: str, lat: float, lon: float) -> dict:
         "layer_label": layer_label,
         "scenarios": scenarios,
         "is_projection": True,
-        "disclaimer": (
+        "disclaimer": tr(
             "DỰ PHÓNG, KHÔNG phải ảnh chụp tương lai. Nền là ảnh vệ tinh THẬT; "
             "lớp phủ màu là kết quả mô phỏng kịch bản (đã hiệu chuẩn + backtest), "
-            "vẽ tách khỏi ảnh để bạn luôn phân biệt được quan sát với dự đoán."),
+            "vẽ tách khỏi ảnh để bạn luôn phân biệt được quan sát với dự đoán.",
+            "A PROJECTION, NOT a photo of the future. The base is a REAL satellite "
+            "image; the colored overlay is a scenario simulation (calibrated + "
+            "backtested), drawn separately so you can always tell observation from "
+            "prediction."),
         "note": wi.note,
     }
 
@@ -114,8 +131,9 @@ def build(module_id: str, lat: float, lon: float) -> dict:
     else:
         out["base_image"] = None
         out["base_message"] = img.get(
-            "message", "Chưa có ảnh quang mây cho thửa này.")
-        out["source"] = ("Sentinel-2 L2A · Microsoft Planetary Computer "
-                         "(không cần khoá)")
+            "message", tr("Chưa có ảnh quang mây cho thửa này.",
+                          "No cloud-free image for this plot yet."))
+        out["source"] = tr("Sentinel-2 L2A · Microsoft Planetary Computer (không cần khoá)",
+                           "Sentinel-2 L2A · Microsoft Planetary Computer (no key needed)")
 
     return out

@@ -163,15 +163,18 @@ def build(lat: float, lon: float, buffer_m: float = 600.0,
         "uncertainty_pct": _round(unc * 100, 0),
         "stock_tco2_low": _round(lo),
         "stock_tco2_high": _round(hi),
-        "arithmetic": (
+        "arithmetic": tr(
             f"{forest_ha} ha có tán × (({_round(agb)} + {_round(bgb)}) t sinh khối/ha "
+            f"× {CARBON_FRACTION} carbon × {_round(CO2_PER_C, 3)} CO₂/C) "
+            f"= {_round(stock_tco2)} tCO₂",
+            f"{forest_ha} ha canopy × (({_round(agb)} + {_round(bgb)}) t biomass/ha "
             f"× {CARBON_FRACTION} carbon × {_round(CO2_PER_C, 3)} CO₂/C) "
             f"= {_round(stock_tco2)} tCO₂"),
     }
 
     report = {
         "available": True,
-        "project_name": project_name or "Lô chưa đặt tên",
+        "project_name": project_name or tr("Lô chưa đặt tên", "Unnamed lot"),
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "measured": measured,
         "estimated": estimated,
@@ -214,24 +217,37 @@ def build(lat: float, lon: float, buffer_m: float = 600.0,
                "sơ bộ để biết có đáng theo đuổi dự án carbon hay không.",
                "THIS IS NOT CREDIT-ISSUANCE-GRADE DATA. It's a preliminary estimate to "
                "judge whether a carbon project is worth pursuing."),
-            f"Sai số Tier {tier}: ±{_round(unc * 100, 0)}%. Hệ số mặc định IPCC là "
-            "trung bình cho cả một vùng sinh thái, có thể lệch rất xa một lô cụ thể.",
-            "Chưa có đường cơ sở (baseline) và chứng minh tính bổ sung "
-            "(additionality) — hai thứ bắt buộc của mọi tiêu chuẩn tín chỉ.",
-            "Chưa trừ rò rỉ (leakage) và chưa lập vùng đệm rủi ro đảo ngược.",
-            "NDVI bão hòa ở tán rậm: rừng rất giàu sinh khối không phân biệt được "
-            "với rừng trung bình bằng chỉ số quang học đơn thuần.",
+            tr(f"Sai số Tier {tier}: ±{_round(unc * 100, 0)}%. Hệ số mặc định IPCC là "
+               "trung bình cho cả một vùng sinh thái, có thể lệch rất xa một lô cụ thể.",
+               f"Tier {tier} uncertainty: ±{_round(unc * 100, 0)}%. IPCC default factors "
+               "are averages for a whole ecological zone and can be far off for a "
+               "specific lot."),
+            tr("Chưa có đường cơ sở (baseline) và chứng minh tính bổ sung "
+               "(additionality) — hai thứ bắt buộc của mọi tiêu chuẩn tín chỉ.",
+               "No baseline or additionality proof yet — both are mandatory under "
+               "every credit standard."),
+            tr("Chưa trừ rò rỉ (leakage) và chưa lập vùng đệm rủi ro đảo ngược.",
+               "Leakage isn't deducted and no reversal-risk buffer is set up yet."),
+            tr("NDVI bão hòa ở tán rậm: rừng rất giàu sinh khối không phân biệt được "
+               "với rừng trung bình bằng chỉ số quang học đơn thuần.",
+               "NDVI saturates under dense canopy: very high-biomass forest can't be "
+               "told apart from average forest by an optical index alone."),
         ],
         "to_reach_credit_grade": [
             tr("Lập ô mẫu thực địa (thường 0,1 ha/ô, tối thiểu 3–5 ô) đo đường kính "
                "ngang ngực và chiều cao, áp phương trình sinh khối của loài.",
                "Set up field sample plots (typically 0.1 ha each, at least 3–5) measuring "
                "diameter at breast height and height, applying species biomass equations."),
-            "Nhập hệ số sinh khối địa phương thu được vào phần mềm để lên Tier 2.",
-            "Chọn tiêu chuẩn (VCS, Gold Standard, hoặc cơ chế trong nước) và lập "
-            "đường cơ sở theo đúng phương pháp luận của tiêu chuẩn đó.",
-            "Thuê đơn vị thẩm định độc lập (VVB) xác minh — không tổ chức nào chấp "
-            "nhận tín chỉ do chính chủ dự án tự đo.",
+            tr("Nhập hệ số sinh khối địa phương thu được vào phần mềm để lên Tier 2.",
+               "Enter the resulting local biomass factor into the software to reach Tier 2."),
+            tr("Chọn tiêu chuẩn (VCS, Gold Standard, hoặc cơ chế trong nước) và lập "
+               "đường cơ sở theo đúng phương pháp luận của tiêu chuẩn đó.",
+               "Choose a standard (VCS, Gold Standard, or a domestic mechanism) and set "
+               "the baseline following that standard's methodology."),
+            tr("Thuê đơn vị thẩm định độc lập (VVB) xác minh — không tổ chức nào chấp "
+               "nhận tín chỉ do chính chủ dự án tự đo.",
+               "Hire an independent validation/verification body (VVB) — no registry "
+               "accepts credits measured by the project owner alone."),
         ],
     }
 
@@ -246,15 +262,23 @@ def build(lat: float, lon: float, buffer_m: float = 600.0,
         "hash": digest,
         "short": digest[:16],
         "covers": ["measured", "estimated", "change_vs_last_year"],
-        "note": ("Mã băm tính trên đúng bộ số liệu đo và ước lượng ở trên. Sửa "
-                 "bất kỳ con số nào là mã băm khác đi, nên người nhận báo cáo "
-                 "tự kiểm được bản mình cầm có bị chỉnh sửa hay không."),
-        "not_a_signature": ("Đây là kiểm tra TOÀN VẸN, không phải chữ ký số của "
-                            "một cơ quan có thẩm quyền. Nó chứng minh báo cáo "
-                            "không bị sửa, KHÔNG chứng minh nội dung đã được ai "
-                            "thẩm định."),
-        "verify": ("Băm lại chuỗi JSON gọn (khóa sắp xếp, không khoảng trắng) của "
-                   "ba khối measured/estimated/change bằng SHA-256."),
+        "note": tr("Mã băm tính trên đúng bộ số liệu đo và ước lượng ở trên. Sửa "
+                   "bất kỳ con số nào là mã băm khác đi, nên người nhận báo cáo "
+                   "tự kiểm được bản mình cầm có bị chỉnh sửa hay không.",
+                   "The hash covers exactly the measured and estimated figures above. "
+                   "Changing any number changes the hash, so the recipient can check "
+                   "for themselves whether their copy was edited."),
+        "not_a_signature": tr("Đây là kiểm tra TOÀN VẸN, không phải chữ ký số của "
+                              "một cơ quan có thẩm quyền. Nó chứng minh báo cáo "
+                              "không bị sửa, KHÔNG chứng minh nội dung đã được ai "
+                              "thẩm định.",
+                              "This is an INTEGRITY check, not a digital signature from "
+                              "an authority. It proves the report wasn't altered, NOT "
+                              "that anyone has validated its content."),
+        "verify": tr("Băm lại chuỗi JSON gọn (khóa sắp xếp, không khoảng trắng) của "
+                     "ba khối measured/estimated/change bằng SHA-256.",
+                     "Re-hash the compact JSON (sorted keys, no whitespace) of the "
+                     "measured/estimated/change blocks with SHA-256."),
     }
     return report
 
@@ -264,7 +288,8 @@ def verify(report: dict) -> dict:
     integ = (report or {}).get("integrity") or {}
     claimed = integ.get("hash")
     if not claimed:
-        return {"valid": False, "reason": "Báo cáo không có mã băm."}
+        return {"valid": False, "reason": tr("Báo cáo không có mã băm.",
+                                             "The report has no hash.")}
     payload = json.dumps({"measured": report.get("measured"),
                           "estimated": report.get("estimated"),
                           "change": report.get("change_vs_last_year")},
@@ -274,8 +299,11 @@ def verify(report: dict) -> dict:
     ok = actual == claimed
     return {
         "valid": ok, "expected": claimed, "actual": actual,
-        "message": ("Báo cáo nguyên vẹn — số liệu khớp mã băm."
+        "message": (tr("Báo cáo nguyên vẹn — số liệu khớp mã băm.",
+                       "Report intact — figures match the hash.")
                     if ok else
-                    "CẢNH BÁO: số liệu trong báo cáo KHÔNG khớp mã băm. Bản này "
-                    "đã bị sửa sau khi lập."),
+                    tr("CẢNH BÁO: số liệu trong báo cáo KHÔNG khớp mã băm. Bản này "
+                       "đã bị sửa sau khi lập.",
+                       "WARNING: the report's figures do NOT match the hash. This "
+                       "copy was altered after it was generated.")),
     }

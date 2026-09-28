@@ -941,7 +941,7 @@ export type DesignOption = {
   reasons: string[];
   warnings: string[];
 };
-export type DesignInfra = { priority: string; item: string; why: string };
+export type DesignInfra = { priority: string; priority_code?: string; item: string; why: string };
 export type DesignResult = {
   location: { lat: number; lon: number };
   site: Record<string, unknown>;

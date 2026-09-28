@@ -284,7 +284,10 @@ def timeline(module_id: str, lat: float, lon: float,
 
     dates = []
     scen_out = []
-    for label, rain, temp in SCENARIOS:
+    # Giữ nhãn tiếng Việt: kết quả này cache KHÔNG theo ngôn ngữ, và phần còn
+    # lại của panel (headline, ghi chú) chưa song ngữ — dịch riêng nhãn sẽ ra
+    # một bản cache lẫn hai thứ tiếng.
+    for label, _label_en, rain, temp in SCENARIOS:
         cells = []
         n_over_by_day = None
         for i, (la, lo) in enumerate(pts):

@@ -20,7 +20,9 @@ class TwinModule(ABC):
     data_sources: list[str] = []
     data_sources_en: list[str] = []  # song ngữ tuỳ chọn cho data_sources (xem disp_data_sources)
     users: list[str] = []
+    users_en: list[str] = []         # song ngữ cho users (xem disp_users)
     description: str = ""
+    description_en: str = ""         # song ngữ cho description
     status: str = "planned"
 
     # Mô-đun "nặng": tốn nhiều lượt gọi ra ngoài (vd. quét cả một lưới điểm,
@@ -54,11 +56,19 @@ class TwinModule(ABC):
         from app.services.reqlang import tr
         return tr(self.data_sources, self.data_sources_en or self.data_sources)
 
+    def disp_users(self) -> list[str]:
+        from app.services.reqlang import tr
+        return tr(self.users, self.users_en or self.users)
+
+    def disp_description(self) -> str:
+        from app.services.reqlang import tr
+        return tr(self.description, self.description_en or self.description)
+
     def info(self) -> ModuleInfo:
         return ModuleInfo(
             id=self.id, name=self.disp_name(), group=self.group, status=self.status,
-            icon=self.icon, data_sources=self.disp_data_sources(), users=self.users,
-            description=self.description, heavy=self.heavy, threat=self.threat,
+            icon=self.icon, data_sources=self.disp_data_sources(), users=self.disp_users(),
+            description=self.disp_description(), heavy=self.heavy, threat=self.threat,
         )
 
     @abstractmethod

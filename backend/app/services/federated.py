@@ -23,6 +23,8 @@ from __future__ import annotations
 import math
 from collections import defaultdict
 
+from app.services.reqlang import tr
+
 GRID = 0.5              # độ — vùng gộp ~55 km
 MIN_OBS = 3             # dưới ngưỡng này không công bố, tránh truy ngược cá nhân
 MAX_SHIFT = 15.0        # trần dịch ngưỡng (điểm), chống nhiễm độc dữ liệu
@@ -95,9 +97,12 @@ def aggregate(observations: list) -> dict:
             "hit": stats["hit"], "missed": stats["missed"],
             "false_alarm": stats["false_alarm"],
             "correct_quiet": stats["correct_quiet"],
-            "direction": ("nâng ngưỡng — vùng này hay báo động giả" if shift > 0
-                          else "hạ ngưỡng — vùng này hay bị bỏ sót" if shift < 0
-                          else "giữ nguyên — model đang khớp thực địa"),
+            "direction": (tr("nâng ngưỡng — vùng này hay báo động giả",
+                             "threshold raised — this area tends to false-alarm") if shift > 0
+                          else tr("hạ ngưỡng — vùng này hay bị bỏ sót",
+                                  "threshold lowered — this area tends to be missed") if shift < 0
+                          else tr("giữ nguyên — model đang khớp thực địa",
+                                  "unchanged — the model matches the field")),
         })
 
     pending = sum(1 for g in groups.values() if len(g) < MIN_OBS)
@@ -108,16 +113,25 @@ def aggregate(observations: list) -> dict:
         "cells_published": len(adjustments),
         "cells_pending": pending,
         "adjustments": adjustments,
-        "privacy": (
+        "privacy": tr(
             "Quan sát thô không bao giờ rời khỏi tài khoản người gửi. Bảng này "
             f"chỉ chứa một con số cho mỗi vùng ~{GRID}° và chỉ công bố khi đã có "
             f"ít nhất {MIN_OBS} quan sát, nên không truy ngược được về một thửa "
-            "hay một người cụ thể."),
-        "method": (
+            "hay một người cụ thể.",
+            "Raw observations never leave the sender's account. This table holds "
+            f"only one number per ~{GRID}° area and is published only once there are "
+            f"at least {MIN_OBS} observations, so it can't be traced back to a "
+            "specific plot or person."),
+        "method": tr(
             "Model báo mà thực tế không xảy ra → nâng ngưỡng. Sự việc xảy ra mà "
             f"model im lặng → hạ ngưỡng. Mỗi quan sát lệch góp {_STEP} điểm, "
             f"tổng dịch chuyển chặn trong ±{MAX_SHIFT} điểm để một nhóm nhỏ quan "
-            "sát sai không phá được mô hình."),
+            "sát sai không phá được mô hình.",
+            "Model warned but nothing happened → raise the threshold. Something "
+            f"happened but the model stayed silent → lower it. Each mismatched "
+            f"observation contributes {_STEP} points, and the total shift is capped "
+            f"at ±{MAX_SHIFT} points so a small group of wrong observations can't "
+            "break the model."),
     }
 
 

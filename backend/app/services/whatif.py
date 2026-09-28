@@ -16,17 +16,18 @@ from app.schemas import (
 from app.services import datasources as ds
 from app.services import hazard
 from app.services import realdata
+from app.services.reqlang import tr
 
 # Ngưỡng & metadata lấy từ lõi hiểm họa dùng chung (hazard.py)
 SAFE, WARNING = hazard.SAFE, hazard.WARNING
 _META = hazard.META
 
 # Bốn tương lai song song. rain = nhân lượng mưa, temp = cộng vào nhiệt độ tối đa.
-SCENARIOS = [
-    ("Hiện tại (dữ liệu thật)", 1.0, 0.0),
-    ("Mưa +50%", 1.5, 0.0),
-    ("Mưa gấp đôi (cực đoan)", 2.0, 0.0),
-    ("Khô hạn kéo dài (mưa −60%, +2°C)", 0.4, 2.0),
+SCENARIOS = [   # (nhãn VI, nhãn EN, rain, temp)
+    ("Hiện tại (dữ liệu thật)", "Current (real data)", 1.0, 0.0),
+    ("Mưa +50%", "Rain +50%", 1.5, 0.0),
+    ("Mưa gấp đôi (cực đoan)", "Double rain (extreme)", 2.0, 0.0),
+    ("Khô hạn kéo dài (mưa −60%, +2°C)", "Prolonged drought (rain −60%, +2°C)", 0.4, 2.0),
 ]
 
 
@@ -37,7 +38,7 @@ def available(module_id: str) -> bool:
 def run(module_id: str, loc: Location) -> WhatIfResult | None:
     if module_id not in _META:
         return None
-    name, unit = _META[module_id]
+    name, unit = hazard.name_unit(module_id)   # song ngữ theo request
 
     rows = realdata.weather_7d(loc.lat, loc.lon)
     is_real = rows is not None
@@ -51,7 +52,8 @@ def run(module_id: str, loc: Location) -> WhatIfResult | None:
                  "et0": 3.0, "tmax": 32.0} for (d, dt, v) in base_series]
 
     scenarios: list[ScenarioResult] = []
-    for label, rain, temp in SCENARIOS:
+    for label_vi, label_en, rain, temp in SCENARIOS:
+        label = tr(label_vi, label_en)
         series = hazard.index_series(
             module_id, loc.lat, loc.lon, hazard.transform(rows, rain, temp))
         pts = [ScenarioPoint(day=d, date=dt, value=v, risk=risk_of(v, SAFE, WARNING))
@@ -63,10 +65,13 @@ def run(module_id: str, loc: Location) -> WhatIfResult | None:
             first_danger_date=first_danger, series=pts,
         ))
 
-    note = ("Mô phỏng tham số minh bạch trên nền thời tiết THẬT 7 ngày (Open-Meteo): "
-            "điều chỉnh lượng mưa/nhiệt rồi chạy đúng mô hình cảnh báo."
+    note = (tr("Mô phỏng tham số minh bạch trên nền thời tiết THẬT 7 ngày (Open-Meteo): "
+               "điều chỉnh lượng mưa/nhiệt rồi chạy đúng mô hình cảnh báo.",
+               "Transparent parametric simulation on 7 days of REAL weather (Open-Meteo): "
+               "adjust rain/temperature, then run the exact same warning model.")
             if is_real else
-            "Nền dữ liệu thật không sẵn (offline) — đang mô phỏng trên chuỗi mẫu.")
+            tr("Nền dữ liệu thật không sẵn (offline) — đang mô phỏng trên chuỗi mẫu.",
+               "Real baseline data isn't available (offline) — simulating on a sample series."))
     return WhatIfResult(
         module_id=module_id, module_name=name, location=loc, unit=unit,
         safe=SAFE, warning=WARNING, is_real=is_real, note=note, scenarios=scenarios,

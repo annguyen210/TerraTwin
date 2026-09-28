@@ -17,6 +17,8 @@ class DroughtModule(TwinModule):
     data_sources_en = ["Open-Meteo: rainfall & ET₀"]
     users = ["Nông dân", "Đơn vị thủy lợi"]
     description = "Dự báo vùng ruộng sắp thiếu nước để chủ động điều tiết."
+    users_en = ["Farmers", "Irrigation agencies"]
+    description_en = "Forecasts which fields are about to run short of water, so supply can be planned."
 
     def assess(self, loc: Location) -> Assessment:
         s, real, calibrated, source = hazard.module_series(self.id, loc.lat, loc.lon)
@@ -48,6 +50,8 @@ class WildfireModule(TwinModule):
     data_sources_en = ["Open-Meteo: temperature & rainfall", "NASA FIRMS (planned expansion)"]
     users = ["Kiểm lâm", "Chính quyền"]
     description = "Vùng khô dễ cháy + phát hiện điểm nóng sớm."
+    users_en = ["Forest rangers", "Local government"]
+    description_en = "Dry, fire-prone areas + early hotspot detection."
 
     def assess(self, loc: Location) -> Assessment:
         s, real, calibrated, source = hazard.module_series(self.id, loc.lat, loc.lon)
@@ -96,6 +100,8 @@ class PestModule(TwinModule):
     data_sources_en = ["Sentinel-2 NDVI (Copernicus)", "User leaf photos (roadmap)"]
     users = ["Nông dân", "DN nông nghiệp"]
     description = "Khoanh vùng cây stress bất thường + phân biệt đều hay loang lổ."
+    users_en = ["Farmers", "Agribusinesses"]
+    description_en = "Pinpoints abnormally stressed crops + tells uniform from patchy."
 
     def assess(self, loc: Location) -> Assessment:
         r = optical.stress(loc.lat, loc.lon)
@@ -176,6 +182,8 @@ class AquacultureModule(TwinModule):
                        "Sentinel-2 turbidity/algae (needs key — roadmap)"]
     users = ["Hộ/DN nuôi thủy sản"]
     description = "Nhiệt nước/sóng ảnh hưởng tôm cá → cảnh báo sớm."
+    users_en = ["Aquaculture households & businesses"]
+    description_en = "Water temperature/waves affecting shrimp & fish → early warning."
 
     HOT, VERY_HOT, COLD = 32.0, 33.5, 25.0
 
@@ -305,6 +313,8 @@ class YieldModule(TwinModule):
     data_sources_en = ["180-day Sentinel-2 NDVI series (Copernicus)"]
     users = ["Nông dân", "Thương lái", "DN xuất khẩu"]
     description = "Cây đang ở giai đoạn nào, đỉnh sinh trưởng khi nào, còn bao lâu tới thu."
+    users_en = ["Farmers", "Traders", "Exporters"]
+    description_en = "Which growth stage the crop is in, when it peaks, and how long until harvest."
 
     def assess(self, loc: Location) -> Assessment:
         r = optical.growth(loc.lat, loc.lon)
@@ -363,6 +373,8 @@ class CarbonModule(TwinModule):
                        "IPCC 2006 Tier 1 factors (AFOLU Ch.4)"]
     users = ["Chủ rừng", "DN", "Quỹ carbon"]
     description = "Đo che phủ tán thật + ước lượng trữ lượng có công bố bậc và sai số."
+    users_en = ["Forest owners", "Businesses", "Carbon funds"]
+    description_en = "Measures real canopy cover + estimates stock with its tier and uncertainty disclosed."
 
     def assess(self, loc: Location) -> Assessment:
         from app.services import mrv

@@ -12,7 +12,12 @@ import { useState } from "react";
 import { runDesign, type DesignResult } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
+// Tô màu theo priority_code (ổn định) — nhãn `priority` giờ đã dịch theo ngôn
+// ngữ nên không dùng làm khoá được nữa. Giữ khoá chữ Việt cũ làm dự phòng.
 const PRIO: Record<string, string> = {
+  high: "#C2412E",
+  medium: "#B07A2E",
+  low: "#5fcb8e",
   cao: "#C2412E",
   "trung bình": "#B07A2E",
   thấp: "#5fcb8e",
@@ -99,7 +104,7 @@ export default function DesignStudio({ lat, lon }: { lat: number; lon: number })
           <div className="ds-infra-h">{t("Hạ tầng nên làm, theo thứ tự", "Infrastructure to build, in order")}</div>
           {data.infrastructure.map((it, i) => (
             <div key={i} className="ds-infra">
-              <span className="ds-prio" style={{ color: PRIO[it.priority] ?? "#9fb2bf" }}>
+              <span className="ds-prio" style={{ color: PRIO[it.priority_code ?? it.priority] ?? "#9fb2bf" }}>
                 {it.priority}
               </span>
               <div>

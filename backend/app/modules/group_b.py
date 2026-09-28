@@ -19,6 +19,8 @@ class FloodModule(TwinModule):
                        "GloFAS: river discharge (Open-Meteo Flood API)"]
     users = ["Người dân", "Chính quyền", "Cứu hộ"]
     description = "Vùng dân cư nào sắp ngập, sâu bao nhiêu, khi nào."
+    users_en = ["Residents", "Local government", "Rescue teams"]
+    description_en = "Which residential areas are about to flood, how deep, and when."
 
     def assess(self, loc: Location) -> Assessment:
         s, real, calibrated, source = hazard.module_series(self.id, loc.lat, loc.lon)
@@ -91,6 +93,8 @@ class LandslideModule(TwinModule):
     data_sources_en = ["Open-Meteo: rainfall", "Slope (DEM estimated)"]
     users = ["Dân miền núi", "Chính quyền"]
     description = "Vùng núi có nguy cơ sạt lở sau mưa lớn."
+    users_en = ["Mountain communities", "Local government"]
+    description_en = "Mountain areas at risk of landslides after heavy rain."
 
     def assess(self, loc: Location) -> Assessment:
         s, real, calibrated, source = hazard.module_series(self.id, loc.lat, loc.lon)
@@ -145,6 +149,8 @@ class StormDamageModule(TwinModule):
     data_sources_en = ["Sentinel-2 NDVI two-date pair (Copernicus)"]
     users = ["Cứu trợ", "Bảo hiểm", "Nhà nước"]
     description = "So ảnh hai kỳ để đo mất thảm thực vật đột ngột."
+    users_en = ["Relief agencies", "Insurers", "Government"]
+    description_en = "Compares two image dates to measure sudden vegetation loss."
 
     def assess(self, loc: Location) -> Assessment:
         r = optical.vegetation_loss(loc.lat, loc.lon)
@@ -196,6 +202,8 @@ class LandRiskModule(TwinModule):
     data_sources_en = ["Elevation (Open-Meteo)", "Open-Meteo: rainfall", "Distance to coast"]
     users = ["Người mua nhà đất", "Môi giới", "Ngân hàng"]
     description = "Nhập vị trí → lô này có ngập/sạt lở không, an toàn không."
+    users_en = ["Land & home buyers", "Brokers", "Banks"]
+    description_en = "Enter a location → does this lot flood or slide, is it safe."
 
     def assess(self, loc: Location) -> Assessment:
         elev = ds.elevation_proxy(loc.lat, loc.lon)          # thật (Open-Meteo)
@@ -247,6 +255,8 @@ class IllegalBuildModule(TwinModule):
     data_sources_en = ["Sentinel-2 NDBI + NDVI, two dates one year apart (Copernicus)"]
     users = ["Quản lý đô thị", "Địa chính"]
     description = "Bề mặt cứng mới xuất hiện so với cùng kỳ năm trước."
+    users_en = ["Urban managers", "Land registry"]
+    description_en = "New hard surfaces that appeared vs the same period last year."
 
     def assess(self, loc: Location) -> Assessment:
         r = optical.new_construction(loc.lat, loc.lon)
@@ -304,6 +314,8 @@ class UpstreamFloodModule(TwinModule):
                        "Open-Meteo: rain forecast on the upstream grid"]
     users = ["Dân vùng núi và hạ lưu", "Chính quyền", "Cứu hộ"]
     description = "Trên cao có đang mưa không, và nước đó có dồn về phía bạn không."
+    users_en = ["Upland & downstream communities", "Local government", "Rescue teams"]
+    description_en = "Is it raining upstream, and is that water heading your way."
 
     def assess(self, loc: Location) -> Assessment:
         from app.services import catchment

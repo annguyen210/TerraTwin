@@ -68,6 +68,8 @@ class UrbanModule(TwinModule):
                        "Sentinel-2 NDVI for green space (when key is set)"]
     users = ["Quản lý đô thị", "Nhà quy hoạch", "Người mua nhà trong đô thị"]
     description = "Bê tông hoá làm nước chảy tràn tăng bao nhiêu, mảng xanh còn bao nhiêu."
+    users_en = ["Urban managers", "Planners", "Urban home buyers"]
+    description_en = "How much concrete cover raises runoff, and how much green space is left."
 
     def assess(self, loc: Location) -> Assessment:
         env = osm.built_environment(loc.lat, loc.lon, radius_m=1000.0)
@@ -190,6 +192,9 @@ class MiningModule(TwinModule):
     users = ["Chủ mỏ", "Nhà thầu hạ tầng", "Cơ quan an toàn lao động",
              "Dân cư quanh mỏ"]
     description = "Nguy cơ mất ổn định mái dốc trên đất đã bị đào bới, sau mưa."
+    users_en = ["Mine owners", "Infrastructure contractors", "Occupational safety agencies",
+                "Residents near mines"]
+    description_en = "Slope-instability risk on excavated ground after rain."
 
     _SELECTOR = '["landuse"~"quarry|industrial"]'
 
@@ -381,6 +386,8 @@ class SupplyChainModule(TwinModule):
                        "OpenStreetMap: trunk roads & wholesale markets"]
     users = ["Nhà máy chế biến", "Hợp tác xã", "Thương lái", "DN xuất khẩu"]
     description = "Bao nhiêu phần vùng thu mua đang gặp rủi ro, và hồ sơ truy xuất nguồn gốc."
+    users_en = ["Processing plants", "Cooperatives", "Traders", "Exporters"]
+    description_en = "What share of the sourcing area is at risk, plus traceability records."
 
     RADIUS_KM = 25.0
     SIDE = 5              # lưới 5×5 = 25 điểm, một lượt gọi Open-Meteo

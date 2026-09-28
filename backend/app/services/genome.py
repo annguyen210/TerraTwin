@@ -41,15 +41,20 @@ _WEIGHTS = {
 }
 _FEATURES = tuple(_WEIGHTS)
 
-_LABELS = {
-    "elev": ("Cao độ", "m"),
-    "slope": ("Độ dốc", "°"),
-    "coast_km": ("Cách biển", "km"),
-    "rain_annual": ("Mưa cả năm", "mm"),
-    "dry_share": ("Tỉ lệ mưa mùa khô", "%"),
-    "tmax_mean": ("Nhiệt tối đa TB", "°C"),
-    "tmax_range": ("Biên độ nhiệt mùa", "°C"),
+_LABELS = {   # (nhãn VI, nhãn EN, đơn vị)
+    "elev": ("Cao độ", "Elevation", "m"),
+    "slope": ("Độ dốc", "Slope", "°"),
+    "coast_km": ("Cách biển", "Distance to sea", "km"),
+    "rain_annual": ("Mưa cả năm", "Annual rainfall", "mm"),
+    "dry_share": ("Tỉ lệ mưa mùa khô", "Dry-season rain share", "%"),
+    "tmax_mean": ("Nhiệt tối đa TB", "Mean max temperature", "°C"),
+    "tmax_range": ("Biên độ nhiệt mùa", "Seasonal temperature range", "°C"),
 }
+
+
+def _label(f: str) -> str:
+    from app.services.reqlang import tr
+    return tr(_LABELS[f][0], _LABELS[f][1])
 
 _DRY_MONTHS = {12, 1, 2, 3, 4}   # mùa khô ở phần lớn Việt Nam
 
@@ -189,8 +194,7 @@ def _distance(a: dict, b: dict, stats: dict) -> float:
 def _compare(a: dict, b: dict) -> list[dict]:
     out = []
     for f in _FEATURES:
-        label, unit = _LABELS[f]
-        out.append({"feature": f, "label": label, "unit": unit,
+        out.append({"feature": f, "label": _label(f), "unit": _LABELS[f][2],
                     "yours": a[f], "theirs": b[f],
                     "diff": round(b[f] - a[f], 1)})
     return out
@@ -249,7 +253,7 @@ def find_twins(lat: float, lon: float, k: int = 5) -> dict:
         "available": True,
         "location": {"lat": lat, "lon": lon},
         "your_genome": {f: mine[f] for f in _FEATURES},
-        "feature_labels": {f: {"label": _LABELS[f][0], "unit": _LABELS[f][1]}
+        "feature_labels": {f: {"label": _label(f), "unit": _LABELS[f][2]}
                            for f in _FEATURES},
         "twins": twins,
         "reference": {

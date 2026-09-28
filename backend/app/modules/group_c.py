@@ -17,6 +17,8 @@ class ParametricInsuranceModule(TwinModule):
     data_sources_en = ["Open-Meteo: drought index (rain & ET₀)"]
     users = ["Nông dân", "Công ty bảo hiểm"]
     description = "Tự chi trả khi hạn/lũ vượt ngưỡng đo bằng vệ tinh."
+    users_en = ["Farmers", "Insurance companies"]
+    description_en = "Pays out automatically when satellite-measured drought/flood crosses a threshold."
 
     def assess(self, loc: Location) -> Assessment:
         s, real = ds.drought_series(loc.lat, loc.lon)  # dùng chỉ số hạn làm trigger
@@ -62,6 +64,8 @@ class SolarModule(TwinModule):
     data_sources_en = ["NASA POWER: solar irradiance"]
     users = ["Nhà đầu tư điện mặt trời", "Hộ lắp mái"]
     description = "Bức xạ/che khuất của mái/khu đất → sản lượng dự kiến."
+    users_en = ["Solar investors", "Rooftop households"]
+    description_en = "Irradiance/shading of the roof or site → expected output."
 
     def assess(self, loc: Location) -> Assessment:
         rad, real = ds.solar_radiation(loc.lat, loc.lon)
