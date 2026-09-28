@@ -18,9 +18,10 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app import auth
-from app.db import Alert, Dataset, Event, NotifyChannel, Twin, User, get_session
+from app.db import (Alert, Dataset, Event, Job, NotifyChannel, Plot, Twin, User,
+                    get_session)
 from app.schemas import VN_LAT_MAX, VN_LAT_MIN, VN_LON_MAX, VN_LON_MIN, Location
-from app.services import notify, radar, twin as twin_svc
+from app.services import jobs_db, notify, radar, reqlang, twin as twin_svc
 
 router = APIRouter(tags=["data"])
 
@@ -223,15 +224,66 @@ def score_dataset(ds_id: int, limit: int = 50,
 
 # ---------- C05 Proactive Radar / S08 ----------
 
+def _queue_worker_running() -> bool:
+    """Worker thăm dò hàng đợi bền có đang chạy không (main._jobs_poll_loop).
+    Tắt (=0, vd chạy nhiều worker không ai giành việc, hoặc trong test) thì đẩy
+    việc vào hàng đợi là để nó nằm 'queued' mãi — phải chạy tại chỗ."""
+    import os as _os
+    try:
+        return float(_os.environ.get("TERRATWIN_JOBS_POLL_INTERVAL_S", "2") or 0) > 0
+    except ValueError:
+        return False
+
+
 @router.post("/api/radar/run")
-def run_radar(user: User = Depends(auth.current_user),
+def run_radar(wait: bool = False,
+              user: User = Depends(auth.current_user),
               db: Session = Depends(get_session)) -> dict:
-    """Quét lại mọi thửa đã lưu, ghi CẢNH BÁO MỚI.
+    """Quét lại mọi thửa đã lưu, ghi CẢNH BÁO MỚI — CHẠY NỀN, trả job_id ngay.
 
     Logic nằm ở services/radar.py vì bộ hẹn giờ nền cũng gọi đúng logic đó —
     không được để hai bản khác nhau rồi lệch nhau.
+
+    Đo thật: 3 thửa mất 196–519 giây. Giữ kết nối ngần ấy thì 10 thửa chắc
+    chắn vượt thời gian chờ của proxy. Nay đẩy vào hàng đợi BỀN (bảng jobs) và
+    trả ngay; hỏi tiến độ ở GET /api/radar/run/{job_id}. `wait=true` giữ kiểu
+    chờ tại chỗ cũ cho script — không dùng từ trình duyệt.
     """
-    return radar.sweep_user(user.id, db)
+    n_plots = db.scalar(select(func.count()).select_from(Plot)
+                        .where(Plot.user_id == user.id)) or 0
+    # Chưa có thửa thì trả lời ngay, không đẩy việc rỗng vào hàng đợi.
+    if wait or n_plots == 0 or not _queue_worker_running():
+        return radar.sweep_user(user.id, db)
+
+    # Bấm hai lần khi lượt trước chưa xong → trả lại đúng việc đang chạy, không
+    # quét chồng hai lượt cho cùng một người.
+    active = db.execute(select(Job).where(
+        Job.kind == radar.RADAR_JOB_KIND,
+        Job.state.in_(("queued", "running")))).scalars().all()
+    for j in active:
+        try:
+            if json.loads(j.args_json or "{}").get("user_id") == user.id:
+                return {"job_id": j.id, "state": j.state, "plots": n_plots,
+                        "poll": f"/api/radar/run/{j.id}"}
+        except ValueError:
+            continue
+
+    job_id = jobs_db.submit(db, radar.RADAR_JOB_KIND,
+                            {"user_id": user.id, "lang": reqlang.cur_lang()},
+                            label=f"Rà soát {n_plots} thửa")
+    return {"job_id": job_id, "state": "queued", "plots": n_plots,
+            "poll": f"/api/radar/run/{job_id}"}
+
+
+@router.get("/api/radar/run/{job_id}")
+def radar_run_status(job_id: str, user: User = Depends(auth.current_user),
+                     db: Session = Depends(get_session)) -> dict:
+    """Tiến độ + kết quả một lượt "Rà soát ngay". CHỈ chủ của lượt đó xem được —
+    kết quả chứa cảnh báo trên thửa của họ."""
+    args = jobs_db.args_of(db, job_id)
+    if args is None or args.get("user_id") != user.id:
+        raise HTTPException(404, "Không có lượt rà soát nào mang mã này.")
+    return jobs_db.status(db, job_id)
 
 
 @router.post("/api/radar/sweep-all")

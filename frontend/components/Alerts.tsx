@@ -6,6 +6,7 @@ import {
   listAlerts,
   runRadar,
   type AlertRow,
+  type RadarProgress,
   type AuthUser,
 } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
@@ -20,6 +21,7 @@ export default function Alerts({ user }: { user: AuthUser | null }) {
   const { t, lang } = useLang();
   const [rows, setRows] = useState<AlertRow[]>([]);
   const [busy, setBusy] = useState(false);
+  const [prog, setProg] = useState<RadarProgress | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -42,20 +44,23 @@ export default function Alerts({ user }: { user: AuthUser | null }) {
 
   async function scan() {
     setBusy(true);
+    setProg(null);
     setErr(null);
     setNote(null);
     try {
-      const r = await runRadar();
+      const r = await runRadar(setProg);
+      // 0 cảnh báo mới thường nghĩa là KHÔNG CÓ RỦI RO MỚI — câu cũ ("đã có
+      // cảnh báo tương tự") nói sai trong đúng trường hợp hay gặp nhất.
       setNote(
         r.message ??
           t(
             `Đã quét ${r.plots_scanned} thửa · ${r.new_alerts} cảnh báo mới` +
               (r.new_alerts === 0
-                ? ` (đã có cảnh báo tương tự trong ${r.dedup_window_hours ?? 72} giờ qua nên không lặp lại)`
+                ? ` — không có rủi ro mới (cùng một tình trạng chỉ nhắc lại sau ${r.dedup_window_hours ?? 72} giờ, trừ khi nặng lên)`
                 : ""),
             `Scanned ${r.plots_scanned} plots · ${r.new_alerts} new alerts` +
               (r.new_alerts === 0
-                ? ` (a similar alert already exists within the last ${r.dedup_window_hours ?? 72}h, so no duplicate)`
+                ? ` — no new risk (an unchanged condition is re-sent only after ${r.dedup_window_hours ?? 72}h, unless it gets worse)`
                 : ""),
           ),
       );
@@ -64,6 +69,7 @@ export default function Alerts({ user }: { user: AuthUser | null }) {
       setErr((e as Error).message);
     } finally {
       setBusy(false);
+      setProg(null);
     }
   }
 
@@ -91,8 +97,18 @@ export default function Alerts({ user }: { user: AuthUser | null }) {
            "Re-scans every saved plot and only records new alerts — running it repeatedly doesn't create duplicates.")}
       </p>
       <button className="al-run" onClick={scan} disabled={busy}>
-        {busy ? t("Đang rà soát…", "Scanning…") : t("Rà soát toàn bộ thửa", "Scan all plots")}
+        {!busy ? t("Rà soát toàn bộ thửa", "Scan all plots")
+          : prog && prog.total > 0
+            ? t(`Đang rà soát thửa ${Math.min(prog.done + 1, prog.total)}/${prog.total}${prog.current ? ` — ${prog.current}` : ""}…`,
+                `Scanning plot ${Math.min(prog.done + 1, prog.total)}/${prog.total}${prog.current ? ` — ${prog.current}` : ""}…`)
+            : t("Đang xếp hàng rà soát…", "Queued for scanning…")}
       </button>
+      {busy && (
+        <p className="al-sub">
+          {t("Chạy nền — mỗi thửa cần ảnh vệ tinh nên mất 1–3 phút. Có thể đóng trang, cảnh báo vẫn được ghi.",
+             "Runs in the background — each plot needs satellite imagery, so 1–3 min each. You can close the page; alerts are still recorded.")}
+        </p>
+      )}
 
       {note && <p className="al-note">{note}</p>}
       {err && <p className="err">{err}</p>}

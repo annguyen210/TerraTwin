@@ -23,6 +23,7 @@ import {
   runRadar,
   sendTapAnswer,
   type AlertRow,
+  type RadarProgress,
   type AuthUser,
   type Contribution,
   type ServerPlot,
@@ -54,6 +55,7 @@ export default function MyLand({
   const [answered, setAnswered] = useState<Record<number, string>>({});
   const [loaded, setLoaded] = useState(false);
   const [scanning, setScanning] = useState(false);
+  const [scanProg, setScanProg] = useState<RadarProgress | null>(null);
   const [push, setPush] = useState<string>("");   // M1 — trạng thái web push
   const [brief, setBrief] = useState<boolean | null>(null);   // M4
   const [openId, setOpenId] = useState<number | null>(null);   // Đ9 — thửa đang mở lịch sử
@@ -116,13 +118,15 @@ export default function MyLand({
 
   async function scanNow() {
     setScanning(true);
+    setScanProg(null);
     try {
-      await runRadar();
+      await runRadar(setScanProg);
       await refresh();
     } catch {
       /* im lặng — nút này chỉ là tiện, hỏng không được chặn màn */
     } finally {
       setScanning(false);
+      setScanProg(null);
     }
   }
 
@@ -174,7 +178,11 @@ export default function MyLand({
           )}
         </div>
         <button onClick={scanNow} disabled={scanning}>
-          {scanning ? t("Đang quét…", "Scanning…") : t("Quét lại ngay", "Scan again now")}
+          {!scanning ? t("Quét lại ngay", "Scan again now")
+            : scanProg && scanProg.total > 0
+              ? t(`Đang quét ${Math.min(scanProg.done + 1, scanProg.total)}/${scanProg.total}…`,
+                  `Scanning ${Math.min(scanProg.done + 1, scanProg.total)}/${scanProg.total}…`)
+              : t("Đang xếp hàng…", "Queued…")}
         </button>
       </div>
 

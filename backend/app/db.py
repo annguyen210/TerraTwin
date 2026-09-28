@@ -463,6 +463,10 @@ class Job(Base):
     # queued | running | done | error
     state: Mapped[str] = mapped_column(String(16), default="queued", index=True)
     result_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Tiến độ trong lúc chạy (vd {"done": 2, "total": 3, "current": "Huế"}) —
+    # việc dài vài phút mà giao diện chỉ hiện "đang chạy…" thì người dùng
+    # tưởng treo và bấm lại.
+    progress_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     error: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
     started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
@@ -536,6 +540,8 @@ _ADDED_COLUMNS = [
     # được). Mặc định rỗng/tắt nên không tự lộ dữ liệu người dùng cũ cho ai cả.
     ("users", "coop_code", "VARCHAR(64) DEFAULT ''"),
     ("users", "share_with_coop", "INTEGER DEFAULT 0"),
+    # "Rà soát ngay" chạy nền qua bảng jobs — tiến độ từng thửa.
+    ("jobs", "progress_json", "TEXT"),
 ]
 
 

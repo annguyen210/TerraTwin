@@ -724,9 +724,35 @@ export type RadarRun = {
   message?: string;
 };
 
-export function runRadar() {
-  return authed<RadarRun>("/api/radar/run", { method: "POST" },
-    "Không chạy được rà soát");
+export type RadarProgress = { done: number; total: number; current: string };
+
+type RadarJob = {
+  job_id?: string;
+  state?: "queued" | "running" | "done" | "error";
+  progress?: RadarProgress;
+  result?: RadarRun;
+  message?: string;
+};
+
+// "Rà soát ngay" CHẠY NỀN: máy chủ trả job_id ngay rồi quét ở worker (3 thửa
+// đo được 196–519 giây — giữ một kết nối ngần ấy thì proxy cắt). Hàm này đẩy
+// việc, rồi hỏi tiến độ mỗi 3 giây cho tới khi xong; `onProgress` để giao diện
+// hiện "thửa 2/3" thay vì một vòng xoay vô định mà người dùng tưởng treo.
+export async function runRadar(onProgress?: (p: RadarProgress) => void): Promise<RadarRun> {
+  const first = await authed<RadarRun & RadarJob>(`/api/radar/run${_lp()}`,
+    { method: "POST" }, "Không chạy được rà soát");
+  if (!first.job_id) return first;          // chưa có thửa / máy chủ chạy tại chỗ
+
+  const deadline = Date.now() + 20 * 60 * 1000;
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 3000));
+    const st = await authed<RadarJob>(`/api/radar/run/${first.job_id}`,
+      { method: "GET" }, "Không hỏi được tiến độ rà soát");
+    if (st.progress && onProgress) onProgress(st.progress);
+    if (st.state === "done" && st.result) return st.result;
+    if (st.state === "error") throw new Error(st.message || "Rà soát gặp lỗi");
+  }
+  throw new Error("Rà soát chạy quá lâu — kết quả vẫn sẽ hiện trong danh sách cảnh báo khi xong.");
 }
 
 export function listAlerts(unreadOnly = false) {

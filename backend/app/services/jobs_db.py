@@ -108,6 +108,9 @@ def run_claimed(db: Session, job: Job) -> None:
 
     try:
         args = json.loads(job.args_json or "{}")
+        # Mã việc đi kèm để hàm xử lý tự báo tiến độ (report_progress). Khoá có
+        # gạch dưới đầu để không đụng tham số thật của việc.
+        args["_job_id"] = job.id
         result = handler(args)
         job.state = "done"
         job.result_json = json.dumps(result)
@@ -119,6 +122,35 @@ def run_claimed(db: Session, job: Job) -> None:
         job.error = type(e).__name__
         job.finished_at = _utcnow()
     db.commit()
+
+
+def report_progress(job_id: str | None, progress: dict) -> None:
+    """Ghi tiến độ của một việc đang chạy, trên PHIÊN RIÊNG — hàm xử lý đang
+    giữ phiên của nó, và tiến độ phải hiện ra ngay cho người đang hỏi
+    /status chứ không đợi cả việc xong mới commit. Hỏng thì bỏ qua: tiến độ
+    chỉ để hiển thị, không bao giờ được làm hỏng chính việc đang chạy."""
+    if not job_id:
+        return
+    from app import db as _db   # tra lúc gọi — test đổi SessionLocal được
+    try:
+        with _db.SessionLocal() as s:
+            job = s.get(Job, job_id)
+            if job is not None:
+                job.progress_json = json.dumps(progress)
+                s.commit()
+    except Exception:
+        pass
+
+
+def args_of(db: Session, job_id: str) -> dict | None:
+    """Tham số gốc của một việc — để route kiểm quyền sở hữu (vd user_id)."""
+    job = db.get(Job, job_id)
+    if job is None:
+        return None
+    try:
+        return json.loads(job.args_json or "{}")
+    except ValueError:
+        return {}
 
 
 def poll_and_run_one(db: Session) -> bool:
@@ -147,12 +179,20 @@ def status(db: Session, job_id: str) -> dict | None:
         "queued_s": round((started or now) - created, 1),
         "elapsed_s": round((finished or now) - (started or now), 1),
     }
+    if job.progress_json:
+        try:
+            out["progress"] = json.loads(job.progress_json)
+        except ValueError:
+            pass
     if job.state == "done":
         out["result"] = json.loads(job.result_json) if job.result_json else None
     elif job.state == "error":
         out["error"] = job.error
-        out["message"] = ("Việc chạy nền gặp lỗi. Thử lại; nếu vẫn hỏng thì "
-                          "nhiều khả năng nguồn dữ liệu ngoài đang không phản hồi.")
+        from app.services.reqlang import tr
+        out["message"] = tr("Việc chạy nền gặp lỗi. Thử lại; nếu vẫn hỏng thì "
+                            "nhiều khả năng nguồn dữ liệu ngoài đang không phản hồi.",
+                            "The background job failed. Try again; if it keeps failing, "
+                            "an external data source is most likely not responding.")
     return out
 
 

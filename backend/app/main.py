@@ -975,6 +975,11 @@ def job_status(job_id: str) -> dict:
         raise HTTPException(
             status_code=404,
             detail="Không có việc nào mang mã này — có thể đã dọn quá 30 phút sau khi xong.")
+    if st.get("kind") == "radar_run":
+        # Kết quả rà soát chứa cảnh báo trên thửa CỦA MỘT NGƯỜI — endpoint này
+        # không đăng nhập, nên chỉ lộ trạng thái. Chi tiết ở GET
+        # /api/radar/run/{id}, có kiểm chủ sở hữu.
+        return {k: st[k] for k in ("id", "kind", "state") if k in st}
     return st
 
 

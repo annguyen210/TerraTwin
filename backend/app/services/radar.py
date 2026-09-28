@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 
 from app.db import Alert, NotifyChannel, Plot, User
 from app.schemas import Location
-from app.services import notify, verify
+from app.services import jobs_db, notify, verify
 from app.services.reqlang import tr
 
 # Cùng (thửa, mô-đun) chỉ báo lại khi mức rủi ro TĂNG (warning → danger), hoặc
@@ -35,8 +35,11 @@ DEDUP_HOURS = 72
 _RISK_RANK = {"warning": 1, "danger": 2}
 
 
-def sweep_user(user_id: int, db: Session) -> dict:
-    """Quét mọi thửa của MỘT người dùng. Trả về số liệu lượt quét."""
+def sweep_user(user_id: int, db: Session, on_progress=None) -> dict:
+    """Quét mọi thửa của MỘT người dùng. Trả về số liệu lượt quét.
+
+    `on_progress(done, total, current_name)` — gọi trước mỗi thửa và khi xong,
+    để việc chạy nền (radar_run) báo tiến độ ra giao diện."""
     from app.services import scan as scan_svc
 
     plots = db.execute(
@@ -49,7 +52,9 @@ def sweep_user(user_id: int, db: Session) -> dict:
     since = (datetime.now(timezone.utc).replace(tzinfo=None)
              - timedelta(hours=DEDUP_HOURS))
     created: list[Alert] = []
-    for p in plots:
+    for i, p in enumerate(plots):
+        if on_progress:
+            on_progress(i, len(plots), p.name)
         try:
             # include_heavy=True: rà soát nền là chỗ DUY NHẤT chạy được mô-đun
             # quét cả vùng. Lũ từ thượng nguồn ập tới lúc ba giờ sáng, không
@@ -80,6 +85,8 @@ def sweep_user(user_id: int, db: Session) -> dict:
             db.add(a)
             created.append(a)
     db.commit()
+    if on_progress:
+        on_progress(len(plots), len(plots), "")
 
     payload = [{"plot_id": a.plot_id, "module_id": a.module_id,
                 "risk_level": a.risk_level, "headline": a.headline,
@@ -132,7 +139,8 @@ def sweep_user(user_id: int, db: Session) -> dict:
     # kể cả khi kênh gửi (channels) đang mở vì consent_alerts đang bật.
     wants_asked = bool(user_row and getattr(user_row, "consent_observations", 1))
     asking = (_ask_one(user_id, channels, db) if wants_asked
-              else {"asked": 0, "reason": "người dùng đã tắt góp quan sát"})
+              else {"asked": 0, "reason": tr("người dùng đã tắt góp quan sát",
+                                             "user turned off observation sharing")})
 
     return {
         "plots_scanned": len(plots),
@@ -149,11 +157,13 @@ def _ask_one(user_id: int, channels: list, db: Session) -> dict:
     from app.services import onetap
 
     if not channels:
-        return {"asked": 0, "reason": "người dùng chưa nối kênh nhận tin nào"}
+        return {"asked": 0, "reason": tr("người dùng chưa nối kênh nhận tin nào",
+                                         "user hasn't connected any notification channel")}
     try:
         pend = onetap.pending_questions(db, user_id, limit=1)
         if not pend:
-            return {"asked": 0, "reason": "không có câu hỏi nào tới hạn"}
+            return {"asked": 0, "reason": tr("không có câu hỏi nào tới hạn",
+                                             "no question is due")}
         q = dict(pend[0])
         q["link"] = f"{onetap.base_url()}/tap/{q['token']}"
         return notify.ask(channels, [q])
@@ -268,3 +278,31 @@ def last_sweep() -> dict | None:
     """Bản ghi lượt quét nền gần nhất, cho /api/health. None nếu chưa quét lần nào."""
     from app.services import cache_store
     return cache_store.get(_LAST_SWEEP_KEY)
+
+
+# ---------------------------------------------------------------- "Rà soát ngay"
+#
+# CHẠY NỀN qua hàng đợi BỀN (bảng jobs). Đo thật 27–28/9: 3 thửa mất 196–519
+# giây vì lượt rà soát chạy đủ mô-đun nặng (ảnh vệ tinh). Giữ một kết nối HTTP
+# ngần ấy thì 10 thửa chắc chắn vượt thời gian chờ của Render/proxy — người
+# dùng thấy lỗi trong khi máy chủ vẫn đang quét đúng. Nay route trả job_id
+# ngay, worker nền (main._jobs_poll_loop) chạy, giao diện hỏi tiến độ.
+
+RADAR_JOB_KIND = "radar_run"
+
+
+@jobs_db.register(RADAR_JOB_KIND)
+def _radar_run_job(args: dict) -> dict:
+    from app import db as _db          # tra lúc chạy — test đổi SessionLocal được
+    from app.services import reqlang
+
+    # Việc chạy trên luồng worker, không mang ngôn ngữ của request đã đẩy nó —
+    # đặt lại để headline cảnh báo lưu xuống đúng ngữ người dùng đang dùng.
+    reqlang.set_lang(args.get("lang"))
+    job_id = args.get("_job_id")
+
+    def _progress(done: int, total: int, current: str) -> None:
+        jobs_db.report_progress(job_id, {"done": done, "total": total, "current": current})
+
+    with _db.SessionLocal() as s:
+        return sweep_user(int(args["user_id"]), s, on_progress=_progress)
