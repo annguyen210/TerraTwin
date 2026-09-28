@@ -238,3 +238,55 @@ def test_ban_do_nhiet_va_dong_thoi_gian_khop_nhau(offline, monkeypatch):
         if a["value"] is None or b["values"] is None:
             continue
         assert abs(a["value"] - max(b["values"])) < 0.05, (a, b)
+
+
+# ------------------------------------------------------------- song ngữ
+
+_VI = __import__("re").compile(
+    r"[àáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđ]",
+    __import__("re").IGNORECASE)
+
+
+def _vi_strings(o, path=""):
+    if isinstance(o, dict):
+        for k, v in o.items():
+            yield from _vi_strings(v, f"{path}.{k}")
+    elif isinstance(o, list):
+        for i, v in enumerate(o):
+            yield from _vi_strings(v, f"{path}[{i}]")
+    elif isinstance(o, str) and _VI.search(o):
+        yield path, o
+
+
+@pytest.mark.parametrize("precips", [[0] * 7, [0, 0, 130, 130, 0, 0, 0]])
+def test_timeline_tieng_anh_khong_con_chu_viet(offline, monkeypatch, precips):
+    """Đo 28/9: /api/heatmap/{id}/timeline?lang=en còn 8 chuỗi tiếng Việt
+    (caveat, headline, resolution.note/why, scenarios.label). Chạy cả nhánh
+    "có ô chạm ngưỡng" lẫn "cả lưới dưới ngưỡng" vì headline khác nhau."""
+    from app.services import reqlang
+
+    _all_cells(monkeypatch, precips)
+    reqlang.set_lang("en")
+    try:
+        r = heatmap.timeline("flood", 15.36, 107.90, radius_km=8.0, side=3)
+    finally:
+        reqlang.set_lang("vi")
+    assert list(_vi_strings(r)) == []
+
+
+def test_cache_timeline_tach_theo_ngon_ngu(offline, monkeypatch):
+    """Khoá cache có ngôn ngữ — không thì người hỏi EN nhận bản VI người
+    trước đã cache (và ngược lại)."""
+    from app.services import cache_store, reqlang
+
+    keys = []
+    monkeypatch.setattr(cache_store, "get", lambda k: keys.append(k) or None)
+    _all_cells(monkeypatch, [0] * 7)
+    heatmap.timeline("flood", 15.36, 107.90, side=3)
+    reqlang.set_lang("en")
+    try:
+        heatmap.timeline("flood", 15.36, 107.90, side=3)
+    finally:
+        reqlang.set_lang("vi")
+    tl_keys = [k for k in keys if k.startswith("timeline:")]
+    assert len(tl_keys) == 2 and tl_keys[0] != tl_keys[1]

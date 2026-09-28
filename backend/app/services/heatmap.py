@@ -17,7 +17,8 @@ import math
 
 from app.services import cache_store, calibration, hazard
 from app.services import datasources as ds
-from app.services import realdata
+from app.services import realdata, reqlang
+from app.services.reqlang import tr
 
 _TTL = 3600            # dự báo đổi theo giờ
 _MAX_SIDE = 11         # trần 121 ô — đủ mượt mà vẫn 1 lượt gọi
@@ -271,8 +272,11 @@ def timeline(module_id: str, lat: float, lon: float,
     side = max(3, min(int(side), _MAX_SIDE_TIMELINE))
     radius_km = max(1.0, min(float(radius_km), 40.0))
 
-    ckey = cache_store.make_key("timeline", module_id, round(lat, 3),
-                                round(lon, 3), radius_km, side)
+    # Ngôn ngữ nằm TRONG khoá: kết quả chứa chữ (nhãn kịch bản, headline, ghi
+    # chú), cache chung một khoá cho hai ngôn ngữ là người hỏi sau nhận bản
+    # tiếng của người hỏi trước.
+    ckey = cache_store.make_key("timeline", reqlang.cur_lang(), module_id,
+                                round(lat, 3), round(lon, 3), radius_km, side)
     cached = cache_store.get(ckey)
     if cached:
         cached["cached"] = True
@@ -284,10 +288,8 @@ def timeline(module_id: str, lat: float, lon: float,
 
     dates = []
     scen_out = []
-    # Giữ nhãn tiếng Việt: kết quả này cache KHÔNG theo ngôn ngữ, và phần còn
-    # lại của panel (headline, ghi chú) chưa song ngữ — dịch riêng nhãn sẽ ra
-    # một bản cache lẫn hai thứ tiếng.
-    for label, _label_en, rain, temp in SCENARIOS:
+    for label_vi, label_en, rain, temp in SCENARIOS:
+        label = tr(label_vi, label_en)
         cells = []
         n_over_by_day = None
         for i, (la, lo) in enumerate(pts):
@@ -328,15 +330,20 @@ def timeline(module_id: str, lat: float, lon: float,
     ratio = round(eff_km / cell_km, 1) if cell_km > 0 else None
 
     base = scen_out[0] if scen_out else None
-    head = "Chưa lấy được dữ liệu thời tiết cho vùng này."
+    head = tr("Chưa lấy được dữ liệu thời tiết cho vùng này.",
+              "Couldn't fetch weather data for this area yet.")
     if base and base["cells_affected"]:
         d = base["first_arrival_day"]
-        head = (f"{base['cells_affected']}/{len(pts)} ô chạm ngưỡng, sớm nhất "
-                f"{'hôm nay' if d == 0 else f'sau {d} ngày'} "
-                f"({dates[d] if dates and d is not None and d < len(dates) else '—'}); "
-                f"kéo dài tối đa {base['max_days_over']} ngày.")
+        day_txt = dates[d] if dates and d is not None and d < len(dates) else "—"
+        head = tr(f"{base['cells_affected']}/{len(pts)} ô chạm ngưỡng, sớm nhất "
+                  f"{'hôm nay' if d == 0 else f'sau {d} ngày'} ({day_txt}); "
+                  f"kéo dài tối đa {base['max_days_over']} ngày.",
+                  f"{base['cells_affected']}/{len(pts)} cells reach the threshold, earliest "
+                  f"{'today' if d == 0 else f'in {d} days'} ({day_txt}); "
+                  f"lasting up to {base['max_days_over']} days.")
     elif base:
-        head = f"Cả {len(pts)} ô đều dưới ngưỡng suốt 7 ngày tới."
+        head = tr(f"Cả {len(pts)} ô đều dưới ngưỡng suốt 7 ngày tới.",
+                  f"All {len(pts)} cells stay below the threshold for the next 7 days.")
 
     result = {
         "module_id": module_id, "module_name": name, "unit": unit,
@@ -356,25 +363,40 @@ def timeline(module_id: str, lat: float, lon: float,
             "oversampled": oversampled,
             "cells_per_data_pixel": ratio,
             "note": (
-                f"Mỗi ô hiển thị rộng ~{cell_km:.1f} km, nhưng dữ liệu thật chỉ "
-                f"phân biệt được tới ~{eff_km:.0f} km — một ô dữ liệu phủ khoảng "
-                f"{ratio} ô hiển thị. Bản đồ mượt KHÔNG có nghĩa là biết chi tiết "
-                "tới từng ô."
+                tr(f"Mỗi ô hiển thị rộng ~{cell_km:.1f} km, nhưng dữ liệu thật chỉ "
+                   f"phân biệt được tới ~{eff_km:.0f} km — một ô dữ liệu phủ khoảng "
+                   f"{ratio} ô hiển thị. Bản đồ mượt KHÔNG có nghĩa là biết chi tiết "
+                   "tới từng ô.",
+                   f"Each displayed cell is ~{cell_km:.1f} km wide, but the real data "
+                   f"only resolves ~{eff_km:.0f} km — one data cell covers about "
+                   f"{ratio} displayed cells. A smooth map does NOT mean detail down "
+                   "to each cell.")
                 if oversampled else
-                f"Ô hiển thị (~{cell_km:.1f} km) không mịn hơn dữ liệu "
-                f"(~{eff_km:.0f} km), nên không có chi tiết nào bị bịa ra."),
-            "why": (
+                tr(f"Ô hiển thị (~{cell_km:.1f} km) không mịn hơn dữ liệu "
+                   f"(~{eff_km:.0f} km), nên không có chi tiết nào bị bịa ra.",
+                   f"Displayed cells (~{cell_km:.1f} km) are no finer than the data "
+                   f"(~{eff_km:.0f} km), so no detail is made up.")),
+            "why": tr(
                 "Hạn và cháy chỉ phụ thuộc thời tiết, nên độ phân giải thật đúng "
                 "bằng lưới mô hình khí tượng (~11 km) dù vẽ mịn tới đâu. Lũ và "
                 "sạt lở có địa hình (DEM ~90 m) tham gia trực tiếp nên khác biệt "
                 "giữa hai thửa cạnh nhau là THẬT — nhưng THỜI ĐIỂM thì vẫn bị "
-                "khoá theo lưới thời tiết."),
+                "khoá theo lưới thời tiết.",
+                "Drought and fire depend only on weather, so the true resolution "
+                "equals the weather-model grid (~11 km) however finely it's drawn. "
+                "Flood and landslide use terrain (DEM ~90 m) directly, so differences "
+                "between neighboring plots are REAL — but the TIMING is still locked "
+                "to the weather grid."),
         },
-        "caveat": (
+        "caveat": tr(
             "Bốn kịch bản đều chạy trên CÙNG một bộ dữ liệu thời tiết thật, chỉ "
             "khác hệ số mưa/nhiệt — nên chênh lệch giữa chúng là do giả định, "
             "không phải do dữ liệu. 'Ngày đến' và 'số ngày kéo dài' tính từ chính "
-            "chuỗi 7 ngày mà bản đồ nhiệt vốn đã tải rồi bỏ đi."),
+            "chuỗi 7 ngày mà bản đồ nhiệt vốn đã tải rồi bỏ đi.",
+            "All four scenarios run on the SAME real weather data, differing only "
+            "in rain/temperature factors — so differences between them come from "
+            "assumptions, not data. 'Arrival day' and 'days lasting' come from the "
+            "same 7-day series the heatmap already downloads."),
     }
     cache_store.put(ckey, result, _TTL)
     return result
