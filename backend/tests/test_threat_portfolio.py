@@ -22,7 +22,13 @@ from app.schemas import Location
 def test_mo_dun_co_hoi_khong_duoc_tinh_la_de_doa():
     from app.modules.registry import get_module
 
-    for mid in ("solar", "parametric_insurance", "yield", "land_risk"):
+    # carbon (thông tin MRV) và supply_chain (nhìn cả vùng thu mua, dành cho
+    # doanh nghiệp) từng nằm ở danh sách đe doạ bên dưới. Đo thật 27/9 khi lưu
+    # thử 3 thửa: chúng sinh 3/4 cảnh báo nhiễu trên thửa nông dân — carbon
+    # "danger" cho độ che phủ tán 83,4% (tức rừng TỐT), supply_chain báo lại
+    # đúng hiểm hoạ lũ/hạn mà mô-đun riêng đã báo.
+    for mid in ("solar", "parametric_insurance", "yield", "land_risk",
+                "carbon", "supply_chain"):
         m = get_module(mid)
         assert m is not None, mid
         assert m.threat is False, f"{mid} không phải mối đe doạ"
@@ -35,7 +41,7 @@ def test_moi_hiem_hoa_that_deu_duoc_danh_dau_de_doa():
     for mid in hazard.IDS:
         assert get_module(mid).threat is True, mid
     for mid in ("salinity", "aquaculture", "storm_damage", "upstream_flood",
-                "urban", "mining", "supply_chain"):
+                "urban", "mining"):
         assert get_module(mid).threat is True, mid
 
 

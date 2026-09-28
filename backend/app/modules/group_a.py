@@ -111,6 +111,30 @@ class PestModule(TwinModule):
                            "PATCHY"),
                 next_step=_next_sentinel())
 
+        if not r.get("applicable", True):
+            # Cùng kiểu với ao nuôi giữa đất liền: "ở đây không có cây để theo
+            # dõi" là một CÂU TRẢ LỜI dứt khoát, không phải thiếu dữ liệu và
+            # tuyệt đối không phải cảnh báo. risk_level="unknown" nên scan.alerts
+            # tự loại — rà soát nền không còn gửi "nguy hiểm" cho mặt đường.
+            base = r["ndvi_baseline"]
+            return Assessment(
+                module_id=self.id, module_name=self.disp_name(), location=loc,
+                status="out_of_scope", risk_level="unknown", is_real=False,
+                headline=tr(f"Không áp dụng — ô đo không có thảm thực vật ổn định (NDVI nền {base})",
+                            f"Not applicable — no stable vegetation in this tile (baseline NDVI {base})"),
+                detail=tr(
+                    f"{r['cover'].capitalize()}. Trong 4 tháng qua NDVI của chính ô "
+                    f"này luôn dưới {optical.NDVI_BARE} — mặt nước, bề mặt xây dựng hoặc "
+                    "đất trống lâu năm. Phát hiện sâu bệnh chỉ có nghĩa khi có cây để "
+                    "yếu đi, nên mục này không đưa ra mức rủi ro cho vị trí này.",
+                    f"{r['cover'].capitalize()}. Over the past 4 months this tile's own "
+                    f"NDVI stayed below {optical.NDVI_BARE} — water, built-up surface or "
+                    "long-term bare soil. Pest detection only makes sense where there are "
+                    "plants to weaken, so this module gives no risk level here."),
+                recommendation="",
+                metrics={"ndvi_hien_tai": r["ndvi_now"], "ndvi_nen": base},
+                data_sources=[sentinel.source_note("NDVI")])
+
         metrics = {"ndvi_hien_tai": r["ndvi_now"], "ndvi_nen": r["ndvi_baseline"],
                    "thay_doi_pct": r["change_pct"], "z_score": r["z_score"]}
         if r["patchiness_ratio"] is not None:
@@ -316,6 +340,11 @@ class YieldModule(TwinModule):
 
 class CarbonModule(TwinModule):
     id = "carbon"; name = "Đo & bán tín chỉ carbon rừng"; name_en = "Forest carbon credits (MRV)"; group = "A"; icon = "🌲"
+    # Thông tin MRV (trữ lượng, độ che phủ tán) để lập hồ sơ tín chỉ — không
+    # phải mối đe doạ với thửa. Ruộng lúa "ít tán" ra mức thấp trên thang carbon
+    # là chuyện hiển nhiên, gửi nó thành cảnh báo cho nông dân là nhiễu (đo thật
+    # khi lưu thử 3 thửa, 27/9). Mất tán THẬT đã có A7 (change-detect) theo dõi.
+    threat = False
     # CHẠY NGAY, không cần khoá. Điều kiện cũ gắn trạng thái vào
     # sentinel.configured(), nên khi chưa có khoá Copernicus thì mũi nhọn này
     # tự khai là "preview" — trong khi nó đã chạy thật qua Planetary Computer,

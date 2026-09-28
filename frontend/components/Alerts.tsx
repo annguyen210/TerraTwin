@@ -51,11 +51,11 @@ export default function Alerts({ user }: { user: AuthUser | null }) {
           t(
             `Đã quét ${r.plots_scanned} thửa · ${r.new_alerts} cảnh báo mới` +
               (r.new_alerts === 0
-                ? ` (đã có cảnh báo tương tự trong ${r.dedup_window_hours ?? 12} giờ qua nên không lặp lại)`
+                ? ` (đã có cảnh báo tương tự trong ${r.dedup_window_hours ?? 72} giờ qua nên không lặp lại)`
                 : ""),
             `Scanned ${r.plots_scanned} plots · ${r.new_alerts} new alerts` +
               (r.new_alerts === 0
-                ? ` (a similar alert already exists within the last ${r.dedup_window_hours ?? 12}h, so no duplicate)`
+                ? ` (a similar alert already exists within the last ${r.dedup_window_hours ?? 72}h, so no duplicate)`
                 : ""),
           ),
       );

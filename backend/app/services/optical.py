@@ -67,6 +67,23 @@ def stress(lat: float, lon: float, buffer_m: float = 300.0) -> dict | None:
     base = statistics.median(means)
     spread = statistics.pstdev(means) if len(means) > 1 else 0.0
 
+    # KHÔNG ÁP DỤNG cho ô chưa từng có thảm thực vật ổn định.
+    #
+    # Nền của CHÍNH thửa đã dưới ngưỡng trống (mặt nước, bê tông giữa phố, đất
+    # trần lâu năm) thì "sâu bệnh" không có nghĩa — không có cây để yếu đi. Bản
+    # trước báo "danger — không còn thảm thực vật" chỉ vì NDVI TUYỆT ĐỐI < 0,20,
+    # nên một điểm giữa phố Huế bị báo nguy hiểm mãi mãi dù so với chính nó chỉ
+    # đổi 5,3% (đo thật khi lưu thử 3 thửa, 27/9). Mỗi lượt rà soát nền là một
+    # cảnh báo nhiễu gửi đi — đúng thứ làm người dùng tắt thông báo trước khi
+    # trận lũ thật tới.
+    if base < NDVI_BARE:
+        return {
+            "available": True, "applicable": False, "level": "unknown",
+            "ndvi_now": latest["mean"], "ndvi_baseline": round(base, 4),
+            "observed_on": latest["date"], "observations": len(ndvi),
+            "cover": cover_label(base),
+        }
+
     # z-score so nền của CHÍNH thửa này.
     z = (latest["mean"] - base) / spread if spread > 0.02 else 0.0
     drop_pct = round(100.0 * (latest["mean"] - base) / base, 1) if base else 0.0
@@ -76,9 +93,10 @@ def stress(lat: float, lon: float, buffer_m: float = 300.0) -> dict | None:
     patchiness = (round(latest["std"] / hist_std, 2)
                   if hist_std > 0.005 else None)
 
-    if latest["mean"] < NDVI_BARE:
-        level, verdict = "danger", tr("thửa gần như không còn thảm thực vật", "the plot has almost no vegetation left")
-    elif z <= -2.0 or drop_pct <= -25.0:
+    # Mức độ CHỈ theo mức giảm so với nền của chính thửa, không theo độ trống
+    # tuyệt đối. Thửa có cây bị phát trụi thật (nền 0,6 → 0,15) vẫn ra danger
+    # vì mức giảm ~-75% — không cần một luật "trống tuyệt đối" riêng.
+    if z <= -2.0 or drop_pct <= -25.0:
         level, verdict = "danger", tr("sức sống cây giảm mạnh bất thường", "plant vigor dropped abnormally sharply")
     elif z <= -1.0 or drop_pct <= -12.0:
         level, verdict = "warning", tr("sức sống cây đang giảm so với chính thửa này", "plant vigor is declining vs this plot's own baseline")
@@ -104,7 +122,8 @@ def stress(lat: float, lon: float, buffer_m: float = 300.0) -> dict | None:
                    "Unevenness isn't clear enough to distinguish the cause.")
 
     return {
-        "available": True, "level": level, "verdict": verdict, "cause_hint": cause,
+        "available": True, "applicable": True, "level": level, "verdict": verdict,
+        "cause_hint": cause,
         "ndvi_now": latest["mean"], "ndvi_baseline": round(base, 4),
         "change_pct": drop_pct, "z_score": round(z, 2),
         "patchiness_ratio": patchiness,

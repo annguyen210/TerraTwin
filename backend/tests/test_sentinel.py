@@ -235,6 +235,45 @@ def test_nen_so_sanh_la_chinh_thua_khong_phai_nguong_co_dinh(with_key, monkeypat
     assert r["level"] == "safe"
 
 
+def test_o_giua_pho_khong_bi_bao_danger_vi_do_trong_tuyet_doi(with_key, monkeypatch):
+    """Ca thật đo 27/9: điểm giữa phố Huế, NDVI tuyệt đối < 0,20 nhưng so với
+    nền của CHÍNH nó chỉ giảm ~5% — bản cũ vẫn báo "danger — không còn thảm
+    thực vật" ở MỌI lượt rà soát nền. Nền đã trống thì không có cây để yếu đi:
+    phải là "không áp dụng", tuyệt đối không phải cảnh báo."""
+    _series(monkeypatch, [0.18, 0.19, 0.18, 0.19, 0.18, 0.17])
+    r = optical.stress(10.0, 106.0)
+    assert r["applicable"] is False
+    assert r["level"] not in ("danger", "warning")
+
+
+def test_mat_nuoc_khong_ap_dung(with_key, monkeypatch):
+    _series(monkeypatch, [-0.05, -0.04, -0.06, -0.05, -0.04, -0.05])
+    r = optical.stress(10.0, 106.0)
+    assert r["applicable"] is False
+    assert r["level"] not in ("danger", "warning")
+
+
+def test_thua_co_cay_bi_phat_trui_that_van_bao_danger(with_key, monkeypatch):
+    """Bỏ luật "trống tuyệt đối" không được làm mất ca mất cây THẬT: nền 0,6 →
+    0,15 là giảm ~-75% so với chính thửa, phải vẫn ra danger."""
+    _series(monkeypatch, [0.60, 0.61, 0.59, 0.62, 0.60, 0.15])
+    r = optical.stress(10.0, 106.0)
+    assert r["applicable"] is True
+    assert r["level"] == "danger"
+
+
+def test_pest_module_khong_ap_dung_thi_khong_thanh_canh_bao(with_key, monkeypatch):
+    """Đi trọn tới Assessment: mô-đun sâu bệnh ở ô không có cây phải ra
+    out_of_scope + risk "unknown" — scan.alerts chỉ nhận danger/warning nên nó
+    tự bị loại khỏi rà soát nền."""
+    from app.modules.group_a import PestModule
+
+    _series(monkeypatch, [0.18, 0.19, 0.18, 0.19, 0.18, 0.17])
+    a = PestModule().assess(Location(lat=10.0, lon=106.0))
+    assert a.status == "out_of_scope"
+    assert a.risk_level == "unknown"
+
+
 # ---------------------------------------------------------------- năng suất
 
 def test_growth_dang_len(with_key, monkeypatch):

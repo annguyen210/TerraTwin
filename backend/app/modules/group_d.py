@@ -334,6 +334,11 @@ class SupplyChainModule(TwinModule):
 
     id = "supply_chain"; name = "Rủi ro vùng nguyên liệu"; name_en = "Sourcing-region risk"; group = "D"; icon = "🔗"
     status = "active"
+    # Dành cho nhà máy/thương lái nhìn CẢ VÙNG THU MUA (25 điểm quanh đó), không
+    # phải hiểm hoạ của riêng thửa này. Hiểm hoạ thật của thửa (lũ, hạn...) đã
+    # có mô-đun riêng cảnh báo — để mục này cũng thành cảnh báo trên thửa nông
+    # dân là báo hai lần, lần thứ hai còn sai đối tượng (đo thật 27/9).
+    threat = False
     # Nặng: 25 điểm × 2 hiểm họa, mỗi điểm cần khí hậu nền 10 năm riêng để hiệu
     # chuẩn. Chạy song song rồi vẫn ~10 giây lượt đầu, nên không nhét vào lượt
     # quét toàn cảnh.

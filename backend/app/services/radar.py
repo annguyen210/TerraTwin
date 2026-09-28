@@ -27,7 +27,12 @@ from app.schemas import Location
 from app.services import notify, verify
 from app.services.reqlang import tr
 
-DEDUP_HOURS = 12       # cùng một cảnh báo trong 12 h thì không ghi lại
+# Cùng (thửa, mô-đun) chỉ báo lại khi mức rủi ro TĂNG (warning → danger), hoặc
+# khi đã quá DEDUP_HOURS kể từ lần báo gần nhất. Bản trước là 12h và so khớp
+# ĐÚNG mức: một tình trạng không đổi (vd Bến Tre ngập ở cùng mức) bị báo lại
+# 2 lần/ngày — mỗi lần là một tin đẩy/email cho cùng một sự việc cũ.
+DEDUP_HOURS = 72
+_RISK_RANK = {"warning": 1, "danger": 2}
 
 
 def sweep_user(user_id: int, db: Session) -> dict:
@@ -58,13 +63,15 @@ def sweep_user(user_id: int, db: Session) -> dict:
             # cả lượt quét của những thửa còn lại.
             continue
         for m in result.alerts:            # scan.alerts đã lọc chỉ dữ liệu thật
-            dup = db.execute(
-                select(Alert).where(
+            recent = db.execute(
+                select(Alert.risk_level).where(
                     Alert.user_id == user_id, Alert.plot_id == p.id,
-                    Alert.module_id == m.id, Alert.risk_level == m.risk_level,
-                    Alert.created_at >= since)
-            ).scalar_one_or_none()
-            if dup:
+                    Alert.module_id == m.id, Alert.created_at >= since)
+            ).scalars().all()
+            # Đã báo trong cửa sổ ở mức BẰNG hoặc CAO HƠN → không báo lại.
+            # Chỉ mức TĂNG mới đáng một tin mới trước khi hết cửa sổ.
+            if recent and _RISK_RANK.get(m.risk_level, 0) <= max(
+                    _RISK_RANK.get(lv, 0) for lv in recent):
                 continue
             a = Alert(user_id=user_id, plot_id=p.id, module_id=m.id,
                       risk_level=m.risk_level,

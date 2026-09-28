@@ -335,7 +335,7 @@ def test_radar_khong_gui_canh_bao_ra_ngoai_khi_chua_xac_thuc(client, monkeypatch
         u = s.query(dbmod.User).filter_by(email="a@x.com").first()
         u.email_verified = 1
         s.commit()
-        s.execute(dbmod.Alert.__table__.delete())   # xoá bản ghi cũ để dedup 12h không nuốt lượt sau
+        s.execute(dbmod.Alert.__table__.delete())   # xoá bản ghi cũ để dedup 72h không nuốt lượt sau
         s.commit()
 
     with dbmod.SessionLocal() as s:
