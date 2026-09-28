@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { scanAll, type ScanResult, type ScanModule } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
+import { levelOf } from "@/lib/riskScale";
 
 const RISK_COLOR: Record<string, string> = {
   safe: "#2E9E67",
@@ -94,17 +95,20 @@ export default function Overview({
               <button
                 key={m.id}
                 className="ov-tile"
-                style={{ borderColor: RISK_COLOR[m.risk_level] }}
+                style={{ borderColor: levelOf(m.risk_level, m.threat).color }}
                 onClick={() => onSelectModule?.(m.id)}
                 title={m.headline}
               >
                 <span className="ov-tile-ic">{m.icon}</span>
                 <span className="ov-tile-nm">{m.name}</span>
+                {/* Mục thông tin (threat=false) theo thang phù hợp/trung bình/kém
+                    màu trung tính — xem lib/riskScale.ts. Trước đây in thẳng mảng
+                    [vi, en] nên ô hiện "An toànSafe". */}
                 <span
                   className="ov-tile-lvl"
-                  style={{ background: RISK_COLOR[m.risk_level] }}
+                  style={{ background: levelOf(m.risk_level, m.threat).color }}
                 >
-                  {RISK_LABEL[m.risk_level]}
+                  {t(levelOf(m.risk_level, m.threat).vi, levelOf(m.risk_level, m.threat).en)}
                 </span>
                 <span className="ov-tile-src">
                   {m.is_real ? "🛰️" : m.risk_level === "unknown" ? "⏳" : "🧪"}

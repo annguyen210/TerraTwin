@@ -167,6 +167,17 @@ def growth(lat: float, lon: float, buffer_m: float = 300.0) -> dict | None:
     peak = max(s, key=lambda r: r["mean"])
     latest = s[-1]
     i_peak = s.index(peak)
+
+    # KHÔNG ÁP DỤNG cho ô chưa từng có cây trong cả 180 ngày (mặt đường, mặt
+    # nước, bê tông) — cùng tinh thần bản sửa stress(). Đo ở Huế: một điểm giữa
+    # phố ra "danger" chỉ vì NDVI hiện tại < 0,20. Dùng ĐỈNH chứ không dùng
+    # trung vị: ruộng lúa bỏ hoá lâu có trung vị thấp nhưng vẫn có một đỉnh vụ
+    # cao — đó là đất canh tác thật, phải giữ.
+    if peak["mean"] < NDVI_BARE:
+        return {"available": True, "applicable": False,
+                "ndvi_now": latest["mean"], "ndvi_peak": peak["mean"],
+                "observed_on": latest["date"], "observations": len(s),
+                "cover": cover_label(peak["mean"])}
     since_peak = (date.fromisoformat(latest["date"])
                   - date.fromisoformat(peak["date"])).days
 
@@ -207,7 +218,7 @@ def growth(lat: float, lon: float, buffer_m: float = 300.0) -> dict | None:
         advice = tr("Chưa thấy chuyển giai đoạn rõ rệt.", "No clear stage transition yet.")
 
     return {
-        "available": True,
+        "available": True, "applicable": True,
         "stage": stage, "advice": advice,
         "ndvi_now": latest["mean"], "ndvi_peak": peak["mean"],
         "peak_date": peak["date"], "days_since_peak": since_peak,

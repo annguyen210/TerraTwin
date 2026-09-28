@@ -2,6 +2,7 @@
 
 import type { Assessment } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
+import { levelOf } from "@/lib/riskScale";
 
 const RISK: Record<string, { label: string; en: string; color: string }> = {
   safe: { label: "AN TOÀN", en: "SAFE", color: "#2E9E67" },
@@ -90,9 +91,15 @@ function fmt(v: number): string {
     : v.toLocaleString("vi-VN", { maximumFractionDigits: 2 });
 }
 
-export default function ResultsPanel({ a }: { a: Assessment }) {
+export default function ResultsPanel({ a, threat = true }: { a: Assessment; threat?: boolean }) {
   const { t } = useLang();
-  const r = RISK[a.risk_level] ?? RISK.unknown;
+  // Mô-đun thông tin (threat=false) dùng thang phù hợp/trung bình/kém màu trung
+  // tính — "điện mặt trời: NGUY HIỂM" màu đỏ chỉ vì bức xạ trung bình là sai
+  // nghĩa (xem lib/riskScale.ts). Hiểm hoạ giữ nguyên thang cũ.
+  const lv = levelOf(a.risk_level, threat);
+  const r = threat
+    ? (RISK[a.risk_level] ?? RISK.unknown)
+    : { label: lv.vi.toUpperCase(), en: lv.en.toUpperCase(), color: lv.color };
   const fc = a.forecast ?? [];
   const max = Math.max(...fc.map((f) => f.value), 1);
   const metrics = a.metrics ? Object.entries(a.metrics) : [];
@@ -137,7 +144,7 @@ export default function ResultsPanel({ a }: { a: Assessment }) {
                   className="bar"
                   style={{
                     height: `${(f.value / max) * 100}%`,
-                    background: (RISK[f.risk] ?? RISK.unknown).color,
+                    background: levelOf(f.risk, threat).color,
                   }}
                 />
                 <span className="bar-label">{f.date.slice(5)}</span>

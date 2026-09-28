@@ -50,6 +50,10 @@ export type ModuleInfo = {
   data_sources: string[];
   users: string[];
   description: string;
+  heavy?: boolean;
+  // false = mô-đun thông tin/cơ hội (điện mặt trời, năng suất, carbon…): risk_level
+  // là mức trên thang RIÊNG của nó, không phải nguy hiểm — xem lib/riskScale.ts.
+  threat?: boolean;
 };
 
 export type ForecastPoint = {
@@ -210,6 +214,7 @@ export type ScanModule = {
   headline: string;
   recommendation: string;
   is_real: boolean;
+  threat?: boolean;
   score?: number;
   spark?: number[];
   unit?: string | null;

@@ -426,7 +426,12 @@ export default function Home() {
 
         {tab === "detail" && (
           <>
-            {result && <ResultsPanel a={result} />}
+            {result && (
+              <ResultsPanel
+                a={result}
+                threat={modules.find((m) => m.id === result.module_id)?.threat ?? true}
+              />
+            )}
             {/* A7 — mất tán cây bền vững, chỉ có ý nghĩa cạnh kết quả carbon. */}
             {coord && result && active === "carbon" && (
               <ChangeDetect lat={coord.lat} lon={coord.lon} />

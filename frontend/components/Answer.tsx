@@ -27,6 +27,7 @@ import { scanAll, trackEvent, type ScanResult, type ScanModule, type ModuleInfo 
 import SpeakButton from "@/components/SpeakButton";
 import { isDataSaver } from "@/lib/net";
 import { useLang } from "@/lib/i18n";
+import { TONE_HEX, toneOf } from "@/lib/riskScale";
 import Passport from "./Passport";
 import PlotView from "./PlotView";
 import WhyTrust from "./WhyTrust";
@@ -38,18 +39,16 @@ const TONE: Record<string, string> = {
 };
 
 // Màu ô trong lưới toàn cảnh. Mục chưa có dữ liệu / đang chạy / ngoài phạm vi →
-// "chờ" (xám), KHÔNG tô như an toàn — "chưa biết" khác "không sao".
+// "chờ" (xám), KHÔNG tô như an toàn — "chưa biết" khác "không sao". Mục thông
+// tin (threat=false: điện mặt trời, năng suất…) dùng thang RIÊNG màu trung
+// tính — xem lib/riskScale.ts.
 function cellTone(m: ScanModule): string {
   // pending = mũi nhọn cần ảnh vệ tinh, ĐANG chạy nền → nhấp nháy để thấy nó
   // sắp được lấp (khác need_data/out_of_scope: xám tĩnh vì chưa/không có số).
   if (m.status === "pending") return "pending";
   if (m.status === "need_data" || m.status === "out_of_scope") return "wait";
-  return TONE[m.risk_level] ?? "wait";
+  return toneOf(m.risk_level, m.threat) ?? "wait";
 }
-
-const TONE_HEX: Record<string, string> = {
-  bad: "#C2412E", warn: "#B07A2E", ok: "#2E9E67", pending: "#3aa0a0", wait: "#5a6b73",
-};
 
 type T = (vi: string, en: string) => string;
 
@@ -471,6 +470,12 @@ export default function Answer({
             <span><i className="k-warn" /> {t("cảnh báo", "warning")}</span>
             <span><i className="k-ok" /> {t("an toàn", "safe")}</span>
             <span><i className="k-wait" /> {t("đang/ chờ dữ liệu", "running/awaiting data")}</span>
+          </div>
+          <div className="ans-grid-key">
+            <span className="k-note">{t("Mục thông tin (không phải hiểm hoạ):", "Information items (not hazards):")}</span>
+            <span><i className="k-fit-good" /> {t("phù hợp", "good fit")}</span>
+            <span><i className="k-fit-mid" /> {t("trung bình", "average")}</span>
+            <span><i className="k-fit-poor" /> {t("kém", "poor")}</span>
           </div>
         </div>
       )}

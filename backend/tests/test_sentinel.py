@@ -275,6 +275,35 @@ def test_pest_module_khong_ap_dung_thi_khong_thanh_canh_bao(with_key, monkeypatc
 
 
 # ---------------------------------------------------------------- năng suất
+# Ca thật đo ở Huế: YieldModule ra "danger" tại một điểm giữa phố chỉ vì NDVI
+# hiện tại < 0,20. Ô chưa từng có cây trong 180 ngày → "không áp dụng".
+
+def test_growth_o_chua_tung_co_cay_khong_ap_dung(with_key, monkeypatch):
+    _series(monkeypatch, [0.15, 0.16, 0.14, 0.15, 0.16, 0.15],
+            start_days_ago=180, step=30)
+    r = optical.growth(10.0, 106.0)
+    assert r["applicable"] is False
+
+
+def test_ruong_vua_thu_hoach_van_ap_dung(with_key, monkeypatch):
+    """Đỉnh vụ cao rồi vừa gặt (hiện tại < 0,20) là ĐẤT CANH TÁC THẬT — không
+    được gạt thành "không áp dụng"."""
+    _series(monkeypatch, [0.30, 0.55, 0.75, 0.70, 0.40, 0.15],
+            start_days_ago=180, step=30)
+    r = optical.growth(10.0, 106.0)
+    assert r["applicable"] is True
+
+
+def test_yield_module_o_giua_pho_la_out_of_scope(with_key, monkeypatch):
+    from app.modules.group_a import YieldModule
+
+    _series(monkeypatch, [0.15, 0.16, 0.14, 0.15, 0.16, 0.15],
+            start_days_ago=180, step=30)
+    a = YieldModule().assess(Location(lat=10.0, lon=106.0))
+    assert a.status == "out_of_scope"
+    assert a.risk_level == "unknown"
+
+
 
 def test_growth_dang_len(with_key, monkeypatch):
     _series(monkeypatch, [0.20, 0.28, 0.38, 0.50, 0.62, 0.72],

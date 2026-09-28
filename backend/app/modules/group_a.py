@@ -329,6 +329,28 @@ class YieldModule(TwinModule):
                            "crop is growing or ripening, and when it peaks"),
                 next_step=_next_sentinel())
 
+        if not r.get("applicable", True):
+            # Cùng kiểu mô-đun sâu bệnh: ô không có cây suốt 180 ngày thì "năng
+            # suất" không có nghĩa — trả lời dứt khoát "không áp dụng" thay vì
+            # một mức "kém/nguy hiểm" cho mặt đường.
+            return Assessment(
+                module_id=self.id, module_name=self.disp_name(), location=loc,
+                status="out_of_scope", risk_level="unknown", is_real=False,
+                headline=tr(f"Không áp dụng — ô đo không có cây trồng trong 180 ngày qua "
+                            f"(NDVI đỉnh {r['ndvi_peak']})",
+                            f"Not applicable — no crop in this tile over the past 180 days "
+                            f"(peak NDVI {r['ndvi_peak']})"),
+                detail=tr(
+                    f"{r['cover'].capitalize()}. NDVI của chính ô này chưa lần nào vượt "
+                    f"{optical.NDVI_BARE} trong 180 ngày — mặt nước, bề mặt xây dựng hoặc "
+                    "đất trống lâu năm. Dự báo năng suất chỉ có nghĩa ở đất đang canh tác.",
+                    f"{r['cover'].capitalize()}. This tile's own NDVI never rose above "
+                    f"{optical.NDVI_BARE} in 180 days — water, built-up surface or long-term "
+                    "bare soil. Yield forecasting only makes sense on cultivated land."),
+                recommendation="",
+                metrics={"ndvi_hien_tai": r["ndvi_now"], "ndvi_dinh": r["ndvi_peak"]},
+                data_sources=[sentinel.source_note("NDVI")])
+
         # Giai đoạn sinh trưởng KHÔNG phải hiểm họa: cây chín không phải rủi ro.
         # Chỉ báo động khi thửa mất thảm thực vật ngoài dự kiến.
         lvl = "danger" if r["ndvi_now"] < optical.NDVI_BARE else "safe"
