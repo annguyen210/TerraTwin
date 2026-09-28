@@ -288,8 +288,25 @@ def test_mining_khong_co_mo_gan_thi_khong_bao_dong(monkeypatch):
     monkeypatch.setattr(ds, "elevation_proxy", lambda la, lo: 5.0)
 
     a = get_module("mining").assess(Location(lat=10.0, lon=106.0))
-    assert a.risk_level == "safe"
-    assert "Không thấy mỏ" in a.headline
+    assert a.risk_level not in ("danger", "warning")
+    assert a.status == "out_of_scope"
+    assert "không thấy mỏ" in a.headline.lower()
+
+
+def test_mining_doc_lon_mua_lon_nhung_khong_co_mo_thi_van_khong_bao(monkeypatch):
+    """Ca thật (ép mưa 250 mm/ngày): Trà Leng dốc 12,8°, không mỏ nào trong
+    10 km, bản cũ vẫn ra "warning" vì dốc + mưa tự vượt ngưỡng — tức là đếm
+    lại đúng thứ mô-đun Sạt lở đã báo, gửi đi đúng lúc bão."""
+    from app.modules.registry import get_module
+    from app.services import datasources as ds
+
+    monkeypatch.setattr(osm, "nearest", lambda *a, **k: [])
+    monkeypatch.setattr(ds, "slope_context", lambda la, lo: (18.0, True))
+    monkeypatch.setattr(ds, "forecast_precip_7d_total", lambda la, lo: (1750.0, True))
+    monkeypatch.setattr(ds, "elevation_proxy", lambda la, lo: 300.0)
+
+    a = get_module("mining").assess(Location(lat=15.33, lon=108.05))
+    assert a.risk_level not in ("danger", "warning")
 
 
 def test_mining_doc_lon_mua_lon_gan_mo_thi_bao_dong(monkeypatch):

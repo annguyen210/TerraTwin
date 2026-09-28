@@ -240,7 +240,37 @@ class MiningModule(TwinModule):
 
         lvl = "danger" if score >= 70 else "warning" if score >= 45 else "safe"
 
-        if not near and (nearest_km is None or nearest_km > 10.0):
+        no_site = not near and (nearest_km is None or nearest_km > 10.0)
+        bare_growing = bare is not None and bare["delta"] <= -0.15
+        if no_site and not bare_growing:
+            # KHÔNG ÁP DỤNG, không phải "warning". Không có mỏ/công trường trong
+            # 10 km thì dốc (tối đa 40) + mưa (tối đa 35) tự đủ vượt ngưỡng 45 —
+            # tức là đếm lại đúng thứ mô-đun Sạt lở đã báo. Đo thật (ép mưa
+            # 250 mm/ngày): Trà Leng ra "warning" trong khi headline của chính
+            # nó nói "không thấy mỏ nào trong 10 km" — nhiễu đúng lúc bão, khi
+            # cảnh báo lũ/sạt lở thật đang được gửi đi.
+            return Assessment(
+                module_id=self.id, module_name=self.disp_name(), location=loc,
+                status="out_of_scope", risk_level="unknown", is_real=False,
+                headline=tr("Không áp dụng — không thấy mỏ hay khu công nghiệp nào trong 10 km (OSM)",
+                            "Not applicable — no mine or industrial site within 10 km (OSM)"),
+                detail=tr("An toàn mỏ & công trường chỉ có nghĩa ở nơi đất đã bị đào bới. "
+                          "Nguy cơ sạt lở do dốc và mưa ở vị trí này thuộc mô-đun Sạt lở. "
+                          "OSM chỉ có những mỏ đã được cộng đồng vẽ; mỏ nhỏ và công trường "
+                          "tạm thường chưa có trên bản đồ.",
+                          "Mine & worksite safety only applies where ground has been "
+                          "excavated. Slope-and-rain landslide risk here belongs to the "
+                          "Landslide module. OSM only has mines the community has mapped; "
+                          "small mines and temporary worksites are often missing."),
+                recommendation=tr("Nếu thực tế có công trường chưa được vẽ lên bản đồ, hãy "
+                                  "dùng mô-đun Sạt lở để đánh giá theo địa hình và mưa.",
+                                  "If there's an unmapped worksite in reality, use the "
+                                  "Landslide module to assess by terrain and rain."),
+                metrics={"do_doc_deg": slope, "mua_7ngay_mm": rain,
+                         "so_khu_khai_thac_15km": float(len(sites))},
+                data_sources=self.disp_data_sources())
+
+        if no_site:
             head = tr(f"Không thấy mỏ hay khu công nghiệp nào trong 10 km "
                       f"(OSM) — độ dốc {slope}°, mưa dự báo 7 ngày tới {rain} mm",
                       f"No mine or industrial site within 10 km (OSM) — "
