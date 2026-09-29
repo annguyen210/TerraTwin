@@ -22,7 +22,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // connect-src phải khớp ĐÚNG backend đang cấu hình, không hardcode: lấy origin
 // từ NEXT_PUBLIC_API (prod = https://terratwin-api.onrender.com, dev = localhost).
 // Hardcode một URL cố định là lỗi ẩn — đổi api hoặc fork là CSP chặn backend.
-let API_ORIGIN = "";
+// Mặc định PHẢI trùng lib/api.ts (BASE = localhost:8000 khi chưa đặt biến) — lệch
+// là chạy local không .env thì CSP chặn mọi lời gọi API, trang trống số liệu.
+let API_ORIGIN = "http://localhost:8000";
 try { if (process.env.NEXT_PUBLIC_API) API_ORIGIN = new URL(process.env.NEXT_PUBLIC_API).origin; } catch {}
 
 // Lỗi dev-mode đã báo trước: `next dev` biên dịch bundle bằng eval() (webpack
