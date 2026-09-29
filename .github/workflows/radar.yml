@@ -1,12 +1,25 @@
 name: Radar sweep
 
 # C05 — gọi POST /api/radar/sweep-all mỗi 6 giờ. Bộ hẹn giờ trong tiến trình
-# (_radar_loop, cùng chu kỳ mặc định) chỉ sống được khi dyno KHÔNG ngủ; gói
-# Render free ngủ sau ~15 phút không có request, nên cron ngoài là đường bảo
-# đảm duy nhất trước khi có thửa thật. sweep-all gọi cả sweep_all (cảnh báo
-# mới) LẪN sweep_misses (lần bỏ sót, tự throttle còn ~1 lần/ngày ở backend).
+# (_radar_loop, cùng chu kỳ mặc định) chạy đều khi api không ngủ — đúng với gói
+# trả phí hiện tại; cron này là đường dự phòng khi tiến trình khởi động lại
+# hoặc nếu api từng quay về gói free (ngủ sau ~15 phút không có request).
+# sweep-all gọi cả sweep_all (cảnh báo mới) LẪN sweep_misses (lần bỏ sót, tự
+# throttle còn ~1 lần/ngày ở backend).
 #
 # XÁC THỰC: header X-Cron-Key = secret TERRATWIN_CRON_KEY, giống brief.yml.
+#
+# GIÁM SÁT /api/health (chuyển từ keepwarm.yml sang đây, 29/9/2026): keepwarm
+# giờ chỉ ping web, nên cảnh báo degraded và N11 chạy ở đây, SAU lượt quét —
+# api đã thức sẵn, không thêm lượt đánh thức nào. Lịch GitHub thực tế chỉ chạy
+# vài lần/ngày dù đặt dày hơn (xem keepwarm.yml), nên nhịp giám sát gần như
+# không đổi so với trước.
+#
+# N11 — TUỲ CHỌN: báo qua Telegram khi health đổi trạng thái (ok/degraded/
+# broken), CHỈ khi đổi (xem ops/keepwarm_alert.py). Đặt hai secret để bật:
+#   TERRATWIN_ALERT_BOT_TOKEN — token bot Telegram (từ @BotFather).
+#   TERRATWIN_ALERT_CHAT_ID   — chat_id nhận báo (từ @userinfobot).
+# Thiếu một trong hai thì bỏ qua ÊM — không secret nào là bắt buộc.
 
 on:
   schedule:
@@ -17,10 +30,18 @@ concurrency:
   group: radar-sweep
   cancel-in-progress: false
 
+# N11 cần push trạng thái (ok/degraded/broken) vào nhánh ops-state để lần
+# chạy SAU biết lần chạy TRƯỚC là gì — GITHUB_TOKEN mặc định chỉ đọc, phải
+# xin quyền ghi contents tường minh (giống backup.yml).
+permissions:
+  contents: write
+
 jobs:
   sweep:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: Trigger radar sweep-all
         env:
           CRON_KEY: ${{ secrets.TERRATWIN_CRON_KEY }}
@@ -36,3 +57,55 @@ jobs:
           echo "HTTP $code"; cat /tmp/out.txt
           # Thất bại thật thì BÁO ĐỎ (không nuốt lỗi — bài học keepwarm).
           [ "$code" = "200" ] || { echo "::error::radar/sweep-all trả $code"; exit 1; }
+
+      # if: always() — bước quét ở trên có thể đã exit 1 (thiếu khoá, api chết);
+      # đúng lúc đó là lúc cần biết health nhất.
+      - name: Cảnh báo nếu API đang degraded (hạn mức Open-Meteo)
+        if: always()
+        run: |
+          # degraded = hết hạn mức nguồn dữ liệu miễn phí — KHÔNG phải service
+          # chết (health vẫn trả 200), nên chỉ ::warning::. Dùng ::warning::
+          # (không phải ::error::) vì đây thường tự qua — xem realdata.quota_status().
+          body=$(curl -fsS --max-time 30 "https://terratwin-api.onrender.com/api/health" || echo "")
+          if [ -z "$body" ]; then
+            echo "::warning::Không đọc được /api/health để kiểm tra degraded."
+            exit 0
+          fi
+          if echo "$body" | grep -q '"status":"degraded"'; then
+            echo "::warning::terratwin-api đang degraded — nguồn dữ liệu miễn phí (Open-Meteo) bị chặn vì quá hạn mức. Xem trường quota trong /api/health."
+          fi
+
+      - name: Chuẩn bị nhánh ops-state (lưu trạng thái lần trước)
+        if: always()
+        run: |
+          git config --global user.name "terratwin-keepwarm-bot"
+          git config --global user.email "actions@users.noreply.github.com"
+          REMOTE="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          if git ls-remote --exit-code --heads "$REMOTE" ops-state >/dev/null 2>&1; then
+            git clone --branch ops-state --single-branch --depth 1 "$REMOTE" ../ops-state-wt
+          else
+            mkdir -p ../ops-state-wt
+            git -C ../ops-state-wt init -q -b ops-state
+            git -C ../ops-state-wt commit -q --allow-empty -m "khoi tao nhanh trang thai"
+          fi
+
+      - name: N11 — báo Telegram nếu health đổi trạng thái
+        if: always()
+        env:
+          TERRATWIN_ALERT_BOT_TOKEN: ${{ secrets.TERRATWIN_ALERT_BOT_TOKEN }}
+          TERRATWIN_ALERT_CHAT_ID: ${{ secrets.TERRATWIN_ALERT_CHAT_ID }}
+          # Giữ tên tệp cũ để nối tiếp trạng thái đã lưu khi N11 còn ở keepwarm.
+          TERRATWIN_STATE_FILE: ${{ github.workspace }}/../ops-state-wt/keepwarm-state.txt
+        run: python3 ops/keepwarm_alert.py
+
+      - name: Đẩy trạng thái mới lên ops-state (chỉ khi đổi)
+        if: always()
+        run: |
+          cd ../ops-state-wt
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Trạng thái không đổi — không commit."
+          else
+            git commit -q -m "trang thai $(date -u +%Y%m%d-%H%M)Z"
+            git push -q "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" ops-state
+          fi

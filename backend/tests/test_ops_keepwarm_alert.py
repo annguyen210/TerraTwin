@@ -1,4 +1,4 @@
-"""N11 — báo Telegram khi keepwarm phát hiện health đổi trạng thái.
+"""N11 — báo Telegram khi cron giám sát (radar.yml) thấy health đổi trạng thái.
 
 Không chạm mạng: fetch_health/notify_telegram luôn được monkeypatch. Trọng
 tâm kiểm là logic ĐỔI TRẠNG THÁI (chỉ báo khi khác lần trước) và việc thiếu
@@ -87,7 +87,7 @@ def test_thieu_secret_thi_bo_qua_em_khong_goi_mang(tmp_path, monkeypatch):
 
 def test_gui_telegram_that_bai_khong_lam_hong_run(tmp_path, monkeypatch):
     """Telegram lỗi (API sập, token sai...) không được ném exception ra ngoài —
-    N11 không được làm hỏng cron keepwarm vốn có việc quan trọng hơn."""
+    N11 không được làm hỏng cron chứa nó (radar.yml), vốn có việc quan trọng hơn."""
     state_file = tmp_path / "state.txt"
     state_file.write_text("ok", encoding="utf-8")
     monkeypatch.setattr(keepwarm_alert, "fetch_health", lambda url, timeout=30.0: None)

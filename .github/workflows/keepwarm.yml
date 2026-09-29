@@ -4,18 +4,39 @@ name: Keep warm
 # thức kế tiếp trả 503 trong lúc khởi động lại — đủ để làm hỏng request ĐẦU TIÊN
 # của người dùng, kể cả link "Sổ tay thửa" chia sẻ cho ngân hàng/người mua.
 #
-# Cron này ping cả api lẫn web mỗi ~10 phút để giữ chúng ấm. Chạy trên repo công
-# khai nên KHÔNG tốn phút Actions, và KHÔNG cần bất kỳ tài khoản ngoài nào.
+# Cron này CHỈ ping terratwin-web. terratwin-api ở gói trả phí (render.yaml):
+# không ngủ, không tính vào giờ miễn phí, nên không cần giữ ấm. Giám sát
+# /api/health của api (cảnh báo degraded + báo Telegram N11) chuyển sang
+# radar.yml, chạy ngay sau lượt quét, để không thêm lượt đánh thức nào.
 #
-# LƯU Ý: lịch của GitHub Actions có thể trễ vài phút lúc tải cao, nên đây là giải
-# pháp "đủ tốt & miễn phí", không phải bảo đảm 100%. Muốn chắc hơn: cron-job.org
-# (đáng tin hơn) hoặc nâng Render lên gói trả phí (không ngủ).
+# ── NGÂN SÁCH GIỜ MIỄN PHÍ — ĐỌC TRƯỚC KHI THÊM URL VÀO DANH SÁCH PING ─────────
+# Render cấp 750 giờ instance miễn phí mỗi THÁNG DƯƠNG LỊCH cho CẢ workspace,
+# dùng chung cho MỌI web service gói free. Hết giờ thì Render ĐÌNH CHỈ mọi
+# service free tới ngày 1 tháng sau (503 "This service has been suspended",
+# header x-render-routing: suspend) — không phải ngủ, đánh thức cũng không lên.
 #
-# N11 — TUỲ CHỌN: báo qua Telegram khi health đổi trạng thái (ok/degraded/
-# broken), CHỈ khi đổi (xem ops/keepwarm_alert.py). Đặt hai secret để bật:
-#   TERRATWIN_ALERT_BOT_TOKEN — token bot Telegram (từ @BotFather).
-#   TERRATWIN_ALERT_CHAT_ID   — chat_id nhận báo (từ @userinfobot).
-# Thiếu một trong hai thì bỏ qua ÊM — không secret nào là bắt buộc.
+# Một service thức 24/24:  tháng 31 ngày  24 × 31 = 744 giờ  → dư 6 giờ
+#                          tháng 30 ngày  24 × 30 = 720 giờ  → dư 30 giờ
+# Hai service thức 24/24:  1.440–1.488 giờ → cạn 750 giờ sau khoảng 15,6 ngày.
+# Đã xảy ra: api + web cùng ở gói free, cả hai bị đình chỉ ngày 28–29/9/2026.
+#
+# QUY TẮC:
+#   · Danh sách ping chỉ được có ĐÚNG MỘT service gói free: terratwin-web.
+#   · terratwin-api PHẢI ở gói trả phí. Nếu api quay về free, riêng radar.yml
+#     (4 lần/ngày, mỗi lần giữ api thức ≥15 phút ≈ 31 giờ/tháng) đã vượt 6 giờ
+#     dư của tháng 31 ngày → đình chỉ lại. Khi đó phải bỏ web khỏi danh sách.
+#   · Mọi service free khác trong workspace — kể cả KHÔNG ping, kể cả của dự án
+#     khác — đều ăn vào phần dư đó. Tính lại trước khi tạo thêm.
+#   · Service trả phí không cần ping và không tính vào 750 giờ.
+#
+# ĐỪNG TIN LỊCH "*/10": lịch GitHub Actions bị bóp mạnh. Đo 10–29/9/2026 qua
+# API của GitHub: 120 lần chạy trong 20 ngày, 3–8 lần/ngày, khoảng cách trung
+# vị 2,5–6 giờ — không phải 144 lần/ngày. Workflow này chỉ GIẢM cold start,
+# không xoá được. Trước buổi demo: tự mở trang 1–2 phút trước. Muốn web ấm
+# thật sự: dùng pinger ngoài (UptimeRobot, cron-job.org) gọi web mỗi 5–10 phút —
+# vẫn nằm trong 744 giờ vì chỉ có một service free.
+#
+# N11 (báo Telegram khi health đổi trạng thái) giờ nằm ở radar.yml, xem đó.
 
 on:
   schedule:
@@ -27,87 +48,25 @@ concurrency:
   group: keepwarm
   cancel-in-progress: false
 
-# N11 cần push trạng thái (ok/degraded/broken) vào nhánh ops-state để lần
-# chạy SAU biết lần chạy TRƯỚC là gì — GITHUB_TOKEN mặc định chỉ đọc, phải
-# xin quyền ghi contents tường minh (giống backup.yml).
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Ping api + web
+      - name: Ping web
         run: |
-          fail=0
-          for url in \
-            "https://terratwin-api.onrender.com/api/health" \
-            "https://terratwin-web.onrender.com/" ; do
-            echo "→ $url"
-            # --retry-all-errors để thử lại cả khi gặp 503 lúc service đang dậy;
-            # tổng thời gian chờ đủ để một service nguội khởi động xong (~50s).
-            if curl -fsS --max-time 90 --retry 5 --retry-delay 12 \
-                 --retry-all-errors "$url" -o /dev/null ; then
-              echo "  ok — đã ấm"
-            else
-              echo "  ✗ HỎNG sau khi thử lại hết — service có thể đang chết"
-              fail=1
-            fi
-          done
-          # N11 — thử lại hết mà VẪN hỏng thì BÁO ĐỎ (exit 1), không nuốt lỗi.
-          # Một cron keepwarm im lặng thất bại thì chẳng khác gì không có: phải
-          # đỏ để còn biết service chết mà xử lý.
-          exit $fail
-      - name: Cảnh báo nếu API đang degraded (hạn mức Open-Meteo)
-        run: |
-          # degraded = hết hạn mức nguồn dữ liệu miễn phí — KHÔNG phải service
-          # chết (health vẫn trả 200), nên chỉ ::warning:: chứ không fail job
-          # trước đó. Dùng ::warning:: (không phải ::error::) vì đây thường tự
-          # qua — xem realdata.quota_status().
-          body=$(curl -fsS --max-time 30 "https://terratwin-api.onrender.com/api/health" || echo "")
-          if [ -z "$body" ]; then
-            echo "::warning::Không đọc được /api/health để kiểm tra degraded."
-            exit 0
-          fi
-          if echo "$body" | grep -q '"status":"degraded"'; then
-            echo "::warning::terratwin-api đang degraded — nguồn dữ liệu miễn phí (Open-Meteo) bị chặn vì quá hạn mức. Xem trường quota trong /api/health."
-          fi
-
-      # N11 — báo Telegram khi trạng thái ĐỔI (không báo lặp mỗi 10 phút lúc vẫn
-      # hỏng). if: always() vì bước "Ping api + web" ở trên có thể đã exit 1 —
-      # đúng lúc đó (health hỏng) là lúc N11 cần chạy nhất, không được bị bỏ qua.
-      - name: Chuẩn bị nhánh ops-state (lưu trạng thái lần trước)
-        if: always()
-        run: |
-          git config --global user.name "terratwin-keepwarm-bot"
-          git config --global user.email "actions@users.noreply.github.com"
-          REMOTE="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
-          if git ls-remote --exit-code --heads "$REMOTE" ops-state >/dev/null 2>&1; then
-            git clone --branch ops-state --single-branch --depth 1 "$REMOTE" ../ops-state-wt
+          url="https://terratwin-web.onrender.com/"
+          echo "→ $url"
+          # --retry-all-errors để thử lại cả khi gặp 503 lúc service đang dậy;
+          # tổng thời gian chờ đủ để một service nguội khởi động xong (~50s).
+          if curl -fsS --max-time 90 --retry 5 --retry-delay 12 \
+               --retry-all-errors "$url" -o /dev/null ; then
+            echo "  ok — đã ấm"
           else
-            mkdir -p ../ops-state-wt
-            git -C ../ops-state-wt init -q -b ops-state
-            git -C ../ops-state-wt commit -q --allow-empty -m "khoi tao nhanh trang thai"
-          fi
-
-      - name: N11 — báo Telegram nếu health đổi trạng thái
-        if: always()
-        env:
-          TERRATWIN_ALERT_BOT_TOKEN: ${{ secrets.TERRATWIN_ALERT_BOT_TOKEN }}
-          TERRATWIN_ALERT_CHAT_ID: ${{ secrets.TERRATWIN_ALERT_CHAT_ID }}
-          TERRATWIN_STATE_FILE: ${{ github.workspace }}/../ops-state-wt/keepwarm-state.txt
-        run: python3 ops/keepwarm_alert.py
-
-      - name: Đẩy trạng thái mới lên ops-state (chỉ khi đổi)
-        if: always()
-        run: |
-          cd ../ops-state-wt
-          git add -A
-          if git diff --cached --quiet; then
-            echo "Trạng thái không đổi — không commit."
-          else
-            git commit -q -m "trang thai $(date -u +%Y%m%d-%H%M)Z"
-            git push -q "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" ops-state
+            # Thử lại hết mà VẪN hỏng thì BÁO ĐỎ (exit 1), không nuốt lỗi: một
+            # cron keepwarm im lặng thất bại thì chẳng khác gì không có.
+            echo "::error::terratwin-web hỏng sau khi thử lại hết — service chết hoặc bị đình chỉ (hết giờ miễn phí?)."
+            exit 1
           fi

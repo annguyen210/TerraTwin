@@ -1,12 +1,13 @@
 """N11 — báo Telegram khi /api/health chuyển sang degraded/broken.
 
-CHỈ báo khi ĐỔI TRẠNG THÁI (ok → degraded, degraded → broken, ...): cron này
-chạy mỗi ~10 phút (xem keepwarm.yml) — báo mỗi lần chạy trong lúc service vẫn
+CHỈ báo khi ĐỔI TRẠNG THÁI (ok → degraded, degraded → broken, ...): cron chạy
+script này vài lần mỗi ngày (radar.yml, sau lượt quét — trước 29/9/2026 nằm ở
+keepwarm.yml, nên tên tệp còn giữ) — báo mỗi lần chạy trong lúc service vẫn
 đang hỏng sẽ spam Telegram vô ích và làm người nhận tắt thông báo luôn.
 
 Không có secret TERRATWIN_ALERT_BOT_TOKEN / TERRATWIN_ALERT_CHAT_ID thì bỏ
 qua ÊM (exit 0, không lỗi) — N11 là tính năng tuỳ chọn, thiếu secret không
-được làm đỏ workflow keepwarm vốn đang làm việc quan trọng hơn (giữ service ấm).
+được làm đỏ workflow chứa nó, vốn đang làm việc quan trọng hơn (quét radar).
 
 Không dùng thư viện ngoài (urllib chuẩn) — script này chạy trong GitHub
 Actions, không muốn thêm bước pip install chỉ để gọi hai API HTTP đơn giản.
@@ -111,7 +112,7 @@ def main() -> int:
     token = os.environ.get("TERRATWIN_ALERT_BOT_TOKEN") or None
     chat_id = os.environ.get("TERRATWIN_ALERT_CHAT_ID") or None
     run(health_url, state_file, token, chat_id)
-    return 0   # N11 không được làm đỏ workflow keepwarm dù báo lỗi hay không.
+    return 0   # N11 không được làm đỏ workflow chứa nó dù báo lỗi hay không.
 
 
 if __name__ == "__main__":
