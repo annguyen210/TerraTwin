@@ -16,6 +16,8 @@ name: Database backup
 # workflow TỰ CHỌN — Neon đã có bảng thì sao lưu Neon (CSDL đang sống sau khi
 # chuyển), chưa có thì sao lưu Render (trước khi chuyển). Không phải sửa secret
 # đúng lúc chuyển giao; sau khi Render xoá CSDL cũ (9/10/2026) vẫn chạy tiếp.
+# Không kết nối được Neon thì báo ĐỎ — không bao giờ rơi về Render vì lỗi mạng
+# (Render sau 1/10 là bản cũ đứng yên: sao lưu nó ra một bản xanh thiếu dữ liệu).
 #
 # BẮT BUỘC đặt các secret trong repo Settings → Secrets → Actions:
 #   TERRATWIN_NEON_URL          — URL Neon loại DIRECT (host không có "-pooler").
@@ -95,11 +97,22 @@ jobs:
           NEON_URL: ${{ secrets.TERRATWIN_NEON_URL }}
           RENDER_URL: ${{ secrets.TERRATWIN_DB_EXTERNAL_URL }}
         run: |
+          # shellcheck source=/dev/null
+          . ops/pg-redact.sh
+          ERR="$RUNNER_TEMP/src.err"
           tables=0
           if [ -n "$NEON_URL" ]; then
-            tables=$(psql "$NEON_URL" -X -tAc               "SELECT count(*) FROM pg_tables WHERE schemaname = 'public'") || tables=0
+            # LỖI KẾT NỐI ≠ "0 bảng". Nuốt lỗi thành 0 thì từ 1/10 tới 9/10 workflow
+            # lặng lẽ sao lưu Render — bản cũ đứng yên — và ra một bản XANH thiếu
+            # dữ liệu mới. Không đọc được Neon thì phải ĐỎ.
+            if ! tables=$(psql "$NEON_URL" -X -tAc                  "SELECT count(*) FROM pg_tables WHERE schemaname = 'public'" 2>"$ERR"); then
+              echo "::error::Không truy vấn được Neon (TERRATWIN_NEON_URL) — KHÔNG rơi về Render. Lỗi (đã lọc):"
+              pg_err_redacted "$ERR"
+              exit 1
+            fi
           fi
-          if [ "${tables:-0}" -gt 0 ]; then
+          # Chỉ khi truy vấn Neon CHẠY ĐƯỢC và trả 0 bảng (chưa chuyển) mới dùng Render.
+          if [ "$tables" -gt 0 ]; then
             src=neon; url="$NEON_URL"
           elif [ -n "$RENDER_URL" ]; then
             src=render; url="$RENDER_URL"
@@ -108,7 +121,11 @@ jobs:
             exit 1
           fi
           echo "src=$src" >> "$GITHUB_OUTPUT"
-          srv=$(psql "$url" -X -tAc "SELECT current_setting('server_version_num')::int / 10000")
+          if ! srv=$(psql "$url" -X -tAc "SELECT current_setting('server_version_num')::int / 10000" 2>"$ERR"); then
+            echo "::error::Không truy vấn được CSDL nguồn ($src). Lỗi (đã lọc):"
+            pg_err_redacted "$ERR"
+            exit 1
+          fi
           echo "Sao lưu từ: $src (PostgreSQL $srv, bảng public ở Neon: $tables)"
           if [ "$srv" -gt "$PG_CLIENT_MAJOR" ]; then
             echo "::error::Máy chủ PostgreSQL $srv mới hơn pg_dump $PG_CLIENT_MAJOR — nâng PG_CLIENT_MAJOR."

@@ -22,7 +22,17 @@ DST="${DST/postgresql+psycopg:/postgresql:}"
 
 # </dev/null: psql chạy trong các vòng `while read` dưới đây — không được đụng
 # vào stdin của vòng lặp.
-q() { psql "$1" -X -v ON_ERROR_STOP=1 -At -F $'\t' -c "$2" </dev/null; }
+# stderr qua bộ lọc: log Actions công khai, lỗi Postgres có thể đính kèm dữ liệu.
+# shellcheck source=pg-redact.sh
+. "$(cd "$(dirname "$0")" && pwd)/pg-redact.sh"
+QERR="$(mktemp)"; trap 'rm -f "$QERR"' EXIT
+q() {
+  psql "$1" -X -v ON_ERROR_STOP=1 -At -F $'\t' -c "$2" </dev/null 2>"$QERR" || {
+    echo "::error::Truy vấn đối chiếu lỗi (đã lọc dữ liệu):" >&2
+    pg_err_redacted "$QERR" >&2
+    return 1
+  }
+}
 
 TABLES_SQL="SELECT quote_ident(schemaname) || '.' || quote_ident(tablename)
             FROM pg_tables

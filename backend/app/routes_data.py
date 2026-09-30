@@ -319,8 +319,17 @@ def run_radar_sweep_all(wait: bool = False,
     Xác thực giống /api/brief/run (xem _require_cron_or_admin).
     """
     _require_cron_or_admin(authorization, x_cron_key, db)
-    if wait or not _queue_worker_running():
+    if wait:
         return radar.sweep_all(db)
+    # KHÔNG còn đường quét đồng bộ ngầm cho cron: đó đúng là kiểu từng gây 4 lượt
+    # quét chồng (curl hết giờ → gửi lại). _queue_worker_running() chỉ đọc cấu
+    # hình — worker được tạo trong lifespan, và uvicorn chạy xong lifespan TRƯỚC
+    # khi nhận request; việc gửi tới sớm vẫn nằm chờ trong bảng jobs bền cho
+    # worker nhặt. Worker bị TẮT bằng cấu hình thì báo 503, không quét tại chỗ.
+    if not _queue_worker_running():
+        raise HTTPException(503, "Worker nền đang tắt (TERRATWIN_JOBS_POLL_INTERVAL_S=0) "
+                                 "— không quét đồng bộ trong request. Bật lại worker, "
+                                 "hoặc gọi với wait=true nếu thật sự muốn quét tại chỗ.")
 
     job_id = radar.active_sweep_all_job(db)
     if job_id is None:

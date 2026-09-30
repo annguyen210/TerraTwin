@@ -42,7 +42,15 @@ STAMP="$(date +%Y%m%d-%H%M%S)"
 RAW="$DIR/daily/terratwin-$STAMP.sql.gz"
 
 echo "[backup] pg_dump → $RAW"
-pg_dump "$URL" --no-owner --no-privileges | gzip -9 > "$RAW"
+# stderr qua bộ lọc: log Actions của repo công khai ai cũng đọc được, mà lỗi
+# Postgres có thể đính kèm dữ liệu (xem pg-redact.sh).
+# shellcheck source=pg-redact.sh
+. "$(cd "$(dirname "$0")" && pwd)/pg-redact.sh"
+ERR="$(mktemp)"
+pg_dump "$URL" --no-owner --no-privileges 2>"$ERR" | gzip -9 > "$RAW" || {
+  echo "[backup] LỖI pg_dump (đã lọc dữ liệu):"; pg_err_redacted "$ERR"
+  rm -f "$ERR" "$RAW"; exit 1; }
+rm -f "$ERR"
 test -s "$RAW" || { echo "[backup] LỖI: bản dump rỗng"; exit 1; }
 
 # Mã hoá NGAY, rồi xoá bản thô — không được để bản thô nằm lại dù chỉ một giây

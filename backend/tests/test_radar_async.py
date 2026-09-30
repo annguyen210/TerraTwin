@@ -212,10 +212,28 @@ def test_sweep_all_ma_viec_khac_loai_tra_404(client, fake_scan, cron):
     assert client.get(f"/api/radar/sweep-all/{jid}", headers=CRON).status_code == 404
 
 
-def test_sweep_all_wait_hoac_khong_worker_thi_quet_tai_cho(client, fake_scan, cron, monkeypatch):
+def test_sweep_all_wait_true_moi_quet_tai_cho(client, fake_scan, cron):
     _user(client)
     r = client.post("/api/radar/sweep-all?wait=true", headers=CRON).json()
     assert "job_id" not in r and r["plots_scanned"] == 2
+
+
+def test_sweep_all_worker_tat_tra_503_khong_quet_dong_bo(client, fake_scan, cron, monkeypatch):
+    """Cron KHÔNG bao giờ được rơi vào quét đồng bộ trong request — đó là kiểu từng
+    gây 4 lượt quét chồng. Worker tắt bằng cấu hình → 503 để radar-sweep.sh báo đỏ."""
+    _user(client)
     monkeypatch.setenv("TERRATWIN_JOBS_POLL_INTERVAL_S", "0")
-    r = client.post("/api/radar/sweep-all", headers=CRON).json()
-    assert "job_id" not in r and r["users_scanned"] == 1
+    r = client.post("/api/radar/sweep-all", headers=CRON)
+    assert r.status_code == 503 and "wait=true" in r.json()["detail"]
+    assert fake_scan["n"] == 0, "không được quét trong request"
+
+
+def test_sweep_all_gui_truoc_khi_worker_chay_van_nam_cho_trong_hang_doi(client, fake_scan, cron):
+    """Request tới trước vòng lặp worker đầu tiên: việc vẫn được xếp hàng bền rồi
+    worker nhặt sau — không có đường tắt đồng bộ nào phụ thuộc thời điểm."""
+    _user(client)
+    jid = client.post("/api/radar/sweep-all", headers=CRON).json()["job_id"]
+    assert fake_scan["n"] == 0
+    _drain()                      # "worker" chạy muộn
+    st = client.get(f"/api/radar/sweep-all/{jid}", headers=CRON).json()
+    assert st["state"] == "done" and fake_scan["n"] == 2

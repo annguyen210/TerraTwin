@@ -32,8 +32,18 @@ esac
 WORK="$(mktemp -d)"; chmod 700 "$WORK"
 trap 'rm -rf "$WORK"' EXIT
 DUMP="$WORK/terratwin.sql"
+# shellcheck source=pg-redact.sh
+. "$HERE/pg-redact.sh"
 
-q() { psql "$1" -X -v ON_ERROR_STOP=1 -At -c "$2" </dev/null; }
+# stderr của MỌI lệnh Postgres vào tệp trong $WORK, chỉ in bản đã lọc — log
+# Actions công khai, và lỗi Postgres có thể đính kèm nguyên dòng dữ liệu.
+q() {
+  psql "$1" -X -v ON_ERROR_STOP=1 -At -c "$2" </dev/null 2>"$WORK/q.err" || {
+    echo "::error::Truy vấn Postgres lỗi (đã lọc dữ liệu):" >&2
+    pg_err_redacted "$WORK/q.err" >&2
+    return 1
+  }
+}
 
 echo "── 1. Nguồn"
 q "$SRC" "SELECT 'PostgreSQL ' || current_setting('server_version') || ' · ' ||
@@ -66,11 +76,17 @@ else
 fi
 
 echo "── 3. pg_dump nguồn (plain, --no-owner --no-privileges)"
-pg_dump "$SRC" --format=plain --no-owner --no-privileges --file="$DUMP"
+pg_dump "$SRC" --format=plain --no-owner --no-privileges --file="$DUMP" 2>"$WORK/dump.err" || {
+  echo "::error::pg_dump lỗi (đã lọc dữ liệu):"; pg_err_redacted "$WORK/dump.err"; exit 1; }
 echo "   $(du -h "$DUMP" | cut -f1)"
 
 echo "── 4. Nạp vào đích (một transaction, dừng ở lỗi đầu tiên)"
-psql "$DST" -X -q -v ON_ERROR_STOP=1 --single-transaction -f "$DUMP" >/dev/null
+# Nạp hỏng giữa COPY thì psql in "CONTEXT: COPY <bảng>, line N: <nguyên dòng
+# dữ liệu>" ra stderr — KHÔNG được để lọt vào log. Transaction đã quay lui, Neon
+# vẫn trống.
+psql "$DST" -X -q -v ON_ERROR_STOP=1 --single-transaction -f "$DUMP"   >/dev/null 2>"$WORK/load.err" || {
+  echo "::error::Nạp vào đích lỗi — transaction đã quay lui, đích vẫn trống. Lỗi (đã lọc dữ liệu):"
+  pg_err_redacted "$WORK/load.err"; exit 1; }
 rm -f "$DUMP"
 echo "   Xong."
 

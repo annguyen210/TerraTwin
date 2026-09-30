@@ -42,13 +42,18 @@ if [ -n "${GITHUB_PATH:-}" ]; then
 fi
 echo "[pg-client] $(pg_dump --version) · $(psql --version)"
 
-# Kiểm bản máy chủ ≤ bản client. Không in URL (chứa mật khẩu) — chỉ in thứ tự.
+# Kiểm bản máy chủ ≤ bản client. Không in URL (chứa mật khẩu) — chỉ in thứ tự;
+# lỗi kết nối cũng qua bộ lọc (pg-redact.sh).
+# shellcheck source=pg-redact.sh
+. "$(cd "$(dirname "$0")" && pwd)/pg-redact.sh"
+ERR="$(mktemp)"; trap 'rm -f "$ERR"' EXIT
 i=0
 for url in "$@"; do
   i=$((i + 1))
   url="${url/postgresql+psycopg:/postgresql:}"
-  srv="$(psql "$url" -X -tAc "SELECT current_setting('server_version_num')::int / 10000")" || {
-    echo "::error::Không kết nối được CSDL thứ $i để hỏi bản máy chủ."; exit 1; }
+  srv="$(psql "$url" -X -tAc "SELECT current_setting('server_version_num')::int / 10000" 2>"$ERR")" || {
+    echo "::error::Không kết nối được CSDL thứ $i để hỏi bản máy chủ. Lỗi (đã lọc):"
+    pg_err_redacted "$ERR"; exit 1; }
   echo "[pg-client] CSDL thứ $i: PostgreSQL $srv"
   if [ "$srv" -gt "$VER" ]; then
     echo "::error::CSDL thứ $i là PostgreSQL $srv, mới hơn client $VER — pg_dump sẽ từ chối. Nâng tham số bản client."
