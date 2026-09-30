@@ -22,7 +22,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.db import Alert, NotifyChannel, Plot, User
+from app.db import Alert, Job, NotifyChannel, Plot, User
 from app.schemas import Location
 from app.services import jobs_db, notify, verify
 from app.services.reqlang import tr
@@ -182,14 +182,22 @@ _LAST_MISS_SWEEP_KEY = "radar:last_miss_sweep"
 MISS_SWEEP_MIN_GAP_H = 20
 
 
-def sweep_all(db: Session) -> dict:
-    """Quét cho MỌI người dùng có thửa đã lưu. Dùng cho lượt chạy nền."""
+def sweep_all(db: Session, on_progress=None) -> dict:
+    """Quét cho MỌI người dùng có thửa đã lưu. Dùng cho lượt chạy nền.
+
+    on_progress(done, total, phase) — tuỳ chọn, để cron hỏi tiến độ thấy lượt
+    quét đang đi tới đâu (xem SWEEP_ALL_JOB_KIND)."""
     ids = db.execute(
         select(User.id).join(Plot, Plot.user_id == User.id).distinct()
     ).scalars().all()
 
+    def _report(done: int, phase: str) -> None:
+        if on_progress is not None:
+            on_progress(done, len(ids), phase)
+
     users, plots, alerts, sent, failed, asked = 0, 0, 0, 0, 0, 0
-    for uid in ids:
+    for i, uid in enumerate(ids):
+        _report(i, "users")
         try:
             r = sweep_user(uid, db)
         except Exception:
@@ -206,6 +214,7 @@ def sweep_all(db: Session) -> dict:
     # CHẤM ĐIỂM những cảnh báo cũ đã tới hạn. Gắn vào lượt quét nền thay vì làm
     # một bộ hẹn giờ thứ hai: gói miễn phí của Render/Fly không có cron, thêm
     # một tiến trình nữa là thêm một thứ im lặng không chạy sau khi deploy.
+    _report(len(ids), "verify")
     try:
         scored = verify.sweep(db)
     except Exception as e:
@@ -218,6 +227,7 @@ def sweep_all(db: Session) -> dict:
     # là số "miss" trong sổ điểm luôn = 0 và POD tự động = 100%, bất kể phần
     # mềm thật sự bỏ sót bao nhiêu lần. Gọi ở đây, cùng chỗ với verify.sweep(),
     # vì lý do y hệt: không dựng thêm một tiến trình nền thứ hai.
+    _report(len(ids), "misses")
     misses = _maybe_sweep_misses(db)
 
     result = {"notifications_asked": asked, "scored": scored, "misses": misses,
@@ -306,3 +316,56 @@ def _radar_run_job(args: dict) -> dict:
 
     with _db.SessionLocal() as s:
         return sweep_user(int(args["user_id"]), s, on_progress=_progress)
+
+
+# ------------------------------------------------------- Lượt quét nền của cron
+#
+# POST /api/radar/sweep-all từng quét ĐỒNG BỘ trong request. Hai lỗi thật khi
+# api ở gói free (29/9/2026): (1) radar.yml đặt curl --max-time 180 kèm
+# --retry-all-errors, mà 3 thửa đã mất 196–519 giây → curl hết giờ, gửi lại,
+# máy chủ quét chồng tới 4 lượt, đốt hạn mức Open-Meteo; (2) curl bỏ đi thì
+# không còn request nào vào, Render tắt máy sau 15 phút — giữa lượt quét.
+# Nay route đẩy việc vào hàng đợi BỀN, trả job_id ngay; cron hỏi tiến độ mỗi
+# phút ở GET /api/radar/sweep-all/{id} — chính các lượt hỏi đó giữ máy thức.
+
+SWEEP_ALL_JOB_KIND = "radar_sweep_all"
+
+# Máy bị tắt giữa chừng (đình chỉ, deploy, hết RAM) thì việc kẹt 'running' mãi
+# vì không ai ghi 'done'. Quá ngần này mà chưa xong thì coi là chết, để lượt
+# cron sau quét lại thay vì bị trả về một việc không bao giờ xong. 3 giờ: lượt
+# quét dài nhất đo được là ~3 phút/thửa, dư cho vài chục thửa.
+SWEEP_ALL_STALE_S = 3 * 3600
+
+
+@jobs_db.register(SWEEP_ALL_JOB_KIND)
+def _sweep_all_job(args: dict) -> dict:
+    from app import db as _db          # tra lúc chạy — test đổi SessionLocal được
+
+    job_id = args.get("_job_id")
+
+    def _progress(done: int, total: int, phase: str) -> None:
+        jobs_db.report_progress(job_id, {"done": done, "total": total, "phase": phase})
+
+    with _db.SessionLocal() as s:
+        return sweep_all(s, on_progress=_progress)
+
+
+def active_sweep_all_job(db: Session) -> str | None:
+    """Mã lượt quét nền đang chờ/đang chạy (còn sống), hoặc None.
+
+    Để cron gọi lại (thử lại sau 503, hai lịch chồng nhau) nhận lại ĐÚNG việc
+    đang chạy thay vì đẩy lượt thứ hai. Việc quá SWEEP_ALL_STALE_S mà chưa xong
+    bị đánh dấu lỗi 'Stale' — máy đã chết giữa chừng, không chờ nó nữa."""
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    live: str | None = None
+    for j in db.execute(select(Job).where(
+            Job.kind == SWEEP_ALL_JOB_KIND,
+            Job.state.in_(("queued", "running")))
+            .order_by(Job.created_at.desc())).scalars().all():
+        since = j.started_at or j.created_at
+        if since is not None and (now - since).total_seconds() > SWEEP_ALL_STALE_S:
+            j.state, j.error, j.finished_at = "error", "Stale", now
+            continue
+        live = live or j.id
+    db.commit()
+    return live

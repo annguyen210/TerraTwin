@@ -1,11 +1,14 @@
 name: Radar sweep
 
-# C05 — gọi POST /api/radar/sweep-all mỗi 6 giờ. Bộ hẹn giờ trong tiến trình
-# (_radar_loop, cùng chu kỳ mặc định) chạy đều khi api không ngủ — đúng với gói
-# trả phí hiện tại; cron này là đường dự phòng khi tiến trình khởi động lại
-# hoặc nếu api từng quay về gói free (ngủ sau ~15 phút không có request).
-# sweep-all gọi cả sweep_all (cảnh báo mới) LẪN sweep_misses (lần bỏ sót, tự
-# throttle còn ~1 lần/ngày ở backend).
+# C05 — gọi POST /api/radar/sweep-all mỗi 6 giờ. api ở gói free (0 đồng) nên
+# NGỦ sau 15 phút không có request; bộ hẹn giờ trong tiến trình (_radar_loop)
+# chết theo, cron này là đường bảo đảm duy nhất. sweep-all gọi cả sweep_all
+# (cảnh báo mới) LẪN sweep_misses (lần bỏ sót, tự throttle ~1 lần/ngày).
+#
+# CHỊU ĐƯỢC MÁY ĐANG NGỦ (ops/radar-sweep.sh): đánh thức bằng GET /api/health
+# (6 lần, cách 20 giây) → POST sweep-all trả job_id ngay → hỏi tiến độ mỗi phút
+# tới khi xong. Chính các lượt hỏi giữ máy thức — Render tắt máy sau 15 phút
+# không có request vào, kể cả khi đang quét dở.
 #
 # XÁC THỰC: header X-Cron-Key = secret TERRATWIN_CRON_KEY, giống brief.yml.
 #
@@ -39,10 +42,12 @@ permissions:
 jobs:
   sweep:
     runs-on: ubuntu-latest
+    # Đánh thức ~2 phút + quét tối đa 50 phút (POLL_MAX_MIN) + giám sát.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
-      - name: Trigger radar sweep-all
+      - name: Đánh thức api → quét nền → hỏi tiến độ tới khi xong
         env:
           CRON_KEY: ${{ secrets.TERRATWIN_CRON_KEY }}
         run: |
@@ -50,13 +55,8 @@ jobs:
             echo "::error::Thiếu secret TERRATWIN_CRON_KEY — đặt trong repo Settings → Secrets, cùng giá trị với biến trên terratwin-api."
             exit 1
           fi
-          code=$(curl -sS -o /tmp/out.txt -w "%{http_code}" \
-            --max-time 180 --retry 3 --retry-delay 15 --retry-all-errors \
-            -X POST "https://terratwin-api.onrender.com/api/radar/sweep-all" \
-            -H "X-Cron-Key: $CRON_KEY")
-          echo "HTTP $code"; cat /tmp/out.txt
           # Thất bại thật thì BÁO ĐỎ (không nuốt lỗi — bài học keepwarm).
-          [ "$code" = "200" ] || { echo "::error::radar/sweep-all trả $code"; exit 1; }
+          bash ops/radar-sweep.sh
 
       # if: always() — bước quét ở trên có thể đã exit 1 (thiếu khoá, api chết);
       # đúng lúc đó là lúc cần biết health nhất.

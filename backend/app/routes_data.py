@@ -286,8 +286,26 @@ def radar_run_status(job_id: str, user: User = Depends(auth.current_user),
     return jobs_db.status(db, job_id)
 
 
+def _require_cron_or_admin(authorization: str | None, x_cron_key: str | None,
+                           db: Session) -> None:
+    """Header X-Cron-Key khớp TERRATWIN_CRON_KEY (không hết hạn như JWT — cron
+    ngoài dùng đường này), hoặc JWT của admin. Không đường nào hợp lệ → 401/403."""
+    import os as _os
+
+    cron_key = _os.environ.get("TERRATWIN_CRON_KEY", "").strip()
+    if cron_key and x_cron_key and auth.constant_time_eq(x_cron_key, cron_key):
+        return
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(401, "Cần X-Cron-Key hợp lệ hoặc đăng nhập admin.")
+    uid = auth.decode_token(authorization.split(" ", 1)[1].strip())
+    u = db.get(User, uid) if uid else None
+    if u is None or getattr(u, "role", "user") != "admin":
+        raise HTTPException(403, "Chỉ quản trị viên hoặc cron hợp lệ.")
+
+
 @router.post("/api/radar/sweep-all")
-def run_radar_sweep_all(authorization: str | None = Header(default=None),
+def run_radar_sweep_all(wait: bool = False,
+                        authorization: str | None = Header(default=None),
                         x_cron_key: str | None = Header(default=None),
                         db: Session = Depends(get_session)) -> dict:
     """Quét NỀN cho mọi người dùng (sweep_all) + quét bỏ sót (sweep_misses,
@@ -295,22 +313,36 @@ def run_radar_sweep_all(authorization: str | None = Header(default=None),
     miễn phí không có cron riêng và bộ hẹn giờ trong tiến trình chỉ sống được
     khi dyno không ngủ.
 
-    Xác thực giống /api/brief/run: header X-Cron-Key khớp TERRATWIN_CRON_KEY
-    (không hết hạn như JWT — cron ngoài dùng đường này), hoặc JWT của admin.
+    CHẠY NỀN: trả job_id ngay, hỏi tiến độ ở GET /api/radar/sweep-all/{id}
+    (lý do ở radar.SWEEP_ALL_JOB_KIND). Gọi lại khi lượt trước chưa xong trả
+    lại đúng việc đó — thử lại an toàn. `wait=true` giữ kiểu quét tại chỗ cũ.
+    Xác thực giống /api/brief/run (xem _require_cron_or_admin).
     """
-    import os as _os
-
-    cron_key = _os.environ.get("TERRATWIN_CRON_KEY", "").strip()
-    if cron_key and x_cron_key and auth.constant_time_eq(x_cron_key, cron_key):
+    _require_cron_or_admin(authorization, x_cron_key, db)
+    if wait or not _queue_worker_running():
         return radar.sweep_all(db)
 
-    if not authorization or not authorization.lower().startswith("bearer "):
-        raise HTTPException(401, "Cần X-Cron-Key hợp lệ hoặc đăng nhập admin.")
-    uid = auth.decode_token(authorization.split(" ", 1)[1].strip())
-    u = db.get(User, uid) if uid else None
-    if u is None or getattr(u, "role", "user") != "admin":
-        raise HTTPException(403, "Chỉ quản trị viên hoặc cron hợp lệ.")
-    return radar.sweep_all(db)
+    job_id = radar.active_sweep_all_job(db)
+    if job_id is None:
+        job_id = jobs_db.submit(db, radar.SWEEP_ALL_JOB_KIND, {},
+                                label="Quét nền mọi thửa")
+    st = jobs_db.status(db, job_id) or {}
+    return {"job_id": job_id, "state": st.get("state", "queued"),
+            "poll": f"/api/radar/sweep-all/{job_id}"}
+
+
+@router.get("/api/radar/sweep-all/{job_id}")
+def radar_sweep_all_status(job_id: str,
+                           authorization: str | None = Header(default=None),
+                           x_cron_key: str | None = Header(default=None),
+                           db: Session = Depends(get_session)) -> dict:
+    """Tiến độ + kết quả một lượt quét nền. Cùng xác thực với POST — kết quả
+    tổng hợp mọi người dùng, không để lộ qua /api/jobs công khai."""
+    _require_cron_or_admin(authorization, x_cron_key, db)
+    st = jobs_db.status(db, job_id)
+    if st is None or st.get("kind") != radar.SWEEP_ALL_JOB_KIND:
+        raise HTTPException(404, "Không có lượt quét nền nào mang mã này.")
+    return st
 
 
 # ---------- C01 Twin Builder ----------
@@ -723,20 +755,9 @@ def brief_run(force: bool = False,
     cron ngoài, KHÔNG hết hạn như JWT; hoặc (b) JWT của một admin. Không có đường
     nào hợp lệ → 401. Cron dùng đường (a) vì token đăng nhập hết hạn sau 72h thì
     lịch gửi sẽ chết âm thầm."""
-    import os as _os
     from app.services import brief
 
-    cron_key = _os.environ.get("TERRATWIN_CRON_KEY", "").strip()
-    if cron_key and x_cron_key and auth.constant_time_eq(x_cron_key, cron_key):
-        return brief.run_all(db, force=force)
-
-    # Không có/không khớp cron key → phải là admin đăng nhập.
-    if not authorization or not authorization.lower().startswith("bearer "):
-        raise HTTPException(401, "Cần X-Cron-Key hợp lệ hoặc đăng nhập admin.")
-    uid = auth.decode_token(authorization.split(" ", 1)[1].strip())
-    u = db.get(User, uid) if uid else None
-    if u is None or getattr(u, "role", "user") != "admin":
-        raise HTTPException(403, "Chỉ quản trị viên hoặc cron hợp lệ.")
+    _require_cron_or_admin(authorization, x_cron_key, db)
     return brief.run_all(db, force=force)
 
 

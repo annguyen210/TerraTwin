@@ -1,49 +1,35 @@
 name: Keep warm
 
-# Gói free của Render cho service NGỦ sau ~15 phút không có request, và lần đánh
-# thức kế tiếp trả 503 trong lúc khởi động lại — đủ để làm hỏng request ĐẦU TIÊN
-# của người dùng, kể cả link "Sổ tay thửa" chia sẻ cho ngân hàng/người mua.
+# CHỈ CHẠY TAY (từ 29/9/2026): Actions → "Keep warm" → Run workflow, khoảng 1–2
+# phút trước buổi demo. Đánh thức cả web lẫn api để giám khảo không gặp lượt
+# khởi động nguội 30–60 giây. KHÔNG có lịch tự động — đọc phép tính dưới đây
+# trước khi thêm lại.
 #
-# Cron này CHỈ ping terratwin-web. terratwin-api ở gói trả phí (render.yaml):
-# không ngủ, không tính vào giờ miễn phí, nên không cần giữ ấm. Giám sát
-# /api/health của api (cảnh báo degraded + báo Telegram N11) chuyển sang
-# radar.yml, chạy ngay sau lượt quét, để không thêm lượt đánh thức nào.
-#
-# ── NGÂN SÁCH GIỜ MIỄN PHÍ — ĐỌC TRƯỚC KHI THÊM URL VÀO DANH SÁCH PING ─────────
+# ── NGÂN SÁCH GIỜ MIỄN PHÍ ─────────────────────────────────────────────────────
 # Render cấp 750 giờ instance miễn phí mỗi THÁNG DƯƠNG LỊCH cho CẢ workspace,
 # dùng chung cho MỌI web service gói free. Hết giờ thì Render ĐÌNH CHỈ mọi
 # service free tới ngày 1 tháng sau (503 "This service has been suspended",
 # header x-render-routing: suspend) — không phải ngủ, đánh thức cũng không lên.
+# Đã xảy ra: 764/750 giờ, web + api bị đình chỉ ngày 28–29/9/2026.
 #
-# Một service thức 24/24:  tháng 31 ngày  24 × 31 = 744 giờ  → dư 6 giờ
-#                          tháng 30 ngày  24 × 30 = 720 giờ  → dư 30 giờ
-# Hai service thức 24/24:  1.440–1.488 giờ → cạn 750 giờ sau khoảng 15,6 ngày.
-# Đã xảy ra: api + web cùng ở gói free, cả hai bị đình chỉ ngày 28–29/9/2026.
+# Hiện api VÀ web đều ở gói free, 0 đồng:
+#   Một service thức 24/24:  tháng 31 ngày  24 × 31 = 744 giờ
+#                            tháng 30 ngày  24 × 30 = 720 giờ
+#   Giữ ấm web 24/24 (744) + giờ api thức khi radar/brief/người dùng gọi
+#   (mỗi lần đánh thức giữ máy ≥15 phút; riêng radar 4 lần/ngày ≈ 31 giờ/tháng)
+#   → vượt 750 giờ ngay trong tháng 31 ngày → đình chỉ lại.
+# Vì vậy KHÔNG giữ ấm tự động service nào. Để radar.yml (6 giờ/lần) và
+# brief.yml tự đánh thức api khi cần; web thức khi có người vào.
 #
-# QUY TẮC:
-#   · Danh sách ping chỉ được có ĐÚNG MỘT service gói free: terratwin-web.
-#   · terratwin-api PHẢI ở gói trả phí. Nếu api quay về free, riêng radar.yml
-#     (4 lần/ngày, mỗi lần giữ api thức ≥15 phút ≈ 31 giờ/tháng) đã vượt 6 giờ
-#     dư của tháng 31 ngày → đình chỉ lại. Khi đó phải bỏ web khỏi danh sách.
-#   · Mọi service free khác trong workspace — kể cả KHÔNG ping, kể cả của dự án
-#     khác — đều ăn vào phần dư đó. Tính lại trước khi tạo thêm.
-#   · Service trả phí không cần ping và không tính vào 750 giờ.
+# Muốn bật lại lịch: chỉ khi CHỈ CÒN MỘT service free trong workspace (service
+# kia đã trả phí), và tính lại tổng giờ — kể cả service free của dự án khác.
 #
-# ĐỪNG TIN LỊCH "*/10": lịch GitHub Actions bị bóp mạnh. Đo 10–29/9/2026 qua
-# API của GitHub: 120 lần chạy trong 20 ngày, 3–8 lần/ngày, khoảng cách trung
-# vị 2,5–6 giờ — không phải 144 lần/ngày. Workflow này chỉ GIẢM cold start,
-# không xoá được. Trước buổi demo: tự mở trang 1–2 phút trước. Muốn web ấm
-# thật sự: dùng pinger ngoài (UptimeRobot, cron-job.org) gọi web mỗi 5–10 phút —
-# vẫn nằm trong 744 giờ vì chỉ có một service free.
-#
-# N11 (báo Telegram khi health đổi trạng thái) giờ nằm ở radar.yml, xem đó.
+# Lịch GitHub cũng không đáng tin: đo 10–29/9/2026, lịch "*/10" chỉ chạy 3–8
+# lần/ngày (khoảng cách trung vị 2,5–6 giờ), không phải 144 lần.
 
 on:
-  schedule:
-    - cron: "*/10 * * * *"
   workflow_dispatch: {}
 
-# Nếu một lần ping còn đang chạy (đang chờ cold-start) thì bỏ lần mới, khỏi chồng.
 concurrency:
   group: keepwarm
   cancel-in-progress: false
@@ -55,18 +41,21 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping web
+      - name: Đánh thức api + web
         run: |
-          url="https://terratwin-web.onrender.com/"
-          echo "→ $url"
-          # --retry-all-errors để thử lại cả khi gặp 503 lúc service đang dậy;
-          # tổng thời gian chờ đủ để một service nguội khởi động xong (~50s).
-          if curl -fsS --max-time 90 --retry 5 --retry-delay 12 \
-               --retry-all-errors "$url" -o /dev/null ; then
-            echo "  ok — đã ấm"
-          else
-            # Thử lại hết mà VẪN hỏng thì BÁO ĐỎ (exit 1), không nuốt lỗi: một
-            # cron keepwarm im lặng thất bại thì chẳng khác gì không có.
-            echo "::error::terratwin-web hỏng sau khi thử lại hết — service chết hoặc bị đình chỉ (hết giờ miễn phí?)."
-            exit 1
-          fi
+          fail=0
+          for url in \
+            "https://terratwin-api.onrender.com/api/health" \
+            "https://terratwin-web.onrender.com/" ; do
+            echo "→ $url"
+            # --retry-all-errors để thử lại cả khi gặp 503 lúc service đang dậy;
+            # tổng thời gian chờ đủ để một service nguội khởi động xong (~60s).
+            if curl -fsS --max-time 90 --retry 6 --retry-delay 20 \
+                 --retry-all-errors "$url" -o /dev/null ; then
+              echo "  ok — đã thức"
+            else
+              echo "::error::$url hỏng sau khi thử lại hết — service chết hoặc bị đình chỉ (hết giờ miễn phí?)."
+              fail=1
+            fi
+          done
+          exit $fail

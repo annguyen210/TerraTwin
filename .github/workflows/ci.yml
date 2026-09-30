@@ -58,6 +58,39 @@ jobs:
       - run: pip install -r requirements.txt -r requirements-dev.txt "psycopg[binary]"
       - run: pytest --reruns 2 --reruns-delay 5    # CÙNG bộ test, trên PostgreSQL
 
+  ops-db:
+    name: Ops — chuyển CSDL, đối chiếu, cron đánh thức api
+    # Kiểm THẬT ops/install-pg-client.sh (kho PGDG), ops/migrate-neon.sh và
+    # ops/db-reconcile.sh — ba thứ chỉ chạy trên dữ liệu thật, nên lỗi ở đây
+    # chỉ lộ ra đúng lúc đang chuyển CSDL production. PostgreSQL 18 = bản Render.
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 10s
+          --health-timeout 5s --health-retries 5
+    env:
+      PG_ADMIN_URL: postgresql://postgres:postgres@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r backend/requirements.txt "psycopg[binary]"
+      - run: bash ops/install-pg-client.sh 18 "$PG_ADMIN_URL"
+      - run: bash ops/ci-test-migrate.sh
+      # Script cron của radar.yml/brief.yml: đánh thức api ngủ, nhận ra bị
+      # đình chỉ, quét nền + hỏi tiến độ trên backend thật.
+      - run: bash ops/ci-test-cron.sh
+
   frontend:
     name: Frontend — typecheck + build
     runs-on: ubuntu-latest

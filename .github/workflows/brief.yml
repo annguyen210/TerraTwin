@@ -7,6 +7,10 @@ name: Morning brief
 # với bản tin sáng thì trễ 5-10 phút không sao. Dedup theo ngày ở backend nên gọi
 # trùng cũng không gửi hai lần.
 #
+# CHỊU ĐƯỢC MÁY ĐANG NGỦ: api gói free ngủ sau 15 phút không có request, lượt
+# gọi đầu có thể trả 503 trong 30–60 giây. Đánh thức trước bằng
+# ops/wake-api.sh (GET /api/health, 6 lần cách 20 giây), rồi mới POST.
+#
 # XÁC THỰC: gửi header X-Cron-Key = secret TERRATWIN_CRON_KEY (đặt cùng giá trị
 # trong GitHub Secrets và biến môi trường terratwin-api). Không dùng token đăng
 # nhập vì JWT hết hạn 72h — lịch sẽ chết âm thầm.
@@ -24,6 +28,8 @@ jobs:
   send:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: Trigger morning brief
         env:
           CRON_KEY: ${{ secrets.TERRATWIN_CRON_KEY }}
@@ -32,8 +38,10 @@ jobs:
             echo "::error::Thiếu secret TERRATWIN_CRON_KEY — đặt trong repo Settings → Secrets, cùng giá trị với biến trên terratwin-api."
             exit 1
           fi
+          bash ops/wake-api.sh || exit 1
+          # Máy đã thức. Dedup theo ngày ở backend nên thử lại khi 503 không gửi trùng.
           code=$(curl -sS -o /tmp/out.txt -w "%{http_code}" \
-            --max-time 90 --retry 3 --retry-delay 15 --retry-all-errors \
+            --max-time 180 --retry 3 --retry-delay 20 \
             -X POST "https://terratwin-api.onrender.com/api/brief/run" \
             -H "X-Cron-Key: $CRON_KEY")
           echo "HTTP $code"; cat /tmp/out.txt
