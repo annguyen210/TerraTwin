@@ -20,7 +20,9 @@ SRC="${1:?Cần URL nguồn}"; DST="${2:?Cần URL đích}"
 SRC="${SRC/postgresql+psycopg:/postgresql:}"
 DST="${DST/postgresql+psycopg:/postgresql:}"
 
-q() { psql "$1" -X -v ON_ERROR_STOP=1 -At -F $'\t' -c "$2"; }
+# </dev/null: psql chạy trong các vòng `while read` dưới đây — không được đụng
+# vào stdin của vòng lặp.
+q() { psql "$1" -X -v ON_ERROR_STOP=1 -At -F $'\t' -c "$2" </dev/null; }
 
 TABLES_SQL="SELECT quote_ident(schemaname) || '.' || quote_ident(tablename)
             FROM pg_tables
@@ -46,6 +48,9 @@ fail=0
 
 mapfile -t src_tables < <(q "$SRC" "$TABLES_SQL")
 mapfile -t dst_tables < <(q "$DST" "$TABLES_SQL")
+declare -A in_src=() in_dst=()
+for t in "${src_tables[@]}"; do [ -n "$t" ] && in_src["$t"]=1; done
+for t in "${dst_tables[@]}"; do [ -n "$t" ] && in_dst["$t"]=1; done
 
 emit "| Bảng | Nguồn | Đích | Khớp |"
 emit "|---|---:|---:|:---:|"
@@ -54,8 +59,8 @@ all_tables=$(printf '%s\n' "${src_tables[@]}" "${dst_tables[@]}" | sort -u)
 while IFS= read -r t; do
   [ -z "$t" ] && continue
   s="—"; d="—"
-  if printf '%s\n' "${src_tables[@]}" | grep -qxF "$t"; then s=$(q "$SRC" "SELECT count(*) FROM $t"); fi
-  if printf '%s\n' "${dst_tables[@]}" | grep -qxF "$t"; then d=$(q "$DST" "SELECT count(*) FROM $t"); fi
+  if [ -n "${in_src[$t]:-}" ]; then s=$(q "$SRC" "SELECT count(*) FROM $t"); fi
+  if [ -n "${in_dst[$t]:-}" ]; then d=$(q "$DST" "SELECT count(*) FROM $t"); fi
   if [ "$s" = "$d" ]; then ok="✅"; else ok="❌"; fail=1; fi
   [[ "$s" =~ ^[0-9]+$ ]] && tot_s=$((tot_s + s))
   [[ "$d" =~ ^[0-9]+$ ]] && tot_d=$((tot_d + d))

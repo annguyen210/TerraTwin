@@ -22,7 +22,17 @@ trap cleanup EXIT
 
 pass=0; failn=0
 ok()  { echo "✅ $1"; pass=$((pass + 1)); }
-bad() { echo "❌ $1"; failn=$((failn + 1)); }
+# ::error:: để lý do hỏng hiện ở annotation — đọc được qua API công khai, còn
+# log job của repo công khai chỉ quản trị viên tải được.
+bad() {
+  echo "❌ $1"; failn=$((failn + 1))
+  local tail_=""
+  if [ -n "${2:-}" ] && [ -f "$2" ]; then tail_="$(tail -n 25 "$2")"; fi
+  # Mã hoá xuống dòng theo luật workflow command: % → %25, CR → %0D, LF → %0A.
+  local msg
+  msg="$(printf '%s\n%s' "$1" "$tail_" | python3 -c 'import sys; print(sys.stdin.read().replace("%","%25").replace("\r","%0D").replace("\n","%0A"), end="")')"
+  echo "::error title=$(basename "$0")::$msg"
+}
 
 fake_server() {  # fake_server <cổng> <chế độ: suspend|waking>
   python3 - "$1" "$2" <<'PY' &
@@ -56,7 +66,7 @@ t0=$SECONDS
 WAKE_DELAY=5 bash "$HERE/wake-api.sh" http://127.0.0.1:8781 > "$WORK/w1.log" 2>&1; rc=$?
 if [ $rc -ne 0 ] && grep -q "ĐÌNH CHỈ" "$WORK/w1.log" && [ $((SECONDS - t0)) -lt 5 ]; then
   ok "nhận ra bị đình chỉ, không chờ hết 6 lượt"
-else cat "$WORK/w1.log"; bad "ca 1 (rc=$rc, $((SECONDS - t0))s)"; fi
+else cat "$WORK/w1.log"; bad "ca 1 (rc=$rc, $((SECONDS - t0))s)" "$WORK/w1.log"; fi
 
 echo "── Ca 2: api đang dậy (503, 503, rồi 200) → chờ và thành công"
 fake_server 8782 waking
@@ -65,7 +75,7 @@ wait_port http://127.0.0.1:8782/ || true
 if WAKE_DELAY=1 bash "$HERE/wake-api.sh" http://127.0.0.1:8782 > "$WORK/w2.log" 2>&1 \
    && grep -q "HTTP 503" "$WORK/w2.log" && grep -q "đã thức" "$WORK/w2.log"; then
   ok "thử lại khi 503, dừng ở 200"
-else cat "$WORK/w2.log"; bad "ca 2"; fi
+else cat "$WORK/w2.log"; bad "ca 2" "$WORK/w2.log"; fi
 
 echo "── Dựng backend thật"
 (
@@ -77,22 +87,22 @@ echo "── Dựng backend thật"
   exec python -m uvicorn app.main:app --host 127.0.0.1 --port 8783
 ) > "$WORK/api.log" 2>&1 &
 PIDS+=($!)
-if ! wait_port http://127.0.0.1:8783/api/health; then cat "$WORK/api.log"; bad "backend không lên"; fi
+if ! wait_port http://127.0.0.1:8783/api/health; then cat "$WORK/api.log"; bad "backend không lên" "$WORK/api.log"; fi
 
 echo "── Ca 3: radar-sweep trọn luồng → gửi việc, hỏi tiến độ, xong"
 if CRON_KEY=ci-cron-key POLL_EVERY=2 WAKE_DELAY=1 \
    bash "$HERE/radar-sweep.sh" http://127.0.0.1:8783 > "$WORK/r1.log" 2>&1 \
    && grep -q "lượt quét nền" "$WORK/r1.log" && grep -q "\[radar\] xong" "$WORK/r1.log"; then
   ok "chạy nền + hỏi tiến độ tới done"
-else cat "$WORK/r1.log"; tail -20 "$WORK/api.log"; bad "ca 3"; fi
+else cat "$WORK/r1.log"; tail -20 "$WORK/api.log"; bad "ca 3" "$WORK/r1.log"; fi
 
 echo "── Ca 4: khoá cron sai → từ chối, không thử lại"
 if CRON_KEY=sai POLL_EVERY=2 WAKE_DELAY=1 \
    bash "$HERE/radar-sweep.sh" http://127.0.0.1:8783 > "$WORK/r2.log" 2>&1; then
-  bad "ca 4 lẽ ra phải hỏng"
+  bad "ca 4 lẽ ra phải hỏng" "$WORK/r2.log"
 else
   grep -q "Khoá cron bị từ chối" "$WORK/r2.log" && [ "$(grep -c 'POST sweep-all' "$WORK/r2.log")" = 1 ] \
-    && ok "khoá sai bị từ chối ngay" || { cat "$WORK/r2.log"; bad "ca 4 sai lý do"; }
+    && ok "khoá sai bị từ chối ngay" || { cat "$WORK/r2.log"; bad "ca 4 sai lý do" "$WORK/r2.log"; }
 fi
 
 echo "── Kết quả: $pass đạt, $failn hỏng"

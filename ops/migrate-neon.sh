@@ -33,7 +33,7 @@ WORK="$(mktemp -d)"; chmod 700 "$WORK"
 trap 'rm -rf "$WORK"' EXIT
 DUMP="$WORK/terratwin.sql"
 
-q() { psql "$1" -X -v ON_ERROR_STOP=1 -At -c "$2"; }
+q() { psql "$1" -X -v ON_ERROR_STOP=1 -At -c "$2" </dev/null; }
 
 echo "── 1. Nguồn"
 q "$SRC" "SELECT 'PostgreSQL ' || current_setting('server_version') || ' · ' ||
