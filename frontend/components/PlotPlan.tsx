@@ -18,8 +18,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   getMyQuestions,
+  issueDossier,
   getPlan,
   getToken,
   runAnomalyMl,
@@ -74,6 +76,9 @@ export default function PlotPlan({
   onSelectModule?: (id: string) => void;
 }) {
   const { t, lang } = useLang();
+  const router = useRouter();
+  const [issuing, setIssuing] = useState(false);
+  const [issueErr, setIssueErr] = useState<string | null>(null);
   // null = để máy chủ tự chọn theo loại đất THẬT (ESA WorldCover); chỉ khi người
   // dùng bấm một loại cây thì mới gửi lên. Không còn mặc định "lúa" cho mọi nơi.
   const [crop, setCrop] = useState<string | null>(null);
@@ -221,8 +226,28 @@ export default function PlotPlan({
           >
             🖨️ {t("In / lưu", "Print / save")}
           </button>
+          <button
+            className="plan-print plan-issue-btn"
+            disabled={issuing}
+            onClick={async () => {
+              setIssuing(true);
+              setIssueErr(null);
+              try {
+                const d = await issueDossier(lat, lon, area);
+                router.push(`/h/${d.id}`);
+              } catch (e) {
+                setIssueErr((e as Error).message);
+                setIssuing(false);
+              }
+            }}
+            title={t("Phát hành Hồ sơ đất số: ký số Ed25519, có QR để ngân hàng / người mua tự kiểm bản gốc",
+                     "Issue a Digital Land Dossier: Ed25519-signed, with a QR so banks / buyers can verify the original")}
+          >
+            🔏 {issuing ? t("Đang phát hành…", "Issuing…") : t("Phát hành hồ sơ đất số", "Issue land dossier")}
+          </button>
         </div>
       </div>
+      {issueErr && <p className="plan-assume">⚠️ {issueErr}</p>}
 
       {/* CÂU HỎI CHO BẠN — đóng vòng khép kín. Chỉ hiện khi đã đăng nhập và có
           cảnh báo cũ tới hạn kiểm chứng. Trả lời ngay tại đây → /api/tap → quan sát. */}

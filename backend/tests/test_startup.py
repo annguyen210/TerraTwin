@@ -98,7 +98,7 @@ def test_radar_logic_chi_ton_tai_mot_ban():
 
 @pytest.mark.parametrize("var", [
     "TERRATWIN_SECRET", "TERRATWIN_TRUST_PROXY", "TERRATWIN_RADAR_INTERVAL_H",
-    "TERRATWIN_LLM_PROVIDER", "TERRATWIN_COPERNICUS_ID",
+    "TERRATWIN_LLM_PROVIDER", "TERRATWIN_COPERNICUS_ID", "TERRATWIN_SIGNING_KEY",
 ])
 def test_render_yaml_khai_bao_du_bien(var):
     """Biến nào code đọc mà render.yaml không khai thì deploy xong mới biết.

@@ -2061,3 +2061,69 @@ export function getMyQuestions(limit = 5) {
     `/api/questions?limit=${limit}`, { method: "GET" },
     "Không tải được câu hỏi cần bạn xác nhận");
 }
+
+// ---- HỒ SƠ ĐẤT SỐ: phát hành một lần, ký Ed25519, móc xích sổ đăng ký công khai ----
+export type DossierCheck = { id: "content" | "entry" | "signature" | "chain"; ok: boolean; label: string };
+export type DossierVerification = { valid: boolean; checks: DossierCheck[] };
+export type DossierModule = {
+  id: string; name: string; risk_level: string; status: string; is_real: boolean;
+  threat?: boolean; headline: string;
+};
+export type DossierFacts = {
+  schema: string;
+  lang: string;
+  location: { lat: number; lon: number; area_ha: number | null };
+  land_use: LandUse | null;
+  terrain: NonNullable<Passport["terrain"]> | null;
+  history_10y: Record<string, PassportHazard> | null;
+  history_caveat: string | null;
+  current_risk: {
+    assessed_at: string;
+    terrascore: { score: number; grade: string; summary: string };
+    real_data_ratio: number;
+    modules: DossierModule[];
+    not_assessed_in_dossier: string[];
+  } | null;
+  track_record: {
+    window_days?: number; scored?: number; pending?: number; enough?: boolean;
+    min_sample?: number; headline?: string;
+    pod_pct?: number | null; far_pct?: number | null; csi_pct?: number | null;
+  } | null;
+  sources: string[];
+  missing: string[];
+  disclaimer: string;
+};
+export type DossierProof = {
+  schema: string; facts_hash: string; prev_hash: string; entry_hash: string;
+  algorithm: string; key_id: string; signature: string;
+};
+export type DossierDoc = { id: string; seq: number; issued_at: string; facts: DossierFacts; proof: DossierProof };
+export type Dossier = DossierDoc & { url: string; qr: string | null; verification: DossierVerification };
+export type DossierFileCheck = {
+  valid: boolean; found: boolean; matches_registry?: boolean;
+  registry?: DossierVerification; message: string;
+};
+
+export async function issueDossier(lat: number, lon: number, areaHa?: number | null) {
+  // Không bắt buộc đăng nhập (người mua đất thường chưa có tài khoản); có token
+  // thì gửi kèm để hồ sơ gắn với tài khoản.
+  const body: Record<string, number> = { lat, lon };
+  if (areaHa != null) body.area_ha = areaHa;
+  const r = await fetch(`${BASE}/api/dossier?lang=${curLang()}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error(await errMessage(r, "Không phát hành được hồ sơ đất số"));
+  return (await r.json()) as Dossier;
+}
+
+export function getDossier(id: string) {
+  return getJson<Dossier>(`/api/dossier/${encodeURIComponent(id)}?lang=${curLang()}`,
+    "Không tải được hồ sơ");
+}
+
+export function verifyDossierFile(doc: unknown) {
+  return postJson<DossierFileCheck>(`/api/dossier/verify?lang=${curLang()}`, doc,
+    "Không kiểm được tệp hồ sơ");
+}

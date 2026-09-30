@@ -87,6 +87,13 @@ services:
         sync: false
       - key: TERRATWIN_VAPID_PRIVATE_KEY
         sync: false
+      # Hồ sơ đất số — khoá ký Ed25519 (base64 của 32 byte). Sinh trong terminal
+      # RIÊNG: `python ../ops/gen_signing_key.py` (ghi ra backend/.signing-key.txt),
+      # dán vào đây rồi xoá tệp đó, KHÔNG dán vào chat.
+      # Chưa đặt thì máy chủ tự sinh một khoá và lưu trong CSDL (chạy được, nhưng
+      # ai đọc được CSDL thì giả được chữ ký) — /api/dossiers/keys ghi rõ nguồn.
+      - key: TERRATWIN_SIGNING_KEY
+        sync: false
       - key: TERRATWIN_CORS
         sync: false                  # điền URL frontend sau khi dựng xong
       # BẮT BUỘC cho vòng lặp một-chạm: link trong tin cảnh báo (/tap/{token})

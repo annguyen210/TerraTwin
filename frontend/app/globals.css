@@ -4154,3 +4154,78 @@ a.plan-print{ text-decoration:none; display:inline-flex; align-items:center }
 /* Link quên mật khẩu trong form đăng nhập */
 .acct-forgot{ font-size:.8rem; color:var(--dim); text-decoration:none; align-self:flex-end }
 .acct-forgot:hover{ color:var(--terra) }
+
+/* ================= HỒ SƠ ĐẤT SỐ (/h/[id]) =================
+   Giấy tờ, không phải bảng điều khiển: nền giấy trắng, chữ mực, một màu nhấn.
+   In ra A4 giữ nguyên (ẩn thanh trên + ô kiểm tệp). */
+.dos-wrap { max-width: 900px; margin: 0 auto; padding: 28px 16px 80px; }
+.dos-paper {
+  --ink: #16211c; --ink2: #3d4a43; --rule: #dfe5e0; --paper: #fdfdfb; --green: #1f6b47; --red: #a8392b;
+  background: var(--paper); color: var(--ink); border-radius: 6px; padding: 36px 40px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.25), 0 18px 48px -18px rgba(0,0,0,.6);
+  display: grid; gap: 26px; grid-template-columns: minmax(0, 1fr);
+}
+@media (max-width: 640px) { .dos-paper { padding: 22px 18px; } }
+.dos-paper h1 { font-size: clamp(22px, 3.4vw, 30px); margin: 4px 0 6px; letter-spacing: -.01em; color: var(--ink); }
+.dos-paper h2 {
+  font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink2);
+  margin: 0 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--rule);
+}
+.dos-paper code { font-family: ui-monospace, Consolas, monospace; font-size: .8em; word-break: break-all; }
+.dos-head { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+.dos-eyebrow { margin: 0; font-size: .72rem; letter-spacing: .18em; font-weight: 700; color: var(--green); }
+.dos-meta { margin: 0; font-size: .86rem; color: var(--ink2); }
+.dos-qr { margin: 0; text-align: center; }
+.dos-qr img { display: block; border: 1px solid var(--rule); border-radius: 4px; }
+.dos-qr figcaption { font-size: .7rem; color: var(--ink2); margin-top: 4px; }
+
+.dos-verify { border-radius: 6px; padding: 14px 16px; display: grid; gap: 6px; }
+.dos-verify.ok { background: #e9f4ee; border: 1px solid #b9dcc8; color: var(--green); }
+.dos-verify.bad { background: #f8e7e4; border: 1px solid #e6bdb5; color: var(--red); }
+.dos-verify > b { font-size: 1.02rem; }
+.dos-verify ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 4px 16px; }
+.dos-verify li { font-size: .84rem; color: var(--ink); }
+.dos-verify li.bad { color: var(--red); font-weight: 700; }
+.dos-verify small { font-size: .74rem; color: var(--ink2); }
+
+.dos-paper > *, .dos-grid > * { min-width: 0; }
+.dos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 26px; }
+.dos-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.dos-list li { display: flex; justify-content: space-between; gap: 12px; font-size: .9rem; border-bottom: 1px dotted var(--rule); padding: 3px 0; }
+.dos-list b { font-variant-numeric: tabular-nums; }
+.dos-bar { margin: 2px 0 10px; height: 10px; }
+.dos-note { margin: 8px 0 0; font-size: .88rem; color: var(--ink2); line-height: 1.55; }
+.dos-src { margin: 8px 0 0; font-size: .76rem; color: var(--ink2); line-height: 1.5; }
+.dos-src a { color: var(--green); }
+.dos-miss { margin: 0; font-size: .86rem; color: var(--red); }
+.dos-table-wrap { overflow-x: auto; }
+.dos-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.dos-table th { text-align: left; font-size: .72rem; color: var(--ink2); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+.dos-table td { padding: 6px 8px; border-bottom: 1px dotted var(--rule); }
+.dos-table td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dos-score { margin: 0 0 10px; font-size: .92rem; color: var(--ink); }
+.dos-score b { margin-right: 6px; }
+.dos-mods { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 2px 18px; }
+.dos-mods li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto auto; gap: 8px; align-items: center; font-size: .84rem; padding: 3px 0; border-bottom: 1px dotted var(--rule); }
+.dos-dot { width: 9px; height: 9px; border-radius: 50%; }
+.dos-mname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dos-mlv { font-weight: 700; }
+.dos-mtag { font-size: .7rem; color: var(--ink2); }
+.dos-bullets { margin: 0; padding-left: 18px; font-size: .86rem; color: var(--ink); display: grid; gap: 2px; }
+.dos-disclaimer { margin: 12px 0 0; font-size: .8rem; color: var(--ink2); border-left: 3px solid var(--rule); padding-left: 10px; }
+.dos-proof dl { margin: 0; display: grid; gap: 4px; }
+.dos-proof dt { font-size: .74rem; color: var(--ink2); margin-top: 6px; }
+.dos-proof dd { margin: 0; font-size: .92rem; }
+.dos-check .dos-file { display: inline-flex; flex-direction: column; gap: 6px; font-size: .84rem; color: var(--ink2); }
+.dos-verify-inline { margin: 10px 0 0; font-weight: 700; }
+.dos-verify-inline.ok { color: var(--green); } .dos-verify-inline.bad { color: var(--red); }
+@media print {
+  .dos-noprint { display: none !important; }
+  .dos, .dos-wrap { background: #fff !important; padding: 0 !important; }
+  .dos-paper { box-shadow: none; border-radius: 0; padding: 0; }
+}
+
+/* Nút phát hành hồ sơ trong Kế hoạch thửa — hành động chính, dùng màu nhấn */
+.plan-print.plan-issue-btn { background: var(--terra); color: var(--on-accent); border-color: var(--terra); font-weight: 700; }
+.plan-print.plan-issue-btn:hover { color: var(--on-accent); filter: brightness(1.08); }
+.plan-print.plan-issue-btn:disabled { opacity: .7; cursor: progress; }

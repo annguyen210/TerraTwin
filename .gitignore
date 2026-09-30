@@ -21,6 +21,7 @@ yarn-error.log*
 .env.local
 *.local
 .vapid-keys.txt
+.signing-key.txt
 
 # Database cục bộ (SQLite)
 *.db

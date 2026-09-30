@@ -17,5 +17,11 @@ numpy>=1.26,<3
 # (RFC 8291) + ký VAPID JWT. VAPID là cặp khoá TỰ SINH, không cần nhà cung cấp.
 pywebpush==2.0.0
 
+# Hồ sơ đất số: chữ ký Ed25519 (khai báo tường minh — trước đây chỉ có nhờ
+# pywebpush kéo theo, cùng loại bẫy numpy/onnxruntime ở trên) + mã QR in trên
+# hồ sơ (segno: thuần Python, không phụ thuộc gì).
+cryptography>=42
+segno==1.6.6
+
 # PostgreSQL cho production (SQLite là mặc định, không cần gì thêm):
 # psycopg[binary]==3.2.3

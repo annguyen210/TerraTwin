@@ -523,6 +523,46 @@ class ModelVersion(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
 
+class SigningKey(Base):
+    """Khoá ký Hồ sơ đất số (Ed25519). Giữ MỌI khoá công khai từng dùng — đổi khoá
+    thì hồ sơ phát hành bằng khoá cũ vẫn kiểm được. `private_b64` chỉ có khi khoá
+    được TỰ SINH (chưa đặt TERRATWIN_SIGNING_KEY); khoá từ biến môi trường không
+    bao giờ ghi phần bí mật xuống đây."""
+    __tablename__ = "signing_keys"
+
+    key_id: Mapped[str] = mapped_column(String(16), primary_key=True)
+    public_b64: Mapped[str] = mapped_column(String(64))
+    private_b64: Mapped[str | None] = mapped_column(Text, nullable=True)
+    source: Mapped[str] = mapped_column(String(16), default="auto")   # "env" | "auto"
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+
+class Dossier(Base):
+    """Hồ sơ đất số đã PHÁT HÀNH — sổ đăng ký CHỈ GHI THÊM, móc xích băm.
+
+    Mỗi hồ sơ: nội dung (facts_json, đóng băng lúc phát hành) → facts_hash;
+    entry_hash = sha256(seq|id|thời điểm|facts_hash|prev_hash) nối vào hồ sơ
+    trước (prev_hash) như Certificate Transparency: sửa hay xoá một hồ sơ cũ là
+    gãy mọi mắt xích sau nó. entry_hash được ký Ed25519 bằng khoá của máy chủ —
+    kẻ sửa nội dung tự băm lại được, nhưng KHÔNG tự ký lại được.
+    """
+    __tablename__ = "dossiers"
+
+    id: Mapped[str] = mapped_column(String(16), primary_key=True)   # mã công khai, ngẫu nhiên
+    seq: Mapped[int] = mapped_column(Integer, unique=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    # Không khoá ngoại: xoá tài khoản không được làm gãy sổ đăng ký công khai.
+    user_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    lat: Mapped[float] = mapped_column(Float)
+    lon: Mapped[float] = mapped_column(Float)
+    facts_json: Mapped[str] = mapped_column(Text)
+    facts_hash: Mapped[str] = mapped_column(String(64))
+    prev_hash: Mapped[str] = mapped_column(String(64))
+    entry_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    signature: Mapped[str] = mapped_column(String(128))
+    key_id: Mapped[str] = mapped_column(String(16))
+
+
 # Cột thêm sau khi đã có database chạy thật. `create_all` KHÔNG thêm cột vào
 # bảng sẵn có, nên thiếu bước này thì bản deploy cũ sẽ đổ ngay lần truy vấn đầu
 # — lỗi chỉ lộ ra ở production, không bao giờ lộ trong test trên database sạch.
