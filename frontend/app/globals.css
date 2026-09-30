@@ -3693,6 +3693,23 @@ body {
 .pw-day.risky .pw-dot { color: var(--bad); }
 
 /* 3. Giá trị chịu rủi ro */
+/* Loại đất thật (ESA WorldCover) — thanh tỉ lệ các lớp, màu theo quy ước bản đồ
+   lớp phủ: xây dựng đỏ gạch, trồng trọt vàng lúa, cây xanh, nước lam. */
+.plan-landuse {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px; align-items: center;
+  padding: 8px 10px; margin-bottom: 10px; border-radius: 8px;
+  background: var(--panel); border: 1px solid var(--line);
+}
+.lu-k { font-size: 0.74rem; color: var(--dim); }
+.lu-bar { display: flex; height: 8px; border-radius: 999px; overflow: hidden; background: var(--line); }
+.lu-bar > span { display: block; height: 100%; }
+.lu-built { background: #c8674f; }
+.lu-crop  { background: #d9b44a; }
+.lu-tree  { background: #3f9a5c; }
+.lu-water { background: #4a8fc4; }
+.lu-open  { background: #9aa58f; }
+.lu-v { grid-column: 1 / -1; font-size: 0.82rem; color: var(--text); font-weight: 600; }
+.lu-src { grid-column: 1 / -1; font-size: 0.7rem; color: var(--dim); }
 .plan-crops { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 10px; }
 .plan-crops > span { font-size: 0.78rem; color: var(--dim); margin-right: 2px; }
 .plan-crops button {
@@ -3730,6 +3747,12 @@ body {
   color: var(--ok);
   padding: 10px 12px; border-radius: 10px;
   background: rgba(62,203,131,0.08); border: 1px solid rgba(62,203,131,0.25);
+}
+/* Không quy ra tiền (đất xây dựng, mặt nước…) — thông tin trung tính, không phải "an toàn". */
+.plan-value-head.na {
+  color: var(--text);
+  padding: 10px 12px; border-radius: 10px;
+  background: var(--panel); border: 1px solid var(--line-2);
 }
 .ev-h {
   margin: 20px 0 6px; padding-top: 14px;

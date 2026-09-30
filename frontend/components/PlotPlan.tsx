@@ -74,7 +74,9 @@ export default function PlotPlan({
   onSelectModule?: (id: string) => void;
 }) {
   const { t, lang } = useLang();
-  const [crop, setCrop] = useState("lua");
+  // null = để máy chủ tự chọn theo loại đất THẬT (ESA WorldCover); chỉ khi người
+  // dùng bấm một loại cây thì mới gửi lên. Không còn mặc định "lúa" cho mọi nơi.
+  const [crop, setCrop] = useState<string | null>(null);
   const [plan, setPlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -87,6 +89,9 @@ export default function PlotPlan({
   const [qDone, setQDone] = useState<Record<number, string>>({});
   // Độ hiếm TỔ HỢP (anomaly-ml) — mô hình đã huấn luyện, vai trò ĐỐI CHIẾU.
   const [aml, setAml] = useState<AnomalyMl | null>(null);
+
+  // Đổi thửa → quay về tự nhận loại đất, không mang lựa chọn cây của thửa trước.
+  useEffect(() => setCrop(null), [lat, lon]);
 
   useEffect(() => {
     let live = true;
@@ -346,21 +351,37 @@ export default function PlotPlan({
       {value && (
         <section className="plan-sec">
           <h4 className="plan-h">💰 {t("Giá trị đang chịu rủi ro", "Value at risk")}</h4>
+          {value.land_use && (
+            <div className="plan-landuse" title={value.land_use.source}>
+              <span className="lu-k">{t("Loại đất tại thửa", "Land type at plot")}</span>
+              <div className="lu-bar" aria-hidden="true">
+                {value.land_use.classes.map((c) => (
+                  <span key={c.code} className={`lu-${c.group}`} style={{ width: `${c.pct}%` }} />
+                ))}
+              </div>
+              <span className="lu-v">
+                {value.land_use.classes.slice(0, 3).map((c) => `${c.name} ${c.pct.toFixed(0)}%`).join(" · ")}
+              </span>
+              <small className="lu-src">{value.land_use.source}</small>
+            </div>
+          )}
           <div className="plan-crops">
             <span>{t("Loại canh tác:", "Crop type:")}</span>
             {crops.map((c) => (
               <button
                 key={c.id}
-                className={crop === c.id ? "on" : ""}
+                className={(crop ?? value.crop) === c.id ? "on" : ""}
+                aria-pressed={(crop ?? value.crop) === c.id}
                 onClick={() => setCrop(c.id)}
               >
                 {c.label}
               </button>
             ))}
           </div>
-          <p className={`plan-value-head${value.at_risk ? "" : " safe"}`}>
+          <p className={`plan-value-head${value.applicable === false ? " na" : value.at_risk ? "" : " safe"}`}>
             {value.headline}
           </p>
+          {value.land_use_note && <p className="plan-assume">⚠️ {value.land_use_note}</p>}
           {value.items.length > 0 && (
             <ul className="plan-value">
               {value.items.map((it) => (
@@ -376,7 +397,8 @@ export default function PlotPlan({
               ))}
             </ul>
           )}
-          <p className="plan-assume">🧪 {value.assumption}</p>
+          {/* ℹ️ = lý do từ dữ liệu thật (loại đất); 🧪 = con số ước lượng theo giả định */}
+          <p className="plan-assume">{value.applicable === false ? "ℹ️" : "🧪"} {value.assumption}</p>
         </section>
       )}
 

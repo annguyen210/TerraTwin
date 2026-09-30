@@ -1796,22 +1796,39 @@ export type PlanValueItem = {
   stake_text: string;
   lead_days: number | null;
 };
+// Loại đất THẬT tại thửa — ESA WorldCover 10 m (backend services/landuse.py).
+export type LandUseClass = { code: number; name: string; group: string; pct: number };
+export type LandUse = {
+  source: string;
+  year: string | null;
+  pixels: number;
+  classes: LandUseClass[];
+  group_pct: Record<string, number>;
+  dominant_group: "tree" | "open" | "crop" | "built" | "water" | "mixed";
+  dominant_pct: number;
+  label: string;
+};
 export type PlanValue = {
   available: boolean;
+  // false = không quy ra tiền theo cây trồng (đất xây dựng, mặt nước, chưa rõ
+  // cây gì) — `assumption` nói lý do, người dùng có thể tự chọn loại cây.
+  applicable: boolean;
   at_risk: boolean;
-  crop: string;
-  crop_label: string;
-  crop_value_range: [number, number];
-  area_ha: number | null;
-  per_unit: boolean;
+  crop: string | null;
+  crop_label: string | null;
+  crop_value_range?: [number, number];
+  area_ha?: number | null;
+  per_unit?: boolean;
   items: PlanValueItem[];
   worst_lo: number;
   worst_hi: number;
-  plot_lo: number;
-  plot_hi: number;
-  plot_text: string;
+  plot_lo?: number;
+  plot_hi?: number;
+  plot_text?: string;
   headline: string;
   assumption: string;
+  land_use: LandUse | null;
+  land_use_note?: string | null;
 };
 export type PlanWatch = {
   grade: string;
@@ -1835,10 +1852,13 @@ export type PlotPlan = {
   crops?: PlanCrop[];
 };
 
-export function getPlan(lat: number, lon: number, areaHa?: number, crop = "lua") {
+// crop bỏ trống → máy chủ tự chọn theo loại đất thật (chỉ giả định lúa ở đất
+// trồng trọt). Có crop → người dùng chủ động chọn.
+export function getPlan(lat: number, lon: number, areaHa?: number, crop?: string | null) {
   const body: Record<string, number> = { lat, lon };
   if (areaHa != null) body.area_ha = areaHa;
-  return postJson<PlotPlan>(`/api/plan?crop=${encodeURIComponent(crop)}&lang=${curLang()}`, body,
+  const q = crop ? `crop=${encodeURIComponent(crop)}&` : "";
+  return postJson<PlotPlan>(`/api/plan?${q}lang=${curLang()}`, body,
     "Không dựng được kế hoạch thửa");
 }
 

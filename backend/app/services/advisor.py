@@ -24,7 +24,7 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta
 
 from app.schemas import Location
-from app.services import hazard, scan
+from app.services import hazard, landuse, scan
 from app.services.reqlang import tr
 
 # Giá trị vụ tham chiếu (doanh thu gộp/ha/vụ, VND) — khoảng THÔ phổ biến ở Việt
@@ -86,9 +86,26 @@ def _money(v: float) -> str:
     return tr(f"{v:,.0f} đ".replace(",", "."), f"{v:,.0f} ₫")
 
 
-def build(loc: Location, crop: str = DEFAULT_CROP) -> dict:
-    crop = crop if crop in CROP_VALUE else DEFAULT_CROP
-    sc = scan.scan(loc)
+def build(loc: Location, crop: str | None = None) -> dict:
+    """crop=None → tự chọn theo loại đất THẬT (ESA WorldCover); chỉ giả định lúa
+    khi thửa là đất trồng trọt. crop có giá trị = người dùng chủ động chọn."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    explicit = crop in CROP_VALUE
+    # Tra loại đất SONG SONG với lượt quét: lần đầu ~2–3 giây, không được cộng
+    # thêm vào thời gian chờ của kế hoạch. Luồng phụ chỉ lấy dữ liệu thô —
+    # dịch tên lớp làm ở luồng này, nơi có ngôn ngữ của request.
+    with ThreadPoolExecutor(max_workers=1) as ex:
+        lu_future = ex.submit(landuse.fetch_raw, loc.lat, loc.lon)
+        sc = scan.scan(loc)
+        try:
+            lu_raw = lu_future.result(timeout=30)
+        except Exception:
+            lu_raw = None
+    lu = landuse.describe(lu_raw) if lu_raw else None
+    fit = landuse.crop_applicability(lu)
+    if not explicit:
+        crop = fit["default_crop"]
     alerts = sc.alerts                      # đã lọc: thật + là mối đe doạ, nguy hiểm trước
     today = date.today()
     horizon = [(today + timedelta(days=i)).isoformat() for i in range(7)]
@@ -143,6 +160,19 @@ def build(loc: Location, crop: str = DEFAULT_CROP) -> dict:
                          "least-hazardous day, or postpone sensitive work.")
 
     # ============ 3. GIÁ TRỊ ĐANG CHỊU RỦI RO (ước lượng thô) ============
+    if crop is None:
+        # Đất xây dựng / mặt nước / chưa rõ cây gì: KHÔNG quy ra tiền theo một
+        # cây giả định — con số sai hiển nhiên làm mất tin mọi con số khác.
+        value = {
+            "available": True, "applicable": False, "at_risk": False,
+            "crop": None, "crop_label": None, "items": [],
+            "worst_lo": 0, "worst_hi": 0,
+            "headline": tr("Không quy ra giá trị mùa vụ cho thửa này.",
+                           "No crop value is estimated for this plot."),
+            "assumption": fit["reason"],
+            "land_use": lu,
+        }
+        return _assemble(loc, sc, alerts, actions, days, safe_dates, sw_headline, value)
     v_lo, v_hi, crop_label = CROP_VALUE[crop]
     area = loc.area_ha if (loc.area_ha and loc.area_ha > 0) else None
     unit_area = area if area else 1.0        # chưa vẽ thửa → tính trên 1 ha
@@ -205,8 +235,15 @@ def build(loc: Location, crop: str = DEFAULT_CROP) -> dict:
                f"✅ Crop value ~{_money(plot_lo)}–{_money(plot_hi)} {_on_en} is being "
                f"protected — no hazard threatens it in the next 7 days.")),
         "assumption": tr(_assume_vi, _assume_en),
+        "applicable": True,
+        "land_use": lu,
+        # Người dùng chọn cây trái với loại đất WorldCover → vẫn tính, nhưng nói ra.
+        "land_use_note": (fit["reason"] if explicit and not fit["applicable"] else None),
     }
+    return _assemble(loc, sc, alerts, actions, days, safe_dates, sw_headline, value)
 
+
+def _assemble(loc, sc, alerts, actions, days, safe_dates, sw_headline, value) -> dict:
     # ============ 4. TỰ CANH (song sinh sống) ============
     ts = sc.terrascore
     n_alerts = len(alerts)

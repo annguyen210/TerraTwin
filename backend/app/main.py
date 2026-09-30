@@ -560,7 +560,7 @@ def scan_endpoint(location: Location, deep: bool = False, lang: str = "vi") -> S
 
 
 @app.post("/api/plan")
-def plan_endpoint(location: Location, crop: str = "lua", lang: str = "vi") -> dict:
+def plan_endpoint(location: Location, crop: str | None = None, lang: str = "vi") -> dict:
     """KẾ HOẠCH THỬA CỦA BẠN — gom cảnh báo thành việc-cần-làm-có-ngày, ngày an
     toàn, giá trị chịu rủi ro (ước lượng thô, khai báo rõ), và trạng thái tự canh.
 
