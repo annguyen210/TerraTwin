@@ -29,7 +29,8 @@ git push -u origin main
 
 1. Vào https://render.com → đăng ký (login bằng GitHub cho nhanh).
 2. **New → Blueprint** → chọn repo `terratwin`.
-3. Render đọc `render.yaml` và hiện 3 thứ sẽ tạo: `terratwin-db` (Postgres), `terratwin-api` (backend), `terratwin-web` (frontend). Bấm **Apply**.
+3. Render đọc `render.yaml` và hiện 2 thứ sẽ tạo: `terratwin-api` (backend), `terratwin-web` (frontend). Bấm **Apply**.
+   CSDL **không** nằm ở Render (Postgres miễn phí của Render bị xoá sau 30 ngày + 14 ngày ân hạn): tạo project **Neon** gói miễn phí, Postgres 17 trở lên, lấy URL loại **Direct** (host không có `-pooler`, giữ đuôi `?sslmode=require`).
 4. Chờ build (~5–10 phút). Backend cài xong sẽ tự chạy `uvicorn`; frontend chạy `npm run build` rồi `npm start`.
 
 ✅ **Xong khi:** cả `terratwin-api` và `terratwin-web` đều xanh (Live).
@@ -47,6 +48,7 @@ Render cấp cho bạn 2 URL, ví dụ:
 | Service | Biến | Giá trị |
 |---|---|---|
 | `terratwin-web` | `NEXT_PUBLIC_API` | URL của **api** (vd `https://terratwin-api.onrender.com`) |
+| `terratwin-api` | `TERRATWIN_DATABASE_URL` | URL Neon loại **Direct** — thiếu biến này app rơi về SQLite trên đĩa tạm và mất dữ liệu mỗi lần khởi động lại |
 | `terratwin-api` | `TERRATWIN_CORS` | URL của **web** (vd `https://terratwin-web.onrender.com`) |
 | `terratwin-api` | `TERRATWIN_PUBLIC_URL` | URL của **web** — để link một chạm trong cảnh báo trỏ đúng |
 
@@ -70,7 +72,7 @@ Render cấp cho bạn 2 URL, ví dụ:
 3. Sau khi Live lại: đăng nhập lại → **thửa đó còn không?**
 
 ✅ **Còn** → volume/DB đúng, an tâm mở cho người dùng.
-❌ **Mất** → DỪNG LẠI, kiểm `TERRATWIN_DATABASE_URL` đã nối Postgres chưa (trong `render.yaml` là `fromDatabase`). Đừng mời người dùng khi còn mất dữ liệu.
+❌ **Mất** → DỪNG LẠI, mở `/api/health`: trường `database.kind` phải là `postgresql` và `provider` là `neon`. Thấy `sqlite` là `TERRATWIN_DATABASE_URL` chưa đặt (trong `render.yaml` biến này là `sync: false` — đặt tay). Đừng mời người dùng khi còn mất dữ liệu.
 
 ---
 

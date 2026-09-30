@@ -398,9 +398,28 @@ def health() -> dict:
              "kèm dev_link để thử không cần email thật.")),
     }
 
+    # CSDL đang dùng — chỉ loại + nhà cung cấp, KHÔNG host/mật khẩu. Từ 29/9/2026
+    # TERRATWIN_DATABASE_URL là biến đặt tay (URL Neon, render.yaml sync:false):
+    # quên đặt hoặc Blueprint làm mất giá trị thì app lặng lẽ rơi về SQLite trên
+    # đĩa tạm của Render — mất sạch dữ liệu mỗi lần khởi động lại. Phải thấy
+    # được ngay ở đây, không đợi người dùng kêu mất thửa.
+    from app.db import DATABASE_URL as _dburl
+    db_kind = "sqlite" if _dburl.startswith("sqlite") else "postgresql"
+    database = {
+        "kind": db_kind,
+        "provider": ("neon" if "neon.tech" in _dburl else
+                     "render" if "render.com" in _dburl else
+                     None if db_kind == "sqlite" else "other"),
+        "message": (
+            "CẢNH BÁO: đang chạy SQLite trên production — dữ liệu mất mỗi lần máy "
+            "chủ khởi động lại. Đặt TERRATWIN_DATABASE_URL = URL Neon trên Render."
+            if db_kind == "sqlite" and is_prod else None),
+    }
+
     return {"status": "degraded" if q["exhausted"] else "ok",
             "service": "terratwin", "modules": len(list_modules()),
             "quota": q, "jobs": jobs.stats(), "email": email,
+            "database": database,
             # Đếm lời gọi ra ngoài từ lúc tiến trình này khởi động + tỉ lệ
             # trúng cache — chẩn đoán "đang gọi thừa ở đâu" thay vì đoán. Có 6
             # nhóm URL Open-Meteo/MET Norway khác nhau; hit_rate_pct thấp là
@@ -975,10 +994,11 @@ def job_status(job_id: str) -> dict:
         raise HTTPException(
             status_code=404,
             detail="Không có việc nào mang mã này — có thể đã dọn quá 30 phút sau khi xong.")
-    if st.get("kind") == "radar_run":
-        # Kết quả rà soát chứa cảnh báo trên thửa CỦA MỘT NGƯỜI — endpoint này
-        # không đăng nhập, nên chỉ lộ trạng thái. Chi tiết ở GET
-        # /api/radar/run/{id}, có kiểm chủ sở hữu.
+    if st.get("kind") in ("radar_run", "radar_sweep_all"):
+        # Kết quả rà soát chứa cảnh báo trên thửa CỦA MỘT NGƯỜI (hoặc tổng hợp
+        # mọi người) — endpoint này không đăng nhập, nên chỉ lộ trạng thái.
+        # Chi tiết ở GET /api/radar/run/{id} (kiểm chủ sở hữu) và
+        # /api/radar/sweep-all/{id} (khoá cron hoặc admin).
         return {k: st[k] for k in ("id", "kind", "state") if k in st}
     return st
 

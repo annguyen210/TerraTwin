@@ -1,0 +1,86 @@
+name: Migrate DB to Neon (one-time)
+
+# MỘT LẦN (29/9/2026): chuyển CSDL từ Render (bị xoá ngày 9/10/2026) sang Neon
+# gói miễn phí — đồng thời là bài diễn tập khôi phục N2. Logic ở
+# ops/migrate-neon.sh (chạy được cả trên máy), đối chiếu ở ops/db-reconcile.sh.
+#
+# Chỉ chạy tay: Actions → "Migrate DB to Neon (one-time)" → Run workflow.
+# Secret cần có:
+#   TERRATWIN_DB_EXTERNAL_URL — External Database URL của Render (nguồn, chỉ đọc).
+#   TERRATWIN_NEON_URL        — URL Neon loại DIRECT (đích, phải trống).
+#
+# KHÔNG upload bản dump làm artifact và không in URL — repo công khai, log và
+# artifact ai cũng tải được; dump chứa email + hash mật khẩu + toạ độ thửa.
+# Kết quả đối chiếu (chỉ tên bảng + số dòng) hiện ở Summary của lần chạy và
+# thành một annotation — đọc được qua API công khai để chép vào ops/RESTORE.md.
+#
+# Chạy khi api CÒN BỊ ĐÌNH CHỈ (trước 1/10/2026) là tốt nhất: nguồn đứng yên,
+# không có dòng mới nào chen vào giữa lúc dump và lúc trỏ app sang Neon.
+
+on:
+  workflow_dispatch:
+    inputs:
+      reset_target:
+        description: "Xoá sạch schema public ở Neon trước khi nạp (CHỈ bật khi chạy lại sau một lần hỏng)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: db-migrate
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    # Ghim 24.04 — xem ghi chú trong backup.yml (kho PGDG và Ubuntu 26).
+    runs-on: ubuntu-24.04
+    env:
+      PG_CLIENT_MAJOR: "18"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Kiểm secret bắt buộc
+        env:
+          SRC_URL: ${{ secrets.TERRATWIN_DB_EXTERNAL_URL }}
+          DST_URL: ${{ secrets.TERRATWIN_NEON_URL }}
+        run: |
+          fail=0
+          [ -n "$SRC_URL" ] || { echo "::error::Thiếu secret TERRATWIN_DB_EXTERNAL_URL (nguồn Render)."; fail=1; }
+          [ -n "$DST_URL" ] || { echo "::error::Thiếu secret TERRATWIN_NEON_URL (đích Neon, URL DIRECT)."; fail=1; }
+          [ "$fail" = "0" ]
+
+      - name: Cài psql/pg_dump ${{ env.PG_CLIENT_MAJOR }} (kho PGDG) + kiểm bản hai máy chủ
+        env:
+          SRC_URL: ${{ secrets.TERRATWIN_DB_EXTERNAL_URL }}
+          DST_URL: ${{ secrets.TERRATWIN_NEON_URL }}
+        run: bash ops/install-pg-client.sh "$PG_CLIENT_MAJOR" "$SRC_URL" "$DST_URL"
+
+      - name: Dump Render → nạp Neon → đối chiếu từng bảng + sequence
+        env:
+          SRC_URL: ${{ secrets.TERRATWIN_DB_EXTERNAL_URL }}
+          DST_URL: ${{ secrets.TERRATWIN_NEON_URL }}
+          RESET_TARGET: ${{ inputs.reset_target && '1' || '0' }}
+        run: |
+          set -o pipefail
+          bash ops/migrate-neon.sh | tee "$RUNNER_TEMP/migrate.log"
+
+      - name: Đưa bảng đối chiếu thành annotation
+        if: always()
+        run: |
+          python3 - "$RUNNER_TEMP/migrate.log" <<'PY'
+          import os, sys
+          path = sys.argv[1]
+          if not os.path.exists(path):
+              print("::warning::Không có log đối chiếu — chuyển dữ liệu dừng trước bước 5.")
+              sys.exit(0)
+          lines = open(path, encoding="utf-8").read().splitlines()
+          start = next((i for i, l in enumerate(lines) if l.startswith("| Bảng")), None)
+          if start is None:
+              print("::warning::Chưa tới bước đối chiếu — xem log bước trên.")
+              sys.exit(0)
+          body = "\n".join(lines[start:])
+          esc = body.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          print(f"::notice title=Doi chieu Render -> Neon::{esc}")
+          PY

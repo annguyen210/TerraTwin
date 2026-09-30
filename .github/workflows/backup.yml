@@ -12,10 +12,16 @@ name: Database backup
 # mã hoá hay không — bài toán ở đây là NGƯỜI LẠ CÓ TẢI ĐƯỢC FILE hay không,
 # GPG chỉ trả lời được câu "tải được rồi thì đọc được không".
 #
-# BẮT BUỘC đặt BỐN secret trong repo Settings → Secrets → Actions:
-#   TERRATWIN_DB_EXTERNAL_URL   — External Database URL từ Render (Postgres →
-#                                 Connect → External). KHÔNG dùng Internal URL,
-#                                 GitHub Actions không nằm trong mạng nội bộ Render.
+# NGUỒN SAO LƯU (29/9/2026 — chuyển CSDL sang Neon, xem migrate-neon.yml):
+# workflow TỰ CHỌN — Neon đã có bảng thì sao lưu Neon (CSDL đang sống sau khi
+# chuyển), chưa có thì sao lưu Render (trước khi chuyển). Không phải sửa secret
+# đúng lúc chuyển giao; sau khi Render xoá CSDL cũ (9/10/2026) vẫn chạy tiếp.
+#
+# BẮT BUỘC đặt các secret trong repo Settings → Secrets → Actions:
+#   TERRATWIN_NEON_URL          — URL Neon loại DIRECT (host không có "-pooler").
+#   TERRATWIN_DB_EXTERNAL_URL   — External Database URL của Render (Postgres →
+#                                 Connect → External). Chỉ cần tới khi chuyển
+#                                 xong; có MỘT trong hai URL này là đủ chạy.
 #   TERRATWIN_BACKUP_PASSPHRASE — chuỗi ngẫu nhiên dài, sinh một lần và CẤT GIỮ
 #                                 an toàn ngoài repo (mất chuỗi này = mất khả
 #                                 năng đọc mọi bản sao lưu cũ).
@@ -49,15 +55,19 @@ permissions:
 
 jobs:
   backup:
-    runs-on: ubuntu-latest
+    # Ghim 24.04: ubuntu-latest chuyển sang Ubuntu 26 từ 19/10/2026, mà kho PGDG
+    # có thể chưa có gói cho tên bản phát hành mới ngay hôm đó.
+    runs-on: ubuntu-24.04
+    env:
+      PG_CLIENT_MAJOR: "18"     # = bản chính CSDL Render; Neon cùng bản hoặc cũ hơn
     steps:
       - uses: actions/checkout@v4
 
       - name: Kiểm secret bắt buộc
         run: |
           fail=0
-          if [ -z "${{ secrets.TERRATWIN_DB_EXTERNAL_URL }}" ]; then
-            echo "::error::Thiếu secret TERRATWIN_DB_EXTERNAL_URL (External Database URL từ Render)."
+          if [ -z "${{ secrets.TERRATWIN_NEON_URL }}" ] && [ -z "${{ secrets.TERRATWIN_DB_EXTERNAL_URL }}" ]; then
+            echo "::error::Thiếu cả TERRATWIN_NEON_URL lẫn TERRATWIN_DB_EXTERNAL_URL — không có CSDL nào để sao lưu."
             fail=1
           fi
           if [ -z "${{ secrets.TERRATWIN_BACKUP_PASSPHRASE }}" ]; then
@@ -74,8 +84,36 @@ jobs:
           fi
           [ "$fail" = "0" ]
 
-      - name: Cài pg_dump
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+      # KHÔNG dùng postgresql-client của Ubuntu (bản 16): CSDL là PostgreSQL 18,
+      # pg_dump cũ hơn máy chủ sẽ dừng với "server version mismatch".
+      - name: Cài pg_dump ${{ env.PG_CLIENT_MAJOR }} (kho PGDG)
+        run: bash ops/install-pg-client.sh "$PG_CLIENT_MAJOR"
+
+      - name: Chọn CSDL cần sao lưu (Neon nếu đã có bảng, không thì Render)
+        id: src
+        env:
+          NEON_URL: ${{ secrets.TERRATWIN_NEON_URL }}
+          RENDER_URL: ${{ secrets.TERRATWIN_DB_EXTERNAL_URL }}
+        run: |
+          tables=0
+          if [ -n "$NEON_URL" ]; then
+            tables=$(psql "$NEON_URL" -X -tAc               "SELECT count(*) FROM pg_tables WHERE schemaname = 'public'") || tables=0
+          fi
+          if [ "${tables:-0}" -gt 0 ]; then
+            src=neon; url="$NEON_URL"
+          elif [ -n "$RENDER_URL" ]; then
+            src=render; url="$RENDER_URL"
+          else
+            echo "::error::Neon chưa có bảng nào và không có TERRATWIN_DB_EXTERNAL_URL — chưa có gì để sao lưu."
+            exit 1
+          fi
+          echo "src=$src" >> "$GITHUB_OUTPUT"
+          srv=$(psql "$url" -X -tAc "SELECT current_setting('server_version_num')::int / 10000")
+          echo "Sao lưu từ: $src (PostgreSQL $srv, bảng public ở Neon: $tables)"
+          if [ "$srv" -gt "$PG_CLIENT_MAJOR" ]; then
+            echo "::error::Máy chủ PostgreSQL $srv mới hơn pg_dump $PG_CLIENT_MAJOR — nâng PG_CLIENT_MAJOR."
+            exit 1
+          fi
 
       - name: Chuẩn bị repo sao lưu RIÊNG TƯ (checkout nếu có, tạo mới nếu chưa)
         run: |
@@ -92,7 +130,7 @@ jobs:
 
       - name: Sao lưu + mã hoá (ops/backup.sh)
         env:
-          TERRATWIN_DATABASE_URL: ${{ secrets.TERRATWIN_DB_EXTERNAL_URL }}
+          TERRATWIN_DATABASE_URL: ${{ steps.src.outputs.src == 'neon' && secrets.TERRATWIN_NEON_URL || secrets.TERRATWIN_DB_EXTERNAL_URL }}
           TERRATWIN_BACKUP_PASSPHRASE: ${{ secrets.TERRATWIN_BACKUP_PASSPHRASE }}
           TERRATWIN_BACKUP_DIR: ${{ github.workspace }}/../backups-wt
         run: bash ops/backup.sh

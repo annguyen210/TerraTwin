@@ -24,20 +24,47 @@ from sqlalchemy.orm import (
     DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker,
 )
 
-DATABASE_URL = os.environ.get("TERRATWIN_DATABASE_URL", "sqlite:///./terratwin.db")
+def normalize_url(url: str) -> str:
+    """Render (và Neon, Heroku, Supabase…) cấp URL dạng postgresql:// hoặc
+    postgres://. SQLAlchemy mặc định lái cả hai sang psycopg2 — nhưng ta chỉ cài
+    psycopg (v3), nên backend sẽ chết ngay khi mở kết nối: ModuleNotFoundError:
+    psycopg2. Chuẩn hoá về +psycopg để dùng đúng driver đã cài, bất kể nơi cấp
+    URL viết kiểu gì. Không đụng tới sqlite hay URL đã ghi rõ driver.
 
-# Render (và Heroku, Supabase…) cấp URL dạng postgresql:// hoặc postgres://.
-# SQLAlchemy mặc định lái cả hai sang psycopg2 — nhưng ta chỉ cài psycopg (v3),
-# nên backend sẽ chết ngay khi mở kết nối: ModuleNotFoundError: psycopg2.
-# Chuẩn hoá về +psycopg để dùng đúng driver đã cài, bất kể nơi cấp URL viết kiểu
-# gì. Không đụng tới sqlite hay URL đã ghi rõ driver (postgresql+psycopg://…).
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = "postgresql+psycopg://" + DATABASE_URL[len("postgres://"):]
-elif DATABASE_URL.startswith("postgresql://"):
-    DATABASE_URL = "postgresql+psycopg://" + DATABASE_URL[len("postgresql://"):]
+    CHỈ thay tiền tố — phần query (?sslmode=require&channel_binding=require của
+    Neon) phải đi nguyên vẹn tới libpq; mất sslmode là kết nối bị Neon từ chối."""
+    if url.startswith("postgres://"):
+        return "postgresql+psycopg://" + url[len("postgres://"):]
+    if url.startswith("postgresql://"):
+        return "postgresql+psycopg://" + url[len("postgresql://"):]
+    return url
 
-_connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-engine = create_engine(DATABASE_URL, connect_args=_connect_args, future=True)
+
+def connect_args_for(url: str) -> dict:
+    """Tham số driver theo loại CSDL.
+
+    Neon: dùng URL Direct. URL "-pooler" đi qua PgBouncer chế độ transaction,
+    mà psycopg 3 tự chuẩn bị (prepare) câu lệnh chạy lặp từ lần thứ 5 — câu đã
+    prepare nằm ở MỘT kết nối máy chủ, lần sau PgBouncer đưa sang kết nối khác
+    → lỗi 'prepared statement "_pg3_0" does not exist'. Lỡ dùng pooler thì tắt
+    prepare (prepare_threshold=None) thay vì hỏng ngẫu nhiên lúc có tải."""
+    if url.startswith("sqlite"):
+        return {"check_same_thread": False}
+    if "-pooler." in url:
+        return {"prepare_threshold": None}
+    return {}
+
+
+DATABASE_URL = normalize_url(
+    os.environ.get("TERRATWIN_DATABASE_URL", "sqlite:///./terratwin.db"))
+
+_connect_args = connect_args_for(DATABASE_URL)
+# pool_pre_ping: Neon gói miễn phí tắt compute sau ~5 phút không truy vấn, và
+# api gói free của Render ngủ/thức — kết nối nằm trong pool lúc đó đã chết.
+# Ping trước khi dùng thì SQLAlchemy tự mở kết nối mới, thay vì trả lỗi
+# "SSL connection has been closed unexpectedly" cho request đầu tiên.
+engine = create_engine(DATABASE_URL, connect_args=_connect_args, future=True,
+                       pool_pre_ping=not DATABASE_URL.startswith("sqlite"))
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
 

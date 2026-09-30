@@ -330,3 +330,17 @@ def test_health_bao_degraded_khi_can_han_muc(client, monkeypatch):
     assert d["status"] == "degraded"
     assert "api.open-meteo.com" in d["quota"]["exhausted"]
     cache_store.clear_prefix("quota")
+
+
+def test_health_bao_loai_csdl_khong_lo_url(client):
+    """Từ 29/9/2026 TERRATWIN_DATABASE_URL là biến đặt tay (URL Neon). Quên đặt
+    thì app lặng lẽ chạy SQLite trên đĩa tạm — health phải nói ra, và không bao
+    giờ in URL (chứa mật khẩu)."""
+    from app.db import DATABASE_URL
+
+    d = client.get("/api/health").json()["database"]
+    assert d["kind"] in ("sqlite", "postgresql")
+    assert set(d) == {"kind", "provider", "message"}
+    if d["kind"] == "sqlite":
+        assert d["provider"] is None
+    assert DATABASE_URL not in str(d)

@@ -122,9 +122,49 @@ Nguyên nhân thường gặp nhất là thiếu hoặc sai một trong bốn se
 
 | Secret | Lấy ở đâu |
 |---|---|
-| `TERRATWIN_DB_EXTERNAL_URL` | Render → database `terratwin-db` → tab Connect → **External Database URL** (không phải Internal — GitHub Actions không nằm trong mạng nội bộ Render) |
+| `TERRATWIN_NEON_URL` | Neon → project → **Connect** → chọn kết nối **Direct** (host KHÔNG có `-pooler`), giữ nguyên đuôi `?sslmode=require…`. Từ khi chuyển xong (mục 6) đây là CSDL được sao lưu |
+| `TERRATWIN_DB_EXTERNAL_URL` | Render → database `terratwin-db` → tab Connect → **External Database URL** (không phải Internal — GitHub Actions không nằm trong mạng nội bộ Render). Chỉ cần tới khi chuyển sang Neon xong; CSDL này bị Render xoá ngày 9/10/2026 |
 | `TERRATWIN_BACKUP_PASSPHRASE` | Chuỗi bạn tự sinh một lần và cất giữ — nếu chưa có, sinh mới bằng `openssl rand -base64 32` rồi lưu an toàn (đổi chuỗi này thì các bản sao lưu CŨ giải mã bằng chuỗi cũ vẫn đọc được, chỉ bản MỚI dùng chuỗi mới) |
 | `TERRATWIN_BACKUP_REPO` | Xem mục 4 — tạo repo riêng tư trước, rồi mới đặt secret này |
 | `TERRATWIN_BACKUP_REPO_PAT` | Xem mục 4 — fine-grained PAT chỉ cấp quyền cho ĐÚNG repo `TERRATWIN_BACKUP_REPO` |
 
 Đọc chi tiết lỗi trong tab Actions → chọn lần chạy đỏ → xem log.
+
+## 6. Chuyển CSDL từ Render sang Neon (29/9/2026) — cũng là diễn tập N2
+
+**Vì sao.** Postgres miễn phí của Render hết hạn 30 ngày sau khi tạo, thêm 14
+ngày ân hạn rồi bị **xoá cả dữ liệu** — `terratwin-db` bị xoá ngày
+**9/10/2026**. Neon gói miễn phí không có hạn xoá. Lần chuyển này là một lần
+khôi phục thật từ bản dump vào một CSDL trống, có đối chiếu từng bảng, nên nó
+cũng là bài diễn tập khôi phục N2.
+
+**Làm theo thứ tự:**
+
+1. Tạo project Neon (vùng US West Oregon), chọn **Postgres 17 trở lên** (18
+   nếu có — cùng bản Render). Bản cũ hơn có thể không hiểu vài câu `SET` trong
+   bản dump của pg_dump 18.
+2. Đặt 2 secret ở repo TerraTwin → Settings → Secrets → Actions:
+   `TERRATWIN_NEON_URL` (URL **Direct**) và `TERRATWIN_DB_EXTERNAL_URL` (URL
+   ngoài của Render) — xem bảng ở mục 5.
+3. Actions → **Migrate DB to Neon (one-time)** → Run workflow. Nên chạy
+   **trước 1/10/2026**, khi api còn bị đình chỉ: CSDL nguồn đứng yên, không có
+   dòng mới chen vào giữa lúc dump và lúc trỏ app sang Neon.
+4. Chỉ khi kết luận là **✅ KHỚP**: Render → `terratwin-api` → Environment →
+   đặt `TERRATWIN_DATABASE_URL` = URL Neon (Direct). Làm trước 1/10 để khi api
+   sống lại, nó ghi vào Neon ngay từ lượt đầu.
+5. Sau khi api chạy: mở `/api/health` — trường `database` phải là
+   `{"kind": "postgresql", "provider": "neon"}`. Thấy `"sqlite"` là biến chưa
+   đặt: app đang ghi vào đĩa tạm và mất dữ liệu mỗi lần khởi động lại.
+
+Workflow chỉ ĐỌC Render; nạp vào Neon trong **một transaction** nên lỗi ở bất
+kỳ dòng nào thì Neon quay về trống (chạy lại được). Neon đã có bảng thì workflow
+từ chối nạp, trừ khi bật ô `reset_target` (xoá sạch schema `public` ở Neon
+trước). Bản dump không bao giờ được in ra hay upload — repo công khai.
+
+**Cách đọc kết quả.** Summary của lần chạy có hai bảng: số dòng từng bảng ở
+hai bên, và mọi sequence (id tự tăng). Sequence phải khớp `last_value` và ở
+Neon phải ≥ `max(id)` — nếu không, lần thêm dòng đầu tiên trên Neon sẽ lỗi
+trùng khoá chính dù bảng đủ dòng.
+
+**Kết quả lần chạy thật:** _chưa chạy._ Bảng đối chiếu của lần chạy thành công
+được chép vào đây, kèm ngày và mã lần chạy.

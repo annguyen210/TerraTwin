@@ -89,9 +89,45 @@ def test_khong_khoa_cung_vao_mot_nha_cung_cap_llm():
 
 
 def test_render_dung_postgres_chu_khong_phai_sqlite():
-    """Trên nền tảng có hệ thống tệp tạm thời, SQLite là mất dữ liệu chắc chắn."""
+    """Trên nền tảng có hệ thống tệp tạm thời, SQLite là mất dữ liệu chắc chắn.
+
+    CSDL nằm ở Neon từ 29/9/2026 (Postgres free của Render bị xoá sau 30 ngày +
+    14 ngày ân hạn). TERRATWIN_DATABASE_URL phải khai `sync: false` — chủ dự án
+    đặt tay URL Neon — và Blueprint KHÔNG được khai CSDL Render nào: có khối
+    databases/fromDatabase thì lần đồng bộ Blueprint sau ghi đè URL Neon bằng
+    một CSDL free 30 ngày dựng lại từ đầu."""
     r = _code(_doc("render.yaml"))
-    assert "databases:" in r
-    assert "fromDatabase" in r, "TERRATWIN_DATABASE_URL phải lấy từ dịch vụ CSDL"
+    m = re.search(r"-\s*key:\s*TERRATWIN_DATABASE_URL\s*\n\s*(\S[^\n]*)", r)
+    assert m, "render.yaml phải khai TERRATWIN_DATABASE_URL"
+    assert m.group(1).replace(" ", "").startswith("sync:false"), (
+        "TERRATWIN_DATABASE_URL phải là sync: false (URL Neon đặt tay)")
+    assert "fromDatabase" not in r and "databases:" not in r, (
+        "không được khai CSDL Render — đồng bộ Blueprint sẽ ghi đè URL Neon")
     assert "TERRATWIN_TRUST_PROXY" in r, (
         "đứng sau proxy mà không bật thì giới hạn tần suất sẽ chặn nhầm")
+
+
+def test_keepwarm_khong_co_lich_tu_dong():
+    """0 đồng (29/9/2026): api + web cùng free. Giữ ấm tự động một service đã là
+    744 giờ/tháng 31 ngày, cộng giờ service kia thức → vượt 750 giờ → Render
+    đình chỉ cả hai. Chỉ được bấm tay trước buổi demo."""
+    k = _code(_doc(".github/workflows/keepwarm.yml"))
+    assert "schedule:" not in k and "cron:" not in k
+    assert "workflow_dispatch" in k
+
+
+def test_sao_luu_va_chuyen_csdl_dung_pg_client_pgdg():
+    """CSDL là PostgreSQL 18; postgresql-client mặc định của Ubuntu 24.04 là 16
+    → pg_dump dừng "server version mismatch"."""
+    for wf in ("backup.yml", "migrate-neon.yml"):
+        y = _code(_doc(f".github/workflows/{wf}"))
+        assert "ops/install-pg-client.sh" in y, f"{wf} phải cài client từ kho PGDG"
+        assert not re.search(r"apt-get install[^\n]*postgresql-client\s*$", y, re.M), (
+            f"{wf} không được cài postgresql-client mặc định của Ubuntu")
+
+
+def test_chuyen_csdl_chi_chay_tay_va_khong_upload_ban_dump():
+    """Repo công khai: artifact ai cũng tải được, dump chứa email + hash mật khẩu."""
+    y = _code(_doc(".github/workflows/migrate-neon.yml"))
+    assert "workflow_dispatch" in y and "schedule:" not in y and "push:" not in y
+    assert "upload-artifact" not in y
