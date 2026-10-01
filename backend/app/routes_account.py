@@ -19,8 +19,8 @@ from sqlalchemy.orm import Session
 from app import auth
 from app.services import plans
 from app.db import (
-    ActionLog, Alert, ApiKey, AuditLog, Dataset, KnowledgeNote, NotifyChannel,
-    Observation, Plot, PushSub, Twin, User, get_session,
+    ActionLog, Alert, ApiKey, AuditLog, BatchRun, Dataset, Dossier, FieldPhoto,
+    KnowledgeNote, NotifyChannel, Observation, Plot, PushSub, Twin, User, get_session,
 )
 from app.schemas import Location
 
@@ -427,8 +427,12 @@ _OWNED = [
     ("observations", Observation), ("actions", ActionLog),
     ("knowledge_notes", KnowledgeNote), ("api_keys", ApiKey),
     ("datasets", Dataset), ("alerts", Alert), ("audit_logs", AuditLog),
-    ("push_subs", PushSub),
+    ("push_subs", PushSub), ("batch_runs", BatchRun),
 ]
+# Xuất nhưng KHÔNG xoá theo tài khoản: hồ sơ đất số nằm trong sổ đăng ký công
+# khai móc xích — xoá một hồ sơ là gãy mọi mắt xích sau nó; ảnh đã gắn vào hồ sơ
+# là bằng chứng của hồ sơ đó. Xoá tài khoản thì GỠ liên kết (user_id = NULL).
+_EXPORT_ONLY = [("dossiers", Dossier), ("field_photos", FieldPhoto)]
 
 
 def _row_to_dict(row) -> dict:
@@ -441,6 +445,8 @@ def _row_to_dict(row) -> dict:
         # và hash khoá API là thứ không được rời database.
         if c.name in ("password_hash", "key_hash", "prefix_hash"):
             continue
+        if isinstance(v, (bytes, bytearray)):
+            continue                     # ảnh thu nhỏ: tải qua /api/evidence/{id}/thumb
         out[c.name] = v
     return out
 
@@ -458,7 +464,7 @@ def export_my_data(user: User = Depends(auth.current_user),
                     "created_at": user.created_at.isoformat() if user.created_at else None},
         "exported_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
-    for label, model in _OWNED:
+    for label, model in _OWNED + _EXPORT_ONLY:
         rows = db.execute(
             select(model).where(model.user_id == user.id)).scalars().all()
         data[label] = [_row_to_dict(r) for r in rows]
@@ -509,6 +515,15 @@ def delete_my_account(user: User = Depends(auth.current_user),
         for r in db.execute(
                 select(model).where(model.user_id == user.id)).scalars().all():
             db.delete(r)
+    # Hồ sơ đã phát hành ở lại sổ công khai (không gãy chuỗi), chỉ gỡ người phát
+    # hành. Ảnh chưa gắn hồ sơ nào thì xoá; ảnh đã gắn là bằng chứng của hồ sơ.
+    for d in db.execute(select(Dossier).where(Dossier.user_id == user.id)).scalars():
+        d.user_id = None
+    for ph in db.execute(select(FieldPhoto).where(FieldPhoto.user_id == user.id)).scalars().all():
+        if ph.dossier_id:
+            ph.user_id = None
+        else:
+            db.delete(ph)
     db.delete(user)
     db.commit()
 

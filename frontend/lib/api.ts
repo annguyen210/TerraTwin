@@ -32,6 +32,7 @@ async function errMessage(r: Response, fallback: string): Promise<string> {
   try {
     const d = await r.json();
     if (typeof d?.detail === "string") return d.detail;
+    if (typeof d?.detail?.message === "string") return d.detail.message;
     if (Array.isArray(d?.detail) && d.detail[0]?.msg) {
       return d.detail[0].msg.replace(/^Value error,\s*/, "");
     }
@@ -2167,4 +2168,71 @@ export function getDossier(id: string) {
 export function verifyDossierFile(doc: unknown) {
   return postJson<DossierFileCheck>(`/api/dossier/verify?lang=${curLang()}`, doc,
     "Không kiểm được tệp hồ sơ");
+}
+
+// ---- THẨM ĐỊNH HÀNG LOẠT: CSV nhiều thửa → bảng rủi ro danh mục (cần đăng nhập) ----
+export type BatchRow = {
+  ref: string; lat: number; lon: number; area_ha: number | null;
+  land_group: string | null; land_label: string | null;
+  risk_level: "danger" | "warning" | "safe" | "unknown";
+  score: number | null; grade: string | null; drivers: string[];
+  history_10y: Record<string, number>; real_data_ratio: number | null; error: string | null;
+};
+export type BatchSummary = {
+  n: number; n_ok: number; n_failed: number;
+  by_risk: Record<string, number>; by_land: Record<string, number>; grades: Record<string, number>;
+  top_drivers: [string, number][]; history_10y_plots: Record<string, number>;
+  total_ha: number; at_risk_ha: number; at_risk_pct: number | null;
+  watchlist: string[]; headline: string;
+};
+export type BatchRowError = { line: number; message: string };
+export type BatchState = {
+  id: string; state: "queued" | "running" | "done" | "error" | null;
+  title?: string; created_at?: string;
+  progress?: { done: number; total: number; current: string };
+  summary?: BatchSummary; rows?: BatchRow[]; error?: string; message?: string;
+};
+export type BatchRunInfo = { id: string; title: string; n_rows: number; created_at: string; headline: string | null };
+
+export const batchTemplateUrl = () => `${BASE}/api/batch/template`;
+
+export async function submitBatch(csv: string, title: string) {
+  const r = await fetch(`${BASE}/api/batch?lang=${curLang()}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ csv, title }),
+  });
+  if (r.ok) return (await r.json()) as { job_id: string; rows: number; errors: BatchRowError[] };
+  let rowErrors: BatchRowError[] = [];
+  try {
+    const d = await r.clone().json();
+    rowErrors = d?.detail?.errors ?? [];
+  } catch { /* ignore */ }
+  const e = new Error(await errMessage(r, "Không gửi được lô thẩm định")) as Error & { rowErrors?: BatchRowError[] };
+  e.rowErrors = rowErrors;
+  throw e;
+}
+
+export function getBatch(id: string) {
+  return authed<BatchState>(`/api/batch/${encodeURIComponent(id)}`, {}, "Không tải được lần thẩm định");
+}
+
+export function listBatches() {
+  return authed<{ active: { id: string; state: string; progress?: BatchState["progress"] } | null; runs: BatchRunInfo[] }>(
+    "/api/batch", {}, "Không tải được lịch sử thẩm định");
+}
+
+export function deleteBatch(id: string) {
+  return authed<void>(`/api/batch/${encodeURIComponent(id)}`, { method: "DELETE" }, "Không xoá được");
+}
+
+export async function downloadBatchCsv(id: string) {
+  const r = await fetch(`${BASE}/api/batch/${encodeURIComponent(id)}/csv`, { headers: authHeaders() });
+  if (!r.ok) throw new Error(await errMessage(r, "Không tải được CSV"));
+  const url = URL.createObjectURL(await r.blob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `terratwin-tham-dinh-${id.slice(0, 8)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }

@@ -564,6 +564,24 @@ class Dossier(Base):
     key_id: Mapped[str] = mapped_column(String(16))
 
 
+class BatchRun(Base):
+    """Một lần THẨM ĐỊNH HÀNG LOẠT (CSV nhiều thửa) — lưu kết quả lâu dài.
+
+    Hàng đợi việc (bảng jobs) dọn kết quả sau 30 phút; ngân hàng/hợp tác xã cần
+    mở lại danh mục đã thẩm định tuần trước, nên kết quả được chép sang đây khi
+    xong. rows_json/summary_json đóng băng lúc chạy — muốn số mới thì chạy lại.
+    """
+    __tablename__ = "batch_runs"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)    # = job_id
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    title: Mapped[str] = mapped_column(String(200), default="")
+    n_rows: Mapped[int] = mapped_column(Integer, default=0)
+    summary_json: Mapped[str] = mapped_column(Text, default="{}")
+    rows_json: Mapped[str] = mapped_column(Text, default="[]")
+
+
 class FieldPhoto(Base):
     """Ảnh thực địa gửi kèm Hồ sơ đất số, ĐÃ KIỂM (services/evidence.py).
 

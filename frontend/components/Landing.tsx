@@ -136,6 +136,11 @@ export default function Landing({
               🏠 {t("Định mua/thuê đất? Kiểm tra trước khi trả tiền",
                     "Planning to buy or rent land? Check before you pay")}
             </Link>
+            {/* Ngân hàng / hợp tác xã / bảo hiểm: cả danh mục một lần, không mở từng thửa. */}
+            <Link href="/batch" className="lp-buyer-cta">
+              📊 {t("Ngân hàng, hợp tác xã: thẩm định cả danh mục từ một tệp CSV",
+                    "Banks & co-ops: appraise a whole portfolio from one CSV file")}
+            </Link>
           </div>
         </section>
 
