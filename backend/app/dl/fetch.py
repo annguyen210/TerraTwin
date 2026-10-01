@@ -172,8 +172,16 @@ def read_window(href: str, box: list[float], token: str, size: int = PATCH):
     return np.asarray(arr)
 
 
-def build_patch(lat: float, lon: float, year: int = 2021):
-    """Một mẫu huấn luyện: (ảnh 4×H×W, nhãn H×W) hoặc None nếu không đủ dữ liệu.
+# HAI MÙA (lần huấn luyện thứ hai, 2/10/2026): lần đầu dùng ảnh MỘT ngày và lớp
+# "đất trồng trọt" chỉ đạt IoU 0,026 — ruộng lúc ngập / mới gặt trông như mặt
+# nước / đất trống; WorldCover dựng nhãn trồng trọt từ chuỗi ảnh nhiều mùa. Nay
+# mỗi ô lấy HAI ảnh của 2021: nửa đầu năm và nửa cuối năm (mỗi nửa ảnh ít mây
+# nhất) → 8 kênh. Ruộng đổi màu giữa hai mùa, rừng và mái nhà thì không.
+SEASON_WINDOWS = {1: [("01-01", "12-31")], 2: [("01-01", "06-30"), ("07-01", "12-31")]}
+
+
+def build_patch(lat: float, lon: float, year: int = 2021, seasons: int = 1):
+    """Một mẫu huấn luyện: (ảnh (4·seasons)×H×W, nhãn H×W) hoặc None nếu không đủ dữ liệu.
 
     Nhãn WorldCover là bản 2021, nên ẢNH cũng phải lấy trong 2021 — ghép ảnh
     2026 với nhãn 2021 là dạy mạng học sai, và sai một cách không ai nhìn ra
@@ -199,17 +207,16 @@ def build_patch(lat: float, lon: float, year: int = 2021):
     if (lab == 255).mean() > 0.5:
         return None
 
-    s2 = search(S2, box, f"{year}-01-01", f"{year}-12-31", cloud=MAX_CLOUD, limit=1)
-    if not s2:
-        return None
     tok_s2 = sas(S2)
     if not tok_s2:
         return None
-
     chans = []
-    for b in BANDS:
-        a = read_window(s2[0]["assets"][b]["href"], box, tok_s2)
-        chans.append(a)
+    for start, end in SEASON_WINDOWS[seasons]:
+        s2 = search(S2, box, f"{year}-{start}", f"{year}-{end}", cloud=MAX_CLOUD, limit=1)
+        if not s2:
+            return None                      # thiếu một mùa → bỏ cả ô, không ghép lệch
+        for b in BANDS:
+            chans.append(read_window(s2[0]["assets"][b]["href"], box, tok_s2))
     img = np.stack(chans).astype(np.float32)
 
     # Phản xạ Sentinel-2 L2A ở thang 0–10000. Chia 10000 đưa về 0–1; cắt trần ở
@@ -226,12 +233,12 @@ def jitter(lat: float, lon: float, km: float = 12.0):
     return lat + random.uniform(-d, d), lon + random.uniform(-d, d)
 
 
-def _fetch_one(pt, year: int):
+def _fetch_one(pt, year: int, seasons: int = 1):
     """Một ô, chạy trong TIẾN TRÌNH con (xem ghi chú ProcessPoolExecutor ở main)."""
     lat, lon = pt
     for k in range(2):
         try:
-            return build_patch(lat, lon, year), lat, lon
+            return build_patch(lat, lon, year, seasons), lat, lon
         except Exception as e:               # lỗi mạng/ô hỏng — thử lại một lần
             if k == 1:
                 print(f"    bỏ ô ({lat:.3f}, {lon:.3f}): {type(e).__name__}", flush=True)
@@ -244,6 +251,8 @@ def main() -> int:
     ap.add_argument("--out", default="data/dl")
     ap.add_argument("--per-site", type=int, default=40)
     ap.add_argument("--year", type=int, default=2021)
+    ap.add_argument("--seasons", type=int, choices=(1, 2), default=1,
+                    help="1 = một ảnh/ô (4 kênh); 2 = nửa đầu + nửa cuối năm (8 kênh)")
     ap.add_argument("--seed", type=int, default=20260825)
     ap.add_argument("--smoke", action="store_true",
                     help="lấy đúng một ô rồi in kết quả — chạy cái này TRƯỚC")
@@ -298,7 +307,7 @@ def main() -> int:
     from concurrent.futures import ProcessPoolExecutor
     from functools import partial
 
-    _one = partial(_fetch_one, year=a.year)
+    _one = partial(_fetch_one, year=a.year, seasons=a.seasons)
 
     for lat0, lon0, ten in SITES:
         slug = "".join(ch if ch.isalnum() else "_" for ch in ten)[:40]
@@ -336,7 +345,8 @@ def main() -> int:
     np.savez_compressed(os.path.join(a.out, "patches.npz"), X=X, Y=Y)
     with open(os.path.join(a.out, "meta.json"), "w", encoding="utf-8") as f:
         json.dump({"meta": meta, "classes": WC_NAMES, "codes": WC_CODES,
-                   "bands": list(BANDS), "year": a.year}, f, ensure_ascii=False)
+                   "bands": list(BANDS), "year": a.year, "seasons": a.seasons,
+                   "season_windows": SEASON_WINDOWS[a.seasons]}, f, ensure_ascii=False)
 
     print(f"\nĐã lưu {len(imgs)} ô vào {a.out}/patches.npz")
     print(f"  ảnh {X.shape} · nhãn {Y.shape} · {X.nbytes / 1e6:.0f} MB trong bộ nhớ")

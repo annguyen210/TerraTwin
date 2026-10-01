@@ -32,7 +32,7 @@ def fake(monkeypatch):
                                  "iou_per_class": [], "holdout_provinces": ["Huế"]})
     monkeypatch.setattr(landchange.landuse, "composition", lambda lat, lon: {
         "source": "ESA WorldCover 2021 v200 (10 m)", "group_pct": {"crop": 90.0, "built": 10.0}})
-    monkeypatch.setattr(landchange, "recent_patch", lambda lat, lon: (
+    monkeypatch.setattr(landchange, "recent_patch", lambda lat, lon, **kw: (
         np.zeros((4, 256, 256), np.float32), {"item": "S2X", "date": "2026-09-01",
                                               "clear_pct_at_plot": 100.0,
                                               "processing_baseline": "05.11",
@@ -65,6 +65,40 @@ def test_mo_hinh_chua_bat_thi_noi_ro(monkeypatch):
 
 
 def test_khong_co_anh_quang_may(fake, monkeypatch):
-    monkeypatch.setattr(landchange, "recent_patch", lambda lat, lon: None)
+    monkeypatch.setattr(landchange, "recent_patch", lambda lat, lon, **kw: None)
     r = landchange.detect(16.46, 107.59)
     assert r["available"] is False and "quang mây" in r["reason"]
+
+
+def test_thu_tu_mua_dung_nhu_luc_huan_luyen():
+    """Mô hình 8 kênh học trên [01–06, 07–12] — đảo thứ tự là đưa mùa khô vào
+    chỗ mùa mưa. Tháng 10 → nửa đầu năm nay rồi nửa cuối năm nay; tháng 3 →
+    nửa đầu năm nay (đang dở) rồi nửa cuối năm TRƯỚC."""
+    from datetime import date
+    w = landchange.season_windows(date(2026, 10, 2))
+    assert w == [(date(2026, 1, 1), date(2026, 6, 30)), (date(2026, 7, 1), date(2026, 10, 2))]
+    w = landchange.season_windows(date(2026, 3, 15))
+    assert w == [(date(2026, 1, 1), date(2026, 3, 15)), (date(2025, 7, 1), date(2025, 12, 31))]
+
+
+def test_ghep_hai_mua_thanh_8_kenh_dung_thu_tu(monkeypatch):
+    seen = []
+
+    def scene(lat, lon, a, b):
+        seen.append(a.month)
+        v = 0.1 if a.month == 1 else 0.7               # nửa đầu 0,1 · nửa cuối 0,7
+        return (np.full((4, 4, 4), v, np.float32),
+                {"date": a.isoformat(), "clear_pct_at_plot": 95.0, "offset_removed": True})
+    monkeypatch.setattr(landchange, "_clear_scene", scene)
+    arr, meta = landchange.recent_patch(16.46, 107.59, seasons=2)
+    assert arr.shape == (8, 4, 4)
+    assert np.allclose(arr[:4], 0.1) and np.allclose(arr[4:], 0.7), "nửa đầu năm phải đứng trước"
+    assert meta["clear_pct_at_plot"] == 95.0 and len(meta["scenes"]) == 2
+
+
+def test_thieu_mot_mua_thi_khong_ghep_lech(monkeypatch):
+    monkeypatch.setattr(landchange, "_clear_scene",
+                        lambda lat, lon, a, b: None if a.month == 7 else
+                        (np.zeros((4, 2, 2), np.float32), {"date": "x", "clear_pct_at_plot": 99.0,
+                                                            "offset_removed": True}))
+    assert landchange.recent_patch(16.46, 107.59, seasons=2) is None

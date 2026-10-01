@@ -147,6 +147,7 @@ def _status_ready() -> dict:
         "task": c.get("task"),
         "classes": c.get("classes"),
         "miou_holdout": c.get("miou_holdout"),
+        "seasons": c.get("seasons", 1),
         "iou_per_class": c.get("iou_per_class"),
         "holdout_provinces": c.get("holdout_provinces"),
         "labels": c.get("labels"),

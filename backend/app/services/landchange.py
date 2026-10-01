@@ -65,12 +65,21 @@ def _get_npy(url: str):
             return None
 
 
-def recent_patch(lat: float, lon: float, days: int = 365) -> tuple | None:
-    """Ảnh mới nhất mà TẠI THỬA quang mây ≥ CLEAR_MIN% → (mảng 4×256×256, meta)."""
+def season_windows(today: date) -> list[tuple[date, date]]:
+    """Hai nửa năm DƯƠNG LỊCH gần nhất, theo đúng thứ tự kênh lúc huấn luyện:
+    [nửa đầu năm (01–06), nửa cuối năm (07–12)] — mô hình 8 kênh học trên ảnh
+    01–06/2021 rồi 07–12/2021, đảo thứ tự là đưa mùa khô vào chỗ mùa mưa."""
+    y = today.year
+    if today.month >= 7:
+        return [(date(y, 1, 1), date(y, 6, 30)), (date(y, 7, 1), today)]
+    return [(date(y, 1, 1), today), (date(y - 1, 7, 1), date(y - 1, 12, 31))]
+
+
+def _clear_scene(lat: float, lon: float, start: date, end: date) -> tuple | None:
+    """Ảnh mới nhất trong [start, end] mà TẠI THỬA quang mây ≥ CLEAR_MIN%."""
     big = _box(lat, lon, PATCH_PX)
     small = _box(lat, lon, CENTER_PX)
-    end = date.today()
-    items = mpc.search(big, end - timedelta(days=days), end, max_cloud=40.0, limit=20)
+    items = mpc.search(big, start, end, max_cloud=40.0, limit=20)
     if not items:
         return None
     for it in items[:8]:
@@ -93,6 +102,25 @@ def recent_patch(lat: float, lon: float, days: int = 365) -> tuple | None:
     return None
 
 
+def recent_patch(lat: float, lon: float, days: int = 365, seasons: int = 1) -> tuple | None:
+    """Đầu vào cho mô hình: 1 mùa → ảnh quang mây mới nhất (4 kênh); 2 mùa →
+    ghép nửa đầu + nửa cuối năm (8 kênh, đúng thứ tự lúc huấn luyện)."""
+    import numpy as np
+    if seasons <= 1:
+        end = date.today()
+        return _clear_scene(lat, lon, end - timedelta(days=days), end)
+    parts = [_clear_scene(lat, lon, a, b) for a, b in season_windows(date.today())]
+    if any(p is None for p in parts):
+        return None                          # thiếu một mùa → không ghép lệch
+    arr = np.concatenate([p[0] for p in parts], axis=0)
+    meta = dict(parts[-1][1])
+    meta["date"] = " + ".join(p[1]["date"] for p in parts)
+    meta["clear_pct_at_plot"] = min(p[1]["clear_pct_at_plot"] for p in parts)
+    meta["offset_removed"] = all(p[1]["offset_removed"] for p in parts)
+    meta["scenes"] = [p[1] for p in parts]
+    return arr, meta
+
+
 def detect(lat: float, lon: float) -> dict:
     """So nhóm lớp phủ HIỆN NAY (mô hình trên ảnh mới) với WorldCover 2021."""
     st = landcover.status()
@@ -103,11 +131,11 @@ def detect(lat: float, lon: float) -> dict:
             "enabled (not trained yet, or its held-out score is below the bar)."),
             "model": st}
     before = landuse.composition(lat, lon)
-    got = recent_patch(lat, lon)
+    got = recent_patch(lat, lon, seasons=int(st.get("seasons") or 1))
     if got is None:
         return {"available": False, "reason": tr(
-            "Không có ảnh Sentinel-2 nào trong 12 tháng qua mà tại thửa quang mây ≥ 90%.",
-            "No Sentinel-2 image in the past 12 months is ≥90% cloud-free at the plot.")}
+            "Không có ảnh Sentinel-2 nào (mỗi mùa cần một ảnh) mà tại thửa quang mây ≥ 90%.",
+            "No Sentinel-2 image (one per season needed) is ≥90% cloud-free at the plot.")}
     patch, meta = got
     now = landcover.classify_window(patch, CENTER_PX)
     if now is None or before is None:

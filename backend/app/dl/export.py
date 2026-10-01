@@ -55,6 +55,9 @@ def main() -> int:
         "classes": WC_NAMES, "codes": WC_CODES,
         "in_channels": ck["in_ch"], "patch": a.size,
         "bands": ["B02", "B03", "B04", "B08"],
+        # 8 kênh = HAI ảnh (nửa đầu + nửa cuối năm), mỗi ảnh 4 dải, theo thứ tự đó.
+        "seasons": max(1, ck["in_ch"] // 4),
+        "class_weights": ck.get("weights", "inv"),
         "scale": "phản xạ chia 10000, cắt trần 1.0",
         "miou_holdout": ck["miou"], "iou_per_class": ck["iou"],
         "pixel_acc_holdout": ck.get("pixel_acc"),

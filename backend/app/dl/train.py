@@ -95,6 +95,8 @@ def main() -> int:
                     help="tỉnh giữ lại HOÀN TOÀN — tập KIỂM TRA, chấm đúng MỘT lần cuối")
     ap.add_argument("--val", default="Huế,Buôn Ma Thuột",
                     help="tỉnh dùng để CHỌN checkpoint (kiểm định) — tách khỏi tập kiểm tra")
+    ap.add_argument("--weights", choices=("inv", "sqrt"), default="sqrt",
+                    help="trọng số lớp: inv = nghịch đảo tần suất (lần 1); sqrt = căn bậc hai, trần 10")
     ap.add_argument("--smoke", action="store_true")
     a = ap.parse_args()
 
@@ -185,8 +187,13 @@ def main() -> int:
     # Cân bằng lớp: lớp hiếm (bề mặt xây dựng) phải được đếm nặng hơn, nếu không
     # mạng sẽ bỏ qua nó để tối ưu con số tổng.
     cnt = torch.bincount(Ytr[Ytr != 255].flatten(), minlength=N_CLASSES).float()
-    w = torch.where(cnt > 0, cnt.sum() / (N_CLASSES * cnt.clamp(min=1)),
-                    torch.zeros_like(cnt))
+    inv = cnt.sum() / (N_CLASSES * cnt.clamp(min=1))
+    if a.weights == "sqrt":
+        # Lần 1 (nghịch đảo tần suất thô) cho Cây bụi = 80, Đất ngập nước = 36:
+        # vài trăm điểm ảnh hiếm kéo cả mạng đi. Căn bậc hai + trần 10 vẫn nâng
+        # lớp hiếm nhưng không để nó lấn át. CHỐT TRƯỚC khi thấy kết quả lần 2.
+        inv = inv.sqrt().clamp(max=10.0)
+    w = torch.where(cnt > 0, inv, torch.zeros_like(cnt))
     print("  trọng số lớp:", " ".join(f"{WC_NAMES[i][:8]}={w[i]:.2f}"
                                       for i in range(N_CLASSES) if cnt[i] > 0))
 
@@ -238,7 +245,8 @@ def main() -> int:
     ck.update({"miou": miou_te, "iou": ious_te, "pixel_acc": acc_te,
                "holdout": sorted(hold), "val_sites": sorted(valn),
                "n_train": len(tr_idx), "n_val": len(va_idx), "n_test": len(te_idx),
-               "device": dev, "epochs": a.epochs})
+               "device": dev, "epochs": a.epochs, "weights": a.weights,
+               "in_channels": int(X.shape[1])})
     torch.save(ck, os.path.join(a.out, "unet_landcover.pt"))
     best = miou_te
 
