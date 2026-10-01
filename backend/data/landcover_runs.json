@@ -1,0 +1,44 @@
+[
+ {
+  "date": "2026-10-01",
+  "status": "rejected",
+  "reason": "mIoU trên tỉnh giữ lại 0,232 < ngưỡng 0,35 đặt trước khi huấn luyện",
+  "miou_test": 0.232,
+  "miou_val": 0.205,
+  "pixel_acc_test": 0.591,
+  "iou_per_class_test": {
+   "Tán cây": 0.523,
+   "Cây bụi": 0.0,
+   "Đồng cỏ": 0.164,
+   "Đất trồng trọt": 0.026,
+   "Bề mặt xây dựng": 0.505,
+   "Đất trống": 0.053,
+   "Băng tuyết": null,
+   "Mặt nước": 0.811,
+   "Đất ngập nước": 0.0,
+   "Rừng ngập mặn": 0.006,
+   "Rêu địa y": null
+  },
+  "test_provinces": [
+   "Cần Giờ",
+   "Cần Thơ",
+   "Hà Giang",
+   "Đà Nẵng"
+  ],
+  "val_provinces": [
+   "Buôn Ma Thuột",
+   "Huế"
+  ],
+  "n_train": 84,
+  "n_val": 12,
+  "n_test": 24,
+  "model": "U-Net base 16, CPU, chốt vòng 13/40",
+  "data": "Sentinel-2 L2A 2021 (B02,B03,B04,B08, MỘT ngày/ô) + nhãn ESA WorldCover 2021, 120 ô 2,56 km / 20 điểm",
+  "diagnosis": "Mặt nước, tán cây, xây dựng học được (IoU 0,81 / 0,52 / 0,51). Đất trồng trọt hỏng (0,026): ảnh MỘT ngày không phân biệt ruộng lúc ngập / mới gặt với mặt nước / đất trống — WorldCover dựng nhãn trồng trọt từ chuỗi ảnh nhiều mùa. Lớp hiếm (cây bụi, đất ngập nước) quá ít mẫu.",
+  "next": [
+   "đầu vào nhiều mùa (mùa khô + mùa mưa)",
+   "nhiều dữ liệu hơn (~4×)",
+   "giới hạn trọng số lớp hiếm"
+  ]
+ }
+]

@@ -115,3 +115,18 @@ def test_nguyen_ly_hoi_tu_tu_cap_nhat_khi_co_mo_hinh(monkeypatch):
     sau = _lay(roadmap.status())
     assert sau["status"] == "done"
     assert "HỌC SÂU" in sau["note"] and "0.62" in sau["note"]
+
+
+def test_lan_huan_luyen_khong_dat_duoc_noi_ra(tmp_path, monkeypatch):
+    """Đã huấn luyện thật mà không qua ngưỡng thì /api/landcover phải nói ĐÚNG
+    điều đó (kèm điểm và chẩn đoán) — không giả vờ 'chưa huấn luyện'."""
+    import json
+    runs = tmp_path / "runs.json"
+    runs.write_text(json.dumps([{"date": "2026-10-01", "status": "rejected",
+                                 "miou_test": 0.232, "diagnosis": "Đất trồng trọt hỏng."}],
+                               ensure_ascii=False), encoding="utf-8")
+    monkeypatch.setattr(landcover, "RUNS_PATH", str(runs))
+    st = landcover.status()
+    assert st["available"] is False and st["last_run"]["miou_test"] == 0.232
+    assert "KHÔNG bật" in st["message"] and "Đất trồng trọt hỏng." in st["message"]
+    assert st["how_to"], "vẫn phải chỉ các lệnh tự chạy"

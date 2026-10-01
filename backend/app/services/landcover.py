@@ -75,40 +75,72 @@ def available() -> bool:
     return _load() is not None
 
 
+RUNS_PATH = os.path.join(os.path.dirname(MODEL_PATH), "landcover_runs.json")
+
+
+def training_runs() -> list:
+    """Các lần huấn luyện THẬT đã chạy, kể cả lần KHÔNG ĐẠT — công khai để thấy
+    ngưỡng được giữ thật, không chỉ nói. (data/landcover_runs.json)"""
+    try:
+        with open(RUNS_PATH, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return []
+
+
 def status() -> dict:
     """Trạng thái để hiển thị — nói rõ đang thiếu gì và ai làm được việc đó."""
+    runs = training_runs()
     if _load() is None:
-        thieu = []
-        if not os.path.exists(MODEL_PATH):
-            thieu.append("chưa có data/landcover.onnx")
-        try:
-            import onnxruntime  # noqa: F401
-        except ImportError:
-            thieu.append("chưa cài onnxruntime")
-        # Nói rõ CÓ TỆP MÔ HÌNH nhưng THIẾU THƯ VIỆN — đây là cái bẫy đắt nhất:
-        # người dùng huấn luyện 4-8 tiếng, chép tệp lên máy chủ, rồi lớp này im
-        # lặng trả None vì onnxruntime chưa cài. Nhìn từ ngoài y hệt như "chưa
-        # huấn luyện", nên rất dễ đi huấn luyện lại lần nữa.
-        co_tep = os.path.exists(MODEL_PATH)
-        return {
-            "available": False,
-            "missing": thieu,
-            "model_file_present": co_tep,
-            "message": (
-                "ĐÃ CÓ tệp mô hình nhưng máy chủ thiếu onnxruntime — chạy "
-                "`pip install onnxruntime` rồi khởi động lại. Không cần huấn "
-                "luyện lại." if co_tep and "chưa cài onnxruntime" in thieu else
-                "Mô hình học sâu chưa sẵn sàng. Mã huấn luyện đã có sẵn trong "
-                "app/dl/ và chạy được trên máy có GPU: fetch → train → export. "
-                "Trong lúc chờ, các mô-đun vẫn dùng chỉ số phổ cổ điển — kém "
-                "hơn ở chỗ không thấy được ngữ cảnh không gian, nhưng đúng và "
-                "kiểm chứng được."),
-            "how_to": ["python -m app.dl.fetch --smoke",
-                       "python -m app.dl.fetch",
-                       "python -m app.dl.train --smoke",
-                       "python -m app.dl.train",
-                       "python -m app.dl.export"],
-        }
+        out = _status_missing()
+        if runs:
+            last = runs[-1]
+            out.update({
+                "message": (f"Đã huấn luyện thật ngày {last.get('date')}: mIoU trên tỉnh mô "
+                            f"hình chưa từng thấy = {last.get('miou_test')} — dưới ngưỡng "
+                            f"{MIN_MIOU} đặt trước, nên KHÔNG bật vào sản phẩm. "
+                            + (last.get("diagnosis") or "")),
+                "last_run": last, "runs": len(runs), "min_miou_required": MIN_MIOU,
+            })
+        return out
+    return _status_ready()
+
+
+def _status_missing() -> dict:
+    thieu = []
+    if not os.path.exists(MODEL_PATH):
+        thieu.append("chưa có data/landcover.onnx")
+    try:
+        import onnxruntime  # noqa: F401
+    except ImportError:
+        thieu.append("chưa cài onnxruntime")
+    # Nói rõ CÓ TỆP MÔ HÌNH nhưng THIẾU THƯ VIỆN — đây là cái bẫy đắt nhất:
+    # người dùng huấn luyện 4-8 tiếng, chép tệp lên máy chủ, rồi lớp này im
+    # lặng trả None vì onnxruntime chưa cài. Nhìn từ ngoài y hệt như "chưa
+    # huấn luyện", nên rất dễ đi huấn luyện lại lần nữa.
+    co_tep = os.path.exists(MODEL_PATH)
+    return {
+        "available": False,
+        "missing": thieu,
+        "model_file_present": co_tep,
+        "message": (
+            "ĐÃ CÓ tệp mô hình nhưng máy chủ thiếu onnxruntime — chạy "
+            "`pip install onnxruntime` rồi khởi động lại. Không cần huấn "
+            "luyện lại." if co_tep and "chưa cài onnxruntime" in thieu else
+            "Mô hình học sâu chưa sẵn sàng. Mã huấn luyện đã có sẵn trong "
+            "app/dl/ và chạy được trên máy có GPU: fetch → train → export. "
+            "Trong lúc chờ, các mô-đun vẫn dùng chỉ số phổ cổ điển — kém "
+            "hơn ở chỗ không thấy được ngữ cảnh không gian, nhưng đúng và "
+            "kiểm chứng được."),
+        "how_to": ["python -m app.dl.fetch --smoke",
+                   "python -m app.dl.fetch",
+                   "python -m app.dl.train --smoke",
+                   "python -m app.dl.train",
+                   "python -m app.dl.export"],
+    }
+
+
+def _status_ready() -> dict:
     c = _card or {}
     return {
         "available": True,
