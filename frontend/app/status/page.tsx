@@ -91,6 +91,24 @@ export default function StatusPage() {
                   <td>{t("Số mô-đun đang chạy", "Modules running")}</td>
                   <td>{h.modules}</td>
                 </tr>
+                {h.signing && (
+                  <tr>
+                    <td>{t("Khoá ký Hồ sơ đất số", "Land dossier signing key")}</td>
+                    <td>{h.signing.source === "env"
+                      ? t("✅ từ biến môi trường (không nằm trong CSDL)", "✅ from environment (not in the database)")
+                      : h.signing.source === "auto-db"
+                        ? t("⚠️ tự sinh, lưu trong CSDL — ai sửa được CSDL cũng ký lại được", "⚠️ auto-generated, stored in the database — anyone who can edit the database can re-sign")
+                        : t("⚠️ chưa có — hồ sơ đầu tiên sẽ tự sinh khoá trong CSDL", "⚠️ none yet — the first dossier will auto-generate a key in the database")}</td>
+                  </tr>
+                )}
+                {h.field_photos && (
+                  <tr>
+                    <td>{t("Ảnh thực địa trong CSDL", "Field photos in the database")}</td>
+                    <td>{h.field_photos.count} {t("ảnh", "photos")} · {(h.field_photos.bytes / 1024 / 1024).toFixed(1)} / {h.field_photos.max_mb} MB
+                      {h.field_photos.avg_kb != null && <> · {t("trung bình", "average")} {h.field_photos.avg_kb} KB</>}
+                      {" · "}{t(`tối đa ${h.field_photos.per_user_limit} ảnh/tài khoản`, `max ${h.field_photos.per_user_limit} per account`)}</td>
+                  </tr>
+                )}
               </tbody>
             </table>
 

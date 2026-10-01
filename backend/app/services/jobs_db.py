@@ -153,6 +153,21 @@ def args_of(db: Session, job_id: str) -> dict | None:
         return {}
 
 
+def requeue_running(db: Session, kinds: tuple[str, ...]) -> int:
+    """Lúc khởi động: việc thuộc `kinds` đang 'running' là việc của tiến trình
+    CŨ đã chết (Render free ngủ / deploy / hết RAM) — không ai ghi 'done' cho
+    nó nữa. Trả về 'queued' để worker mới chạy tiếp. CHỈ dùng cho kind mà hàm
+    xử lý tự đi tiếp từ chỗ dở (vd thẩm định hàng loạt lưu từng dòng), nếu
+    không sẽ làm lại từ đầu. Một tiến trình = an toàn; nhiều tiến trình thì phải
+    có khoá thuê (lease) — chưa cần ở quy mô hiện tại."""
+    rows = db.execute(select(Job).where(Job.kind.in_(kinds),
+                                        Job.state == "running")).scalars().all()
+    for j in rows:
+        j.state, j.started_at = "queued", None
+    db.commit()
+    return len(rows)
+
+
 def poll_and_run_one(db: Session) -> bool:
     """Giành một việc (nếu có) và chạy nó NGAY trong luồng gọi. Trả True nếu
     có việc để chạy — dùng làm nhịp cho vòng lặp worker nền (xem main.py)."""

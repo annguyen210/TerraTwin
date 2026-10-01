@@ -49,6 +49,7 @@ Render cấp cho bạn 2 URL, ví dụ:
 |---|---|---|
 | `terratwin-web` | `NEXT_PUBLIC_API` | URL của **api** (vd `https://terratwin-api.onrender.com`) |
 | `terratwin-api` | `TERRATWIN_DATABASE_URL` | URL Neon loại **Direct** — thiếu biến này app rơi về SQLite trên đĩa tạm và mất dữ liệu mỗi lần khởi động lại |
+| `terratwin-api` | `TERRATWIN_SIGNING_KEY` | Khoá ký **Hồ sơ đất số** (Ed25519). Sinh trong terminal riêng: `cd backend && .venv/Scripts/python.exe ../ops/gen_signing_key.py` → dán dòng trong `backend/.signing-key.txt` rồi **xoá tệp đó**. Thiếu biến này thì máy chủ tự sinh khoá và lưu **trong CSDL** — ai sửa được CSDL cũng ký lại được hồ sơ đã sửa; `/status` báo "⚠️ tự sinh". Đặt xong, phần bí mật của khoá tự sinh cũ bị xoá khỏi CSDL (khoá công khai giữ lại để hồ sơ cũ vẫn kiểm được). |
 | `terratwin-api` | `TERRATWIN_CORS` | URL của **web** (vd `https://terratwin-web.onrender.com`) |
 | `terratwin-api` | `TERRATWIN_PUBLIC_URL` | URL của **web** — để link một chạm trong cảnh báo trỏ đúng |
 

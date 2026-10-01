@@ -11,9 +11,13 @@ KHÔNG MÔ HÌNH MỚI: mỗi dòng chạy đúng các dịch vụ đã có — 
 của thửa dùng ĐÚNG quy tắc của danh mục đã lưu (portfolio.overview): chỉ tính
 mô-đun có dữ liệu thật VÀ là mối đe doạ — điện mặt trời "kém" không phải rủi ro.
 
-TRẦN 200 THỬA/LẦN: mỗi thửa tốn vài lượt gọi nguồn dữ liệu miễn phí (Open-Meteo,
-Planetary Computer). Danh mục lớn hơn thì chia nhiều lần — vượt hạn mức nguồn là
-MỌI người dùng mất dữ liệu, không riêng người chạy lô.
+TRẦN 50 THỬA/LẦN (gói miễn phí, xem max_rows): mỗi thửa tốn vài lượt gọi nguồn
+dữ liệu miễn phí (Open-Meteo, Planetary Computer). Vượt hạn mức nguồn là MỌI
+người dùng mất dữ liệu, không riêng người chạy lô.
+
+CHẠY TIẾP ĐƯỢC: kết quả ghi xuống bảng batch_runs SAU MỖI THỬA. Render free ngủ
+sau 15 phút không có request → tiến trình chết giữa lô; lần khởi động sau,
+jobs_db.requeue_running đưa việc về hàng đợi và hàm xử lý đi tiếp từ thửa dở.
 """
 from __future__ import annotations
 
@@ -23,7 +27,27 @@ import re
 
 from app.services.reqlang import tr
 
-MAX_ROWS = 200
+# TRẦN + NHỊP (review 2/10/2026): 200 thửa × (quét 18 mô-đun + 10 năm ERA5 + loại
+# đất) ≈ vài nghìn lượt gọi ra ngoài từ IP Render — IP mà Open-Meteo vốn đã từng
+# chặn. Gói miễn phí: 50 thửa/lần, tuần tự, nghỉ giữa các thửa, gặp hạn mức thì
+# TẠM DỪNG chứ không nã tiếp. Chỉnh được khi lên gói trả phí:
+#   TERRATWIN_BATCH_MAX_ROWS   (mặc định 50)
+#   TERRATWIN_BATCH_DELAY_S    (mặc định 3 giây giữa hai thửa)
+#   TERRATWIN_BATCH_PAUSE_S    (mặc định 60 giây mỗi lần chờ hạn mức)
+#   TERRATWIN_BATCH_MAX_PAUSES (mặc định 15 lần chờ ≈ 15 phút cho mỗi thửa)
+def _env_num(name: str, default: float) -> float:
+    import os
+    try:
+        return float(os.environ.get(name, "") or default)
+    except ValueError:
+        return default
+
+
+def max_rows() -> int:
+    return int(_env_num("TERRATWIN_BATCH_MAX_ROWS", 50))
+
+
+MAX_ROWS = 50   # giá trị mặc định, để hiển thị; dùng max_rows() khi chạy
 _RANK = {"danger": 0, "warning": 1, "safe": 2, "unknown": 3}
 
 # Tên cột chấp nhận (không phân biệt hoa thường, bỏ dấu cách/gạch).
@@ -99,11 +123,13 @@ def parse_csv(text: str) -> tuple[list[dict], list[dict]]:
         area = _num(get("area_ha"), decimal_comma)
         rows.append({"ref": ref, "lat": round(lat, 6), "lon": round(lon, 6),
                      "area_ha": area if area and area > 0 else None})
-        if len(rows) > MAX_ROWS:
+        if len(rows) > max_rows():
             errors.append({"line": n, "message": tr(
-                f"Quá {MAX_ROWS} thửa — chia thành nhiều lần chạy.",
-                f"More than {MAX_ROWS} plots — split into several runs.")})
-            rows = rows[:MAX_ROWS]
+                f"Quá {max_rows()} thửa — chỉ lấy {max_rows()} thửa đầu; chia phần còn lại "
+                "thành lần chạy khác (trần bảo vệ hạn mức nguồn dữ liệu miễn phí).",
+                f"More than {max_rows()} plots — only the first {max_rows()} are kept; split "
+                "the rest into another run (protects the free data sources' quota).")})
+            rows = rows[:max_rows()]
             break
     return rows, errors
 
@@ -238,8 +264,26 @@ def to_csv(rows: list[dict]) -> str:
 JOB_KIND = "batch_appraisal"
 
 
+def _wait_for_quota(report) -> bool:
+    """Nguồn dữ liệu đang bị chặn vì quá hạn mức (429)? Chờ — không nã tiếp.
+    True nếu đã thông; False nếu chờ đủ trần mà vẫn bị chặn (chạy tiếp, dòng
+    nào thiếu dữ liệu sẽ tự ghi thiếu)."""
+    import time
+
+    from app.services import realdata
+    pauses = int(_env_num("TERRATWIN_BATCH_MAX_PAUSES", 15))
+    for k in range(pauses):
+        ex = realdata.quota_status().get("exhausted") or []
+        if not ex:
+            return True
+        report("paused_quota", ex)
+        time.sleep(_env_num("TERRATWIN_BATCH_PAUSE_S", 60))
+    return not (realdata.quota_status().get("exhausted") or [])
+
+
 def _register() -> None:
     import json
+    import time
 
     from app.services import jobs_db, reqlang
 
@@ -250,20 +294,56 @@ def _register() -> None:
 
         reqlang.set_lang(args.get("lang"))
         job_id = args.get("_job_id")
+        rows = args["rows"]
 
-        def _progress(done: int, total: int, current: str) -> None:
-            jobs_db.report_progress(job_id, {"done": done, "total": total, "current": current})
+        from sqlalchemy import select
 
-        out = run(args["rows"], on_progress=_progress)
+        def _still_there(s) -> bool:
+            # Hỏi THẲNG CSDL — s.get() trả lại đối tượng đang giữ trong phiên này
+            # nên không bao giờ thấy được việc người dùng xoá lô từ phiên khác.
+            return s.execute(select(BatchRun.id).where(BatchRun.id == job_id)).first() is not None
+
         with _db.SessionLocal() as s:
-            s.add(BatchRun(id=job_id, user_id=int(args["user_id"]),
-                           title=str(args.get("title") or "")[:200],
-                           n_rows=len(out["rows"]),
-                           summary_json=json.dumps(out["summary"], ensure_ascii=False),
-                           rows_json=json.dumps(out["rows"], ensure_ascii=False)))
+            run_row = s.get(BatchRun, job_id)
+            if run_row is None and args.get("run_created"):
+                return {"run_id": job_id, "cancelled": True}   # đã xoá trước khi chạy
+            if run_row is None:                      # lô gửi từ bản cũ chưa tạo sẵn
+                run_row = BatchRun(id=job_id, user_id=int(args["user_id"]),
+                                   title=str(args.get("title") or "")[:200],
+                                   n_rows=len(rows), rows_json="[]", state="queued")
+                s.add(run_row)
+            done = json.loads(run_row.rows_json or "[]")   # chạy TIẾP từ thửa dở
+            run_row.state = "running"
             s.commit()
-        # Kết quả ĐẦY ĐỦ nằm ở batch_runs (bền); hàng đợi chỉ giữ bản tóm tắt.
-        return {"run_id": job_id, "summary": out["summary"]}
+
+            def report(phase: str, extra=None) -> None:
+                jobs_db.report_progress(job_id, {"done": len(done), "total": len(rows),
+                                                 "current": rows[len(done)]["ref"]
+                                                 if len(done) < len(rows) else "",
+                                                 "phase": phase, "detail": extra})
+
+            for i in range(len(done), len(rows)):
+                _wait_for_quota(report)
+                report("running")
+                try:
+                    done.append(appraise(rows[i]))
+                except Exception:
+                    done.append({**rows[i], "risk_level": "unknown", "error": tr(
+                        "Lỗi khi thẩm định thửa này.", "Error appraising this plot.")})
+                # Ghi SAU MỖI THỬA: máy chủ chết lúc này thì lần sau đi tiếp từ i+1.
+                if not _still_there(s):              # người dùng đã xoá lô
+                    return {"run_id": job_id, "cancelled": True}
+                run_row.rows_json = json.dumps(done, ensure_ascii=False)
+                s.commit()
+                if i < len(rows) - 1:
+                    time.sleep(_env_num("TERRATWIN_BATCH_DELAY_S", 3))
+
+            summary = summarize(done)
+            run_row.summary_json = json.dumps(summary, ensure_ascii=False)
+            run_row.state = "done"
+            s.commit()
+        report("done")
+        return {"run_id": job_id, "summary": summary}
 
 
 _register()

@@ -577,9 +577,12 @@ class BatchRun(Base):
     user_id: Mapped[int] = mapped_column(Integer, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
     title: Mapped[str] = mapped_column(String(200), default="")
-    n_rows: Mapped[int] = mapped_column(Integer, default=0)
+    n_rows: Mapped[int] = mapped_column(Integer, default=0)        # số thửa ĐÃ GỬI
     summary_json: Mapped[str] = mapped_column(Text, default="{}")
-    rows_json: Mapped[str] = mapped_column(Text, default="[]")
+    rows_json: Mapped[str] = mapped_column(Text, default="[]")       # kết quả TỪNG thửa, ghi dần
+    # queued | running | done — ghi kết quả sau MỖI thửa để máy chủ chết giữa lô
+    # thì chạy tiếp được từ thửa dở (services/batch.py, jobs_db.requeue_running).
+    state: Mapped[str] = mapped_column(String(12), default="done")
 
 
 class FieldPhoto(Base):
@@ -621,6 +624,9 @@ class FieldPhoto(Base):
 # trong MỘT giao dịch nên app không khởi động nổi — hỏng ở đúng nơi không ai
 # gỡ được. Dùng `TIMESTAMP`: chuẩn SQL, PostgreSQL hiểu, SQLite cũng nhận.
 _ADDED_COLUMNS = [
+    # Thẩm định hàng loạt chạy tiếp được sau khi máy chủ ngủ (2/10/2026). Bảng
+    # đã chạy trên production với các lô đã xong → mặc định 'done'.
+    ("batch_runs", "state", "VARCHAR(12) DEFAULT 'done'"),
     ("api_keys", "calls_total", "INTEGER DEFAULT 0"),
     ("api_keys", "calls_period", "INTEGER DEFAULT 0"),
     ("api_keys", "period", "VARCHAR(7) DEFAULT ''"),

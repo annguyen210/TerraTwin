@@ -231,6 +231,7 @@ export default function PlotPlan({
           >
             🖨️ {t("In / lưu", "Print / save")}
           </button>
+          {getToken() ? (
           <label
             className="plan-print plan-photo-pick"
             title={t("Ảnh GỐC chụp tại thửa (còn GPS) — TerraTwin kiểm vị trí, thời điểm, dấu chỉnh sửa và ảnh dùng lại",
@@ -247,6 +248,13 @@ export default function PlotPlan({
               onChange={(e) => setPhotos(Array.from(e.target.files ?? []).slice(0, 6))}
             />
           </label>
+          ) : (
+            <span className="plan-print plan-photo-pick" aria-disabled="true"
+                  title={t("Đăng nhập để kèm ảnh thực địa (mỗi tài khoản có trần số ảnh). Hồ sơ không kèm ảnh vẫn phát hành được.",
+                           "Sign in to attach field photos (each account has a photo limit). Dossiers without photos can still be issued.")}>
+              📷 {t("Đăng nhập để kèm ảnh", "Sign in to add photos")}
+            </span>
+          )}
           <button
             className="plan-print plan-issue-btn"
             disabled={issuing !== null}

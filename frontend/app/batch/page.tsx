@@ -34,10 +34,12 @@ export default function BatchPage() {
   const [busy, setBusy] = useState(false);
   const [runs, setRuns] = useState<BatchRunInfo[]>([]);
   const [current, setCurrent] = useState<BatchState | null>(null);
+  const [maxRows, setMaxRows] = useState(50);
 
   const refreshRuns = useCallback(async () => {
     const r = await listBatches();
     setRuns(r.runs);
+    if (r.max_rows) setMaxRows(r.max_rows);
     return r;
   }, []);
 
@@ -96,8 +98,8 @@ export default function BatchPage() {
       <main className="bat-wrap">
         <h1>{t("Thẩm định hàng loạt", "Batch appraisal")}</h1>
         <p className="doc-lede">{t(
-          "Dán hoặc tải lên bảng toạ độ nhiều thửa (tối đa 200). Mỗi thửa được kiểm loại đất thật (ESA WorldCover), rủi ro hiện tại từ dữ liệu thật và mười năm hiểm hoạ — rồi gộp thành bảng rủi ro cả danh mục.",
-          "Paste or upload a table of plot coordinates (up to 200). Each plot gets its real land type (ESA WorldCover), current risk from real data and ten years of hazards — then everything is rolled up into a portfolio risk table.")}</p>
+          `Dán hoặc tải lên bảng toạ độ nhiều thửa (tối đa ${maxRows} thửa mỗi lần). Mỗi thửa được kiểm loại đất thật (ESA WorldCover), rủi ro hiện tại từ dữ liệu thật và mười năm hiểm hoạ — rồi gộp thành bảng rủi ro cả danh mục.`,
+          `Paste or upload a table of plot coordinates (up to ${maxRows} per run). Each plot gets its real land type (ESA WorldCover), current risk from real data and ten years of hazards — then everything is rolled up into a portfolio risk table.`)}</p>
 
         {authed === false && (
           <p className="doc-note">{t("Cần đăng nhập — kết quả là danh mục của tổ chức bạn, chỉ bạn xem được. ",
@@ -142,7 +144,12 @@ export default function BatchPage() {
                 <div className="bat-bar"><span style={{ width: `${current.progress?.total ? (100 * current.progress.done) / current.progress.total : 3}%` }} /></div>
                 <small>{current.progress?.done ?? 0}/{current.progress?.total ?? "?"} {t("thửa", "plots")}
                   {current.progress?.current ? ` · ${current.progress.current}` : ""}
-                  {" · "}{t("có thể mất vài phút; đóng trang vẫn chạy tiếp.", "may take a few minutes; it keeps running if you close the page.")}</small>
+                  {current.progress?.phase === "paused_quota" &&
+                    <> · <b>{t("đang TẠM DỪNG: nguồn dữ liệu miễn phí báo quá hạn mức — tự chạy tiếp khi thông",
+                               "PAUSED: a free data source reports its quota exceeded — resumes automatically")}</b></>}</small>
+                <p className="bat-keepopen">{t(
+                  "Giữ trang này mở tới khi xong. Máy chủ gói miễn phí ngủ sau 15 phút không có ai truy cập; nếu bạn đóng trang, lô sẽ dừng và tự chạy tiếp từ thửa dở khi bạn mở lại trang này.",
+                  "Keep this page open until it finishes. The free-tier server sleeps after 15 minutes with no visitors; if you close the page the batch pauses and resumes from the last plot when you reopen this page.")}</p>
               </section>
             )}
             {current?.state === "error" && <p className="bat-err">{current.message ?? current.error}</p>}

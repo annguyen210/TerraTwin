@@ -189,3 +189,44 @@ def test_ngoai_pham_vi_tu_choi(env, monkeypatch):
 def test_ma_khong_ton_tai_404(env):
     c, _ = env
     assert c.get("/api/dossier/khongcoma123").status_code == 404
+
+
+def test_khoa_tu_sinh_bi_danh_dau_muc_tin_thap_va_bao_o_health(env):
+    c, _ = env
+    d = _issue(c)
+    sig = [x for x in d["verification"]["checks"] if x["id"] == "signature"][0]
+    assert sig["ok"] is True and sig["weak_key"] is True and "TỰ SINH" in sig["label"]
+    h = c.get("/api/health").json()["signing"]
+    assert h["source"] == "auto-db" and "CẢNH BÁO" in h["message"]
+
+
+def test_dat_khoa_moi_truong_thi_xoa_bi_mat_cu_ma_ho_so_cu_van_kiem_duoc(env, monkeypatch):
+    """Khoá ký nằm cùng CSDL với dữ liệu nó bảo vệ thì người sửa được CSDL cũng
+    ký lại được. Có khoá môi trường → xoá phần BÍ MẬT của khoá tự sinh, giữ phần
+    CÔNG KHAI để hồ sơ cũ vẫn kiểm được."""
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    from app.db import SigningKey
+    c, Session = env
+    old = _issue(c)
+    with Session() as s:
+        assert s.query(SigningKey).filter(SigningKey.private_b64.isnot(None)).count() == 1
+
+    seed = Ed25519PrivateKey.generate().private_bytes(
+        serialization.Encoding.Raw, serialization.PrivateFormat.Raw, serialization.NoEncryption())
+    monkeypatch.setenv("TERRATWIN_SIGNING_KEY", base64.b64encode(seed).decode())
+    new = _issue(c, 11.0)
+    with Session() as s:
+        assert s.query(SigningKey).filter(SigningKey.private_b64.isnot(None)).count() == 0
+        assert s.query(SigningKey).count() == 2, "giữ khoá công khai cũ"
+    assert c.get(f"/api/dossier/{old['id']}").json()["verification"]["valid"] is True
+    sig = [x for x in new["verification"]["checks"] if x["id"] == "signature"][0]
+    assert sig["weak_key"] is False and new["proof"]["key_id"] != old["proof"]["key_id"]
+    assert c.get("/api/health").json()["signing"]["source"] == "env"
+
+
+def test_che_do_nghiem_khong_tu_sinh_khoa(env, monkeypatch):
+    c, _ = env
+    monkeypatch.setenv("TERRATWIN_STRICT", "1")
+    r = c.post("/api/dossier", json={"lat": 16.46, "lon": 107.59})
+    assert r.status_code == 503 and "TERRATWIN_SIGNING_KEY" in r.json()["detail"]

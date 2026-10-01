@@ -190,9 +190,16 @@ def verify_row(db: Session, row: Dossier) -> dict:
         "Registry entry intact" if ok else "Registry entry altered (seq/time/id)")})
 
     ok = signing.verify(db, row.entry_hash.encode("ascii"), row.signature, row.key_id)
-    checks.append({"id": "signature", "ok": ok, "label": tr(
-        f"Chữ ký Ed25519 hợp lệ (khoá {row.key_id})" if ok else "Chữ ký KHÔNG hợp lệ",
-        f"Valid Ed25519 signature (key {row.key_id})" if ok else "Signature INVALID")})
+    # Khoá tự sinh lưu trong CSDL: chữ ký vẫn đúng toán học, nhưng ai sửa được CSDL
+    # cũng ký lại được — nói ra ngay trên dòng kiểm, không giấu ở tài liệu.
+    weak = signing.key_source(db, row.key_id) == "auto"
+    checks.append({"id": "signature", "ok": ok, "weak_key": weak, "label": tr(
+        (f"Chữ ký Ed25519 hợp lệ (khoá {row.key_id})" + (
+            " — khoá TỰ SINH lưu trong CSDL, mức tin thấp hơn" if weak else ""))
+        if ok else "Chữ ký KHÔNG hợp lệ",
+        (f"Valid Ed25519 signature (key {row.key_id})" + (
+            " — AUTO-GENERATED key stored in the database, weaker trust" if weak else ""))
+        if ok else "Signature INVALID")})
 
     if row.seq == 1:
         ok = row.prev_hash == GENESIS

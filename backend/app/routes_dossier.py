@@ -68,7 +68,10 @@ def issue_dossier(body: DossierIn, lang: str = "vi",
         # Đóng băng vào nội dung đã ký: SHA-256 bản gốc + mã băm ảnh thu nhỏ —
         # thay ảnh trong CSDL là lệch mã băm (phép kiểm "evidence").
         facts["field_evidence"] = [evidence.public(p) for p in photos]
-    row = dossier.issue(db, facts, body.lat, body.lon, user_id=user.id if user else None)
+    try:
+        row = dossier.issue(db, facts, body.lat, body.lon, user_id=user.id if user else None)
+    except signing.SigningKeyMissing as e:
+        raise HTTPException(503, str(e))
     for p in photos:
         p.dossier_id = p.dossier_id or row.id
     db.commit()
@@ -83,11 +86,18 @@ class PhotoIn(Location):
 
 @router.post("/api/evidence")
 def upload_evidence(body: PhotoIn, lang: str = "vi",
-                    user: User | None = Depends(auth.optional_user),
+                    user: User = Depends(auth.current_user),
                     db: Session = Depends(get_session)) -> dict:
     """Kiểm MỘT ảnh thực địa cho một thửa (GPS, khoảng cách, thời điểm, dấu chỉnh
-    sửa, dùng lại) và lưu ảnh thu nhỏ đã xoá EXIF. Trả mã để gắn vào hồ sơ."""
+    sửa, dùng lại) và lưu ảnh thu nhỏ đã xoá EXIF. Trả mã để gắn vào hồ sơ.
+
+    CẦN ĐĂNG NHẬP: ảnh nằm trong CSDL có trần dung lượng (Neon miễn phí 0,5 GB),
+    nên phải có trần mỗi tài khoản — ẩn danh thì không đặt trần được. Hồ sơ đất
+    số KHÔNG kèm ảnh vẫn phát hành được khi chưa đăng nhập."""
     reqlang.set_lang(lang)
+    why = evidence.check_quota(db, user.id)
+    if why:
+        raise HTTPException(429, why)
     try:
         data = base64.b64decode(body.data_b64, validate=True)
     except (binascii.Error, ValueError):
@@ -97,7 +107,7 @@ def upload_evidence(body: PhotoIn, lang: str = "vi",
         res = evidence.analyze(db, data, body.lat, body.lon, body.area_ha)
     except evidence.PhotoError as e:
         raise HTTPException(422, str(e))
-    row = evidence.store(db, res, body.lat, body.lon, user_id=user.id if user else None)
+    row = evidence.store(db, res, body.lat, body.lon, user_id=user.id)
     return {**evidence.public(row), "name": body.name}
 
 

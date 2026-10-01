@@ -13,7 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import auth
-from app.db import BatchRun, Job, User, get_session
+from app.db import BatchRun, User, get_session
 from app.services import batch, jobs_db, reqlang
 
 router = APIRouter(tags=["batch"])
@@ -24,15 +24,21 @@ class BatchIn(BaseModel):
     title: str = Field(default="", max_length=200)
 
 
-def _active_job(db: Session, user_id: int) -> Job | None:
-    for j in db.execute(select(Job).where(Job.kind == batch.JOB_KIND,
-                                          Job.state.in_(("queued", "running")))).scalars():
-        try:
-            if json.loads(j.args_json or "{}").get("user_id") == user_id:
-                return j
-        except ValueError:
-            continue
-    return None
+def _active_run(db: Session, user_id: int) -> BatchRun | None:
+    return db.execute(select(BatchRun).where(BatchRun.user_id == user_id,
+                                             BatchRun.state.in_(("queued", "running")))
+                      .order_by(BatchRun.created_at.desc())).scalars().first()
+
+
+def _progress(db: Session, r: BatchRun) -> dict:
+    """Tiến độ: ưu tiên bản việc nền đang báo (có pha 'chờ hạn mức'); máy chủ vừa
+    thức dậy chưa ai báo thì tự đếm số thửa đã ghi."""
+    st = jobs_db.status(db, r.id) or {}
+    p = st.get("progress") or {}
+    done = len(json.loads(r.rows_json or "[]"))
+    return {"done": max(done, int(p.get("done") or 0)), "total": r.n_rows,
+            "current": p.get("current") or "", "phase": p.get("phase") or r.state,
+            "detail": p.get("detail")}
 
 
 @router.get("/api/batch/template")
@@ -52,7 +58,7 @@ def submit_batch(body: BatchIn, lang: str = "vi",
     if not rows:
         raise HTTPException(422, {"message": reqlang.tr("Không có dòng hợp lệ nào.",
                                                         "No valid rows."), "errors": errors})
-    active = _active_job(db, user.id)
+    active = _active_run(db, user.id)
     if active is not None:
         # Một lô một lúc cho mỗi tài khoản: mỗi thửa đã gọi nguồn dữ liệu miễn phí.
         raise HTTPException(409, {"message": reqlang.tr(
@@ -60,20 +66,27 @@ def submit_batch(body: BatchIn, lang: str = "vi",
             "You already have a batch running — wait for it to finish."), "job_id": active.id})
     job_id = jobs_db.submit(db, batch.JOB_KIND,
                             {"user_id": user.id, "rows": rows, "lang": reqlang.cur_lang(),
-                             "title": body.title},
+                             "title": body.title, "run_created": True},
                             label=f"Thẩm định {len(rows)} thửa")
+    # Tạo bản ghi NGAY: kết quả ghi dần vào đây sau mỗi thửa (chạy tiếp được).
+    db.add(BatchRun(id=job_id, user_id=user.id, title=body.title[:200], n_rows=len(rows),
+                    rows_json="[]", state="queued"))
+    db.commit()
     return {"job_id": job_id, "rows": len(rows), "errors": errors,
-            "poll": f"/api/batch/{job_id}"}
+            "max_rows": batch.max_rows(), "poll": f"/api/batch/{job_id}"}
 
 
 @router.get("/api/batch")
 def list_batches(user: User = Depends(auth.current_user),
                  db: Session = Depends(get_session)) -> dict:
-    runs = db.execute(select(BatchRun).where(BatchRun.user_id == user.id)
+    runs = db.execute(select(BatchRun).where(BatchRun.user_id == user.id,
+                                             BatchRun.state == "done")
                       .order_by(BatchRun.created_at.desc()).limit(50)).scalars().all()
-    active = _active_job(db, user.id)
+    active = _active_run(db, user.id)
     return {
-        "active": jobs_db.status(db, active.id) if active else None,
+        "max_rows": batch.max_rows(),
+        "active": ({"id": active.id, "state": active.state, "progress": _progress(db, active)}
+                   if active else None),
         "runs": [{"id": r.id, "title": r.title, "n_rows": r.n_rows,
                   "created_at": r.created_at.isoformat(timespec="seconds") + "Z",
                   "headline": json.loads(r.summary_json or "{}").get("headline")}
@@ -91,15 +104,14 @@ def get_batch(run_id: str, user: User = Depends(auth.current_user),
               db: Session = Depends(get_session)) -> dict:
     """Xong → kết quả đầy đủ (bền). Đang chạy → tiến độ. Không phải của bạn → 404."""
     r = _own_run(db, run_id, user)
-    if r is not None:
+    if r is None:
+        raise HTTPException(404, reqlang.tr("Không có lần thẩm định này.", "No such batch."))
+    if r.state == "done":
         return {"id": r.id, "state": "done", "title": r.title,
                 "created_at": r.created_at.isoformat(timespec="seconds") + "Z",
                 "summary": json.loads(r.summary_json), "rows": json.loads(r.rows_json)}
-    args = jobs_db.args_of(db, run_id)
-    if args is None or args.get("user_id") != user.id:
-        raise HTTPException(404, reqlang.tr("Không có lần thẩm định này.", "No such batch."))
     st = jobs_db.status(db, run_id) or {}
-    return {"id": run_id, "state": st.get("state"), "progress": st.get("progress"),
+    return {"id": r.id, "state": r.state, "title": r.title, "progress": _progress(db, r),
             "error": st.get("error"), "message": st.get("message")}
 
 
@@ -107,8 +119,9 @@ def get_batch(run_id: str, user: User = Depends(auth.current_user),
 def batch_csv(run_id: str, user: User = Depends(auth.current_user),
               db: Session = Depends(get_session)) -> Response:
     r = _own_run(db, run_id, user)
-    if r is None:
-        raise HTTPException(404, reqlang.tr("Không có lần thẩm định này.", "No such batch."))
+    if r is None or r.state != "done":
+        raise HTTPException(404, reqlang.tr("Không có lần thẩm định đã xong này.",
+                                            "No finished batch with this ID."))
     return Response(batch.to_csv(json.loads(r.rows_json)), media_type="text/csv; charset=utf-8",
                     headers={"Content-Disposition": f'attachment; filename="terratwin-tham-dinh-{r.id[:8]}.csv"'})
 

@@ -1531,6 +1531,11 @@ export type HealthStatus = {
   };
   calls: { total: number; cache_hits: number; hit_rate_pct: number | null };
   radar: { last_sweep_at: string | null; last_sweep: Record<string, unknown> | null };
+  database?: { kind: string; provider: string | null; message: string | null };
+  // Khoá ký Hồ sơ đất số: "env" (an toàn) / "auto-db" (tự sinh, nằm trong CSDL) / "none".
+  signing?: { source: "env" | "auto-db" | "none"; key_id?: string; message: string | null } | null;
+  field_photos?: { count: number; bytes: number; avg_kb: number | null; max_mb: number;
+                   used_pct: number | null; per_user_limit: number } | null;
 };
 export function getHealth() {
   return getJson<HealthStatus>("/api/health", "Không tải được trạng thái hệ thống");
@@ -2199,7 +2204,8 @@ export type BatchRowError = { line: number; message: string };
 export type BatchState = {
   id: string; state: "queued" | "running" | "done" | "error" | null;
   title?: string; created_at?: string;
-  progress?: { done: number; total: number; current: string };
+  // phase "paused_quota": nguồn dữ liệu đang chặn vì quá hạn mức — lô TẠM DỪNG chờ.
+  progress?: { done: number; total: number; current: string; phase?: string; detail?: unknown };
   summary?: BatchSummary; rows?: BatchRow[]; error?: string; message?: string;
 };
 export type BatchRunInfo = { id: string; title: string; n_rows: number; created_at: string; headline: string | null };
@@ -2228,7 +2234,7 @@ export function getBatch(id: string) {
 }
 
 export function listBatches() {
-  return authed<{ active: { id: string; state: string; progress?: BatchState["progress"] } | null; runs: BatchRunInfo[] }>(
+  return authed<{ max_rows: number; active: { id: string; state: string; progress?: BatchState["progress"] } | null; runs: BatchRunInfo[] }>(
     "/api/batch", {}, "Không tải được lịch sử thẩm định");
 }
 

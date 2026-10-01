@@ -257,6 +257,17 @@ async def lifespan(_app: FastAPI):
 
     jobs_task = None
     if _JOBS_POLL_INTERVAL_S > 0:
+        # Lô thẩm định bị bỏ dở vì tiến trình cũ chết (Render free ngủ sau 15
+        # phút không có request) → chạy tiếp từ thửa dở, không bắt gửi lại.
+        try:
+            from app.db import SessionLocal
+            from app.services import batch as _batch, jobs_db as _jobs_db
+            with SessionLocal() as _s:
+                n = _jobs_db.requeue_running(_s, (_batch.JOB_KIND,))
+            if n:
+                log(f"[TerraTwin] Chạy tiếp {n} lô thẩm định bị bỏ dở.")
+        except Exception as e:      # không được chặn khởi động
+            log(f"[TerraTwin] Không khôi phục được lô dở: {type(e).__name__}")
         jobs_task = asyncio.create_task(_jobs_poll_loop())
     try:
         yield
@@ -420,10 +431,23 @@ def health() -> dict:
             if db_kind == "sqlite" and is_prod else None),
     }
 
+    # Khoá ký Hồ sơ đất số + dung lượng ảnh thực địa (CSDL miễn phí có trần).
+    signing_info, photos = None, None
+    try:
+        from app.db import SessionLocal
+        from app.services import evidence, signing
+        with SessionLocal() as _s:
+            signing_info = signing.source_info(_s)
+            photos = evidence.storage_stats(_s)
+    except Exception:
+        pass
+
     return {"status": "degraded" if q["exhausted"] else "ok",
             "service": "terratwin", "modules": len(list_modules()),
             "quota": q, "jobs": jobs.stats(), "email": email,
             "database": database,
+            "signing": signing_info,
+            "field_photos": photos,
             # Đếm lời gọi ra ngoài từ lúc tiến trình này khởi động + tỉ lệ
             # trúng cache — chẩn đoán "đang gọi thừa ở đâu" thay vì đoán. Có 6
             # nhóm URL Open-Meteo/MET Norway khác nhau; hit_rate_pct thấp là

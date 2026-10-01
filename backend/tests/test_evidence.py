@@ -187,9 +187,47 @@ def client(tmp_path, monkeypatch):
     app.dependency_overrides.clear()
 
 
-def _upload(c, raw, lat=PLOT[0], lon=PLOT[1]):
+_TOKENS: dict = {}
+
+
+def _auth(c, email="chu-dat@vd.vn"):
+    """Tải ảnh cần đăng nhập (ảnh nằm trong CSDL có trần dung lượng)."""
+    key = (id(c), email)
+    if key not in _TOKENS:
+        r = c.post("/api/auth/register", json={"email": email, "password": "MatKhau123", "name": "A"})
+        _TOKENS[key] = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    return _TOKENS[key]
+
+
+def _upload(c, raw, lat=PLOT[0], lon=PLOT[1], headers=None):
     return c.post("/api/evidence", json={"lat": lat, "lon": lon, "name": "a.jpg",
-                                         "data_b64": base64.b64encode(raw).decode()})
+                                         "data_b64": base64.b64encode(raw).decode()},
+                  headers=_auth(c) if headers is None else headers)
+
+
+def test_tai_anh_can_dang_nhap(client):
+    c, _ = client
+    assert _upload(c, photo(seed=1), headers={}).status_code == 401
+
+
+def test_tran_anh_moi_tai_khoan(client, monkeypatch):
+    c, _ = client
+    monkeypatch.setenv("TERRATWIN_PHOTOS_PER_USER", "2")
+    h = _auth(c, "tran@vd.vn")
+    assert _upload(c, photo(seed=21), headers=h).status_code == 200
+    assert _upload(c, photo(seed=22), headers=h).status_code == 200
+    r = _upload(c, photo(seed=23), headers=h)
+    assert r.status_code == 429 and "trần 2 ảnh" in r.json()["detail"]
+
+
+def test_tran_dung_luong_toan_he_thong_va_bao_o_health(client, monkeypatch):
+    c, _ = client
+    assert _upload(c, photo(seed=31)).status_code == 200
+    st = c.get("/api/health").json()["field_photos"]
+    assert st["count"] == 1 and st["bytes"] > 0 and st["avg_kb"] > 0
+    monkeypatch.setenv("TERRATWIN_PHOTOS_MAX_MB", "0.00001")    # ~10 byte: đã đầy
+    r = _upload(c, photo(seed=32))
+    assert r.status_code == 429 and "đầy" in r.json()["detail"]
 
 
 def test_api_kiem_anh_khong_tra_toa_do_gps(client):

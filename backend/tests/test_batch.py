@@ -45,10 +45,12 @@ def test_thieu_cot_toa_do():
     assert rows == [] and "Thiếu cột toạ độ" in errs[0]["message"]
 
 
-def test_tran_so_thua():
-    body = "lat,lon\n" + "".join(f"{10 + i / 1000},106\n" for i in range(batch.MAX_ROWS + 5))
+def test_tran_so_thua_mac_dinh_50_va_chinh_duoc(monkeypatch):
+    body = "lat,lon\n" + "".join(f"{10 + i / 1000},106\n" for i in range(80))
     rows, errs = batch.parse_csv(body)
-    assert len(rows) == batch.MAX_ROWS and any("chia thành nhiều lần" in e["message"] for e in errs)
+    assert len(rows) == 50 and any("chia phần còn lại" in e["message"] for e in errs)
+    monkeypatch.setenv("TERRATWIN_BATCH_MAX_ROWS", "70")
+    assert len(batch.parse_csv(body)[0]) == 70
 
 
 def test_csv_xuat_chong_cong_thuc_excel():
@@ -89,7 +91,10 @@ def env(tmp_path, monkeypatch):
     dbmod.Base.metadata.create_all(engine)
     monkeypatch.setattr(dbmod, "engine", engine)
     monkeypatch.setattr(dbmod, "SessionLocal", Session)
-    monkeypatch.setattr(batch, "appraise", lambda row: {
+    monkeypatch.setenv("TERRATWIN_BATCH_DELAY_S", "0")
+    monkeypatch.setattr(batch, "_wait_for_quota", lambda report: True)
+    calls = []
+    monkeypatch.setattr(batch, "appraise", lambda row: calls.append(row["ref"]) or {
         **row, "land_group": "crop", "land_label": "Đất trồng trọt", "risk_level": "warning",
         "score": 70, "grade": "B", "drivers": ["Hạn"], "history_10y": {"drought": 2},
         "real_data_ratio": 0.9, "error": None})
@@ -103,6 +108,7 @@ def env(tmp_path, monkeypatch):
             s.close()
     app.dependency_overrides[dbmod.get_session] = _session
     with TestClient(app) as c:
+        c.calls = calls
         yield c, Session
     app.dependency_overrides.clear()
 
@@ -202,3 +208,71 @@ def test_xoa_tai_khoan_xoa_lo_nhung_giu_ho_so_cong_khai(env, monkeypatch):
         assert s.query(BatchRun).count() == 0
         assert s.get(Dossier, did).user_id is None
     assert c.get(f"/api/dossier/{did}").json()["verification"]["valid"] is True
+
+
+def test_may_chu_chet_giua_lo_thi_chay_tiep_tu_thua_do(env):
+    """Render free ngủ sau 15 phút không có request: tiến trình chết giữa lô.
+    Lần khởi động sau, lô quay về hàng đợi và đi TIẾP — không làm lại thửa đã xong."""
+    import json as _json
+
+    from app.db import BatchRun, Job
+    from app.services import jobs_db
+    c, Session = env
+    h = _login(c)
+    jid = c.post("/api/batch", json={"csv": CSV}, headers=h).json()["job_id"]
+    with Session() as s:                                   # giả lập: đã xong KV-1 rồi chết
+        r = s.get(BatchRun, jid)
+        r.rows_json = _json.dumps([{"ref": "KV-1", "lat": 16.46, "lon": 107.59, "area_ha": 0.5,
+                                    "risk_level": "safe", "drivers": [], "history_10y": {}}])
+        r.state = "running"
+        s.get(Job, jid).state = "running"
+        s.commit()
+    p = c.get(f"/api/batch/{jid}", headers=h).json()
+    assert p["state"] == "running" and p["progress"]["done"] == 1 and p["progress"]["total"] == 2
+    with Session() as s:
+        assert jobs_db.requeue_running(s, (batch.JOB_KIND,)) == 1
+    _drain()
+    d = c.get(f"/api/batch/{jid}", headers=h).json()
+    assert d["state"] == "done" and [x["ref"] for x in d["rows"]] == ["KV-1", "KV-2"]
+    assert c.calls == ["KV-2"], "chỉ thẩm định thửa CÒN LẠI"
+
+
+def test_gap_han_muc_thi_tam_dung_khong_na_tiep(monkeypatch):
+    """Nguồn dữ liệu báo quá hạn mức → chờ (ngủ), kiểm lại, chỉ chạy khi thông."""
+    from app.services import realdata
+    states = [["api.open-meteo.com"], ["api.open-meteo.com"], []]
+    monkeypatch.setattr(realdata, "quota_status",
+                        lambda: {"exhausted": states.pop(0) if states else []})
+    slept, phases = [], []
+    monkeypatch.setattr("time.sleep", lambda s: slept.append(s))
+    monkeypatch.setenv("TERRATWIN_BATCH_PAUSE_S", "60")
+    assert batch._wait_for_quota(lambda ph, ex=None: phases.append(ph)) is True
+    assert slept == [60.0, 60.0] and phases == ["paused_quota", "paused_quota"]
+
+
+def test_xoa_lo_truoc_khi_chay_thi_khong_chay(env):
+    c, _ = env
+    h = _login(c)
+    jid = c.post("/api/batch", json={"csv": CSV}, headers=h).json()["job_id"]
+    assert c.delete(f"/api/batch/{jid}", headers=h).status_code == 204
+    _drain()
+    assert c.calls == [], "lô đã xoá không được tự tạo lại rồi chạy"
+    assert c.get(f"/api/batch/{jid}", headers=h).status_code == 404
+
+
+def test_xoa_lo_giua_chung_thi_dung_sau_thua_dang_chay(env, monkeypatch):
+    from app.db import BatchRun
+    c, Session = env
+    h = _login(c)
+    jid = c.post("/api/batch", json={"csv": CSV}, headers=h).json()["job_id"]
+    real = batch.appraise
+
+    def appraise_then_delete(row):
+        out = real(row)
+        with Session() as s:                               # người dùng bấm Xoá từ phiên khác
+            s.delete(s.get(BatchRun, jid))
+            s.commit()
+        return out
+    monkeypatch.setattr(batch, "appraise", appraise_then_delete)
+    _drain()
+    assert c.calls == ["KV-1"], "phải thấy lô đã bị xoá và dừng, không chạy KV-2"

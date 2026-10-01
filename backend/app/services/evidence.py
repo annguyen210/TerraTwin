@@ -32,6 +32,27 @@ from app.db import FieldPhoto
 from app.services.reqlang import tr
 
 MAX_BYTES = 8 * 1024 * 1024         # một ảnh điện thoại thường 2–6 MB
+
+# TRẦN LƯU TRỮ. Ảnh thu nhỏ nằm trong CSDL (LargeBinary) và Neon miễn phí chỉ có
+# 0,5 GB cho MỌI thứ. Ảnh thu nhỏ 640 px chất lượng 72: ĐO 2/10/2026 trên ảnh thật độ
+# phân giải cao Huế, Bến Tre, BMT: 52–91 KB, trung bình 68 KB → 200 MB ≈ 3.000 ảnh,
+# chừa ~300 MB cho bộ nhớ đệm và dữ liệu khác. Hai trần, chỉnh qua biến môi trường:
+#   TERRATWIN_PHOTOS_PER_USER  — số ảnh mỗi tài khoản (mặc định 60)
+#   TERRATWIN_PHOTOS_MAX_MB    — tổng dung lượng ảnh toàn hệ thống (mặc định 200)
+def per_user_limit() -> int:
+    return int(_env_num("TERRATWIN_PHOTOS_PER_USER", 60))
+
+
+def max_total_bytes() -> int:
+    return int(_env_num("TERRATWIN_PHOTOS_MAX_MB", 200) * 1024 * 1024)
+
+
+def _env_num(name: str, default: float) -> float:
+    import os
+    try:
+        return float(os.environ.get(name, "") or default)
+    except ValueError:
+        return default
 MAX_PIXELS = 50_000_000             # chặn "bom giải nén"
 THUMB_PX = 640
 FRESH_DAYS = 90                     # ảnh cũ hơn → hiện trạng có thể đã khác
@@ -271,3 +292,29 @@ def public(row: FieldPhoto) -> dict:
                          "ảnh của TerraTwin.",
                          "Supporting evidence: EXIF can be edited; the duplicate check only "
                          "covers TerraTwin's own photo store.")}
+
+
+def storage_stats(db: Session) -> dict:
+    """Số ảnh + dung lượng ảnh thu nhỏ đang nằm trong CSDL (cho /api/health)."""
+    from sqlalchemy import func
+    n, total = db.execute(select(func.count(FieldPhoto.id),
+                                 func.coalesce(func.sum(func.length(FieldPhoto.thumb)), 0))).one()
+    cap = max_total_bytes()
+    return {"count": int(n), "bytes": int(total),
+            "avg_kb": round(total / n / 1024, 1) if n else None,
+            "max_mb": round(cap / 1024 / 1024), "used_pct": round(100 * total / cap, 1) if cap else None,
+            "per_user_limit": per_user_limit()}
+
+
+def check_quota(db: Session, user_id: int) -> str | None:
+    """Còn được tải ảnh không. Trả câu lý do (đã dịch) nếu KHÔNG, None nếu được."""
+    from sqlalchemy import func
+    mine = db.scalar(select(func.count(FieldPhoto.id)).where(FieldPhoto.user_id == user_id)) or 0
+    if mine >= per_user_limit():
+        return tr(f"Tài khoản đã có {mine} ảnh thực địa — chạm trần {per_user_limit()} ảnh.",
+                  f"Your account already has {mine} field photos — the limit is {per_user_limit()}.")
+    used = db.scalar(select(func.coalesce(func.sum(func.length(FieldPhoto.thumb)), 0))) or 0
+    if used >= max_total_bytes():
+        return tr("Kho ảnh thực địa của hệ thống đã đầy — báo quản trị viên.",
+                  "The system's field-photo store is full — contact the administrator.")
+    return None

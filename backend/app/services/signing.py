@@ -29,7 +29,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PrivateKey, Ed25519PublicKey,
 )
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.db import SigningKey
@@ -76,8 +76,19 @@ def current_key(db: Session) -> tuple[Ed25519PrivateKey, str, str]:
             if db.get(SigningKey, kid) is None:
                 db.add(SigningKey(key_id=kid, public_b64=_b64(pub), private_b64=None,
                                   source="env"))
-                db.commit()
+            # Đã có khoá từ biến môi trường → XOÁ phần bí mật của mọi khoá tự sinh
+            # cũ. Khoá ký nằm cùng chỗ với dữ liệu nó bảo vệ thì người sửa được
+            # CSDL cũng ký lại được — lời hứa chống sửa mất nghĩa. Giữ public_b64:
+            # hồ sơ đã ký bằng khoá cũ vẫn KIỂM được, chỉ không ai KÝ thêm được.
+            db.execute(update(SigningKey).where(SigningKey.private_b64.is_not(None))
+                       .values(private_b64=None))
+            db.commit()
             return priv, kid, "env"
+
+        if _strict():
+            raise SigningKeyMissing(
+                "TERRATWIN_STRICT=1: chưa đặt TERRATWIN_SIGNING_KEY — không tự sinh "
+                "khoá lưu trong CSDL. Sinh khoá bằng ops/gen_signing_key.py.")
 
         row = db.execute(select(SigningKey).where(SigningKey.source == "auto",
                                                   SigningKey.private_b64.is_not(None))
@@ -96,6 +107,34 @@ def current_key(db: Session) -> tuple[Ed25519PrivateKey, str, str]:
                           source="auto"))
         db.commit()
         return priv, kid, "auto"
+
+
+class SigningKeyMissing(RuntimeError):
+    """Chế độ nghiêm (TERRATWIN_STRICT=1) mà chưa đặt TERRATWIN_SIGNING_KEY."""
+
+
+def _strict() -> bool:
+    return os.environ.get("TERRATWIN_STRICT", "").strip().lower() in ("1", "true", "yes")
+
+
+def source_info(db: Session) -> dict:
+    """Khoá đang ký lấy từ đâu — cho /api/health, /status. KHÔNG sinh khoá mới."""
+    if os.environ.get("TERRATWIN_SIGNING_KEY", "").strip():
+        return {"source": "env", "message": None}
+    auto = db.execute(select(SigningKey).where(SigningKey.source == "auto",
+                                               SigningKey.private_b64.is_not(None))).scalars().first()
+    if auto is not None:
+        return {"source": "auto-db", "key_id": auto.key_id, "message": (
+            "CẢNH BÁO: khoá ký Hồ sơ đất số đang TỰ SINH và lưu trong CSDL — ai sửa được "
+            "CSDL cũng ký lại được hồ sơ đã sửa. Đặt TERRATWIN_SIGNING_KEY (ops/gen_signing_key.py).")}
+    return {"source": "none", "message": (
+        "Chưa có khoá ký: hồ sơ đầu tiên sẽ tự sinh khoá lưu trong CSDL. Nên đặt "
+        "TERRATWIN_SIGNING_KEY trước (ops/gen_signing_key.py).")}
+
+
+def key_source(db: Session, key_id: str) -> str | None:
+    row = db.get(SigningKey, key_id)
+    return row.source if row else None
 
 
 def sign(db: Session, message: bytes) -> tuple[str, str]:
