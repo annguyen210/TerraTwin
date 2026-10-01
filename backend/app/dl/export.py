@@ -57,8 +57,16 @@ def main() -> int:
         "bands": ["B02", "B03", "B04", "B08"],
         "scale": "phản xạ chia 10000, cắt trần 1.0",
         "miou_holdout": ck["miou"], "iou_per_class": ck["iou"],
+        "pixel_acc_holdout": ck.get("pixel_acc"),
+        "miou_val": ck.get("miou_val"),
         "holdout_provinces": ck.get("holdout"),
-        "epoch": ck["epoch"],
+        "val_provinces": ck.get("val_sites"),
+        "n_train": ck.get("n_train"), "n_val": ck.get("n_val"), "n_test": ck.get("n_test"),
+        "trained_on": ck.get("device"), "base_channels": ck["base"],
+        "epoch": ck["epoch"], "epochs": ck.get("epochs"),
+        "input_harmonization": ("Ảnh Sentinel-2 processing baseline >= 04.00 (từ "
+                                "25/01/2022) phải TRỪ 1000 trước khi chia 10000 — "
+                                "mô hình học trên ảnh 2021. Xem services/landchange.py."),
         "labels": "ESA WorldCover 10 m (2021)",
         "note": ("Điểm số đo trên các tỉnh GIỮ LẠI HOÀN TOÀN khỏi tập huấn "
                  "luyện, không phải trên ô ngẫu nhiên — hai ô cách nhau 2 km "

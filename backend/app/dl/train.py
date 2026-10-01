@@ -92,7 +92,9 @@ def main() -> int:
     ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--base", type=int, default=32)
     ap.add_argument("--holdout", default="Cần Thơ,Đà Nẵng,Hà Giang,Cần Giờ",
-                    help="tỉnh giữ lại HOÀN TOÀN khỏi tập huấn luyện")
+                    help="tỉnh giữ lại HOÀN TOÀN — tập KIỂM TRA, chấm đúng MỘT lần cuối")
+    ap.add_argument("--val", default="Huế,Buôn Ma Thuột",
+                    help="tỉnh dùng để CHỌN checkpoint (kiểm định) — tách khỏi tập kiểm tra")
     ap.add_argument("--smoke", action="store_true")
     a = ap.parse_args()
 
@@ -142,19 +144,43 @@ def main() -> int:
     with open(os.path.join(os.path.dirname(a.data), "meta.json"), encoding="utf-8") as f:
         meta = json.load(f)["meta"]
 
-    # CHIA THEO TỈNH — xem lý do ở đầu tệp.
+    # CHIA THEO TỈNH — xem lý do ở đầu tệp. BA tập, không phải hai:
+    #   huấn luyện · KIỂM ĐỊNH (chọn checkpoint) · KIỂM TRA (chấm một lần cuối).
+    # Bản đầu chọn checkpoint tốt nhất THEO CHÍNH tập kiểm tra rồi báo điểm của
+    # nó — tức là đã nhìn đáp án lúc chọn, con số báo ra cao hơn thực tế. Nay
+    # tập kiểm tra không được đụng tới cho tới khi mô hình đã chốt.
     hold = {s.strip() for s in a.holdout.split(",") if s.strip()}
-    te_idx = [i for i, m in enumerate(meta)
-              if any(h in m["site"] for h in hold)]
-    tr_idx = [i for i in range(len(meta)) if i not in set(te_idx)]
-    if not te_idx or not tr_idx:
-        print("Chia tập hỏng — kiểm tra --holdout khớp tên trong meta.json")
+    valn = {s.strip() for s in a.val.split(",") if s.strip()}
+    te_idx = [i for i, m in enumerate(meta) if any(h in m["site"] for h in hold)]
+    va_idx = [i for i, m in enumerate(meta)
+              if any(h in m["site"] for h in valn) and i not in set(te_idx)]
+    tr_idx = [i for i in range(len(meta)) if i not in set(te_idx) | set(va_idx)]
+    if not te_idx or not tr_idx or not va_idx:
+        print("Chia tập hỏng — kiểm tra --holdout/--val khớp tên trong meta.json")
         return 1
-    print(f"\nHuấn luyện {len(tr_idx)} ô · kiểm tra {len(te_idx)} ô "
+    print(f"\nHuấn luyện {len(tr_idx)} ô · kiểm định {len(va_idx)} ô "
+          f"({', '.join(sorted(valn))}) · kiểm tra {len(te_idx)} ô "
           f"(giữ lại hoàn toàn: {', '.join(sorted(hold))})")
 
     Xtr = torch.from_numpy(X[tr_idx]); Ytr = torch.from_numpy(Y[tr_idx]).long()
+    Xva = torch.from_numpy(X[va_idx]); Yva = torch.from_numpy(Y[va_idx]).long()
     Xte = torch.from_numpy(X[te_idx]); Yte = torch.from_numpy(Y[te_idx]).long()
+
+    def evaluate(net, Xs, Ys):
+        net.eval()
+        conf = torch.zeros(N_CLASSES, N_CLASSES, dtype=torch.long)
+        with torch.no_grad():
+            for i in range(0, len(Xs), a.batch):
+                pr = net(Xs[i:i + a.batch].to(dev)).argmax(1).cpu()
+                yb = Ys[i:i + a.batch]
+                m = yb != 255
+                idx = yb[m] * N_CLASSES + pr[m]
+                conf += torch.bincount(
+                    idx.flatten(), minlength=N_CLASSES ** 2).reshape(N_CLASSES, N_CLASSES)
+        ious = iou_per_class(conf.numpy())
+        valid = [v for v in ious if v is not None]
+        acc = float(conf.diag().sum()) / max(1, int(conf.sum()))
+        return (sum(valid) / len(valid) if valid else 0.0), ious, acc
 
     # Cân bằng lớp: lớp hiếm (bề mặt xây dựng) phải được đếm nặng hơn, nếu không
     # mạng sẽ bỏ qua nó để tối ưu con số tổng.
@@ -191,38 +217,35 @@ def main() -> int:
             tot += loss.item() * len(b)
         sched.step()
 
-        net.eval()
-        conf = torch.zeros(N_CLASSES, N_CLASSES, dtype=torch.long)
-        with torch.no_grad():
-            for i in range(0, len(Xte), a.batch):
-                xb = Xte[i:i + a.batch].to(dev)
-                yb = Yte[i:i + a.batch]
-                pr = net(xb).argmax(1).cpu()
-                m = yb != 255
-                idx = yb[m] * N_CLASSES + pr[m]
-                conf += torch.bincount(
-                    idx.flatten(), minlength=N_CLASSES ** 2).reshape(N_CLASSES, N_CLASSES)
-        ious = iou_per_class(conf.numpy())
-        valid = [v for v in ious if v is not None]
-        miou = sum(valid) / len(valid) if valid else 0.0
+        miou, ious, _ = evaluate(net, Xva, Yva)          # CHỈ tập kiểm định
         xd = ious[WC_NAMES.index("Bề mặt xây dựng")]
-
         if ep % 5 == 0 or ep == 1 or ep == a.epochs:
             print(f"  vòng {ep:3}  mất mát {tot / len(Xtr):.4f}  "
-                  f"mIoU {miou:.3f}  IoU xây dựng {xd if xd is None else round(xd, 3)}"
-                  f"  ({time.time() - t0:.0f}s)")
+                  f"mIoU kiểm định {miou:.3f}  IoU xây dựng {xd if xd is None else round(xd, 3)}"
+                  f"  ({time.time() - t0:.0f}s)", flush=True)
         if miou > best:
             best = miou
             os.makedirs(a.out, exist_ok=True)
             torch.save({"state": net.state_dict(), "in_ch": X.shape[1],
                         "base": a.base, "n_classes": N_CLASSES,
-                        "miou": miou, "iou": ious, "epoch": ep,
-                        "holdout": sorted(hold)},
+                        "miou_val": miou, "epoch": ep},
                        os.path.join(a.out, "unet_landcover.pt"))
 
-    print(f"\nmIoU tốt nhất trên tỉnh chưa từng thấy: {best:.3f}")
-    print("IoU từng lớp:")
+    # CHẤM KIỂM TRA ĐÚNG MỘT LẦN, trên checkpoint đã chốt theo tập kiểm định.
     ck = torch.load(os.path.join(a.out, "unet_landcover.pt"), map_location="cpu")
+    net.load_state_dict(ck["state"])
+    miou_te, ious_te, acc_te = evaluate(net, Xte, Yte)
+    ck.update({"miou": miou_te, "iou": ious_te, "pixel_acc": acc_te,
+               "holdout": sorted(hold), "val_sites": sorted(valn),
+               "n_train": len(tr_idx), "n_val": len(va_idx), "n_test": len(te_idx),
+               "device": dev, "epochs": a.epochs})
+    torch.save(ck, os.path.join(a.out, "unet_landcover.pt"))
+    best = miou_te
+
+    print(f"\nChốt vòng {ck['epoch']} (mIoU kiểm định {ck['miou_val']:.3f}).")
+    print(f"mIoU trên tỉnh chưa từng thấy (kiểm tra, chấm 1 lần): {best:.3f} · "
+          f"độ chính xác điểm ảnh {acc_te:.3f}")
+    print("IoU từng lớp (kiểm tra):")
     for i, v in enumerate(ck["iou"]):
         print(f"  {WC_NAMES[i]:22} {'—' if v is None else f'{v:.3f}'}")
 
