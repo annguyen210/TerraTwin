@@ -4,13 +4,17 @@ Xem services/dossier.py cho lý do và ba lớp kiểm chứng.
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+import base64
+import binascii
+
+from fastapi import APIRouter, Depends, HTTPException, Response
+from pydantic import Field
 from sqlalchemy.orm import Session
 
 from app import auth
-from app.db import Dossier, User, get_session
+from app.db import Dossier, FieldPhoto, User, get_session
 from app.schemas import Location
-from app.services import dossier, onetap, region, reqlang, signing
+from app.services import dossier, evidence, onetap, region, reqlang, signing
 
 router = APIRouter(tags=["dossier"])
 
@@ -31,21 +35,80 @@ def _payload(db: Session, row: Dossier) -> dict:
             "verification": dossier.verify_row(db, row)}
 
 
+class DossierIn(Location):
+    # Ảnh thực địa ĐÃ KIỂM (POST /api/evidence) muốn đóng băng vào hồ sơ.
+    evidence_ids: list[str] = Field(default_factory=list, max_length=6)
+
+
 @router.post("/api/dossier")
-def issue_dossier(location: Location, lang: str = "vi",
+def issue_dossier(body: DossierIn, lang: str = "vi",
                   user: User | None = Depends(auth.optional_user),
                   db: Session = Depends(get_session)) -> dict:
     """Phát hành Hồ sơ đất số cho một thửa. Không cần đăng nhập (người mua đất
     thường chưa có tài khoản); đăng nhập thì hồ sơ gắn với tài khoản."""
     reqlang.set_lang(lang)
-    reg = region.classify(location.lat, location.lon)
+    reg = region.classify(body.lat, body.lon)
     if not reg.get("serviceable", True):
         raise HTTPException(422, reg.get("note") or reqlang.tr(
             "Ngoài phạm vi phục vụ.", "Out of service area."))
-    facts = dossier.build_facts(location.lat, location.lon, location.area_ha, db)
-    row = dossier.issue(db, facts, location.lat, location.lon,
-                        user_id=user.id if user else None)
+
+    photos = []
+    for pid in dict.fromkeys(body.evidence_ids):          # bỏ trùng, giữ thứ tự
+        ph = db.get(FieldPhoto, pid)
+        if ph is None:
+            raise HTTPException(422, reqlang.tr(f"Không có ảnh mã {pid}.", f"No photo with ID {pid}."))
+        # Ảnh kiểm cho thửa KHÁC không được gắn vào hồ sơ này.
+        if evidence.haversine_m(ph.plot_lat, ph.plot_lon, body.lat, body.lon) > evidence.SAME_PLOT_M:
+            raise HTTPException(422, reqlang.tr(f"Ảnh {pid} được kiểm cho một thửa khác.",
+                                                f"Photo {pid} was checked for a different plot."))
+        photos.append(ph)
+
+    facts = dossier.build_facts(body.lat, body.lon, body.area_ha, db)
+    if photos:
+        # Đóng băng vào nội dung đã ký: SHA-256 bản gốc + mã băm ảnh thu nhỏ —
+        # thay ảnh trong CSDL là lệch mã băm (phép kiểm "evidence").
+        facts["field_evidence"] = [evidence.public(p) for p in photos]
+    row = dossier.issue(db, facts, body.lat, body.lon, user_id=user.id if user else None)
+    for p in photos:
+        p.dossier_id = p.dossier_id or row.id
+    db.commit()
     return _payload(db, row)
+
+
+class PhotoIn(Location):
+    name: str = Field(default="", max_length=200)
+    # Ảnh GỐC (còn EXIF), base64. Không nén/thu nhỏ ở trình duyệt: canvas xoá EXIF.
+    data_b64: str = Field(min_length=16, max_length=12_000_000)
+
+
+@router.post("/api/evidence")
+def upload_evidence(body: PhotoIn, lang: str = "vi",
+                    user: User | None = Depends(auth.optional_user),
+                    db: Session = Depends(get_session)) -> dict:
+    """Kiểm MỘT ảnh thực địa cho một thửa (GPS, khoảng cách, thời điểm, dấu chỉnh
+    sửa, dùng lại) và lưu ảnh thu nhỏ đã xoá EXIF. Trả mã để gắn vào hồ sơ."""
+    reqlang.set_lang(lang)
+    try:
+        data = base64.b64decode(body.data_b64, validate=True)
+    except (binascii.Error, ValueError):
+        raise HTTPException(422, reqlang.tr("Dữ liệu ảnh không phải base64 hợp lệ.",
+                                            "Photo data is not valid base64."))
+    try:
+        res = evidence.analyze(db, data, body.lat, body.lon, body.area_ha)
+    except evidence.PhotoError as e:
+        raise HTTPException(422, str(e))
+    row = evidence.store(db, res, body.lat, body.lon, user_id=user.id if user else None)
+    return {**evidence.public(row), "name": body.name}
+
+
+@router.get("/api/evidence/{photo_id}/thumb")
+def evidence_thumb(photo_id: str, db: Session = Depends(get_session)) -> Response:
+    """Ảnh thu nhỏ đã xoá EXIF — công khai theo mã (mã ngẫu nhiên 12 ký tự)."""
+    row = db.get(FieldPhoto, photo_id)
+    if row is None:
+        raise HTTPException(404, "Không có ảnh này.")
+    return Response(row.thumb, media_type="image/jpeg",
+                    headers={"Cache-Control": "public, max-age=31536000, immutable"})
 
 
 @router.get("/api/dossier/{dossier_id}")

@@ -195,7 +195,28 @@ def verify_row(db: Session, row: Dossier) -> dict:
         f"Chain links correctly to dossier #{row.seq - 1}" if ok and row.seq > 1 else
         ("First dossier in the registry" if ok else "Chain BROKEN — registry tampered"))})
 
+    # Ảnh thực địa (nếu có): ảnh thu nhỏ đang lưu phải còn đúng mã băm đã đóng
+    # băng trong nội dung — thay ảnh trong CSDL là lệch.
+    ev = json.loads(row.facts_json).get("field_evidence") or []
+    if ev:
+        from app.db import FieldPhoto
+        bad = []
+        for e in ev:
+            ph = db.get(FieldPhoto, e.get("id"))
+            if ph is None or sha256_bytes(ph.thumb) != e.get("thumb_sha256"):
+                bad.append(e.get("id"))
+        ok = not bad
+        checks.append({"id": "evidence", "ok": ok, "label": tr(
+            f"{len(ev)} ảnh thực địa còn nguyên như lúc phát hành" if ok else
+            f"Ảnh thực địa bị thay/mất: {', '.join(map(str, bad))}",
+            f"{len(ev)} field photo(s) unchanged since issuance" if ok else
+            f"Field photo(s) replaced/missing: {', '.join(map(str, bad))}")})
+
     return {"valid": all(c["ok"] for c in checks), "checks": checks}
+
+
+def sha256_bytes(b: bytes) -> str:
+    return hashlib.sha256(b).hexdigest()
 
 
 def document(row: Dossier) -> dict:

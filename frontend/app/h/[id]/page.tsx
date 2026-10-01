@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
-  getDossier, verifyDossierFile,
+  evidenceThumbSrc, getDossier, verifyDossierFile,
   type Dossier, type DossierFileCheck, type DossierModule,
 } from "@/lib/api";
 import { LangToggle, useLang } from "@/lib/i18n";
@@ -215,6 +215,31 @@ export default function DossierPage() {
                 </>
               ) : <p className="dos-miss">{t("Không lấy được lúc phát hành.", "Not available at issuance.")}</p>}
             </section>
+
+            {f.field_evidence && f.field_evidence.length > 0 && (
+              <section>
+                <h2>{t("Ảnh thực địa đã kiểm", "Verified field photos")}</h2>
+                <div className="dos-photos">
+                  {f.field_evidence.map((e) => (
+                    <figure key={e.id} className={`dos-photo ${e.verdict}`}>
+                      <img src={evidenceThumbSrc(e)} alt={t("Ảnh thực địa", "Field photo")} loading="lazy" />
+                      <figcaption>
+                        <b className="dos-photo-v">{e.verdict_label}</b>
+                        <ul>
+                          {e.checks.map((c) => (
+                            <li key={c.id} className={c.ok === false ? "bad" : c.ok === null ? "unk" : "ok"}>
+                              {c.ok === false ? "✗" : c.ok === null ? "?" : "✓"} {c.label}
+                            </li>
+                          ))}
+                        </ul>
+                        <code title={t("SHA-256 của ảnh gốc", "SHA-256 of the original photo")}>{e.sha256.slice(0, 16)}…</code>
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+                <p className="dos-src">{f.field_evidence[0].caveat}</p>
+              </section>
+            )}
 
             <section>
               <h2>{t("Độ tin cậy của chính TerraTwin", "TerraTwin's own track record")}</h2>

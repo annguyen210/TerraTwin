@@ -38,7 +38,9 @@ const CSP = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${IS_DEV ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https:",
+  // API_ORIGIN: ảnh thực địa thu nhỏ phục vụ từ API (dev là http://localhost:8000,
+  // không lọt "https:").
+  `img-src 'self' data: blob: https: ${API_ORIGIN}`.trim(),
   "font-src 'self' data:",
   // Các host trình duyệt thật sự fetch (không mở 'https:' bừa):
   //   · API_ORIGIN: backend đang cấu hình.

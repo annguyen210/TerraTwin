@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation";
 import {
   getMyQuestions,
   issueDossier,
+  uploadEvidence,
   getPlan,
   getToken,
   runAnomalyMl,
@@ -77,8 +78,9 @@ export default function PlotPlan({
 }) {
   const { t, lang } = useLang();
   const router = useRouter();
-  const [issuing, setIssuing] = useState(false);
+  const [issuing, setIssuing] = useState<string | null>(null);   // null = rảnh; chuỗi = đang làm gì
   const [issueErr, setIssueErr] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<File[]>([]);
   // null = để máy chủ tự chọn theo loại đất THẬT (ESA WorldCover); chỉ khi người
   // dùng bấm một loại cây thì mới gửi lên. Không còn mặc định "lúa" cho mọi nơi.
   const [crop, setCrop] = useState<string | null>(null);
@@ -226,24 +228,45 @@ export default function PlotPlan({
           >
             🖨️ {t("In / lưu", "Print / save")}
           </button>
+          <label
+            className="plan-print plan-photo-pick"
+            title={t("Ảnh GỐC chụp tại thửa (còn GPS) — TerraTwin kiểm vị trí, thời điểm, dấu chỉnh sửa và ảnh dùng lại",
+                     "ORIGINAL photos taken at the plot (with GPS) — TerraTwin checks location, time, edits and reuse")}
+          >
+            📷 {photos.length ? t(`${photos.length} ảnh thực địa`, `${photos.length} field photo(s)`)
+                              : t("Kèm ảnh thực địa", "Add field photos")}
+            <input
+              id="plan-field-photos"
+              type="file"
+              accept="image/jpeg,image/png"
+              multiple
+              hidden
+              onChange={(e) => setPhotos(Array.from(e.target.files ?? []).slice(0, 6))}
+            />
+          </label>
           <button
             className="plan-print plan-issue-btn"
-            disabled={issuing}
+            disabled={issuing !== null}
             onClick={async () => {
-              setIssuing(true);
               setIssueErr(null);
               try {
-                const d = await issueDossier(lat, lon, area);
+                const ids: string[] = [];
+                for (let i = 0; i < photos.length; i++) {
+                  setIssuing(t(`Đang kiểm ảnh ${i + 1}/${photos.length}…`, `Checking photo ${i + 1}/${photos.length}…`));
+                  ids.push((await uploadEvidence(lat, lon, area, photos[i])).id);
+                }
+                setIssuing(t("Đang phát hành…", "Issuing…"));
+                const d = await issueDossier(lat, lon, area, ids);
                 router.push(`/h/${d.id}`);
               } catch (e) {
                 setIssueErr((e as Error).message);
-                setIssuing(false);
+                setIssuing(null);
               }
             }}
             title={t("Phát hành Hồ sơ đất số: ký số Ed25519, có QR để ngân hàng / người mua tự kiểm bản gốc",
                      "Issue a Digital Land Dossier: Ed25519-signed, with a QR so banks / buyers can verify the original")}
           >
-            🔏 {issuing ? t("Đang phát hành…", "Issuing…") : t("Phát hành hồ sơ đất số", "Issue land dossier")}
+            🔏 {issuing ?? t("Phát hành hồ sơ đất số", "Issue land dossier")}
           </button>
         </div>
       </div>

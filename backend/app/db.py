@@ -17,7 +17,8 @@ import os
 from datetime import datetime, timezone
 
 from sqlalchemy import (
-    DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint,
+    DateTime, Float, ForeignKey, Index, Integer, LargeBinary, String, Text,
+    UniqueConstraint,
     create_engine,
 )
 from sqlalchemy.orm import (
@@ -561,6 +562,34 @@ class Dossier(Base):
     entry_hash: Mapped[str] = mapped_column(String(64), unique=True)
     signature: Mapped[str] = mapped_column(String(128))
     key_id: Mapped[str] = mapped_column(String(16))
+
+
+class FieldPhoto(Base):
+    """Ảnh thực địa gửi kèm Hồ sơ đất số, ĐÃ KIỂM (services/evidence.py).
+
+    Chỉ lưu ẢNH THU NHỎ đã xoá EXIF (không lưu bản gốc: CSDL miễn phí 0,5 GB và
+    EXIF gốc mang thông tin thiết bị) + SHA-256 của bản gốc + băm cảm quan dHash
+    để bắt ảnh dùng lại cho thửa khác. Toạ độ GPS của ảnh chỉ giữ để tính lại
+    khoảng cách — không trả ra ngoài.
+    """
+    __tablename__ = "field_photos"
+
+    id: Mapped[str] = mapped_column(String(16), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    user_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    plot_lat: Mapped[float] = mapped_column(Float)
+    plot_lon: Mapped[float] = mapped_column(Float)
+    sha256: Mapped[str] = mapped_column(String(64), index=True)
+    phash: Mapped[str] = mapped_column(String(16), index=True)
+    gps_lat: Mapped[float | None] = mapped_column(Float, nullable=True)
+    gps_lon: Mapped[float | None] = mapped_column(Float, nullable=True)
+    taken_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    distance_m: Mapped[float | None] = mapped_column(Float, nullable=True)
+    verdict: Mapped[str] = mapped_column(String(12))            # match | review | mismatch
+    checks_json: Mapped[str] = mapped_column(Text, default="[]")
+    thumb: Mapped[bytes] = mapped_column(LargeBinary)
+    thumb_sha256: Mapped[str] = mapped_column(String(64))
+    dossier_id: Mapped[str | None] = mapped_column(String(16), nullable=True, index=True)
 
 
 # Cột thêm sau khi đã có database chạy thật. `create_all` KHÔNG thêm cột vào

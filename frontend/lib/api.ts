@@ -2063,12 +2063,52 @@ export function getMyQuestions(limit = 5) {
 }
 
 // ---- HỒ SƠ ĐẤT SỐ: phát hành một lần, ký Ed25519, móc xích sổ đăng ký công khai ----
-export type DossierCheck = { id: "content" | "entry" | "signature" | "chain"; ok: boolean; label: string };
+export type DossierCheck = { id: "content" | "entry" | "signature" | "chain" | "evidence"; ok: boolean; label: string };
 export type DossierVerification = { valid: boolean; checks: DossierCheck[] };
 export type DossierModule = {
   id: string; name: string; risk_level: string; status: string; is_real: boolean;
   threat?: boolean; headline: string;
 };
+// Ảnh thực địa ĐÃ KIỂM (backend services/evidence.py) — không bao giờ kèm toạ độ GPS gốc.
+export type EvidenceCheck = { id: "gps" | "location" | "time" | "edited" | "duplicate"; ok: boolean | null; label: string };
+export type FieldEvidence = {
+  id: string;
+  verdict: "match" | "review" | "mismatch";
+  verdict_label: string;
+  checks: EvidenceCheck[];
+  distance_m: number | null;
+  taken_at: string | null;
+  sha256: string;
+  phash: string;
+  thumb_sha256: string;
+  thumb_url: string;
+  caveat: string;
+  name?: string;
+};
+export const evidenceThumbSrc = (e: { thumb_url: string }) => `${BASE}${e.thumb_url}`;
+
+async function fileToB64(f: File): Promise<string> {
+  // Gửi ẢNH GỐC (còn EXIF). Không thu nhỏ bằng canvas — canvas xoá sạch EXIF.
+  const buf = new Uint8Array(await f.arrayBuffer());
+  let bin = "";
+  for (let i = 0; i < buf.length; i += 0x8000) {
+    bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+  }
+  return btoa(bin);
+}
+
+export async function uploadEvidence(lat: number, lon: number, areaHa: number | null | undefined, file: File) {
+  const body: Record<string, unknown> = { lat, lon, name: file.name, data_b64: await fileToB64(file) };
+  if (areaHa != null) body.area_ha = areaHa;
+  const r = await fetch(`${BASE}/api/evidence?lang=${curLang()}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error(`${file.name}: ${await errMessage(r, "Không kiểm được ảnh")}`);
+  return (await r.json()) as FieldEvidence;
+}
+
 export type DossierFacts = {
   schema: string;
   lang: string;
@@ -2092,6 +2132,7 @@ export type DossierFacts = {
   sources: string[];
   missing: string[];
   disclaimer: string;
+  field_evidence?: FieldEvidence[];
 };
 export type DossierProof = {
   schema: string; facts_hash: string; prev_hash: string; entry_hash: string;
@@ -2104,10 +2145,10 @@ export type DossierFileCheck = {
   registry?: DossierVerification; message: string;
 };
 
-export async function issueDossier(lat: number, lon: number, areaHa?: number | null) {
+export async function issueDossier(lat: number, lon: number, areaHa?: number | null, evidenceIds: string[] = []) {
   // Không bắt buộc đăng nhập (người mua đất thường chưa có tài khoản); có token
   // thì gửi kèm để hồ sơ gắn với tài khoản.
-  const body: Record<string, number> = { lat, lon };
+  const body: Record<string, unknown> = { lat, lon, evidence_ids: evidenceIds };
   if (areaHa != null) body.area_ha = areaHa;
   const r = await fetch(`${BASE}/api/dossier?lang=${curLang()}`, {
     method: "POST",

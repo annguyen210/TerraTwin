@@ -4219,6 +4219,20 @@ a.plan-print{ text-decoration:none; display:inline-flex; align-items:center }
 .dos-check .dos-file { display: inline-flex; flex-direction: column; gap: 6px; font-size: .84rem; color: var(--ink2); }
 .dos-verify-inline { margin: 10px 0 0; font-weight: 700; }
 .dos-verify-inline.ok { color: var(--green); } .dos-verify-inline.bad { color: var(--red); }
+.dos-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); gap: 14px; }
+.dos-photo { margin: 0; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; border-top-width: 4px; }
+.dos-photo.match { border-top-color: var(--green); }
+.dos-photo.review { border-top-color: #b07a2e; }
+.dos-photo.mismatch { border-top-color: var(--red); }
+.dos-photo img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: var(--rule); }
+.dos-photo figcaption { padding: 8px 10px; display: grid; gap: 4px; }
+.dos-photo-v { font-size: .86rem; }
+.dos-photo.match .dos-photo-v { color: var(--green); }
+.dos-photo.review .dos-photo-v { color: #8a5a17; }
+.dos-photo.mismatch .dos-photo-v { color: var(--red); }
+.dos-photo ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: .74rem; color: var(--ink2); }
+.dos-photo li.bad { color: var(--red); }
+.dos-photo code { font-size: .68rem; color: var(--ink2); }
 @media print {
   .dos-noprint { display: none !important; }
   .dos, .dos-wrap { background: #fff !important; padding: 0 !important; }
@@ -4229,3 +4243,4 @@ a.plan-print{ text-decoration:none; display:inline-flex; align-items:center }
 .plan-print.plan-issue-btn { background: var(--terra); color: var(--on-accent); border-color: var(--terra); font-weight: 700; }
 .plan-print.plan-issue-btn:hover { color: var(--on-accent); filter: brightness(1.08); }
 .plan-print.plan-issue-btn:disabled { opacity: .7; cursor: progress; }
+.plan-photo-pick { cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
