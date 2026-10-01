@@ -226,6 +226,19 @@ def jitter(lat: float, lon: float, km: float = 12.0):
     return lat + random.uniform(-d, d), lon + random.uniform(-d, d)
 
 
+def _fetch_one(pt, year: int):
+    """Một ô, chạy trong TIẾN TRÌNH con (xem ghi chú ProcessPoolExecutor ở main)."""
+    lat, lon = pt
+    for k in range(2):
+        try:
+            return build_patch(lat, lon, year), lat, lon
+        except Exception as e:               # lỗi mạng/ô hỏng — thử lại một lần
+            if k == 1:
+                print(f"    bỏ ô ({lat:.3f}, {lon:.3f}): {type(e).__name__}", flush=True)
+            time.sleep(2)
+    return None, lat, lon
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="data/dl")
@@ -277,18 +290,15 @@ def main() -> int:
     # phút — lỗi mạng thoáng qua, thử lại là được; (2) ~100 giây/ô khi tải tuần
     # tự. Nay: thử lại từng ô, bỏ qua ô hỏng hẳn; tải song song (việc chờ mạng,
     # không tốn CPU); lưu từng điểm vào parts/ để chạy lại thì đi tiếp từ chỗ dở.
-    from concurrent.futures import ThreadPoolExecutor
+    # TIẾN TRÌNH, KHÔNG PHẢI LUỒNG: bản chạy nhiều LUỒNG treo cứng (CPU ~0,
+    # không kết nối mạng nào) ở Quy Nhơn hai lần liền, trong khi chạy tuần tự
+    # cùng điểm đó xong trong vài giây. Cấu hình GDAL của rasterio.Env là toàn
+    # cục trong một tiến trình — nhiều luồng cùng mở/đóng Env thì khoá chết. Mỗi
+    # tiến trình có GDAL riêng, vẫn song song mà không chia trạng thái.
+    from concurrent.futures import ProcessPoolExecutor
+    from functools import partial
 
-    def _one(pt):
-        lat, lon = pt
-        for k in range(2):
-            try:
-                return build_patch(lat, lon, a.year), lat, lon
-            except Exception as e:           # lỗi mạng/ô hỏng — thử lại một lần
-                if k == 1:
-                    print(f"    bỏ ô ({lat:.3f}, {lon:.3f}): {type(e).__name__}")
-                time.sleep(2)
-        return None, lat, lon
+    _one = partial(_fetch_one, year=a.year)
 
     for lat0, lon0, ten in SITES:
         slug = "".join(ch if ch.isalnum() else "_" for ch in ten)[:40]
@@ -302,7 +312,7 @@ def main() -> int:
         # Toạ độ thử sinh ở luồng chính (random có seed) → chạy lại ra đúng bộ đó.
         cands = [jitter(lat0, lon0) for _ in range(a.per_site * 3)]   # mây hay chắn
         got_x, got_y, got_m = [], [], []
-        with ThreadPoolExecutor(max_workers=6) as ex:
+        with ProcessPoolExecutor(max_workers=4) as ex:
             for i in range(0, len(cands), a.per_site):
                 if len(got_x) >= a.per_site:
                     break
