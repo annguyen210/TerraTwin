@@ -39,6 +39,9 @@ import { useLang } from "@/lib/i18n";
 
 type T = (vi: string, en: string) => string;
 
+// "2026-10-05" → "05/10": cách người Việt đọc ngày (không phải "10-05").
+const ddmm = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
+
 // Tên đặc trưng cho phần "độ hiếm tổ hợp" — đọc được cho người thường.
 const DRIVER_L: Record<string, [string, string]> = {
   tmax: ["Nhiệt tối đa", "Max temp"],
@@ -338,7 +341,7 @@ export default function PlotPlan({
                         className="pa-when"
                         style={{ color: RISK_HEX[a.risk_level] }}
                       >
-                        {a.when_weekday} {a.when.slice(5)} · {leadBadge(a.lead_days, t)}
+                        {a.when_weekday} {ddmm(a.when)} · {leadBadge(a.lead_days, t)}
                       </span>
                     )}
                   </div>
@@ -386,7 +389,7 @@ export default function PlotPlan({
                 title={d.safe ? t("Không cảnh báo", "No alerts") : d.hazards.join(", ")}
               >
                 <span className="pw-wd">{d.weekday}</span>
-                <span className="pw-dt">{d.date.slice(5)}</span>
+                <span className="pw-dt">{ddmm(d.date)}</span>
                 <span className="pw-dot">{d.safe ? "✓" : d.hazards.length}</span>
               </div>
             ))}

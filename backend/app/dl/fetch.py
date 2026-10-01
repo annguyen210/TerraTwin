@@ -262,22 +262,55 @@ def main() -> int:
         return 0
 
     os.makedirs(a.out, exist_ok=True)
+    parts = os.path.join(a.out, "parts")
+    os.makedirs(parts, exist_ok=True)
     imgs, labs, meta = [], [], []
     t0 = time.time()
+
+    # CHẠY THẬT LẦN ĐẦU (1/10/2026) lộ hai điều: (1) một ô tải về bị cắt cụt
+    # ("TIFFFillTile: got 57498 bytes, expected 382016") làm sập CẢ lượt sau 10
+    # phút — lỗi mạng thoáng qua, thử lại là được; (2) ~100 giây/ô khi tải tuần
+    # tự. Nay: thử lại từng ô, bỏ qua ô hỏng hẳn; tải song song (việc chờ mạng,
+    # không tốn CPU); lưu từng điểm vào parts/ để chạy lại thì đi tiếp từ chỗ dở.
+    from concurrent.futures import ThreadPoolExecutor
+
+    def _one(pt):
+        lat, lon = pt
+        for k in range(2):
+            try:
+                return build_patch(lat, lon, a.year), lat, lon
+            except Exception as e:           # lỗi mạng/ô hỏng — thử lại một lần
+                if k == 1:
+                    print(f"    bỏ ô ({lat:.3f}, {lon:.3f}): {type(e).__name__}")
+                time.sleep(2)
+        return None, lat, lon
+
     for lat0, lon0, ten in SITES:
-        ok = 0
-        for _ in range(a.per_site * 3):        # thử nhiều hơn vì mây hay chắn
-            if ok >= a.per_site:
-                break
-            lat, lon = jitter(lat0, lon0)
-            r = build_patch(lat, lon, a.year)
-            if r is None:
-                continue
-            imgs.append(r[0])
-            labs.append(r[1])
-            meta.append({"site": ten, "lat": round(lat, 4), "lon": round(lon, 4)})
-            ok += 1
-        print(f"  {ten:26} {ok:3}/{a.per_site} ô  ({time.time() - t0:.0f}s)")
+        slug = "".join(ch if ch.isalnum() else "_" for ch in ten)[:40]
+        part = os.path.join(parts, f"{slug}.npz")
+        if os.path.exists(part):
+            d = np.load(part, allow_pickle=False)
+            pm = json.load(open(part + ".json", encoding="utf-8"))
+            imgs += list(d["X"]); labs += list(d["Y"]); meta += pm
+            print(f"  {ten:26} {len(pm):3}/{a.per_site} ô  (đã có từ lần trước)")
+            continue
+        # Toạ độ thử sinh ở luồng chính (random có seed) → chạy lại ra đúng bộ đó.
+        cands = [jitter(lat0, lon0) for _ in range(a.per_site * 3)]   # mây hay chắn
+        got_x, got_y, got_m = [], [], []
+        with ThreadPoolExecutor(max_workers=6) as ex:
+            for i in range(0, len(cands), a.per_site):
+                if len(got_x) >= a.per_site:
+                    break
+                for r, lat, lon in ex.map(_one, cands[i:i + a.per_site]):
+                    if r is None or len(got_x) >= a.per_site:
+                        continue
+                    got_x.append(r[0]); got_y.append(r[1])
+                    got_m.append({"site": ten, "lat": round(lat, 4), "lon": round(lon, 4)})
+        if got_x:
+            np.savez_compressed(part, X=np.stack(got_x), Y=np.stack(got_y))
+            json.dump(got_m, open(part + ".json", "w", encoding="utf-8"), ensure_ascii=False)
+        imgs += got_x; labs += got_y; meta += got_m
+        print(f"  {ten:26} {len(got_x):3}/{a.per_site} ô  ({time.time() - t0:.0f}s)", flush=True)
 
     if not imgs:
         print("Không lấy được ô nào. Kiểm tra mạng rồi chạy lại --smoke.")

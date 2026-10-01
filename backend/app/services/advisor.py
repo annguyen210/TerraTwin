@@ -148,7 +148,7 @@ def build(loc: Location, crop: str | None = None) -> dict:
     elif safe_dates:
         first_safe = days[[d["date"] for d in days].index(safe_dates[0])]
         sw_headline = tr(f"Cửa sổ an toàn gần nhất: {first_safe['weekday']} "
-                         f"({first_safe['date'][5:]}) — không cảnh báo nào. "
+                         f"({first_safe['date'][8:10]}/{first_safe['date'][5:7]}) — không cảnh báo nào. "
                          f"Có {len(safe_dates)}/7 ngày trống.",
                          f"Nearest safe window: {first_safe['weekday']} "
                          f"({first_safe['date'][5:]}) — no alerts. "

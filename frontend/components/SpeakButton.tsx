@@ -54,7 +54,7 @@ export default function SpeakButton({ text, lang = "vi-VN" }: {
         padding: "5px 11px", borderRadius: 99, cursor: "pointer", fontSize: 12.5,
         fontWeight: 600, border: "1px solid var(--line, #d7ddd8)",
         background: speaking ? "var(--pine, #1f5137)" : "transparent",
-        color: speaking ? "#fff" : "var(--pine, #1f5137)",
+        color: speaking ? "var(--on-accent)" : "var(--pine, #1f5137)",
       }}
     >
       {speaking ? "⏹ " + t("Dừng", "Stop") : "🔊 " + t("Đọc", "Listen")}

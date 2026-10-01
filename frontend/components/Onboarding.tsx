@@ -48,9 +48,11 @@ export default function Onboarding() {
       position: "fixed", inset: 0, zIndex: 60, background: "rgba(8,11,9,.55)",
       display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
     }}>
+      {/* Dùng đúng token màu của app (globals.css). Trước đây trỏ tới --surface/
+          --ink/--pine không hề tồn tại → rơi về nền TRẮNG giữa app nền tối. */}
       <div onClick={(e) => e.stopPropagation()} style={{
-        maxWidth: 400, width: "100%", background: "var(--surface, #fff)",
-        color: "var(--ink, #0f1411)", borderRadius: 14, padding: "26px 24px",
+        maxWidth: 400, width: "100%", background: "var(--panel)", border: "1px solid var(--line-2)",
+        color: "var(--text)", borderRadius: 14, padding: "26px 24px",
         boxShadow: "0 20px 60px -20px rgba(0,0,0,.5)",
       }}>
         {/* Nút đổi ngôn ngữ NGAY trong thẻ — onboarding không che mất nút EN. */}
@@ -59,21 +61,21 @@ export default function Onboarding() {
         </div>
         <div style={{ fontSize: 46, textAlign: "center" }}>{s.icon}</div>
         <h2 style={{ fontSize: 20, fontWeight: 800, textAlign: "center", margin: "8px 0 6px" }}>{s.title}</h2>
-        <p style={{ textAlign: "center", color: "var(--muted, #66716a)", margin: "0 0 18px", lineHeight: 1.55 }}>{s.body}</p>
+        <p style={{ textAlign: "center", color: "var(--dim)", margin: "0 0 18px", lineHeight: 1.55 }}>{s.body}</p>
         <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 16 }}>
           {steps.map((_, i) => (
             <span key={i} style={{ width: 7, height: 7, borderRadius: 99,
-              background: i === step ? "var(--pine, #1f5137)" : "var(--line, #d7ddd8)" }} />
+              background: i === step ? "var(--terra)" : "var(--line-2)" }} />
           ))}
         </div>
         <div style={{ display: "flex", gap: 10, justifyContent: "space-between", alignItems: "center" }}>
           <button onClick={close} style={{ padding: "8px 12px", border: "none", background: "none",
-            color: "var(--muted, #66716a)", cursor: "pointer", fontSize: 13 }}>
+            color: "var(--dim)", cursor: "pointer", fontSize: 13 }}>
             {t("Bỏ qua", "Skip")}
           </button>
           <button onClick={() => (last ? close() : setStep(step + 1))} style={{
             padding: "10px 22px", borderRadius: 8, border: "none", cursor: "pointer",
-            background: "var(--pine, #1f5137)", color: "#fff", fontWeight: 700 }}>
+            background: "var(--terra)", color: "var(--on-accent)", fontWeight: 700 }}>
             {last ? t("Bắt đầu", "Start") : t("Tiếp →", "Next →")}
           </button>
         </div>
