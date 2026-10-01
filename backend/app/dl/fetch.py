@@ -156,8 +156,13 @@ def read_window(href: str, box: list[float], token: str, size: int = PATCH):
     from rasterio.windows import from_bounds
 
     url = href + ("&" if "?" in href else "?") + token
+    # GDAL mặc định KHÔNG có thời gian chờ HTTP: chạy thật 1/10/2026 một lần đọc
+    # treo 25 phút không lỗi, không tiến. Đặt trần + thử lại ở tầng GDAL; hỏng
+    # hẳn thì ném lỗi để vòng ngoài thử lại / bỏ ô.
     with rasterio.Env(GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR",
-                      CPL_VSIL_CURL_USE_HEAD="NO"):
+                      CPL_VSIL_CURL_USE_HEAD="NO",
+                      GDAL_HTTP_TIMEOUT="60", GDAL_HTTP_CONNECTTIMEOUT="20",
+                      GDAL_HTTP_MAX_RETRY="3", GDAL_HTTP_RETRY_DELAY="2"):
         with rasterio.open(url) as ds:
             l, b, r, t = transform_bounds("EPSG:4326", ds.crs, *box, densify_pts=21)
             win = from_bounds(l, b, r, t, ds.transform)

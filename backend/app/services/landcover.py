@@ -164,3 +164,44 @@ def classify(patch) -> dict | None:
             "cậy khác nhau theo lớp — xem iou_per_class trong /api/landcover; "
             "lớp hiếm như bề mặt xây dựng thường kém chính xác hơn lớp phổ biến."),
     }
+
+
+def classify_window(patch, center_px: int = 12) -> dict | None:
+    """Như classify(), nhưng chỉ ĐẾM ở ô giữa center_px × center_px (mặc định
+    12 × 10 m = 120 m — cùng cỡ ô của services/landuse.py), trong khi mạng vẫn
+    NHÌN cả ô 2,56 km. Ngữ cảnh xung quanh là thứ giúp mạng phân biệt mái tôn
+    với đất khô; còn kết luận thì phải nói về đúng chỗ thửa đất.
+
+    Trả {"groups_pct": {nhóm: %}, "classes_pct": {tên lớp: %}} hoặc None."""
+    sess = _load()
+    if sess is None:
+        return None
+    try:
+        import numpy as np
+    except ImportError:
+        return None
+    x = np.asarray(patch, dtype=np.float32)
+    if x.ndim == 3:
+        x = x[None, ...]
+    try:
+        logits = sess.run(None, {sess.get_inputs()[0].name: x})[0]
+    except Exception:
+        return None
+    pred = logits.argmax(axis=1)[0]
+    h, w = pred.shape
+    c0, c1 = (h - center_px) // 2, (w - center_px) // 2
+    win = pred[c0:c0 + center_px, c1:c1 + center_px]
+
+    from app.services.landuse import CLASSES
+    codes = (_card or {}).get("codes") or [10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100]
+    names = (_card or {}).get("classes") or []
+    classes_pct, groups_pct = {}, {}
+    for i, code in enumerate(codes):
+        n = int((win == i).sum())
+        if not n:
+            continue
+        pct = round(100.0 * n / win.size, 1)
+        classes_pct[names[i] if i < len(names) else str(code)] = pct
+        g = CLASSES.get(int(code), ("", "", "open"))[2]
+        groups_pct[g] = round(groups_pct.get(g, 0.0) + pct, 1)
+    return {"groups_pct": groups_pct, "classes_pct": classes_pct}

@@ -800,6 +800,16 @@ def landcover_status() -> dict:
     return landcover.status()
 
 
+@app.post("/api/landchange")
+def landchange_endpoint(location: Location, lang: str = "vi") -> dict:
+    """Đất đã đổi khác sau 2021? Mô hình học sâu TerraTwin đọc ảnh Sentinel-2
+    mới nhất tại thửa, so với ESA WorldCover 2021 (services/landchange.py)."""
+    from app.services import landchange
+
+    reqlang.set_lang(lang)
+    return landchange.detect(location.lat, location.lon)
+
+
 @app.get("/api/place")
 def place_search(q: str = "") -> dict:
     """Tìm xã/huyện/tỉnh theo tên → toạ độ.
