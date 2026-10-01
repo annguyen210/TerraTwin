@@ -4216,6 +4216,7 @@ a.plan-print{ text-decoration:none; display:inline-flex; align-items:center }
 .dos-table td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .dos-score { margin: 0 0 10px; font-size: .92rem; color: var(--ink); }
 .dos-score b { margin-right: 6px; }
+.dos-score.dos-flag b { color: var(--red); }
 .dos-mods { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 2px 18px; }
 .dos-mods li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto auto; gap: 8px; align-items: center; font-size: .84rem; padding: 3px 0; border-bottom: 1px dotted var(--rule); }
 .dos-dot { width: 9px; height: 9px; border-radius: 50%; }

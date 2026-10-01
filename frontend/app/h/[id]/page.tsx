@@ -216,6 +216,40 @@ export default function DossierPage() {
               ) : <p className="dos-miss">{t("Không lấy được lúc phát hành.", "Not available at issuance.")}</p>}
             </section>
 
+            {f.land_change && (
+              <section>
+                <h2>{t("Đất có đổi khác sau 2021?", "Has the land changed since 2021?")}</h2>
+                <p className={`dos-score ${f.land_change.changed ? "dos-flag" : ""}`}><b>{f.land_change.headline}</b></p>
+                <div className="dos-table-wrap">
+                  <table className="dos-table">
+                    <thead><tr>
+                      <th>{t("Nhóm lớp phủ", "Cover group")}</th>
+                      <th>2021 (WorldCover)</th>
+                      <th>{f.land_change.now.image.date} ({t("mô hình", "model")})</th>
+                      <th>{t("Chênh", "Change")}</th>
+                    </tr></thead>
+                    <tbody>
+                      {(["built", "crop", "tree", "water", "open"] as const).map((g) => (
+                        <tr key={g}>
+                          <td>{{ built: t("Xây dựng", "Built-up"), crop: t("Trồng trọt", "Cropland"),
+                                 tree: t("Cây xanh", "Trees"), water: t("Mặt nước", "Water"),
+                                 open: t("Đất trống / cỏ", "Open land") }[g]}</td>
+                          <td className="num">{(f.land_change!.before.groups_pct[g] ?? 0).toFixed(0)}%</td>
+                          <td className="num">{(f.land_change!.now.groups_pct[g] ?? 0).toFixed(0)}%</td>
+                          <td className="num">{f.land_change!.delta_pts[g] > 0 ? "+" : ""}{f.land_change!.delta_pts[g].toFixed(0)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="dos-src">
+                  {f.land_change.now.source} · {t("ảnh quang mây tại thửa", "cloud-free at plot")} {f.land_change.now.image.clear_pct_at_plot}%
+                  {f.land_change.model.miou_holdout != null && <> · {t("mIoU trên tỉnh mô hình chưa từng thấy", "mIoU on provinces the model never saw")} {f.land_change.model.miou_holdout.toFixed(2)}</>}
+                  {" · "}{f.land_change.caveat}
+                </p>
+              </section>
+            )}
+
             {f.field_evidence && f.field_evidence.length > 0 && (
               <section>
                 <h2>{t("Ảnh thực địa đã kiểm", "Verified field photos")}</h2>

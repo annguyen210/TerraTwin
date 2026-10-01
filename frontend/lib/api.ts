@@ -2134,6 +2134,16 @@ export type DossierFacts = {
   missing: string[];
   disclaimer: string;
   field_evidence?: FieldEvidence[];
+  // Mô hình học sâu TerraTwin trên ảnh Sentinel-2 mới nhất vs WorldCover 2021.
+  land_change?: {
+    changed: boolean; flags: string[]; headline: string;
+    before: { source: string; groups_pct: Record<string, number> };
+    now: { source: string; groups_pct: Record<string, number>;
+           image: { item: string; date: string; clear_pct_at_plot: number; offset_removed: boolean } };
+    delta_pts: Record<string, number>;
+    model: { miou_holdout: number | null; holdout_provinces?: string[] };
+    caveat: string;
+  } | null;
 };
 export type DossierProof = {
   schema: string; facts_hash: string; prev_hash: string; entry_hash: string;

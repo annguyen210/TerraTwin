@@ -75,12 +75,21 @@ def build_facts(lat: float, lon: float, area_ha: float | None, db: Session) -> d
 
     Chạy song song; mục nào hỏng ghi rõ "không lấy được" thay vì bỏ trống im lặng.
     """
-    from app.services import jobs, landuse, passport, reqlang, scan, scorecard
+    from app.services import (
+        jobs, landchange, landcover, landuse, passport, reqlang, scan, scorecard,
+    )
 
     loc = Location(lat=lat, lon=lon, area_ha=area_ha)
-    sc, pp, lu = jobs.gather([lambda: scan.scan(loc),
-                              lambda: passport.build(lat, lon),
-                              lambda: landuse.composition(lat, lon)])
+    tasks = [lambda: scan.scan(loc), lambda: passport.build(lat, lon),
+             lambda: landuse.composition(lat, lon)]
+    # Mô hình học sâu chỉ chạy khi ĐÃ BẬT (qua ngưỡng mIoU tập giữ lại) — không
+    # thì không tốn lượt gọi ảnh vệ tinh cho một mục chắc chắn trống.
+    with_change = landcover.available()
+    if with_change:
+        tasks.append(lambda: landchange.detect(lat, lon))
+    got = jobs.gather(tasks)
+    sc, pp, lu = got[0], got[1], got[2]
+    change = got[3] if with_change else None
     try:
         card = scorecard.summary(db)
     except Exception:
@@ -116,6 +125,7 @@ def build_facts(lat: float, lon: float, area_ha: float | None, db: Session) -> d
         "history_10y": (pp or {}).get("history") if pp and pp.get("available") else None,
         "history_caveat": (pp or {}).get("caveat") if pp else None,
         "current_risk": current,
+        "land_change": change if change and change.get("available") else None,
         "track_record": track,
         "sources": SOURCES,
         "missing": [name for name, v in (("land_use", lu), ("passport", pp and pp.get("available")),
