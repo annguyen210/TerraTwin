@@ -164,17 +164,25 @@ def main() -> int:
           f"({', '.join(sorted(valn))}) · kiểm tra {len(te_idx)} ô "
           f"(giữ lại hoàn toàn: {', '.join(sorted(hold))})")
 
-    Xtr = torch.from_numpy(X[tr_idx]); Ytr = torch.from_numpy(Y[tr_idx]).long()
-    Xva = torch.from_numpy(X[va_idx]); Yva = torch.from_numpy(Y[va_idx]).long()
-    Xte = torch.from_numpy(X[te_idx]); Yte = torch.from_numpy(Y[te_idx]).long()
+    # BỘ NHỚ (2/10/2026): bản hai mùa ~240 ô × 8 kênh — float32 là ~500 MB, cắt
+    # X[tr_idx]/X[va_idx]/X[te_idx] tạo thêm BA bản sao. Máy huấn luyện từng hết
+    # bộ nhớ. Nay: MỘT tensor duy nhất (float16 nếu tệp lưu float16, không sao
+    # chép), lấy theo chỉ số từng lô, chỉ lô đang chạy mới đổi sang float32.
+    Xall = torch.from_numpy(X)                     # không sao chép
+    Yall = torch.from_numpy(Y)                     # uint8
+    tr = torch.tensor(tr_idx); va = torch.tensor(va_idx); te = torch.tensor(te_idx)
+    Ytr = Yall[tr].long()                          # chỉ để đếm lớp (~10 MB)
 
-    def evaluate(net, Xs, Ys):
+    def batch_xy(idx):
+        return Xall[idx].to(dev).float(), Yall[idx].long()
+
+    def evaluate(net, idxs):
         net.eval()
         conf = torch.zeros(N_CLASSES, N_CLASSES, dtype=torch.long)
         with torch.no_grad():
-            for i in range(0, len(Xs), a.batch):
-                pr = net(Xs[i:i + a.batch].to(dev)).argmax(1).cpu()
-                yb = Ys[i:i + a.batch]
+            for i in range(0, len(idxs), a.batch):
+                xb, yb = batch_xy(idxs[i:i + a.batch])
+                pr = net(xb).argmax(1).cpu()
                 m = yb != 255
                 idx = yb[m] * N_CLASSES + pr[m]
                 conf += torch.bincount(
@@ -206,11 +214,12 @@ def main() -> int:
     t0 = time.time()
     for ep in range(1, a.epochs + 1):
         net.train()
-        perm = torch.randperm(len(Xtr))
+        perm = tr[torch.randperm(len(tr))]
         tot = 0.0
         for i in range(0, len(perm), a.batch):
             b = perm[i:i + a.batch]
-            xb, yb = Xtr[b].to(dev), Ytr[b].to(dev)
+            xb, yb = batch_xy(b)
+            yb = yb.to(dev)
             # Xoay/lật ngẫu nhiên — lớp phủ không có hướng ưu tiên, nên đây là
             # phép tăng dữ liệu hợp lý về mặt vật lý.
             if torch.rand(1).item() < 0.5:
@@ -224,10 +233,10 @@ def main() -> int:
             tot += loss.item() * len(b)
         sched.step()
 
-        miou, ious, _ = evaluate(net, Xva, Yva)          # CHỈ tập kiểm định
+        miou, ious, _ = evaluate(net, va)          # CHỈ tập kiểm định
         xd = ious[WC_NAMES.index("Bề mặt xây dựng")]
         if ep % 5 == 0 or ep == 1 or ep == a.epochs:
-            print(f"  vòng {ep:3}  mất mát {tot / len(Xtr):.4f}  "
+            print(f"  vòng {ep:3}  mất mát {tot / len(tr):.4f}  "
                   f"mIoU kiểm định {miou:.3f}  IoU xây dựng {xd if xd is None else round(xd, 3)}"
                   f"  ({time.time() - t0:.0f}s)", flush=True)
         if miou > best:
@@ -241,7 +250,7 @@ def main() -> int:
     # CHẤM KIỂM TRA ĐÚNG MỘT LẦN, trên checkpoint đã chốt theo tập kiểm định.
     ck = torch.load(os.path.join(a.out, "unet_landcover.pt"), map_location="cpu")
     net.load_state_dict(ck["state"])
-    miou_te, ious_te, acc_te = evaluate(net, Xte, Yte)
+    miou_te, ious_te, acc_te = evaluate(net, te)
     ck.update({"miou": miou_te, "iou": ious_te, "pixel_acc": acc_te,
                "holdout": sorted(hold), "val_sites": sorted(valn),
                "n_train": len(tr_idx), "n_val": len(va_idx), "n_test": len(te_idx),

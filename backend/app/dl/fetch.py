@@ -315,7 +315,7 @@ def main() -> int:
         if os.path.exists(part):
             d = np.load(part, allow_pickle=False)
             pm = json.load(open(part + ".json", encoding="utf-8"))
-            imgs += list(d["X"]); labs += list(d["Y"]); meta += pm
+            imgs += list(d["X"].astype(np.float16)); labs += list(d["Y"]); meta += pm
             print(f"  {ten:26} {len(pm):3}/{a.per_site} ô  (đã có từ lần trước)")
             continue
         # Toạ độ thử sinh ở luồng chính (random có seed) → chạy lại ra đúng bộ đó.
@@ -328,7 +328,7 @@ def main() -> int:
                 for r, lat, lon in ex.map(_one, cands[i:i + a.per_site]):
                     if r is None or len(got_x) >= a.per_site:
                         continue
-                    got_x.append(r[0]); got_y.append(r[1])
+                    got_x.append(r[0].astype(np.float16)); got_y.append(r[1])
                     got_m.append({"site": ten, "lat": round(lat, 4), "lon": round(lon, 4)})
         if got_x:
             np.savez_compressed(part, X=np.stack(got_x), Y=np.stack(got_y))
@@ -349,7 +349,7 @@ def main() -> int:
                    "season_windows": SEASON_WINDOWS[a.seasons]}, f, ensure_ascii=False)
 
     print(f"\nĐã lưu {len(imgs)} ô vào {a.out}/patches.npz")
-    print(f"  ảnh {X.shape} · nhãn {Y.shape} · {X.nbytes / 1e6:.0f} MB trong bộ nhớ")
+    print(f"  ảnh {X.shape} {X.dtype} · nhãn {Y.shape} · {X.nbytes / 1e6:.0f} MB trong bộ nhớ")
     vals, cnt = np.unique(Y[Y != 255], return_counts=True)
     print("  phân bố lớp:")
     for v, c in sorted(zip(vals, cnt), key=lambda p: -p[1]):
