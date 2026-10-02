@@ -45,4 +45,4 @@ backend/data/era5/
 
 # Dữ liệu huấn luyện học sâu (ảnh Sentinel-2 + nhãn WorldCover, ~100 MB) và
 # checkpoint torch — KHÔNG commit. Chỉ commit mô hình xuất ONNX + thẻ mô hình.
-backend/data/dl/
+backend/data/dl*/
