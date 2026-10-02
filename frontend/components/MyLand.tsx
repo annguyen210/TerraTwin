@@ -33,6 +33,7 @@ import { enablePush, pushState } from "@/lib/push";
 import { getBriefStatus, toggleBrief } from "@/lib/api";
 import PlotHistory from "@/components/PlotHistory";
 import { useLang } from "@/lib/i18n";
+import { Bell, CircleCheck, Inbox, ScrollText, ShieldCheck, Sprout, Sun, TriangleAlert } from "lucide-react";
 
 const GRADE_COLOR: Record<string, string> = {
   A: "#2E9E67", B: "#3aa0a0", C: "#B07A2E", D: "#C2412E",
@@ -151,9 +152,9 @@ export default function MyLand({
     <div className="myland">
       <div className="ml-head">
         <div>
-          <b>🛡️ {t(`TerraTwin đang canh ${plots.length} thửa của bạn`, `TerraTwin is watching ${plots.length} of your plots`)}</b>
+          <b><ShieldCheck size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t(`TerraTwin đang canh ${plots.length} thửa của bạn`, `TerraTwin is watching ${plots.length} of your plots`)}</b>
           <p className="ml-brief">
-            ☀️{" "}
+            <Sun size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" />{" "}
             {new Date().toLocaleDateString(dateFmt, { weekday: "long", day: "numeric", month: "numeric" })}
             {" · "}
             {alerts.length ? (
@@ -169,7 +170,7 @@ export default function MyLand({
               khoản mới toanh chưa góp gì thì một dòng "0 · 0" chỉ gây rối. */}
           {contribution && (contribution.observations_contributed > 0 || contribution.alerts_verified > 0) && (
             <p className="ml-brief-sub">
-              🌱 {t("Bạn đã góp", "You've contributed")} <b>{contribution.observations_contributed}</b> {t("quan sát", "observations")}
+              <Sprout size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Bạn đã góp", "You've contributed")} <b>{contribution.observations_contributed}</b> {t("quan sát", "observations")}
               {contribution.alerts_verified > 0 && (
                 <> · {t("cảnh báo của bạn đã được xác minh", "your alerts have been verified")} <b>{contribution.alerts_verified}</b> {t("lần", "times")}
                   {contribution.alerts_hit > 0 && t(` (đúng ${contribution.alerts_hit} lần)`, ` (${contribution.alerts_hit} correct)`)}</>
@@ -193,12 +194,12 @@ export default function MyLand({
           margin: "0 0 10px", padding: "9px 14px", borderRadius: 8, cursor: "pointer",
           border: "1px solid var(--terra, #1f5137)", background: "var(--pine-soft, #dfede5)",
           color: "var(--pine, #1f5137)", fontWeight: 600, width: "100%" }}>
-          🔔 {t("Bật thông báo đẩy — nhận cảnh báo kể cả khi không mở app",
+          <Bell size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Bật thông báo đẩy — nhận cảnh báo kể cả khi không mở app",
                 "Enable push notifications — get alerts even when the app isn't open")}
         </button>
       )}
       {push === "..." && <p className="ml-brief-sub">{t("Đang bật thông báo…", "Enabling notifications…")}</p>}
-      {push === "on" && <p className="ml-brief-sub" style={{ color: "var(--ok, #2E9E67)" }}>🔔 {t("Thông báo đẩy đang bật.", "Push notifications are on.")}</p>}
+      {push === "on" && <p className="ml-brief-sub" style={{ color: "var(--ok, #2E9E67)" }}><Bell size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Thông báo đẩy đang bật.", "Push notifications are on.")}</p>}
       {push === "denied" && <p className="ml-brief-sub">{t("Thông báo bị chặn trong trình duyệt — mở lại trong cài đặt trang để nhận cảnh báo.",
                                                              "Notifications are blocked in the browser — re-enable them in site settings to get alerts.")}</p>}
 
@@ -207,7 +208,7 @@ export default function MyLand({
           báo, không phải chôn trong trang tài khoản không ai mở. */}
       {user.email_verified === false && (
         <p className="ml-brief-sub" style={{ color: "var(--warn, #B07A2E)" }}>
-          ⚠️ {t(`Email ${user.email} chưa xác thực — cảnh báo vẫn hiện ở đây nhưng KHÔNG gửi ra kênh ngoài (email/Zalo/Telegram) cho tới khi xác thực.`,
+          <TriangleAlert size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t(`Email ${user.email} chưa xác thực — cảnh báo vẫn hiện ở đây nhưng KHÔNG gửi ra kênh ngoài (email/Zalo/Telegram) cho tới khi xác thực.`,
                 `Email ${user.email} is not verified — alerts still show up here but will NOT be sent to outside channels (email/Zalo/Telegram) until verified.`)}{" "}
           <button onClick={resend} style={{ border: "none", background: "none",
             color: "var(--terra, #1f5137)", textDecoration: "underline", cursor: "pointer",
@@ -223,7 +224,7 @@ export default function MyLand({
         <label style={{ display: "flex", alignItems: "center", gap: 8, margin: "0 0 10px",
           fontSize: 13, color: "var(--ink-2, #333d36)", cursor: "pointer" }}>
           <input type="checkbox" checked={brief} onChange={flipBrief} />
-          ☀️ {t("Gửi bản tin sáng mỗi ngày (kể cả khi an toàn) — tạo thói quen theo dõi",
+          <Sun size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Gửi bản tin sáng mỗi ngày (kể cả khi an toàn) — tạo thói quen theo dõi",
                 "Send a morning brief every day (even when safe) — builds a monitoring habit")}
         </label>
       )}
@@ -233,7 +234,7 @@ export default function MyLand({
           câu trả lời của người vừa chấm điểm cảnh báo vừa hiệu chỉnh cả vùng. */}
       {questions.length > 0 && (
         <div className="ml-alerts" style={{ borderColor: "var(--terra, #1f5137)" }}>
-          <span className="ml-cap">📩 {t(`${questions.length} câu cần bạn xác nhận — giúp TerraTwin chính xác hơn cho cả vùng`,
+          <span className="ml-cap"><Inbox size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t(`${questions.length} câu cần bạn xác nhận — giúp TerraTwin chính xác hơn cho cả vùng`,
                                           `${questions.length} question(s) need your confirmation — helps TerraTwin be more accurate for the whole area`)}</span>
           {questions.map((q) => {
             const done = answered[q.alert_id];
@@ -266,7 +267,7 @@ export default function MyLand({
 
       {alerts.length > 0 && (
         <div className="ml-alerts">
-          <span className="ml-cap">⚠️ {t(`${alerts.length} việc sắp tới cần chú ý`, `${alerts.length} upcoming item(s) needing attention`)}</span>
+          <span className="ml-cap"><TriangleAlert size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t(`${alerts.length} việc sắp tới cần chú ý`, `${alerts.length} upcoming item(s) needing attention`)}</span>
           {alerts.map((a) => (
             <div
               key={a.id}
@@ -282,7 +283,7 @@ export default function MyLand({
             </div>
           ))}
           <p className="ml-disclaimer">
-            ⚠️ {t("Dự báo có sai số, không thay thế chỉ đạo của cơ quan phòng chống thiên tai địa phương.",
+            <TriangleAlert size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Dự báo có sai số, không thay thế chỉ đạo của cơ quan phòng chống thiên tai địa phương.",
                   "Forecasts carry error and do not replace guidance from local disaster-prevention authorities.")}{" "}
             <a href="/about">{t("Xem tỉ lệ đúng/sai", "See the accuracy rate")}</a>.
           </p>
@@ -290,7 +291,7 @@ export default function MyLand({
       )}
 
       {alerts.length === 0 && (
-        <p className="ml-calm">✅ {t("Chưa có rủi ro mới ở các thửa đã lưu. Yên tâm — có gì TerraTwin sẽ báo.",
+        <p className="ml-calm"><CircleCheck size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Chưa có rủi ro mới ở các thửa đã lưu. Yên tâm — có gì TerraTwin sẽ báo.",
                                        "No new risk on your saved plots. Rest easy — TerraTwin will alert you if anything comes up.")}</p>
       )}
 
@@ -328,7 +329,7 @@ export default function MyLand({
                   border: "1px solid var(--line, #d7ddd8)", background: "transparent",
                   color: "var(--ink-2, #333d36)", fontSize: 16 }}
               >
-                📜
+                <ScrollText size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" />
               </button>
             </div>
             {openId === p.id && <PlotHistory plotId={p.id} />}

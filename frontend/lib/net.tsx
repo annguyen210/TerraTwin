@@ -11,6 +11,7 @@
  * Người dùng cũng tự bật/tắt được (localStorage), ghi đè phát hiện tự động.
  */
 import { useEffect, useState } from "react";
+import { Gauge } from "lucide-react";
 
 const KEY = "tt_datasaver";
 
@@ -58,7 +59,7 @@ export function DataSaverToggle() {
         ? "Tiết kiệm dữ liệu đang BẬT — ảnh vệ tinh & mục nặng chờ bạn bấm mới tải"
         : "Bật tiết kiệm dữ liệu — hoãn tải ảnh vệ tinh & mục nặng tới khi bạn bấm"}
     >
-      📶 {on ? "Tiết kiệm: BẬT" : "Tiết kiệm dữ liệu"}
+      <Gauge size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {on ? "Tiết kiệm: BẬT" : "Tiết kiệm dữ liệu"}
     </button>
   );
 }

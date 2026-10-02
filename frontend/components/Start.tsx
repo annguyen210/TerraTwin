@@ -32,6 +32,7 @@
 import { useEffect, useRef, useState } from "react";
 import { searchPlace, type PlaceHit } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
+import { CirclePlay, MapPin } from "lucide-react";
 
 // 16 điểm đã kiểm chứng — cùng bộ dùng để huấn luyện mô hình khí hậu.
 const QUICK: { name: string; lat: number; lon: number; note: string; note_en: string }[] = [
@@ -160,14 +161,14 @@ export default function Start({
 
       {onStory && (
         <button className="start-story" onClick={onStory}>
-          ▶ {t("Xem nhanh 90 giây — TerraTwin làm được gì", "90-second tour — what TerraTwin does")}
+          <CirclePlay size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Xem nhanh 90 giây — TerraTwin làm được gì", "90-second tour — what TerraTwin does")}
           <small>{t("Câu chuyện thật: lũ Huế 2020, có bằng chứng backtest",
                      "A real story: the 2020 Huế flood, backtested")}</small>
         </button>
       )}
 
       <button className="start-gps" onClick={locate} disabled={locating}>
-        {locating ? t("Đang xác định vị trí…", "Locating…") : t("📍 Dùng vị trí của tôi", "📍 Use my location")}
+        <MapPin size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {locating ? t("Đang xác định vị trí…", "Locating…") : t("Dùng vị trí của tôi", "Use my location")}
         <small>{t("Chính xác nhất nếu bạn đang đứng trên thửa đất",
                    "Most accurate if you're standing on the plot")}</small>
       </button>

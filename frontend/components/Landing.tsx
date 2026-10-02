@@ -20,6 +20,7 @@ import Scorecard from "./Scorecard";
 import Start from "./Start";
 import { getScorecard, trackEvent, type AuthUser, type ModuleInfo, type Scorecard as SC } from "@/lib/api";
 import { LangToggle, useLang } from "@/lib/i18n";
+import { Settings } from "lucide-react";
 import { DataSaverToggle } from "@/lib/net";
 
 // Bốn trụ cột THẨM ĐỊNH — mỗi câu ứng với một tính năng đang chạy thật, không hứa.
@@ -91,7 +92,7 @@ export default function Landing({
           <LangToggle />
           <DataSaverToggle />
           <button className="lp-ws" onClick={onWorkspace}>
-            ⚙️ {t("Khu làm việc", "Workspace")}
+            <Settings size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Khu làm việc", "Workspace")}
           </button>
           <Account user={user} onAuth={onAuth} />
         </div>

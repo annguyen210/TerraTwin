@@ -31,6 +31,7 @@ import {
   type ScorecardBucket,
 } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
+import { ChartLine, Map as MapIcon, ShieldCheck, Sprout, Target } from "lucide-react";
 
 const fmtPct = (v: number | null) => (v == null ? "—" : `${v}%`);
 
@@ -50,7 +51,7 @@ function ScoreTrend({ buckets, t }: {
   return (
     <div className="sc-trend" style={{ marginTop: 16 }}>
       <h4 style={{ marginBottom: 6 }}>
-        📈 {t("Xu hướng báo bừa theo thời gian", "False-alarm trend over time")}
+        <ChartLine size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Xu hướng báo bừa theo thời gian", "False-alarm trend over time")}
       </h4>
       {!anyScored ? (
         <p className="sc-gt-note">
@@ -162,7 +163,7 @@ export default function Scorecard({ data, onClose }: {
     <div className="sc" ref={rootRef}>
       <div className="sc-head">
         <div>
-          <h3 className="sc-title">🎯 {t("Sổ điểm tự chấm — vì sao tin được", "Self-scorecard — why to trust it")}</h3>
+          <h3 className="sc-title"><Target size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Sổ điểm tự chấm — vì sao tin được", "Self-scorecard — why to trust it")}</h3>
           <p className="sc-sub">
             {t("TerraTwin tự chấm về chính mình, không sửa được từ giao diện. 90 ngày gần nhất.",
                "TerraTwin scores itself — not editable from the UI. Last 90 days.")}
@@ -206,7 +207,7 @@ export default function Scorecard({ data, onClose }: {
 
           {/* Kho quan sát thực địa = moat */}
           <div className="sc-gt">
-            <h4>🌾 {t("Kho quan sát thực địa", "Field-observation store")}</h4>
+            <h4><Sprout size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Kho quan sát thực địa", "Field-observation store")}</h4>
             <div className="sc-gt-row">
               <div><b>{sc.ground_truth.observations}</b><span>{t("quan sát", "observations")}</span></div>
               <div><b>{sc.ground_truth.by_onetap}</b><span>{t("qua một chạm", "via one-tap")}</span></div>
@@ -245,7 +246,7 @@ export default function Scorecard({ data, onClose }: {
           {/* Độ tin cậy theo vùng — nơi mô hình ĐÃ được kiểm chứng (lớn dần theo moat) */}
           {rel && (
             <div className="sc-rel">
-              <h4>🗺️ {t("Độ tin cậy theo vùng", "Reliability by region")}</h4>
+              <h4><MapIcon size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Độ tin cậy theo vùng", "Reliability by region")}</h4>
               {rel.cells.length === 0 ? (
                 <p className="sc-gt-note">
                   {t("Chưa vùng nào đủ mẫu — bản đồ này lớn dần khi người dùng gửi quan sát thực địa về.",
@@ -275,7 +276,7 @@ export default function Scorecard({ data, onClose }: {
               sổ điểm. Chỉ hiện khi đã kiểm ≥1 câu trả lời LLM (khỏi hiện số 0). */}
           {guard && guard.checked > 0 && (
             <p className="sc-gt-note" style={{ marginTop: 10 }}>
-              🛡️ {t("Rào chắn số", "Number guardrail")}: {t("đã kiểm", "checked")}{" "}
+              <ShieldCheck size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Rào chắn số", "Number guardrail")}: {t("đã kiểm", "checked")}{" "}
               <b>{guard.checked}</b> {t("câu trả lời của trợ lý", "assistant replies")},{" "}
               {t("ẩn", "hid")} <b>{guard.numbers_removed}</b>{" "}
               {t("con số mô hình bịa ra ngoài dữ liệu thật", "numbers the model invented beyond real data")}.
