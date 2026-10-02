@@ -4,6 +4,7 @@ import { useState } from "react";
 import { scanAll, type ScanResult, type ScanModule } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 import { levelOf } from "@/lib/riskScale";
+import ModuleIcon from "@/components/ModuleIcon";
 
 const RISK_COLOR: Record<string, string> = {
   safe: "#2E9E67",
@@ -72,7 +73,7 @@ export default function Overview({
                 onClick={() => onSelectModule?.(m.id)}
               >
                 <div className="ov-alert-top">
-                  <span>{m.icon} {m.name}</span>
+                  <span><ModuleIcon id={m.id} fallback={m.icon} /> {m.name}</span>
                   <span
                     className="ov-alert-lvl"
                     style={{ color: RISK_COLOR[m.risk_level] }}
@@ -99,7 +100,7 @@ export default function Overview({
                 onClick={() => onSelectModule?.(m.id)}
                 title={m.headline}
               >
-                <span className="ov-tile-ic">{m.icon}</span>
+                <span className="ov-tile-ic"><ModuleIcon id={m.id} fallback={m.icon} /></span>
                 <span className="ov-tile-nm">{m.name}</span>
                 {/* Mục thông tin (threat=false) theo thang phù hợp/trung bình/kém
                     màu trung tính — xem lib/riskScale.ts. Trước đây in thẳng mảng

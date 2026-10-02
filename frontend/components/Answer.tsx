@@ -31,6 +31,7 @@ import { TONE_HEX, toneOf } from "@/lib/riskScale";
 import Passport from "./Passport";
 import PlotView from "./PlotView";
 import WhyTrust from "./WhyTrust";
+import ModuleIcon from "@/components/ModuleIcon";
 
 const TONE: Record<string, string> = {
   danger: "bad",
@@ -320,7 +321,7 @@ export default function Answer({
           <div className="ans-grid ans-grid-skel">
             {modules.map((m) => (
               <div key={m.id} className="ans-cell skel">
-                <span className="ans-cell-ic">{m.icon}</span>
+                <span className="ans-cell-ic"><ModuleIcon id={m.id} fallback={m.icon} /></span>
                 <span className="ans-cell-nm">{m.name}</span>
                 <span className="ans-cell-dot" />
               </div>
@@ -408,7 +409,7 @@ export default function Answer({
           {canLam.map((a) => (
             <div key={a.id} className={`ans-item ${TONE[a.risk_level] ?? ""}`}>
               <button className="ans-name" onClick={() => onSelectModule?.(a.id)}>
-                {a.icon} {a.name}
+                <ModuleIcon id={a.id} fallback={a.icon} /> {a.name}
               </button>
               <p className="ans-why">{a.headline}</p>
               <p className="ans-do">→ {a.recommendation}</p>
@@ -445,7 +446,7 @@ export default function Answer({
                   onClick={() => onSelectModule?.(m.id)}
                 >
                   <span className="ans-cell-top">
-                    <span className="ans-cell-ic">{m.icon}</span>
+                    <span className="ans-cell-ic"><ModuleIcon id={m.id} fallback={m.icon} /></span>
                     <span className="ans-cell-nm">{m.name}</span>
                     <span className="ans-cell-dot" />
                   </span>
@@ -532,7 +533,7 @@ export default function Answer({
           <ul>
             {chuaDu.map((m) => (
               <li key={m.id}>
-                {m.icon} {m.name} — {m.headline}
+                <ModuleIcon id={m.id} fallback={m.icon} /> {m.name} — {m.headline}
               </li>
             ))}
           </ul>

@@ -3585,7 +3585,7 @@ body {
 .lp-feat { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
   padding: 18px; transition: transform .12s, border-color .15s; }
 .lp-feat:hover { transform: translateY(-2px); border-color: var(--line-2); }
-.lp-feat-ic { font-size: 24px; }
+.lp-feat-ic { font-size: 24px; color: var(--terra); display: inline-flex; }
 .lp-feat b { display: block; font-size: 14.5px; margin: 8px 0 6px; }
 .lp-feat p { font-size: 12.5px; color: var(--dim); line-height: 1.55; margin: 0; }
 
@@ -4301,3 +4301,7 @@ a.plan-print{ text-decoration:none; display:inline-flex; align-items:center }
 .bat-runs { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .bat-runs li { display: grid; gap: 2px; }
 .bat-runs small { color: var(--dim); font-size: .74rem; }
+
+/* Icon nét (lucide) thay emoji — thẳng hàng với chữ, đổi màu theo chữ. */
+.mod-ic, .ui-ic { display: inline-block; vertical-align: -3px; flex: none; }
+.ans-cell-ic .mod-ic, .ov-tile-ic .mod-ic { width: 20px; height: 20px; }

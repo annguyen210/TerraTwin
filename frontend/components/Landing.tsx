@@ -10,6 +10,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import {
+  BadgeCheck, Camera, ClipboardList, FileSignature, House, type LucideIcon,
+} from "lucide-react";
 
 import Account from "./Account";
 import MyLand from "./MyLand";
@@ -19,34 +22,35 @@ import { getScorecard, trackEvent, type AuthUser, type ModuleInfo, type Scorecar
 import { LangToggle, useLang } from "@/lib/i18n";
 import { DataSaverToggle } from "@/lib/net";
 
-const FEATURES = [
+// Bốn trụ cột THẨM ĐỊNH — mỗi câu ứng với một tính năng đang chạy thật, không hứa.
+const FEATURES: { icon: LucideIcon; tvi: string; ten: string; bvi: string; ben: string }[] = [
   {
-    icon: "🎯",
-    tvi: "Hiệu chuẩn tới TỪNG THỬA",
-    ten: "Calibrated to EACH PLOT",
-    bvi: "Ngưỡng cảnh báo so với khí hậu 10 năm của chính điểm đó — báo động giả tụt từ 46–61% xuống ~3%. Không ai làm được điều này bằng một ngưỡng chung cho cả nước.",
-    ben: "Alert thresholds are set against that exact point's 10-year climatology — false alarms drop from 46–61% to ~3%. No one does this with a single nationwide threshold.",
+    icon: FileSignature,
+    tvi: "Hồ sơ đất số có chữ ký số",
+    ten: "Digitally signed land dossier",
+    bvi: "Một tờ thẩm định: loại đất (ESA 10 m), cao hay trũng, mười năm hiểm hoạ, rủi ro hiện tại, nguồn dữ liệu. Ký Ed25519, nối vào sổ đăng ký công khai móc xích — quét QR là thấy bản gốc, sửa một chữ là lộ.",
+    ben: "One appraisal sheet: land type (ESA 10 m), high or low ground, ten years of hazards, current risk, data sources. Ed25519-signed and chained into a public registry — scan the QR to see the original; change one word and it shows.",
   },
   {
-    icon: "🔬",
-    tvi: "Báo trước CÓ BẰNG CHỨNG",
-    ten: "Early warning WITH EVIDENCE",
-    bvi: "Kiểm chứng trên thiên tai thật (lũ Huế 2020, sạt lở Trà Leng…): báo trước mấy ngày, kèm tỉ lệ báo bừa — không phải lời hứa suông.",
-    ben: "Backtested on real disasters (Huế 2020 flood, Trà Leng landslide…): days of lead time, with the false-alarm rate shown — not empty promises.",
+    icon: Camera,
+    tvi: "Ảnh thực địa đã kiểm",
+    ten: "Verified field photos",
+    bvi: "Ảnh chủ đất gửi được kiểm toạ độ chụp, khoảng cách tới thửa, thời điểm chụp, dấu phần mềm chỉnh ảnh — và đã từng dùng cho thửa khác hay chưa.",
+    ben: "Photos from the owner are checked for capture location, distance to the plot, capture time, photo-editing traces — and whether they were already used for another plot.",
   },
   {
-    icon: "🛰️",
-    tvi: "Ảnh vệ tinh THẬT",
-    ten: "REAL satellite imagery",
-    bvi: "Nhìn thấy chính mảnh đất của bạn từ Sentinel-2 (Microsoft Planetary Computer) — không cần đăng ký khoá nào.",
-    ben: "See your actual plot from Sentinel-2 (Microsoft Planetary Computer) — no API key required.",
+    icon: ClipboardList,
+    tvi: "Thẩm định cả danh mục",
+    ten: "Whole-portfolio appraisal",
+    bvi: "Ngân hàng, hợp tác xã, bảo hiểm tải một tệp CSV: mỗi thửa có loại đất thật, mức rủi ro từ dữ liệu thật, số đợt ngập mười năm — gộp thành bảng rủi ro danh mục, tải về Excel.",
+    ben: "Banks, co-ops and insurers upload one CSV: every plot gets its real land type, risk from real data and ten-year flood count — rolled into a portfolio risk table you can open in Excel.",
   },
   {
-    icon: "🛡️",
-    tvi: "Tự canh đất cho bạn",
-    ten: "Guards your land for you",
-    bvi: "Lưu thửa → TerraTwin tự quét nền và báo TRƯỚC khi có rủi ro, qua Zalo/email — bạn không cần nhớ mở.",
-    ben: "Save a plot → TerraTwin scans in the background and warns you BEFORE risk hits, via Zalo/email — no need to remember to check.",
+    icon: BadgeCheck,
+    tvi: "Tự chấm điểm chính mình",
+    ten: "Grades its own track record",
+    bvi: "Mỗi cảnh báo được chấm lại bằng số đo thật; tỉ lệ báo bừa và bỏ sót công khai. Mô hình AI không qua ngưỡng đặt trước thì không được bật — và lần không đạt cũng được công khai.",
+    ben: "Every alert is re-scored against measured data; false-alarm and miss rates are public. An AI model that misses its pre-set bar is not switched on — and the failed run is published too.",
   },
 ];
 
@@ -98,21 +102,21 @@ export default function Landing({
         <section className="lp-hero">
           <div className="lp-hero-txt">
             <span className="lp-eyebrow">
-              {t("Bản sao số của đất đai Việt Nam", "The digital twin of Vietnam's land")}
+              {t("Thẩm định đất có kiểm chứng · Bản sao số đất đai Việt Nam", "Verifiable land due diligence · Vietnam's land digital twin")}
             </span>
             <h1 className="lp-h1">
-              {t("Biết trước điều gì sắp xảy ra với ", "Know what's about to happen to ")}
-              <span>{t("mảnh đất của bạn", "your land")}</span>
+              {t("Biết thửa đất ", "Know the land ")}
+              <span>{t("trước khi xuống tiền", "before you put money on it")}</span>
             </h1>
             <p className="lp-lede">
               {t(
-                "Chọn đúng thửa của bạn — TerraTwin kiểm toàn bộ rủi ro 7 ngày tới bằng dữ liệu vệ tinh & khí hậu thật, hiệu chuẩn riêng cho chính chỗ đó, rồi cho biết nên làm gì.",
-                "Pick your exact plot — TerraTwin checks every risk over the next 7 days using real satellite & climate data, calibrated to that spot, then tells you what to do.",
+                "Chọn một thửa: TerraTwin cho biết đó là đất gì, nằm cao hay trũng, mười năm qua gặp hiểm hoạ gì và bảy ngày tới có gì đe doạ — từ dữ liệu vệ tinh và khí hậu thật, hiệu chuẩn riêng cho chính chỗ đó. Rồi phát hành Hồ sơ đất số có chữ ký số để ngân hàng, người mua tự kiểm bản gốc.",
+                "Pick a plot: TerraTwin tells you what land it is, whether it sits high or low, which hazards hit it in ten years and what threatens it this week — from real satellite and climate data, calibrated to that spot. Then it issues a digitally signed Land Dossier that banks and buyers can verify themselves.",
               )}
             </p>
             <div className="lp-stats">
               <div><b>{nModules}</b><span>{t("mũi nhọn", "spearheads")}</span></div>
-              <div><b>12/12</b><span>{t("ngành", "sectors")}</span></div>
+              <div><b>Ed25519</b><span>{t("hồ sơ ký số", "signed dossiers")}</span></div>
               <div title={doThat
                 ? t("Đo trên chính những cảnh báo TerraTwin đã phát trong 90 ngày qua.",
                      "Measured on TerraTwin's own alerts over the last 90 days.")
@@ -133,36 +137,36 @@ export default function Landing({
                 chủ thửa. Khung "thửa của bạn" ở trên sai ngữ cảnh cho họ — cần
                 một cửa khác dẫn thẳng tới Sổ tay thửa (đã viết sẵn cho người mua). */}
             <Link href="/buyer" className="lp-buyer-cta">
-              🏠 {t("Định mua/thuê đất? Kiểm tra trước khi trả tiền",
+              <House size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Định mua/thuê đất? Kiểm tra trước khi trả tiền",
                     "Planning to buy or rent land? Check before you pay")}
             </Link>
             {/* Ngân hàng / hợp tác xã / bảo hiểm: cả danh mục một lần, không mở từng thửa. */}
             <Link href="/batch" className="lp-buyer-cta">
-              📊 {t("Ngân hàng, hợp tác xã: thẩm định cả danh mục từ một tệp CSV",
+              <ClipboardList size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Ngân hàng, hợp tác xã: thẩm định cả danh mục từ một tệp CSV",
                     "Banks & co-ops: appraise a whole portfolio from one CSV file")}
             </Link>
+          </div>
+        </section>
+
+        {/* BỐN TRỤ CỘT THẨM ĐỊNH — ngay sau hero: đây là câu chuyện chính */}
+        <section className="lp-why">
+          <h2 className="lp-sec-h">
+            {t("Không chỉ cảnh báo: giấy tờ đất có kiểm chứng", "Not just alerts: land paperwork you can verify")}
+          </h2>
+          <div className="lp-feats">
+            {FEATURES.map((f) => (
+              <div className="lp-feat" key={f.tvi}>
+                <span className="lp-feat-ic"><f.icon size={26} strokeWidth={1.7} aria-hidden="true" /></span>
+                <b>{t(f.tvi, f.ten)}</b>
+                <p>{t(f.bvi, f.ben)}</p>
+              </div>
+            ))}
           </div>
         </section>
 
         {/* SỔ ĐIỂM TỰ CHẤM */}
         <section className="lp-score">
           <Scorecard data={sc} />
-        </section>
-
-        {/* VÌ SAO KHÁC BIỆT */}
-        <section className="lp-why">
-          <h2 className="lp-sec-h">
-            {t("Vì sao TerraTwin, không phải app thời tiết", "Why TerraTwin, not a weather app")}
-          </h2>
-          <div className="lp-feats">
-            {FEATURES.map((f) => (
-              <div className="lp-feat" key={f.icon}>
-                <span className="lp-feat-ic">{f.icon}</span>
-                <b>{t(f.tvi, f.ten)}</b>
-                <p>{t(f.bvi, f.ben)}</p>
-              </div>
-            ))}
-          </div>
         </section>
 
         {/* DẢI DỮ LIỆU THẬT */}

@@ -20,6 +20,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  Brain, CalendarDays, Camera, Coins, Compass, FileSignature, FileText, Printer, Satellite, ShieldCheck,
+} from "lucide-react";
+import {
   getMyQuestions,
   issueDossier,
   uploadEvidence,
@@ -36,6 +39,7 @@ import {
   type TapQuestion,
 } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
+import ModuleIcon from "@/components/ModuleIcon";
 
 type T = (vi: string, en: string) => string;
 
@@ -189,7 +193,7 @@ export default function PlotPlan({
   if (loading && !plan) {
     return (
       <div className="plan plan-skel">
-        <div className="plan-head">🧭 {t("Đang lập kế hoạch cho thửa…", "Building the plot's plan…")}</div>
+        <div className="plan-head"><Compass size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Đang lập kế hoạch cho thửa…", "Building the plot's plan…")}</div>
       </div>
     );
   }
@@ -206,7 +210,7 @@ export default function PlotPlan({
     <div className="plan">
       <div className="plan-head">
         <div className="plan-head-main">
-          🧭 {t("Kế hoạch cho thửa của bạn", "Your plot's plan")}
+          <Compass size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Kế hoạch cho thửa của bạn", "Your plot's plan")}
           <span className="plan-sub">
             {plan.n_alerts
               ? t(`${plan.n_alerts} việc cần lưu ý · sắp theo mức nguy hiểm`,
@@ -222,14 +226,14 @@ export default function PlotPlan({
             title={t("Sổ tay thửa — hồ sơ dữ liệu chia sẻ được (ngân hàng, bảo hiểm, người mua)",
                      "Land Passport — shareable data record (bank, insurer, buyer)")}
           >
-            📄 {t("Sổ tay thửa", "Land Passport")}
+            <FileText size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Sổ tay thửa", "Land Passport")}
           </Link>
           <button
             className="plan-print"
             onClick={() => window.print()}
             title={t("In hoặc lưu PDF để đưa hợp tác xã / cán bộ xã", "Print or save PDF for the co-op / commune officer")}
           >
-            🖨️ {t("In / lưu", "Print / save")}
+            <Printer size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("In / lưu", "Print / save")}
           </button>
           {getToken() ? (
           <label
@@ -237,7 +241,7 @@ export default function PlotPlan({
             title={t("Ảnh GỐC chụp tại thửa (còn GPS) — TerraTwin kiểm vị trí, thời điểm, dấu chỉnh sửa và ảnh dùng lại",
                      "ORIGINAL photos taken at the plot (with GPS) — TerraTwin checks location, time, edits and reuse")}
           >
-            📷 {photos.length ? t(`${photos.length} ảnh thực địa`, `${photos.length} field photo(s)`)
+            <Camera size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {photos.length ? t(`${photos.length} ảnh thực địa`, `${photos.length} field photo(s)`)
                               : t("Kèm ảnh thực địa", "Add field photos")}
             <input
               id="plan-field-photos"
@@ -252,7 +256,7 @@ export default function PlotPlan({
             <span className="plan-print plan-photo-pick" aria-disabled="true"
                   title={t("Đăng nhập để kèm ảnh thực địa (mỗi tài khoản có trần số ảnh). Hồ sơ không kèm ảnh vẫn phát hành được.",
                            "Sign in to attach field photos (each account has a photo limit). Dossiers without photos can still be issued.")}>
-              📷 {t("Đăng nhập để kèm ảnh", "Sign in to add photos")}
+              <Camera size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Đăng nhập để kèm ảnh", "Sign in to add photos")}
             </span>
           )}
           <button
@@ -277,7 +281,7 @@ export default function PlotPlan({
             title={t("Phát hành Hồ sơ đất số: ký số Ed25519, có QR để ngân hàng / người mua tự kiểm bản gốc",
                      "Issue a Digital Land Dossier: Ed25519-signed, with a QR so banks / buyers can verify the original")}
           >
-            🔏 {issuing ?? t("Phát hành hồ sơ đất số", "Issue land dossier")}
+            <FileSignature size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {issuing ?? t("Phát hành hồ sơ đất số", "Issue land dossier")}
           </button>
         </div>
       </div>
@@ -342,7 +346,7 @@ export default function PlotPlan({
                       onClick={() => onSelectModule?.(a.id)}
                       title={t("Xem chi tiết mũi nhọn này", "See this spearhead in detail")}
                     >
-                      {a.icon} {a.name}
+                      <ModuleIcon id={a.id} fallback={a.icon} /> {a.name}
                     </b>
                     {a.when && (
                       <span
@@ -362,7 +366,7 @@ export default function PlotPlan({
                       <p className="pa-ask-load">{t("Đang mô phỏng ngược…", "Running inverse simulation…")}</p>
                     ) : r ? (
                       <div className="pa-ask">
-                        <b>🧭 {r.headline}</b>
+                        <b><Compass size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {r.headline}</b>
                         <ul>
                           {r.levers.map((l, i) => (
                             <li key={i} className={l.feasible ? "" : "infeasible"}>
@@ -375,7 +379,7 @@ export default function PlotPlan({
                       </div>
                     ) : (
                       <button className="pa-askbtn" onClick={() => doAsk(a.id)}>
-                        🧭 {t("Cần điều kiện gì mới an toàn?", "What conditions make it safe?")}
+                        <Compass size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Cần điều kiện gì mới an toàn?", "What conditions make it safe?")}
                       </button>
                     ))}
                 </li>
@@ -388,7 +392,7 @@ export default function PlotPlan({
       {/* 2. NGÀY AN TOÀN */}
       {sw && (
         <section className="plan-sec">
-          <h4 className="plan-h">📅 {t("Ngày an toàn để làm đồng (7 ngày tới)", "Safe days for fieldwork (next 7 days)")}</h4>
+          <h4 className="plan-h"><CalendarDays size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Ngày an toàn để làm đồng (7 ngày tới)", "Safe days for fieldwork (next 7 days)")}</h4>
           <div className="plan-week">
             {sw.days.map((d) => (
               <div
@@ -409,7 +413,7 @@ export default function PlotPlan({
       {/* 3. GIÁ TRỊ ĐANG CHỊU RỦI RO */}
       {value && (
         <section className="plan-sec">
-          <h4 className="plan-h">💰 {t("Giá trị đang chịu rủi ro", "Value at risk")}</h4>
+          <h4 className="plan-h"><Coins size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Giá trị đang chịu rủi ro", "Value at risk")}</h4>
           {value.land_use && (
             <div className="plan-landuse" title={value.land_use.source}>
               <span className="lu-k">{t("Loại đất tại thửa", "Land type at plot")}</span>
@@ -446,7 +450,7 @@ export default function PlotPlan({
               {value.items.map((it) => (
                 <li key={it.id}>
                   <span className="pv-name">
-                    {it.icon} {it.name}
+                    <ModuleIcon id={it.id} fallback={it.icon} /> {it.name}
                   </span>
                   <span className="pv-stake">{it.stake_text}</span>
                   <span className="pv-pct">
@@ -463,7 +467,7 @@ export default function PlotPlan({
 
       {/* 4. TRÍ TUỆ VÙNG (genome) */}
       <section className="plan-sec">
-        <h4 className="plan-h">🛰️ {t("Vùng giống thửa bạn — học từ nơi cùng “bộ gen” đất",
+        <h4 className="plan-h"><Satellite size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Vùng giống thửa bạn — học từ nơi cùng “bộ gen” đất",
                                      "Regions like yours — learn from places with the same land “genome”")}</h4>
         {genErr ? (
           <p className="plan-note">{t("Chưa dựng được vùng tương đồng (kiểm tra mạng).", "Couldn't build similar regions (check network).")}</p>
@@ -492,7 +496,7 @@ export default function PlotPlan({
       {/* 6. ĐỘ HIẾM TỔ HỢP — mô hình AI đã huấn luyện, vai trò ĐỐI CHIẾU */}
       {aml?.available && (
         <section className="plan-sec">
-          <h4 className="plan-h">🧠 {t("Độ hiếm tổ hợp thời tiết (mô hình AI đối chiếu)", "Weather-combination rarity (AI cross-check model)")}</h4>
+          <h4 className="plan-h"><Brain size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Độ hiếm tổ hợp thời tiết (mô hình AI đối chiếu)", "Weather-combination rarity (AI cross-check model)")}</h4>
           <div className="plan-aml">
             <div className="aml-meter">
               <div className="aml-bar">
@@ -517,7 +521,7 @@ export default function PlotPlan({
       {/* 5. TỰ CANH */}
       {watch && (
         <section className="plan-sec plan-watch">
-          <h4 className="plan-h">🛡️ {t("TerraTwin tự canh thửa này", "TerraTwin watches this plot for you")}</h4>
+          <h4 className="plan-h"><ShieldCheck size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("TerraTwin tự canh thửa này", "TerraTwin watches this plot for you")}</h4>
           <p className="plan-value-head">{watch.headline}</p>
           <p className="plan-note">{watch.capability}</p>
         </section>

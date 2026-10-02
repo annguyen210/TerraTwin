@@ -32,6 +32,7 @@ import Portfolio from "@/components/Portfolio";
 import ModelCard from "@/components/ModelCard";
 import ChangeDetect from "@/components/ChangeDetect";
 import { useLang } from "@/lib/i18n";
+import ModuleIcon from "@/components/ModuleIcon";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
@@ -292,7 +293,7 @@ export default function Home() {
                   className={`mod ${m.id === active ? "on" : ""}`}
                   onClick={() => selectModule(m.id)}
                 >
-                  <span className="ic">{m.icon}</span>
+                  <span className="ic"><ModuleIcon id={m.id} fallback={m.icon} /></span>
                   <span className="nm">{m.name}</span>
                 </button>
               ))}

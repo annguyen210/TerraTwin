@@ -13,6 +13,7 @@ import {
   getPortfolioOverview, type AuthUser, type PortfolioOverview as PO,
 } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
+import ModuleIcon from "@/components/ModuleIcon";
 
 const COLOR: Record<string, string> = {
   danger: "#C2412E",
@@ -135,7 +136,7 @@ export default function PortfolioOverview({
                 <div className="po-drivers">
                   {p.drivers.map((dr) => (
                     <span key={dr.id} style={{ color: COLOR[dr.risk_level] }}>
-                      {dr.icon} {dr.name}
+                      <ModuleIcon id={dr.id} fallback={dr.icon} /> {dr.name}
                     </span>
                   ))}
                 </div>
