@@ -40,5 +40,70 @@
    "nhiều dữ liệu hơn (~4×)",
    "giới hạn trọng số lớp hiếm"
   ]
+ },
+ {
+  "date": "2026-10-02",
+  "status": "rejected",
+  "reason": "mIoU trên tỉnh giữ lại 0.314 < ngưỡng 0,35 đặt trước khi huấn luyện",
+  "miou_test": 0.314,
+  "miou_val": 0.393,
+  "pixel_acc_test": 0.769,
+  "iou_per_class_test": {
+   "Tán cây": 0.705,
+   "Cây bụi": 0.0,
+   "Đồng cỏ": 0.175,
+   "Đất trồng trọt": 0.228,
+   "Bề mặt xây dựng": 0.559,
+   "Đất trống": 0.25,
+   "Băng tuyết": null,
+   "Mặt nước": 0.907,
+   "Đất ngập nước": 0.0,
+   "Rừng ngập mặn": 0.0,
+   "Rêu địa y": null
+  },
+  "test_provinces": [
+   "Cần Giờ",
+   "Cần Thơ",
+   "Hà Giang",
+   "Đà Nẵng"
+  ],
+  "val_provinces": [
+   "Buôn Ma Thuột",
+   "Huế"
+  ],
+  "n_train": 142,
+  "n_val": 23,
+  "n_test": 48,
+  "model": "U-Net base 16, CPU, 8 kênh, chốt vòng 24/40",
+  "config_preregistered": "commit b27f054 (8 kênh hai mùa, trọng số căn bậc hai trần 10); ngưỡng, tập kiểm tra, tập kiểm định giữ nguyên lần 1",
+  "data": "Sentinel-2 L2A 2021 HAI ảnh/ô (nửa đầu + nửa cuối năm, B02 B03 B04 B08 mỗi ảnh) + nhãn ESA WorldCover 2021, 213 ô 2,56 km / 20 điểm, float16",
+  "vs_run_1": {
+   "miou_test": [
+    0.232,
+    0.314
+   ],
+   "pixel_acc_test": [
+    0.591,
+    0.769
+   ],
+   "Đất trồng trọt": [
+    0.026,
+    0.228
+   ],
+   "Tán cây": [
+    0.523,
+    0.705
+   ],
+   "Bề mặt xây dựng": [
+    0.505,
+    0.559
+   ],
+   "Mặt nước": [
+    0.811,
+    0.907
+   ]
+  },
+  "diagnosis": "Ảnh hai mùa sửa đúng chỗ hỏng của lần 1: đất trồng trọt 0,026 → 0,228, độ chính xác điểm ảnh 0,59 → 0,77. Vẫn hỏng: rừng ngập mặn 0 (tập kiểm tra có Cần Giờ — vùng rừng ngập mặn, trong khi lớp này chỉ chiếm 1,6% dữ liệu huấn luyện), đất ngập nước 0, cây bụi 0 (gần như không có mẫu). Kiểm định 0,393 nhưng kiểm tra 0,314: tỉnh kiểm tra khó hơn (rừng ngập mặn Cần Giờ, núi đá Hà Giang).",
+  "note": "Không chấm lại lần này trên tập lớp gộp hay ngưỡng khác — đổi thước đo SAU khi thấy kết quả là tự đánh lừa. Muốn thử thước đo khác (vd 5 nhóm lớp mà tính năng thay đổi đất thật sự dùng) thì phải là một lần chạy MỚI, chốt thước đo trước."
  }
 ]
