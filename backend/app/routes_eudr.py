@@ -501,3 +501,15 @@ def eudr_ai_predict(body: GeometryIn, lang: str = "vi") -> dict:
     if not plot["valid"]:
         raise HTTPException(422, reqlang.tr("Ranh thửa chưa đúng chuẩn.", "The boundary is not valid."))
     return forest_or_crop.predict(plot)
+
+
+@router.post("/api/eudr/radar")
+def eudr_radar(body: GeometryIn, lang: str = "vi") -> dict:
+    """Radar Sentinel-1 xuyên mây: VH 60 ngày gần nhất so với cùng kỳ năm trước (thử nghiệm,
+    chưa kiểm định — tín hiệu giám sát sống, không vào hồ sơ ký)."""
+    from app.services import radar_s1
+    reqlang.set_lang(lang)
+    plot = _plot_from(body)
+    if not plot["valid"]:
+        raise HTTPException(422, reqlang.tr("Ranh thửa chưa đúng chuẩn.", "The boundary is not valid."))
+    return radar_s1.change(plot)
