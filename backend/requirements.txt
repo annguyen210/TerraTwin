@@ -23,6 +23,10 @@ pywebpush==2.0.0
 cryptography>=42
 segno==1.6.6
 
+# Hồ sơ vườn chuẩn EUDR: kiểm ranh thửa (tự cắt, chồng nhau, diện tích) — shapely 2
+# có sẵn bánh xe (wheel) cho Linux/Windows, không cần GEOS cài riêng.
+shapely>=2.0,<3
+
 # Ảnh thực địa: đọc EXIF (GPS, thời điểm), ảnh thu nhỏ đã xoá EXIF, băm cảm quan.
 Pillow==11.3.0
 

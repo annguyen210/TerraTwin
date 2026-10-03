@@ -2,8 +2,7 @@
 
 Không phải cảnh báo, không phải dự báo: đây là GIẤY TỜ. Người mua đất, cán bộ
 tín dụng, người bán bảo hiểm cần một tờ nói thửa này là đất gì, nằm cao hay
-trũng, mười năm qua gặp hiểm hoạ gì, hiện trạng rủi ro ra sao, dữ liệu lấy từ
-đâu — và cần TIN rằng tờ giấy trước mặt họ đúng là tờ đã phát hành, chưa ai sửa.
+trũng, mười năm qua gặp hiểm hoạ gì, dữ liệu lấy từ đâu — và cần TIN rằng tờ giấy trước mặt họ đúng là tờ đã phát hành, chưa ai sửa.
 
 BA LỚP KIỂM CHỨNG, mỗi lớp chặn một kiểu gian lận khác:
   1. facts_hash  — SHA-256 nội dung chuẩn hoá: sửa một chữ là lệch.
@@ -28,7 +27,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.db import Dossier
-from app.schemas import Location
 from app.services import signing
 from app.services.reqlang import tr
 
@@ -62,12 +60,15 @@ def _iso(dt: datetime) -> str:
 
 SOURCES = [
     "ESA WorldCover 2021 v200 (10 m) — Microsoft Planetary Computer",
-    "Open-Meteo: dự báo 7 ngày, cao độ DEM, lưu trữ ERA5 (ECMWF) 10 năm",
-    "MET Norway — nguồn dự phòng dự báo",
-    "GloFAS (Copernicus) — lưu lượng sông",
-    "OpenStreetMap — công trình, đường sá",
-    "Sổ điểm tự chấm TerraTwin — POD/FAR/CSI công khai",
+    "Open-Meteo: cao độ DEM, lưu trữ tái phân tích ERA5 (ECMWF) 10 năm",
+    "GloFAS (Copernicus) — lưu lượng sông tái phân tích",
 ]
+
+# QUY TẮC TIN CẬY (3/10/2026): hồ sơ dùng để quyết định chuyện tiền bạc chỉ chứa số
+# ĐO được và số TÍNH LẠI được từ số đo. Dự báo (rủi ro 7 ngày tới, mô hình học sâu)
+# KHÔNG vào nội dung được ký — chúng đổi theo giờ và luôn có xác suất sai; người
+# xem tra trực tiếp trên trang thửa, kèm tỉ lệ đúng đã đo (sổ điểm tự chấm).
+EVIDENCE_CLASSES = {"land_use": "measured", "terrain": "measured", "history_10y": "derived"}
 
 
 def build_facts(lat: float, lon: float, area_ha: float | None, db: Session) -> dict:
@@ -75,71 +76,34 @@ def build_facts(lat: float, lon: float, area_ha: float | None, db: Session) -> d
 
     Chạy song song; mục nào hỏng ghi rõ "không lấy được" thay vì bỏ trống im lặng.
     """
-    from app.services import (
-        jobs, landchange, landcover, landuse, passport, reqlang, scan, scorecard,
-    )
+    from app.services import jobs, landuse, passport, reqlang
 
-    loc = Location(lat=lat, lon=lon, area_ha=area_ha)
-    tasks = [lambda: scan.scan(loc), lambda: passport.build(lat, lon),
-             lambda: landuse.composition(lat, lon)]
-    # Mô hình học sâu chỉ chạy khi ĐÃ BẬT (qua ngưỡng mIoU tập giữ lại) — không
-    # thì không tốn lượt gọi ảnh vệ tinh cho một mục chắc chắn trống.
-    with_change = landcover.available()
-    if with_change:
-        tasks.append(lambda: landchange.detect(lat, lon))
-    got = jobs.gather(tasks)
-    sc, pp, lu = got[0], got[1], got[2]
-    change = got[3] if with_change else None
-    try:
-        card = scorecard.summary(db)
-    except Exception:
-        db.rollback()
-        card = None
-
-    current = None
-    if sc is not None:
-        current = {
-            "assessed_at": sc.generated_at,
-            "terrascore": {"score": sc.terrascore.score, "grade": sc.terrascore.grade,
-                           "summary": sc.terrascore.summary},
-            "real_data_ratio": round(sc.real_data_ratio, 3),
-            "modules": [{"id": m.id, "name": m.name, "risk_level": m.risk_level,
-                         "status": getattr(m, "status", "ok"), "is_real": m.is_real,
-                         "threat": getattr(m, "threat", True),
-                         "headline": m.headline} for m in sc.modules],
-            "not_assessed_in_dossier": list(sc.skipped_heavy or []),
-        }
-
-    track = None
-    if card is not None:
-        track = {k: card.get(k) for k in ("window_days", "scored", "pending", "enough",
-                                           "min_sample", "headline", "pod_pct", "far_pct",
-                                           "csi_pct", "counts") if k in card}
-
+    pp, lu = jobs.gather([lambda: passport.build(lat, lon), lambda: landuse.composition(lat, lon)])
+    ok_pp = bool(pp and pp.get("available"))
     return {
         "schema": SCHEMA,
         "lang": reqlang.cur_lang(),
         "location": {"lat": round(lat, 6), "lon": round(lon, 6), "area_ha": area_ha},
         "land_use": lu,
-        "terrain": (pp or {}).get("terrain") if pp and pp.get("available") else None,
-        "history_10y": (pp or {}).get("history") if pp and pp.get("available") else None,
+        "terrain": pp.get("terrain") if ok_pp else None,
+        "history_10y": pp.get("history") if ok_pp else None,
         "history_caveat": (pp or {}).get("caveat") if pp else None,
-        "current_risk": current,
-        "land_change": change if change and change.get("available") else None,
-        "track_record": track,
+        "evidence_classes": EVIDENCE_CLASSES,
+        "predictions_included": False,
+        "predictions_note": tr(
+            "Dự báo (rủi ro 7 ngày tới, cảnh báo) KHÔNG đưa vào hồ sơ ký số: chúng đổi theo giờ và luôn có xác "
+            "suất sai. Xem trực tiếp trên trang thửa, kèm tỉ lệ đúng đã đo của chính TerraTwin.",
+            "Forecasts (7-day risk, alerts) are NOT part of the signed dossier: they change hourly and can "
+            "always be wrong. See them live on the plot page, with TerraTwin's own measured hit rate."),
         "sources": SOURCES,
-        "missing": [name for name, v in (("land_use", lu), ("passport", pp and pp.get("available")),
-                                          ("current_risk", current), ("track_record", track))
-                    if not v],
+        "missing": [name for name, v in (("land_use", lu), ("passport", ok_pp)) if not v],
         "disclaimer": tr(
-            "Hồ sơ tổng hợp dữ liệu mở và mô hình của TerraTwin tại thời điểm phát "
-            "hành. KHÔNG thay thế giấy chứng nhận quyền sử dụng đất, quy hoạch hay "
-            "khảo sát thực địa. Mọi mục ghi rõ nguồn và dữ liệu thật hay ước lượng; "
+            "Hồ sơ tổng hợp dữ liệu ĐO và số tính lại được từ dữ liệu mở tại thời điểm phát hành. KHÔNG thay "
+            "thế giấy chứng nhận quyền sử dụng đất, quy hoạch hay khảo sát thực địa. Mọi mục ghi rõ nguồn; "
             "mục nào không lấy được thì ghi là thiếu, không điền số thay.",
-            "This dossier compiles open data and TerraTwin models at issuance time. It "
-            "does NOT replace land-use right certificates, zoning or field surveys. "
-            "Every section states its source and whether it is measured or estimated; "
-            "anything that couldn't be fetched is marked missing, never filled in."),
+            "This dossier compiles MEASURED data and figures recomputable from open data at issuance time. "
+            "It does NOT replace land-use right certificates, zoning or field surveys. Every section states "
+            "its source; anything that couldn't be fetched is marked missing, never filled in."),
     }
 
 

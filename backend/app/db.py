@@ -613,6 +613,28 @@ class FieldPhoto(Base):
     dossier_id: Mapped[str | None] = mapped_column(String(16), nullable=True, index=True)
 
 
+class EudrSet(Base):
+    """Một LÔ THỬA kiểm theo EUDR (doanh nghiệp, hợp tác xã tải tệp ranh thửa lên).
+
+    plots_json: thửa đã chuẩn hoá + vấn đề chuẩn EU (services/eudr_geo.py), đóng
+    băng lúc gửi. results_json: {chỉ số thửa: kết quả sàng lọc} GHI DẦN sau mỗi thửa
+    (máy chủ miễn phí ngủ giữa chừng thì chạy tiếp được từ thửa dở, như batch_runs).
+    """
+    __tablename__ = "eudr_sets"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)    # = job_id
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    title: Mapped[str] = mapped_column(String(200), default="")
+    commodity: Mapped[str] = mapped_column(String(24), default="")
+    producer: Mapped[str] = mapped_column(String(120), default="")
+    n_plots: Mapped[int] = mapped_column(Integer, default=0)
+    plots_json: Mapped[str] = mapped_column(Text, default="[]")
+    results_json: Mapped[str] = mapped_column(Text, default="{}")
+    summary_json: Mapped[str] = mapped_column(Text, default="{}")
+    state: Mapped[str] = mapped_column(String(12), default="queued")   # queued | running | done
+
+
 # Cột thêm sau khi đã có database chạy thật. `create_all` KHÔNG thêm cột vào
 # bảng sẵn có, nên thiếu bước này thì bản deploy cũ sẽ đổ ngay lần truy vấn đầu
 # — lỗi chỉ lộ ra ở production, không bao giờ lộ trong test trên database sạch.

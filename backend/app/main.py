@@ -24,6 +24,7 @@ from app.routes_account import router as account_router
 from app.routes_data import router as data_router
 from app.routes_batch import router as batch_router
 from app.routes_dossier import router as dossier_router
+from app.routes_eudr import router as eudr_router
 from app.routes_learn import router as learn_router
 from app.routes_trust import router as trust_router
 from app.schemas import (
@@ -261,9 +262,9 @@ async def lifespan(_app: FastAPI):
         # phút không có request) → chạy tiếp từ thửa dở, không bắt gửi lại.
         try:
             from app.db import SessionLocal
-            from app.services import batch as _batch, jobs_db as _jobs_db
+            from app.services import batch as _batch, eudr as _eudr, jobs_db as _jobs_db
             with SessionLocal() as _s:
-                n = _jobs_db.requeue_running(_s, (_batch.JOB_KIND,))
+                n = _jobs_db.requeue_running(_s, (_batch.JOB_KIND, _eudr.JOB_KIND))
             if n:
                 log(f"[TerraTwin] Chạy tiếp {n} lô thẩm định bị bỏ dở.")
         except Exception as e:      # không được chặn khởi động
@@ -368,6 +369,7 @@ app.include_router(account_router)
 app.include_router(data_router)
 app.include_router(dossier_router)
 app.include_router(batch_router)
+app.include_router(eudr_router)
 app.include_router(learn_router)
 app.include_router(trust_router)
 

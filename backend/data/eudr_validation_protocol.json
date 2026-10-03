@@ -1,0 +1,49 @@
+{
+ "title": "Kiểm định độc lập sàng lọc phá rừng EUDR của TerraTwin",
+ "registered": "2026-10-03",
+ "rule_version": "terratwin.eudr-screen/1",
+ "reference": "Hansen/UMD/Google Global Forest Change v1.12 (2000–2024), 30 m — tile 20N_100E",
+ "region": {
+  "lat": [
+   11.3,
+   15.0
+  ],
+  "lon": [
+   107.2,
+   109.0
+  ],
+  "note": "Tây Nguyên và vùng giáp ranh — vùng cà phê chính của Việt Nam"
+ },
+ "plot": "ô vuông 4×4 điểm ảnh Hansen (~111 m × 109 m ≈ 1,2 ha), đúng ranh điểm ảnh",
+ "seed": 20261003,
+ "windows": 160,
+ "window_px": 160,
+ "per_set": 40,
+ "sets": {
+  "lost_after_2020": {
+   "criteria": "≥50% điểm ảnh trong ô có lossyear 21–24 (mất cây 2021–2024) VÀ treecover2000 TB ≥30%",
+   "expected": "review hoặc high (KHÔNG được 'low')"
+  },
+  "stable_forest": {
+   "criteria": "không điểm ảnh nào mất cây 2001–2024 VÀ treecover2000 TB ≥70%",
+   "expected": "review hoặc high (rừng không được lọt qua sàng lọc)"
+  },
+  "never_forest": {
+   "criteria": "không điểm ảnh nào mất cây 2001–2024 VÀ treecover2000 TB <10%",
+   "expected": "low"
+  }
+ },
+ "metrics": {
+  "M1_detect_lost": "tỉ lệ ô lost_after_2020 được gắn review/high",
+  "M2_flag_forest": "tỉ lệ ô stable_forest được gắn review/high",
+  "M3_pass_clean": "tỉ lệ ô never_forest được gắn low",
+  "info_high_share_lost": "tỉ lệ ô lost_after_2020 được gắn high (chỉ báo cáo)"
+ },
+ "pass_thresholds": {
+  "M1_detect_lost": 0.8,
+  "M2_flag_forest": 0.8,
+  "M3_pass_clean": 0.7
+ },
+ "unknown_policy": "'unknown' (thiếu dữ liệu) tính là SAI cho mọi nhóm",
+ "decision": "ĐẠT khi cả ba M1, M2, M3 ≥ ngưỡng. Không đạt → công bố, không chấm lại trên mẫu này."
+}
