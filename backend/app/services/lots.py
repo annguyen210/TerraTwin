@@ -83,10 +83,16 @@ def _monitor_changed(db: Session, did: str) -> bool:
 
 
 def other_kg(db: Session, did: str, season: str, exclude_lot: str | None) -> float:
-    """kg vườn này đã khai trong MỌI lô khác cùng vụ — kể cả của doanh nghiệp khác:
-    một vườn bán cho hai nơi vẫn chỉ có một sức sản xuất."""
+    """kg vườn này đã khai trong MỌI lô ĐÃ CÓ CHỨNG THƯ cùng vụ — kể cả của doanh nghiệp
+    khác: một vườn bán cho hai nơi vẫn chỉ có một sức sản xuất.
+
+    CHỈ đếm lô đã phát hành chứng thư, không đếm bản nháp: mã hồ sơ vườn là công khai (in
+    trên QR), nếu bản nháp cũng được đếm thì ai cũng tạo được lô nháp giả để "giữ chỗ"
+    hết sức sản xuất của một nông hộ. Chứng thư thì đã ký, gắn tài khoản, nằm trong sổ
+    công khai — lạm dụng để lại dấu vết. (Còn hở: chưa có phiếu giao hàng nông hộ ký —
+    xem kế hoạch D5.)"""
     total = 0.0
-    for lot in db.execute(select(Lot).where(Lot.season == season)).scalars().all():
+    for lot in db.execute(select(Lot).where(Lot.season == season, Lot.state == "certified")).scalars().all():
         if lot.id == exclude_lot:
             continue
         for d in json.loads(lot.deliveries_json or "[]"):

@@ -293,6 +293,12 @@ def test_lo_hang_can_bang_khoi_luong_va_chung_thu(env):
     row = r2["checks"]["rows"][0]
     assert row["status"] == "blocked" and row["other_lots_kg"] == 4000 and "Vượt năng suất trần" in row["notes"][0]
 
+    # Lô NHÁP của người khác không được "giữ chỗ" sức sản xuất của vườn (chống lạm dụng).
+    h3 = _login(c, "dn3@vd.vn")
+    c.post("/api/lots", headers=h3, json={"season": "2027/28", "deliveries": [{"dossier_id": a["id"], "kg": 7000}]})
+    r4 = c.post("/api/lots", headers=h2, json={"season": "2027/28", "deliveries": [{"dossier_id": a["id"], "kg": 3000}]}).json()
+    assert r4["checks"]["rows"][0]["other_lots_kg"] == 0 and r4["checks"]["rows"][0]["status"] == "ok"
+
 
 def test_giam_sat_chan_lo_khi_vuon_xau_di(env):
     c = env
