@@ -94,3 +94,17 @@ def test_huan_luyen_cham_mot_lan_va_chi_xuat_khi_dat(tmp_path, monkeypatch):
     foc.train()
     runs = json.load(open(tmp_path / "runs.json", encoding="utf-8"))
     assert len(runs) == 2 and runs[-1]["status"] == "rejected" and not (tmp_path / "model.json").exists()
+
+
+def test_dich_vu_chua_bat_khi_chua_co_mo_hinh_dat(tmp_path, monkeypatch):
+    from app.services import forest_or_crop as svc, reqlang
+    reqlang.set_lang("vi")
+    monkeypatch.setattr(svc, "_DIR", str(tmp_path))
+    svc._model.cache_clear()
+    st = svc.status()
+    assert st["available"] is False and "chưa huấn luyện" in st["message"]
+    (tmp_path / "foc_runs.json").write_text(json.dumps([{"date": "2026-10-04", "status": "rejected",
+        "test": {"balanced_accuracy": 0.8, "forest_recall": 0.7}}]), encoding="utf-8")
+    assert "không đạt ngưỡng" in svc.status()["message"]
+    assert svc.predict({"kind": "point"})["probability_forest"] is None
+    svc._model.cache_clear()

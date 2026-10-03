@@ -21,8 +21,8 @@ import EudrResult, { IssueList, LevelBadge } from "@/components/EudrResult";
 import LandDocForm from "@/components/LandDocForm";
 import {
   eudrDeleteSet, eudrDownloadSet, eudrExport, eudrGetSet, eudrIssueDossier, eudrListSets, eudrMethod, eudrScreen,
-  eudrAsk, eudrSetDossiers, eudrSubmitSet, eudrValidate, fetchMe, getToken,
-  type AskCitation, type AuthUser, type Dossier, type LandDocInput, type EudrLevel, type EudrMethod, type EudrPlot, type EudrScreening, type EudrSet, type EudrSetInfo,
+  eudrAiStatus, eudrAsk, eudrSetDossiers, eudrSubmitSet, eudrValidate, fetchMe, getToken,
+  type AskCitation, type AuthUser, type Dossier, type FocRun, type LandDocInput, type EudrLevel, type EudrMethod, type EudrPlot, type EudrScreening, type EudrSet, type EudrSetInfo,
   type EudrValidation, type GeoGeometry,
 } from "@/lib/api";
 import { LangToggle, useLang } from "@/lib/i18n";
@@ -478,8 +478,12 @@ function ValidationTable({ v }: { v: EudrValidation }) {
 function Method({ lang }: { lang: string }) {
   const { t } = useLang();
   const [m, setM] = useState<EudrMethod | null>(null);
+  const [ai, setAi] = useState<{ available: boolean; message?: string; runs: FocRun[] } | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  useEffect(() => { eudrMethod().then(setM).catch((e) => setErr(e.message)); }, [lang]);
+  useEffect(() => {
+    eudrMethod().then(setM).catch((e) => setErr(e.message));
+    eudrAiStatus().then(setAi).catch(() => setAi(null));
+  }, [lang]);
   if (err) return <p className="bat-err">{err}</p>;
   if (!m) return <p className="doc-note">{t("Đang tải…", "Loading…")}</p>;
   const v = m.validation;
@@ -522,6 +526,23 @@ function Method({ lang }: { lang: string }) {
             <p className="eu-src">{t("Phân bố kết luận theo nhóm", "Verdicts by group")}: {Object.entries(v.counts).map(([g, c]) =>
               `${g}: ${c.low} ${t("đạt", "low")} / ${c.review} ${t("xem lại", "review")} / ${c.high} ${t("rủi ro", "high")} / ${c.unknown} ${t("thiếu", "unknown")}`).join(" · ")}</p>
           </>
+        )}
+      </section>
+      <section className="bat-card">
+        <h2>{t("Mô hình AI “Rừng hay vườn cây?” (học yếu giám sát)", "AI model “Forest or tree crop?” (weak supervision)")}</h2>
+        <p className="eu-src">{t(
+          "Nhãn yếu lấy ở nơi ba bản đồ đồng ý; đặc trưng CHỈ từ chuỗi ảnh Sentinel-2 12 tháng (không dùng lại bản đồ — tránh rò nhãn); tách vùng theo vĩ độ; so hồi quy logistic, MLP, 1D-CNN; ngưỡng đặt trước: độ chính xác cân bằng ≥ 0,85 và độ nhạy với rừng ≥ 0,90 trên vùng giữ lại. Chỉ là tín hiệu tham khảo, không vào hồ sơ ký.",
+          "Weak labels where the three maps agree; features ONLY from a 12-month Sentinel-2 series (maps not reused — no label leakage); latitude-band split; logistic regression vs MLP vs 1D-CNN; pre-set bar: balanced accuracy ≥ 0.85 and forest recall ≥ 0.90 on the held-out band. Reference signal only, never in signed dossiers.")}</p>
+        {!ai ? <p className="doc-note">{t("Đang tải…", "Loading…")}</p> : ai.runs.length === 0 ? (
+          <p className="doc-note">{t("Đã đăng ký giao thức, chưa huấn luyện (chờ máy rảnh để tải ~200 cửa sổ ảnh).", "Protocol registered, not trained yet (waiting for a free machine to fetch ~200 image windows).")}</p>
+        ) : (
+          <div className="bat-table-wrap"><table className="bat-table">
+            <thead><tr><th>{t("Ngày", "Date")}</th><th>{t("Mô hình chọn", "Chosen")}</th><th>{t("Chính xác cân bằng", "Balanced acc.")}</th><th>{t("Độ nhạy rừng", "Forest recall")}</th><th>{t("Kết quả", "Result")}</th></tr></thead>
+            <tbody>{ai.runs.map((r, i) => (
+              <tr key={i}><td>{r.date}</td><td>{r.chosen ?? "—"}</td><td className="num">{r.test.balanced_accuracy}</td><td className="num">{r.test.forest_recall}</td>
+                <td><span className={`eu-badge ${r.status === "accepted" ? "eu-low" : "eu-high"}`}>{r.status === "accepted" ? t("Đạt — đã bật", "Passed — enabled") : t("Không đạt — không bật", "Failed — not enabled")}</span></td></tr>
+            ))}</tbody>
+          </table></div>
         )}
       </section>
       <section className="bat-card">

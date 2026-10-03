@@ -2514,3 +2514,11 @@ export type LotCertificateFacts = {
   checks: { by_level: Record<string, number>; n_warning: number; n_blocked: number };
   disclaimer: string;
 };
+
+export type FocRun = { date: string; chosen?: string; status: "accepted" | "rejected"; val?: Record<string, number>;
+                       test: { balanced_accuracy: number; forest_recall: number; tree_crop_recall?: number; n?: number };
+                       pass_thresholds?: Record<string, number>; n?: Record<string, number> };
+export function eudrAiStatus() {
+  return getJson<{ available: boolean; message?: string; runs: FocRun[]; kind?: string }>(`/api/eudr/ai/status?lang=${curLang()}`,
+    "Không tải được trạng thái mô hình");
+}

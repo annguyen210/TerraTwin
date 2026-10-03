@@ -474,3 +474,24 @@ def eudr_monitor_run(limit: int = 20, authorization: str | None = Header(default
     from app.services import monitor
     _require_cron_or_admin(authorization, x_cron_key, db)
     return monitor.run(db, limit=max(1, min(limit, 100)))
+
+
+# ------------------------------------------------------------------ AI rừng hay vườn cây (tham khảo)
+
+@router.get("/api/eudr/ai/status")
+def eudr_ai_status(lang: str = "vi") -> dict:
+    """Trạng thái mô hình 'rừng hay vườn cây' + MỌI lần chạy (kể cả trượt)."""
+    from app.services import forest_or_crop
+    reqlang.set_lang(lang)
+    return forest_or_crop.status()
+
+
+@router.post("/api/eudr/ai/forest-or-crop")
+def eudr_ai_predict(body: GeometryIn, lang: str = "vi") -> dict:
+    """Dự đoán THAM KHẢO (không vào hồ sơ ký) — chỉ khi mô hình đã qua ngưỡng đặt trước."""
+    from app.services import forest_or_crop
+    reqlang.set_lang(lang)
+    plot = _plot_from(body)
+    if not plot["valid"]:
+        raise HTTPException(422, reqlang.tr("Ranh thửa chưa đúng chuẩn.", "The boundary is not valid."))
+    return forest_or_crop.predict(plot)
