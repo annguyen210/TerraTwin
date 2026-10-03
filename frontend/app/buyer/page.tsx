@@ -9,10 +9,11 @@
  * chỉ thiếu một cửa vào riêng dẫn tới đó.
  */
 
+import AppShell from "@/components/AppShell";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Start from "@/components/Start";
-import { LangToggle, useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
 
 export default function BuyerPage() {
   const { t } = useLang();
@@ -23,11 +24,7 @@ export default function BuyerPage() {
   }
 
   return (
-    <div className="doc">
-      <header className="doc-top">
-        <Link href="/" className="doc-brand">◵ TerraTwin</Link>
-        <div className="doc-actions"><LangToggle /><Link href="/" className="doc-home">{t("← Về trang chính", "← Home")}</Link></div>
-      </header>
+    <AppShell>
 
       <main className="doc-body" style={{ maxWidth: 640 }}>
         <div className="pp-badge">{t("TRƯỚC KHI KÝ", "BEFORE YOU SIGN")}</div>
@@ -49,6 +46,6 @@ export default function BuyerPage() {
           <Start onPick={goToPlot} />
         </div>
       </main>
-    </div>
+    </AppShell>
   );
 }

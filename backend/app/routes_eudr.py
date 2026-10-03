@@ -12,7 +12,7 @@ import os
 import re
 import secrets
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Response
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -49,6 +49,22 @@ class ExportIn(BaseModel):
     producer: str = Field(default="", max_length=120)
     area_ha: float | None = Field(default=None, gt=0, le=100_000)
     only_valid: bool = True
+
+
+def enforce_quota(kind: str, request: Request, user) -> None:
+    """Hạn mức thao tác nặng (services/quota.py): ẩn danh theo IP, đăng nhập theo tài khoản."""
+    from app.main import _client_ip
+    from app.services import quota
+    key = f"u{user.id}" if user else f"ip{_client_ip(request)}"
+    wait = quota.take(kind, key, user is not None)
+    if wait is not None:
+        msg = {"dossier": reqlang.tr(
+                   "Đã hết lượt phát hành hồ sơ hôm nay cho người chưa đăng nhập — đăng nhập để phát hành tiếp (sổ hồ sơ không xoá được nên cần gắn trách nhiệm).",
+                   "Today's dossier issuance quota for guests is used up — sign in to continue (the log can't be erased, so issuance needs an accountable account)."),
+               "screen": reqlang.tr(
+                   "Đã hết lượt sàng lọc trong giờ này — đăng nhập để có hạn mức cao hơn, hoặc thử lại sau.",
+                   "Screening quota for this hour is used up — sign in for a higher quota, or try later.")}[kind]
+        raise HTTPException(429, msg, headers={"Retry-After": str(wait)})
 
 
 def _plot_from(body: GeometryIn) -> dict:
@@ -100,12 +116,14 @@ def export_file(body: ExportIn, lang: str = "vi") -> Response:
 
 
 @router.post("/api/eudr/screen")
-def screen_one(body: GeometryIn, lang: str = "vi") -> dict:
+def screen_one(body: GeometryIn, request: Request, lang: str = "vi",
+               user: User | None = Depends(auth.optional_user)) -> dict:
     """Kiểm chuẩn EU + sàng lọc phá rừng MỘT thửa (đồng bộ, ~10–20 giây)."""
     reqlang.set_lang(lang)
     plot = _plot_from(body)
     if not plot["valid"]:
         return {"plot": plot, "screening": None}
+    enforce_quota("screen", request, user)
     return {"plot": plot, "screening": eudr_forest.screen(plot)}
 
 
@@ -202,11 +220,12 @@ class DossierIn(GeometryIn):
 
 
 @router.post("/api/eudr/dossier")
-def issue_dossier(body: DossierIn, lang: str = "vi",
+def issue_dossier(body: DossierIn, request: Request, lang: str = "vi",
                   user: User | None = Depends(auth.optional_user),
                   db: Session = Depends(get_session)) -> dict:
-    """Phát hành Hồ sơ vườn chuẩn EUDR ký số cho MỘT thửa. Không cần đăng nhập."""
+    """Phát hành Hồ sơ vườn chuẩn EUDR ký số cho MỘT thửa. Không cần đăng nhập (có hạn mức)."""
     reqlang.set_lang(lang)
+    enforce_quota("dossier", request, user)
     plot = _plot_from(body)
     if not plot["valid"]:
         raise HTTPException(422, {"message": reqlang.tr(

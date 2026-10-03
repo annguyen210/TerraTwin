@@ -10,6 +10,7 @@
  * URL chỉ chứa TOẠ ĐỘ (dữ liệu về ĐẤT, không về người) — công khai an toàn.
  */
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { scanAll, type ScanResult } from "@/lib/api";
 
 const GRADE: Record<string, string> = {
@@ -21,8 +22,11 @@ const RISK: Record<string, [string, string]> = {
   safe: ["An toàn", "#2E9E67"],
 };
 
-export default function EmbedPage({ params }: { params: { coord: string } }) {
-  const nums = decodeURIComponent(params.coord).match(/-?\d+(\.\d+)?/g) || [];
+export default function EmbedPage() {
+  // Next 15+: params của trang là Promise ở phía máy chủ — trang client dùng useParams().
+  const params = useParams();
+  const coord = String(Array.isArray(params.coord) ? params.coord[0] : (params.coord ?? ""));
+  const nums = decodeURIComponent(coord).match(/-?\d+(\.\d+)?/g) || [];
   const lat = parseFloat(nums[0] ?? "");
   const lon = parseFloat(nums[1] ?? "");
   const valid = Number.isFinite(lat) && Number.isFinite(lon);

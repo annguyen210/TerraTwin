@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 from app import auth
 from app.services import plans
 from app.db import (
-    ActionLog, Alert, ApiKey, AuditLog, BatchRun, Dataset, Dossier, FieldPhoto,
+    ActionLog, Alert, ApiKey, AuditLog, BatchRun, Dataset, Dossier, EudrSet, FieldPhoto, Lot,
     KnowledgeNote, NotifyChannel, Observation, Plot, PushSub, Twin, User, get_session,
 )
 from app.schemas import Location
@@ -427,12 +427,12 @@ _OWNED = [
     ("observations", Observation), ("actions", ActionLog),
     ("knowledge_notes", KnowledgeNote), ("api_keys", ApiKey),
     ("datasets", Dataset), ("alerts", Alert), ("audit_logs", AuditLog),
-    ("push_subs", PushSub), ("batch_runs", BatchRun),
+    ("push_subs", PushSub), ("batch_runs", BatchRun), ("eudr_sets", EudrSet),
 ]
 # Xuất nhưng KHÔNG xoá theo tài khoản: hồ sơ đất số nằm trong sổ đăng ký công
 # khai móc xích — xoá một hồ sơ là gãy mọi mắt xích sau nó; ảnh đã gắn vào hồ sơ
 # là bằng chứng của hồ sơ đó. Xoá tài khoản thì GỠ liên kết (user_id = NULL).
-_EXPORT_ONLY = [("dossiers", Dossier), ("field_photos", FieldPhoto)]
+_EXPORT_ONLY = [("dossiers", Dossier), ("field_photos", FieldPhoto), ("lots", Lot)]
 
 
 def _row_to_dict(row) -> dict:
@@ -519,6 +519,16 @@ def delete_my_account(user: User = Depends(auth.current_user),
     # hành. Ảnh chưa gắn hồ sơ nào thì xoá; ảnh đã gắn là bằng chứng của hồ sơ.
     for d in db.execute(select(Dossier).where(Dossier.user_id == user.id)).scalars():
         d.user_id = None
+        # Phần riêng (muối + họ tên thật của tiết lộ chọn lọc) là dữ liệu cá nhân: xoá.
+        # Nội dung đã ký chỉ còn cam kết băm — không dò ngược ra tên được nữa.
+        d.private_json = None
+    # Lô hàng nháp: xoá. Lô đã có chứng thư: gỡ chủ (user_id=0) nhưng GIỮ các đợt nhập —
+    # nông hộ cần chúng để lấy bằng chứng thuộc lô; chỉ có mã hồ sơ + kg, không có tên ai.
+    for lot in db.execute(select(Lot).where(Lot.user_id == user.id)).scalars().all():
+        if lot.state == "certified":
+            lot.user_id = 0
+        else:
+            db.delete(lot)
     for ph in db.execute(select(FieldPhoto).where(FieldPhoto.user_id == user.id)).scalars().all():
         if ph.dossier_id:
             ph.user_id = None

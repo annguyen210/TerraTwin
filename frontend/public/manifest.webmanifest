@@ -1,7 +1,7 @@
 {
-  "name": "TerraTwin — Bản sao số của đất đai Việt Nam",
+  "name": "TerraTwin — Hồ sơ vườn chuẩn EUDR",
   "short_name": "TerraTwin",
-  "description": "Cảnh báo sớm mặn, hạn, lũ, sạt lở, cháy rừng cho từng thửa đất, bằng dữ liệu vệ tinh và thời tiết thật.",
+  "description": "Chứng minh vườn không phá rừng trước hạn EUDR 30/12/2026: ranh chuẩn EU, sàng lọc bằng vệ tinh, hồ sơ ký số ai cũng kiểm được.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

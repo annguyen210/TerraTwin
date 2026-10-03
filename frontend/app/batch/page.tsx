@@ -8,13 +8,14 @@
  * khoản để mở lại, tải CSV (mở được bằng Excel), hoặc xoá.
  */
 
+import AppShell from "@/components/AppShell";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   batchTemplateUrl, deleteBatch, downloadBatchCsv, getBatch, getToken, listBatches, submitBatch,
   type BatchRow, type BatchRowError, type BatchRunInfo, type BatchState,
 } from "@/lib/api";
-import { LangToggle, useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
 import { levelOf } from "@/lib/riskScale";
 
 const RANK: Record<string, number> = { danger: 0, warning: 1, safe: 2, unknown: 3 };
@@ -89,11 +90,7 @@ export default function BatchPage() {
   const land = (g: string | null) => { const v = LAND_VI[g ?? "unknown"] ?? LAND_VI.unknown; return lang === "en" ? v[1] : v[0]; };
 
   return (
-    <div className="doc">
-      <header className="doc-top">
-        <Link href="/" className="doc-brand">◵ TerraTwin</Link>
-        <div className="doc-actions"><LangToggle /></div>
-      </header>
+    <AppShell>
 
       <main className="bat-wrap">
         <h1>{t("Thẩm định hàng loạt", "Batch appraisal")}</h1>
@@ -229,6 +226,6 @@ export default function BatchPage() {
           </>
         )}
       </main>
-    </div>
+    </AppShell>
   );
 }

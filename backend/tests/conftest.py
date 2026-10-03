@@ -9,6 +9,9 @@ import os
 # "IP". Không tắt thì các test sau sẽ nhận 429 chỉ vì các test trước đã chạy —
 # lỗi giả, không liên quan gì tới thứ đang được kiểm tra.
 os.environ["TERRATWIN_RATE_LIMIT"] = "0"
+# Hạn mức thao tác nặng (services/quota.py) cũng tắt — test phát hành nhiều hồ sơ ẩn danh.
+os.environ["TERRATWIN_ANON_DOSSIERS_PER_DAY"] = "0"
+os.environ["TERRATWIN_ANON_SCREENS_PER_HOUR"] = "0"
 
 # Secret cố định để token tạo trong một test dùng được suốt phiên.
 os.environ.setdefault("TERRATWIN_SECRET", "test-secret-khong-dung-cho-production")

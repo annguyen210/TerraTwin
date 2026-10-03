@@ -49,3 +49,6 @@ backend/data/dl*/
 
 # Mô hình rừng/vườn cây: từng cửa sổ tải về (bộ dữ liệu gộp foc_dataset.npz thì CÔNG KHAI, ~1 MB)
 backend/data/ml/foc_parts/
+
+# MapLibre worker chép từ node_modules lúc cài (scripts/copy-maplibre-worker.mjs)
+frontend/public/maplibre/

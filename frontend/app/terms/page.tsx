@@ -1,19 +1,13 @@
 "use client";
 
+import AppShell from "@/components/AppShell";
 import Link from "next/link";
-import { LangToggle, useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
 
 export default function TermsPage() {
   const { t } = useLang();
   return (
-    <div className="doc">
-      <header className="doc-top">
-        <Link href="/" className="doc-brand">◵ TerraTwin</Link>
-        <div className="doc-actions">
-          <LangToggle />
-          <Link href="/" className="doc-home">{t("← Về trang chính", "← Home")}</Link>
-        </div>
-      </header>
+    <AppShell>
 
       <main className="doc-body">
         <h1>{t("Điều khoản sử dụng", "Terms of Use")}</h1>
@@ -26,6 +20,22 @@ export default function TermsPage() {
         <p>
           {t("Cảnh báo và dự báo dựa trên dữ liệu và mô hình thật, nhưng thiên nhiên có bất định. TerraTwin cung cấp thông tin để bạn quyết định tốt hơn — KHÔNG thay thế phán đoán của bạn, cơ quan phòng chống thiên tai địa phương, hay chuyên gia. Trong tình huống khẩn cấp, luôn tuân theo hướng dẫn của chính quyền.",
              "Alerts and forecasts are based on real data and models, but nature is uncertain. TerraTwin provides information to help you decide better — it does NOT replace your judgment, local disaster authorities, or experts. In an emergency, always follow official guidance.")}
+        </p>
+
+        <h2>{t("Sàng lọc EUDR không phải chứng nhận", "EUDR screening is not certification")}</h2>
+        <p>
+          {t("Kết quả sàng lọc phá rừng là sàng lọc từ bản đồ và ảnh vệ tinh công khai theo quy tắc công khai — KHÔNG phải chứng nhận tuân thủ Quy định (EU) 2023/1115. TerraTwin không xác nhận quyền sử dụng đất hay tính hợp pháp của sản xuất; giấy tờ đất được đối chiếu, không được xác minh với văn phòng đăng ký đất đai. Tờ khai thẩm định (DDS) do TerraTwin sinh là BẢN NHÁP; người nộp tờ khai chịu trách nhiệm về nội dung. Khối lượng trong lô hàng do doanh nghiệp khai.",
+             "Deforestation screening is screening from public satellite maps and imagery under a public rule — NOT certification of compliance with Regulation (EU) 2023/1115. TerraTwin does not confirm land rights or production legality; land documents are cross-checked, not verified with the land registry. The due diligence statement (DDS) TerraTwin produces is a DRAFT; the filer is responsible for its content. Lot quantities are declared by the operator.")}
+        </p>
+        <h2>{t("Hồ sơ đã phát hành", "Issued dossiers")}</h2>
+        <p>
+          {t("Hồ sơ và chứng thư đã phát hành được ghi vào sổ chỉ-được-thêm và không thể xoá hay sửa. Nội dung là ảnh chụp tại thời điểm phát hành; kết quả giám sát sau phát hành được hiện kèm như dữ liệu sống. Bạn chịu trách nhiệm về ranh thửa và thông tin mình khai.",
+             "Issued dossiers and certificates are written to an append-only log and cannot be deleted or edited. Content is a snapshot at issuance; post-issuance monitoring is shown alongside as live data. You are responsible for the boundary and information you declare.")}
+        </p>
+        <h2>{t("Cảnh báo thiên tai", "Disaster alerts")}</h2>
+        <p>
+          {t("Cảnh báo trong công cụ theo dõi thửa đất chỉ để tham khảo, không thay thế bản tin chính thức của Trung tâm Dự báo Khí tượng Thủy văn quốc gia (nchmf.gov.vn) và chỉ đạo của cơ quan phòng chống thiên tai địa phương.",
+             "Alerts in the land tools are for reference only and do not replace official bulletins from Vietnam's national forecasting centre (nchmf.gov.vn) or local disaster-prevention authorities.")}
         </p>
 
         <h2>{t("Độ chính xác & trung thực", "Accuracy & honesty")}</h2>
@@ -54,6 +64,6 @@ export default function TermsPage() {
           <span>© {new Date().getFullYear()} TerraTwin</span>
         </footer>
       </main>
-    </div>
+    </AppShell>
   );
 }

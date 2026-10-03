@@ -1,9 +1,10 @@
 "use client";
 
+import AppShell from "@/components/AppShell";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { forgotPassword, getHealth } from "@/lib/api";
-import { LangToggle, useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
 
 const SUPPORT_URL = "https://github.com/annguyen210/TerraTwin/issues";
 
@@ -37,11 +38,7 @@ export default function ForgotPage() {
   }
 
   return (
-    <div className="doc">
-      <header className="doc-top">
-        <Link href="/" className="doc-brand">◵ TerraTwin</Link>
-        <div className="doc-actions"><LangToggle /><Link href="/" className="doc-home">{t("← Về trang chính", "← Home")}</Link></div>
-      </header>
+    <AppShell>
       <main className="doc-body" style={{ maxWidth: 460 }}>
         <h1>{t("Quên mật khẩu", "Forgot password")}</h1>
         <p className="doc-lede">
@@ -74,6 +71,6 @@ export default function ForgotPage() {
         )}
         <footer className="doc-foot"><Link href="/">{t("Đăng nhập", "Sign in")}</Link><span>·</span><Link href="/help">{t("Trợ giúp", "Help")}</Link></footer>
       </main>
-    </div>
+    </AppShell>
   );
 }

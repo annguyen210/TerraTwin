@@ -68,6 +68,7 @@ with sync_playwright() as p:
     ctx = browser.new_context(viewport={"width": 1360, "height": 900}, accept_downloads=True,
                               geolocation={"latitude": 12.7530, "longitude": 108.1120}, permissions=["geolocation"])
     page = ctx.new_page()
+    page.set_default_navigation_timeout(180_000)   # server dev biên dịch trang lần đầu có thể >30 giây
     page.on("console", lambda m: m.type == "error" and console_errors.append(f"{page.url} :: {m.text[:200]}"))
     page.on("pageerror", lambda e: console_errors.append(f"{page.url} :: PAGEERROR {str(e)[:200]}"))
     page.on("response", lambda r: r.status >= 400 and bad_responses.append(f"{r.status} {r.request.method} {r.url[:140]}"))
@@ -170,11 +171,14 @@ with sync_playwright() as p:
         path = os.path.join(OUT, "dossier.json")
         dl.value.save_as(path)
         page.goto(WEB + "/kiem", wait_until="networkidle")
+        page.wait_for_timeout(1500)
         ctx.set_offline(True)                              # tắt mạng thật
-        page.set_input_files("#verify-file", path)
-        page.locator(".eu-checks li").first.wait_for(timeout=20_000)
-        lines = page.locator(".eu-checks li").all_inner_texts()
-        ctx.set_offline(False)
+        try:
+            page.set_input_files("#verify-file", path)
+            page.locator(".eu-checks li").first.wait_for(timeout=20_000)
+            lines = page.locator(".eu-checks li").all_inner_texts()
+        finally:
+            ctx.set_offline(False)                         # luôn bật lại, kể cả khi bước này trượt
         shot(page, "05-kiem")
         assert all(l.startswith("✓") for l in lines), lines
         return f"{len(lines)} phép kiểm ✓ khi TẮT MẠNG"

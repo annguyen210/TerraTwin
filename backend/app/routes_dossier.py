@@ -8,7 +8,7 @@ import base64
 import binascii
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -65,12 +65,14 @@ class DossierIn(Location):
 
 
 @router.post("/api/dossier")
-def issue_dossier(body: DossierIn, lang: str = "vi",
+def issue_dossier(body: DossierIn, request: Request, lang: str = "vi",
                   user: User | None = Depends(auth.optional_user),
                   db: Session = Depends(get_session)) -> dict:
     """Phát hành Hồ sơ đất số cho một thửa. Không cần đăng nhập (người mua đất
-    thường chưa có tài khoản); đăng nhập thì hồ sơ gắn với tài khoản."""
+    thường chưa có tài khoản); đăng nhập thì hồ sơ gắn với tài khoản. Có hạn mức."""
     reqlang.set_lang(lang)
+    from app.routes_eudr import enforce_quota
+    enforce_quota("dossier", request, user)
     reg = region.classify(body.lat, body.lon)
     if not reg.get("serviceable", True):
         raise HTTPException(422, reg.get("note") or reqlang.tr(

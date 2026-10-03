@@ -6,22 +6,23 @@
     "node": "20.x"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
     "start": "next start",
-    "test": "node scripts/test-csp.mjs"
+    "test": "node scripts/test-csp.mjs",
+    "postinstall": "node scripts/copy-maplibre-worker.mjs"
   },
   "dependencies": {
     "lucide-react": "0.544.0",
-    "maplibre-gl": "^4.7.0",
-    "next": "^14.2.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "maplibre-gl": "^6.11.2",
+    "next": "^16.3.8",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
     "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "typescript": "^5"
   }
 }

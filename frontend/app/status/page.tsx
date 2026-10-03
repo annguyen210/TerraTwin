@@ -6,10 +6,11 @@
  * được — trang này chỉ trình bày lại, không thêm logic mới phía máy chủ.
  */
 
+import AppShell from "@/components/AppShell";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getHealth, type HealthStatus } from "@/lib/api";
-import { LangToggle, useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
 
 function when(iso: string | null | undefined, lang: "vi" | "en"): string {
   if (!iso) return lang === "vi" ? "chưa từng" : "never";
@@ -37,11 +38,7 @@ export default function StatusPage() {
   const ok = h?.status === "ok";
 
   return (
-    <div className="doc">
-      <header className="doc-top">
-        <Link href="/" className="doc-brand">◵ TerraTwin</Link>
-        <div className="doc-actions"><LangToggle /><Link href="/" className="doc-home">{t("← Về trang chính", "← Home")}</Link></div>
-      </header>
+    <AppShell>
 
       <main className="doc-body" style={{ maxWidth: 640 }}>
         <h1>{t("Trạng thái hệ thống", "System status")}</h1>
@@ -129,6 +126,6 @@ export default function StatusPage() {
           </p>
         )}
       </main>
-    </div>
+    </AppShell>
   );
 }

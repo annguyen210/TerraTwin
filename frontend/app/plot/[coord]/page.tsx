@@ -13,11 +13,12 @@
  * có link đều xem được, không lộ chủ thửa.
  */
 
+import AppShell from "@/components/AppShell";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { getPassport, type Passport } from "@/lib/api";
-import { LangToggle, useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
 
 const MONTH = (m: number | null) => (m ? `${m}` : "—");
 
@@ -55,16 +56,9 @@ export default function PlotPassportPage() {
   const terr = pp?.terrain;
 
   return (
-    <div className="doc">
-      <header className="doc-top">
-        <Link href="/" className="doc-brand">◵ TerraTwin</Link>
-        <div className="doc-actions">
-          <LangToggle />
-          <button className="pp-share" onClick={share}>
+    <AppShell extra={<button className="pp-share" onClick={share}>
             {copied ? t("✓ Đã sao chép", "✓ Copied") : t("🔗 Chia sẻ", "🔗 Share")}
-          </button>
-        </div>
-      </header>
+          </button>}>
 
       <main className="doc-body pp">
         <div className="pp-badge">{t("SỔ TAY THỬA · Hồ sơ dữ liệu", "LAND PASSPORT · Data record")}</div>
@@ -157,6 +151,6 @@ export default function PlotPassportPage() {
           <span>© {new Date().getFullYear()} TerraTwin</span>
         </footer>
       </main>
-    </div>
+    </AppShell>
   );
 }

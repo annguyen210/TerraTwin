@@ -1,19 +1,13 @@
 "use client";
 
+import AppShell from "@/components/AppShell";
 import Link from "next/link";
-import { LangToggle, useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
 
 export default function PrivacyPage() {
   const { t } = useLang();
   return (
-    <div className="doc">
-      <header className="doc-top">
-        <Link href="/" className="doc-brand">◵ TerraTwin</Link>
-        <div className="doc-actions">
-          <LangToggle />
-          <Link href="/" className="doc-home">{t("← Về trang chính", "← Home")}</Link>
-        </div>
-      </header>
+    <AppShell>
 
       <main className="doc-body">
         <h1>{t("Chính sách quyền riêng tư", "Privacy Policy")}</h1>
@@ -34,6 +28,24 @@ export default function PrivacyPage() {
                  "Alert channels you configure (email / Zalo / Telegram webhook).")}</li>
         </ul>
 
+        <h2>{t("Hồ sơ vườn EUDR, giấy tờ đất và sổ minh bạch", "EUDR plot dossiers, land documents and the transparency log")}</h2>
+        <ul>
+          <li>{t("Hồ sơ vườn chứa RANH THỬA (toạ độ) và kết quả sàng lọc. Ai có mã hồ sơ hoặc quét QR đều xem được — đó là mục đích của hồ sơ (người mua tự kiểm). Chỉ chia sẻ mã/QR với người bạn muốn.",
+                 "A plot dossier contains the BOUNDARY (coordinates) and the screening result. Anyone with the dossier ID or QR can view it — that's its purpose (buyers verify it themselves). Share the ID/QR only with whom you choose.")}</li>
+          <li>{t("Họ tên chủ hộ và tên trên sổ đỏ mặc định KHÔNG công khai: nội dung đã ký chỉ chứa mã băm có muối. Muối và tên thật (\"phần riêng\") chỉ nằm trong đường link đầy đủ bạn giữ, và trong tài khoản của người phát hành nếu đã đăng nhập.",
+                 "The producer's name and the name on the land certificate are NOT public by default: signed content holds only a salted hash. The salt and real name (the \"private part\") live only in the full link you keep, and in the issuer's account if signed in.")}</li>
+          <li>{t("Ảnh sổ đỏ KHÔNG được lưu: chỉ lưu các trường đã đọc và mã SHA-256 của ảnh. Khi dùng AI đọc ảnh, ảnh được gửi tới nhà cung cấp mô hình đã cấu hình để trích trường, rồi bỏ đi.",
+                 "Land certificate photos are NOT stored: only the extracted fields and the photo's SHA-256. When AI reading is used, the photo is sent to the configured model provider to extract fields, then discarded.")}</li>
+          <li>{t("Ảnh thực địa: chỉ lưu ảnh thu nhỏ đã XOÁ EXIF (toạ độ, máy ảnh) cùng mã băm của ảnh gốc.",
+                 "Field photos: only an EXIF-STRIPPED thumbnail (no coordinates, no camera data) plus the original's hash are stored.")}</li>
+          <li>{t("Sổ minh bạch công khai chỉ chứa mã băm, chữ ký và thời điểm — không có nội dung, toạ độ hay tên.",
+                 "The public transparency log holds only hashes, signatures and timestamps — no content, coordinates or names.")}</li>
+          <li>{t("Lô hàng: danh sách nhà cung cấp chỉ doanh nghiệp tạo lô xem được; chứng thư lô công khai chỉ có gốc Merkle, tổng khối lượng, số vườn.",
+                 "Lots: the supplier list is visible only to the company that built the lot; the public certificate shows only the Merkle root, total quantity and plot count.")}</li>
+          <li>{t("HỒ SƠ ĐÃ PHÁT HÀNH LÀ BẤT BIẾN: không xoá hay sửa được khỏi sổ (xoá một hồ sơ là gãy cả chuỗi). Vì thế tên luôn ẩn mặc định. Xoá tài khoản sẽ xoá phần riêng (tên thật, muối), lô thửa, lô hàng nháp — hồ sơ chỉ còn mã băm, không dò ngược ra tên được.",
+                 "ISSUED DOSSIERS ARE IMMUTABLE: they can't be deleted or edited from the log (removing one breaks the chain). That's why names are hidden by default. Deleting your account erases the private part (real names, salts), supplier sets and draft lots — dossiers keep only hashes that can't be reversed to a name.")}</li>
+        </ul>
+
         <h2>{t("Chúng tôi KHÔNG làm gì", "What we do NOT do")}</h2>
         <ul>
           <li>{t("KHÔNG bán, cho thuê, hay chia sẻ dữ liệu cá nhân của bạn cho bên thứ ba.",
@@ -46,8 +58,8 @@ export default function PrivacyPage() {
 
         <h2>{t("Nguồn dữ liệu bên ngoài", "External data sources")}</h2>
         <p>
-          {t("Để phân tích một toạ độ, phần mềm gọi các dịch vụ công khai (Open-Meteo, GloFAS, NASA POWER, Microsoft Planetary Computer, OpenStreetMap). Chỉ toạ độ điểm được gửi đi để lấy dữ liệu thời tiết/ảnh — không kèm danh tính của bạn.",
-             "To analyze a coordinate, the app calls public services (Open-Meteo, GloFAS, NASA POWER, Microsoft Planetary Computer, OpenStreetMap). Only the point coordinate is sent to fetch weather/imagery — never your identity.")}
+          {t("Để phân tích một toạ độ hay ranh thửa, phần mềm gọi các dịch vụ công khai (Microsoft Planetary Computer, Open-Meteo, GloFAS, NASA POWER, OpenStreetMap). Chỉ toạ độ điểm được gửi đi để lấy dữ liệu thời tiết/ảnh — không kèm danh tính của bạn.",
+             "To analyze a coordinate or boundary, the app calls public services (Microsoft Planetary Computer, Open-Meteo, GloFAS, NASA POWER, OpenStreetMap). Only the point coordinate is sent to fetch weather/imagery — never your identity.")}
         </p>
 
         <h2>{t("Đồng ý theo mục đích", "Purpose-separated consent")}</h2>
@@ -76,6 +88,6 @@ export default function PrivacyPage() {
           <span>© {new Date().getFullYear()} TerraTwin</span>
         </footer>
       </main>
-    </div>
+    </AppShell>
   );
 }

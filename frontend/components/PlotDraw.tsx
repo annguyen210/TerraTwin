@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import maplibregl from "maplibre-gl";
+import maplibregl from "@/lib/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Footprints, LocateFixed, PenLine, RotateCcw, Square, Trash2 } from "lucide-react";
 import type { GeoGeometry } from "@/lib/api";

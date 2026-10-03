@@ -5,10 +5,11 @@
  * tiền — đúng nguyên tắc trung thực, không giả vờ có doanh thu.
  */
 
+import AppShell from "@/components/AppShell";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getPlans, type PlanCatalogue } from "@/lib/api";
-import { LangToggle, useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
 
 const vnd = (n: number) => (n === 0 ? "0đ" : `${n.toLocaleString("vi-VN")}đ`);
 
@@ -22,22 +23,52 @@ export default function PricingPage() {
   }, []);
 
   return (
-    <div className="doc">
-      <header className="doc-top">
-        <Link href="/" className="doc-brand">◵ TerraTwin</Link>
-        <div className="doc-actions">
-          <LangToggle />
-          <Link href="/" className="doc-home">{t("← Về trang chính", "← Home")}</Link>
-        </div>
-      </header>
+    <AppShell>
 
       <main className="doc-body">
         <h1>{t("Bảng giá", "Pricing")}</h1>
-        <p className="doc-lede">
-          {t("Toàn bộ 18 mũi nhọn chạy MIỄN PHÍ ngay. Gói trả phí thêm hạn mức và tính năng cho hợp tác xã / doanh nghiệp.",
-             "All 18 spearheads run FREE right now. Paid plans add quota and features for co-ops / enterprises.")}
-        </p>
+        <p className="doc-lede">{t(
+          "Đang thử nghiệm: mọi tính năng MIỄN PHÍ tới hạn EUDR 30/12/2026. Nông hộ luôn miễn phí. Giá cho doanh nghiệp sẽ công bố trước khi hết thử nghiệm — không thu tiền khi chưa báo trước.",
+          "In trial: every feature is FREE until the EUDR deadline, 30/12/2026. Farmers are always free. Business pricing will be published before the trial ends — no charge without notice.")}</p>
+        <div className="price-grid">
+          <div className="price-card">
+            <h3>{t("Nông hộ, hợp tác xã", "Farmers, co-ops")}</h3>
+            <div className="price-amt">0đ<small>{t(" · mãi mãi", " · always")}</small></div>
+            <p className="price-for">{t("Có hồ sơ để bán được cho đại lý xuất EU", "A dossier to sell to EU-bound traders")}</p>
+            <ul>
+              <li>{t("Lấy ranh: vẽ, đi bộ GPS, tải tệp", "Boundaries: draw, GPS walk, upload")}</li>
+              <li>{t("Kiểm chuẩn EU + sàng lọc phá rừng", "EU format check + deforestation screening")}</li>
+              <li>{t("Hồ sơ ký số + QR, tên chủ hộ ẩn", "Signed dossier + QR, name hidden")}</li>
+              <li>{t("Xác nhận / từ chối đợt giao hàng", "Confirm / reject deliveries")}</li>
+              <li>{t("Trang Hôm nay, hỏi đáp EUDR", "Today page, EUDR Q&A")}</li>
+            </ul>
+          </div>
+          <div className="price-card featured">
+            <span className="price-tag">{t("Cho hạn 30/12/2026", "For the 30/12/2026 deadline")}</span>
+            <h3>{t("Doanh nghiệp xuất khẩu", "Exporters")}</h3>
+            <div className="price-amt">{t("Theo thửa/năm", "Per plot/year")}<small>{t(" · miễn phí khi thử nghiệm", " · free during trial")}</small></div>
+            <p className="price-for">{t("Nộp tờ khai thẩm định cho từng lô hàng", "File a due diligence statement per lot")}</p>
+            <ul>
+              <li>{t("Kiểm cả lô nhà cung cấp (GeoJSON, KML, Excel)", "Check whole supplier sets (GeoJSON, KML, Excel)")}</li>
+              <li>{t("Giám sát hằng tuần + radar xuyên mây", "Weekly monitoring + cloud-piercing radar")}</li>
+              <li>{t("Lô hàng: cân bằng khối lượng, chứng thư Merkle", "Lots: mass balance, Merkle certificate")}</li>
+              <li>{t("Tờ khai DDS nháp + GeoJSON nộp EU", "Draft DDS + EU GeoJSON")}</li>
+              <li>{t("Bảng tổng quan vùng nguyên liệu", "Sourcing overview dashboard")}</li>
+            </ul>
+          </div>
+          <div className="price-card">
+            <h3>{t("Ngân hàng, bảo hiểm", "Banks, insurers")}</h3>
+            <div className="price-amt">{t("Theo lượt API", "Per API call")}<small>{t(" · liên hệ", " · contact us")}</small></div>
+            <p className="price-for">{t("Tín dụng xanh, rủi ro tài sản bảo đảm", "Green credit, collateral risk")}</p>
+            <ul>
+              <li>{t("API hồ sơ thửa đã kiểm, đã ký", "API for verified, signed plot dossiers")}</li>
+              <li>{t("Kiểm chữ ký + sổ minh bạch tự động", "Automatic signature + log verification")}</li>
+              <li>{t("Thẩm định cả danh mục từ CSV", "Portfolio appraisal from CSV")}</li>
+            </ul>
+          </div>
+        </div>
 
+        <h2>{t("Công cụ thẩm định & theo dõi thửa đất", "Land appraisal & monitoring tools")}</h2>
         {err && <p className="doc-note">{err}</p>}
         {cat && (
           <>
@@ -55,12 +86,12 @@ export default function PricingPage() {
                 </div>
               ))}
             </div>
-            <p className="doc-note">🧪 {cat.disclaimer}</p>
+            <p className="doc-note">{cat.disclaimer}</p>
           </>
         )}
 
         <div className="doc-cta">
-          <Link href="/" className="doc-btn">{t("Dùng thử miễn phí", "Try it free")}</Link>
+          <Link href="/eudr" className="doc-btn">{t("Dùng thử miễn phí", "Try it free")}</Link>
         </div>
 
         <footer className="doc-foot">
@@ -71,6 +102,6 @@ export default function PricingPage() {
           <span>© {new Date().getFullYear()} TerraTwin</span>
         </footer>
       </main>
-    </div>
+    </AppShell>
   );
 }

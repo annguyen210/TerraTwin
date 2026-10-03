@@ -8,28 +8,28 @@ const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "https://terratwin-web.onrende
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: {
-    default: "TerraTwin — Bản sao số của đất đai Việt Nam",
+    default: "TerraTwin — Hồ sơ vườn chuẩn EUDR, kiểm được",
     template: "%s · TerraTwin",
   },
   description:
-    "Bản sao số của đất đai Việt Nam — cảnh báo sớm mặn, hạn, lũ, sạt lở, cháy rừng cho từng thửa, bằng dữ liệu vệ tinh và thời tiết thật, hiệu chuẩn riêng cho từng điểm.",
+    "Chứng minh vườn cà phê, cao su, gỗ không phá rừng trước hạn EUDR 30/12/2026: ranh thửa đúng chuẩn EU, sàng lọc phá rừng bằng dữ liệu vệ tinh đo trên đúng ranh, hồ sơ ký số và sổ minh bạch ai cũng tự kiểm được.",
   keywords: [
-    "cảnh báo thiên tai", "bản sao số đất đai", "digital twin", "nông nghiệp",
-    "xâm nhập mặn", "lũ", "sạt lở", "hạn hán", "vệ tinh", "Việt Nam", "TerraTwin",
+    "EUDR", "quy định chống phá rừng EU", "truy xuất nguồn gốc", "cà phê", "cao su", "hồ sơ vườn",
+    "GeoJSON", "Sentinel-2", "chữ ký số", "Việt Nam", "TerraTwin",
   ],
   authors: [{ name: "TerraTwin" }],
   openGraph: {
     type: "website",
     locale: "vi_VN",
     siteName: "TerraTwin",
-    title: "TerraTwin — Biết trước điều gì sắp xảy ra với mảnh đất của bạn",
+    title: "TerraTwin — Chứng minh vườn không phá rừng trước 30/12/2026",
     description:
-      "Kiểm toàn bộ rủi ro 7 ngày tới cho đúng thửa của bạn bằng dữ liệu vệ tinh & khí hậu thật — báo động giả ~3%, kiểm chứng trên thiên tai lịch sử.",
+      "Ranh chuẩn EU, sàng lọc bằng ba bản đồ rừng 2020 và ảnh vệ tinh, hồ sơ ký số nông hộ giữ, lô hàng có cân bằng khối lượng.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "TerraTwin — Bản sao số của đất đai Việt Nam",
-    description: "Cảnh báo sớm từng thửa bằng dữ liệu thật. Báo động giả ~3%, có backtest.",
+    title: "TerraTwin — Hồ sơ vườn chuẩn EUDR",
+    description: "Sàng lọc phá rừng bằng vệ tinh, hồ sơ ký số, sổ minh bạch ai cũng kiểm được.",
   },
   manifest: "/manifest.webmanifest",
   applicationName: "TerraTwin",

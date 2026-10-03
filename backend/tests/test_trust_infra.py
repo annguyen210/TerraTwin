@@ -411,3 +411,37 @@ def test_429_co_header_cors_va_preflight_khong_tinh(monkeypatch):
     r = c.get("/api/eudr/method", headers=h)
     assert r.status_code == 429 and r.headers.get("access-control-allow-origin") in ("*", "http://localhost:1825")
     main._HITS.clear()
+
+
+def test_xoa_tai_khoan_xoa_du_lieu_ca_nhan_eudr(env):
+    c = env
+    h = _login(c, "xoa@vd.vn")
+    a = _issue(c, "VXOA", 12.99, h)
+    c.post("/api/eudr/sets", headers=h, json={"text": SET_ONE, "filename": "a.geojson"})
+    c.post("/api/lots", headers=h, json={"season": "2031/32", "deliveries": [{"dossier_id": a["id"], "kg": 10}]})
+    from app.db import Dossier, EudrSet, Lot
+    with c.Session() as s:
+        assert s.get(Dossier, a["id"]).private_json
+    assert c.delete("/api/account", headers=h).status_code == 204
+    with c.Session() as s:
+        d = s.get(Dossier, a["id"])
+        assert d is not None and d.user_id is None and d.private_json is None   # hồ sơ ở lại sổ, tên thật thì không
+        assert s.query(EudrSet).count() == 0 and s.query(Lot).count() == 0
+    assert c.get(f"/api/dossier/{a['id']}").json()["verification"]["valid"]
+
+
+SET_ONE = json.dumps({"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"ProductionPlace": "X", "ProducerName": "Hộ X"},
+                       "geometry": sq(12.6, 108.0)}]})
+
+
+def test_han_muc_phat_hanh_an_danh(env, monkeypatch):
+    from app.services import quota
+    c = env
+    quota.reset()
+    monkeypatch.setitem(quota.LIMITS, "dossier", (2, 300, 86_400))
+    assert _issue(c, "Q1", 12.31)["id"] and _issue(c, "Q2", 12.32)["id"]
+    r = c.post("/api/eudr/dossier", json={"geometry": sq(12.33, 108.05), "ref": "Q3", "commodity": "coffee"})
+    assert r.status_code == 429 and "đăng nhập" in r.json()["detail"] and int(r.headers["retry-after"]) > 0
+    h = _login(c, "qh@vd.vn")
+    assert _issue(c, "Q4", 12.34, h)["id"]                     # đăng nhập: hạn mức riêng, cao hơn
+    quota.reset()

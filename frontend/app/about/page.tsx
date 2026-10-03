@@ -3,77 +3,81 @@
 /**
  * TRANG GIỚI THIỆU — "TerraTwin hoạt động thế nào & vì sao tin được".
  *
- * Đây là trang công khai cho giám khảo / người dùng / báo chí đọc để hiểu sản
- * phẩm mà không cần đăng nhập. Song ngữ VI/EN. Không marketing rỗng — mọi tuyên
- * bố đều gắn với cơ chế thật trong phần mềm.
+ * Trang công khai cho giám khảo, người dùng, báo chí. Song ngữ VI/EN. Không
+ * marketing rỗng: mọi câu gắn với một cơ chế đang chạy thật trong phần mềm, và nói
+ * rõ cả những gì CHƯA làm được.
  */
 
 import Link from "next/link";
-import { LangToggle, useLang } from "@/lib/i18n";
+import AppShell from "@/components/AppShell";
+import { useLang } from "@/lib/i18n";
 
 export default function AboutPage() {
   const { t } = useLang();
   return (
-    <div className="doc">
-      <header className="doc-top">
-        <Link href="/" className="doc-brand">◵ TerraTwin</Link>
-        <div className="doc-actions">
-          <LangToggle />
-          <Link href="/" className="doc-home">{t("← Về trang chính", "← Home")}</Link>
-        </div>
-      </header>
+    <AppShell>
+      <main className="doc-body tt-reveal">
+        <h1>{t("TerraTwin hoạt động thế nào — và vì sao tin được", "How TerraTwin works — and why to trust it")}</h1>
+        <p className="doc-lede">{t(
+          "TerraTwin là hạ tầng niềm tin cho đất nông nghiệp Việt Nam: biến một mảnh vườn thành bằng chứng mà ngân hàng, doanh nghiệp xuất khẩu, nhà nhập khẩu châu Âu tự kiểm được — không cần tin TerraTwin. Việc cấp bách nhất: Quy định chống phá rừng của EU (EUDR) áp dụng từ 30/12/2026.",
+          "TerraTwin is trust infrastructure for Vietnam's farmland: it turns a farm into evidence that banks, exporters and EU importers can verify themselves — without trusting TerraTwin. The most urgent job: the EU Deforestation Regulation (EUDR) applies from 30/12/2026.")}</p>
 
-      <main className="doc-body">
-        <h1>{t("TerraTwin hoạt động thế nào — và vì sao tin được",
-               "How TerraTwin works — and why to trust it")}</h1>
-        <p className="doc-lede">
-          {t("TerraTwin là bản sao số của đất đai Việt Nam: chọn đúng thửa của bạn, phần mềm kiểm toàn bộ rủi ro trong 7 ngày tới bằng dữ liệu vệ tinh và khí hậu thật, hiệu chuẩn riêng cho chính điểm đó, rồi cho biết nên làm gì.",
-             "TerraTwin is a digital twin of Vietnam's land: pick your exact plot and it checks every risk over the next 7 days using real satellite and climate data, calibrated to that precise point, then tells you what to do.")}
-        </p>
+        <h2>{t("1. Ranh thửa đúng chuẩn EU", "1. Plot boundaries in the EU format")}</h2>
+        <p>{t(
+          "Vẽ trên ảnh vệ tinh, đi bộ quanh vườn bằng GPS điện thoại (mất sóng vẫn lưu), hoặc tải tệp GeoJSON, KML, Excel. TerraTwin kiểm đúng các quy tắc EU từ chối: toạ độ ít hơn 6 chữ số, thửa trên 4 ha chỉ khai một điểm, ranh hở, tự cắt, có lỗ, hai hộ khai chồng nhau. Lỗi chắc chắn thì tự sửa; lỗi còn lại chỉ đúng toạ độ chỗ sai.",
+          "Draw on satellite imagery, walk the boundary with a phone (saved offline), or upload GeoJSON, KML or Excel. TerraTwin checks the rules the EU rejects: under 6 decimals, plots over 4 ha declared as a point, open, self-crossing or holed rings, overlapping producers. Certain errors are auto-fixed; the rest are pinpointed.")}</p>
 
-        <h2>{t("1. Hiệu chuẩn tới từng thửa — cái lõi độc quyền",
-               "1. Calibrated to each plot — the exclusive core")}</h2>
-        <p>
-          {t("Đa số cảnh báo dùng một ngưỡng chung cho cả nước nên kêu oan hơn nửa số ngày ở miền Trung. TerraTwin tải 10 năm khí hậu ERA5 của CHÍNH điểm bạn chọn để dựng ngưỡng riêng — báo động giả tụt từ 46–61% xuống khoảng 3%. Không ai làm được điều này bằng một ngưỡng chung.",
-             "Most alerts use one nationwide threshold and cry wolf over half the days in central Vietnam. TerraTwin loads 10 years of ERA5 climatology for the exact point you pick to build a local threshold — false alarms drop from 46–61% to about 3%. No one achieves this with a single shared threshold.")}
-        </p>
+        <h2>{t("2. Sàng lọc phá rừng sau 31/12/2020", "2. Deforestation screening after 31/12/2020")}</h2>
+        <p>{t(
+          "Ba bản đồ rừng quanh năm 2020 độc lập nhau bỏ phiếu: ESA WorldCover (quang học), JAXA ALOS (radar), Impact Observatory (trung bình 2018–2020). Thêm quỹ đạo tán cây từng năm, NDVI Sentinel-2 cùng mùa trước và sau mốc, khu bảo tồn theo OpenStreetMap. Bỏ phiếu vì một bản đồ đơn lẻ hay sai: đo thật ở vườn cà phê Buôn Ma Thuột, WorldCover vẽ 76% \"tán cây\" trong khi radar và Impact Observatory đều 0% rừng — và EUDR không coi vườn cây nông nghiệp là rừng.",
+          "Three independent forest maps around 2020 vote: ESA WorldCover (optical), JAXA ALOS (radar), Impact Observatory (2018–2020 average). Plus yearly tree-cover trajectory, same-season Sentinel-2 NDVI before and after the cutoff, and protected areas from OpenStreetMap. Voting, because single maps err: at a Buôn Ma Thuột coffee farm WorldCover shows 76% \"tree cover\" while radar and Impact Observatory show 0% forest — and the EUDR does not count tree crops as forest.")}</p>
+        <p>{t("Đây là SÀNG LỌC, không phải chứng nhận. Quy tắc công khai, số liệu đo trên đúng ranh thửa, ai cũng tính lại được.",
+          "This is SCREENING, not certification. The rule is public and the numbers are measured on the exact boundary — anyone can recompute them.")}</p>
 
-        <h2>{t("2. Dữ liệu THẬT, kiểm chứng được", "2. Real, verifiable data")}</h2>
-        <p>
-          {t("Nguồn: Open-Meteo/ERA5 (khí hậu), GloFAS (lũ), NASA POWER (bức xạ), Sentinel-2 qua Microsoft Planetary Computer (ảnh vệ tinh), OpenStreetMap (hạ tầng). Mỗi kết luận gắn cờ 🛰️ đo được hay 🧪 ước lượng, kèm khoảng tin cậy. Chỗ nào chưa đủ dữ liệu, phần mềm nói thẳng — không bịa số.",
-             "Sources: Open-Meteo/ERA5 (climate), GloFAS (floods), NASA POWER (radiation), Sentinel-2 via Microsoft Planetary Computer (satellite), OpenStreetMap (infrastructure). Every conclusion is flagged 🛰️ measured or 🧪 estimated, with a confidence range. Where data is insufficient, it says so — no made-up numbers.")}
-        </p>
+        <h2>{t("3. Hồ sơ ký số và sổ minh bạch", "3. Signed dossiers and a transparency log")}</h2>
+        <p>{t(
+          "Mỗi vườn có một hồ sơ ký Ed25519 kèm QR. Mọi hồ sơ là lá của một cây Merkle theo chuẩn RFC 6962 (như Certificate Transparency); mỗi ngày một tác vụ độc lập trên GitHub giữ đầu cây và kiểm cây chỉ được thêm, không bị sửa. Tải tệp hồ sơ về là kiểm được ngay trong trình duyệt, kể cả khi tắt mạng (trang Kiểm).",
+          "Each plot gets an Ed25519-signed dossier with a QR code. Every dossier is a leaf of an RFC 6962 Merkle tree (like Certificate Transparency); every day an independent GitHub job keeps the tree head and checks the tree is append-only. A downloaded dossier can be verified in the browser, even offline (Verify page).")}</p>
+        <p>{t(
+          "Hồ sơ chỉ chứa số ĐO và số TÍNH LẠI ĐƯỢC — không chứa dự báo. Tên chủ hộ mặc định ẩn bằng cam kết băm có muối; nông hộ giữ đường link đầy đủ để chứng minh khi cần.",
+          "Dossiers hold only MEASURED and RECOMPUTABLE figures — no forecasts. The producer's name is hidden by default behind a salted hash commitment; the farmer keeps a full link to prove it when needed.")}</p>
 
-        <h2>{t("3. Bằng chứng, không phải lời hứa", "3. Evidence, not promises")}</h2>
-        <p>
-          {t("Mô hình được kiểm chứng ngược trên thiên tai thật (lũ Huế 2020, sạt lở Trà Leng): báo trước mấy ngày, kèm tỉ lệ báo bừa. Và phần mềm tự chấm điểm về chính mình công khai (POD/FAR/CSI) — không sửa được từ giao diện. Bạn xem được ngay trên trang chính.",
-             "The model is backtested on real disasters (Huế 2020 flood, Trà Leng landslide): days of lead time, with the false-alarm rate shown. And it scores itself publicly (POD/FAR/CSI) — not editable from the UI. You can see it on the home page.")}
-        </p>
+        <h2>{t("4. Lô hàng không thể bị rửa", "4. Lots that can't be laundered")}</h2>
+        <p>{t(
+          "Doanh nghiệp ghép lô từ các đợt nhập của từng vườn. TerraTwin chặn vườn chưa đạt sàng lọc và vườn khai vượt năng suất trần — cộng dồn mọi lô cùng vụ của MỌI doanh nghiệp. Nông hộ tự xác nhận hoặc từ chối từng đợt giao hàng bằng đường link của mình. Lô đạt nhận chứng thư Merkle đã ký và tờ khai DDS nháp.",
+          "Exporters build lots from each plot's deliveries. TerraTwin blocks plots that failed screening and plots declared above the yield cap — summed across every lot in the season from EVERY company. Farmers confirm or reject each delivery via their own link. Passing lots get a signed Merkle certificate and a draft DDS.")}</p>
 
-        <h2>{t("4. Trí tuệ AI — đúng chỗ, trung thực", "4. AI — applied where it truly helps")}</h2>
-        <p>
-          {t("TerraTwin dùng cả một ngăn xếp AI: học máy hiệu chuẩn theo phân vị, học sâu phân đoạn lớp phủ (thị giác máy), chỉ số quang học NDVI/NDBI, xử lý ngôn ngữ tự nhiên cho câu hỏi what-if, trợ lý LLM có DẪN NGUỒN (chỉ trả lời dựa dữ liệu đo được + lịch sử thửa, cấm bịa số), mô hình độ hiếm tổ hợp, và học liên kết từ quan sát thực địa. Mỗi mô hình chỉ được bật khi qua ngưỡng kiểm định.",
-             "TerraTwin runs a full AI stack: percentile-calibration machine learning, deep-learning land-cover segmentation (computer vision), NDVI/NDBI optical indices, natural-language processing for what-if questions, a source-cited LLM assistant (answers only from measured data + plot history, never invents numbers), a combinatorial-rarity model, and federated learning from field observations. Each model only turns on after it passes a held-out check.")}
-        </p>
+        <h2>{t("5. Giám sát sau phát hành", "5. Post-issuance monitoring")}</h2>
+        <p>{t(
+          "Mỗi tuần, hồ sơ vườn đã phát hành được sàng lọc lại; radar Sentinel-1 nhìn xuyên mây thấy mất tán cây cả trong mùa mưa. Vườn xấu đi thì lô hàng chứa nó bị chặn, và trang Hôm nay báo cho chủ vườn. Radar đang ở mức thử nghiệm cho tới khi kiểm định xong với cảnh báo RADD.",
+          "Every week, issued plot dossiers are re-screened; Sentinel-1 radar sees canopy loss through rainy-season clouds. Worsening plots block the lots that contain them, and the Today page tells the owner. Radar is experimental until validated against RADD alerts.")}</p>
 
-        <h2>{t("5. Vì sao người dùng cần TerraTwin", "5. Why users need TerraTwin")}</h2>
-        <p>
-          {t("Nó không chỉ báo rủi ro — nó cho một KẾ HOẠCH: việc cần làm có ngày, ngày an toàn để làm đồng, giá trị đang chịu rủi ro, và tự canh nền để báo trước qua Zalo/email. Càng nhiều nông dân xác nhận thực địa bằng một chạm, ngưỡng càng khớp với đất Việt Nam — một tài sản không ai tải được từ vệ tinh, chỉ TerraTwin có.",
-             "It doesn't just flag risk — it gives a PLAN: dated to-dos, safe days for fieldwork, the value at stake, and background guarding that warns you early via Zalo/email. The more farmers confirm outcomes with one tap, the better the thresholds fit Vietnamese land — an asset no one can download from satellites, unique to TerraTwin.")}
-        </p>
+        <h2>{t("6. Tự kiểm định, công bố cả lần trượt", "6. Self-validation, failures published")}</h2>
+        <p>{t(
+          "Mọi mô hình chỉ được bật khi qua ngưỡng đặt trước, commit lên GitHub TRƯỚC khi chạy. Hai lần huấn luyện U-Net phân loại lớp phủ đều trượt và được công bố; phân tích mức lỗi nén ảnh (ELA) không tách được ảnh ghép nên không bật. Kết quả kiểm định sàng lọc EUDR và mô hình \"rừng hay vườn cây\" hiện ở trang Phương pháp.",
+          "Every model is enabled only after passing a bar committed to GitHub BEFORE it runs. Two U-Net land-cover runs failed and were published; error level analysis couldn't separate spliced photos, so it isn't enabled. EUDR screening validation and the \"forest or tree crop\" model results appear on the Method page.")}</p>
+
+        <h2>{t("7. Công cụ thẩm định thửa đất", "7. Land appraisal tools")}</h2>
+        <p>{t(
+          "Ngoài EUDR, TerraTwin có công cụ cho một thửa bất kỳ: loại đất, địa hình, mười năm hiểm hoạ, theo dõi thời tiết. Cảnh báo thiên tai chỉ để tham khảo — bản tin chính thức do Trung tâm Dự báo KTTV quốc gia phát (nchmf.gov.vn).",
+          "Beyond the EUDR, TerraTwin has tools for any plot: land type, terrain, ten years of hazards, weather watch. Disaster alerts are reference only — official bulletins come from Vietnam's national forecasting centre (nchmf.gov.vn).")}</p>
+
+        <h2>{t("Nguồn dữ liệu", "Data sources")}</h2>
+        <p>{t(
+          "Copernicus Sentinel-1 và Sentinel-2, ESA WorldCover 2020/2021, JAXA ALOS PALSAR, Impact Observatory/Esri Annual Land Cover — qua Microsoft Planetary Computer; Hansen Global Forest Change (đối chiếu kiểm định); OpenStreetMap; Open-Meteo/ERA5, GloFAS.",
+          "Copernicus Sentinel-1 and Sentinel-2, ESA WorldCover 2020/2021, JAXA ALOS PALSAR, Impact Observatory/Esri Annual Land Cover — via Microsoft Planetary Computer; Hansen Global Forest Change (validation reference); OpenStreetMap; Open-Meteo/ERA5, GloFAS.")}</p>
 
         <div className="doc-cta">
-          <Link href="/" className="doc-btn">{t("Thử ngay với thửa của bạn", "Try it on your plot")}</Link>
+          <Link href="/eudr" className="doc-btn">{t("Bắt đầu với một vườn", "Start with a plot")}</Link>
         </div>
-
-        <footer className="doc-foot">
+        <div className="doc-foot">
+          <Link href="/eudr?tab=phuong-phap">{t("Phương pháp & kiểm định", "Method & validation")}</Link>
+          <Link href="/pricing">{t("Bảng giá", "Pricing")}</Link>
+          <Link href="/help">{t("Trợ giúp", "Help")}</Link>
           <Link href="/privacy">{t("Quyền riêng tư", "Privacy")}</Link>
-          <span>·</span>
           <Link href="/terms">{t("Điều khoản", "Terms")}</Link>
-          <span>·</span>
-          <span>© {new Date().getFullYear()} TerraTwin</span>
-        </footer>
+        </div>
       </main>
-    </div>
+    </AppShell>
   );
 }
