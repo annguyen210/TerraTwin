@@ -2542,3 +2542,10 @@ export function eudrOverview() { return authed<EudrOverview>(`/api/eudr/overview
 export function eudrPublicStats() {
   return getJson<{ log_size: number; plot_dossiers: number; lot_certificates: number }>("/api/eudr/public-stats", "Không tải được số liệu");
 }
+
+export type TodayItem = { kind: string; priority: "urgent" | "action" | "info"; title: string; body: string; link: string };
+export type Today = { date: string; deadlines: { date: string; days: number; who: string }[];
+                      tip: { id: string; title: string; text: string; source: string; url: string } | null;
+                      log_size: number; items: TodayItem[]; signed_in: boolean;
+                      counts?: { plots_saved: number; dossiers: number; eudr_dossiers: number } };
+export function getToday() { return getJson<Today>(`/api/today?lang=${curLang()}`, "Không tải được bảng tin"); }

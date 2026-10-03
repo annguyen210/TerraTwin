@@ -14,7 +14,8 @@ import {
   type TerraScore,
 } from "@/lib/api";
 import type { HeatmapResult } from "@/lib/api";
-import Account from "@/components/Account";
+import AppShell from "@/components/AppShell";
+import Link from "next/link";
 import Answer from "@/components/Answer";
 import PlotPlan from "@/components/PlotPlan";
 import Start from "@/components/Start";
@@ -137,6 +138,9 @@ export default function Home() {
   const [railOpen, setRailOpen] = useState(false);
   // Mức rủi ro cao nhất của thửa vừa quét — dùng để tô khung trên bản đồ.
   const [plotRisk, setPlotRisk] = useState<string>("safe");
+  // Bố cục 3.0: bản đồ lớn làm phần chính, nội dung chia CHƯƠNG (thay ba cột "danh sách
+  // mô-đun trái / phân tích phải" — người dùng thấy giống công cụ phụ thuộc AI, rối mắt).
+  const [chapter, setChapter] = useState<"plan" | "tools" | "mine">("plan");
   const [deep, setDeep] = useState<
     | "none" | "playback" | "timelapse" | "genome" | "design" | "knowledge"
     | "mrv" | "provenance" | "model"
@@ -212,6 +216,7 @@ export default function Home() {
   function selectModule(id: string) {
     setActive(id);
     setTab("detail");
+    setChapter("tools");
     if (coord) run(id, coord.lat, coord.lon, area);
   }
 
@@ -233,7 +238,6 @@ export default function Home() {
   if (!coord) {
     return (
       <>
-        <Onboarding />
         {story && (
           <Story onClose={() => setStory(false)} onExplore={onStart} />
         )}
@@ -262,276 +266,144 @@ export default function Home() {
     );
   }
 
+  const serviceable = terra?.region?.serviceable !== false;
+  const CHAPTERS: { id: "plan" | "tools" | "mine"; vi: string; en: string }[] = [
+    { id: "plan", vi: "Kế hoạch & rủi ro", en: "Plan & risk" },
+    { id: "tools", vi: `Công cụ chuyên sâu (${modules.length || 18})`, en: `Deep tools (${modules.length || 18})` },
+    { id: "mine", vi: "Thửa đã lưu & cảnh báo", en: "Saved plots & alerts" },
+  ];
+
   return (
-    <main className="app">
-      {story && (
-        <Story onClose={() => setStory(false)} onExplore={onStart} />
-      )}
-      <aside className={`sidebar${railOpen ? " open" : ""}`}>
-        <div className="brand">◵ TerraTwin</div>
-        <p className="tag">
-          {lang === "en"
-            ? <><b>Click the map</b> — or draw an area — to run instantly.</>
-            : <><b>Bấm vào bản đồ</b> — hoặc vẽ một vùng — là chạy ngay.</>}
-        </p>
-        <button
-          className="rail-toggle"
-          onClick={() => setRailOpen(!railOpen)}
-          aria-expanded={railOpen}
-        >
-          {railOpen ? "▾" : "▸"} {t("Xem từng loại rủi ro riêng", "See each risk type")}
-          <small>{modules.length || 18} {t("mũi nhọn · chọn để đào sâu một loại", "spearheads · pick one to dig in")}</small>
-        </button>
-        {Object.keys(grouped)
-          .sort()
-          .map((g) => (
-            <div key={g} className="group">
-              <div className="ghead">{GROUPS[g] ? t(GROUPS[g][0], GROUPS[g][1]) : g}</div>
-              {grouped[g].map((m) => (
-                <button
-                  key={m.id}
-                  className={`mod ${m.id === active ? "on" : ""}`}
-                  onClick={() => selectModule(m.id)}
-                >
-                  <span className="ic"><ModuleIcon id={m.id} fallback={m.icon} /></span>
-                  <span className="nm">{m.name}</span>
-                </button>
-              ))}
+    <AppShell user={user} onAuth={setUser} wide>
+      {story && <Story onClose={() => setStory(false)} onExplore={onStart} />}
+      <Onboarding />
+      <div className="pw">
+        <section className="pw-hero">
+          <div className="pw-map">
+            <MapView onPick={onPick} flyTo={flyTo} heat={heat} plot={coord ? { ...coord, spanM: 1000, risk: plotRisk } : null} />
+          </div>
+          <div className="pw-card tt-reveal">
+            <p className="eu-eyebrow">{t("Thửa đang xem", "Current plot")}</p>
+            <h1>{placeLabel ?? t("Thửa đã chọn", "Selected plot")}</h1>
+            <p className="pw-coord">{coord.lat.toFixed(5)}, {coord.lon.toFixed(5)}{area != null ? ` · ${area} ha` : ""}</p>
+            {terra && serviceable && <TerraBadge t={terra} />}
+            <div className="pw-card-actions">
+              <Link href="/eudr" className="bat-btn">{t("Lập hồ sơ EUDR", "Build EUDR dossier")}</Link>
+              <button className="bat-btn ghost" onClick={() => setWorkspace(true)}>{t("Khu làm việc", "Workspace")}</button>
             </div>
-          ))}
-        <Account user={user} onAuth={setUser} />
-        <Alerts user={user} />
-        <Portfolio
-          user={user}
-          coord={coord}
-          area={area}
-          terra={terra}
-          onLoad={loadPlot}
-        />
-        <button className="ws-open" onClick={() => setWorkspace(true)}>
-          ⚙️ {t("Khu làm việc", "Workspace")}
-          <small>{t("Twin đã lưu · dữ liệu · kênh cảnh báo · khoá API · vòng học",
-                   "Saved twins · data · alert channels · API keys · learning loop")}</small>
-        </button>
+            <small className="pw-tip">{t("Bấm vào bản đồ để đổi thửa, hoặc vẽ một vùng.", "Click the map to change plot, or draw an area.")}</small>
+          </div>
+        </section>
 
-        <p className="foot">
-          {modules.length || 18} {t("mũi nhọn · 12/12 ngành · dữ liệu thật:", "spearheads · 12/12 sectors · real data:")} Open-Meteo ·
-          NASA POWER · OpenStreetMap · Sentinel-2
-        </p>
-      </aside>
-
-      <section className="mapwrap">
-        <MapView
-          onPick={onPick}
-          flyTo={flyTo}
-          heat={heat}
-          plot={coord ? { ...coord, spanM: 1000, risk: plotRisk } : null}
-        />
-      </section>
-
-      <aside className="results">
-        {loading && <p className="hint">{t("Đang phân tích…", "Analyzing…")}</p>}
-        {err && (
-          <p className="err">
-            {err.includes("Việt Nam") ? "🗺️ " : "⚠️ "}
-            {err}
-            {!err.includes("Việt Nam") && (
-              <>
-                <br />
-                <small>Backend đã chạy chưa? (http://localhost:8000)</small>
-              </>
-            )}
-          </p>
-        )}
-        {!coord && <MyLand user={user} onOpen={onStart} />}
-        {!coord && <Start onPick={onStart} onStory={() => setStory(true)} />}
-
-        {/* KẾ HOẠCH lên đầu — thứ người dùng cần nhất ("làm gì") là thứ đầu tiên
-            họ thấy. Lưới 18 mũi nhọn (bằng chứng) tụt xuống dưới. */}
-        {coord && terra?.region?.serviceable !== false && (
-          <PlotPlan
-            lat={coord.lat}
-            lon={coord.lon}
-            area={area}
-            onSelectModule={selectModule}
-          />
-        )}
-        {coord && (
-          <>
-            {terra?.region?.serviceable !== false && (
-              <h3 className="ev-h">🔬 {t("Bằng chứng chi tiết — lưới 18 mũi nhọn", "Detailed evidence — the 18-spearhead grid")}</h3>
-            )}
-            <Answer
-              lat={coord.lat}
-              lon={coord.lon}
-              area={area}
-              label={placeLabel}
-              modules={modules}
-              onSelectModule={selectModule}
-              onDetail={() => setTab("overview")}
-              onRisk={setPlotRisk}
-              onTerra={setTerra}
-            />
-          </>
-        )}
-        {area != null && (
-          <p className="areanote">📐 {t("Diện tích vùng:", "Area:")} {area} ha</p>
-        )}
+        {loading && <div className="pw-loading"><div className="tt-skel" /></div>}
+        {err && <p className="err pw-err">{err}</p>}
         {terra?.region && !terra.region.serviceable && (
-          <div className="offsite">
-            <b>
-              {terra.region.kind === "sea"
-                ? t("🌊 Đây là mặt nước", "🌊 This is open water")
-                : `${t("🗺️ Ngoài phạm vi phục vụ", "🗺️ Outside service area")}${
-                    terra.region.country
-                      ? ` (${terra.region.country.toUpperCase()})`
-                      : ""
-                  }`}
-            </b>
+          <div className="offsite pw-err">
+            <b>{terra.region.kind === "sea" ? t("Đây là mặt nước", "This is open water")
+              : `${t("Ngoài phạm vi phục vụ", "Outside service area")}${terra.region.country ? ` (${terra.region.country.toUpperCase()})` : ""}`}</b>
             <p>{terra.region.note}</p>
-            {terra.region.caveat && (
-              <p className="offsite-sub">{terra.region.caveat}</p>
-            )}
-          </div>
-        )}
-        {terra && terra.region?.serviceable !== false && <TerraBadge t={terra} />}
-
-        {coord && (
-          <div className="tabs">
-            <button
-              className={tab === "detail" ? "on" : ""}
-              onClick={() => {
-                setTab("detail");
-                if (coord && !result) run(active, coord.lat, coord.lon, area);
-              }}
-            >
-              {t("Chi tiết module", "Module detail")}
-            </button>
-            <button
-              className={tab === "overview" ? "on" : ""}
-              onClick={() => setTab("overview")}
-            >
-              {t("Toàn cảnh", "Overview of")} {modules.length || 18} {t("mũi nhọn", "spearheads")}
-            </button>
           </div>
         )}
 
-        {coord && tab === "overview" && (
-          <Overview
-            lat={coord.lat}
-            lon={coord.lon}
-            area={area}
-            onSelectModule={selectModule}
-          />
-        )}
+        <nav className="pw-tabs" role="tablist">
+          {CHAPTERS.map((c) => (
+            <button key={c.id} role="tab" aria-selected={chapter === c.id} className={chapter === c.id ? "on" : ""} onClick={() => setChapter(c.id)}>
+              {t(c.vi, c.en)}
+            </button>
+          ))}
+        </nav>
 
-        {tab === "detail" && (
-          <>
-            {result && (
-              <ResultsPanel
-                a={result}
-                threat={modules.find((m) => m.id === result.module_id)?.threat ?? true}
-              />
-            )}
-            {/* A7 — mất tán cây bền vững, chỉ có ý nghĩa cạnh kết quả carbon. */}
-            {coord && result && active === "carbon" && (
-              <ChangeDetect lat={coord.lat} lon={coord.lon} />
-            )}
-            {coord && result && (
-              <WhatIf moduleId={active} lat={coord.lat} lon={coord.lon} />
-            )}
-            {coord && result && (
-              <Future moduleId={active} lat={coord.lat} lon={coord.lon} />
-            )}
-            {coord && result && (
-              <FieldMode moduleId={active} lat={coord.lat} lon={coord.lon} />
-            )}
-            {coord && result && (
-              <Heatmap
-                moduleId={active}
-                lat={coord.lat}
-                lon={coord.lon}
-                onResult={setHeat}
-              />
-            )}
-            {coord && result && (
-              <Insights moduleId={active} lat={coord.lat} lon={coord.lon} />
-            )}
+        <div className="pw-body tt-reveal" key={chapter}>
+          {chapter === "plan" && (
+            <>
+              {serviceable && <PlotPlan lat={coord.lat} lon={coord.lon} area={area} onSelectModule={selectModule} />}
+              {serviceable && <h3 className="ev-h">{t("Bằng chứng chi tiết — lưới mũi nhọn", "Detailed evidence — the spearhead grid")}</h3>}
+              <Answer lat={coord.lat} lon={coord.lon} area={area} label={placeLabel} modules={modules}
+                      onSelectModule={selectModule} onDetail={() => { setTab("overview"); setChapter("tools"); }} onRisk={setPlotRisk} onTerra={setTerra} />
+            </>
+          )}
 
-            {coord && result && (
-              <Feedback
-                moduleId={active}
-                moduleName={result.module_name}
-                recommendation={result.recommendation}
-                lat={coord.lat}
-                lon={coord.lon}
-                user={user}
-              />
-            )}
-
-            {coord && result && (
-              <div className="deep">
-                <div className="deep-h">Xem sâu hơn về thửa này</div>
-                <div className="deep-tabs">
-                  {DEEP.map((d) => (
-                    <button
-                      key={d.id}
-                      className={deep === d.id ? "on" : ""}
-                      onClick={() => setDeep(deep === d.id ? "none" : d.id)}
-                      title={d.flow}
-                    >
-                      {d.icon} {d.label}
-                    </button>
-                  ))}
-                </div>
+          {chapter === "tools" && (
+            <>
+              <div className="pw-mods">
+                {Object.keys(grouped).sort().map((g) => (
+                  <div key={g} className="pw-mod-group">
+                    <span className="pw-mod-h">{GROUPS[g] ? t(GROUPS[g][0], GROUPS[g][1]) : g}</span>
+                    <div className="pw-mod-row">
+                      {grouped[g].map((m) => (
+                        <button key={m.id} className={`pw-mod ${m.id === active ? "on" : ""}`} onClick={() => selectModule(m.id)}>
+                          <span className="ic"><ModuleIcon id={m.id} fallback={m.icon} /></span>{m.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
+              <div className="tabs">
+                <button className={tab === "detail" ? "on" : ""} onClick={() => { setTab("detail"); if (!result) run(active, coord.lat, coord.lon, area); }}>
+                  {t("Chi tiết công cụ", "Tool detail")}
+                </button>
+                <button className={tab === "overview" ? "on" : ""} onClick={() => setTab("overview")}>
+                  {t("Toàn cảnh", "Overview")}
+                </button>
+              </div>
+              {tab === "overview" && <Overview lat={coord.lat} lon={coord.lon} area={area} onSelectModule={selectModule} />}
+              {tab === "detail" && (
+                <div className="pw-detail">
+                  {!result && !loading && <p className="hint">{t("Chọn một công cụ ở trên để xem chi tiết.", "Pick a tool above to see details.")}</p>}
+                  {result && <ResultsPanel a={result} threat={modules.find((m) => m.id === result.module_id)?.threat ?? true} />}
+                  {result && active === "carbon" && <ChangeDetect lat={coord.lat} lon={coord.lon} />}
+                  {result && <WhatIf moduleId={active} lat={coord.lat} lon={coord.lon} />}
+                  {result && <Future moduleId={active} lat={coord.lat} lon={coord.lon} />}
+                  {result && <FieldMode moduleId={active} lat={coord.lat} lon={coord.lon} />}
+                  {result && <Heatmap moduleId={active} lat={coord.lat} lon={coord.lon} onResult={setHeat} />}
+                  {result && <Insights moduleId={active} lat={coord.lat} lon={coord.lon} />}
+                  {result && <Feedback moduleId={active} moduleName={result.module_name} recommendation={result.recommendation} lat={coord.lat} lon={coord.lon} user={user} />}
+                  {result && (
+                    <div className="deep">
+                      <div className="deep-h">{t("Xem sâu hơn về thửa này", "Dig deeper into this plot")}</div>
+                      <div className="deep-tabs">
+                        {DEEP.map((d) => (
+                          <button key={d.id} className={deep === d.id ? "on" : ""} onClick={() => setDeep(deep === d.id ? "none" : d.id)} title={d.flow}>
+                            {d.icon} {d.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {deep === "playback" && <Timeline moduleId={active} lat={coord.lat} lon={coord.lon} onHeat={setHeat} />}
+                  {deep === "timelapse" && <TimeLapse moduleId={active} lat={coord.lat} lon={coord.lon} />}
+                  {deep === "genome" && <Genome lat={coord.lat} lon={coord.lon} />}
+                  {deep === "design" && <DesignStudio lat={coord.lat} lon={coord.lon} />}
+                  {deep === "knowledge" && <Knowledge lat={coord.lat} lon={coord.lon} user={user} />}
+                  {deep === "mrv" && <Mrv lat={coord.lat} lon={coord.lon} />}
+                  {deep === "model" && <ModelCard />}
+                  {deep === "provenance" && <Provenance lat={coord.lat} lon={coord.lon} />}
+                  <Copilot lat={coord.lat} lon={coord.lon} />
+                </div>
+              )}
+              <Backtest />
+            </>
+          )}
 
-            {coord && deep === "playback" && (
-              <Timeline
-                moduleId={active}
-                lat={coord.lat}
-                lon={coord.lon}
-                onHeat={setHeat}
-              />
-            )}
-            {coord && deep === "timelapse" && (
-              <TimeLapse moduleId={active} lat={coord.lat} lon={coord.lon} />
-            )}
-            {coord && deep === "genome" && (
-              <Genome lat={coord.lat} lon={coord.lon} />
-            )}
-            {coord && deep === "design" && (
-              <DesignStudio lat={coord.lat} lon={coord.lon} />
-            )}
-            {coord && deep === "knowledge" && (
-              <Knowledge lat={coord.lat} lon={coord.lon} user={user} />
-            )}
-            {coord && deep === "mrv" && <Mrv lat={coord.lat} lon={coord.lon} />}
-            {coord && deep === "model" && <ModelCard />}
-            {coord && deep === "provenance" && (
-              <Provenance lat={coord.lat} lon={coord.lon} />
-            )}
-
-            {coord && <Copilot lat={coord.lat} lon={coord.lon} />}
-          </>
-        )}
-
-        <Backtest />
-      </aside>
+          {chapter === "mine" && (
+            <div className="pw-mine">
+              <Alerts user={user} />
+              <Portfolio user={user} coord={coord} area={area} terra={terra} onLoad={loadPlot} />
+              <MyLand user={user} onOpen={onStart} />
+              <button className="ws-open" onClick={() => setWorkspace(true)}>
+                {t("Khu làm việc", "Workspace")}
+                <small>{t("Twin đã lưu · dữ liệu · kênh cảnh báo · khoá API · vòng học", "Saved twins · data · alert channels · API keys · learning loop")}</small>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
 
       {workspace && (
-        <Workspace
-          user={user}
-          coord={coord}
-          area={area}
-          onClose={() => setWorkspace(false)}
-          onOpenPlot={(lat, lon) => {
-            setWorkspace(false);
-            loadPlot(lat, lon);
-          }}
-        />
+        <Workspace user={user} coord={coord} area={area} onClose={() => setWorkspace(false)}
+                   onOpenPlot={(lat, lon) => { setWorkspace(false); loadPlot(lat, lon); }} />
       )}
-    </main>
+    </AppShell>
   );
 }

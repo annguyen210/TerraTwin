@@ -10,12 +10,12 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { BadgeCheck, Download, Package, Trash2 } from "lucide-react";
-import Account from "@/components/Account";
+import AppShell from "@/components/AppShell";
 import {
   fetchMe, getToken, lotCertify, lotCreate, lotDelete, lotDownload, lotFromSet, lotGet, lotUpdate, lotsList,
   type AuthUser, type Lot, type LotDelivery,
 } from "@/lib/api";
-import { LangToggle, useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
 
 const COMMODITIES: [string, string, string][] = [
   ["coffee", "Cà phê", "Coffee"], ["rubber", "Cao su", "Rubber"], ["cocoa", "Ca cao", "Cocoa"], ["wood", "Gỗ", "Wood"], ["other", "Khác", "Other"],
@@ -83,12 +83,8 @@ export default function LotsPage() {
   const locked = cur?.state === "certified";
 
   return (
-    <div className="doc">
-      <header className="doc-top">
-        <Link href="/" className="doc-brand">◵ TerraTwin</Link>
-        <div className="doc-actions"><LangToggle /><Account user={user} onAuth={setUser} /></div>
-      </header>
-      <main className="bat-wrap eu-wrap">
+    <AppShell user={user} onAuth={setUser}>
+      <main className="bat-wrap eu-wrap tt-reveal">
         <div>
           <p className="eu-eyebrow">{t("Lô hàng · cân bằng khối lượng · chứng thư Merkle", "Lots · mass balance · Merkle certificate")}</p>
           <h1>{t("Ghép lô hàng từ các vườn đã có hồ sơ", "Build a lot from plots with dossiers")}</h1>
@@ -178,6 +174,6 @@ export default function LotsPage() {
           </>
         )}
       </main>
-    </div>
+    </AppShell>
   );
 }

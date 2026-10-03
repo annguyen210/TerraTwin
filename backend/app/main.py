@@ -26,6 +26,7 @@ from app.routes_batch import router as batch_router
 from app.routes_dossier import router as dossier_router
 from app.routes_eudr import router as eudr_router
 from app.routes_lots import router as lots_router
+from app.routes_today import router as today_router
 from app.routes_learn import router as learn_router
 from app.routes_trust import router as trust_router
 from app.schemas import (
@@ -351,16 +352,26 @@ async def set_request_lang(request: Request, call_next):
 
 @app.middleware("http")
 async def rate_limit(request: Request, call_next):
-    if _RATE > 0 and request.url.path.startswith("/api/"):
+    # Preflight (OPTIONS) không tính vào hạn mức — nó không chạm nguồn dữ liệu nào.
+    if _RATE > 0 and request.url.path.startswith("/api/") and request.method != "OPTIONS":
         ip = _client_ip(request)
         now = time.time()
         dq = _HITS[ip]
         while dq and now - dq[0] > 60.0:
             dq.popleft()
         if len(dq) >= _RATE:
+            # Middleware này nằm NGOÀI CORSMiddleware (đăng ký sau) nên phải tự gắn header
+            # CORS: thiếu nó, trình duyệt chỉ báo "lỗi CORS" mờ mịt thay vì đọc được 429
+            # (đã gặp khi kiểm thử bằng trình duyệt thật 3/10/2026).
+            origin = request.headers.get("origin")
+            hdrs = {"Retry-After": "10"}
+            if origin and ("*" in _ORIGINS or origin in _ORIGINS):
+                hdrs["Access-Control-Allow-Origin"] = "*" if "*" in _ORIGINS else origin
+                hdrs["Vary"] = "Origin"
             return JSONResponse(
                 status_code=429,
                 content={"detail": f"Quá {_RATE} request/phút. Thử lại sau ít giây."},
+                headers=hdrs,
             )
         dq.append(now)
     return await call_next(request)
@@ -372,6 +383,7 @@ app.include_router(dossier_router)
 app.include_router(batch_router)
 app.include_router(eudr_router)
 app.include_router(lots_router)
+app.include_router(today_router)
 app.include_router(learn_router)
 app.include_router(trust_router)
 

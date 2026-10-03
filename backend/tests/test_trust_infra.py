@@ -307,14 +307,14 @@ def test_giam_sat_chan_lo_khi_vuon_xau_di(env):
     a = _issue(c, "VM", 12.85, h)
     from app.services import monitor as mon
     with c.Session() as s:
-        out = mon.run(s, screen=_fake_screen({"VM": "high"}))
+        out = mon.run(s, screen=_fake_screen({"VM": "high"}), radar=lambda p: {"signal": "none"})
     assert out == {"checked": 1, "changed": 1, "candidates": 1}
     page = c.get(f"/api/dossier/{a['id']}").json()
     assert page["monitor"]["changed"] and page["monitor"]["level"] == "high"
     r = c.post("/api/lots", headers=h, json={"season": "2026/27", "deliveries": [{"dossier_id": a["id"], "kg": 10}]}).json()
     assert r["checks"]["rows"][0]["status"] == "blocked"
     with c.Session() as s:                                      # vừa kiểm → không kiểm lại ngay
-        assert mon.run(s, screen=_fake_screen({}))["checked"] == 0
+        assert mon.run(s, screen=_fake_screen({}), radar=lambda p: None)["checked"] == 0
 
 
 def test_hoi_dap_va_doi_chieu_so_do_qua_api(env):
@@ -369,3 +369,45 @@ def test_tong_quan_va_so_lieu_cong_khai(env):
     assert o["lots"] == 1 and o["deliveries_pending_confirmation"] == 1
     s = c.get("/api/eudr/public-stats").json()
     assert s["plot_dossiers"] >= 1 and s["log_size"] >= s["plot_dossiers"]
+
+
+def test_giam_sat_radar_manh_danh_dau_thay_doi(env):
+    c = env
+    h = _login(c, "rd@vd.vn")
+    a = _issue(c, "VRD", 12.95, h)
+    from app.services import monitor as mon
+    with c.Session() as s:
+        out = mon.run(s, screen=_fake_screen({"VRD": "low"}),
+                      radar=lambda p: {"signal": "strong", "drop_db": 4.2, "label": "x"})
+    assert out["changed"] == 1
+    m = c.get(f"/api/dossier/{a['id']}").json()["monitor"]
+    assert m["changed"] and "radar_drop" in m["why"] and m["radar"]["drop_db"] == 4.2
+
+
+def test_bang_tin_hom_nay(env):
+    c = env
+    pub = c.get("/api/today").json()
+    assert not pub["signed_in"] and pub["deadlines"][0]["date"] == "2026-12-30" and pub["tip"]["id"]
+    h = _login(c, "hn@vd.vn")
+    a = _issue(c, "VHN", 12.97, h)
+    c.post("/api/lots", headers=_login(c, "hn2@vd.vn"), json={"operator": "Cty B", "season": "2030/31",
+                                                               "deliveries": [{"dossier_id": a["id"], "kg": 500}]})
+    me = c.get("/api/today", headers=h).json()
+    assert me["signed_in"] and me["counts"]["eudr_dossiers"] == 1
+    assert any(i["kind"] == "delivery" and "Cty B" in i["title"] for i in me["items"])
+
+
+def test_429_co_header_cors_va_preflight_khong_tinh(monkeypatch):
+    from app import main
+    from fastapi.testclient import TestClient
+    monkeypatch.setattr(main, "_RATE", 2)
+    main._HITS.clear()
+    c = TestClient(main.app)
+    h = {"Origin": "http://localhost:1825"}
+    for _ in range(3):
+        c.options("/api/eudr/method", headers={**h, "Access-Control-Request-Method": "GET"})
+    codes = [c.get("/api/eudr/method", headers=h).status_code for _ in range(3)]
+    assert codes == [200, 200, 429]
+    r = c.get("/api/eudr/method", headers=h)
+    assert r.status_code == 429 and r.headers.get("access-control-allow-origin") in ("*", "http://localhost:1825")
+    main._HITS.clear()

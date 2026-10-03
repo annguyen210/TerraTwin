@@ -73,9 +73,12 @@ with sync_playwright() as p:
     @step("Trang đầu hiện EUDR")
     def landing():
         page.goto(WEB + "/", wait_until="networkidle", timeout=180_000)
-        page.get_by_text("trước 30/12/2026").first.wait_for(timeout=60_000)
-        page.get_by_text("Lấy ranh và kiểm một vườn").wait_for()
-        shot(page, "01-landing")
+        page.get_by_text("Chứng minh vườn không phá rừng").first.wait_for(timeout=60_000)
+        page.get_by_role("link", name="Lấy ranh và kiểm một vườn").first.wait_for()
+        assert page.locator(".tt-nav a").count() == 5, "thiếu thanh điều hướng"
+        page.wait_for_timeout(4500)                       # để màn quét vệ tinh chạy xong
+        shot(page, "01-landing", full=False)
+        shot(page, "01b-landing-full")
     landing()
 
     @step("/eudr vẽ ranh trên bản đồ")
@@ -157,7 +160,7 @@ with sync_playwright() as p:
     @step("Tải JSON đã ký → /kiem kiểm offline")
     def offline():
         with page.expect_download() as dl:
-            page.get_by_role("button", name="Tải bản JSON đã ký").click()
+            page.get_by_role("button", name=re.compile("Tải (bản )?JSON đã ký")).click()
         path = os.path.join(OUT, "dossier.json")
         dl.value.save_as(path)
         page.goto(WEB + "/kiem", wait_until="networkidle")
@@ -221,12 +224,38 @@ with sync_playwright() as p:
         return r[:80]
     lots()
 
+    @step("Trang Hôm nay")
+    def today():
+        page.goto(WEB + "/hom-nay", wait_until="networkidle", timeout=120_000)
+        page.locator(".hn-ring").first.wait_for(timeout=60_000)
+        page.wait_for_timeout(800)
+        shot(page, "13-today")
+        return f"{page.locator('.hn-item').count()} việc"
+    today()
+
+    @step("Khu làm việc thửa đất: bản đồ lớn + chương")
+    def workspace():
+        page.goto(WEB + "/", wait_until="networkidle", timeout=120_000)
+        page.locator(".start-quick button").first.click()
+        page.locator(".pw-tabs").wait_for(timeout=60_000)
+        skip = page.get_by_role("button", name="Bỏ qua")          # màn hướng dẫn lần đầu
+        if skip.count():
+            skip.first.click()
+        page.locator(".pw-map canvas").first.wait_for(timeout=60_000)
+        page.wait_for_timeout(6000)
+        shot(page, "14-workspace", full=False)
+        page.get_by_role("tab", name=re.compile("Công cụ chuyên sâu")).click()
+        page.locator(".pw-mod").first.wait_for(timeout=30_000)
+        shot(page, "15-workspace-tools", full=False)
+        return f"{page.locator('.pw-mod').count()} công cụ"
+    workspace()
+
     @step("Ảnh điện thoại (390 px) không tràn ngang")
     def phone():
         m = browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True)
         pg = m.new_page()
         over = []
-        for path, name in (("/", "09-phone-landing"), ("/eudr", "10-phone-eudr"), (f"/h/{state.get('did', '')}", "11-phone-dossier"), ("/kiem", "12-phone-kiem")):
+        for path, name in (("/", "09-phone-landing"), ("/eudr", "10-phone-eudr"), (f"/h/{state.get('did', '')}", "11-phone-dossier"), ("/kiem", "12-phone-kiem"), ("/hom-nay", "16-phone-today")):
             pg.goto(WEB + path, wait_until="networkidle", timeout=120_000)
             pg.wait_for_timeout(1500)
             w = pg.evaluate("document.documentElement.scrollWidth")

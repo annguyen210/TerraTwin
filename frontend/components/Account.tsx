@@ -66,7 +66,7 @@ export default function Account({
     return (
       <div className="acct">
         <button className="acct-in" onClick={() => setOpen(true)}>
-          <LogIn size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Đăng nhập để lưu thửa đất", "Log in to save plots")}
+          <LogIn size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Đăng nhập", "Log in")}
         </button>
         <p className="acct-hint">
           {t("Chưa đăng nhập vẫn phân tích được — chỉ không lưu được danh mục.",

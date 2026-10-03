@@ -16,7 +16,7 @@ import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Copy, Download, FileCheck2, FileSignature, MessageCircleQuestion, Package, ScanSearch, Upload } from "lucide-react";
-import Account from "@/components/Account";
+import AppShell from "@/components/AppShell";
 import EudrResult, { IssueList, LevelBadge } from "@/components/EudrResult";
 import LandDocForm from "@/components/LandDocForm";
 import {
@@ -25,7 +25,7 @@ import {
   type AskCitation, type AuthUser, type Dossier, type EudrOverview, type FocRun, type LandDocInput, type EudrLevel, type EudrMethod, type EudrPlot, type EudrScreening, type EudrSet, type EudrSetInfo,
   type EudrValidation, type GeoGeometry,
 } from "@/lib/api";
-import { LangToggle, useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
 
 const PlotDraw = dynamic(() => import("@/components/PlotDraw"), { ssr: false });
 
@@ -63,12 +63,8 @@ export default function EudrPage() {
   }
 
   return (
-    <div className="doc">
-      <header className="doc-top">
-        <Link href="/" className="doc-brand">◵ TerraTwin</Link>
-        <div className="doc-actions"><LangToggle /><Account user={user} onAuth={setUser} /></div>
-      </header>
-      <main className="bat-wrap eu-wrap">
+    <AppShell user={user} onAuth={setUser}>
+      <main className="bat-wrap eu-wrap tt-reveal">
         <div>
           <p className="eu-eyebrow">{t("EUDR · Quy định chống phá rừng của EU · áp dụng 30/12/2026", "EUDR · EU Deforestation Regulation · applies 30/12/2026")}</p>
           <h1>{t("Hồ sơ vườn chuẩn EUDR", "EUDR-ready plot dossier")}</h1>
@@ -88,7 +84,7 @@ export default function EudrPage() {
         {tab === "ask" && <Ask />}
         {tab === "method" && <Method lang={lang} />}
       </main>
-    </div>
+    </AppShell>
   );
 }
 

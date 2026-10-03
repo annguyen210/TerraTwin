@@ -9,7 +9,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { FileCheck2, ShieldCheck, Upload } from "lucide-react";
-import { LangToggle, useLang } from "@/lib/i18n";
+import AppShell from "@/components/AppShell";
+import { useLang } from "@/lib/i18n";
 import { leafHash, verifyDossierOffline, verifyInclusion, type CheckLine, type DossierFile } from "@/lib/verify";
 
 type Result = { kind: "dossier" | "lot_proof"; title: string; lines: CheckLine[]; summary?: string };
@@ -67,12 +68,8 @@ export default function OfflineVerify() {
 
   const allOk = res?.lines.every((l) => l.ok === true);
   return (
-    <div className="doc">
-      <header className="doc-top">
-        <Link href="/" className="doc-brand">◵ TerraTwin</Link>
-        <div className="doc-actions"><LangToggle /></div>
-      </header>
-      <main className="bat-wrap eu-wrap">
+    <AppShell>
+      <main className="bat-wrap eu-wrap tt-reveal">
         <div>
           <p className="eu-eyebrow">{t("Kiểm offline · không cần tin máy chủ", "Offline check · no need to trust the server")}</p>
           <h1>{t("Kiểm hồ sơ ngay trong trình duyệt", "Verify a dossier in your browser")}</h1>
@@ -112,6 +109,6 @@ export default function OfflineVerify() {
           </ul>
         </section>
       </main>
-    </div>
+    </AppShell>
   );
 }

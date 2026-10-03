@@ -1,69 +1,105 @@
 "use client";
 
 /**
- * TRANG ĐÓN (landing) — hiện khi CHƯA chọn thửa.
+ * TRANG ĐẦU — hiện khi CHƯA chọn thửa.
  *
- * Từ 3/10/2026 sản phẩm chính là HỒ SƠ VƯỜN CHUẨN EUDR: nhu cầu BẮT BUỘC có hạn
- * chót (EU áp dụng 30/12/2026), không phải "xem cho biết". 18 công cụ thẩm định /
- * theo dõi cũ vẫn còn nguyên nhưng xuống mục "tham khảo" bên dưới — cảnh báo thiên
- * tai chính thức thuộc Trung tâm Dự báo KTTV quốc gia, TerraTwin chỉ tham khảo.
+ * Kể câu chuyện bằng CHÍNH sản phẩm đang chạy: màn "quét vệ tinh" dùng ảnh Sentinel-2
+ * THẬT của một vườn cà phê gần Buôn Ma Thuột (01/01/2026), ranh vườn tự vẽ ra, ba bản đồ
+ * rừng 2020 lần lượt bỏ phiếu, rồi kết luận — đúng số liệu sàng lọc thật của vườn đó
+ * (WorldCover 76% tán cây, ALOS 0%, Impact Observatory 0% → Đạt sàng lọc).
+ * Rồi trả lời thẳng câu giám khảo sẽ hỏi: "sao không chụp ảnh gửi một AI khác?".
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  BadgeCheck, ClipboardList, FileSignature, Footprints, House, Package, ScanSearch, Settings, ShieldCheck, TreePine,
-  type LucideIcon,
+  BadgeCheck, Check, ClipboardList, FileSignature, Footprints, House, Minus, Package, Radar, ScanSearch, Settings,
+  ShieldCheck, TreePine, X, type LucideIcon,
 } from "lucide-react";
 
-import Account from "./Account";
+import AppShell from "./AppShell";
 import MyLand from "./MyLand";
 import Scorecard from "./Scorecard";
 import Start from "./Start";
 import { eudrPublicStats, getScorecard, trackEvent, type AuthUser, type ModuleInfo, type Scorecard as SC } from "@/lib/api";
-import { LangToggle, useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
 import { DataSaverToggle } from "@/lib/net";
 
-// Bốn trụ cột — mỗi câu ứng với một thứ đang chạy thật, không hứa.
-const FEATURES: { icon: LucideIcon; tvi: string; ten: string; bvi: string; ben: string }[] = [
-  {
-    icon: Footprints,
-    tvi: "Ranh vườn đúng chuẩn tệp EU",
-    ten: "Plot boundaries in the EU file format",
-    bvi: "Vẽ trên ảnh vệ tinh hoặc cầm điện thoại đi bộ quanh vườn. Kiểm đúng quy định EU: toạ độ ≥ 6 chữ số, thửa trên 4 ha phải là đa giác, không ranh hở, tự cắt hay có lỗ, hai hộ không khai chồng nhau — sửa trước khi nộp, không để lô hàng bị giữ ở cảng.",
-    ben: "Draw on satellite imagery or walk the boundary with a phone. Checked against EU rules: ≥ 6-decimal coordinates, plots over 4 ha as polygons, no open, self-crossing or holed rings, no two producers declaring the same land — fixed before filing, not at the port.",
-  },
-  {
-    icon: TreePine,
-    tvi: "Sàng lọc phá rừng sau 31/12/2020",
-    ten: "Deforestation screening after 31/12/2020",
-    bvi: "Ba bản đồ rừng năm 2020 độc lập (ESA quang học, JAXA radar, Impact Observatory theo năm) bỏ phiếu, cộng ảnh Sentinel-2 cùng mùa trước và sau mốc. Ba mức Đạt / Cần xem lại / Rủi ro, kèm lý do, số điểm ảnh và ảnh vệ tinh để tự nhìn.",
-    ben: "Three independent 2020 forest maps (ESA optical, JAXA radar, Impact Observatory yearly) vote, plus same-season Sentinel-2 images before and after the cutoff. Three levels — Passed / Review / Risk — with reasons, pixel counts and imagery to see for yourself.",
-  },
-  {
-    icon: FileSignature,
-    tvi: "Hồ sơ thuộc về nông hộ",
-    ten: "A dossier the farmer owns",
-    bvi: "Mỗi vườn một hồ sơ ký Ed25519 + mã QR, nối vào sổ đăng ký công khai móc xích. Nông hộ mang đi bán cho đại lý nào cũng được; doanh nghiệp, ngân hàng quét QR là tự kiểm bản gốc — không cần tài khoản, không cần tin TerraTwin.",
-    ben: "Each plot gets an Ed25519-signed dossier with a QR code, chained into a public registry. The farmer can sell to any trader; exporters and banks scan the QR to verify the original — no account, no need to trust TerraTwin.",
-  },
-  {
-    icon: BadgeCheck,
-    tvi: "Tự kiểm định công khai",
-    ten: "Publicly validated",
-    bvi: "Quy tắc sàng lọc được đối chiếu độc lập với dữ liệu mất rừng Hansen trên 120 thửa Tây Nguyên, ngưỡng đặt trước khi chạy — kết quả công bố kể cả khi không đạt. Hồ sơ chỉ chứa số đo và số tính lại được, không chứa dự báo.",
-    ben: "The screening rule is checked independently against Hansen forest-loss data on 120 Central Highlands plots, with the bar set before running — results are published even if they fail. Dossiers hold only measured and recomputable figures, no forecasts.",
-  },
+// Ảnh lưu sẵn trong /public (tải từ Planetary Computer): trang đầu không phải chờ máy chủ dựng ảnh.
+const HERO_IMG = "/hero-coffee-s2.png";
+
+const STEPS: { icon: LucideIcon; vi: string; en: string; dvi: string; den: string }[] = [
+  { icon: Footprints, vi: "Lấy ranh vườn", en: "Capture the boundary", dvi: "Vẽ trên ảnh vệ tinh hoặc cầm điện thoại đi bộ quanh vườn; mất sóng vẫn lưu.", den: "Draw on imagery or walk it with a phone; saved even offline." },
+  { icon: ScanSearch, vi: "Kiểm chuẩn EU + sàng lọc", en: "EU format + screening", dvi: "Bắt lỗi tệp EU từ chối; ba bản đồ rừng 2020 bỏ phiếu, ảnh cùng mùa trước/sau mốc.", den: "Catch errors the EU rejects; three 2020 forest maps vote, same-season imagery before/after." },
+  { icon: FileSignature, vi: "Hồ sơ ký số", en: "Signed dossier", dvi: "Ed25519 + QR + sổ minh bạch; tên chủ hộ ẩn, nông hộ giữ link đầy đủ.", den: "Ed25519 + QR + transparency log; the farmer's name hidden, they keep the full link." },
+  { icon: Package, vi: "Lô hàng & giám sát", en: "Lots & monitoring", dvi: "Cân bằng khối lượng, nông hộ xác nhận giao hàng, radar xuyên mây canh mỗi tuần.", den: "Mass balance, farmer-confirmed deliveries, cloud-piercing radar every week." },
 ];
 
+// "Sao không chụp ảnh gửi một AI khác?" — trả lời bằng việc làm được, không bằng tính từ.
+const VS: { vi: string; en: string; chat: 0 | 1 | 2; trace: 0 | 1 | 2 }[] = [
+  { vi: "Đo trên ĐÚNG ranh thửa từ kho ảnh vệ tinh 2017–2026 (Sentinel-2, radar ALOS, Sentinel-1)", en: "Measures on the EXACT boundary from the 2017–2026 satellite archive (Sentinel-2, ALOS radar, Sentinel-1)", chat: 0, trace: 1 },
+  { vi: "Kiểm chuẩn tệp GeoJSON của EU, chỉ đúng toạ độ chỗ sai", en: "Checks the EU GeoJSON rules and pinpoints the bad coordinate", chat: 0, trace: 2 },
+  { vi: "Hồ sơ ký số, sổ minh bạch có nhân chứng độc lập, kiểm offline", en: "Signed dossiers, independently witnessed transparency log, offline verification", chat: 0, trace: 1 },
+  { vi: "Cân bằng khối lượng giữa MỌI doanh nghiệp — chặn rửa hàng", en: "Mass balance across ALL companies — blocks laundering", chat: 0, trace: 1 },
+  { vi: "Nông hộ tự xác nhận từng đợt giao hàng, không cần tài khoản", en: "Farmers confirm each delivery themselves, no account needed", chat: 0, trace: 0 },
+  { vi: "Giám sát sau phát hành mỗi tuần, radar nhìn xuyên mây mùa mưa", en: "Weekly post-issuance monitoring, radar that sees through rainy-season clouds", chat: 0, trace: 1 },
+  { vi: "Trả lời luật kèm số điều khoản, không biết thì nói không biết", en: "Answers on the law cite the article; says so when it doesn't know", chat: 1, trace: 0 },
+  { vi: "Tự kiểm định công khai, ngưỡng đặt trước, công bố cả lần trượt", en: "Public self-validation with pre-set bars, failures published too", chat: 0, trace: 0 },
+];
+
+function useCountUp(target: number, ms = 1200) {
+  const [v, setV] = useState(0);
+  useEffect(() => {
+    if (!target) return;
+    const t0 = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const k = Math.min(1, (now - t0) / ms);
+      setV(Math.round(target * (1 - Math.pow(1 - k, 3))));
+      if (k < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, ms]);
+  return v;
+}
+
+function Mark({ v }: { v: 0 | 1 | 2 }) {
+  return v === 2 ? <Check size={16} className="lp-yes" aria-label="có" />
+    : v === 1 ? <Minus size={16} className="lp-part" aria-label="một phần" />
+      : <X size={16} className="lp-no" aria-label="không" />;
+}
+
+function ScanDemo() {
+  const { t } = useLang();
+  const [ok, setOk] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+  // Ảnh có sẵn trong bộ nhớ đệm có thể tải xong TRƯỚC khi React gắn onLoad → kiểm `complete`.
+  useEffect(() => { if (imgRef.current?.complete && imgRef.current.naturalWidth > 0) setOk(true); }, []);
+  return (
+    <figure className="lp-scan" aria-label={t("Minh hoạ sàng lọc một vườn cà phê thật", "Screening a real coffee plot")}>
+      <div className="lp-scan-img">
+        <img ref={imgRef} src={HERO_IMG} alt={t("Ảnh Sentinel-2 vườn cà phê gần Buôn Ma Thuột, 01/01/2026", "Sentinel-2 image of a coffee plot near Buôn Ma Thuột, 01/01/2026")}
+             width={512} height={512} onLoad={() => setOk(true)} className={ok ? "on" : ""} />
+        <svg viewBox="0 0 512 512" aria-hidden="true">
+          <path className="lp-scan-poly" d="M210 208 L302 208 L302 304 L210 304 Z" />
+          <circle className="lp-scan-dot" cx="256" cy="256" r="6" />
+        </svg>
+        <span className="lp-scan-line" aria-hidden="true" />
+      </div>
+      <div className="lp-scan-votes">
+        <span className="v v1"><TreePine size={14} aria-hidden="true" /> WorldCover 2020 · 76% {t("tán cây", "tree cover")}</span>
+        <span className="v v2"><Radar size={14} aria-hidden="true" /> ALOS radar 2020 · 0% {t("rừng", "forest")}</span>
+        <span className="v v3"><ScanSearch size={14} aria-hidden="true" /> Impact Observatory · 0%</span>
+        <span className="v v4 ok"><BadgeCheck size={15} aria-hidden="true" /> {t("Đạt sàng lọc — 1/3 phiếu, cây lâu năm che bóng", "Passed — 1/3 votes, shaded tree crop")}</span>
+      </div>
+      <figcaption>{t("Số liệu thật của một vườn cà phê gần Buôn Ma Thuột · ảnh chứa dữ liệu Copernicus Sentinel-2 ngày 01/01/2026 đã xử lý", "Real figures for a coffee plot near Buôn Ma Thuột · contains modified Copernicus Sentinel-2 data, 01/01/2026")}</figcaption>
+    </figure>
+  );
+}
+
 export default function Landing({
-  user,
-  onAuth,
-  onStart,
-  onStory,
-  onLoad,
-  onWorkspace,
-  modules,
+  user, onAuth, onStart, onStory, onWorkspace, modules,
 }: {
   user: AuthUser | null;
   onAuth: (u: AuthUser | null) => void;
@@ -75,175 +111,115 @@ export default function Landing({
 }) {
   const { t, lang } = useLang();
   const nModules = modules.length || 18;
-
   const [sc, setSc] = useState<SC | null>(null);
   const [ps, setPs] = useState<{ log_size: number; plot_dossiers: number; lot_certificates: number } | null>(null);
-  useEffect(() => { eudrPublicStats().then(setPs).catch(() => {}); }, []);
-  useEffect(() => { trackEvent("open"); }, []);        // N6 — mở app
+  useEffect(() => { trackEvent("open"); eudrPublicStats().then(setPs).catch(() => {}); }, []);
   useEffect(() => {
     let live = true;
     getScorecard(90).then((r) => live && setSc(r)).catch(() => {});
     return () => { live = false; };
-  }, [lang]);                                          // lấy lại khi đổi ngôn ngữ
+  }, [lang]);
+  const days = Math.max(0, Math.ceil((new Date("2026-12-30T00:00:00").getTime() - Date.now()) / 86_400_000));
+  const dCount = useCountUp(days);
+  const logCount = useCountUp(ps?.log_size ?? 0);
 
   return (
-    <div className="lp">
-      <header className="lp-top">
-        <div className="lp-brand">◵ TerraTwin</div>
-        <div className="lp-top-actions">
-          <LangToggle />
-          <DataSaverToggle />
-          <button className="lp-ws" onClick={onWorkspace}>
-            <Settings size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Khu làm việc", "Workspace")}
-          </button>
-          <Account user={user} onAuth={onAuth} />
-        </div>
-      </header>
-
-      <div className="lp-body">
-        {/* HERO + lối vào EUDR */}
-        <section className="lp-hero">
-          <div className="lp-hero-txt">
-            <span className="lp-eyebrow">
-              {t("Sẵn sàng EUDR · Hồ sơ vườn có kiểm chứng · Bản sao số đất đai Việt Nam",
-                 "EUDR-ready · Verifiable plot dossiers · Vietnam's land digital twin")}
-            </span>
-            <h1 className="lp-h1">
-              {t("Chứng minh vườn không phá rừng ", "Prove your plot is deforestation-free ")}
-              <span>{t("trước 30/12/2026", "before 30/12/2026")}</span>
-            </h1>
-            <p className="lp-lede">
-              {t(
-                "Từ 30/12/2026, mỗi lô cà phê, cao su, gỗ, ca cao bán vào EU phải kèm toạ độ từng thửa và bằng chứng không phá rừng sau 31/12/2020. TerraTwin giúp nông hộ, hợp tác xã và doanh nghiệp lấy ranh vườn đúng chuẩn tệp EU, sàng lọc phá rừng bằng dữ liệu vệ tinh công khai, và phát hành hồ sơ có chữ ký số mà ai cũng tự kiểm được.",
-                "From 30/12/2026 every lot of coffee, rubber, wood or cocoa sold into the EU must carry each plot's coordinates and proof of no deforestation after 31/12/2020. TerraTwin helps farmers, co-ops and exporters capture boundaries in the EU file format, screen for deforestation with public satellite data, and issue digitally signed dossiers anyone can verify.",
-              )}
-            </p>
-            <div className="lp-stats">
-              <div><b>30/12/2026</b><span>{t("EUDR áp dụng (DN lớn, vừa)", "EUDR applies (large, medium)")}</span></div>
-              <div><b>3</b><span>{t("bản đồ rừng 2020 độc lập", "independent 2020 forest maps")}</span></div>
-              <div><b>Ed25519</b><span>{t("hồ sơ ký số, tự kiểm", "signed, self-verifiable")}</span></div>
+    <AppShell user={user} onAuth={onAuth}>
+      <div className="lp lp3">
+        <section className="lp3-hero">
+          <div className="lp3-copy tt-reveal">
+            <span className="lp3-badge"><span className="lp3-pulse" aria-hidden="true" /> {t(`Còn ${dCount} ngày tới hạn EUDR 30/12/2026`, `${dCount} days to the EUDR deadline, 30/12/2026`)}</span>
+            <h1 className="lp3-h1">{t("Chứng minh vườn không phá rừng.", "Prove the plot is deforestation-free.")}<br /><span>{t("Bằng vệ tinh, chữ ký số và sổ ai cũng kiểm được.", "With satellites, signatures and a log anyone can check.")}</span></h1>
+            <p className="lp3-lede">{t(
+              "Từ 30/12/2026, mỗi lô cà phê, cao su, gỗ, ca cao vào EU phải kèm toạ độ từng thửa và bằng chứng không phá rừng sau 31/12/2020. TerraTwin biến một mảnh vườn thành bằng chứng: ranh đúng chuẩn EU, sàng lọc bằng dữ liệu vệ tinh đo trên đúng ranh, hồ sơ ký số nông hộ giữ, lô hàng không thể bị rửa.",
+              "From 30/12/2026 every lot of coffee, rubber, wood or cocoa entering the EU needs each plot's coordinates and proof of no deforestation after 31/12/2020. TerraTwin turns a farm into evidence: EU-compliant boundaries, screening measured on the exact boundary, a signed dossier the farmer owns, lots that can't be laundered.")}</p>
+            <div className="lp3-cta">
+              <Link href="/eudr" className="lp3-btn"><Footprints size={18} aria-hidden="true" /> {t("Lấy ranh và kiểm một vườn", "Map and check a plot")}</Link>
+              <Link href="/eudr?tab=lo" className="lp3-btn ghost"><ClipboardList size={18} aria-hidden="true" /> {t("Doanh nghiệp: kiểm cả lô", "Exporters: check a set")}</Link>
+            </div>
+            <div className="lp3-stats">
+              <div><b>3</b><span>{t("bản đồ rừng 2020 bỏ phiếu", "2020 forest maps vote")}</span></div>
+              <div><b>RFC 6962</b><span>{t("sổ minh bạch có nhân chứng", "witnessed transparency log")}</span></div>
+              <div><b>{ps ? logCount : "—"}</b><span>{t("hồ sơ đã ký trong sổ", "signed records in the log")}</span></div>
               <div><b>{t("0đ", "$0")}</b><span>{t("cho nông hộ", "for farmers")}</span></div>
             </div>
           </div>
-
-          <div className="lp-entry">
-            <div className="eu-start">
-              <h2>{t("Bắt đầu", "Get started")}</h2>
-              <Link href="/eudr" className="eu-start-main">
-                <Footprints size={18} strokeWidth={1.9} aria-hidden="true" className="ui-ic" />
-                <span><b>{t("Lấy ranh và kiểm một vườn", "Map and check one plot")}</b>
-                  <small>{t("Vẽ trên ảnh vệ tinh hoặc đi bộ quanh vườn bằng GPS — không cần tài khoản",
-                            "Draw on imagery or walk it with GPS — no account needed")}</small></span>
-              </Link>
-              <Link href="/eudr?tab=lo" className="lp-buyer-cta">
-                <ClipboardList size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" />{" "}
-                {t("Doanh nghiệp, HTX: kiểm cả lô nhà cung cấp từ tệp GeoJSON, KML, Excel",
-                   "Exporters & co-ops: check a whole supplier set from GeoJSON, KML, Excel")}
-              </Link>
-              {ps && ps.log_size > 0 && (
-                <p className="eu-stats-line">{t(`Sổ minh bạch công khai: ${ps.log_size} hồ sơ đã ký · ${ps.plot_dossiers} hồ sơ vườn EUDR · ${ps.lot_certificates} chứng thư lô hàng`,
-                  `Public transparency log: ${ps.log_size} signed records · ${ps.plot_dossiers} EUDR plot dossiers · ${ps.lot_certificates} lot certificates`)}</p>
-              )}
-              <Link href="/lo" className="lp-buyer-cta">
-                <Package size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" />{" "}
-                {t("Ghép lô hàng: cân bằng khối lượng, chứng thư Merkle, tờ khai DDS nháp",
-                   "Build lots: mass balance, Merkle certificate, draft DDS")}
-              </Link>
-              <Link href="/kiem" className="lp-buyer-cta">
-                <ShieldCheck size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" />{" "}
-                {t("Nhận được hồ sơ? Kiểm offline ngay trong trình duyệt", "Received a dossier? Verify it offline in your browser")}
-              </Link>
-              <Link href="/eudr?tab=hoi-dap" className="lp-buyer-cta">
-                <ScanSearch size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" />{" "}
-                {t("Hỏi đáp EUDR có trích điều khoản · phương pháp và kiểm định", "EUDR Q&A with article citations · method and validation")}
-              </Link>
-            </div>
-          </div>
+          <ScanDemo />
         </section>
 
-        {/* BỐN TRỤ CỘT */}
-        <section className="lp-why">
-          <h2 className="lp-sec-h">
-            {t("Không phải dự báo: bằng chứng ai cũng kiểm được", "Not forecasts: evidence anyone can check")}
-          </h2>
-          <div className="lp-feats">
-            {FEATURES.map((f) => (
-              <div className="lp-feat" key={f.tvi}>
-                <span className="lp-feat-ic"><f.icon size={26} strokeWidth={1.7} aria-hidden="true" /></span>
-                <b>{t(f.tvi, f.ten)}</b>
-                <p>{t(f.bvi, f.ben)}</p>
-              </div>
+        <section className="lp3-sec">
+          <p className="eu-eyebrow">{t("Cách hoạt động", "How it works")}</p>
+          <h2 className="lp3-h2">{t("Bốn bước, từ vườn tới cảng châu Âu", "Four steps, from farm to EU port")}</h2>
+          <ol className="lp3-steps">
+            {STEPS.map((s, i) => (
+              <li key={s.vi} className="tt-card lift">
+                <span className="lp3-step-n">{i + 1}</span>
+                <s.icon size={22} aria-hidden="true" className="lp3-step-ic" />
+                <b>{t(s.vi, s.en)}</b>
+                <p>{t(s.dvi, s.den)}</p>
+              </li>
             ))}
-          </div>
+          </ol>
         </section>
 
-        {/* CÔNG CỤ THẨM ĐỊNH & THEO DÕI THỬA — tham khảo */}
-        <section className="lp-tools">
-          <h2 className="lp-sec-h">{t("Công cụ thẩm định và theo dõi một thửa đất", "Tools to appraise and monitor a plot")}</h2>
-          <p className="lp-tools-sub">{t(
-            `${nModules} công cụ phân tích từ dữ liệu thật: loại đất, địa hình, mười năm hiểm hoạ, theo dõi thời tiết. Phần cảnh báo thiên tai chỉ để THAM KHẢO — cảnh báo chính thức do Trung tâm Dự báo Khí tượng Thủy văn quốc gia phát (nchmf.gov.vn).`,
-            `${nModules} analysis tools on real data: land type, terrain, ten years of hazards, weather monitoring. Disaster alerts are for REFERENCE only — official warnings come from Vietnam's National Center for Hydro-Meteorological Forecasting (nchmf.gov.vn).`)}</p>
+        <section className="lp3-sec">
+          <p className="eu-eyebrow">{t("Câu giám khảo sẽ hỏi", "The question judges will ask")}</p>
+          <h2 className="lp3-h2">{t("Sao không chụp ảnh gửi một AI khác?", "Why not just send a photo to another AI?")}</h2>
+          <p className="lp3-sub">{t("Vì việc cần làm không phải là nhận xét một bức ảnh. Là đo trên kho dữ liệu, nộp đúng định dạng, ký được, kiểm được, và giữ được chuỗi khối lượng giữa nhiều bên.",
+            "Because the job isn't commenting on a photo. It is measuring an archive, filing the right format, signing, verifying, and holding a quantity chain across many parties.")}</p>
+          <div className="lp3-vs-wrap">
+            <table className="lp3-vs">
+              <thead><tr><th></th><th>{t("Chatbot AI tổng quát", "General AI chatbot")}</th><th>{t("Phần mềm truy xuất thông thường", "Typical traceability software")}</th><th className="tt">TerraTwin</th></tr></thead>
+              <tbody>{VS.map((r) => (
+                <tr key={r.vi}><td>{t(r.vi, r.en)}</td><td><Mark v={r.chat} /></td><td><Mark v={r.trace} /></td><td className="tt"><Mark v={2} /></td></tr>
+              ))}</tbody>
+            </table>
+          </div>
+          <p className="lp3-note">{t("Cột phần mềm truy xuất dựa trên tính năng công bố của các nền tảng EUDR phổ biến năm 2026: nhiều nền tảng có thu thập ranh và tờ khai DDS, ít nền tảng có sổ minh bạch hay xác nhận của nông hộ.",
+            "The traceability column is based on published features of common EUDR platforms in 2026: many capture polygons and DDS, few offer a transparency log or farmer confirmation.")}</p>
+        </section>
+
+        <section className="lp3-sec lp3-quick">
+          <Link href="/hom-nay" className="tt-card lift"><BadgeCheck size={20} aria-hidden="true" /><b>{t("Hôm nay", "Today")}</b><small>{t("Việc cần làm mỗi sáng", "Your morning to-do")}</small></Link>
+          <Link href="/lo" className="tt-card lift"><Package size={20} aria-hidden="true" /><b>{t("Lô hàng", "Lots")}</b><small>{t("Chứng thư Merkle, DDS nháp", "Merkle certificate, draft DDS")}</small></Link>
+          <Link href="/kiem" className="tt-card lift"><ShieldCheck size={20} aria-hidden="true" /><b>{t("Kiểm offline", "Verify offline")}</b><small>{t("Nhận hồ sơ? Kiểm trong trình duyệt", "Got a dossier? Check it in-browser")}</small></Link>
+          <Link href="/eudr?tab=hoi-dap" className="tt-card lift"><ScanSearch size={20} aria-hidden="true" /><b>{t("Hỏi đáp EUDR", "EUDR Q&A")}</b><small>{t("Trả lời kèm số điều khoản", "Answers cite the article")}</small></Link>
+        </section>
+
+        <section className="lp3-sec">
+          <p className="eu-eyebrow">{t("Thẩm định & theo dõi thửa đất", "Appraise & monitor land")}</p>
+          <h2 className="lp3-h2">{t("Công cụ cho một thửa đất bất kỳ", "Tools for any plot of land")}</h2>
+          <p className="lp3-sub">{t(
+            `${nModules} công cụ từ dữ liệu thật: loại đất, địa hình, mười năm hiểm hoạ, theo dõi thời tiết. Cảnh báo thiên tai chỉ để THAM KHẢO — bản tin chính thức do Trung tâm Dự báo KTTV quốc gia phát (nchmf.gov.vn).`,
+            `${nModules} tools on real data: land type, terrain, ten years of hazards, weather watch. Disaster alerts are for REFERENCE only — official bulletins come from Vietnam's national forecasting centre (nchmf.gov.vn).`)}</p>
           <div className="lp-tools-grid">
             <div>
               {user && <MyLand user={user} onOpen={onStart} />}
               <Start onPick={onStart} onStory={onStory} />
             </div>
             <div className="lp-tools-links">
-              <Link href="/buyer" className="lp-buyer-cta">
-                <House size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Định mua/thuê đất? Kiểm tra trước khi trả tiền",
-                      "Planning to buy or rent land? Check before you pay")}
-              </Link>
-              <Link href="/batch" className="lp-buyer-cta">
-                <ClipboardList size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Ngân hàng: thẩm định cả danh mục thửa từ một tệp CSV",
-                      "Banks: appraise a whole plot portfolio from one CSV file")}
-              </Link>
+              <div className="lp-extra-row"><DataSaverToggle />
+                <button className="lp-ws" onClick={onWorkspace}><Settings size={15} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Khu làm việc", "Workspace")}</button></div>
+              <Link href="/buyer" className="lp-buyer-cta"><House size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Định mua/thuê đất? Kiểm tra trước khi trả tiền", "Planning to buy or rent land? Check before you pay")}</Link>
+              <Link href="/batch" className="lp-buyer-cta"><ClipboardList size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Ngân hàng: thẩm định cả danh mục thửa từ một tệp CSV", "Banks: appraise a whole plot portfolio from one CSV")}</Link>
             </div>
           </div>
         </section>
 
-        {/* SỔ ĐIỂM TỰ CHẤM của phần cảnh báo */}
-        <section className="lp-score">
-          <Scorecard data={sc} />
-        </section>
-
-        {/* DẢI DỮ LIỆU THẬT */}
-        <section className="lp-trust">
-          <span className="lp-trust-cap">
-            {t("Chạy trên dữ liệu công khai, ai cũng tự tính lại được", "Runs on public data anyone can recompute")}
-          </span>
-          <div className="lp-sources">
-            {["ESA WorldCover", "JAXA ALOS PALSAR", "Impact Observatory", "Sentinel-2", "ERA5", "GloFAS", "OpenStreetMap"].map((s) => (
-              <span key={s}>{s}</span>
-            ))}
-          </div>
-          <p className="lp-honest">
-            {t(
-              "Mỗi con số gắn nhãn ĐO, TÍNH LẠI ĐƯỢC hoặc DỰ ĐOÁN. Chỉ hai loại đầu được đưa vào hồ sơ ký số dùng để mua bán, vay vốn. Chỗ nào chưa đủ dữ liệu thì nói thẳng — không bịa số.",
-              "Every figure is labelled MEASURED, RECOMPUTABLE or PREDICTED. Only the first two go into signed dossiers used for trade or credit. Where data is insufficient, we say so plainly — no made-up numbers.",
-            )}
-          </p>
-        </section>
+        <section className="lp-score"><Scorecard data={sc} /></section>
 
         <footer className="lp-foot">
-          ◵ TerraTwin · {t("Hồ sơ vườn chuẩn EUDR · dữ liệu vệ tinh công khai, ai cũng tự kiểm được",
-                           "EUDR-ready plot dossiers · public satellite data, verifiable by anyone")}
+          TerraTwin · {t("Hạ tầng niềm tin cho đất nông nghiệp Việt Nam", "Trust infrastructure for Vietnam's farmland")}
           <div className="lp-foot-links">
-            <Link href="/eudr?tab=phuong-phap">{t("Phương pháp EUDR", "EUDR method")}</Link>
-            <span>·</span>
-            <Link href="/about">{t("Cách hoạt động", "How it works")}</Link>
-            <span>·</span>
-            <Link href="/pricing">{t("Bảng giá", "Pricing")}</Link>
-            <span>·</span>
-            <Link href="/help">{t("Trợ giúp", "Help")}</Link>
-            <span>·</span>
-            <Link href="/privacy">{t("Quyền riêng tư", "Privacy")}</Link>
-            <span>·</span>
-            <Link href="/terms">{t("Điều khoản", "Terms")}</Link>
-            <span>·</span>
+            <Link href="/eudr?tab=phuong-phap">{t("Phương pháp & kiểm định", "Method & validation")}</Link><span>·</span>
+            <Link href="/about">{t("Cách hoạt động", "How it works")}</Link><span>·</span>
+            <Link href="/pricing">{t("Bảng giá", "Pricing")}</Link><span>·</span>
+            <Link href="/privacy">{t("Quyền riêng tư", "Privacy")}</Link><span>·</span>
+            <Link href="/terms">{t("Điều khoản", "Terms")}</Link><span>·</span>
             <Link href="/status">{t("Trạng thái hệ thống", "System status")}</Link>
           </div>
         </footer>
       </div>
-    </div>
+    </AppShell>
   );
 }

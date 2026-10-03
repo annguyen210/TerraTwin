@@ -40,9 +40,12 @@ def compare(issued: dict, now: dict) -> tuple[bool, list[str]]:
     return bool(why), why
 
 
-def run(db: Session, limit: int = 20, recheck_days: int = 30, screen=None) -> dict:
+def run(db: Session, limit: int = 20, recheck_days: int = 30, screen=None, radar=None) -> dict:
     """Sàng lọc lại tối đa `limit` hồ sơ vườn lâu chưa kiểm nhất."""
     screen = screen or eudr_forest.screen
+    if radar is None:
+        from app.services import radar_s1
+        radar = radar_s1.change
     cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=recheck_days)
     last = (select(DossierMonitor.dossier_id, func.max(DossierMonitor.checked_at).label("last"))
             .group_by(DossierMonitor.dossier_id).subquery())
@@ -59,11 +62,19 @@ def run(db: Session, limit: int = 20, recheck_days: int = 30, screen=None) -> di
         except Exception:
             continue
         ch, why = compare(issued, now)
+        # Radar Sentinel-1 xuyên mây: thấy được mất tán cây CẢ mùa mưa, khi ảnh quang học mù.
+        try:
+            rd = radar(_plot_from_facts(f))
+        except Exception:
+            rd = None
+        if rd and rd.get("signal") == "strong":
+            ch, why = True, why + ["radar_drop"]
         db.add(DossierMonitor(dossier_id=row.id, level=now.get("level") or "unknown",
                               issued_level=issued.get("level") or "unknown", changed=int(ch),
                               summary_json=json.dumps({"why": why, "reasons": now.get("reasons"),
                                                        "signals": now.get("signals"),
-                                                       "s2_after": ((now.get("s2") or {}).get("after") or {}).get("date")},
+                                                       "s2_after": ((now.get("s2") or {}).get("after") or {}).get("date"),
+                                                       "radar": rd},
                                                       ensure_ascii=False)))
         db.commit()
         done += 1

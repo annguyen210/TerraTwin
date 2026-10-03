@@ -20,7 +20,8 @@ import {
 import EudrDossierView from "@/components/EudrDossierView";
 import LotCertificateView from "@/components/LotCertificateView";
 import DeliveryConfirm from "@/components/DeliveryConfirm";
-import { LangToggle, useLang } from "@/lib/i18n";
+import AppShell from "@/components/AppShell";
+import { useLang } from "@/lib/i18n";
 import { levelOf } from "@/lib/riskScale";
 import type { EudrDossierFacts, LotCertificateFacts } from "@/lib/api";
 
@@ -97,15 +98,14 @@ export default function DossierPage() {
   const isLot = (f as { kind?: string } | undefined)?.kind === "lot_certificate";
 
   return (
-    <div className="doc dos">
-      <header className="doc-top dos-noprint">
-        <Link href="/" className="doc-brand">◵ TerraTwin</Link>
-        <div className="doc-actions">
-          <LangToggle />
-          {d && <button className="doc-link-btn" onClick={download}>{t("Tải bản JSON đã ký", "Download signed JSON")}</button>}
-          {d && <button className="doc-link-btn" onClick={() => window.print()}>{t("In", "Print")}</button>}
-        </div>
-      </header>
+    <AppShell extra={d ? <span className="dos-noprint tt-dos-actions">
+        <button className="doc-link-btn" onClick={download}>{t("Tải JSON đã ký", "Download signed JSON")}</button>
+        <button className="doc-link-btn" onClick={() => window.print()}>{t("In", "Print")}</button>
+      </span> : null}>
+      <div className="dos">
+        {d && <div className="dos-noprint tt-dos-mobile">
+          <button className="bat-btn ghost" onClick={download}>{t("Tải JSON đã ký", "Download signed JSON")}</button>
+        </div>}
 
       <main className="dos-wrap">
         {err && <p className="doc-note">{err}</p>}
@@ -369,6 +369,7 @@ export default function DossierPage() {
           </article>
         )}
       </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }
