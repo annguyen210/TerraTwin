@@ -23,6 +23,8 @@ from playwright.sync_api import sync_playwright
 WEB = sys.argv[1].rstrip("/")
 API = sys.argv[2].rstrip("/")
 HEADED = "--headed" in sys.argv
+# --readonly: KHÔNG ghi gì (dùng cho production — sổ minh bạch chỉ thêm, không xoá được).
+READONLY = "--readonly" in sys.argv
 OUT = os.path.join(os.environ.get("TEMP", "."), "terratwin-e2e")
 os.makedirs(OUT, exist_ok=True)
 results: list[tuple[str, bool, str]] = []
@@ -126,7 +128,8 @@ with sync_playwright() as p:
         page.get_by_role("button", name="Đối chiếu với ranh đo").click()
         page.locator(".eu-landdoc .eu-badge").wait_for(timeout=30_000)
         return page.locator(".eu-landdoc .eu-badge").inner_text()
-    landdoc()
+    if not READONLY:
+        landdoc()
 
     @step("Phát hành hồ sơ vườn")
     def issue():
@@ -138,7 +141,8 @@ with sync_playwright() as p:
         state["full"] = next(c for c in codes if "?d=" in c)
         shot(page, "03-issued")
         return state["did"]
-    issue()
+    if not READONLY:
+        issue()
 
     @step("Trang hồ sơ: 4 phép kiểm đạt, tên chủ hộ ẩn")
     def dossier_page():
@@ -148,14 +152,16 @@ with sync_playwright() as p:
         assert page.get_by_text("Giấy chứng nhận quyền sử dụng đất").count() >= 1
         assert page.get_by_text("Sổ minh bạch (RFC 6962)").count() == 1
         shot(page, "04-dossier")
-    dossier_page()
+    if not READONLY:
+        dossier_page()
 
     @step("Link đầy đủ: chứng minh tên + mục giao hàng")
     def full_link():
         page.goto(state["full"].replace("http://localhost:3000", WEB), wait_until="networkidle", timeout=120_000)
         page.get_by_text("đã chứng minh").first.wait_for(timeout=60_000)
         page.get_by_text("Đợt giao hàng khai cho vườn của bạn").wait_for(timeout=30_000)
-    full_link()
+    if not READONLY:
+        full_link()
 
     @step("Tải JSON đã ký → /kiem kiểm offline")
     def offline():
@@ -172,7 +178,8 @@ with sync_playwright() as p:
         shot(page, "05-kiem")
         assert all(l.startswith("✓") for l in lines), lines
         return f"{len(lines)} phép kiểm ✓ khi TẮT MẠNG"
-    offline()
+    if not READONLY:
+        offline()
 
     @step("Hỏi đáp EUDR")
     def ask():
@@ -222,7 +229,8 @@ with sync_playwright() as p:
         shot(page, "08-lot-cert")
         assert r.startswith("✓"), r
         return r[:80]
-    lots()
+    if not READONLY:
+        lots()
 
     @step("Trang Hôm nay")
     def today():
@@ -255,7 +263,7 @@ with sync_playwright() as p:
         m = browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True)
         pg = m.new_page()
         over = []
-        for path, name in (("/", "09-phone-landing"), ("/eudr", "10-phone-eudr"), (f"/h/{state.get('did', '')}", "11-phone-dossier"), ("/kiem", "12-phone-kiem"), ("/hom-nay", "16-phone-today")):
+        for path, name in (("/", "09-phone-landing"), ("/eudr", "10-phone-eudr"), *( [(f"/h/{state['did']}", "11-phone-dossier")] if state.get("did") else []), ("/kiem", "12-phone-kiem"), ("/hom-nay", "16-phone-today")):
             pg.goto(WEB + path, wait_until="networkidle", timeout=120_000)
             pg.wait_for_timeout(1500)
             w = pg.evaluate("document.documentElement.scrollWidth")

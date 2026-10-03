@@ -35,8 +35,12 @@ export default function TodayPage() {
   const load = () => getToday().then(setD).catch((e) => setErr(e.message));
   useEffect(() => { load(); }, [lang]);   // eslint-disable-line react-hooks/exhaustive-deps
 
-  const h = new Date().getHours();
-  const hello = h < 11 ? t("Chào buổi sáng", "Good morning") : h < 18 ? t("Chào buổi chiều", "Good afternoon") : t("Chào buổi tối", "Good evening");
+  // Giờ/ngày tính ở TRÌNH DUYỆT (giờ Việt Nam), không ở máy chủ dựng trang (giờ UTC) —
+  // tính cả hai nơi là lệch chữ khi hydrate (lỗi React #418, đã gặp trên Render).
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => { setNow(new Date()); }, []);
+  const h = now?.getHours() ?? 12;
+  const hello = !now ? t("Xin chào", "Hello") : h < 11 ? t("Chào buổi sáng", "Good morning") : h < 18 ? t("Chào buổi chiều", "Good afternoon") : t("Chào buổi tối", "Good evening");
   const icon = { urgent: AlertOctagon, action: ClipboardCheck, info: Sparkles };
 
   return (
@@ -44,7 +48,7 @@ export default function TodayPage() {
       <main className="hn-wrap tt-reveal">
         <section className="hn-hero">
           <div>
-            <p className="eu-eyebrow">{new Date().toLocaleDateString(lang === "en" ? "en-GB" : "vi-VN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
+            <p className="eu-eyebrow">{now ? now.toLocaleDateString(lang === "en" ? "en-GB" : "vi-VN", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : " "}</p>
             <h1>{hello}</h1>
             <p className="doc-lede">{d?.signed_in
               ? (d.items.length ? t(`Có ${d.items.length} việc đang chờ bạn.`, `${d.items.length} things are waiting for you.`)
