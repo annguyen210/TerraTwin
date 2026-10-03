@@ -99,13 +99,17 @@ with sync_playwright() as p:
         page.fill("input[placeholder*='Vườn rẫy']", "Vườn thử E2E")
         page.fill("input[placeholder='Họ tên chủ hộ']", "Nguyễn Văn Kiểm")
         page.get_by_role("button", name=re.compile("Kiểm chuẩn EU \\+ sàng lọc")).click()
-        page.get_by_text("Sàng lọc phá rừng sau 31/12/2020", exact=False).last.wait_for(timeout=240_000)
-        page.locator(".eu-verdict .eu-badge").wait_for(timeout=10_000)
+        page.locator(".eu-verdict .eu-badge").wait_for(timeout=240_000)      # máy chủ miễn phí lạnh: ~1 phút
         lv = page.locator(".eu-verdict .eu-badge").inner_text()
         imgs = page.locator(".eu-img img").count()
         # Ảnh vệ tinh phải TẢI XONG thật (Planetary Computer dựng theo yêu cầu, mất vài giây).
-        page.wait_for_function("[...document.querySelectorAll('.eu-img img')].every(i => i.complete && i.naturalWidth > 0)",
-                               timeout=90_000)
+        # (CSP production chặn eval → không dùng wait_for_function; hỏi lặp bằng evaluate.)
+        for _ in range(90):
+            if page.evaluate("() => [...document.querySelectorAll('.eu-img img')].every(i => i.complete && i.naturalWidth > 0)"):
+                break
+            page.wait_for_timeout(1000)
+        else:
+            raise AssertionError("ảnh vệ tinh không tải xong sau 90 giây")
         shot(page, "02-eudr-screen")
         return f"mức: {lv.strip()} · ảnh vệ tinh: {imgs}"
     screen()

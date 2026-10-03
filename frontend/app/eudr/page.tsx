@@ -169,7 +169,7 @@ function OnePlot() {
         <div className="bat-row">
           <button className="bat-btn" disabled={!geom || !!busy} onClick={screen}>
             <ScanSearch size={15} aria-hidden="true" className="ui-ic" />{" "}
-            {busy === "screen" ? t("Đang kiểm và sàng lọc… (10–30 giây)", "Checking and screening… (10–30 s)") : t("Kiểm chuẩn EU + sàng lọc phá rừng", "Check EU format + screen deforestation")}
+            {busy === "screen" ? t("Đang kiểm và sàng lọc… (10 giây – 1 phút, máy chủ miễn phí có thể chậm)", "Checking and screening… (10 s – 1 min, the free server can be slow)") : t("Kiểm chuẩn EU + sàng lọc phá rừng", "Check EU format + screen deforestation")}
           </button>
           {!geom && <small>{t("Cần ít nhất 3 điểm ranh.", "At least 3 boundary points are needed.")}</small>}
         </div>
