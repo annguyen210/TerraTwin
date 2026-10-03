@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import secrets
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from pydantic import BaseModel, Field
@@ -147,6 +148,11 @@ def _issue(db: Session, plot: dict, screening: dict, commodity: str | None, prod
 
     facts = eudr.dossier_facts(plot, screening, commodity=commodity, producer=producer)
     private, commits = {}, {}
+    # KHOÁ CHỦ HỒ SƠ: bí mật ngẫu nhiên, chỉ cam kết băm vào nội dung ký. Ai cầm đường link
+    # đầy đủ (nông hộ) thì chứng minh được mình là chủ vườn — dùng để XÁC NHẬN từng đợt giao
+    # hàng doanh nghiệp khai cho vườn (services/lots.py), không cần tài khoản.
+    digest, priv = disclosure.commit("owner_key", secrets.token_hex(16))
+    commits["owner_key"], private["owner_key"] = digest, priv
     name = facts["plot"].get("producer")
     if hide_producer and name:
         # Họ tên nông hộ gắn toạ độ vườn = dữ liệu cá nhân: mặc định KHÔNG hiện công khai,

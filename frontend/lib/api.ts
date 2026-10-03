@@ -2522,3 +2522,14 @@ export function eudrAiStatus() {
   return getJson<{ available: boolean; message?: string; runs: FocRun[]; kind?: string }>(`/api/eudr/ai/status?lang=${curLang()}`,
     "Không tải được trạng thái mô hình");
 }
+
+export type PendingDelivery = { lot_id: string; lot_ref: string; operator: string; season: string; commodity: string; kg: number;
+                                date: string | null; lot_state: string; confirmation: { status: "confirmed" | "rejected"; at: string } | null };
+export function dossierDeliveries(id: string, token: string) {
+  return getJson<{ deliveries: PendingDelivery[] }>(`/api/dossier/${encodeURIComponent(id)}/deliveries?d=${encodeURIComponent(token)}&lang=${curLang()}`,
+    "Không tải được các đợt giao hàng");
+}
+export function confirmDelivery(id: string, lotId: string, token: string, action: "confirm" | "reject") {
+  return postJson<{ ok: boolean }>(`/api/dossier/${encodeURIComponent(id)}/deliveries/${encodeURIComponent(lotId)}?lang=${curLang()}`,
+    { d: token, action }, "Không ghi được xác nhận");
+}

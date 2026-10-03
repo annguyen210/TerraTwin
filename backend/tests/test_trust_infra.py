@@ -207,7 +207,8 @@ def test_ho_so_an_ten_chu_ho_va_tiet_lo_khi_co_link(env):
     full = c.get(f"/api/dossier/{d['id']}?d={d['disclosure']['token']}").json()
     assert full["revealed"]["producer"] == {"value": "Lê Văn Ba", "ok": True}
     shown = _issue(c, "V2", 12.71, hide_producer=False)
-    assert shown["facts"]["plot"]["producer"] == "Lê Văn Ba" and "disclosure" not in shown
+    assert shown["facts"]["plot"]["producer"] == "Lê Văn Ba"
+    assert set(shown["facts"]["disclosure"]["fields"]) == {"owner_key"}       # chỉ khoá chủ hồ sơ, không giấu tên
 
 
 def test_ho_so_kem_so_do_doi_chieu_lai_o_may_chu(env):
@@ -327,3 +328,33 @@ def test_hoi_dap_va_doi_chieu_so_do_qua_api(env):
     if not llm.available():
         e = c.post("/api/landdoc/extract", headers=h, json={"data_b64": "aGVsbG8gd29ybGQ=", "media_type": "image/jpeg"})
         assert e.status_code == 503 and len(e.json()["detail"]["image_sha256"]) == 64
+
+
+def test_nong_ho_xac_nhan_hoac_tu_choi_dot_giao_hang(env):
+    c = env
+    h = _login(c, "xn@vd.vn")
+    a = _issue(c, "VXN", 12.88, h)
+    tok = a["disclosure"]["token"]
+    assert "owner_key" in a["facts"]["disclosure"]["fields"]
+    lot = c.post("/api/lots", headers=h, json={"ref": "L-XN", "season": "2028/29", "operator": "Cty X",
+                                                "deliveries": [{"dossier_id": a["id"], "kg": 2000}]}).json()
+    assert c.get(f"/api/dossier/{a['id']}/deliveries?d=sai").status_code == 403         # không có khoá chủ
+    pend = c.get(f"/api/dossier/{a['id']}/deliveries?d={tok}").json()["deliveries"]
+    assert pend == [{"lot_id": lot["id"], "lot_ref": "L-XN", "operator": "Cty X", "season": "2028/29",
+                     "commodity": "Cà phê", "kg": 2000.0, "date": None, "lot_state": "draft", "confirmation": None}]
+
+    # Nông hộ từ chối → đợt giao bị chặn khỏi lô.
+    r = c.post(f"/api/dossier/{a['id']}/deliveries/{lot['id']}", json={"d": tok, "action": "reject"}).json()
+    assert r["confirmation"]["status"] == "rejected"
+    chk = c.put(f"/api/lots/{lot['id']}", headers=h, json={"ref": "L-XN", "season": "2028/29",
+                                                           "deliveries": [{"dossier_id": a["id"], "kg": 2000}]}).json()
+    assert chk["checks"]["rows"][0]["status"] == "blocked" and "TỪ CHỐI" in chk["checks"]["rows"][0]["notes"][0]
+
+    # Xác nhận → giữ khi sửa lô cùng số kg; lô nháp ĐÃ xác nhận thì được tính vào sức sản xuất.
+    c.post(f"/api/dossier/{a['id']}/deliveries/{lot['id']}", json={"d": tok, "action": "confirm"})
+    chk = c.put(f"/api/lots/{lot['id']}", headers=h, json={"ref": "L-XN", "season": "2028/29",
+                                                           "deliveries": [{"dossier_id": a["id"], "kg": 2000}]}).json()
+    assert chk["checks"]["rows"][0]["producer_confirmation"] == "confirmed" and chk["checks"]["n_confirmed"] == 1
+    h2 = _login(c, "xn2@vd.vn")
+    other = c.post("/api/lots", headers=h2, json={"season": "2028/29", "deliveries": [{"dossier_id": a["id"], "kg": 100}]}).json()
+    assert other["checks"]["rows"][0]["other_lots_kg"] == 2000

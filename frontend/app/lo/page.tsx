@@ -140,7 +140,8 @@ export default function LotsPage() {
                             <td><input className="bat-input eu-num" disabled={locked} value={r.date ?? ""} placeholder="YYYY-MM-DD" onChange={(e) => setRows(rows.map((x, j) => j === i ? { ...x, date: e.target.value } : x))} /></td>
                             <td>{c ? <span className={`eu-badge ${c.status === "ok" ? "eu-low" : c.status === "warning" ? "eu-review" : "eu-high"}`}>{c.status === "ok" ? t("Đạt", "OK") : c.status === "warning" ? t("Lưu ý", "Warning") : t("Bị chặn", "Blocked")}</span> : "—"}
                               {c?.cap_kg ? <small>{t("vụ này", "season")} {c.season_kg?.toLocaleString("vi-VN")} / {t("trần", "cap")} {c.cap_kg.toLocaleString("vi-VN")} kg</small> : null}
-                              {c?.notes.map((n, k) => <small key={k}>{n}</small>)}</td>
+                              {c?.notes.map((n, k) => <small key={k}>{n}</small>)}
+                              {c && !c.notes.some((n) => /xác nhận|confirm/i.test(n)) && <small>{t("Chưa có xác nhận của nông hộ (nông hộ mở link đầy đủ của hồ sơ để xác nhận).", "Not yet confirmed by the farmer (they confirm via the dossier's full link).")}</small>}</td>
                             <td><input className="bat-input" disabled={locked} value={r.review_ack ?? ""} maxLength={300} placeholder={t("vd: đã xem ảnh thực địa, cà phê che bóng", "e.g. field photos checked, shaded coffee")} onChange={(e) => setRows(rows.map((x, j) => j === i ? { ...x, review_ack: e.target.value } : x))} /></td>
                             <td>{!locked && <button className="bat-btn ghost danger" aria-label={t("Bỏ dòng", "Remove row")} onClick={() => setRows(rows.filter((_, j) => j !== i))}><Trash2 size={14} aria-hidden="true" /></button>}</td>
                           </tr>

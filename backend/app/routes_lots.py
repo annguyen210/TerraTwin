@@ -55,6 +55,11 @@ def _apply(db: Session, lot: Lot, body: LotIn) -> dict:
         raise HTTPException(409, reqlang.tr("Lô đã phát hành chứng thư — không sửa được; tạo lô mới.",
                                             "The lot is certified — it can't be edited; create a new lot."))
     dels, errs = lots.normalize([d.model_dump() for d in body.deliveries])
+    old = {x["dossier_id"]: x for x in json.loads(lot.deliveries_json or "[]")}
+    for x in dels:                         # cùng vườn, cùng số kg → giữ xác nhận của nông hộ
+        o = old.get(x["dossier_id"])
+        if o and o.get("producer_confirmation") and float(o.get("kg") or 0) == x["kg"]:
+            x["producer_confirmation"] = o["producer_confirmation"]
     lot.ref, lot.season, lot.operator = body.ref[:80], body.season[:16], body.operator[:160]
     lot.commodity = body.commodity if body.commodity in eudr.COMMODITIES else "other"
     lot.deliveries_json = json.dumps(dels, ensure_ascii=False)
@@ -158,6 +163,64 @@ def lot_proof(certificate_id: str, dossier_id: str, lang: str = "vi", db: Sessio
     if p is None:
         raise HTTPException(404, reqlang.tr("Vườn này không nằm trong lô hàng đó.", "This plot is not in that lot."))
     return p
+
+
+def _owner_ok(row: Dossier, token: str) -> bool:
+    """Chuỗi tiết lộ phải mở đúng KHOÁ CHỦ HỒ SƠ đã cam kết trong nội dung ký."""
+    from app.services import disclosure
+    commits = (json.loads(row.facts_json).get("disclosure") or {}).get("fields") or {}
+    if "owner_key" not in commits:
+        return False
+    try:
+        r = disclosure.reveal({"owner_key": commits["owner_key"]}, disclosure.decode_token(token))
+    except (ValueError, KeyError, TypeError):
+        return False
+    return bool(r.get("owner_key", {}).get("ok"))
+
+
+@router.get("/api/dossier/{dossier_id}/deliveries")
+def dossier_deliveries(dossier_id: str, d: str, lang: str = "vi", db: Session = Depends(get_session)) -> dict:
+    """Các đợt giao hàng doanh nghiệp đang khai cho vườn này — chỉ chủ vườn (cầm đường link
+    đầy đủ) xem được, để xác nhận hay từ chối."""
+    reqlang.set_lang(lang)
+    row = db.get(Dossier, dossier_id)
+    if row is None or not _owner_ok(row, d):
+        raise HTTPException(403, reqlang.tr("Cần đường link đầy đủ của chủ hồ sơ.", "The dossier owner's full link is required."))
+    out = []
+    for lot in db.execute(select(Lot)).scalars().all():
+        for dl in json.loads(lot.deliveries_json or "[]"):
+            if dl.get("dossier_id") == dossier_id:
+                out.append({"lot_id": lot.id, "lot_ref": lot.ref, "operator": lot.operator, "season": lot.season,
+                            "commodity": eudr.commodity_label(lot.commodity), "kg": dl.get("kg"), "date": dl.get("date"),
+                            "lot_state": lot.state, "confirmation": dl.get("producer_confirmation")})
+    return {"deliveries": out}
+
+
+class ConfirmIn(BaseModel):
+    d: str = Field(min_length=8, max_length=2000)
+    action: str = Field(pattern=r"^(confirm|reject)$")
+
+
+@router.post("/api/dossier/{dossier_id}/deliveries/{lot_id}")
+def confirm_delivery(dossier_id: str, lot_id: str, body: ConfirmIn, lang: str = "vi",
+                     db: Session = Depends(get_session)) -> dict:
+    """Nông hộ XÁC NHẬN / TỪ CHỐI một đợt giao hàng khai cho vườn mình. Lô đã có chứng thư
+    vẫn ghi nhận được (chứng thư bất biến; lời từ chối sau đó hiện trên trang lô)."""
+    from datetime import datetime, timezone
+    reqlang.set_lang(lang)
+    row = db.get(Dossier, dossier_id)
+    if row is None or not _owner_ok(row, body.d):
+        raise HTTPException(403, reqlang.tr("Cần đường link đầy đủ của chủ hồ sơ.", "The dossier owner's full link is required."))
+    lot = db.get(Lot, lot_id)
+    dels = json.loads(lot.deliveries_json or "[]") if lot else []
+    hit = next((x for x in dels if x.get("dossier_id") == dossier_id), None)
+    if hit is None:
+        raise HTTPException(404, reqlang.tr("Lô này không khai giao hàng từ vườn của bạn.", "This lot declares no delivery from your plot."))
+    hit["producer_confirmation"] = {"status": "confirmed" if body.action == "confirm" else "rejected",
+                                    "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+    lot.deliveries_json = json.dumps(dels, ensure_ascii=False)
+    db.commit()
+    return {"ok": True, "confirmation": hit["producer_confirmation"]}
 
 
 @router.delete("/api/lots/{lot_id}", status_code=204)

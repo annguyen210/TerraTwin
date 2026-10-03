@@ -19,6 +19,7 @@ import {
 } from "@/lib/api";
 import EudrDossierView from "@/components/EudrDossierView";
 import LotCertificateView from "@/components/LotCertificateView";
+import DeliveryConfirm from "@/components/DeliveryConfirm";
 import { LangToggle, useLang } from "@/lib/i18n";
 import { levelOf } from "@/lib/riskScale";
 import type { EudrDossierFacts, LotCertificateFacts } from "@/lib/api";
@@ -51,11 +52,13 @@ export default function DossierPage() {
   const [err, setErr] = useState<string | null>(null);
   const [fileCheck, setFileCheck] = useState<DossierFileCheck | null>(null);
   const [fileErr, setFileErr] = useState<string | null>(null);
+  const [tok, setTok] = useState<string | null>(null);
 
   useEffect(() => {
     let live = true;
     // ?d=… = chuỗi tiết lộ chọn lọc chủ hồ sơ đưa (vd họ tên) — máy chủ đối chiếu với cam kết đã ký.
     const token = new URLSearchParams(window.location.search).get("d");
+    setTok(token);
     getDossier(id, token).then((x) => live && setD(x)).catch((e) => live && setErr(e.message));
     return () => { live = false; };
   }, [id, lang]);
@@ -154,6 +157,7 @@ export default function DossierPage() {
             )}
 
             {isEudr && <EudrDossierView f={f as unknown as EudrDossierFacts} revealed={d.revealed} />}
+            {isEudr && tok && <DeliveryConfirm id={d.id} token={tok} />}
             {isLot && <LotCertificateView f={f as unknown as LotCertificateFacts} certId={d.id} />}
 
             {!isEudr && !isLot && <>

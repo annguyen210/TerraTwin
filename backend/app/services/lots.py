@@ -92,11 +92,15 @@ def other_kg(db: Session, did: str, season: str, exclude_lot: str | None) -> flo
     công khai — lạm dụng để lại dấu vết. (Còn hở: chưa có phiếu giao hàng nông hộ ký —
     xem kế hoạch D5.)"""
     total = 0.0
-    for lot in db.execute(select(Lot).where(Lot.season == season, Lot.state == "certified")).scalars().all():
+    for lot in db.execute(select(Lot).where(Lot.season == season)).scalars().all():
         if lot.id == exclude_lot:
             continue
         for d in json.loads(lot.deliveries_json or "[]"):
-            if d.get("dossier_id") == did:
+            if d.get("dossier_id") != did:
+                continue
+            conf = (d.get("producer_confirmation") or {}).get("status")
+            # Đếm khi lô đã có chứng thư (và nông hộ không từ chối), hoặc nông hộ đã xác nhận.
+            if (lot.state == "certified" and conf != "rejected") or conf == "confirmed":
                 total += float(d.get("kg") or 0)
     return total
 
@@ -148,6 +152,12 @@ def check(db: Session, lot: Lot) -> dict:
             else:
                 block(tr("Sàng lọc “Cần xem lại”: phải ghi lý do đã xem xét (ảnh thực địa, giấy tờ) mới được vào lô.",
                          "Screening “Needs review”: record why it was cleared (field photos, documents) before it can enter."))
+        conf = (d.get("producer_confirmation") or {}).get("status")
+        r["producer_confirmation"] = conf
+        if conf == "rejected":
+            block(tr("Nông hộ chủ vườn đã TỪ CHỐI xác nhận đợt giao này.", "The plot owner REJECTED this delivery."))
+        elif conf == "confirmed":
+            r["notes"].append(tr("Nông hộ đã xác nhận đợt giao này.", "The plot owner confirmed this delivery."))
         if _monitor_changed(db, did):
             block(tr("Giám sát sau phát hành phát hiện thay đổi — sàng lọc lại trước khi bán.",
                      "Post-issuance monitoring found a change — re-screen before selling."))
@@ -181,6 +191,7 @@ def check(db: Session, lot: Lot) -> dict:
         "rows": rows, "n": len(rows), "n_blocked": n_block,
         "n_warning": sum(1 for r in rows if r["status"] == "warning"),
         "quantity_kg": round(kg_total, 1), "area_ha": round(area, 4), "by_level": by_level,
+        "n_confirmed": sum(1 for r in rows if r.get("producer_confirmation") == "confirmed"),
         "certifiable": bool(rows) and n_block == 0,
         "headline": (tr(f"{len(rows)} vườn, {kg_total:,.0f} kg — đủ điều kiện phát hành chứng thư lô hàng.",
                         f"{len(rows)} plots, {kg_total:,.0f} kg — eligible for a lot certificate.")
@@ -209,7 +220,8 @@ def certificate_facts(lot: Lot, chk: dict) -> dict:
         "mass_balance": {"yield_cap_t_ha": YIELD_CAP_T_HA.get(lot.commodity),
                          "rule": tr("Tổng kg mọi lô cùng vụ từ một vườn ≤ diện tích ranh đo × năng suất trần.",
                                     "Total kg across all lots in a season from one plot ≤ measured area × yield cap.")},
-        "checks": {"by_level": chk["by_level"], "n_warning": chk["n_warning"], "n_blocked": chk["n_blocked"]},
+        "checks": {"by_level": chk["by_level"], "n_warning": chk["n_warning"], "n_blocked": chk["n_blocked"],
+                   "n_confirmed_by_producer": chk.get("n_confirmed", 0)},
         "evidence_classes": {"lot.quantity_kg": "declared", "merkle": "derived", "checks": "derived"},
         "predictions_included": False,
         "disclaimer": tr(

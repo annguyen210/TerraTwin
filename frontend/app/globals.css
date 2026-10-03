@@ -4433,3 +4433,4 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .dos-live.ok { background: rgba(62, 203, 131, .1); border: 1px solid rgba(62, 203, 131, .35); }
 .dos-live.bad { background: rgba(229, 112, 90, .12); border: 1px solid rgba(229, 112, 90, .45); }
 .dos-live small { color: var(--dim); }
+.dos-actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
