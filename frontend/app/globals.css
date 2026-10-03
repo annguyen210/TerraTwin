@@ -4438,3 +4438,13 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .eu-levelbar span.eu-low { background: var(--ok); } .eu-levelbar span.eu-review { background: var(--warn); }
 .eu-levelbar span.eu-high { background: var(--bad); } .eu-levelbar span.eu-unknown { background: var(--dim); }
 .eu-stats-line { margin: 10px 0 0; font-size: .76rem; color: var(--dim); text-align: center; }
+/* Trang hồ sơ là GIẤY SÁNG: các thành phần EUDR dùng token của giao diện tối (--text, --dim,
+   --card…) → khai báo lại token cho nền giấy, nếu không chữ sáng nằm trên giấy trắng (đã gặp
+   khi kiểm thử bằng trình duyệt 3/10/2026). */
+.dos-paper { --text: #16211c; --fg: #16211c; --dim: #4f5c55; --card: #f1f4f0; --panel: #f6f8f5; --bg: #ffffff;
+  --line: #dfe5e0; --line-2: #c9d2cb; --ok: #1f7a4c; --warn: #9a6410; --bad: #a8392b; --terra: #1f6b47;
+  --on-accent: #ffffff; }
+/* Ảnh vệ tinh do Planetary Computer dựng theo yêu cầu, mất vài giây — có chữ chờ, không để ô trống trơn. */
+.eu-img-box::before { content: "Đang tải ảnh vệ tinh…"; position: absolute; inset: 0; display: grid; place-items: center;
+  color: var(--dim); font-size: .8rem; }
+:lang(en) .eu-img-box::before { content: "Loading satellite image…"; }

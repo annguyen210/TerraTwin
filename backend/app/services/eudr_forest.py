@@ -353,10 +353,10 @@ def verdict(f2020: dict, io_traj: dict, ndvi_before: float | None, ndvi_after: f
         if votes:
             reasons.append(tr(f"Chỉ 1/3 bản đồ thấy tán cây ({names(votes)}); hai bản đồ còn lại "
                               f"({names([k for k in avail if k not in votes])}) không thấy rừng năm 2020 — thường là "
-                              "cây lâu năm che bóng, không phải rừng.",
+                              "cây lâu năm che bóng hoặc cây rải rác, không phải rừng.",
                               f"Only 1/3 maps shows tree cover ({names(votes)}); the other two "
-                              f"({names([k for k in avail if k not in votes])}) show no forest in 2020 — usually tree "
-                              "crops with shade, not forest."))
+                              f"({names([k for k in avail if k not in votes])}) show no forest in 2020 — usually shaded tree "
+                              "crops or scattered trees, not forest."))
         else:
             reasons.append(tr(f"Cả {len(avail)} bản đồ quanh năm 2020 đều cho thấy dưới 10% thửa là rừng "
                               f"({names(list(avail))}).",

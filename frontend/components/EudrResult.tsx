@@ -70,7 +70,7 @@ function PlotImage({ s2, geometry, areaHa, caption }: {
   return (
     <figure className="eu-img">
       <div className="eu-img-box">
-        <img src={s2.image.url} alt={`Sentinel-2 ${s2.date}`} loading="lazy" width={S} height={S} />
+        <img src={s2.image.url} alt={`Sentinel-2 ${s2.date}`} width={S} height={S} />
         <svg viewBox={`0 0 ${S} ${S}`} aria-hidden="true">
           {paths.map((d, i) => <path key={i} d={d} />)}
           {circle && <circle cx={circle.cx} cy={circle.cy} r={circle.r} />}
