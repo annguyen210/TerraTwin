@@ -557,6 +557,9 @@ class Dossier(Base):
     lat: Mapped[float] = mapped_column(Float)
     lon: Mapped[float] = mapped_column(Float)
     facts_json: Mapped[str] = mapped_column(Text)
+    # Tiết lộ chọn lọc: {trường: {salt, value}} — KHÔNG công khai, chỉ chủ hồ sơ (đăng
+    # nhập) đọc được; nội dung đã ký chỉ chứa mã băm có muối (services/disclosure.py).
+    private_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     facts_hash: Mapped[str] = mapped_column(String(64))
     prev_hash: Mapped[str] = mapped_column(String(64))
     entry_hash: Mapped[str] = mapped_column(String(64), unique=True)
@@ -613,6 +616,57 @@ class FieldPhoto(Base):
     dossier_id: Mapped[str | None] = mapped_column(String(16), nullable=True, index=True)
 
 
+class LogHead(Base):
+    """ĐẦU CÂY ĐÃ KÝ (signed tree head) của sổ minh bạch — RFC 6962.
+
+    Một dòng cho mỗi kích thước cây từng công bố: gốc Merkle của mọi entry_hash hồ
+    sơ từ #1 tới #tree_size, thời điểm, chữ ký Ed25519. Bên thứ ba lưu các đầu cây
+    này (tác vụ GitHub Actions neo ra nhánh transparency-log) và đòi bằng chứng nhất
+    quán giữa hai đầu cây — sổ bị sửa ngược là lộ.
+    """
+    __tablename__ = "log_heads"
+
+    tree_size: Mapped[int] = mapped_column(Integer, primary_key=True)
+    root_hash: Mapped[str] = mapped_column(String(64))
+    timestamp: Mapped[str] = mapped_column(String(32))
+    signature: Mapped[str] = mapped_column(String(128))
+    key_id: Mapped[str] = mapped_column(String(16))
+
+
+class Lot(Base):
+    """LÔ HÀNG: các đợt nhập từ từng vườn (mã hồ sơ EUDR + số kg) → kiểm cân bằng
+    khối lượng → CHỨNG THƯ LÔ HÀNG (gốc Merkle của các hồ sơ vườn, phát hành như một
+    hồ sơ trong sổ móc xích — xem services/lots.py)."""
+    __tablename__ = "lots"
+
+    id: Mapped[str] = mapped_column(String(16), primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    ref: Mapped[str] = mapped_column(String(80), default="")
+    commodity: Mapped[str] = mapped_column(String(24), default="coffee")
+    season: Mapped[str] = mapped_column(String(16), default="")
+    operator: Mapped[str] = mapped_column(String(160), default="")
+    deliveries_json: Mapped[str] = mapped_column(Text, default="[]")
+    checks_json: Mapped[str] = mapped_column(Text, default="{}")
+    state: Mapped[str] = mapped_column(String(12), default="draft")      # draft | certified
+    certificate_id: Mapped[str | None] = mapped_column(String(16), nullable=True, index=True)
+
+
+class DossierMonitor(Base):
+    """GIÁM SÁT SAU PHÁT HÀNH: lần sàng lọc lại một hồ sơ vườn EUDR bằng dữ liệu mới.
+    KHÔNG sửa hồ sơ đã ký (bất biến) — ghi thêm ở đây, trang kiểm hiện kèm, nhãn rõ
+    là kết quả sống, không phải nội dung đã ký."""
+    __tablename__ = "dossier_monitors"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    dossier_id: Mapped[str] = mapped_column(String(16), index=True)
+    checked_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    level: Mapped[str] = mapped_column(String(12))
+    issued_level: Mapped[str] = mapped_column(String(12))
+    changed: Mapped[int] = mapped_column(Integer, default=0)
+    summary_json: Mapped[str] = mapped_column(Text, default="{}")
+
+
 class EudrSet(Base):
     """Một LÔ THỬA kiểm theo EUDR (doanh nghiệp, hợp tác xã tải tệp ranh thửa lên).
 
@@ -649,6 +703,8 @@ _ADDED_COLUMNS = [
     # Thẩm định hàng loạt chạy tiếp được sau khi máy chủ ngủ (2/10/2026). Bảng
     # đã chạy trên production với các lô đã xong → mặc định 'done'.
     ("batch_runs", "state", "VARCHAR(12) DEFAULT 'done'"),
+    # Tiết lộ chọn lọc trên hồ sơ (3/10/2026) — bảng dossiers đã có dữ liệu thật.
+    ("dossiers", "private_json", "TEXT"),
     ("api_keys", "calls_total", "INTEGER DEFAULT 0"),
     ("api_keys", "calls_period", "INTEGER DEFAULT 0"),
     ("api_keys", "period", "VARCHAR(7) DEFAULT ''"),

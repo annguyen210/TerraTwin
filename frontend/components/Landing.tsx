@@ -12,7 +12,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  BadgeCheck, ClipboardList, FileSignature, Footprints, House, ScanSearch, Settings, TreePine,
+  BadgeCheck, ClipboardList, FileSignature, Footprints, House, Package, ScanSearch, Settings, ShieldCheck, TreePine,
   type LucideIcon,
 } from "lucide-react";
 
@@ -138,9 +138,18 @@ export default function Landing({
                 {t("Doanh nghiệp, HTX: kiểm cả lô nhà cung cấp từ tệp GeoJSON, KML, Excel",
                    "Exporters & co-ops: check a whole supplier set from GeoJSON, KML, Excel")}
               </Link>
-              <Link href="/eudr?tab=phuong-phap" className="lp-buyer-cta">
+              <Link href="/lo" className="lp-buyer-cta">
+                <Package size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" />{" "}
+                {t("Ghép lô hàng: cân bằng khối lượng, chứng thư Merkle, tờ khai DDS nháp",
+                   "Build lots: mass balance, Merkle certificate, draft DDS")}
+              </Link>
+              <Link href="/kiem" className="lp-buyer-cta">
+                <ShieldCheck size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" />{" "}
+                {t("Nhận được hồ sơ? Kiểm offline ngay trong trình duyệt", "Received a dossier? Verify it offline in your browser")}
+              </Link>
+              <Link href="/eudr?tab=hoi-dap" className="lp-buyer-cta">
                 <ScanSearch size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" />{" "}
-                {t("Phương pháp và kết quả kiểm định độc lập", "Method and independent validation results")}
+                {t("Hỏi đáp EUDR có trích điều khoản · phương pháp và kiểm định", "EUDR Q&A with article citations · method and validation")}
               </Link>
             </div>
           </div>

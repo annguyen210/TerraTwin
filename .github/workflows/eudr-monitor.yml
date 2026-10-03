@@ -1,0 +1,36 @@
+name: EUDR monitor
+
+# GIÁM SÁT SAU PHÁT HÀNH — mỗi tuần sàng lọc lại các Hồ sơ vườn EUDR lâu chưa kiểm
+# (POST /api/eudr/monitor/run). Vườn xấu đi hoặc có dấu hiệu mất cây mới thì bị đánh
+# dấu, và lô hàng chứa vườn đó bị chặn cho tới khi sàng lọc lại.
+#
+# Thứ Hai 00:40 UTC = 07:40 giờ VN. Xác thực bằng X-Cron-Key = secret TERRATWIN_CRON_KEY.
+
+on:
+  schedule:
+    - cron: "40 0 * * 1"
+  workflow_dispatch: {}
+
+concurrency:
+  group: eudr-monitor
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sàng lọc lại hồ sơ vườn
+        env:
+          CRON_KEY: ${{ secrets.TERRATWIN_CRON_KEY }}
+        run: |
+          if [ -z "$CRON_KEY" ]; then
+            echo "::error::Thiếu secret TERRATWIN_CRON_KEY — đặt trong repo Settings → Secrets, cùng giá trị với biến trên terratwin-api."
+            exit 1
+          fi
+          bash ops/wake-api.sh || exit 1
+          curl -sS --fail-with-body --retry 3 --retry-delay 20 --max-time 900 \
+            -X POST -H "X-Cron-Key: $CRON_KEY" \
+            "https://terratwin-api.onrender.com/api/eudr/monitor/run?limit=40"

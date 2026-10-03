@@ -167,6 +167,13 @@ def _check(cid: str, ok: bool | None, label: str) -> dict:
     return {"id": cid, "ok": ok, "label": label}
 
 
+# ĐÃ THỬ VÀ KHÔNG BẬT (3/10/2026): phân tích mức lỗi nén (ELA), kể cả bản chuẩn hoá theo
+# độ chi tiết từng khối 16×16 và chỉ báo khi có cụm khối liền nhau. Trên ảnh tổng hợp
+# "trời mịn + tán lá", ảnh GHÉP một mảng nén q35 cho cụm bất thường 1,8% ảnh, ảnh SẠCH
+# q80 cho 1,3% — không tách được. Một bộ dò không phân biệt được sạch / ghép chỉ sinh
+# cảnh báo giả, nên không đưa vào kết luận (cùng kỷ luật với U-Net: chưa qua kiểm thì không bật).
+
+
 def analyze(db: Session, data: bytes, plot_lat: float, plot_lon: float,
             area_ha: float | None = None, now: datetime | None = None) -> dict:
     """Kiểm một ảnh. Không ghi gì — xem `store` để lưu."""

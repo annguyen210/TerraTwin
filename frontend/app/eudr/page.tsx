@@ -15,21 +15,21 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Download, FileCheck2, FileSignature, ScanSearch, Upload } from "lucide-react";
+import { Copy, Download, FileCheck2, FileSignature, MessageCircleQuestion, Package, ScanSearch, Upload } from "lucide-react";
 import Account from "@/components/Account";
 import EudrResult, { IssueList, LevelBadge } from "@/components/EudrResult";
+import LandDocForm from "@/components/LandDocForm";
 import {
   eudrDeleteSet, eudrDownloadSet, eudrExport, eudrGetSet, eudrIssueDossier, eudrListSets, eudrMethod, eudrScreen,
-  eudrSetDossiers, eudrSubmitSet, eudrValidate, fetchMe, getToken,
-  type AuthUser, type EudrLevel, type EudrMethod, type EudrPlot, type EudrScreening, type EudrSet, type EudrSetInfo,
+  eudrAsk, eudrSetDossiers, eudrSubmitSet, eudrValidate, fetchMe, getToken,
+  type AskCitation, type AuthUser, type Dossier, type LandDocInput, type EudrLevel, type EudrMethod, type EudrPlot, type EudrScreening, type EudrSet, type EudrSetInfo,
   type EudrValidation, type GeoGeometry,
 } from "@/lib/api";
 import { LangToggle, useLang } from "@/lib/i18n";
 
 const PlotDraw = dynamic(() => import("@/components/PlotDraw"), { ssr: false });
 
-type Tab = "one" | "set" | "method";
+type Tab = "one" | "set" | "ask" | "method";
 const COMMODITIES: [string, string, string][] = [
   ["coffee", "Cà phê", "Coffee"], ["rubber", "Cao su", "Rubber"], ["wood", "Gỗ", "Wood"],
   ["cocoa", "Ca cao", "Cocoa"], ["other", "Khác", "Other"],
@@ -51,12 +51,13 @@ export default function EudrPage() {
     const q = new URLSearchParams(window.location.search).get("tab");
     if (q === "lo" || q === "set") setTab("set");
     else if (q === "phuong-phap" || q === "method") setTab("method");
+    else if (q === "hoi-dap" || q === "ask") setTab("ask");
     if (getToken()) fetchMe().then(setUser).catch(() => setUser(null));
   }, []);
 
   function go(k: Tab) {
     setTab(k);
-    const slug = k === "set" ? "lo" : k === "method" ? "phuong-phap" : "";
+    const slug = k === "set" ? "lo" : k === "method" ? "phuong-phap" : k === "ask" ? "hoi-dap" : "";
     window.history.replaceState(null, "", slug ? `/eudr?tab=${slug}` : "/eudr");
   }
 
@@ -76,12 +77,13 @@ export default function EudrPage() {
         </div>
         <nav className="eu-tabs" role="tablist">
           {([["one", t("Một vườn", "One plot")], ["set", t("Cả lô (doanh nghiệp, HTX)", "Whole set (exporters, co-ops)")],
-             ["method", t("Phương pháp & kiểm định", "Method & validation")]] as [Tab, string][]).map(([k, label]) => (
+             ["ask", t("Hỏi đáp EUDR", "EUDR Q&A")], ["method", t("Phương pháp & kiểm định", "Method & validation")]] as [Tab, string][]).map(([k, label]) => (
             <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => go(k)}>{label}</button>
           ))}
         </nav>
         {tab === "one" && <OnePlot />}
         {tab === "set" && <WholeSet user={user} />}
+        {tab === "ask" && <Ask />}
         {tab === "method" && <Method lang={lang} />}
       </main>
     </div>
@@ -92,7 +94,6 @@ export default function EudrPage() {
 
 function OnePlot() {
   const { t } = useLang();
-  const router = useRouter();
   const [geom, setGeom] = useState<GeoGeometry | null>(null);
   const [initial, setInitial] = useState<GeoGeometry | null>(null);
   const [gpsAcc, setGpsAcc] = useState<number | null>(null);
@@ -102,9 +103,12 @@ function OnePlot() {
   const [busy, setBusy] = useState<"" | "screen" | "issue" | "export">("");
   const [err, setErr] = useState<string | null>(null);
   const [res, setRes] = useState<{ plot: EudrPlot; screening: EudrScreening | null } | null>(null);
+  const [hideProducer, setHideProducer] = useState(true);
+  const [landDoc, setLandDoc] = useState<LandDocInput | null>(null);
+  const [issued, setIssued] = useState<Dossier | null>(null);
 
   const onDraw = useCallback(({ geometry, gpsAccuracy }: { geometry: GeoGeometry | null; gpsAccuracy: number | null }) => {
-    setGeom(geometry); setGpsAcc(gpsAccuracy); setRes(null);
+    setGeom(geometry); setGpsAcc(gpsAccuracy); setRes(null); setIssued(null);
   }, []);
 
   async function importFile(f: File | undefined) {
@@ -131,9 +135,8 @@ function OnePlot() {
   async function issue() {
     setBusy("issue"); setErr(null);
     try {
-      const d = await eudrIssueDossier({ ...input(), commodity });
-      router.push(`/h/${d.id}`);
-    } catch (e) { setErr((e as Error).message); setBusy(""); }
+      setIssued(await eudrIssueDossier({ ...input(), commodity, hide_producer: hideProducer, land_document: landDoc }));
+    } catch (e) { setErr((e as Error).message); } finally { setBusy(""); }
   }
   async function exportGeo() {
     setBusy("export"); setErr(null);
@@ -191,7 +194,21 @@ function OnePlot() {
 
       {res?.plot.valid && (
         <section className="bat-card">
-          <h2>4 · {t("Hồ sơ & tệp nộp EU", "Dossier & EU file")}</h2>
+          <h2>4 · {t("Giấy tờ đất (tuỳ chọn, nên có)", "Land documents (optional, recommended)")}</h2>
+          <p className="eu-src">{t("EUDR đòi cả tính HỢP PHÁP: quyền sử dụng đất đúng mục đích. Ảnh vệ tinh không trả lời được câu này — giấy chứng nhận thì có.",
+            "The EUDR also requires LEGALITY: land-use rights for the right purpose. Satellite imagery can't answer that — the certificate can.")}</p>
+          <LandDocForm areaHa={res.plot.area_ha} producer={producer} onChange={setLandDoc} />
+        </section>
+      )}
+
+      {res?.plot.valid && (
+        <section className="bat-card">
+          <h2>5 · {t("Hồ sơ & tệp nộp EU", "Dossier & EU file")}</h2>
+          <label className="eu-check">
+            <input id="hide-producer" type="checkbox" checked={hideProducer} onChange={(e) => setHideProducer(e.target.checked)} />
+            {t("Ẩn tên chủ hộ trên trang công khai (khuyên dùng — dữ liệu cá nhân). Nông hộ giữ đường link đầy đủ để chứng minh khi cần.",
+               "Hide the producer's name on the public page (recommended — personal data). The farmer keeps a full link to prove it when needed.")}
+          </label>
           <div className="bat-row">
             <button className="bat-btn" disabled={!!busy} onClick={issue}>
               <FileSignature size={15} aria-hidden="true" className="ui-ic" />{" "}
@@ -201,6 +218,7 @@ function OnePlot() {
               <Download size={15} aria-hidden="true" className="ui-ic" /> {t("Tải GeoJSON chuẩn EU", "Download EU GeoJSON")}
             </button>
           </div>
+          {issued && <IssuedCard d={issued} />}
           <p className="eu-src">{t(
             "Hồ sơ có mã + QR, chữ ký Ed25519, nối vào sổ đăng ký công khai móc xích. Nông hộ in ra giữ; đại lý, doanh nghiệp, ngân hàng quét QR là kiểm được bản gốc — không cần tài khoản, không cần tin TerraTwin. Hồ sơ chỉ chứa số ĐO và số TÍNH LẠI ĐƯỢC, không chứa dự báo.",
             "The dossier has an ID + QR, an Ed25519 signature and a link in a hash-chained public registry. The farmer prints and keeps it; traders, exporters and banks scan the QR to verify the original — no account, no need to trust TerraTwin. It holds only MEASURED and RECOMPUTABLE figures, no forecasts.")}</p>
@@ -225,7 +243,7 @@ function WholeSet({ user }: { user: AuthUser | null }) {
   const [cur, setCur] = useState<EudrSet | null>(null);
   const [sets, setSets] = useState<EudrSetInfo[]>([]);
   const [warn, setWarn] = useState<string | null>(null);
-  const [issued, setIssued] = useState<{ ref: string; id: string; url: string }[]>([]);
+  const [issued, setIssued] = useState<{ ref: string; id: string; url: string; full_url?: string | null }[]>([]);
   const [open, setOpen] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
@@ -372,7 +390,10 @@ function WholeSet({ user }: { user: AuthUser | null }) {
             }}>
               <FileSignature size={15} aria-hidden="true" className="ui-ic" /> {t("Phát hành hồ sơ ký số cho từng vườn", "Issue a signed dossier for every plot")}
             </button>
-            {issued.length > 0 && <small>{t(`Đã phát hành ${issued.length} hồ sơ — mã từng vườn ở cột cuối bảng và trong báo cáo CSV.`, `Issued ${issued.length} dossiers — each plot's ID is in the last column and in the CSV report.`)}</small>}
+            {issued.length > 0 && <small>{t(`Đã phát hành ${issued.length} hồ sơ — mã từng vườn ở cột cuối bảng và trong báo cáo CSV. Tên chủ hộ được ẩn; đường link đầy đủ của từng vườn lưu trong tài khoản của bạn.`, `Issued ${issued.length} dossiers — each plot's ID is in the last column and in the CSV report. Producer names are hidden; each plot's full link is stored in your account.`)}</small>}
+            {Object.values(cur.results).some((r) => r.dossier_id) && (
+              <Link className="bat-btn ghost" href={`/lo?set=${cur.id}`}><Package size={15} aria-hidden="true" className="ui-ic" /> {t("Ghép lô hàng từ các vườn này", "Build a lot from these plots")}</Link>
+            )}
           </div>
           <div className="bat-table-wrap">
             <table className="bat-table">
@@ -538,5 +559,85 @@ function Method({ lang }: { lang: string }) {
           "Limits: this is screening, not EUDR compliance certification; TerraTwin does not confirm land rights or production legality. The final call rests with whoever files the due diligence statement (DDS).")}</p>
       </section>
     </>
+  );
+}
+
+
+function CopyLine({ label, value }: { label: string; value: string }) {
+  const { t } = useLang();
+  const [done, setDone] = useState(false);
+  return (
+    <div className="eu-copy">
+      <small>{label}</small>
+      <div className="bat-row">
+        <code>{value}</code>
+        <button className="bat-btn ghost" onClick={() => navigator.clipboard?.writeText(value).then(() => setDone(true)).catch(() => setDone(false))}>
+          <Copy size={14} aria-hidden="true" className="ui-ic" /> {done ? t("Đã chép", "Copied") : t("Chép", "Copy")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function IssuedCard({ d }: { d: Dossier }) {
+  const { t } = useLang();
+  return (
+    <div className="eu-issued">
+      {d.qr && <img src={d.qr} alt={t("Mã QR hồ sơ", "Dossier QR code")} width={120} height={120} />}
+      <div>
+        <b>{t(`Đã phát hành hồ sơ số ${String(d.seq).padStart(6, "0")} · mã ${d.id}`, `Issued dossier no. ${String(d.seq).padStart(6, "0")} · ID ${d.id}`)}</b>
+        <CopyLine label={t("Link công khai (in QR, gửi người mua)", "Public link (print the QR, send to buyers)")} value={d.url} />
+        {d.disclosure && (
+          <CopyLine label={t("Link ĐẦY ĐỦ có tên chủ hộ — nông hộ tự giữ, chỉ đưa khi cần chứng minh" + (d.disclosure.stored ? "" : " (KHÔNG lưu trên máy chủ vì chưa đăng nhập — chép lại ngay)"),
+                             "FULL link with the producer name — the farmer keeps it and shares only when needed" + (d.disclosure.stored ? "" : " (NOT stored on the server because you're not signed in — copy it now)"))}
+                    value={d.disclosure.url} />
+        )}
+        <a className="bat-btn" href={`/h/${d.id}`}>{t("Mở hồ sơ", "Open the dossier")}</a>
+      </div>
+    </div>
+  );
+}
+
+const SAMPLE_Q = ["Vườn 3 ha có phải vẽ ranh không?", "Cà phê trồng xen cây rừng có bị coi là rừng không?",
+                  "Vi phạm EUDR bị phạt bao nhiêu?", "Đất rừng phòng hộ trồng cà phê được không?"];
+
+function Ask() {
+  const { t } = useLang();
+  const [q, setQ] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [r, setR] = useState<{ mode: string; answer: string; citations: AskCitation[] } | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  async function go(question: string) {
+    setQ(question); setBusy(true); setErr(null);
+    try { setR(await eudrAsk(question)); } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
+  }
+  return (
+    <section className="bat-card">
+      <h2><MessageCircleQuestion size={18} aria-hidden="true" className="ui-ic" /> {t("Hỏi về EUDR — trả lời kèm điều khoản", "Ask about the EUDR — answers cite the article")}</h2>
+      <p className="eu-src">{t("Tìm trong kho đoạn trích quy định có nguồn (tìm kiếm BM25 tiếng Việt). Có khoá AI thì diễn giải, nhưng chỉ dựa trên đoạn tìm được; không tìm thấy thì nói thẳng. Không thay cho tư vấn pháp lý.",
+        "Searches a sourced library of regulation passages (Vietnamese BM25 search). With an AI key it paraphrases, but only from the passages found; if nothing matches it says so. Not legal advice.")}</p>
+      <form className="bat-row" onSubmit={(e) => { e.preventDefault(); if (q.trim().length > 1) go(q.trim()); }}>
+        <input id="eudr-ask" className="bat-input" value={q} maxLength={500} onChange={(e) => setQ(e.target.value)} placeholder={t("vd: thửa dưới 4 ha khai một điểm được không?", "e.g. can a plot under 4 ha be a single point?")} />
+        <button className="bat-btn" disabled={busy || q.trim().length < 2}>{busy ? t("Đang tìm…", "Searching…") : t("Hỏi", "Ask")}</button>
+      </form>
+      <div className="bat-row">{SAMPLE_Q.map((s) => <button key={s} className="eu-chip" onClick={() => go(s)}>{s}</button>)}</div>
+      {err && <p className="bat-err">{err}</p>}
+      {r && (
+        <div className="eu-answer">
+          <p>{r.answer}</p>
+          <small>{r.mode === "llm" ? t("Diễn giải bằng AI, chỉ từ các đoạn dưới đây.", "Paraphrased by AI, only from the passages below.")
+            : r.mode === "extractive" ? t("Trích nguyên văn đoạn liên quan nhất (chưa cấu hình AI diễn giải).", "Quoting the most relevant passage (AI paraphrase not configured).")
+              : t("Không có đoạn nào đủ khớp.", "No passage matched well enough.")}</small>
+          {r.citations.length > 0 && (
+            <ol className="eu-cites">
+              {r.citations.map((c) => (
+                <li key={c.id}><b>{c.title}</b> — <a href={c.url} target="_blank" rel="noreferrer">{c.source}</a>
+                  <span>{c.text}</span></li>
+              ))}
+            </ol>
+          )}
+        </div>
+      )}
+    </section>
   );
 }

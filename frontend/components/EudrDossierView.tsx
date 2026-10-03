@@ -28,7 +28,7 @@ function Outline({ g }: { g: GeoGeometry }) {
   );
 }
 
-export default function EudrDossierView({ f }: { f: EudrDossierFacts }) {
+export default function EudrDossierView({ f, revealed }: { f: EudrDossierFacts; revealed?: Record<string, { value: string; ok: boolean }> }) {
   const { t } = useLang();
   const p = f.plot;
   const cls = f.evidence_classes ?? {};
@@ -43,7 +43,10 @@ export default function EudrDossierView({ f }: { f: EudrDossierFacts }) {
           <div className="eu-plotbox">
             {p.kind === "polygon" && <Outline g={p.geometry} />}
             <ul className="dos-list">
-              <li><span>{t("Chủ hộ", "Producer")}</span><b>{p.producer ?? "—"}</b></li>
+              <li><span>{t("Chủ hộ", "Producer")}</span><b>{p.producer ?? (revealed?.producer
+                ? (revealed.producer.ok ? <>{revealed.producer.value} <span className="eu-proved">✓ {t("đã chứng minh", "proven")}</span></>
+                  : <span className="eu-err-txt">{t("tên đưa kèm KHÔNG khớp cam kết đã ký", "the supplied name does NOT match the signed commitment")}</span>)
+                : f.disclosure?.fields?.producer ? <span className="eu-hidden">{t("ẩn — chủ hồ sơ giữ đường link đầy đủ", "hidden — the owner holds the full link")}</span> : "—")}</b></li>
               <li><span>{t("Nông sản", "Commodity")}</span><b>{p.commodity_label ?? "—"}</b></li>
               <li><span>{t("Diện tích", "Area")}</span><b>{p.area_ha} ha</b></li>
               <li><span>{t("Kiểu khai", "Declared as")}</span><b>{p.kind === "polygon" ? t(`Đa giác ${p.n_vertices} đỉnh`, `Polygon, ${p.n_vertices} vertices`) : t("Điểm", "Point")}</b></li>
@@ -61,6 +64,28 @@ export default function EudrDossierView({ f }: { f: EudrDossierFacts }) {
           <p className="dos-src">{f.eu_format.rules}</p>
         </section>
       </div>
+
+      {f.land_document && (
+        <section>
+          <h2>{t("Giấy chứng nhận quyền sử dụng đất", "Land-use right certificate")} <span className="eu-class">{t("NGƯỜI KHAI CUNG CẤP", "DECLARED")}</span></h2>
+          <p className={`dos-score ${f.land_document.verdict === "ok" ? "" : "dos-flag"}`}><b>{f.land_document.label}</b></p>
+          <ul className="dos-list">
+            {f.land_document.fields.so_thua && <li><span>{t("Thửa số · tờ bản đồ", "Parcel · map sheet")}</span><b>{f.land_document.fields.so_thua} · {f.land_document.fields.to_ban_do ?? "—"}</b></li>}
+            {f.land_document.fields.dien_tich_m2 != null && <li><span>{t("Diện tích trên sổ", "Certificate area")}</span><b>{Number(f.land_document.fields.dien_tich_m2).toLocaleString("vi-VN")} m²</b></li>}
+            {f.land_document.fields.ma_muc_dich && <li><span>{t("Mục đích", "Land use")}</span><b>{f.land_document.fields.muc_dich ?? ""} ({f.land_document.fields.ma_muc_dich})</b></li>}
+            {f.land_document.fields.thoi_han && <li><span>{t("Thời hạn", "Term")}</span><b>{f.land_document.fields.thoi_han}</b></li>}
+            {f.disclosure?.fields?.land_owner && <li><span>{t("Tên chủ trên sổ", "Certificate holder")}</span><b>{revealed?.land_owner
+              ? (revealed.land_owner.ok ? <>{revealed.land_owner.value} <span className="eu-proved">✓</span></> : <span className="eu-err-txt">✗</span>)
+              : <span className="eu-hidden">{t("ẩn", "hidden")}</span>}</b></li>}
+          </ul>
+          <ul className="eu-checks">
+            {f.land_document.checks.map((c) => <li key={c.id} className={c.ok === true ? "ok" : c.ok === false ? "bad" : "unk"}>{c.ok === true ? "✓" : c.ok === false ? "✗" : "?"} {c.label}</li>)}
+          </ul>
+          <p className="dos-src">{t("Đọc bằng", "Read by")} {f.land_document.source === "manual" ? t("nhập tay", "manual entry") : f.land_document.source}
+            {f.land_document.image_sha256 ? <> · SHA-256 {t("ảnh sổ", "of certificate photo")} <code>{f.land_document.image_sha256.slice(0, 16)}…</code> ({t("ảnh không lưu", "photo not stored")})</> : null}.{" "}
+            {t("TerraTwin đối chiếu, KHÔNG xác minh với văn phòng đăng ký đất đai.", "TerraTwin cross-checks; it does NOT verify with the land registry.")}</p>
+        </section>
+      )}
 
       <section>
         <h2>{t("Sàng lọc phá rừng sau 31/12/2020", "Deforestation screening after 31/12/2020")} <span className="eu-class">{tag("screening.forest_2020")} + {tag("screening.level")}</span></h2>

@@ -2161,7 +2161,16 @@ export type DossierProof = {
   algorithm: string; key_id: string; signature: string;
 };
 export type DossierDoc = { id: string; seq: number; issued_at: string; facts: DossierFacts & Partial<EudrDossierFacts>; proof: DossierProof };
-export type Dossier = DossierDoc & { url: string; qr: string | null; verification: DossierVerification };
+export type Dossier = DossierDoc & {
+  url: string; qr: string | null; verification: DossierVerification;
+  facts_canonical?: string;
+  revealed?: Record<string, { value: string; ok: boolean }>;
+  disclosure?: { token: string; url: string; stored: boolean };
+  transparency?: { seq: number; leaf_index: number; tree_size: number; leaf_hash: string; root_hash: string; proof: string[];
+                   head: { tree_size: number; root_hash: string; timestamp: string; key_id: string; signature: string } } | null;
+  monitor?: { checked_at: string; level: string; issued_level: string; changed: boolean; why?: string[];
+              reasons?: string[]; s2_after?: string | null } | null;
+};
 export type DossierFileCheck = {
   valid: boolean; found: boolean; matches_registry?: boolean;
   registry?: DossierVerification; message: string;
@@ -2181,8 +2190,8 @@ export async function issueDossier(lat: number, lon: number, areaHa?: number | n
   return (await r.json()) as Dossier;
 }
 
-export function getDossier(id: string) {
-  return getJson<Dossier>(`/api/dossier/${encodeURIComponent(id)}?lang=${curLang()}`,
+export function getDossier(id: string, token?: string | null) {
+  return getJson<Dossier>(`/api/dossier/${encodeURIComponent(id)}?lang=${curLang()}${token ? `&d=${encodeURIComponent(token)}` : ""}`,
     "Không tải được hồ sơ");
 }
 
@@ -2305,6 +2314,9 @@ export type EudrDossierFacts = {
   evidence_classes: Record<string, string>;
   predictions_included: boolean;
   sources: string[]; reproduce: string; disclaimer: string;
+  disclosure?: { scheme: string; fields: Record<string, string> };
+  land_document?: { fields: LandDocFields; checks: { id: string; ok: boolean | null; label: string }[];
+                    verdict: "ok" | "review" | "red_flag"; label: string; image_sha256: string | null; source: string };
 };
 export type EudrMethod = {
   rule_version: string; cutoff: string; thresholds: Record<string, number>; sources: string[];
@@ -2352,7 +2364,8 @@ export async function eudrExport(body: { text?: string; filename?: string; geome
   saveBlob(await r.blob(), "terratwin-eudr.geojson");
 }
 
-export async function eudrIssueDossier(p: EudrPlotInput & { commodity: string; evidence_ids?: string[] }) {
+export async function eudrIssueDossier(p: EudrPlotInput & { commodity: string; evidence_ids?: string[];
+                                                              hide_producer?: boolean; land_document?: LandDocInput | null }) {
   const r = await fetch(`${BASE}/api/eudr/dossier?lang=${curLang()}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },
@@ -2410,3 +2423,94 @@ export async function eudrDownloadSet(id: string, what: "csv" | "geojson-valid" 
   if (!r.ok) throw new Error(await errMessage(r, "Không tải được tệp"));
   saveBlob(await r.blob(), `terratwin-eudr-${id.slice(0, 8)}-${what}.${what === "csv" ? "csv" : "geojson"}`);
 }
+
+// ---- HẠ TẦNG NIỀM TIN ĐỢT 3: sổ đỏ, trợ lý EUDR, lô hàng + chứng thư Merkle, sổ minh bạch ----
+export type LandDocFields = {
+  so_thua?: string | null; to_ban_do?: string | null; dien_tich_m2?: number | string | null; ma_muc_dich?: string | null;
+  muc_dich?: string | null; thoi_han?: string | null; dia_chi_thua?: string | null; so_phat_hanh?: string | null;
+  ten_chu?: string | null; confidence?: number | null;
+};
+export type LandDocCheck = { fields: LandDocFields; checks: { id: string; ok: boolean | null; label: string }[];
+                             verdict: "ok" | "review" | "red_flag"; label: string };
+export type LandDocInput = { fields: LandDocFields; image_sha256?: string | null; source?: string };
+
+export async function landdocExtract(file: File) {
+  const buf = new Uint8Array(await file.arrayBuffer());
+  let bin = "";
+  for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+  const media = /png$/i.test(file.type) ? "image/png" : /webp$/i.test(file.type) ? "image/webp" : "image/jpeg";
+  const r = await fetch(`${BASE}/api/landdoc/extract?lang=${curLang()}`, {
+    method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ data_b64: btoa(bin), media_type: media }),
+  });
+  if (r.ok) return (await r.json()) as { fields: LandDocFields; image_sha256: string; source: string };
+  let sha: string | undefined;
+  try { sha = (await r.clone().json())?.detail?.image_sha256; } catch { /* bỏ qua */ }
+  const e = new Error(await errMessage(r, "Không đọc được ảnh sổ")) as Error & { imageSha256?: string };
+  e.imageSha256 = sha;
+  throw e;
+}
+
+export function landdocCheck(fields: LandDocFields, areaHa: number | null, producer: string) {
+  return postJson<LandDocCheck>(`/api/landdoc/check?lang=${curLang()}`, { fields, area_ha: areaHa ?? undefined, producer },
+    "Không đối chiếu được giấy tờ");
+}
+
+export type AskCitation = { id: string; title: string; source: string; url: string; text: string; score: number; coverage: number };
+export function eudrAsk(q: string) {
+  return postJson<{ mode: "llm" | "extractive" | "none"; answer: string; citations: AskCitation[] }>(
+    `/api/eudr/ask?lang=${curLang()}`, { q }, "Không hỏi được trợ lý");
+}
+
+export type LotDelivery = { dossier_id: string; kg: number; date?: string | null; review_ack?: string | null; entry_hash?: string };
+export type LotCheckRow = { dossier_id: string; kg: number; status: "ok" | "warning" | "blocked"; notes: string[]; ref?: string;
+                            area_ha?: number; level?: string; issued_at?: string; cap_kg?: number; season_kg?: number; other_lots_kg?: number };
+export type LotChecks = { rows: LotCheckRow[]; n: number; n_blocked: number; n_warning: number; quantity_kg: number;
+                          area_ha: number; by_level: Record<string, number>; certifiable: boolean; headline: string };
+export type Lot = { id: string; ref: string; commodity: string; season: string; operator: string; state: "draft" | "certified";
+                    certificate_id: string | null; certificate_url: string | null; created_at: string;
+                    deliveries: LotDelivery[]; checks: LotChecks; errors?: string[] };
+export type LotIn = { ref: string; commodity: string; season: string; operator: string; deliveries: LotDelivery[] };
+
+export function lotsList() { return authed<{ lots: Lot[] }>("/api/lots", {}, "Không tải được lô hàng"); }
+export function lotGet(id: string) { return authed<Lot>(`/api/lots/${encodeURIComponent(id)}`, {}, "Không tải được lô hàng"); }
+export function lotCreate(b: LotIn) {
+  return authed<Lot>(`/api/lots?lang=${curLang()}`, { method: "POST", body: JSON.stringify(b) }, "Không tạo được lô hàng");
+}
+export function lotUpdate(id: string, b: LotIn) {
+  return authed<Lot>(`/api/lots/${encodeURIComponent(id)}?lang=${curLang()}`, { method: "PUT", body: JSON.stringify(b) },
+    "Không cập nhật được lô hàng");
+}
+export function lotCertify(id: string) {
+  return authed<{ lot: Lot; certificate: Dossier }>(`/api/lots/${encodeURIComponent(id)}/certify?lang=${curLang()}`,
+    { method: "POST" }, "Không phát hành được chứng thư");
+}
+export function lotDelete(id: string) { return authed<void>(`/api/lots/${encodeURIComponent(id)}`, { method: "DELETE" }, "Không xoá được"); }
+export function lotFromSet(setId: string) {
+  return authed<{ commodity: string; operator: string; ref: string; rows: { dossier_id: string; ref: string; level: string; area_ha: number }[] }>(
+    `/api/lots/from-set/${encodeURIComponent(setId)}?lang=${curLang()}`, { method: "POST" }, "Không lấy được lô thửa");
+}
+export async function lotDownload(id: string, what: "dds" | "geojson") {
+  const r = await fetch(`${BASE}/api/lots/${encodeURIComponent(id)}/${what === "dds" ? `dds?lang=${curLang()}` : "geojson"}`, { headers: authHeaders() });
+  if (!r.ok) throw new Error(await errMessage(r, "Không tải được tệp"));
+  const blob = what === "dds" ? new Blob([JSON.stringify(await r.json(), null, 2)], { type: "application/json" }) : await r.blob();
+  saveBlob(blob, `terratwin-lo-${id}-${what === "dds" ? "dds-nhap.json" : "vi-tri.geojson"}`);
+}
+export type LotProof = { lot_certificate: string; leaf: { dossier_id: string; entry_hash: string; kg: number }; leaf_data: string;
+                         leaf_index: number; tree_size: number; root: string; proof: string[] };
+export function lotProof(certId: string, dossierId: string) {
+  return getJson<LotProof>(`/api/lot-proof/${encodeURIComponent(certId)}/${encodeURIComponent(dossierId)}?lang=${curLang()}`,
+    "Không lấy được bằng chứng thuộc lô");
+}
+export function dossierDisclosure(id: string) {
+  return authed<{ token: string; url: string }>(`/api/dossier/${encodeURIComponent(id)}/disclosure`, {}, "Không lấy được đường link đầy đủ");
+}
+export type LotCertificateFacts = {
+  schema: string; kind: "lot_certificate";
+  lot: { ref: string; commodity: string; commodity_label: string; hs_code: string; hs_description: string; season: string;
+         operator: string; quantity_kg: number; n_plots: number; area_ha: number; country_of_production: string };
+  merkle: { algorithm: string; root: string; size: number; leaf: string };
+  mass_balance: { yield_cap_t_ha: number | null; rule: string };
+  checks: { by_level: Record<string, number>; n_warning: number; n_blocked: number };
+  disclaimer: string;
+};

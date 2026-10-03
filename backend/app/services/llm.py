@@ -180,3 +180,42 @@ def complete(prompt: str, system: str | None = None,
     if isinstance(text, str) and text.strip():
         return text.strip()
     return None
+
+
+def complete_vision(prompt: str, image_b64: str, media_type: str = "image/jpeg",
+                    system: str | None = None, max_tokens: int = 900) -> str | None:
+    """Gọi LLM ĐA PHƯƠNG THỨC với một ảnh (đọc giấy tờ). Cùng nguyên tắc với
+    complete(): không bao giờ ném lỗi, trả None khi chưa cấu hình / hỏng — bên gọi
+    lùi về nhập tay. Model văn bản thuần không đọc được ảnh thì cũng trả None."""
+    provider, key, base, model = _detect()
+    if provider is None:
+        return None
+    if provider == "openai":
+        msgs = ([{"role": "system", "content": system}] if system else []) + [{
+            "role": "user", "content": [
+                {"type": "text", "text": prompt},
+                {"type": "image_url", "image_url": {"url": f"data:{media_type};base64,{image_b64}"}}]}]
+        d = _post(f"{base}/chat/completions", {"model": model, "messages": msgs, "max_tokens": max_tokens},
+                  {"Authorization": f"Bearer {key}"} if key else {})
+        text = _dig(d, "choices", 0, "message", "content")
+    elif provider == "gemini":
+        body: dict = {"contents": [{"role": "user", "parts": [
+            {"text": prompt}, {"inline_data": {"mime_type": media_type, "data": image_b64}}]}],
+            "generationConfig": {"maxOutputTokens": max_tokens}}
+        if system:
+            body["systemInstruction"] = {"parts": [{"text": system}]}
+        d = _post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}",
+                  body, {})
+        text = _dig(d, "candidates", 0, "content", "parts", 0, "text")
+    else:  # anthropic
+        body = {"model": model, "max_tokens": max_tokens, "messages": [{"role": "user", "content": [
+            {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": image_b64}},
+            {"type": "text", "text": prompt}]}]}
+        if system:
+            body["system"] = system
+        d = _post("https://api.anthropic.com/v1/messages", body,
+                  {"x-api-key": key, "anthropic-version": "2023-06-01"})
+        text = _dig(d, "content", 0, "text")
+    if isinstance(text, str) and text.strip():
+        return text.strip()
+    return None

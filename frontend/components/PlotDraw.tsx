@@ -97,6 +97,26 @@ export default function PlotDraw({ initial, onChange }: {
     return () => { map.remove(); mapRef.current = null; };
   }, []);
 
+  // BẢN NHÁP OFFLINE: vườn trên đồi hay mất sóng, điện thoại hay tải lại trang. Điểm ranh
+  // lưu vào máy sau mỗi lần đổi; mở lại trang là khôi phục, không phải đi lại từ đầu.
+  const DRAFT = "terratwin_plot_draft_v1";
+  const [restored, setRestored] = useState(false);
+  useEffect(() => {
+    try {
+      const d = JSON.parse(localStorage.getItem(DRAFT) || "null");
+      if (d && Array.isArray(d.pts) && d.pts.length >= 1) {
+        setPts(d.pts); setAcc(Array.isArray(d.acc) ? d.acc : []); setMode("idle"); setRestored(true);
+      }
+    } catch { /* bộ nhớ trình duyệt bị chặn — bỏ qua */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    try {
+      if (pts.length) localStorage.setItem(DRAFT, JSON.stringify({ pts, acc, at: Date.now() }));
+      else localStorage.removeItem(DRAFT);
+    } catch { /* bỏ qua */ }
+  }, [pts, acc]);
+
   // Thửa nhập từ tệp → hiện lên và bay tới.
   useEffect(() => {
     if (!initial || initial.type !== "Polygon") return;
@@ -191,6 +211,8 @@ export default function PlotDraw({ initial, onChange }: {
         {" "}<b>{pts.length}</b> {t("điểm", "points")}{pts.length >= 3 ? <> · <b>{area.toFixed(area < 1 ? 3 : 2)} ha</b></> : null}
         {acc.length > 0 && <> · {t("GPS trung vị", "median GPS")} ±{median(acc)!.toFixed(0)} m</>}
       </p>
+      {restored && pts.length > 0 && <p className="doc-note">{t("Đã khôi phục bản nháp ranh lưu trên máy này (lưu tự động, kể cả khi mất sóng). Bấm “Xoá” để làm lại.",
+        "Restored the boundary draft saved on this device (saved automatically, even offline). Press “Clear” to start over.")}</p>}
       {gpsErr && <p className="bat-err">{gpsErr}</p>}
     </div>
   );

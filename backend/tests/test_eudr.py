@@ -365,7 +365,8 @@ def test_phat_hanh_ho_so_vuon_ky_so_va_kiem_duoc(env):
                                           "producer": "Lê Văn Ba", "commodity": "coffee"}).json()
     f = d["facts"]
     assert f["kind"] == "eudr_plot" and f["schema"] == eudr.FACTS_SCHEMA and f["predictions_included"] is False
-    assert f["plot"]["producer"] == "Lê Văn Ba" and f["plot"]["commodity_label"] == "Cà phê"
+    assert f["plot"]["producer"] is None and f["plot"]["commodity_label"] == "Cà phê"   # ẩn mặc định
+    assert d["disclosure"]["token"] and "producer" in f["disclosure"]["fields"]
     assert f["plot"]["geometry"]["type"] == "Polygon" and f["screening"]["level"] == "low"
     assert d["verification"]["valid"] and d["url"].endswith(f"/h/{d['id']}")
     again = c.get(f"/api/dossier/{d['id']}").json()

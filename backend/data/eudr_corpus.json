@@ -1,0 +1,245 @@
+{
+ "note": "Kho đoạn trích cho Trợ lý EUDR. Mỗi đoạn là diễn giải tiếng Việt của một điều khoản / tài liệu chính thức, kèm nguồn. Không phải văn bản pháp lý chính thức — luôn đối chiếu bản gốc.",
+ "passages": [
+  {
+   "id": "eudr-art3",
+   "title": "Điều kiện đưa hàng vào thị trường EU (Điều 3)",
+   "source": "Quy định (EU) 2023/1115, Điều 1 và Điều 3",
+   "url": "https://eur-lex.europa.eu/eli/reg/2023/1115/oj",
+   "text": "Quy định áp dụng cho bảy nhóm hàng: gia súc, ca cao, cà phê, dầu cọ, cao su, đậu tương, gỗ và các sản phẩm làm từ chúng liệt kê ở Phụ lục I. Hàng chỉ được đưa vào, bán trên thị trường EU hoặc xuất khẩu từ EU khi đồng thời đáp ứng ba điều kiện: (a) không gây phá rừng (deforestation-free); (b) được sản xuất theo đúng pháp luật liên quan của nước sản xuất; (c) có tờ khai thẩm định (due diligence statement).",
+   "q": [
+    "EUDR áp dụng cho mặt hàng nào",
+    "cà phê cao su có thuộc EUDR không",
+    "điều kiện bán hàng vào EU",
+    "tờ khai thẩm định là gì"
+   ]
+  },
+  {
+   "id": "eudr-art2-4",
+   "title": "Định nghĩa rừng (Điều 2 khoản 4)",
+   "source": "Quy định (EU) 2023/1115, Điều 2(4)",
+   "url": "https://eur-lex.europa.eu/eli/reg/2023/1115/oj",
+   "text": "Rừng là đất rộng trên 0,5 ha, có cây cao trên 5 m và độ che phủ tán trên 10%, hoặc cây có khả năng đạt các ngưỡng đó tại chỗ; KHÔNG bao gồm đất chủ yếu dùng cho nông nghiệp hoặc đô thị.",
+   "q": [
+    "rừng được định nghĩa thế nào",
+    "bao nhiêu cây thì là rừng",
+    "độ che phủ tán 10%"
+   ]
+  },
+  {
+   "id": "eudr-art2-5-6",
+   "title": "Đất nông nghiệp và vườn cây nông nghiệp (Điều 2 khoản 5, 6)",
+   "source": "Quy định (EU) 2023/1115, Điều 2(5), 2(6)",
+   "url": "https://eur-lex.europa.eu/eli/reg/2023/1115/oj",
+   "text": "Sử dụng cho nông nghiệp bao gồm cả vườn cây nông nghiệp (agricultural plantation). Vườn cây nông nghiệp là đất có cây trong hệ thống sản xuất nông nghiệp như vườn cây ăn quả, vườn cọ dầu, vườn ô liu và hệ thống nông lâm kết hợp trồng cây dưới tán; bao gồm mọi vườn trồng hàng hoá thuộc phạm vi, trừ gỗ. Vì vậy vườn cà phê, vườn cao su là đất nông nghiệp, không phải rừng, dù bản đồ vệ tinh có thể vẽ chúng là tán cây.",
+   "q": [
+    "vườn cà phê có bị coi là rừng không",
+    "cà phê trồng xen cây rừng che bóng có phải rừng",
+    "cao su có phải rừng không",
+    "nông lâm kết hợp"
+   ]
+  },
+  {
+   "id": "eudr-art2-3-13",
+   "title": "Phá rừng và mốc 31/12/2020 (Điều 2 khoản 3, 13)",
+   "source": "Quy định (EU) 2023/1115, Điều 2(3), 2(13)",
+   "url": "https://eur-lex.europa.eu/eli/reg/2023/1115/oj",
+   "text": "Phá rừng là chuyển đổi rừng sang sử dụng nông nghiệp, dù do con người gây ra hay không. Không gây phá rừng nghĩa là hàng hoá được sản xuất trên đất KHÔNG bị phá rừng sau ngày 31 tháng 12 năm 2020; với gỗ, còn phải được khai thác mà không gây suy thoái rừng sau ngày đó. Rừng đã chuyển sang nông nghiệp trước mốc này không bị coi là vi phạm.",
+   "q": [
+    "mốc thời gian phá rừng",
+    "phá rừng trước 2020 có sao không",
+    "không phá rừng nghĩa là gì",
+    "ngày 31/12/2020"
+   ]
+  },
+  {
+   "id": "eudr-art2-7",
+   "title": "Suy thoái rừng (Điều 2 khoản 7)",
+   "source": "Quy định (EU) 2023/1115, Điều 2(7)",
+   "url": "https://eur-lex.europa.eu/eli/reg/2023/1115/oj",
+   "text": "Suy thoái rừng là thay đổi cấu trúc độ che phủ rừng, dưới dạng chuyển rừng nguyên sinh hoặc rừng tái sinh tự nhiên thành rừng trồng hoặc đất có cây khác, hoặc chuyển rừng nguyên sinh thành rừng trồng. Khái niệm này áp dụng chủ yếu cho gỗ.",
+   "q": [
+    "suy thoái rừng là gì",
+    "gỗ rừng trồng"
+   ]
+  },
+  {
+   "id": "eudr-art2-27-28",
+   "title": "Thửa đất và định vị — 6 chữ số, thửa trên 4 ha phải là đa giác (Điều 2 khoản 27, 28)",
+   "source": "Quy định (EU) 2023/1115, Điều 2(27), 2(28)",
+   "url": "https://eur-lex.europa.eu/eli/reg/2023/1115/oj",
+   "text": "Định vị (geolocation) là vị trí thửa đất mô tả bằng toạ độ vĩ độ và kinh độ, ít nhất một điểm, dùng ít nhất sáu chữ số thập phân. Với thửa trên 4 ha dùng sản xuất hàng hoá (trừ gia súc) phải dùng đa giác có đủ điểm mô tả chu vi thửa. Thửa từ 4 ha trở xuống có thể khai bằng một điểm. Thửa đất là phần đất trong một bất động sản được pháp luật nước sản xuất công nhận, có điều kiện tương đối đồng nhất.",
+   "q": [
+    "vườn 3 ha có phải vẽ ranh không",
+    "thửa dưới 4 ha khai một điểm được không",
+    "thửa trên 4 ha phải vẽ đa giác",
+    "toạ độ cần bao nhiêu chữ số",
+    "định vị thửa đất"
+   ]
+  },
+  {
+   "id": "eudr-art9",
+   "title": "Thông tin phải thu thập (Điều 9)",
+   "source": "Quy định (EU) 2023/1115, Điều 9",
+   "url": "https://eur-lex.europa.eu/eli/reg/2023/1115/oj",
+   "text": "Doanh nghiệp phải thu thập: mô tả hàng (tên thương mại, loại; với gỗ là tên loài), khối lượng (khối lượng tịnh kg, thể tích hoặc số đơn vị), quốc gia sản xuất, định vị của TẤT CẢ các thửa đất nơi hàng được sản xuất cùng ngày hoặc khoảng thời gian sản xuất, tên, địa chỉ, email của nhà cung cấp và khách hàng, và thông tin đủ kết luận, kiểm chứng được rằng hàng không gây phá rừng và được sản xuất đúng pháp luật liên quan.",
+   "q": [
+    "cần thu thập thông tin gì",
+    "khai báo những gì cho EU",
+    "thông tin nhà cung cấp"
+   ]
+  },
+  {
+   "id": "eudr-art10-11",
+   "title": "Đánh giá và giảm thiểu rủi ro (Điều 10, 11)",
+   "source": "Quy định (EU) 2023/1115, Điều 10, 11",
+   "url": "https://eur-lex.europa.eu/eli/reg/2023/1115/oj",
+   "text": "Doanh nghiệp đánh giá rủi ro dựa trên các tiêu chí như: mức rủi ro của quốc gia, sự hiện diện của rừng, mức độ phổ biến của phá rừng, độ tin cậy của thông tin, độ phức tạp của chuỗi cung ứng, nguy cơ trộn lẫn với hàng không rõ nguồn gốc. Nếu rủi ro không ở mức không đáng kể, phải giảm thiểu, ví dụ yêu cầu thêm thông tin, tài liệu, hoặc khảo sát, kiểm toán độc lập, trước khi đưa hàng vào thị trường.",
+   "q": [
+    "đánh giá rủi ro thế nào",
+    "giảm thiểu rủi ro",
+    "kiểm toán độc lập"
+   ]
+  },
+  {
+   "id": "eudr-art2-40",
+   "title": "Pháp luật liên quan của nước sản xuất — tính hợp pháp (Điều 2 khoản 40)",
+   "source": "Quy định (EU) 2023/1115, Điều 2(40)",
+   "url": "https://eur-lex.europa.eu/eli/reg/2023/1115/oj",
+   "text": "Pháp luật liên quan của nước sản xuất là các quy định về tình trạng pháp lý của khu vực sản xuất, gồm: quyền sử dụng đất; bảo vệ môi trường; các quy định liên quan đến rừng như quản lý rừng và bảo tồn đa dạng sinh học; quyền của bên thứ ba; quyền lao động; quyền con người được luật quốc tế bảo vệ; nguyên tắc đồng thuận tự nguyện, báo trước và được thông tin đầy đủ; thuế, chống tham nhũng, thương mại và hải quan. Ở Việt Nam bằng chứng quyền sử dụng đất trước hết là giấy chứng nhận quyền sử dụng đất.",
+   "q": [
+    "tính hợp pháp là gì",
+    "cần giấy tờ đất không",
+    "sổ đỏ có cần cho EUDR không",
+    "quyền lao động"
+   ]
+  },
+  {
+   "id": "eudr-timeline",
+   "title": "Thời hạn áp dụng: 30/12/2026 và 30/6/2027",
+   "source": "Quy định sửa đổi tháng 12/2025; báo cáo rà soát của Ủy ban châu Âu 4/5/2026",
+   "url": "https://www.consilium.europa.eu/en/press/press-releases/2025/12/18/deforestation-council-signs-off-targeted-revision-to-simplify-and-postpone-the-regulation/",
+   "text": "Sau lần sửa đổi thứ hai (tháng 12/2025), quy định áp dụng từ ngày 30 tháng 12 năm 2026 với doanh nghiệp lớn và vừa, và từ ngày 30 tháng 6 năm 2027 với doanh nghiệp nhỏ và siêu nhỏ là người sản xuất đầu chuỗi. Gói đơn giản hoá công bố ngày 4/5/2026 xác nhận không hoãn thêm, giữ nguyên nghĩa vụ thẩm định cốt lõi.",
+   "q": [
+    "khi nào áp dụng",
+    "hạn chót EUDR",
+    "có hoãn nữa không",
+    "doanh nghiệp nhỏ áp dụng khi nào"
+   ]
+  },
+  {
+   "id": "eudr-art25",
+   "title": "Chế tài (Điều 25)",
+   "source": "Quy định (EU) 2023/1115, Điều 25",
+   "url": "https://eur-lex.europa.eu/eli/reg/2023/1115/oj",
+   "text": "Các nước thành viên quy định chế tài hiệu quả, tương xứng, có tính răn đe, gồm: phạt tiền với mức tối đa ít nhất 4% tổng doanh thu hằng năm trong EU của doanh nghiệp; tịch thu hàng hoá và doanh thu; tạm thời loại khỏi đấu thầu công và tiếp cận nguồn tài trợ công; tạm cấm đưa hàng vào thị trường.",
+   "q": [
+    "phạt bao nhiêu",
+    "vi phạm EUDR bị xử lý thế nào",
+    "mức phạt",
+    "chế tài"
+   ]
+  },
+  {
+   "id": "eudr-art29-13",
+   "title": "Phân loại rủi ro quốc gia và thẩm định đơn giản (Điều 29, 13)",
+   "source": "Quy định (EU) 2023/1115, Điều 29, 13",
+   "url": "https://eur-lex.europa.eu/eli/reg/2023/1115/oj",
+   "text": "Ủy ban châu Âu phân loại quốc gia hoặc vùng thành rủi ro thấp, tiêu chuẩn hoặc cao. Với hàng hoá sản xuất hoàn toàn ở quốc gia rủi ro thấp, doanh nghiệp được thẩm định đơn giản: vẫn phải thu thập thông tin theo Điều 9 nhưng không bắt buộc đánh giá và giảm thiểu rủi ro, trừ khi biết có nguy cơ vi phạm. Mức rủi ro cao kéo theo kiểm tra chặt hơn của cơ quan có thẩm quyền.",
+   "q": [
+    "Việt Nam rủi ro thấp hay cao",
+    "phân loại quốc gia",
+    "thẩm định đơn giản"
+   ]
+  },
+  {
+   "id": "traces-geojson",
+   "title": "Tệp GeoJSON nộp hệ thống EU (TRACES)",
+   "source": "EUDR GeoJSON file description — hệ thống thông tin TRACES",
+   "url": "https://eudr.webcloud.ec.europa.eu/tracesnt/help/eudr-documentation/operator/geojson-description.html",
+   "text": "Hệ thống thông tin chỉ nhận Point, MultiPoint, Polygon, MultiPolygon theo hệ toạ độ WGS84 (EPSG:4326), ghi kinh độ trước vĩ độ; không nhận LineString. Điểm đầu và điểm cuối của đa giác phải trùng nhau. Không nhận đa giác có lỗ thủng, đường ranh cắt nhau, cạnh chồng lên nhau, ranh hở. Toạ độ bị cắt còn 6 chữ số thập phân khi lưu. Thuộc tính tuỳ chọn: ProducerName, ProducerCountry (mã ISO 2 chữ), ProductionPlace, Area (ha, cho điểm). Điểm không khai Area được mặc định 4 ha. Tệp tối đa 25 MB mỗi tờ khai.",
+   "q": [
+    "GeoJSON có lỗ được không",
+    "định dạng tệp nộp EU",
+    "TRACES nhận tệp gì",
+    "tệp tối đa bao nhiêu MB",
+    "điểm không khai diện tích"
+   ]
+  },
+  {
+   "id": "jrc-gfc2020",
+   "title": "Bản đồ rừng 2020 của EU (JRC GFC2020)",
+   "source": "Trung tâm Nghiên cứu Chung (JRC) của Ủy ban châu Âu",
+   "url": "https://forest-observatory.ec.europa.eu/",
+   "text": "Ủy ban châu Âu công bố bản đồ độ che phủ rừng toàn cầu năm 2020 (JRC GFC2020) như một nguồn tham khảo cho mốc 31/12/2020. Bản đồ không bắt buộc, không loại trừ nguồn khác và không có giá trị pháp lý ràng buộc; doanh nghiệp có thể dùng dữ liệu khác miễn là kiểm chứng được.",
+   "q": [
+    "bản đồ rừng của EU",
+    "JRC GFC2020 có bắt buộc không",
+    "dùng bản đồ nào để chứng minh"
+   ]
+  },
+  {
+   "id": "vn-land-codes",
+   "title": "Ký hiệu loại đất Việt Nam và rủi ro EUDR",
+   "source": "Ký hiệu loại đất trên bản đồ địa chính / giấy chứng nhận quyền sử dụng đất",
+   "url": "https://thuvienphapluat.vn/",
+   "text": "Trên giấy chứng nhận, mục đích sử dụng ghi bằng ký hiệu: CLN đất trồng cây lâu năm, LUC/LUK đất trồng lúa, BHK/NHK đất trồng cây hàng năm khác, NTS đất nuôi trồng thuỷ sản, RSX đất rừng sản xuất, RPH đất rừng phòng hộ, RDD đất rừng đặc dụng. Cà phê, cao su trên đất CLN là đúng mục đích. Trên RSX cần xem phương án, giấy phép; trên RPH hoặc RDD nhiều khả năng trái luật — rủi ro về tính hợp pháp theo EUDR.",
+   "q": [
+    "đất rừng phòng hộ trồng cà phê được không",
+    "ký hiệu CLN RSX RPH là gì",
+    "mục đích sử dụng đất trên sổ đỏ"
+   ]
+  },
+  {
+   "id": "vn-nd38",
+   "title": "Giấy phép dự báo, cảnh báo khí tượng thủy văn (Nghị định 38/2016)",
+   "source": "Nghị định 38/2016/NĐ-CP và văn bản sửa đổi",
+   "url": "https://caselaw.vn/van-ban-phap-luat/116618-nghi-dinh-38-2016-nd-cp-huong-dan-luat-khi-tuong-thuy-van",
+   "text": "Tổ chức, cá nhân không thuộc hệ thống dự báo quốc gia hoạt động dự báo, cảnh báo khí tượng thủy văn phải có giấy phép; điều kiện gồm hạ tầng kỹ thuật, quy trình, và tối thiểu 3 người trong đó có người tốt nghiệp đại học chuyên ngành khí tượng thủy văn và có 3 năm kinh nghiệm. Vì vậy cảnh báo thiên tai của TerraTwin chỉ để tham khảo; bản tin chính thức do Trung tâm Dự báo KTTV quốc gia phát.",
+   "q": [
+    "TerraTwin có được dự báo thời tiết không",
+    "giấy phép dự báo khí tượng",
+    "cảnh báo thiên tai chính thức"
+   ]
+  },
+  {
+   "id": "tt-screening",
+   "title": "TerraTwin sàng lọc phá rừng như thế nào",
+   "source": "TerraTwin — quy tắc terratwin.eudr-screen/1",
+   "url": "https://terratwin-web.onrender.com/eudr?tab=phuong-phap",
+   "text": "Ba bản đồ rừng quanh năm 2020 độc lập bỏ phiếu: ESA WorldCover 2020, radar JAXA ALOS PALSAR 2020, Impact Observatory trung bình 2018–2020. Một bản đồ có từ 10% diện tích thửa là rừng thì tính một phiếu. Rủi ro phá rừng: ít nhất 2 phiếu mạnh (từ 30%) và có dấu hiệu mất cây sau mốc. Cần xem lại: ít nhất 2 phiếu, hoặc 1 phiếu kèm mất cây, hoặc nằm trong khu bảo tồn. Đạt sàng lọc: không phiếu nào, hoặc chỉ 1/3 phiếu và không mất cây. Đây là sàng lọc, không phải chứng nhận.",
+   "q": [
+    "TerraTwin sàng lọc thế nào",
+    "vì sao vườn của tôi cần xem lại",
+    "đạt sàng lọc nghĩa là gì",
+    "ba bản đồ bỏ phiếu"
+   ]
+  },
+  {
+   "id": "tt-mass-balance",
+   "title": "Cân bằng khối lượng và chứng thư lô hàng của TerraTwin",
+   "source": "TerraTwin — lô hàng",
+   "url": "https://terratwin-web.onrender.com/eudr",
+   "text": "Tổng số kg mọi lô hàng cùng vụ khai từ một vườn không được vượt diện tích ranh đo nhân năng suất trần (cà phê 6 tấn/ha, cao su 3,5, ca cao 2,5 — gấp khoảng hai lần bình quân). Vượt trần thì đợt nhập bị chặn vì vườn không thể làm ra chừng ấy hàng — dấu hiệu rửa hàng từ vùng phá rừng. Lô qua kiểm được cấp chứng thư: gốc cây Merkle của các hồ sơ vườn được ký số; mỗi vườn có bằng chứng thuộc lô.",
+   "q": [
+    "cân bằng khối lượng là gì",
+    "rửa hàng cà phê",
+    "năng suất trần",
+    "chứng thư lô hàng"
+   ]
+  },
+  {
+   "id": "tt-dossier-owner",
+   "title": "Hồ sơ vườn thuộc về nông hộ và tiết lộ chọn lọc",
+   "source": "TerraTwin — hồ sơ ký số",
+   "url": "https://terratwin-web.onrender.com/eudr",
+   "text": "Mỗi vườn có một hồ sơ ký Ed25519 với mã và QR, nối vào sổ móc xích và sổ minh bạch công khai. Họ tên chủ hộ mặc định không hiện công khai: nội dung ký chỉ chứa mã băm có muối; nông hộ giữ đường link đầy đủ và tự quyết đưa cho ai. Người nhận kiểm được chữ ký mà không cần tài khoản.",
+   "q": [
+    "ai giữ hồ sơ vườn",
+    "ẩn tên chủ hộ",
+    "người mua kiểm hồ sơ thế nào",
+    "mã QR hồ sơ"
+   ]
+  }
+ ]
+}

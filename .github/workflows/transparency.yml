@@ -1,0 +1,65 @@
+name: Transparency witness
+
+# NHÂN CHỨNG SỔ MINH BẠCH (RFC 6962) — mỗi ngày lấy đầu cây đã ký của sổ hồ sơ, kiểm
+# chữ ký + bằng chứng nhất quán với đầu cây hôm trước, rồi commit vào nhánh
+# `transparency-log` của kho công khai này. Muốn lặng lẽ sửa / xoá một hồ sơ đã phát
+# hành thì phải viết lại cả lịch sử Git mà ai cũng đã sao chép — không cần blockchain.
+#
+# Nhánh riêng (không phải main) để không kích hoạt deploy Render mỗi ngày.
+# KHÔNG cần secret: mọi API dùng ở đây đều công khai, chỉ đọc.
+#
+# 23:17 UTC = 06:17 giờ VN.
+
+on:
+  schedule:
+    - cron: "17 23 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: transparency-witness
+  cancel-in-progress: false
+
+jobs:
+  witness:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Mở nhánh transparency-log (tạo mới nếu chưa có)
+        run: |
+          git config user.name "terratwin-witness"
+          git config user.email "witness@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin transparency-log >/dev/null; then
+            git fetch origin transparency-log
+            git worktree add ../tlog origin/transparency-log
+            git -C ../tlog checkout -B transparency-log
+          else
+            git worktree add --orphan -b transparency-log ../tlog
+          fi
+
+      - name: Đánh thức api
+        run: bash ops/wake-api.sh || exit 1
+
+      - name: Kiểm và ghi đầu cây
+        run: |
+          pip install --quiet "cryptography>=42"
+          python3 ops/translog_witness.py ../tlog/heads.jsonl
+
+      - name: Commit lên nhánh transparency-log
+        run: |
+          cd ../tlog
+          git config user.name "terratwin-witness"
+          git config user.email "witness@users.noreply.github.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add heads.jsonl
+            git commit -m "Đầu cây $(tail -n1 heads.jsonl | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d["tree_size"], d["root_hash"][:16])')"
+            git push origin transparency-log
+          else
+            echo "Không có đầu cây mới."
+          fi

@@ -200,14 +200,26 @@ def sha256_bytes(b: bytes) -> str:
     return hashlib.sha256(b).hexdigest()
 
 
-def document(row: Dossier) -> dict:
-    """Bản hồ sơ đầy đủ để tải về / in — tự mang đủ thứ để kiểm lại."""
+def document(row: Dossier, db: Session | None = None) -> dict:
+    """Bản hồ sơ đầy đủ để tải về / in — tự mang đủ thứ để kiểm lại, KỂ CẢ KHI KHÔNG
+    CÓ MẠNG: `facts_canonical` là đúng chuỗi đã băm (trình duyệt băm lại chuỗi này,
+    không tự dựng lại JSON — Python và JavaScript viết số thực khác nhau: 4.0 / 4), và
+    khoá công khai đi kèm để kiểm chữ ký offline (so key_id với /api/dossiers/keys
+    khi có mạng)."""
+    pub = None
+    if db is not None:
+        from app.db import SigningKey
+        k = db.get(SigningKey, row.key_id)
+        pub = k.public_b64 if k else None
     return {
         "id": row.id, "seq": row.seq, "issued_at": _iso(row.created_at),
         "facts": json.loads(row.facts_json),
+        "facts_canonical": row.facts_json,
         "proof": {"schema": SCHEMA, "facts_hash": row.facts_hash, "prev_hash": row.prev_hash,
                   "entry_hash": row.entry_hash, "algorithm": signing.ALGORITHM,
-                  "key_id": row.key_id, "signature": row.signature},
+                  "key_id": row.key_id, "signature": row.signature, "public_key_b64": pub,
+                  "entry_message": entry_message(row.seq, row.id, _iso(row.created_at),
+                                                 row.facts_hash, row.prev_hash)},
     }
 
 

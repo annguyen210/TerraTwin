@@ -18,9 +18,10 @@ import {
   type Dossier, type DossierFileCheck, type DossierModule,
 } from "@/lib/api";
 import EudrDossierView from "@/components/EudrDossierView";
+import LotCertificateView from "@/components/LotCertificateView";
 import { LangToggle, useLang } from "@/lib/i18n";
 import { levelOf } from "@/lib/riskScale";
-import type { EudrDossierFacts } from "@/lib/api";
+import type { EudrDossierFacts, LotCertificateFacts } from "@/lib/api";
 
 function fmtTime(iso: string) {
   const d = new Date(iso);
@@ -53,13 +54,16 @@ export default function DossierPage() {
 
   useEffect(() => {
     let live = true;
-    getDossier(id).then((x) => live && setD(x)).catch((e) => live && setErr(e.message));
+    // ?d=… = chuỗi tiết lộ chọn lọc chủ hồ sơ đưa (vd họ tên) — máy chủ đối chiếu với cam kết đã ký.
+    const token = new URLSearchParams(window.location.search).get("d");
+    getDossier(id, token).then((x) => live && setD(x)).catch((e) => live && setErr(e.message));
     return () => { live = false; };
   }, [id, lang]);
 
   function download() {
     if (!d) return;
-    const doc = { id: d.id, seq: d.seq, issued_at: d.issued_at, facts: d.facts, proof: d.proof };
+    // facts_canonical: đúng chuỗi đã băm → trang /kiem kiểm offline được.
+    const doc = { id: d.id, seq: d.seq, issued_at: d.issued_at, facts: d.facts, facts_canonical: d.facts_canonical, proof: d.proof };
     const url = URL.createObjectURL(new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" }));
     const a = document.createElement("a");
     a.href = url;
@@ -87,6 +91,7 @@ export default function DossierPage() {
   const hist = f?.history_10y ? Object.entries(f.history_10y) : [];
   const cr = f?.current_risk;
   const isEudr = f?.kind === "eudr_plot";
+  const isLot = (f as { kind?: string } | undefined)?.kind === "lot_certificate";
 
   return (
     <div className="doc dos">
@@ -107,14 +112,15 @@ export default function DossierPage() {
           <article className="dos-paper">
             <div className="dos-head">
               <div>
-                <p className="dos-eyebrow">{isEudr
+                <p className="dos-eyebrow">{isLot ? t("CHỨNG THƯ LÔ HÀNG · TERRATWIN", "LOT CERTIFICATE · TERRATWIN") : isEudr
                   ? t("HỒ SƠ VƯỜN CHUẨN EUDR · TERRATWIN", "EUDR PLOT DOSSIER · TERRATWIN")
                   : t("HỒ SƠ ĐẤT SỐ · TERRATWIN", "DIGITAL LAND DOSSIER · TERRATWIN")}</p>
-                <h1>{isEudr ? f.plot!.ref : <>{t("Thửa", "Plot")} {f.location.lat.toFixed(5)}, {f.location.lon.toFixed(5)}</>}</h1>
+                <h1>{isLot ? ((f as unknown as LotCertificateFacts).lot.ref || t("Lô hàng", "Lot"))
+                  : isEudr ? f.plot!.ref : <>{t("Thửa", "Plot")} {f.location.lat.toFixed(5)}, {f.location.lon.toFixed(5)}</>}</h1>
                 <p className="dos-meta">
                   {t("Phát hành", "Issued")} {fmtTime(d.issued_at)} · {t("Số", "No.")} {String(d.seq).padStart(6, "0")} ·{" "}
                   {t("Mã", "ID")} <code>{d.id}</code>
-                  {isEudr ? <> · {f.plot!.area_ha} ha</> : f.location.area_ha ? <> · {f.location.area_ha} ha</> : null}
+                  {isLot ? null : isEudr ? <> · {f.plot!.area_ha} ha</> : f.location.area_ha ? <> · {f.location.area_ha} ha</> : null}
                 </p>
               </div>
               {d.qr && (
@@ -136,9 +142,21 @@ export default function DossierPage() {
                         "The server re-ran these four checks when you opened this page.")}</small>
             </section>
 
-            {isEudr && <EudrDossierView f={f as unknown as EudrDossierFacts} />}
+            {d.monitor && (
+              <section className={`dos-live ${d.monitor.changed ? "bad" : "ok"}`}>
+                <b>{d.monitor.changed
+                  ? t("Giám sát sau phát hành: vườn đã XẤU ĐI so với lúc phát hành", "Post-issuance monitoring: the plot has WORSENED since issuance")
+                  : t("Giám sát sau phát hành: chưa thấy thay đổi", "Post-issuance monitoring: no change found")}</b>
+                <span>{t("Kiểm lại", "Re-checked")} {fmtTime(d.monitor.checked_at)} · {t("lúc phát hành", "at issuance")}: {d.monitor.issued_level} → {t("nay", "now")}: {d.monitor.level}
+                  {d.monitor.s2_after ? ` · ${t("ảnh mới nhất", "latest image")} ${fmtDate(d.monitor.s2_after)}` : ""}</span>
+                <small>{t("Kết quả SỐNG — không phải nội dung đã ký (hồ sơ đã ký là bất biến).", "LIVE result — not signed content (the signed dossier is immutable).")}</small>
+              </section>
+            )}
 
-            {!isEudr && <>
+            {isEudr && <EudrDossierView f={f as unknown as EudrDossierFacts} revealed={d.revealed} />}
+            {isLot && <LotCertificateView f={f as unknown as LotCertificateFacts} certId={d.id} />}
+
+            {!isEudr && !isLot && <>
             <div className="dos-grid">
               <section>
                 <h2>{t("Loại đất", "Land type")}</h2>
@@ -298,14 +316,24 @@ export default function DossierPage() {
             )}
             </>}
 
-            <section>
+            {!isLot && <section>
               <h2>{t("Nguồn dữ liệu", "Data sources")}</h2>
-              <ul className="dos-bullets">{f.sources.map((s) => <li key={s}>{s}</li>)}</ul>
+              <ul className="dos-bullets">{(f.sources ?? []).map((s) => <li key={s}>{s}</li>)}</ul>
               {(f.missing?.length ?? 0) > 0 && (
                 <p className="dos-miss">{t("Thiếu lúc phát hành:", "Missing at issuance:")} {f.missing.join(", ")}</p>
               )}
               <p className="dos-disclaimer">{f.disclaimer}</p>
-            </section>
+            </section>}
+
+            {d.transparency && (
+              <section>
+                <h2>{t("Sổ minh bạch (RFC 6962)", "Transparency log (RFC 6962)")}</h2>
+                <p className="dos-src">{t(
+                  `Hồ sơ này là lá #${d.transparency.seq} của cây Merkle gồm ${d.transparency.tree_size} hồ sơ; đầu cây đã ký lúc ${fmtTime(d.transparency.head.timestamp)}. Mỗi ngày một tác vụ độc lập trên GitHub lưu đầu cây và kiểm cây chỉ được thêm, không bị sửa (nhánh transparency-log).`,
+                  `This dossier is leaf #${d.transparency.seq} of a Merkle tree of ${d.transparency.tree_size} dossiers; tree head signed at ${fmtTime(d.transparency.head.timestamp)}. Every day an independent GitHub job stores the tree head and checks the tree is append-only (branch transparency-log).`)}</p>
+                <p className="dos-src"><code className="eu-hash">{d.transparency.root_hash}</code></p>
+              </section>
+            )}
 
             <section className="dos-proof">
               <h2>{t("Bằng chứng kỹ thuật", "Technical proof")}</h2>

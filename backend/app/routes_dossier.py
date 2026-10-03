@@ -6,15 +6,17 @@ from __future__ import annotations
 
 import base64
 import binascii
+import json
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import Field
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import auth
 from app.db import Dossier, FieldPhoto, User, get_session
 from app.schemas import Location
-from app.services import dossier, evidence, onetap, region, reqlang, signing
+from app.services import disclosure, dossier, evidence, onetap, region, reqlang, signing, translog
 
 router = APIRouter(tags=["dossier"])
 
@@ -29,10 +31,32 @@ def _qr_data_uri(url: str) -> str | None:
         return None
 
 
-def _payload(db: Session, row: Dossier) -> dict:
+def _payload(db: Session, row: Dossier, token: str | None = None) -> dict:
+    """Bản công khai + bốn phép kiểm + (nếu có) trường được tiết lộ chọn lọc + giám
+    sát sau phát hành (kết quả SỐNG, không phải nội dung đã ký)."""
     url = f"{onetap.base_url()}/h/{row.id}"
-    return {**dossier.document(row), "url": url, "qr": _qr_data_uri(url),
-            "verification": dossier.verify_row(db, row)}
+    out = {**dossier.document(row, db), "url": url, "qr": _qr_data_uri(url),
+           "verification": dossier.verify_row(db, row)}
+    facts = out["facts"]
+    commits = (facts.get("disclosure") or {}).get("fields") or {}
+    if token and commits:
+        try:
+            out["revealed"] = disclosure.reveal(commits, disclosure.decode_token(token))
+        except (ValueError, KeyError, TypeError):
+            out["revealed"] = {}
+    try:
+        tl = translog.inclusion(db, row.seq)
+        out["transparency"] = {**tl, "head": translog.head(db)}
+    except (ValueError, IndexError):
+        out["transparency"] = None
+    if facts.get("kind") == "eudr_plot":
+        from app.db import DossierMonitor
+        m = db.execute(select(DossierMonitor).where(DossierMonitor.dossier_id == row.id)
+                       .order_by(DossierMonitor.checked_at.desc()).limit(1)).scalars().first()
+        out["monitor"] = ({"checked_at": m.checked_at.isoformat(timespec="seconds") + "Z", "level": m.level,
+                           "issued_level": m.issued_level, "changed": bool(m.changed),
+                           **json.loads(m.summary_json or "{}")} if m else None)
+    return out
 
 
 class DossierIn(Location):
@@ -122,16 +146,53 @@ def evidence_thumb(photo_id: str, db: Session = Depends(get_session)) -> Respons
 
 
 @router.get("/api/dossier/{dossier_id}")
-def get_dossier(dossier_id: str, lang: str = "vi",
+def get_dossier(dossier_id: str, lang: str = "vi", d: str | None = None,
                 db: Session = Depends(get_session)) -> dict:
     """Công khai theo mã — chia sẻ mã (hoặc QR) là chia sẻ quyền xem. Mã 12 ký
-    tự ngẫu nhiên (~60 bit) nên không dò ra được hồ sơ của người khác."""
+    tự ngẫu nhiên (~60 bit) nên không dò ra được hồ sơ của người khác. `d` = chuỗi
+    tiết lộ chọn lọc chủ hồ sơ đưa (vd họ tên) — kiểm với cam kết trong nội dung ký."""
     reqlang.set_lang(lang)
     row = db.get(Dossier, dossier_id)
     if row is None:
         raise HTTPException(404, reqlang.tr("Không có hồ sơ nào mang mã này.",
                                             "No dossier with this ID."))
-    return _payload(db, row)
+    return _payload(db, row, d)
+
+
+@router.get("/api/dossier/{dossier_id}/disclosure")
+def dossier_disclosure(dossier_id: str, user: User = Depends(auth.current_user),
+                       db: Session = Depends(get_session)) -> dict:
+    """Chuỗi tiết lộ chọn lọc — CHỈ chủ hồ sơ (người phát hành, đã đăng nhập)."""
+    row = db.get(Dossier, dossier_id)
+    if row is None or row.user_id != user.id or not row.private_json:
+        raise HTTPException(404, reqlang.tr("Không có phần riêng của hồ sơ này.", "No private part for this dossier."))
+    token = disclosure.encode_token(json.loads(row.private_json))
+    return {"token": token, "url": f"{onetap.base_url()}/h/{row.id}?d={token}"}
+
+
+# ------------------------------------------------------------------ sổ minh bạch (RFC 6962)
+
+@router.get("/api/log/sth")
+def log_head(db: Session = Depends(get_session)) -> dict:
+    """Đầu cây đã ký: kích thước sổ + gốc Merkle + chữ ký. Bên thứ ba lưu lại."""
+    return translog.head(db)
+
+
+@router.get("/api/log/inclusion")
+def log_inclusion(seq: int, tree_size: int | None = None, db: Session = Depends(get_session)) -> dict:
+    try:
+        return translog.inclusion(db, seq, tree_size)
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+
+
+@router.get("/api/log/consistency")
+def log_consistency(first: int, second: int | None = None, db: Session = Depends(get_session)) -> dict:
+    """Bằng chứng cây kích thước `second` chứa NGUYÊN VẸN cây kích thước `first`."""
+    try:
+        return translog.consistency(db, first, second)
+    except ValueError as e:
+        raise HTTPException(422, str(e))
 
 
 @router.post("/api/dossier/verify")

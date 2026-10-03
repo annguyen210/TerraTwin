@@ -9,15 +9,18 @@ from __future__ import annotations
 
 import json
 import os
+import re
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import auth
 from app.db import EudrSet, FieldPhoto, User, get_session
-from app.services import dossier, eudr, eudr_forest, eudr_geo, evidence, jobs_db, onetap, reqlang, signing
+from app.services import (
+    disclosure, dossier, eudr, eudr_forest, eudr_geo, evidence, jobs_db, landdoc, onetap, reqlang, signing,
+)
 
 router = APIRouter(tags=["eudr"])
 
@@ -118,11 +121,47 @@ def _photos(db: Session, ids: list[str], lat: float, lon: float) -> list[FieldPh
     return out
 
 
+def _land_document(ld: dict | None, plot: dict, producer: str | None) -> tuple[dict | None, dict]:
+    """Giấy tờ đất gửi kèm → ĐỐI CHIẾU LẠI ở máy chủ (không tin kết quả phía trình duyệt).
+    Tên chủ trên sổ đi qua tiết lộ chọn lọc. → (mục cho nội dung ký, phần riêng)."""
+    if not ld or not ld.get("fields"):
+        return None, {}
+    res = landdoc.check(ld["fields"], plot.get("area_ha"), producer)
+    fields = dict(res["fields"])
+    private, commits = {}, {}
+    owner = fields.pop("ten_chu", None)
+    if owner:
+        digest, priv = disclosure.commit("land_owner", owner)
+        commits["land_owner"], private["land_owner"] = digest, priv
+    sha = str(ld.get("image_sha256") or "")
+    return ({"fields": fields, "checks": res["checks"], "verdict": res["verdict"], "label": res["label"],
+             "image_sha256": sha if re.fullmatch(r"[0-9a-f]{64}", sha) else None,
+             "source": str(ld.get("source") or "manual")[:60], "evidence_class": "declared",
+             "_commits": commits}, private)
+
+
 def _issue(db: Session, plot: dict, screening: dict, commodity: str | None, producer: str | None,
-           user_id: int | None, photos: list[FieldPhoto] | None = None):
+           user_id: int | None, photos: list[FieldPhoto] | None = None, hide_producer: bool = True,
+           land_document: dict | None = None):
     from app.routes_dossier import _payload
 
     facts = eudr.dossier_facts(plot, screening, commodity=commodity, producer=producer)
+    private, commits = {}, {}
+    name = facts["plot"].get("producer")
+    if hide_producer and name:
+        # Họ tên nông hộ gắn toạ độ vườn = dữ liệu cá nhân: mặc định KHÔNG hiện công khai,
+        # nội dung ký chỉ giữ cam kết băm có muối (services/disclosure.py).
+        digest, priv = disclosure.commit("producer", name)
+        facts["plot"]["producer"] = None
+        commits["producer"], private["producer"] = digest, priv
+    ld, ld_private = _land_document(land_document, plot, producer or plot.get("producer"))
+    if ld:
+        commits.update(ld.pop("_commits"))
+        private.update(ld_private)
+        facts["land_document"] = ld
+        facts["evidence_classes"]["land_document"] = "declared"
+    if commits:
+        facts["disclosure"] = {"scheme": disclosure.PREFIX, "fields": commits}
     if photos:
         facts["field_evidence"] = [evidence.public(p) for p in photos]
     c = plot["centroid"]
@@ -132,13 +171,28 @@ def _issue(db: Session, plot: dict, screening: dict, commodity: str | None, prod
         raise HTTPException(503, str(e))
     for p in photos or []:
         p.dossier_id = p.dossier_id or row.id
+    if private and user_id is not None:
+        row.private_json = json.dumps(private, ensure_ascii=False)
     db.commit()
-    return row, _payload(db, row)
+    payload = _payload(db, row)
+    if private:
+        tok = disclosure.encode_token(private)
+        payload["disclosure"] = {"token": tok, "url": f"{payload['url']}?d={tok}",
+                                 "stored": user_id is not None}
+    return row, payload
+
+
+class LandDocIn(BaseModel):
+    fields: dict
+    image_sha256: str | None = Field(default=None, max_length=64)
+    source: str = Field(default="manual", max_length=60)
 
 
 class DossierIn(GeometryIn):
     commodity: str = Field(default="coffee", max_length=24)
     evidence_ids: list[str] = Field(default_factory=list, max_length=6)
+    hide_producer: bool = True
+    land_document: LandDocIn | None = None
 
 
 @router.post("/api/eudr/dossier")
@@ -156,8 +210,60 @@ def issue_dossier(body: DossierIn, lang: str = "vi",
     screening = eudr_forest.screen(plot)
     commodity = body.commodity if body.commodity in eudr.COMMODITIES else "other"
     _, payload = _issue(db, plot, screening, commodity, body.producer or None,
-                        user.id if user else None, photos)
+                        user.id if user else None, photos, hide_producer=body.hide_producer,
+                        land_document=body.land_document.model_dump() if body.land_document else None)
     return payload
+
+
+# ------------------------------------------------------------------ giấy tờ đất (sổ đỏ)
+
+class LandDocExtractIn(BaseModel):
+    data_b64: str = Field(min_length=16, max_length=12_000_000)
+    media_type: str = Field(default="image/jpeg", pattern=r"^image/(jpeg|png|webp)$")
+
+
+@router.post("/api/landdoc/extract")
+def landdoc_extract(body: LandDocExtractIn, lang: str = "vi", user: User = Depends(auth.current_user)) -> dict:
+    """AI đọc ảnh giấy chứng nhận quyền sử dụng đất → các trường. KHÔNG lưu ảnh: chỉ
+    trả SHA-256 để gắn vào hồ sơ. Cần đăng nhập (mỗi lượt đọc tốn tiền khoá LLM)."""
+    import base64
+    import binascii
+    import hashlib
+
+    from app.services import llm
+    reqlang.set_lang(lang)
+    try:
+        raw = base64.b64decode(body.data_b64, validate=True)
+    except (binascii.Error, ValueError):
+        raise HTTPException(422, reqlang.tr("Ảnh không phải base64 hợp lệ.", "Image is not valid base64."))
+    sha = hashlib.sha256(raw).hexdigest()
+    if not llm.available():
+        raise HTTPException(503, {"message": reqlang.tr(
+            "Máy chủ chưa cấu hình AI đọc ảnh (khoá LLM đa phương thức). Nhập tay các trường trên sổ — phần đối chiếu "
+            "vẫn chạy đầy đủ.", "AI document reading is not configured (multimodal LLM key). Enter the certificate "
+            "fields by hand — the cross-check still runs in full."), "image_sha256": sha})
+    got = landdoc.extract(body.data_b64, body.media_type)
+    if got is None:
+        raise HTTPException(502, {"message": reqlang.tr("AI không đọc được ảnh này — chụp lại rõ hơn hoặc nhập tay.",
+                                                        "The AI could not read this image — retake it or type it in."),
+                                  "image_sha256": sha})
+    if got.get("not_a_certificate"):
+        raise HTTPException(422, reqlang.tr("Ảnh không phải giấy chứng nhận quyền sử dụng đất.",
+                                            "The image is not a land-use right certificate."))
+    return {"fields": got, "image_sha256": sha, "source": f"llm:{llm.info().get('model')}"}
+
+
+class LandDocCheckIn(BaseModel):
+    fields: dict
+    area_ha: float | None = Field(default=None, gt=0)
+    producer: str = Field(default="", max_length=120)
+
+
+@router.post("/api/landdoc/check")
+def landdoc_check(body: LandDocCheckIn, lang: str = "vi") -> dict:
+    """Đối chiếu sổ ↔ ranh đo ↔ chủ hộ — tất định, không AI, không cần đăng nhập."""
+    reqlang.set_lang(lang)
+    return landdoc.check(body.fields, body.area_ha, body.producer or None)
 
 
 @router.get("/api/eudr/method")
@@ -323,9 +429,10 @@ def set_dossiers(set_id: str, lang: str = "vi", user: User = Depends(auth.curren
     for k, res in results.items():
         if res.get("dossier_id") or not res.get("forest_2020") or k not in plots:
             continue
-        row, _ = _issue(db, plots[k], eudr_forest._localize(res), r.commodity, r.producer or None, user.id)
+        row, pay = _issue(db, plots[k], eudr_forest._localize(res), r.commodity, r.producer or None, user.id)
         res["dossier_id"] = row.id
-        issued.append({"ref": plots[k]["ref"], "id": row.id, "url": f"{onetap.base_url()}/h/{row.id}"})
+        issued.append({"ref": plots[k]["ref"], "id": row.id, "url": f"{onetap.base_url()}/h/{row.id}",
+                       "full_url": (pay.get("disclosure") or {}).get("url")})
         r.results_json = json.dumps(results, ensure_ascii=False)
         db.commit()
     return {"issued": issued, "n": len(issued)}
@@ -340,3 +447,30 @@ def delete_set(set_id: str, user: User = Depends(auth.current_user),
     db.delete(r)
     db.commit()
     return Response(status_code=204)
+
+
+# ------------------------------------------------------------------ trợ lý EUDR (RAG)
+
+class AskIn(BaseModel):
+    q: str = Field(min_length=2, max_length=500)
+
+
+@router.post("/api/eudr/ask")
+def eudr_ask(body: AskIn, lang: str = "vi") -> dict:
+    """Hỏi đáp EUDR có trích dẫn: tìm BM25 trên kho đoạn trích có nguồn, rồi (nếu có
+    khoá LLM) diễn giải CHỈ từ các đoạn đó. Không tìm thấy thì nói thẳng."""
+    from app.services import eudr_assistant
+    reqlang.set_lang(lang)
+    return eudr_assistant.ask(body.q)
+
+
+# ------------------------------------------------------------------ giám sát sau phát hành
+
+@router.post("/api/eudr/monitor/run")
+def eudr_monitor_run(limit: int = 20, authorization: str | None = Header(default=None),
+                     x_cron_key: str | None = Header(default=None), db: Session = Depends(get_session)) -> dict:
+    """Sàng lọc lại các hồ sơ vườn lâu chưa kiểm (cron hằng tuần hoặc admin)."""
+    from app.routes_data import _require_cron_or_admin
+    from app.services import monitor
+    _require_cron_or_admin(authorization, x_cron_key, db)
+    return monitor.run(db, limit=max(1, min(limit, 100)))

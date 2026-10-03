@@ -1,0 +1,46 @@
+{
+ "title": "Mô hình Rừng hay vườn cây — giao thức đặt trước",
+ "registered": "2026-10-03",
+ "region": {
+  "lat": [
+   11.3,
+   15.0
+  ],
+  "lon": [
+   107.2,
+   109.0
+  ]
+ },
+ "split_by_latitude": {
+  "train": [
+   12.0,
+   14.2
+  ],
+  "val": [
+   14.2,
+   15.0
+  ],
+  "test": [
+   11.3,
+   12.0
+  ]
+ },
+ "labels": {
+  "forest": "WorldCover2020 tán cây ≥80% VÀ ALOS FNF 2020 rừng ≥80% VÀ IO TB 2018–2020 cây ≥80%",
+  "tree_crop": "WorldCover2020 tán cây ≥60% VÀ ALOS rừng ≤10% VÀ IO cây ≤10%"
+ },
+ "features": "chỉ Sentinel-2 L2A năm 2020: NDVI, NDMI từng tháng (12+12), trung vị năm 6 kênh, NDVI min mùa khô / max mùa mưa / biên độ, độ lệch chuẩn NDVI trong ô",
+ "candidates": [
+  "logistic regression",
+  "MLP 2 lớp ẩn",
+  "1D-CNN trên chuỗi 12 tháng"
+ ],
+ "selection": "độ chính xác cân bằng cao nhất trên tập kiểm định",
+ "pass": {
+  "balanced_accuracy_test": 0.85,
+  "forest_recall_test": 0.9
+ },
+ "seed": 20261003,
+ "windows": 200,
+ "decision": "Đạt cả hai → xuất mô hình, hiện như tín hiệu THAM KHẢO trong sàng lọc (không vào hồ sơ ký). Không đạt → không bật, công bố."
+}
