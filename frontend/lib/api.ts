@@ -2533,3 +2533,12 @@ export function confirmDelivery(id: string, lotId: string, token: string, action
   return postJson<{ ok: boolean }>(`/api/dossier/${encodeURIComponent(id)}/deliveries/${encodeURIComponent(lotId)}?lang=${curLang()}`,
     { d: token, action }, "Không ghi được xác nhận");
 }
+
+export type EudrOverview = { plots: number; invalid: number; by_level: Record<EudrLevel, number>; ha_by_level: Record<EudrLevel, number>;
+                             dossiers: number; lots: number; lots_certified: number; kg_certified: number;
+                             deliveries_pending_confirmation: number;
+                             attention: { set: string; ref: string; level: EudrLevel; dossier_id: string | null }[] };
+export function eudrOverview() { return authed<EudrOverview>(`/api/eudr/overview?lang=${curLang()}`, {}, "Không tải được tổng quan"); }
+export function eudrPublicStats() {
+  return getJson<{ log_size: number; plot_dossiers: number; lot_certificates: number }>("/api/eudr/public-stats", "Không tải được số liệu");
+}

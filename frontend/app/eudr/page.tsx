@@ -21,15 +21,15 @@ import EudrResult, { IssueList, LevelBadge } from "@/components/EudrResult";
 import LandDocForm from "@/components/LandDocForm";
 import {
   eudrDeleteSet, eudrDownloadSet, eudrExport, eudrGetSet, eudrIssueDossier, eudrListSets, eudrMethod, eudrScreen,
-  eudrAiStatus, eudrAsk, eudrSetDossiers, eudrSubmitSet, eudrValidate, fetchMe, getToken,
-  type AskCitation, type AuthUser, type Dossier, type FocRun, type LandDocInput, type EudrLevel, type EudrMethod, type EudrPlot, type EudrScreening, type EudrSet, type EudrSetInfo,
+  eudrAiStatus, eudrAsk, eudrOverview, eudrSetDossiers, eudrSubmitSet, eudrValidate, fetchMe, getToken,
+  type AskCitation, type AuthUser, type Dossier, type EudrOverview, type FocRun, type LandDocInput, type EudrLevel, type EudrMethod, type EudrPlot, type EudrScreening, type EudrSet, type EudrSetInfo,
   type EudrValidation, type GeoGeometry,
 } from "@/lib/api";
 import { LangToggle, useLang } from "@/lib/i18n";
 
 const PlotDraw = dynamic(() => import("@/components/PlotDraw"), { ssr: false });
 
-type Tab = "one" | "set" | "ask" | "method";
+type Tab = "one" | "set" | "overview" | "ask" | "method";
 const COMMODITIES: [string, string, string][] = [
   ["coffee", "Cà phê", "Coffee"], ["rubber", "Cao su", "Rubber"], ["wood", "Gỗ", "Wood"],
   ["cocoa", "Ca cao", "Cocoa"], ["other", "Khác", "Other"],
@@ -52,12 +52,13 @@ export default function EudrPage() {
     if (q === "lo" || q === "set") setTab("set");
     else if (q === "phuong-phap" || q === "method") setTab("method");
     else if (q === "hoi-dap" || q === "ask") setTab("ask");
+    else if (q === "tong-quan" || q === "overview") setTab("overview");
     if (getToken()) fetchMe().then(setUser).catch(() => setUser(null));
   }, []);
 
   function go(k: Tab) {
     setTab(k);
-    const slug = k === "set" ? "lo" : k === "method" ? "phuong-phap" : k === "ask" ? "hoi-dap" : "";
+    const slug = k === "set" ? "lo" : k === "method" ? "phuong-phap" : k === "ask" ? "hoi-dap" : k === "overview" ? "tong-quan" : "";
     window.history.replaceState(null, "", slug ? `/eudr?tab=${slug}` : "/eudr");
   }
 
@@ -77,12 +78,13 @@ export default function EudrPage() {
         </div>
         <nav className="eu-tabs" role="tablist">
           {([["one", t("Một vườn", "One plot")], ["set", t("Cả lô (doanh nghiệp, HTX)", "Whole set (exporters, co-ops)")],
-             ["ask", t("Hỏi đáp EUDR", "EUDR Q&A")], ["method", t("Phương pháp & kiểm định", "Method & validation")]] as [Tab, string][]).map(([k, label]) => (
+             ["overview", t("Tổng quan", "Overview")], ["ask", t("Hỏi đáp EUDR", "EUDR Q&A")], ["method", t("Phương pháp & kiểm định", "Method & validation")]] as [Tab, string][]).map(([k, label]) => (
             <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => go(k)}>{label}</button>
           ))}
         </nav>
         {tab === "one" && <OnePlot />}
         {tab === "set" && <WholeSet user={user} />}
+        {tab === "overview" && <Overview user={user} />}
         {tab === "ask" && <Ask />}
         {tab === "method" && <Method lang={lang} />}
       </main>
@@ -660,5 +662,53 @@ function Ask() {
         </div>
       )}
     </section>
+  );
+}
+
+
+function Overview({ user }: { user: AuthUser | null }) {
+  const { t } = useLang();
+  const [o, setO] = useState<EudrOverview | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  useEffect(() => { if (user) eudrOverview().then(setO).catch((e) => setErr(e.message)); }, [user]);
+  if (!user) return <p className="doc-note">{t("Đăng nhập để xem tổng quan vùng nguyên liệu của bạn.", "Sign in to see your sourcing overview.")}</p>;
+  if (err) return <p className="bat-err">{err}</p>;
+  if (!o) return <p className="doc-note">{t("Đang tải…", "Loading…")}</p>;
+  const total = Object.values(o.by_level).reduce((a, b) => a + b, 0);
+  return (
+    <>
+      <section className="bat-card">
+        <h2>{t("Vùng nguyên liệu của bạn", "Your sourcing area")}</h2>
+        <div className="bat-tiles">
+          <div><b>{o.plots}</b><span>{t("vườn đã tải lên", "plots uploaded")}{o.invalid ? ` · ${o.invalid} ${t("lỗi chuẩn EU", "EU format errors")}` : ""}</span></div>
+          <div><b>{o.dossiers}</b><span>{t("hồ sơ vườn đã phát hành", "plot dossiers issued")}</span></div>
+          <div><b>{o.lots_certified}/{o.lots}</b><span>{t("lô hàng có chứng thư", "lots certified")}</span></div>
+          <div><b>{o.kg_certified.toLocaleString("vi-VN")} kg</b><span>{t("đã chứng thư", "certified")}</span></div>
+          <div><b>{o.deliveries_pending_confirmation}</b><span>{t("đợt giao chờ nông hộ xác nhận", "deliveries awaiting farmer confirmation")}</span></div>
+        </div>
+        {total > 0 && (
+          <>
+            <div className="eu-levelbar" aria-label={t("Phân bố mức sàng lọc", "Screening level distribution")}>
+              {(["low", "review", "high", "unknown"] as EudrLevel[]).map((k) => o.by_level[k] ? (
+                <span key={k} className={`eu-${k}`} style={{ flex: o.by_level[k] }} title={`${k}: ${o.by_level[k]}`} />) : null)}
+            </div>
+            <p className="eu-src">{(["low", "review", "high", "unknown"] as EudrLevel[]).map((k) =>
+              `${{ low: t("Đạt", "Passed"), review: t("Cần xem lại", "Review"), high: t("Rủi ro", "Risk"), unknown: t("Thiếu dữ liệu", "No data") }[k]} ${o.by_level[k]} (${o.ha_by_level[k]} ha)`).join(" · ")}</p>
+          </>
+        )}
+      </section>
+      {o.attention.length > 0 && (
+        <section className="bat-card">
+          <h2>{t("Vườn cần người xem", "Plots needing a human look")}</h2>
+          <div className="bat-table-wrap"><table className="bat-table">
+            <thead><tr><th>{t("Vườn", "Plot")}</th><th>{t("Lô thửa", "Set")}</th><th>{t("Mức", "Level")}</th><th>{t("Hồ sơ", "Dossier")}</th></tr></thead>
+            <tbody>{o.attention.map((a, i) => (
+              <tr key={i}><td>{a.ref}</td><td>{a.set}</td><td><LevelBadge level={a.level} label={a.level === "high" ? t("Rủi ro phá rừng", "Deforestation risk") : t("Cần xem lại", "Needs review")} /></td>
+                <td>{a.dossier_id ? <Link href={`/h/${a.dossier_id}`}>{a.dossier_id}</Link> : "—"}</td></tr>
+            ))}</tbody>
+          </table></div>
+        </section>
+      )}
+    </>
   );
 }

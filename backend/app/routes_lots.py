@@ -232,3 +232,44 @@ def delete_lot(lot_id: str, user: User = Depends(auth.current_user), db: Session
     db.delete(lot)
     db.commit()
     return Response(status_code=204)
+
+
+# ------------------------------------------------------------------ tổng quan vùng nguyên liệu
+
+@router.get("/api/eudr/overview")
+def eudr_overview(lang: str = "vi", user: User = Depends(auth.current_user), db: Session = Depends(get_session)) -> dict:
+    """Bảng tổng quan cho doanh nghiệp: vườn theo mức sàng lọc, diện tích, hồ sơ đã phát
+    hành, lô hàng, khối lượng đã chứng thư, đợt giao còn chờ nông hộ xác nhận."""
+    reqlang.set_lang(lang)
+    levels = {k: 0 for k in ("low", "review", "high", "unknown")}
+    ha = {k: 0.0 for k in levels}
+    n_plots = n_invalid = n_dossiers = 0
+    review_list = []
+    for st in db.execute(select(EudrSet).where(EudrSet.user_id == user.id)).scalars().all():
+        plots = {str(p["index"]): p for p in json.loads(st.plots_json or "[]")}
+        n_plots += len(plots)
+        n_invalid += sum(1 for p in plots.values() if not p["valid"])
+        for k, r in json.loads(st.results_json or "{}").items():
+            lv = r.get("level") or "unknown"
+            levels[lv] = levels.get(lv, 0) + 1
+            ha[lv] = ha.get(lv, 0.0) + float((plots.get(k) or {}).get("area_ha") or 0)
+            n_dossiers += 1 if r.get("dossier_id") else 0
+            if lv in ("high", "review") and len(review_list) < 20:
+                review_list.append({"set": st.title or st.id[:8], "ref": (plots.get(k) or {}).get("ref"), "level": lv,
+                                    "dossier_id": r.get("dossier_id")})
+    lots_rows = db.execute(select(Lot).where(Lot.user_id == user.id)).scalars().all()
+    kg_cert = sum(json.loads(l.checks_json or "{}").get("quantity_kg", 0) for l in lots_rows if l.state == "certified")
+    pending = sum(1 for l in lots_rows for d in json.loads(l.deliveries_json or "[]") if not d.get("producer_confirmation"))
+    return {"plots": n_plots, "invalid": n_invalid, "by_level": levels, "ha_by_level": {k: round(v, 2) for k, v in ha.items()},
+            "dossiers": n_dossiers, "lots": len(lots_rows), "lots_certified": sum(1 for l in lots_rows if l.state == "certified"),
+            "kg_certified": round(kg_cert, 1), "deliveries_pending_confirmation": pending, "attention": review_list}
+
+
+@router.get("/api/eudr/public-stats")
+def eudr_public_stats(db: Session = Depends(get_session)) -> dict:
+    """Số liệu công khai: tổng hồ sơ trong sổ minh bạch, hồ sơ vườn, chứng thư lô hàng."""
+    from sqlalchemy import func
+    from app.services import translog
+    n_plot = db.scalar(select(func.count()).select_from(Dossier).where(Dossier.facts_json.like('%"kind":"eudr_plot"%'))) or 0
+    n_lot = db.scalar(select(func.count()).select_from(Dossier).where(Dossier.facts_json.like('%"kind":"lot_certificate"%'))) or 0
+    return {"log_size": translog.size(db), "plot_dossiers": int(n_plot), "lot_certificates": int(n_lot)}

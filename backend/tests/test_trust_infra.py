@@ -358,3 +358,14 @@ def test_nong_ho_xac_nhan_hoac_tu_choi_dot_giao_hang(env):
     h2 = _login(c, "xn2@vd.vn")
     other = c.post("/api/lots", headers=h2, json={"season": "2028/29", "deliveries": [{"dossier_id": a["id"], "kg": 100}]}).json()
     assert other["checks"]["rows"][0]["other_lots_kg"] == 2000
+
+
+def test_tong_quan_va_so_lieu_cong_khai(env):
+    c = env
+    h = _login(c, "tq@vd.vn")
+    a = _issue(c, "VTQ", 12.9, h)
+    c.post("/api/lots", headers=h, json={"season": "2029/30", "deliveries": [{"dossier_id": a["id"], "kg": 100}]})
+    o = c.get("/api/eudr/overview", headers=h).json()
+    assert o["lots"] == 1 and o["deliveries_pending_confirmation"] == 1
+    s = c.get("/api/eudr/public-stats").json()
+    assert s["plot_dossiers"] >= 1 and s["log_size"] >= s["plot_dossiers"]

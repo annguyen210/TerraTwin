@@ -20,7 +20,7 @@ import Account from "./Account";
 import MyLand from "./MyLand";
 import Scorecard from "./Scorecard";
 import Start from "./Start";
-import { getScorecard, trackEvent, type AuthUser, type ModuleInfo, type Scorecard as SC } from "@/lib/api";
+import { eudrPublicStats, getScorecard, trackEvent, type AuthUser, type ModuleInfo, type Scorecard as SC } from "@/lib/api";
 import { LangToggle, useLang } from "@/lib/i18n";
 import { DataSaverToggle } from "@/lib/net";
 
@@ -77,6 +77,8 @@ export default function Landing({
   const nModules = modules.length || 18;
 
   const [sc, setSc] = useState<SC | null>(null);
+  const [ps, setPs] = useState<{ log_size: number; plot_dossiers: number; lot_certificates: number } | null>(null);
+  useEffect(() => { eudrPublicStats().then(setPs).catch(() => {}); }, []);
   useEffect(() => { trackEvent("open"); }, []);        // N6 — mở app
   useEffect(() => {
     let live = true;
@@ -138,6 +140,10 @@ export default function Landing({
                 {t("Doanh nghiệp, HTX: kiểm cả lô nhà cung cấp từ tệp GeoJSON, KML, Excel",
                    "Exporters & co-ops: check a whole supplier set from GeoJSON, KML, Excel")}
               </Link>
+              {ps && ps.log_size > 0 && (
+                <p className="eu-stats-line">{t(`Sổ minh bạch công khai: ${ps.log_size} hồ sơ đã ký · ${ps.plot_dossiers} hồ sơ vườn EUDR · ${ps.lot_certificates} chứng thư lô hàng`,
+                  `Public transparency log: ${ps.log_size} signed records · ${ps.plot_dossiers} EUDR plot dossiers · ${ps.lot_certificates} lot certificates`)}</p>
+              )}
               <Link href="/lo" className="lp-buyer-cta">
                 <Package size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" />{" "}
                 {t("Ghép lô hàng: cân bằng khối lượng, chứng thư Merkle, tờ khai DDS nháp",

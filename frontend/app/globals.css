@@ -4434,3 +4434,7 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .dos-live.bad { background: rgba(229, 112, 90, .12); border: 1px solid rgba(229, 112, 90, .45); }
 .dos-live small { color: var(--dim); }
 .dos-actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
+.eu-levelbar { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: var(--line); }
+.eu-levelbar span.eu-low { background: var(--ok); } .eu-levelbar span.eu-review { background: var(--warn); }
+.eu-levelbar span.eu-high { background: var(--bad); } .eu-levelbar span.eu-unknown { background: var(--dim); }
+.eu-stats-line { margin: 10px 0 0; font-size: .76rem; color: var(--dim); text-align: center; }
