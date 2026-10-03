@@ -31,7 +31,8 @@ def compose(db: Session, user: User) -> tuple[str, str] | None:
     title = f"☀️ TerraTwin — bản tin sáng {ngay}"
     if unread:
         body = (f"Đang canh {len(n_plots)} thửa. "
-                f"⚠️ {len(unread)} cảnh báo cần xem hôm nay.")
+                f"⚠️ {len(unread)} cảnh báo cần xem hôm nay (tham khảo — bản tin "
+                f"chính thức: nchmf.gov.vn).")
     else:
         body = (f"Đang canh {len(n_plots)} thửa. "
                 f"Tất cả đang an toàn — không có gì bất thường sáng nay.")

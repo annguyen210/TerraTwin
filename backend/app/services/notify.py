@@ -246,7 +246,11 @@ def channel_status() -> dict:
 # tai; người dân sẽ dựa vào nó để quyết định. Sổ điểm đã CHỨNG MINH mô hình có
 # lúc bỏ sót — nên câu này phải luôn đi kèm, và kèm LINK sổ điểm để nó là sự thật
 # đo được chứ không phải một dòng chối bỏ trách nhiệm.
-DISCLAIMER = ("Đây là dự báo có SAI SỐ, không thay thế chỉ đạo của cơ quan phòng "
+# Nghị định 38/2016/NĐ-CP: tổ chức ngoài hệ thống dự báo quốc gia làm dự báo, cảnh
+# báo khí tượng thủy văn phải có giấy phép. Cảnh báo của TerraTwin chỉ là THAM KHẢO
+# và luôn dẫn về nguồn chính thức.
+DISCLAIMER = ("Cảnh báo THAM KHẢO, có sai số — không thay thế bản tin chính thức của Trung tâm "
+              "Dự báo Khí tượng Thủy văn quốc gia (nchmf.gov.vn) và chỉ đạo của cơ quan phòng "
               "chống thiên tai địa phương.")
 
 

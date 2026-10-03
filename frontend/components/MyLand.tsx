@@ -283,8 +283,8 @@ export default function MyLand({
             </div>
           ))}
           <p className="ml-disclaimer">
-            <TriangleAlert size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Dự báo có sai số, không thay thế chỉ đạo của cơ quan phòng chống thiên tai địa phương.",
-                  "Forecasts carry error and do not replace guidance from local disaster-prevention authorities.")}{" "}
+            <TriangleAlert size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Cảnh báo tham khảo, có sai số — không thay thế bản tin chính thức của Trung tâm Dự báo KTTV quốc gia (nchmf.gov.vn) và chỉ đạo của cơ quan phòng chống thiên tai địa phương.",
+                  "Reference alerts with error margins — not a substitute for official bulletins from Vietnam's national forecasting centre (nchmf.gov.vn) or local disaster-prevention authorities.")}{" "}
             <a href="/about">{t("Xem tỉ lệ đúng/sai", "See the accuracy rate")}</a>.
           </p>
         </div>

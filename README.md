@@ -1,5 +1,27 @@
 # 🛰️ TerraTwin
 
+## Sản phẩm chính (từ 3/10/2026): Hồ sơ vườn chuẩn EUDR — `/eudr`
+
+Quy định chống phá rừng của EU (Quy định (EU) 2023/1115) áp dụng **30/12/2026** với doanh
+nghiệp lớn và vừa, **30/6/2027** với doanh nghiệp nhỏ (Ủy ban châu Âu xác nhận 5/2026 không
+hoãn nữa). Mỗi lô cà phê, cao su, gỗ, ca cao bán vào EU phải kèm toạ độ từng thửa và bằng chứng
+không phá rừng sau 31/12/2020. Đây là nhu cầu BẮT BUỘC có hạn chót — không phải "xem cho biết".
+
+| Bước | Làm gì | Mã |
+|---|---|---|
+| 1. Ranh vườn đúng chuẩn tệp EU | vẽ trên ảnh vệ tinh / đi bộ GPS / tải GeoJSON, KML, CSV-Excel; kiểm Điều 2(28) (≥6 chữ số), 9(1)(d) (>4 ha phải đa giác) và mô tả tệp TRACES (không lỗ, không tự cắt, ranh khép kín, 25 MB); hai hộ khai chồng nhau; tự sửa lỗi chắc chắn, chỉ chỗ sai còn lại; xuất GeoJSON đúng mẫu | `services/eudr_geo.py` |
+| 2. Sàng lọc phá rừng sau 31/12/2020 | ba bản đồ rừng 2020 độc lập bỏ phiếu (ESA WorldCover, JAXA ALOS radar, Impact Observatory TB 2018–2020) + quỹ đạo tán cây 2017–2023 + NDVI Sentinel-2 cùng mùa trước/sau mốc + khu bảo tồn OSM → Đạt / Cần xem lại / Rủi ro / Chưa đủ dữ liệu | `services/eudr_forest.py` |
+| 3. Hồ sơ ký số thuộc về nông hộ | Ed25519 + QR + sổ móc xích công khai; chỉ số ĐO và số TÍNH LẠI ĐƯỢC, không dự báo; lô thửa chạy nền cho doanh nghiệp, HTX (CSV, GeoJSON thửa đạt, hồ sơ từng vườn) | `services/eudr.py`, `routes_eudr.py` |
+| 4. Kiểm định độc lập, ngưỡng đặt trước | đối chiếu Hansen GFC v1.12 trên 120 thửa Tây Nguyên; giao thức + mẫu commit TRƯỚC khi chạy (3332597); kết quả công bố kể cả khi không đạt | `app/eudr_validate.py`, `data/eudr_validation*.json` |
+
+Đây là **sàng lọc**, không phải chứng nhận tuân thủ EUDR; TerraTwin không xác nhận quyền sử dụng
+đất. Quy tắc tin cậy cho cả phần mềm: mỗi con số mang nhãn **Đo / Tính lại được / Dự đoán** — chỉ
+hai loại đầu được đưa vào hồ sơ ký số dùng cho mua bán, vay vốn. 18 công cụ theo dõi bên dưới vẫn
+còn, nhưng phần cảnh báo thiên tai chỉ để tham khảo: cảnh báo chính thức thuộc Trung tâm Dự báo
+KTTV quốc gia (nchmf.gov.vn; Nghị định 38/2016/NĐ-CP yêu cầu giấy phép dự báo).
+
+---
+
 **Bản sao số (digital twin) của đất đai Việt Nam** — nhìn đất thật từ vệ tinh → mô phỏng → dự đoán kiểm chứng được → khuyến nghị hành động. Một lõi Twin, **18 mũi nhọn phủ đủ 12/12 ngành**.
 
 Ba chữ cốt lõi: **CỦA MÌNH** (từng thửa) · **BIẾT TRƯỚC** (kịp hành động) · **BẰNG CHỨNG THẬT** (vệ tinh/thời tiết, kiểm chứng được — không phỏng đoán).

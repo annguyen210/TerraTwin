@@ -2118,19 +2118,25 @@ export async function uploadEvidence(lat: number, lon: number, areaHa: number | 
 export type DossierFacts = {
   schema: string;
   lang: string;
+  // "eudr_plot" = Hồ sơ vườn chuẩn EUDR (xem EudrDossierFacts); vắng = hồ sơ đất số.
+  kind?: "eudr_plot";
   location: { lat: number; lon: number; area_ha: number | null };
   land_use: LandUse | null;
   terrain: NonNullable<Passport["terrain"]> | null;
   history_10y: Record<string, PassportHazard> | null;
   history_caveat: string | null;
-  current_risk: {
+  // Từ 3/10/2026 hồ sơ KHÔNG ký dự báo (predictions_included=false); hồ sơ cũ vẫn có.
+  predictions_included?: boolean;
+  predictions_note?: string;
+  evidence_classes?: Record<string, string>;
+  current_risk?: {
     assessed_at: string;
     terrascore: { score: number; grade: string; summary: string };
     real_data_ratio: number;
     modules: DossierModule[];
     not_assessed_in_dossier: string[];
   } | null;
-  track_record: {
+  track_record?: {
     window_days?: number; scored?: number; pending?: number; enough?: boolean;
     min_sample?: number; headline?: string;
     pod_pct?: number | null; far_pct?: number | null; csi_pct?: number | null;
@@ -2154,7 +2160,7 @@ export type DossierProof = {
   schema: string; facts_hash: string; prev_hash: string; entry_hash: string;
   algorithm: string; key_id: string; signature: string;
 };
-export type DossierDoc = { id: string; seq: number; issued_at: string; facts: DossierFacts; proof: DossierProof };
+export type DossierDoc = { id: string; seq: number; issued_at: string; facts: DossierFacts & Partial<EudrDossierFacts>; proof: DossierProof };
 export type Dossier = DossierDoc & { url: string; qr: string | null; verification: DossierVerification };
 export type DossierFileCheck = {
   valid: boolean; found: boolean; matches_registry?: boolean;
@@ -2251,4 +2257,156 @@ export async function downloadBatchCsv(id: string) {
   a.download = `terratwin-tham-dinh-${id.slice(0, 8)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+// ---- HỒ SƠ VƯỜN CHUẨN EUDR: ranh thửa chuẩn GeoJSON EU + sàng lọc phá rừng sau 31/12/2020 ----
+export type GeoGeometry = { type: "Point" | "MultiPoint" | "Polygon" | "MultiPolygon"; coordinates: unknown };
+export type EudrIssue = { code: string; level: "error" | "warning" | "fixed"; message: string; other?: string; line?: number };
+export type EudrPlot = {
+  index: number; ref: string; src: string | null; producer: string | null; country: string | null;
+  area_declared_ha: number | null; kind: "point" | "polygon" | null; geometry: GeoGeometry | null;
+  area_ha: number | null; area_source: "polygon" | "declared" | "eu_default" | null;
+  centroid: { lat: number; lon: number } | null; bbox: number[] | null; n_vertices: number;
+  issues: EudrIssue[]; valid: boolean;
+};
+export type EudrValidation = {
+  format: string; file_errors: EudrIssue[]; plots: EudrPlot[];
+  summary: { n: number; n_valid: number; n_errors: number; n_warnings: number; n_fixed: number;
+             n_polygons: number; n_points: number; total_ha: number; by_code: Record<string, number>;
+             eu_ready: boolean; headline: string };
+};
+export type EudrLevel = "low" | "review" | "high" | "unknown";
+export type EudrMap = { id: string; name: string; collection: string; res_m: number; pct: number | null;
+                        pixels?: number; items?: string[]; buffered_m?: number; years?: number[] };
+export type EudrS2 = { item: string; date: string; clear_pct: number; ndvi_mean: number;
+                       processing_baseline: string | null; image: { url: string; bbox: number[] } } | null;
+export type EudrScreening = {
+  method: string; cutoff: string; computed_at: string; level: EudrLevel; label: string; reasons: string[];
+  plot: { area_ha: number | null; kind: string | null; geometry_used: "polygon" | "circle_from_point";
+          centroid: { lat: number; lon: number } | null };
+  forest_2020: EudrMap[];
+  wc2021: (EudrMap & { pct: number }) | null;
+  io_trajectory: { year: number; tree_pct: number | null; item?: string | null }[];
+  s2: { before: EudrS2; after: EudrS2; windows?: { before: string[]; after: string[] } };
+  protected: { checked: boolean; inside: string[]; source?: string };
+  signals: { votes?: string[]; strong?: string[]; io_before_pct?: number | null; io_after_pct?: number | null;
+             io_drop_pts?: number | null; ndvi_drop?: number | null; loss?: boolean; loss_by?: string[] };
+  thresholds: Record<string, number>;
+  caveats: string[];
+  dossier_id?: string;
+};
+export type EudrDossierFacts = {
+  schema: string; kind: "eudr_plot"; lang: string;
+  plot: { ref: string; producer: string | null; country: string; commodity: string | null; commodity_label: string | null;
+          kind: "point" | "polygon"; geometry: GeoGeometry; area_ha: number; area_source: string;
+          centroid: { lat: number; lon: number }; n_vertices: number };
+  eu_format: { valid: boolean; issues: EudrIssue[]; rules: string };
+  screening: EudrScreening;
+  evidence_classes: Record<string, string>;
+  predictions_included: boolean;
+  sources: string[]; reproduce: string; disclaimer: string;
+};
+export type EudrMethod = {
+  rule_version: string; cutoff: string; thresholds: Record<string, number>; sources: string[];
+  levels: Record<EudrLevel, string>;
+  eu_rules: { min_decimals: number; point_max_ha: number; default_point_ha: number; max_file_mb: number };
+  max_screen_per_set: number;
+  validation: { run_at: string; rule_version: string; n: number; metrics: Record<string, number | null>;
+                pass_thresholds: Record<string, number>; passed: boolean;
+                counts: Record<string, Record<EudrLevel, number>> } | null;
+  validation_protocol: { registered: string; reference: string; sets: Record<string, { criteria: string; expected: string }>;
+                         pass_thresholds: Record<string, number>; per_set: number; region: { note: string } } | null;
+};
+export type EudrPlotInput = { geometry: GeoGeometry; ref?: string; producer?: string; area_ha?: number | null;
+                              gps_accuracy_m?: number | null };
+
+export function eudrValidate(text: string, filename = "") {
+  return postJson<EudrValidation>(`/api/eudr/validate?lang=${curLang()}`, { text, filename },
+    "Không kiểm được tệp ranh thửa");
+}
+
+export function eudrScreen(p: EudrPlotInput) {
+  return postJson<{ plot: EudrPlot; screening: EudrScreening | null }>(`/api/eudr/screen?lang=${curLang()}`, p,
+    "Không sàng lọc được thửa này");
+}
+
+export function eudrMethod() {
+  return getJson<EudrMethod>(`/api/eudr/method?lang=${curLang()}`, "Không tải được phương pháp");
+}
+
+function saveBlob(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export async function eudrExport(body: { text?: string; filename?: string; geometry?: GeoGeometry; ref?: string;
+                                         producer?: string; area_ha?: number | null }) {
+  const r = await fetch(`${BASE}/api/eudr/export?lang=${curLang()}`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error(await errMessage(r, "Không xuất được tệp GeoJSON"));
+  saveBlob(await r.blob(), "terratwin-eudr.geojson");
+}
+
+export async function eudrIssueDossier(p: EudrPlotInput & { commodity: string; evidence_ids?: string[] }) {
+  const r = await fetch(`${BASE}/api/eudr/dossier?lang=${curLang()}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(p),
+  });
+  if (!r.ok) throw new Error(await errMessage(r, "Không phát hành được hồ sơ vườn"));
+  return (await r.json()) as Dossier;
+}
+
+export type EudrSetInfo = { id: string; title: string; commodity: string; n_plots: number; state: string;
+                            created_at: string; headline: string | null;
+                            progress: { done: number; total: number; current: string; phase: string } | null };
+export type EudrSetSummary = { n: number; n_valid: number; n_invalid: number; n_screened: number;
+                               by_level: Record<EudrLevel, number>; ha_by_level: Record<EudrLevel, number>;
+                               headline: string; flagged: number };
+export type EudrSet = {
+  id: string; state: "queued" | "running" | "done"; title: string; commodity: string; producer: string;
+  created_at: string; plots: EudrPlot[]; results: Record<string, EudrScreening>; summary: EudrSetSummary;
+  progress?: { done: number; total: number; current: string; phase: string }; error?: string;
+};
+
+export async function eudrSubmitSet(body: { text: string; filename: string; title: string; commodity: string;
+                                            producer: string }) {
+  const r = await fetch(`${BASE}/api/eudr/sets?lang=${curLang()}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error(await errMessage(r, "Không gửi được lô thửa"));
+  return (await r.json()) as { set_id: string; screening: number; warning: string | null };
+}
+
+export function eudrListSets() {
+  return authed<{ max_screen: number; sets: EudrSetInfo[] }>("/api/eudr/sets", {}, "Không tải được các lô thửa");
+}
+
+export function eudrGetSet(id: string) {
+  return authed<EudrSet>(`/api/eudr/sets/${encodeURIComponent(id)}?lang=${curLang()}`, {}, "Không tải được lô thửa");
+}
+
+export function eudrDeleteSet(id: string) {
+  return authed<void>(`/api/eudr/sets/${encodeURIComponent(id)}`, { method: "DELETE" }, "Không xoá được");
+}
+
+export function eudrSetDossiers(id: string) {
+  return authed<{ n: number; issued: { ref: string; id: string; url: string }[] }>(
+    `/api/eudr/sets/${encodeURIComponent(id)}/dossiers?lang=${curLang()}`, { method: "POST" },
+    "Không phát hành được hồ sơ");
+}
+
+export async function eudrDownloadSet(id: string, what: "csv" | "geojson-valid" | "geojson-passed") {
+  const path = what === "csv" ? `csv?lang=${curLang()}`
+    : `geojson?which=${what === "geojson-passed" ? "passed" : "valid"}`;
+  const r = await fetch(`${BASE}/api/eudr/sets/${encodeURIComponent(id)}/${path}`, { headers: authHeaders() });
+  if (!r.ok) throw new Error(await errMessage(r, "Không tải được tệp"));
+  saveBlob(await r.blob(), `terratwin-eudr-${id.slice(0, 8)}-${what}.${what === "csv" ? "csv" : "geojson"}`);
 }

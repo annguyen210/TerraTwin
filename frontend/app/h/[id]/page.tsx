@@ -17,8 +17,10 @@ import {
   evidenceThumbSrc, getDossier, verifyDossierFile,
   type Dossier, type DossierFileCheck, type DossierModule,
 } from "@/lib/api";
+import EudrDossierView from "@/components/EudrDossierView";
 import { LangToggle, useLang } from "@/lib/i18n";
 import { levelOf } from "@/lib/riskScale";
+import type { EudrDossierFacts } from "@/lib/api";
 
 function fmtTime(iso: string) {
   const d = new Date(iso);
@@ -84,6 +86,7 @@ export default function DossierPage() {
   const lu = f?.land_use;
   const hist = f?.history_10y ? Object.entries(f.history_10y) : [];
   const cr = f?.current_risk;
+  const isEudr = f?.kind === "eudr_plot";
 
   return (
     <div className="doc dos">
@@ -104,12 +107,14 @@ export default function DossierPage() {
           <article className="dos-paper">
             <div className="dos-head">
               <div>
-                <p className="dos-eyebrow">{t("HỒ SƠ ĐẤT SỐ · TERRATWIN", "DIGITAL LAND DOSSIER · TERRATWIN")}</p>
-                <h1>{t("Thửa", "Plot")} {f.location.lat.toFixed(5)}, {f.location.lon.toFixed(5)}</h1>
+                <p className="dos-eyebrow">{isEudr
+                  ? t("HỒ SƠ VƯỜN CHUẨN EUDR · TERRATWIN", "EUDR PLOT DOSSIER · TERRATWIN")
+                  : t("HỒ SƠ ĐẤT SỐ · TERRATWIN", "DIGITAL LAND DOSSIER · TERRATWIN")}</p>
+                <h1>{isEudr ? f.plot!.ref : <>{t("Thửa", "Plot")} {f.location.lat.toFixed(5)}, {f.location.lon.toFixed(5)}</>}</h1>
                 <p className="dos-meta">
                   {t("Phát hành", "Issued")} {fmtTime(d.issued_at)} · {t("Số", "No.")} {String(d.seq).padStart(6, "0")} ·{" "}
                   {t("Mã", "ID")} <code>{d.id}</code>
-                  {f.location.area_ha ? <> · {f.location.area_ha} ha</> : null}
+                  {isEudr ? <> · {f.plot!.area_ha} ha</> : f.location.area_ha ? <> · {f.location.area_ha} ha</> : null}
                 </p>
               </div>
               {d.qr && (
@@ -131,6 +136,9 @@ export default function DossierPage() {
                         "The server re-ran these four checks when you opened this page.")}</small>
             </section>
 
+            {isEudr && <EudrDossierView f={f as unknown as EudrDossierFacts} />}
+
+            {!isEudr && <>
             <div className="dos-grid">
               <section>
                 <h2>{t("Loại đất", "Land type")}</h2>
@@ -187,7 +195,14 @@ export default function DossierPage() {
               {f.history_caveat && <p className="dos-src">{f.history_caveat}</p>}
             </section>
 
-            <section>
+            {!cr && f.predictions_note && (
+              <section>
+                <h2>{t("Dự báo không nằm trong hồ sơ", "Forecasts are not in this dossier")}</h2>
+                <p className="dos-note">{f.predictions_note}</p>
+              </section>
+            )}
+
+            {cr && <section>
               <h2>{t("Hiện trạng rủi ro lúc phát hành", "Risk status at issuance")}</h2>
               {cr ? (
                 <>
@@ -214,7 +229,7 @@ export default function DossierPage() {
                   </p>
                 </>
               ) : <p className="dos-miss">{t("Không lấy được lúc phát hành.", "Not available at issuance.")}</p>}
-            </section>
+            </section>}
 
             {f.land_change && (
               <section>
@@ -275,15 +290,18 @@ export default function DossierPage() {
               </section>
             )}
 
-            <section>
-              <h2>{t("Độ tin cậy của chính TerraTwin", "TerraTwin's own track record")}</h2>
-              <p className="dos-note">{f.track_record?.headline ?? t("Không lấy được lúc phát hành.", "Not available at issuance.")}</p>
-            </section>
+            {f.track_record && (
+              <section>
+                <h2>{t("Độ tin cậy của chính TerraTwin", "TerraTwin's own track record")}</h2>
+                <p className="dos-note">{f.track_record.headline ?? t("Không lấy được lúc phát hành.", "Not available at issuance.")}</p>
+              </section>
+            )}
+            </>}
 
             <section>
               <h2>{t("Nguồn dữ liệu", "Data sources")}</h2>
               <ul className="dos-bullets">{f.sources.map((s) => <li key={s}>{s}</li>)}</ul>
-              {f.missing.length > 0 && (
+              {(f.missing?.length ?? 0) > 0 && (
                 <p className="dos-miss">{t("Thiếu lúc phát hành:", "Missing at issuance:")} {f.missing.join(", ")}</p>
               )}
               <p className="dos-disclaimer">{f.disclaimer}</p>

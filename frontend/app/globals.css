@@ -4306,3 +4306,90 @@ a.plan-print{ text-decoration:none; display:inline-flex; align-items:center }
 /* Icon nét (lucide) thay emoji — thẳng hàng với chữ, đổi màu theo chữ. */
 .mod-ic, .ui-ic { display: inline-block; vertical-align: -3px; flex: none; }
 .ans-cell-ic .mod-ic, .ov-tile-ic .mod-ic { width: 20px; height: 20px; }
+
+/* ===== Hồ sơ vườn chuẩn EUDR (trang /eudr, trang hồ sơ, trang đầu) ===== */
+.eu-wrap h1 { margin: 2px 0 6px; }
+.eu-eyebrow { margin: 0; font-size: .74rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--terra); }
+.eu-tabs { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--line); }
+.eu-tabs button { background: none; border: none; border-bottom: 2px solid transparent; padding: 9px 12px; color: var(--dim);
+  font-weight: 600; font-size: .9rem; cursor: pointer; }
+.eu-tabs button.on { color: var(--text); border-bottom-color: var(--terra); }
+.eu-tabs button:hover { color: var(--text); }
+.eu-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 10px; }
+.eu-fields label { display: grid; gap: 4px; font-size: .78rem; color: var(--dim); }
+.eu-fields .bat-input { flex: none; width: 100%; box-sizing: border-box; }
+.eu-src { margin: 0; font-size: .8rem; color: var(--dim); line-height: 1.55; }
+.eu-ok-line { margin: 0; color: var(--ok); font-size: .88rem; font-weight: 600; }
+.eu-err-txt { color: var(--bad); }
+.eu-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: .8rem;
+  font-weight: 700; white-space: nowrap; vertical-align: middle; border: 1px solid transparent; }
+.eu-badge.eu-low { background: rgba(62, 203, 131, .14); color: var(--ok); border-color: rgba(62, 203, 131, .4); }
+.eu-badge.eu-review { background: rgba(224, 164, 74, .14); color: var(--warn); border-color: rgba(224, 164, 74, .45); }
+.eu-badge.eu-high { background: rgba(229, 112, 90, .15); color: var(--bad); border-color: rgba(229, 112, 90, .5); }
+.eu-badge.eu-unknown { background: var(--card); color: var(--dim); border-color: var(--line-2); }
+.eu-tile.eu-low b { color: var(--ok); } .eu-tile.eu-review b { color: var(--warn); } .eu-tile.eu-high b { color: var(--bad); }
+.eu-issues { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.eu-issue { font-size: .82rem; line-height: 1.45; color: var(--text); }
+.eu-issue-tag { display: inline-block; font-size: .68rem; font-weight: 700; padding: 1px 7px; border-radius: 6px; margin-right: 4px;
+  background: var(--card); border: 1px solid var(--line-2); color: var(--dim); }
+.eu-issue.error .eu-issue-tag { color: var(--bad); border-color: rgba(229, 112, 90, .5); }
+.eu-issue.warning .eu-issue-tag { color: var(--warn); border-color: rgba(224, 164, 74, .45); }
+.eu-issue.fixed .eu-issue-tag { color: var(--ok); border-color: rgba(62, 203, 131, .4); }
+.eu-result { display: grid; gap: 10px; min-width: 0; }
+.eu-result h4 { margin: 8px 0 0; font-size: .86rem; color: var(--text); }
+.eu-verdict { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.eu-verdict .eu-badge { font-size: .95rem; padding: 6px 14px; }
+.eu-verdict-sub { font-size: .76rem; color: var(--dim); }
+.eu-reasons { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: .86rem; color: var(--text); line-height: 1.5; }
+.eu-caveats { margin: 0; padding-left: 18px; display: grid; gap: 3px; font-size: .76rem; color: var(--dim); line-height: 1.5; }
+.eu-mini { display: block; height: 5px; margin-top: 4px; border-radius: 999px; background: var(--line); overflow: hidden; min-width: 60px; }
+.eu-mini > span { display: block; height: 100%; background: var(--terra); }
+.eu-traj { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; max-width: 520px; }
+.eu-traj > div { display: grid; justify-items: center; gap: 2px; }
+.eu-traj-bar { display: flex; align-items: flex-end; width: 100%; max-width: 34px; height: 64px; background: var(--card);
+  border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.eu-traj-bar > span { display: block; width: 100%; background: var(--terra); }
+.eu-traj > div.post .eu-traj-bar > span { background: var(--warn); }
+.eu-traj b { font-size: .72rem; color: var(--text); font-variant-numeric: tabular-nums; }
+.eu-traj small { font-size: .68rem; color: var(--dim); }
+.eu-imgs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 12px; }
+.eu-img { margin: 0; display: grid; gap: 6px; min-width: 0; }
+.eu-img-box { position: relative; aspect-ratio: 1 / 1; border-radius: 10px; overflow: hidden; border: 1px solid var(--line-2); background: var(--card); }
+.eu-img-box img, .eu-img-box svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.eu-img-box svg path, .eu-img-box svg circle { fill: rgba(255, 210, 63, .12); stroke: #ffd23f; stroke-width: 2.5; vector-effect: non-scaling-stroke; }
+.eu-img figcaption { font-size: .76rem; color: var(--dim); line-height: 1.45; }
+.eu-img figcaption b { color: var(--text); }
+.eu-img figcaption small { display: block; font-family: ui-monospace, Consolas, monospace; font-size: .66rem; opacity: .8; }
+.eu-img-miss > div { aspect-ratio: 1 / 1; display: grid; place-items: center; text-align: center; padding: 16px; border-radius: 10px;
+  border: 1px dashed var(--line-2); color: var(--dim); font-size: .82rem; }
+.eu-draw { display: grid; gap: 8px; }
+.eu-draw-tools { display: flex; flex-wrap: wrap; gap: 6px; }
+.eu-draw-tools .bat-btn { display: inline-flex; align-items: center; gap: 6px; }
+.eu-map { height: min(460px, 62vh); border-radius: 12px; overflow: hidden; border: 1px solid var(--line-2); }
+.eu-draw-status { margin: 0; font-size: .8rem; color: var(--dim); }
+.eu-detail td { background: var(--bg); }
+.eu-class { display: inline-block; margin-left: 6px; font-size: .62rem; font-weight: 800; letter-spacing: .05em; padding: 2px 7px;
+  border-radius: 6px; color: var(--terra); border: 1px solid rgba(95, 203, 142, .45); vertical-align: middle; }
+.eu-plotbox { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; }
+.eu-plotbox .dos-list { flex: 1 1 200px; }
+.eu-outline { width: 140px; height: 140px; flex: none; border: 1px solid var(--line-2); border-radius: 10px; background: var(--card); }
+.eu-outline path { fill: rgba(95, 203, 142, .18); stroke: var(--terra); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.eu-coords summary { cursor: pointer; font-size: .84rem; color: var(--terra); }
+.eu-coords code { display: block; white-space: pre; overflow-x: auto; max-height: 260px; margin-top: 8px; padding: 10px;
+  border-radius: 8px; background: var(--card); font-size: .74rem; }
+.bat-btn .ui-ic { vertical-align: -3px; }
+label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+/* Trang đầu: lối vào EUDR + mục công cụ tham khảo */
+.eu-start h2 { margin: 0 0 10px; font-size: 1.05rem; }
+.eu-start-main { display: flex; gap: 12px; align-items: flex-start; padding: 16px; border-radius: 12px; text-decoration: none;
+  background: linear-gradient(135deg, #5fcb8e, #3ecb83); color: var(--on-accent); box-shadow: var(--shadow);
+  transition: transform .12s; }
+.eu-start-main:hover { transform: translateY(-1px); }
+.eu-start-main .ui-ic { margin-top: 2px; }
+.eu-start-main b { display: block; font-size: 1rem; }
+.eu-start-main small { display: block; font-size: .8rem; opacity: .85; margin-top: 3px; font-weight: 500; }
+.lp-tools-sub { margin: -8px 0 16px; font-size: .86rem; color: var(--dim); line-height: 1.55; max-width: 880px; }
+.lp-tools-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 24px; align-items: start; }
+.lp-tools-grid > div:first-child { background: var(--panel); border: 1px solid var(--line-2); border-radius: 16px; padding: 18px; }
+.lp-tools-links .lp-buyer-cta:first-child { margin-top: 0; }
+@media (max-width: 860px) { .lp-tools-grid { grid-template-columns: 1fr; } }

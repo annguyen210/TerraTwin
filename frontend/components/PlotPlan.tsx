@@ -530,8 +530,8 @@ export default function PlotPlan({
       {/* N7 — câu miễn trừ luôn đi kèm cảnh báo, kèm link sổ điểm để nó là sự
           thật đo được chứ không phải một dòng chối bỏ trách nhiệm. */}
       <p className="plan-disclaimer">
-        ⚠️ {t("Đây là dự báo có sai số, không thay thế chỉ đạo của cơ quan phòng chống thiên tai địa phương.",
-               "This is a forecast with error margins, not a substitute for local disaster-authority guidance.")}{" "}
+        ⚠️ {t("Dự báo tham khảo, có sai số — không thay thế bản tin chính thức của Trung tâm Dự báo KTTV quốc gia (nchmf.gov.vn) và chỉ đạo của cơ quan phòng chống thiên tai địa phương.",
+               "A reference forecast with error margins — not a substitute for official bulletins from Vietnam's national forecasting centre (nchmf.gov.vn) or local disaster-authority guidance.")}{" "}
         <a href="/about">{t("Xem tỉ lệ đúng/sai của chúng tôi", "See our accuracy record")}</a>.
       </p>
     </div>
