@@ -8,10 +8,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertOctagon, ArrowRight, BookOpen, CheckCircle2, ClipboardCheck, Footprints, Package, ShieldCheck, Sparkles } from "lucide-react";
+import { AlertOctagon, ArrowRight, Bell, BookOpen, CheckCircle2, ClipboardCheck, Footprints, Package, ShieldCheck, Sparkles } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { getToday, type Today } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
+import { enablePush, pushState } from "@/lib/push";
 
 function Ring({ days, total, label, date, unit }: { days: number; total: number; label: string; date: string; unit: string }) {
   const r = 34, c = 2 * Math.PI * r;
@@ -31,6 +32,12 @@ function Ring({ days, total, label, date, unit }: { days: number; total: number;
 export default function TodayPage() {
   const { t, lang } = useLang();
   const [d, setD] = useState<Today | null>(null);
+  const [push, setPush] = useState<string>("");
+  useEffect(() => { pushState().then(setPush).catch(() => {}); }, []);
+  async function turnOnPush() {
+    setPush("...");
+    try { setPush(await enablePush()); } catch { setPush("off"); }
+  }
   const [err, setErr] = useState<string | null>(null);
   const load = () => getToday().then(setD).catch((e) => setErr(e.message));
   useEffect(() => { load(); }, [lang]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -88,6 +95,19 @@ export default function TodayPage() {
         {d?.signed_in && (
           <section className="hn-list">
             <h2>{t("Việc cần làm", "To do")}</h2>
+            {push && push !== "on" && push !== "unsupported" && (
+              <div className="hn-push">
+                <Bell size={16} aria-hidden="true" />
+                <span>
+                  {push === "unconfigured" ? t("Máy chủ chưa bật thông báo đẩy — việc mới vẫn hiện ở đây.", "Push isn't enabled on the server yet — new tasks still show here.")
+                    : push === "denied" ? t("Trình duyệt đang chặn thông báo của TerraTwin — mở cài đặt trang để cho phép.", "Your browser blocks TerraTwin notifications — allow them in site settings.")
+                    : t("Nhận thông báo ngay khi một vườn thay đổi sau phát hành, kể cả lúc không mở ứng dụng.", "Get notified the moment a plot changes after issuance, even when the app is closed.")}
+                </span>
+                {(push === "off" || push === "...") && (
+                  <button className="doc-btn" onClick={turnOnPush} disabled={push === "..."}>{t("Bật thông báo", "Turn on")}</button>
+                )}
+              </div>
+            )}
             {d.items.length === 0 ? (
               <div className="hn-empty"><CheckCircle2 size={22} aria-hidden="true" /> {t("Mọi thứ ổn. Giám sát sau phát hành chạy mỗi tuần, radar xuyên mây canh cả mùa mưa.", "All clear. Post-issuance monitoring runs weekly; cloud-piercing radar watches through the rainy season.")}</div>
             ) : d.items.map((it, i) => {

@@ -69,6 +69,9 @@ def run(db: Session, limit: int = 20, recheck_days: int = 30, screen=None, radar
             rd = None
         if rd and rd.get("signal") == "strong":
             ch, why = True, why + ["radar_drop"]
+        was_changed = bool(db.scalar(select(DossierMonitor.changed)
+                                     .where(DossierMonitor.dossier_id == row.id)
+                                     .order_by(DossierMonitor.checked_at.desc()).limit(1)))
         db.add(DossierMonitor(dossier_id=row.id, level=now.get("level") or "unknown",
                               issued_level=issued.get("level") or "unknown", changed=int(ch),
                               summary_json=json.dumps({"why": why, "reasons": now.get("reasons"),
@@ -77,6 +80,30 @@ def run(db: Session, limit: int = 20, recheck_days: int = 30, screen=None, radar
                                                        "radar": rd},
                                                       ensure_ascii=False)))
         db.commit()
+        if ch and not was_changed:          # chỉ lần ĐẦU chuyển sang "thay đổi" — không báo lặp mỗi tuần
+            _notify_change(db, row, f, why)
         done += 1
         changed += int(ch)
     return {"checked": done, "changed": changed, "candidates": len(rows)}
+
+
+def _notify_change(db: Session, row: Dossier, facts: dict, why: list[str]) -> int:
+    """Báo ĐẨY tới chủ hồ sơ và mọi doanh nghiệp có lô hàng chứa vườn này. Best-effort:
+    chưa cấu hình VAPID / chưa đăng ký thiết bị thì thôi, không làm hỏng lượt giám sát."""
+    from app.db import Lot
+    from app.services import push
+    ref = (facts.get("plot") or {}).get("ref") or row.id
+    radar = "radar_drop" in why
+    title = f"Vườn “{ref}” thay đổi sau khi phát hành"
+    body = ("Radar xuyên mây thấy tán cây giảm mạnh. " if radar else "Sàng lọc lại cho kết quả xấu hơn lúc phát hành. ") +         "Lô hàng chứa vườn này tạm bị chặn — mở để xem ảnh trước/sau."
+    users = {row.user_id} if row.user_id else set()
+    for lot in db.execute(select(Lot)).scalars().all():
+        if any(d.get("dossier_id") == row.id for d in json.loads(lot.deliveries_json or "[]")):
+            users.add(lot.user_id)
+    sent = 0
+    for uid in users:
+        try:
+            sent += push.send_to_user(db, uid, title, body, url=f"/h/{row.id}")
+        except Exception:
+            continue
+    return sent

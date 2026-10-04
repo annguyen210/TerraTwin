@@ -1,0 +1,13 @@
+{
+  "schema": "terratwin.eval-protocol/1",
+  "method": "terratwin.autoboundary/1",
+  "registered": "2026-10-04",
+  "question": "Ranh đề xuất từ một điểm chạm có khớp ranh thửa thật đủ để bật cho nông hộ không?",
+  "reference": "Đa giác OpenStreetMap landuse=farmland|orchard|plantation, 0,3–20 ha, khép kín; Đắk Lắk, Lâm Đồng, Bình Phước (lấy hết) + 30 thửa ngẫu nhiên đồng bằng sông Cửu Long (seed 20261004). OSM do tình nguyện viên vẽ — ranh tham chiếu cũng có sai số.",
+  "tap_point": "representative_point() của đa giác tham chiếu (luôn nằm trong thửa)",
+  "metric": "IoU giữa ranh đề xuất và ranh tham chiếu; lượt TỪ CHỐI (ok=false) tính IoU = 0 trong chỉ số chính, đồng thời báo riêng tỉ lệ từ chối và IoU trên lượt đề xuất",
+  "enable_if": {"median_iou_all": ">= 0.60", "share_iou_ge_0_5_all": ">= 0.70"},
+  "beta_if": {"median_iou_proposed": ">= 0.50", "note": "chưa đạt enable_if nhưng lượt đề xuất đủ tốt → chỉ hiện dạng 'thử nghiệm' kèm cảnh báo, người dùng phải chỉnh"},
+  "otherwise": "không hiện cho người dùng; công bố kết quả thất bại",
+  "no_tuning_on_this_set": "Không chỉnh tham số theo bộ này rồi báo lại trên chính bộ này. Muốn chỉnh thì tách bộ mới."
+}

@@ -384,6 +384,27 @@ def test_giam_sat_radar_manh_danh_dau_thay_doi(env):
     assert m["changed"] and "radar_drop" in m["why"] and m["radar"]["drop_db"] == 4.2
 
 
+
+def test_giam_sat_bao_day_mot_lan_cho_chu_ho_so_va_doanh_nghiep(env, monkeypatch):
+    """Vườn chuyển sang 'thay đổi' → báo đẩy chủ hồ sơ + doanh nghiệp có lô chứa vườn;
+    lượt giám sát sau vẫn thay đổi thì KHÔNG báo lặp."""
+    c = env
+    h = _login(c, "pn@vd.vn")
+    a = _issue(c, "VPN", 12.93, h)
+    hb = _login(c, "pn2@vd.vn")
+    c.post("/api/lots", headers=hb, json={"operator": "Cty P", "season": "2030/31",
+                                          "deliveries": [{"dossier_id": a["id"], "kg": 300}]})
+    from app.services import monitor as mon, push
+    sent = []
+    monkeypatch.setattr(push, "send_to_user", lambda db, uid, title, body, url="/": sent.append((uid, url)) or 1)
+    strong = lambda p: {"signal": "strong", "drop_db": 4.0, "label": "x"}
+    with c.Session() as s:
+        mon.run(s, screen=_fake_screen({"VPN": "low"}), radar=strong)
+        first = list(sent)
+        mon.run(s, screen=_fake_screen({"VPN": "low"}), radar=strong, recheck_days=-1)
+    assert len(first) == 2 and {u for u, _ in first} and all(url == f"/h/{a['id']}" for _, url in first)
+    assert len(sent) == 2                              # lượt sau không báo lặp
+
 def test_bang_tin_hom_nay(env):
     c = env
     pub = c.get("/api/today").json()
