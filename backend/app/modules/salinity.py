@@ -43,10 +43,10 @@ class SalinityModule(TwinModule):
     group = "A"
     icon = "🌾"
     status = "active"
-    data_sources = ["Đường bờ biển VN", "Cao độ DEM (Open-Meteo)",
+    data_sources = ["Đường bờ biển VN", "Cao độ DEM Copernicus (Open-Meteo, Planetary Computer)",
                     "Chu kỳ mùa khô/mùa lũ", "Bảng thủy triều",
                     "Dữ liệu mặn Ủy hội Mekong (chờ tích hợp)"]
-    data_sources_en = ["Vietnam coastline", "DEM elevation (Open-Meteo)",
+    data_sources_en = ["Vietnam coastline", "Copernicus DEM elevation (Open-Meteo, Planetary Computer)",
                        "Dry/flood season cycle", "Tide table",
                        "Mekong River Commission salinity data (pending integration)"]
     users = ["Nông dân lúa ĐBSCL", "Hợp tác xã", "Sở NN&PTNT"]

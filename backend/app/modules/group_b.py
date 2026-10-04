@@ -13,9 +13,9 @@ from app.services.reqlang import tr
 
 class FloodModule(TwinModule):
     id = "flood"; name = "Cảnh báo lũ/ngập sớm"; name_en = "Early flood warning"; group = "B"; icon = "🌊"; status = "active"
-    data_sources = ["Open-Meteo: lượng mưa", "Cao độ DEM (Open-Meteo)",
+    data_sources = ["Open-Meteo: lượng mưa", "Cao độ DEM Copernicus (Open-Meteo, Planetary Computer)",
                     "GloFAS: lưu lượng sông (Open-Meteo Flood API)"]
-    data_sources_en = ["Open-Meteo: rainfall", "DEM elevation (Open-Meteo)",
+    data_sources_en = ["Open-Meteo: rainfall", "Copernicus DEM elevation (Open-Meteo, Planetary Computer)",
                        "GloFAS: river discharge (Open-Meteo Flood API)"]
     users = ["Người dân", "Chính quyền", "Cứu hộ"]
     description = "Vùng dân cư nào sắp ngập, sâu bao nhiêu, khi nào."
@@ -79,7 +79,7 @@ class FloodModule(TwinModule):
         detail = base + " " + hazard.scale_note(real, calibrated)
 
         src = [hazard.source_label(source, "lượng mưa", "rainfall"),
-               tr(f"Cao độ {elev} m (Open-Meteo)", f"Elevation {elev} m (Open-Meteo)")] \
+               tr(f"Cao độ {elev} m (DEM Copernicus)", f"Elevation {elev} m (Copernicus DEM)")] \
             if real else list(self.disp_data_sources())
         metrics: dict[str, float] = {}
         conf = 0.75 if real else 0.6
@@ -220,8 +220,8 @@ class LandRiskModule(TwinModule):
     # ra. Với thửa đã sở hữu, nhắc lại mỗi sáu giờ rằng "đất này trũng" là phiền
     # chứ không phải cảnh báo — nền đất không đổi từ hôm qua.
     threat = False
-    data_sources = ["Cao độ (Open-Meteo)", "Open-Meteo: lượng mưa", "Khoảng cách biển"]
-    data_sources_en = ["Elevation (Open-Meteo)", "Open-Meteo: rainfall", "Distance to coast"]
+    data_sources = ["Cao độ DEM Copernicus", "Open-Meteo: lượng mưa", "Khoảng cách biển"]
+    data_sources_en = ["Copernicus DEM elevation", "Open-Meteo: rainfall", "Distance to coast"]
     users = ["Người mua nhà đất", "Môi giới", "Ngân hàng"]
     description = "Nhập vị trí → lô này có ngập/sạt lở không, an toàn không."
     users_en = ["Land & home buyers", "Brokers", "Banks"]
@@ -330,9 +330,9 @@ class UpstreamFloodModule(TwinModule):
     id = "upstream_flood"; name = "Lũ từ thượng nguồn"; name_en = "Upstream flood"; group = "B"; icon = "🏔️"
     status = "active"
     heavy = True
-    data_sources = ["DEM: nan quạt cao độ 8 hướng × 3 vòng (Open-Meteo)",
+    data_sources = ["DEM Copernicus: nan quạt cao độ 8 hướng × 3 vòng",
                     "Open-Meteo: mưa dự báo trên lưới thượng nguồn"]
-    data_sources_en = ["DEM: 8-bearing × 3-ring elevation fan (Open-Meteo)",
+    data_sources_en = ["Copernicus DEM: 8-bearing × 3-ring elevation fan",
                        "Open-Meteo: rain forecast on the upstream grid"]
     users = ["Dân vùng núi và hạ lưu", "Chính quyền", "Cứu hộ"]
     description = "Trên cao có đang mưa không, và nước đó có dồn về phía bạn không."
@@ -383,7 +383,7 @@ class UpstreamFloodModule(TwinModule):
                 confidence=0.6, confidence_low=0.5, confidence_high=0.7,
                 is_real=True,
                 metrics={"cao_do_m": r["here_m"], "chenh_cao_m": r["relief_m"]},
-                data_sources=[tr("DEM cao độ (Open-Meteo)", "DEM elevation (Open-Meteo)")])
+                data_sources=[tr("Cao độ DEM Copernicus", "Copernicus DEM elevation")])
 
         rec = {
             "danger": tr("Trên cao đang mưa rất lớn và nước sẽ dồn xuống. Nguy cơ "

@@ -543,7 +543,7 @@ def _off_site(module, loc: Location, reg: dict) -> Assessment:
                         reqlang.tr("TerraTwin hiệu chuẩn theo khí hậu và địa hình Việt Nam.",
                                    "TerraTwin is calibrated to Vietnam's climate and terrain.")),
         confidence=None,
-        data_sources=[reqlang.tr("Cao độ DEM (Open-Meteo)", "DEM elevation (Open-Meteo)")]
+        data_sources=[reqlang.tr("Cao độ DEM Copernicus", "Copernicus DEM elevation")]
         + (["Nominatim / OpenStreetMap"] if reg.get("country") else []),
     )
 
