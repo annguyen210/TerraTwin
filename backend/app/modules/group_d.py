@@ -470,31 +470,45 @@ class SupplyChainModule(TwinModule):
                 for (la, lo), rows in zip(pts, weather) if rows
                 for mid in ("flood", "drought")]
 
+        # CHỈ ĐẾM điểm ĐÃ HIỆU CHUẨN theo khí hậu của chính nó. Không lấy được khí hậu
+        # nền (ERA5 qua Open-Meteo Archive bị chặn) thì hàm lùi về thang TUYỆT ĐỐI — thang
+        # bão hoà ở vùng mưa nhiều: 4/10/2026 trên Render cả 25 điểm quanh Cần Thơ vượt
+        # ngưỡng và bảng báo "100% vùng thu mua nguy hiểm". Điểm chưa hiệu chuẩn = chưa biết.
         def _task(la, lo, rows, mid):
             def run():
-                series, _ = hazard.index_series_calibrated(mid, la, lo, rows)
-                return bool(series
-                            and max(v for _, _, v in series) >= hazard.SAFE)
+                series, calibrated = hazard.index_series_calibrated(mid, la, lo, rows)
+                if not calibrated or not series:
+                    return None
+                return max(v for _, _, v in series) >= hazard.SAFE
             return run
 
         flags = jobs.gather([_task(*w) for w in work])
 
         at_risk = {"flood": 0, "drought": 0}
-        counted = sum(1 for rows in weather if rows)
+        seen = {"flood": 0, "drought": 0}
         for (_, _, _, mid), hit in zip(work, flags):
+            if hit is None:
+                continue
+            seen[mid] += 1
             if hit:
                 at_risk[mid] += 1
+        # Cần đủ điểm hiệu chuẩn (≥ 60% lưới) mới nói được "bao nhiêu % vùng".
+        need = max(1, int(0.6 * len(pts)))
+        ok_ids = [m for m in seen if seen[m] >= need]
+        counted = min((seen[m] for m in ok_ids), default=0)
 
-        if counted == 0:
+        if not ok_ids:
             return need_data_assessment(
-                self, loc, needs=tr("dữ liệu thời tiết cho vùng thu mua",
-                                    "weather data for the sourcing area"),
+                self, loc, needs=tr("dự báo thời tiết và khí hậu nền 10 năm (để hiệu chuẩn) cho đủ điểm vùng thu mua",
+                                    "weather forecast and 10-year climate baseline (for calibration) for enough sourcing-area points"),
                 will_do=tr("đo tỉ lệ diện tích vùng nguyên liệu đang gặp rủi ro",
                            "measure what share of the sourcing area is at risk"),
                 next_step=tr("Thử lại sau ít phút.", "Try again in a few minutes."))
 
-        worst_id, worst_n = max(at_risk.items(), key=lambda kv: kv[1])
-        pct = round(100.0 * worst_n / counted, 1)
+        worst_id, pct = max(((m, round(100.0 * at_risk[m] / seen[m], 1)) for m in ok_ids),
+                            key=lambda kv: kv[1])
+        worst_n = at_risk[worst_id]
+        counted = seen[worst_id]
         names = {"flood": tr("lũ/ngập", "flood"), "drought": tr("hạn", "drought")}
 
         lvl = "danger" if pct >= 50 else "warning" if pct >= 20 else "safe"

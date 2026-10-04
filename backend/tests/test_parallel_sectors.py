@@ -505,3 +505,19 @@ def test_do_thi_du_phong_worldcover_khi_osm_chet(monkeypatch):
     assert a.metrics["be_tong_hoa_pct"] == 60.0 and a.metrics["mang_xanh_pct"] == 30.0
     assert "WorldCover" in a.data_sources[0] and "OpenStreetMap" in a.detail
 
+
+
+def test_supply_chain_thang_chua_hieu_chuan_khong_thanh_canh_bao(monkeypatch):
+    """Không có khí hậu nền (Archive bị chặn) → thang tuyệt đối bão hoà ở vùng mưa nhiều.
+    Không được biến thành '100% vùng thu mua nguy hiểm' (Render, 4/10/2026)."""
+    from app.modules.registry import get_module
+    from app.services import hazard, realdata
+
+    rows = [{"day": i, "date": f"2026-10-{4 + i:02d}", "precip": 40.0,
+             "et0": 3.0, "tmax": 31.0} for i in range(7)]
+    monkeypatch.setattr(realdata, "weather_multi", lambda pts: [rows] * len(pts))
+    monkeypatch.setattr(hazard, "index_series_calibrated",
+                        lambda mid, la, lo, r: ([(0, "2026-10-04", 95.0)], False))
+    monkeypatch.setattr(osm, "nearest", lambda *a, **k: None)
+    a = get_module("supply_chain").assess(Location(lat=10.05, lon=105.75))
+    assert a.status == "need_data" and a.risk_level == "unknown"
