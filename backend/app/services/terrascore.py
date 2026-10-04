@@ -15,6 +15,7 @@ _PEN = {"danger": 22, "warning": 11, "safe": 0, "unknown": 0}
 def compute(
     loc: Location,
     assessments: dict[str, Assessment] | None = None,
+    reassess: bool = True,
 ) -> TerraScoreResult:
     """Chấm điểm. Nếu truyền sẵn `assessments` (id→Assessment) thì tái dùng,
     tránh assess lại (dùng trong /api/scan)."""
@@ -27,7 +28,7 @@ def compute(
         a = (assessments or {}).get(hid)
         if a is None:
             module = get_module(hid)
-            if module is None:
+            if module is None or not reassess:
                 continue
             a = module.assess(loc)
         if not a.is_real:

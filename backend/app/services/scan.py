@@ -13,7 +13,8 @@ from app.services import reqlang, terrascore
 _RISK_ORDER = {"danger": 0, "warning": 1, "safe": 2, "unknown": 3, "not_implemented": 4}
 
 
-def scan(loc: Location, include_heavy: bool = False) -> ScanResult:
+def scan(loc: Location, include_heavy: bool = False,
+         deadline: float | None = None) -> ScanResult:
     """Chạy toàn bộ mô-đun ĐỒNG THỜI.
 
     Trước đây chạy nối tiếp: mỗi mô-đun chờ mạng xong mới tới lượt mô-đun sau,
@@ -38,7 +39,14 @@ def scan(loc: Location, include_heavy: bool = False) -> ScanResult:
     def _task(mid: str):
         return lambda: get_module(mid).assess(loc)
 
-    results = jobs.gather([_task(i.id) for i in infos])
+    # `deadline` (chỉ lượt nhanh của /api/scan): mô-đun chưa xong khi hết hạn
+    # hiện "đang kiểm tra" như mục nặng, lượt sâu ngay sau sẽ điền vào. Một
+    # nguồn chậm (Overpass từ máy chủ đám mây có khi 60 giây mới trả lời) không
+    # được bắt cả bảng — và widget nhúng — chờ theo nó.
+    _LATE = object()
+    results = jobs.gather([_task(i.id) for i in infos], deadline=deadline, late=_LATE)
+    late_ids = {i.id for i, a in zip(infos, results) if a is _LATE}
+    results = [None if a is _LATE else a for a in results]
 
     mods: list[ScanModule] = []
     assessments = {}          # id → Assessment (tái dùng cho TerraScore, khỏi assess lại)
@@ -79,13 +87,16 @@ def scan(loc: Location, include_heavy: bool = False) -> ScanResult:
     # điền dần khi kết quả về. "Chưa xong" và "không có" là hai chuyện khác hẳn
     # nhau — gộp lại là tự bôi xấu chính mình.
     for info in all_infos:
-        if info.id in assessments or not info.heavy:
+        if info.id in assessments or not (info.heavy or info.id in late_ids):
             continue
         mods.append(ScanModule(
             id=info.id, name=info.name, icon=info.icon, group=info.group,
             risk_level="unknown", status="pending", is_real=False,
-            headline=reqlang.tr("Đang kiểm tra — mục này cần ảnh vệ tinh nên lâu hơn",
-                                "Still checking — this needs satellite imagery, so it takes longer"),
+            headline=(reqlang.tr("Đang kiểm tra — nguồn dữ liệu đang trả lời chậm",
+                                 "Still checking — the data source is responding slowly")
+                      if info.id in late_ids else
+                      reqlang.tr("Đang kiểm tra — mục này cần ảnh vệ tinh nên lâu hơn",
+                                 "Still checking — this needs satellite imagery, so it takes longer")),
             recommendation="", threat=info.threat,
         ))
 
@@ -102,7 +113,13 @@ def scan(loc: Location, include_heavy: bool = False) -> ScanResult:
          if m.is_real and m.threat and m.risk_level in ("danger", "warning")],
         key=lambda m: _RISK_ORDER.get(m.risk_level, 9),
     )
-    ts = terrascore.compute(loc, assessments=assessments)   # tái dùng, không assess lại
+    # Có hạn chót thì KHÔNG assess lại hiểm hoạ còn thiếu (sẽ chờ đúng nguồn chậm
+    # vừa bỏ qua); điểm ghi rõ "chấm từ x/5 hiểm hoạ", lượt sâu chấm đủ.
+    ts = terrascore.compute(loc, assessments=assessments,   # tái dùng, không assess lại
+                            reassess=deadline is None)
+    if ts.grade == "—" and late_ids & set(terrascore._HAZARDS):
+        ts.summary = reqlang.tr("Đang chờ nguồn thời tiết trả lời — điểm sẽ có khi lượt kiểm tra đầy đủ xong.",
+                                "Waiting for weather sources — the score appears when the full check finishes.")
     ratio = round(real_count / real_total, 2) if real_total else 0.0
     return ScanResult(
         location=loc, terrascore=ts, modules=mods, alerts=alerts,

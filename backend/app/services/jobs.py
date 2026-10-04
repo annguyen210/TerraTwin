@@ -30,6 +30,7 @@ import time
 import traceback
 import uuid
 from concurrent.futures import Future, ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FuturesTimeout
 from typing import Callable, TypeVar
 
 T = TypeVar("T")
@@ -119,8 +120,9 @@ def single_flight(key: str, fn: Callable[[], T]) -> T:
 
 # --------------------------------------------------------------- chạy song song
 
-def gather(tasks: list[Callable[[], T]], limit: int | None = None,
-           timeout: float = 180.0) -> list[T | None]:
+def gather(tasks: list[Callable[[], T]], limit: int | None = None, *,
+           timeout: float = 180.0, deadline: float | None = None,
+           late=None) -> list[T | None]:
     """Chạy nhiều việc ĐỒNG THỜI, giữ nguyên thứ tự kết quả.
 
     Việc nào hỏng trả None thay vì kéo đổ cả mẻ — dùng cho những chỗ mà một
@@ -145,14 +147,25 @@ def gather(tasks: list[Callable[[], T]], limit: int | None = None,
             return fn()
         return run
 
-    with ThreadPoolExecutor(max_workers=max(1, n),
-                            thread_name_prefix="terratwin-par") as ex:
+    # `deadline`: hạn chót cho CẢ MẺ. Hết hạn thì trả ngay, việc chưa xong nhận
+    # `late` thay vì kết quả và tiếp tục chạy ở nền (kết quả vẫn vào cache cho
+    # lượt sau). Không dùng `with`: thoát khối `with` là chờ MỌI luồng xong, nên
+    # trước đây `timeout` không cắt được gì — lượt quét nhanh trên Render chờ
+    # trọn hai lần Overpass hết giờ (2 × 60 giây) dù mọi mô-đun khác đã xong.
+    end = time.time() + deadline if deadline else None
+    ex = ThreadPoolExecutor(max_workers=max(1, n), thread_name_prefix="terratwin-par")
+    try:
         futs = {ex.submit(_wrap(t)): i for i, t in enumerate(tasks)}
         for f, i in futs.items():
+            wait_s = timeout if end is None else max(0.0, min(timeout, end - time.time()))
             try:
-                out[i] = f.result(timeout=timeout)
+                out[i] = f.result(timeout=wait_s)
+            except FuturesTimeout:
+                out[i] = late
             except Exception:
                 out[i] = None
+    finally:
+        ex.shutdown(wait=end is None)
     return out
 
 

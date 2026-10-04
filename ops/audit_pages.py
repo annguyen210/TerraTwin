@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import time
 import urllib.request
 from urllib.parse import urljoin, urlparse
 
@@ -40,7 +41,16 @@ with sync_playwright() as p:
             page.on("pageerror", lambda x, e=errs: e.append("PAGEERROR " + str(x)[:160]))
             page.on("response", lambda resp, b=bad: resp.status >= 400 and b.append(f"{resp.status} {resp.url[:110]}"))
             try:
-                page.goto(WEB + r, wait_until="networkidle", timeout=120_000)
+                if r.startswith("/embed/"):
+                    # Widget gọi lượt quét (có thể kèm lượt sâu) — đo thời gian tới khi có thẻ
+                    # thay vì chờ mạng im hẳn.
+                    t0 = time.time()
+                    page.goto(WEB + r, wait_until="domcontentloaded", timeout=120_000)
+                    page.wait_for_function("() => !document.body.innerText.includes('Đang kiểm rủi ro')",
+                                           timeout=180_000)
+                    print(f"     embed có thẻ sau {time.time() - t0:.0f}s")
+                else:
+                    page.goto(WEB + r, wait_until="networkidle", timeout=120_000)
                 page.wait_for_timeout(1500)
                 w = page.evaluate("() => document.documentElement.scrollWidth")
                 shell = page.locator(".tt-top").count() > 0

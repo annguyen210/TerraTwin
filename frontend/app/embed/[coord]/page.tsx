@@ -31,12 +31,22 @@ export default function EmbedPage() {
   const lon = parseFloat(nums[1] ?? "");
   const valid = Number.isFinite(lat) && Number.isFinite(lon);
   const [d, setD] = useState<ScanResult | null>(null);
-  const [err, setErr] = useState(false);
+  const [err, setErr] = useState<"" | "coord" | "net">("");
 
   useEffect(() => {
-    if (!valid) { setErr(true); return; }
+    if (!valid) { setErr("coord"); return; }
     let live = true;
-    scanAll(lat, lon).then((r) => live && setD(r)).catch(() => live && setErr(true));
+    // Lượt nhanh có hạn chót: nguồn chậm thì hiểm hoạ còn "đang kiểm tra" và chưa có
+    // điểm — khi đó chờ lượt đầy đủ thay vì hiện một thẻ không điểm.
+    scanAll(lat, lon)
+      .then((r) => {
+        if (r.terrascore.grade === "—" && r.modules.some((m) => m.status === "pending")) {
+          return scanAll(lat, lon, undefined, true);
+        }
+        return r;
+      })
+      .then((r) => live && setD(r))
+      .catch(() => live && setErr("net"));
     return () => { live = false; };
   }, [lat, lon, valid]);
 
@@ -49,7 +59,7 @@ export default function EmbedPage() {
     height: "100%", display: "flex", flexDirection: "column", gap: 8,
   };
 
-  if (err) return <div style={wrap}><b>◵ TerraTwin</b><p style={{ margin: 0, fontSize: 13, color: "#66716a" }}>Toạ độ không hợp lệ.</p></div>;
+  if (err) return <div style={wrap}><b>◵ TerraTwin</b><p style={{ margin: 0, fontSize: 13, color: "#66716a" }}>{err === "coord" ? "Toạ độ không hợp lệ." : "Chưa kết nối được máy chủ — thử tải lại sau ít phút."}</p></div>;
   if (!d) return <div style={wrap}><b>◵ TerraTwin</b><p style={{ margin: 0, fontSize: 13, color: "#66716a" }}>Đang kiểm rủi ro…</p></div>;
 
   const topRisk = d.alerts.some((a) => a.risk_level === "danger") ? "danger"
