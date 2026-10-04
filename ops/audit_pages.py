@@ -87,18 +87,23 @@ for x in report:
         print(f"FATAL {x['view']} {x['route']}: {x['fatal']}")
         continue
     flags = []
+    # Có chủ đích: widget nhúng (iframe trên trang khác) không có khung điều hướng; trang
+    # quản trị khi chưa đăng nhập không có khung và /api/auth/me trả 401.
+    no_shell_ok = x["route"].startswith(("/embed/", "/admin"))
+    bad = [b for b in x["bad"] if not (x["route"] == "/admin" and b.startswith("401 ") and "/api/auth/me" in b)]
+    errs = [e for e in x["errors"] if not (x["route"] == "/admin" and "401" in e)]
     if x["overflow"]:
         flags.append(f"TRÀN {x['width']}px")
-    if not x["shell"]:
+    if not x["shell"] and not no_shell_ok:
         flags.append("KHÔNG CÓ KHUNG ĐIỀU HƯỚNG")
-    if x["errors"]:
-        flags.append(f"{len(x['errors'])} lỗi console")
-    if x["bad"]:
-        flags.append(f"{len(x['bad'])} HTTP≥400")
+    if errs:
+        flags.append(f"{len(errs)} lỗi console")
+    if bad:
+        flags.append(f"{len(bad)} HTTP≥400")
     print(f"{'OK  ' if not flags else 'LỖI '} {x['view']} {x['route']:28} [{x['title'][:40]}] {' · '.join(flags)}")
-    for e in x["errors"][:3]:
+    for e in errs[:3]:
         print("        console:", e)
-    for b in x["bad"][:3]:
+    for b in bad[:3]:
         print("        http:", b)
 print(f"\nLink nội bộ: {len(links)} · hỏng: {len(broken)}")
 for l, c in broken:
