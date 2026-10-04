@@ -421,40 +421,47 @@ def index_distribution(lat: float, lon: float, index: str = "NDVI",
     box = bbox_around(lat, lon, buffer_m)
 
     from app.services import cache_store
-    key = cache_store.make_key("mpc-hist", index, round(lat, 4), round(lon, 4),
+    key = cache_store.make_key("mpc-hist-m2", index, round(lat, 4), round(lon, 4),
                                int(days), int(buffer_m), bins, end.isoformat())
     hit = cache_store.get(key)
     if hit is not None:
         return hit
 
-    items = search(box, start, end, max_cloud=MAX_CLOUD, limit=30)
+    items = search(box, start, end, max_cloud=MAX_CLOUD, limit=200)
     if not items:
         return None
 
-    # Ảnh ít mây nhất trong cửa sổ — histogram chỉ có nghĩa khi nhìn thấy đất.
-    # Chọn ảnh QUANG NHẤT TẠI THỬA, không phải ảnh có độ mây cảnh thấp nhất.
-    probe = _spread(items, min(8, len(items)))
+    # Ảnh QUANG NHẤT TẠI THỬA (một cảnh mỗi ngày bay), đo bằng chính lượt thống kê đã
+    # che mây — cùng cách với index_series. Bản cũ đòi 70% quang và vẽ histogram trên
+    # MỌI điểm ảnh: mùa mưa thường không có cảnh nào đạt (carbon "thiếu ảnh"), còn khi
+    # đạt thì mây (NDVI ≈ 0) vẫn nằm trong phân bố, kéo lệch tỉ lệ che phủ.
+    probe = _spread(_one_per_date(items), min(12, len(items)))
     from app.services import jobs as _j
-    fr = _j.gather([lambda it=it: (it, clear_fraction(it["id"], box)) for it in probe])
-    ok = [(it, f) for it, f in fr if f is not None and f >= CLEAR_MIN]
+    fr = [g for g in _j.gather([lambda it=it: (it, masked_stats(it["id"], box, index))
+                                for it in probe]) if g is not None]
+    ok = [(it, st_) for it, st_ in fr
+          if st_ is not None and st_.get("clear_pct", 0.0) >= CLEAR_MIN_MASKED and "mean" in st_]
     if not ok:
         return None
-    ok.sort(key=lambda p: -p[1])
-    it = ok[0][0]
+    ok.sort(key=lambda p: -p[1]["clear_pct"])
+    it, mst = ok[0]
 
+    # Điểm ảnh mây nhận giá trị -2, nằm NGOÀI khoảng histogram [-1, 1] nên bị loại khỏi
+    # phân bố; trung bình/độ lệch lấy từ masked_stats (chỉ điểm ảnh quang).
     q = urllib.parse.urlencode({
         "collection": COLLECTION, "item": it["id"],
-        "expression": EXPR[index], "asset_as_band": "true",
-        "histogram_bins": str(int(bins)),
+        "expression": f"where({_SCL_MASK},{EXPR[index]},-2)", "asset_as_band": "true",
+        "histogram_bins": str(int(bins)), "histogram_range": "-1,1",
     })
     r = _call(f"{DATA}?{q}", _poly(box))
     if not r:
         return None
     try:
-        st = list(r["properties"]["statistics"].values())[0]
+        st = dict(list(r["properties"]["statistics"].values())[0])
         counts, edges = st["histogram"][0], st["histogram"][1]
     except (KeyError, IndexError, TypeError):
         return None
+    st.update({"mean": mst["mean"], "std": mst["std"], "count": mst["count"]})
 
     # ĐỦ MỌI TRƯỜNG mà bản Copernicus trả về. Thiếu một cái là hàm dùng nó nổ
     # KeyError hoặc trả None, và triệu chứng lộ ra ở tận mô-đun carbon dưới dạng
