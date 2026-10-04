@@ -20,8 +20,6 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt -r requirements-dev.txt
       # Test gọi API thật thi thoảng hụt do mạng — tự chạy lại, không phải lỗi code.
-      # Ghi tóm tắt lỗi vào job summary (đọc được không cần quyền admin log).
-      # Test gọi API thật thi thoảng hụt do mạng — tự chạy lại, không phải lỗi code.
       - run: pytest --reruns 2 --reruns-delay 5
 
   backend-postgres:
@@ -107,3 +105,21 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit
       - run: npm run build
+
+  security:
+    name: Bảo mật — lỗ hổng thư viện đã công bố
+    # Phần mềm giữ chữ ký số, tài khoản và sổ minh bạch: thư viện có lỗ hổng đã công bố
+    # (PyJWT, Pillow, Starlette — 40 mã lỗ hổng, vá 10/2026) phải làm CI đỏ ngay.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pip-audit
+      - run: pip-audit -r backend/requirements.txt --progress-spinner off
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm audit --omit=dev --audit-level=high
+        working-directory: frontend

@@ -59,6 +59,7 @@ class UrbanModule(TwinModule):
     """
 
     id = "urban"; name = "Ngập úng & mảng xanh đô thị"; name_en = "Urban flooding & green space"; group = "D"; icon = "🏙️"
+    slow_source = True
     status = "active"
     data_sources = ["OpenStreetMap: nhà, đường, loại đất sử dụng",
                     "Open-Meteo: mưa dự báo 7 ngày tới", "Cao độ DEM",
@@ -182,6 +183,7 @@ class MiningModule(TwinModule):
     """
 
     id = "mining"; name = "An toàn mỏ & công trường"; name_en = "Mine & worksite safety"; group = "D"; icon = "⛏️"
+    slow_source = True
     status = "active"
     data_sources = ["OpenStreetMap: mỏ, khu công nghiệp, công trường",
                     "DEM: độ dốc thật 4 hướng", "Open-Meteo: mưa dự báo 7 ngày tới",

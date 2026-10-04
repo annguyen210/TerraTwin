@@ -1,10 +1,10 @@
-fastapi==0.115.0
-uvicorn[standard]==0.30.6
+fastapi==0.142.2
+uvicorn[standard]==0.54.0
 pydantic==2.9.2
 
 # Database + xác thực
 SQLAlchemy==2.0.36
-PyJWT==2.9.0
+PyJWT==2.15.0
 bcrypt==4.2.0
 email-validator==2.2.0
 
@@ -28,7 +28,7 @@ segno==1.6.6
 shapely>=2.0,<3
 
 # Ảnh thực địa: đọc EXIF (GPS, thời điểm), ảnh thu nhỏ đã xoá EXIF, băm cảm quan.
-Pillow==11.3.0
+Pillow==12.3.0
 
 # PostgreSQL cho production (SQLite là mặc định, không cần gì thêm):
 # psycopg[binary]==3.2.3

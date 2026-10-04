@@ -121,7 +121,7 @@ def single_flight(key: str, fn: Callable[[], T]) -> T:
 # --------------------------------------------------------------- chạy song song
 
 def gather(tasks: list[Callable[[], T]], limit: int | None = None, *,
-           timeout: float = 180.0, deadline: float | None = None,
+           timeout: float = 180.0, deadline: float | list[float] | None = None,
            late=None) -> list[T | None]:
     """Chạy nhiều việc ĐỒNG THỜI, giữ nguyên thứ tự kết quả.
 
@@ -152,11 +152,15 @@ def gather(tasks: list[Callable[[], T]], limit: int | None = None, *,
     # lượt sau). Không dùng `with`: thoát khối `with` là chờ MỌI luồng xong, nên
     # trước đây `timeout` không cắt được gì — lượt quét nhanh trên Render chờ
     # trọn hai lần Overpass hết giờ (2 × 60 giây) dù mọi mô-đun khác đã xong.
-    end = time.time() + deadline if deadline else None
+    # Một số cho cả mẻ, hoặc danh sách hạn chót riêng từng việc (cùng thứ tự `tasks`).
+    t0 = time.time()
+    dls = deadline if isinstance(deadline, list) else [deadline] * len(tasks)
+    ends = [t0 + d if d else None for d in dls]
     ex = ThreadPoolExecutor(max_workers=max(1, n), thread_name_prefix="terratwin-par")
     try:
         futs = {ex.submit(_wrap(t)): i for i, t in enumerate(tasks)}
         for f, i in futs.items():
+            end = ends[i]
             wait_s = timeout if end is None else max(0.0, min(timeout, end - time.time()))
             try:
                 out[i] = f.result(timeout=wait_s)
@@ -165,7 +169,7 @@ def gather(tasks: list[Callable[[], T]], limit: int | None = None, *,
             except Exception:
                 out[i] = None
     finally:
-        ex.shutdown(wait=end is None)
+        ex.shutdown(wait=all(e is None for e in ends))
     return out
 
 

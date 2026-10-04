@@ -32,6 +32,11 @@ class TwinModule(ABC):
     # sáu mô-đun kia đợi nó.
     heavy: bool = False
 
+    # Nguồn CHẬM nhưng cache lâu (Overpass/OSM: 10–60 giây, cache 7 ngày). Lượt quét
+    # nhanh chỉ chờ mô-đun này vài giây — trúng cache thì kịp, không thì để lượt sâu
+    # điền — thay vì bắt cả bảng chờ tới hạn chót chung.
+    slow_source: bool = False
+
     # Mô-đun này có mô tả một MỐI ĐE DOẠ không?
     #
     # `risk_level` chỉ là "mức trên thang của chính mô-đun đó". Với hiểm họa,

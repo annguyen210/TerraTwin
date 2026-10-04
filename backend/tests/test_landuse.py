@@ -104,7 +104,7 @@ def fake_scan(monkeypatch):
                        headline="Lũ", recommendation="Kê cao đồ", is_real=True,
                        risk_dates=[d], peak_date=d)
 
-    def fake(loc, include_heavy=False):
+    def fake(loc, include_heavy=False, deadline=None):
         ts = TerraScoreResult(location=loc, score=50, grade="C", summary="t")
         return ScanResult(location=loc, terrascore=ts, modules=[flood], alerts=[flood],
                           real_data_ratio=1.0, generated_at="2026-09-30T00:00:00")

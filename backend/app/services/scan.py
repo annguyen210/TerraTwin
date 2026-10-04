@@ -14,6 +14,7 @@ from app.services import reqlang, terrascore
 # Hạn chót lượt quét TƯƠNG TÁC (giây) — /api/scan nhanh, /api/plan, widget nhúng: quá
 # hạn thì mục chậm hiện "đang kiểm tra", lượt sâu (?deep=true) điền vào sau.
 FAST_DEADLINE = float(os.environ.get("TERRATWIN_SCAN_FAST_DEADLINE", "20"))
+SLOW_SOURCE_DEADLINE = float(os.environ.get("TERRATWIN_SCAN_SLOW_SOURCE_DEADLINE", "4"))
 
 _RISK_ORDER = {"danger": 0, "warning": 1, "safe": 2, "unknown": 3, "not_implemented": 4}
 
@@ -49,7 +50,13 @@ def scan(loc: Location, include_heavy: bool = False,
     # nguồn chậm (Overpass từ máy chủ đám mây có khi 60 giây mới trả lời) không
     # được bắt cả bảng — và widget nhúng — chờ theo nó.
     _LATE = object()
-    results = jobs.gather([_task(i.id) for i in infos], deadline=deadline, late=_LATE)
+    dls = None if deadline is None else [
+        min(deadline, SLOW_SOURCE_DEADLINE) if get_module(i.id).slow_source else deadline
+        for i in infos]
+    # Mỗi mô-đun một luồng: lượt gọi ra ngoài đã có trần riêng (jobs.upstream, cổng
+    # OSM), nên trần 6 luồng ở đây chỉ khiến mô-đun thời tiết xếp hàng sau mô-đun OSM.
+    results = jobs.gather([_task(i.id) for i in infos], limit=len(infos),
+                          deadline=dls, late=_LATE)
     late_ids = {i.id for i, a in zip(infos, results) if a is _LATE}
     results = [None if a is _LATE else a for a in results]
 

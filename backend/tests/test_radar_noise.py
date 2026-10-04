@@ -47,7 +47,7 @@ def _fake_scan(monkeypatch, level_by_module: dict[str, str]):
     from app.schemas import ScanModule, ScanResult, TerraScoreResult
     from app.services import scan as scan_svc
 
-    def fake(loc, include_heavy=False):
+    def fake(loc, include_heavy=False, deadline=None):
         mods = [ScanModule(id=mid, name=mid, icon="", group="X", risk_level=lv,
                            headline=f"{mid} {lv}", recommendation="",
                            is_real=True, threat=get_module(mid).threat)

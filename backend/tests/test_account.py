@@ -305,7 +305,7 @@ def test_radar_khong_gui_canh_bao_ra_ngoai_khi_chua_xac_thuc(client, monkeypatch
         id="flood", name="Lũ", icon="🌊", group="B", risk_level="danger",
         headline="Test", recommendation="Test", is_real=True)
 
-    def fake_scan(loc, include_heavy=False):
+    def fake_scan(loc, include_heavy=False, deadline=None):
         ts = TerraScoreResult(location=loc, score=50, grade="C", summary="test")
         return ScanResult(location=loc, terrascore=ts, modules=[fake_alert],
                           alerts=[fake_alert], real_data_ratio=1.0,
@@ -426,7 +426,7 @@ def test_radar_khong_gui_canh_bao_khi_tat_consent_alerts(client, monkeypatch):
         id="flood", name="Lũ", icon="🌊", group="B", risk_level="danger",
         headline="Test", recommendation="Test", is_real=True)
 
-    def fake_scan(loc, include_heavy=False):
+    def fake_scan(loc, include_heavy=False, deadline=None):
         ts = TerraScoreResult(location=loc, score=50, grade="C", summary="test")
         return ScanResult(location=loc, terrascore=ts, modules=[fake_alert],
                           alerts=[fake_alert], real_data_ratio=1.0,
@@ -465,7 +465,7 @@ def test_radar_khong_hoi_gop_quan_sat_khi_tat_consent_observations(client, monke
         id="flood", name="Lũ", icon="🌊", group="B", risk_level="danger",
         headline="Test", recommendation="Test", is_real=True)
 
-    def fake_scan(loc, include_heavy=False):
+    def fake_scan(loc, include_heavy=False, deadline=None):
         ts = TerraScoreResult(location=loc, score=50, grade="C", summary="test")
         return ScanResult(location=loc, terrascore=ts, modules=[fake_alert],
                           alerts=[fake_alert], real_data_ratio=1.0,

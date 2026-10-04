@@ -55,7 +55,7 @@ def fake_scan(monkeypatch):
     flood = ScanModule(id="flood", name="Lũ", icon="", group="B", risk_level="danger",
                        headline="Lũ", recommendation="", is_real=True)
 
-    def fake(loc, include_heavy=False):
+    def fake(loc, include_heavy=False, deadline=None):
         calls["n"] += 1
         ts = TerraScoreResult(location=loc, score=50, grade="C", summary="t")
         return ScanResult(location=loc, terrascore=ts, modules=[flood], alerts=[flood],
