@@ -574,11 +574,6 @@ def terra(location: Location, lang: str = "vi") -> TerraScoreResult:
     return r
 
 
-# Hạn chót lượt quét nhanh (giây): quá hạn thì mục chậm hiện "đang kiểm tra",
-# lượt sâu (?deep=true) điền vào sau. Dùng cho bảng toàn cảnh và widget nhúng.
-_SCAN_FAST_DEADLINE = float(os.environ.get("TERRATWIN_SCAN_FAST_DEADLINE", "20"))
-
-
 @app.post("/api/scan", response_model=ScanResult)
 def scan_endpoint(location: Location, deep: bool = False, lang: str = "vi") -> ScanResult:
     """Quét toàn cảnh thửa đất: mọi mũi nhọn nhẹ + cảnh báo ưu tiên, một lần gọi.
@@ -604,7 +599,7 @@ def scan_endpoint(location: Location, deep: bool = False, lang: str = "vi") -> S
     # rồi gọi lượt sâu ở nền và điền dần — thay vì để bảy ô treo ở "đang kiểm
     # tra" mãi mãi, thứ trông y hệt như thiếu dữ liệu.
     r = scan.scan(location, include_heavy=deep,
-                  deadline=None if deep else _SCAN_FAST_DEADLINE)
+                  deadline=None if deep else scan.FAST_DEADLINE)
     r.region = reg
     return r
 

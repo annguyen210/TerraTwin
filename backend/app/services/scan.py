@@ -5,10 +5,15 @@ cache thời tiết (realdata), 14 module dùng chung ~vài lần gọi Open-Met
 """
 from __future__ import annotations
 
+import os
 from datetime import datetime, timezone
 
 from app.schemas import Location, ScanModule, ScanResult
 from app.services import reqlang, terrascore
+
+# Hạn chót lượt quét TƯƠNG TÁC (giây) — /api/scan nhanh, /api/plan, widget nhúng: quá
+# hạn thì mục chậm hiện "đang kiểm tra", lượt sâu (?deep=true) điền vào sau.
+FAST_DEADLINE = float(os.environ.get("TERRATWIN_SCAN_FAST_DEADLINE", "20"))
 
 _RISK_ORDER = {"danger": 0, "warning": 1, "safe": 2, "unknown": 3, "not_implemented": 4}
 

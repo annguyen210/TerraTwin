@@ -97,7 +97,7 @@ def build(loc: Location, crop: str | None = None) -> dict:
     # dịch tên lớp làm ở luồng này, nơi có ngôn ngữ của request.
     with ThreadPoolExecutor(max_workers=1) as ex:
         lu_future = ex.submit(landuse.fetch_raw, loc.lat, loc.lon)
-        sc = scan.scan(loc)
+        sc = scan.scan(loc, deadline=scan.FAST_DEADLINE)   # kế hoạch là thao tác tương tác
         try:
             lu_raw = lu_future.result(timeout=30)
         except Exception:

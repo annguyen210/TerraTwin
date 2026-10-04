@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import threading
 import time
 import urllib.error
@@ -43,7 +44,12 @@ ENDPOINT = ENDPOINTS[0]
 # Overpass yêu cầu User-Agent nhận dạng được. Phải THUẦN ASCII — header HTTP
 # mã hoá latin-1, một chữ tiếng Việt có dấu ở đây là hỏng cả lời gọi.
 USER_AGENT = "TerraTwin/0.6 (Vietnam land digital twin; contact via repo)"
-TIMEOUT = 60.0            # Overpass công cộng hay chậm; quận nội thành ~20 s
+TIMEOUT = float(os.environ.get("TERRATWIN_OVERPASS_TIMEOUT", "30"))  # quận nội thành ~20 s
+# CẦU DAO: máy chủ vừa hết giờ / 429 / 504 thì bỏ qua nó một lúc. Thiếu cái này, trên
+# Render mỗi lượt gọi OSM chờ trọn 2 × 60 giây rồi vẫn "chưa đủ dữ liệu" (10/2026) —
+# giữ luồng, giữ cổng 1 slot, và kéo theo mọi mô-đun xếp hàng sau nó.
+_COOLDOWN = 600.0
+_down_until: dict[str, float] = {}
 _TTL = 7 * 86400          # hạ tầng không đổi theo giờ
 
 # Diện tích sàn trung bình một công trình ở VN khi OSM không vẽ đường bao (chỉ
@@ -53,6 +59,45 @@ _ASSUMED_BUILDING_M2 = 90.0
 # Giá trị thẻ highway KHÔNG dành cho xe cơ giới.
 _FOOT_ONLY = {"footway", "path", "steps", "pedestrian", "cycleway",
               "bridleway", "corridor", "track"}
+
+
+def _fetch(q: str) -> dict | None:
+    """Gọi Overpass (không cache). None = không máy chủ nào trả lời được."""
+    d = None
+    # CHỈ dùng cổng riêng của OSM, KHÔNG lấy thêm suất của jobs.upstream().
+    #
+    # Lý do phải nói rõ, vì đây là một lần treo thật: ban đầu hàm này giữ
+    # một suất gọi-ra-ngoài toàn cục RỒI mới xếp hàng ở cổng OSM. Overpass
+    # công cộng chậm 10–60 giây và chỉ chạy một truy vấn một lúc, nên vài
+    # luồng OSM giữ hết suất toàn cục trong lúc chờ nhau — Open-Meteo không
+    # xin được suất nào và cả bộ test đứng im. Cổng 1 slot ở đây đã chặt hơn
+    # trần toàn cục rồi, nên chồng thêm chỉ có hại.
+    # Thử lần lượt các máy chủ. 429/504 nghĩa là "đang bận, quay lại sau"
+    # chứ không phải "không có dữ liệu" — bỏ cuộc ngay ở đó là biến một lần
+    # nghẽn tạm thời thành câu "chưa đủ dữ liệu" gửi tới người dùng.
+    with _GATE:
+        data = urllib.parse.urlencode({"data": q}).encode()
+        alive = [u for u in ENDPOINTS if _down_until.get(u, 0.0) <= time.time()]
+        for url in alive:
+            try:
+                # Header HTTP mã hoá latin-1. Một chữ tiếng Việt có dấu
+                # trong User-Agent là hỏng cả lời gọi — giữ THUẦN ASCII.
+                req = urllib.request.Request(
+                    url, data=data,
+                    headers={"User-Agent": USER_AGENT,
+                             "Content-Type":
+                                 "application/x-www-form-urlencoded"})
+                with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+                    d = json.loads(r.read().decode("utf-8"))
+                _down_until.pop(url, None)
+                break
+            except urllib.error.HTTPError as e:
+                if e.code not in (429, 504):
+                    return None          # truy vấn sai — máy chủ khác cũng trả như vậy
+                _down_until[url] = time.time() + _COOLDOWN
+            except Exception:            # hết giờ, mất kết nối
+                _down_until[url] = time.time() + _COOLDOWN
+    return d
 
 
 def _query(q: str) -> dict | None:
@@ -67,41 +112,7 @@ def _query(q: str) -> dict | None:
         h = cache_store.get(key)
         if h is not None:
             return h
-        d = None
-        # CHỈ dùng cổng riêng của OSM, KHÔNG lấy thêm suất của jobs.upstream().
-        #
-        # Lý do phải nói rõ, vì đây là một lần treo thật: ban đầu hàm này giữ
-        # một suất gọi-ra-ngoài toàn cục RỒI mới xếp hàng ở cổng OSM. Overpass
-        # công cộng chậm 10–60 giây và chỉ chạy một truy vấn một lúc, nên vài
-        # luồng OSM giữ hết suất toàn cục trong lúc chờ nhau — Open-Meteo không
-        # xin được suất nào và cả bộ test đứng im. Cổng 1 slot ở đây đã chặt hơn
-        # trần toàn cục rồi, nên chồng thêm chỉ có hại.
-        # Thử lần lượt các máy chủ. 429/504 nghĩa là "đang bận, quay lại sau"
-        # chứ không phải "không có dữ liệu" — bỏ cuộc ngay ở đó là biến một lần
-        # nghẽn tạm thời thành câu "chưa đủ dữ liệu" gửi tới người dùng.
-        with _GATE:
-            data = urllib.parse.urlencode({"data": q}).encode()
-            for attempt, url in enumerate(ENDPOINTS):
-                try:
-                    # Header HTTP mã hoá latin-1. Một chữ tiếng Việt có dấu
-                    # trong User-Agent là hỏng cả lời gọi — giữ THUẦN ASCII.
-                    req = urllib.request.Request(
-                        url, data=data,
-                        headers={"User-Agent": USER_AGENT,
-                                 "Content-Type":
-                                     "application/x-www-form-urlencoded"})
-                    with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-                        d = json.loads(r.read().decode("utf-8"))
-                    break
-                except urllib.error.HTTPError as e:
-                    if e.code in (429, 504) and attempt < len(ENDPOINTS) - 1:
-                        time.sleep(2.0)
-                        continue
-                    return None
-                except Exception:
-                    if attempt < len(ENDPOINTS) - 1:
-                        continue
-                    return None
+        d = _fetch(q)
         if d is None:
             return None
         cache_store.put(key, d, _TTL)

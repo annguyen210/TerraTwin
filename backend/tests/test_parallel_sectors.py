@@ -454,3 +454,32 @@ def test_moi_mui_nhon_deu_khai_bao_day_du():
         assert m.data_sources, f"{m.id} không khai nguồn dữ liệu"
         assert m.users, f"{m.id} không khai ai dùng"
         assert m.description, f"{m.id} không có mô tả"
+
+
+def test_osm_cau_dao_bo_qua_may_chu_vua_het_gio(monkeypatch):
+    """Máy chủ vừa hết giờ thì lượt sau KHÔNG gọi lại nó (trên Render mỗi lượt OSM
+    từng chờ trọn 2 × 60 giây rồi vẫn không có dữ liệu)."""
+    calls = []
+
+    def boom(req, timeout=None):
+        calls.append(req.full_url)
+        raise TimeoutError("read timed out")
+
+    monkeypatch.setattr(osm, "_down_until", {})
+    monkeypatch.setattr(osm.urllib.request, "urlopen", boom)
+    assert osm._fetch("[out:json];node(1);out;") is None
+    assert len(calls) == len(osm.ENDPOINTS)
+    assert osm._fetch("[out:json];node(2);out;") is None
+    assert len(calls) == len(osm.ENDPOINTS)          # cả hai đang nghỉ — không gọi thêm
+
+
+def test_osm_truy_van_sai_khong_ngat_cau_dao(monkeypatch):
+    import urllib.error
+
+    def bad(req, timeout=None):
+        raise urllib.error.HTTPError(req.full_url, 400, "Bad Request", {}, None)
+
+    monkeypatch.setattr(osm, "_down_until", {})
+    monkeypatch.setattr(osm.urllib.request, "urlopen", bad)
+    assert osm._fetch("sai cú pháp") is None
+    assert osm._down_until == {}
