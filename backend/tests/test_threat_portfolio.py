@@ -79,7 +79,7 @@ def fake_scan(monkeypatch):
     from app.schemas import TerraScoreResult
     monkeypatch.setattr(
         "app.services.terrascore.compute",
-        lambda loc, assessments=None: TerraScoreResult(
+        lambda loc, assessments=None, reassess=True: TerraScoreResult(
             location=loc, score=50, grade="C", summary="giả lập",
             real_data_ratio=1.0))
 

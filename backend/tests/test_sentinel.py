@@ -411,7 +411,7 @@ def test_module_pest_dung_anh_that(with_key, monkeypatch):
     assert "Sentinel-2" in a.data_sources[0]
 
 
-def test_module_pest_thieu_khoa_thi_noi_ro_cach_sua(monkeypatch):
+def test_module_pest_thieu_anh_noi_dung_nguyen_nhan(monkeypatch):
     from app.modules.registry import get_module
     monkeypatch.delenv("TERRATWIN_COPERNICUS_ID", raising=False)
     monkeypatch.delenv("TERRATWIN_COPERNICUS_SECRET", raising=False)
@@ -422,7 +422,10 @@ def test_module_pest_thieu_khoa_thi_noi_ro_cach_sua(monkeypatch):
     a = get_module("pest").assess(Location(lat=10.0, lon=106.0))
     assert a.status == "need_data"
     assert a.risk_level == "unknown"
-    assert "dataspace.copernicus.eu" in a.recommendation
+    # Không khoá thì ảnh đã lấy từ Planetary Computer — thiếu ảnh là do mây/nguồn hỏng.
+    # Bảo người dùng đi đăng ký khoá Copernicus là sai và họ không làm được (10/2026).
+    assert "copernicus" not in (a.headline + a.recommendation).lower()
+    assert "mây che" in a.headline
 
 
 def test_module_yield_dung_anh_that(with_key, monkeypatch):
@@ -434,12 +437,12 @@ def test_module_yield_dung_anh_that(with_key, monkeypatch):
     assert "ndvi_dinh" in a.metrics
 
 
-def test_thong_bao_phan_biet_thieu_khoa_va_thieu_anh(with_key, monkeypatch):
-    """Hai nguyên nhân khác nhau phải cho ra hai lời nhắc khác nhau."""
+def test_thong_bao_thieu_anh_khi_co_khoa(with_key, monkeypatch):
+    """Có khoá mà nguồn hỏng: vẫn nói đúng là thiếu ảnh, kèm lịch vệ tinh bay qua."""
     from app.modules.registry import get_module
     monkeypatch.setattr(sentinel, "_post", lambda u, p: None)   # có khóa, hỏng ảnh
     a = get_module("pest").assess(Location(lat=10.0, lon=106.0))
-    assert "đã có khóa nhưng chưa lấy được ảnh" in a.headline
+    assert "chưa đủ ảnh vệ tinh nhìn thấy mặt đất" in a.headline
     assert "bay qua mỗi khoảng 5 ngày" in a.recommendation
 
 
@@ -453,3 +456,39 @@ def test_khong_co_nhanh_gia_lap_trong_ma_nguon():
                             "services", "sentinel.py"), encoding="utf-8").read()
     for banned in ("random", "fake", "demo_ndvi", "mock"):
         assert banned not in src.lower(), f"sentinel.py không được chứa '{banned}'"
+
+
+def test_thong_ke_che_may_tinh_dung_tren_diem_anh_quang(monkeypatch):
+    """Trung bình phải tính CHỈ trên điểm ảnh quang (bản cũ cộng cả mây, lệch 13%)."""
+    from app.services import mpc
+    # 100 điểm ảnh: 60 quang NDVI 0,5 (std 0), 40 mây.
+    bands = [{"mean": 0.30, "count": 100.0}, {"mean": 0.60, "count": 100.0},
+             {"mean": 0.15, "count": 100.0}, {"min": 0.5, "count": 100.0},
+             {"max": 0.5, "count": 100.0}]
+    monkeypatch.setattr(mpc, "_call", lambda url, payload=None, timeout=None: {
+        "properties": {"statistics": {str(i): b for i, b in enumerate(bands)}}})
+    st = mpc.masked_stats("x", [0, 0, 1, 1], "NDVI")
+    assert abs(st["mean"] - 0.5) < 1e-9 and st["std"] < 1e-6
+    assert st["count"] == 60 and abs(st["clear_pct"] - 60.0) < 1e-9
+
+
+def test_thong_ke_che_may_toan_may_thi_khong_co_trung_binh(monkeypatch):
+    from app.services import mpc
+    bands = [{"mean": 0.0, "count": 50.0}, {"mean": 0.0, "count": 50.0},
+             {"mean": 0.0, "count": 50.0}, {"min": 2.0}, {"max": -2.0}]
+    monkeypatch.setattr(mpc, "_call", lambda url, payload=None, timeout=None: {
+        "properties": {"statistics": {str(i): b for i, b in enumerate(bands)}}})
+    st = mpc.masked_stats("x", [0, 0, 1, 1], "NDVI")
+    assert st["clear_pct"] == 0.0 and "mean" not in st
+
+
+def test_moi_ngay_bay_chi_mot_canh():
+    """Thửa ở mép hai ô lưới MGRS: hai cảnh trùng ngày không được tính là hai quan sát."""
+    from app.services import mpc
+
+    def it(d, cc, i):
+        return {"id": i, "properties": {"datetime": f"{d}T03:00:00Z", "eo:cloud_cover": cc}}
+
+    out = mpc._one_per_date([it("2026-09-18", 71, "a"), it("2026-09-18", 27, "b"),
+                             it("2026-09-08", 53, "c")])
+    assert [o["id"] for o in out] == ["b", "c"]

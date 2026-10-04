@@ -4068,6 +4068,10 @@ body {
 .doc-lede{ font-size:1.08rem; color:var(--dim); line-height:1.6; margin:0 0 8px }
 .doc-note{ font-size:.85rem; color:var(--dim); padding:10px 14px; border-radius:10px;
   background:var(--panel); border:1px dashed var(--line-2); margin:0 0 8px }
+/* Link trong trang tài liệu: mặc định trình duyệt là #0000ee — trên nền tối chỉ đạt tương phản 1,8:1 (axe, 10/2026). */
+.doc-body a:not(.doc-btn), .doc-note a{ color:var(--terra); text-underline-offset:2px }
+/* Ghi công bản đồ: gạch chân để phân biệt link không chỉ bằng màu (WCAG 1.4.1). */
+.maplibregl-ctrl-attrib a{ text-decoration:underline }
 .doc-body h2{ font-size:1.15rem; font-weight:700; color:var(--text); margin:34px 0 8px; letter-spacing:-.01em }
 .doc-body p{ font-size:.98rem; color:var(--text); line-height:1.7; margin:0 0 12px; opacity:.92 }
 .doc-body ul{ margin:0 0 12px; padding-left:20px } .doc-body li{ font-size:.96rem; color:var(--text); line-height:1.6; margin-bottom:7px; opacity:.92 }

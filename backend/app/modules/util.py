@@ -83,23 +83,14 @@ def _needs_sentinel(what: str) -> str:
     được trong mười phút, một cái phải chờ trời. Gộp chung thành "chưa đủ dữ
     liệu" là bỏ mặc họ không biết làm gì tiếp.
     """
-    from app.services import sentinel
-    if not sentinel.configured():
-        return tr(f"{what} — phần mềm chưa được cấu hình khóa Copernicus",
-                  f"{what} — Copernicus key not configured yet")
-    return tr(f"{what} — đã có khóa nhưng chưa lấy được ảnh quang mây cho vùng này",
-              f"{what} — key present but no cloud-free imagery for this area yet")
+    # Không có khoá Copernicus thì ảnh lấy từ Planetary Computer (cùng Sentinel-2 L2A,
+    # miễn phí) — thiếu ảnh khi đó là do MÂY hoặc nguồn tạm hỏng, KHÔNG phải do khoá.
+    # Bản cũ bảo người dùng "chưa cấu hình khóa Copernicus": sai, và họ không sửa được.
+    return tr(f"{what} — chưa đủ ảnh vệ tinh nhìn thấy mặt đất gần đây (mây che hoặc nguồn ảnh tạm không phản hồi)",
+              f"{what} — not enough recent satellite views of the ground (cloud cover or the imagery source is temporarily unavailable)")
 
 
 def _next_sentinel() -> str:
-    from app.services import sentinel
-    if not sentinel.configured():
-        return tr("Đăng ký miễn phí tại dataspace.copernicus.eu, tạo OAuth client, "
-                  "rồi đặt TERRATWIN_COPERNICUS_ID và TERRATWIN_COPERNICUS_SECRET. "
-                  "Không tốn phí và không cần thẻ.",
-                  "Register free at dataspace.copernicus.eu, create an OAuth client, "
-                  "then set TERRATWIN_COPERNICUS_ID and TERRATWIN_COPERNICUS_SECRET. "
-                  "No cost, no card needed.")
     return tr("Sentinel-2 bay qua mỗi khoảng 5 ngày và mùa mưa thường bị mây che. "
               "Thử lại sau vài ngày — phần mềm tự dùng tấm ảnh quang mây gần nhất.",
               "Sentinel-2 passes every ~5 days and the rainy season is often cloudy. "

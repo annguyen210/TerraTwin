@@ -29,6 +29,7 @@ Lần thử đầu ra 0,015 và tôi suýt kết luận API hỏng — hoá ra t
 from __future__ import annotations
 
 import json
+import math
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -56,6 +57,11 @@ MAX_PROBE = 24            # số ảnh dò lớp SCL trước khi bỏ cuộc
 #   4 thực vật · 5 đất trần · 6 nước · 7 chưa phân loại · 11 tuyết
 # Bỏ: 3 bóng mây · 8,9 mây · 10 mây ti
 SCL_CLEAR = (4, 5, 6, 7, 11)
+# Ngưỡng cho thống kê ĐÃ CHE MÂY TỪNG ĐIỂM ẢNH (masked_stats). Trung bình chỉ tính trên
+# điểm ảnh quang nên không còn bị mây kéo lệch; ngưỡng chỉ còn giữ cho phần nhìn thấy
+# đủ đại diện cho thửa (40% của ô 600 m ≈ 1.400 điểm ảnh 10 m).
+CLEAR_MIN_MASKED = 40.0
+_SCL_MASK = "(" + "|".join(f"(SCL=={c})" for c in SCL_CLEAR) + ")"
 _TTL_RECENT = 12 * 3600
 _TTL_CLOSED = 7 * 86400   # cửa sổ quá khứ đã đóng thì không bao giờ đổi nữa
 
@@ -168,6 +174,56 @@ def _stats_one(item_id: str, box: list[float], index: str) -> dict | None:
     return st
 
 
+def masked_stats(item_id: str, box: list[float], index: str) -> dict | None:
+    """Thống kê chỉ số CHỈ trên điểm ảnh quang mây (lớp SCL), một lượt gọi.
+
+    Bản cũ lấy trung bình MỌI điểm ảnh của cảnh đã qua ngưỡng 70% quang: tới 30%
+    điểm ảnh còn lại là mây (NDVI ≈ 0) vẫn bị cộng vào. Đo thật 18/9/2026 ở Lâm Đồng,
+    cảnh quang 66%: trung bình cũ 0,358, chỉ trên điểm quang 0,411 — lệch 13%, đủ để
+    "phát hiện sâu bệnh" báo cây yếu đi chỉ vì trời có mây.
+
+    Data API không nhận nodata tuỳ ý cho biểu thức, nên xin 5 băng trong cùng một
+    lượt gọi rồi tính đúng: tổng có che, số điểm quang, tổng bình phương có che, min
+    và max có che. Lượt gọi này cũng cho luôn % quang — thay cho lượt dò SCL riêng.
+    """
+    v, m = EXPR[index], _SCL_MASK
+    expr = ";".join([f"where({m},{v},0)", f"where({m},1,0)", f"where({m},({v})*({v}),0)",
+                     f"where({m},{v},2)", f"where({m},{v},-2)"])
+    q = urllib.parse.urlencode({"collection": COLLECTION, "item": item_id,
+                                "expression": expr, "asset_as_band": "true"})
+    r = _call(f"{DATA}?{q}", _poly(box))
+    if not r:
+        return None
+    try:
+        a, b, c, mn, mx = list(r["properties"]["statistics"].values())[:5]
+        n, f = float(a["count"]), float(b["mean"])
+    except (KeyError, ValueError, TypeError):
+        return None
+    if not n or not math.isfinite(f) or f <= 0:
+        return {"clear_pct": 0.0, "count": 0}
+    mean = a["mean"] / f
+    if not math.isfinite(mean):
+        return None
+    return {"mean": mean, "std": math.sqrt(max(0.0, c["mean"] / f - mean * mean)),
+            "min": mn["min"], "max": mx["max"], "count": int(round(n * f)),
+            "clear_pct": 100.0 * f}
+
+
+def _one_per_date(items: list[dict]) -> list[dict]:
+    """Mỗi ngày bay MỘT cảnh (độ mây cảnh thấp nhất), giữ thứ tự mới → cũ.
+
+    Thửa nằm ở mép hai ô lưới MGRS thì mỗi lần bay có HAI cảnh trùng ngày: chúng ăn
+    gấp đôi suất dò và làm chuỗi đếm một ngày thành hai quan sát.
+    """
+    best: dict[str, dict] = {}
+    for it in items:
+        d = it["properties"]["datetime"][:10]
+        cc = float(it["properties"].get("eo:cloud_cover") or 100.0)
+        if d not in best or cc < float(best[d]["properties"].get("eo:cloud_cover") or 100.0):
+            best[d] = it
+    return sorted(best.values(), key=lambda it: it["properties"]["datetime"], reverse=True)
+
+
 def _spread(items: list[dict], n: int) -> list[dict]:
     """Chọn n ảnh TRẢI ĐỀU theo thời gian, không phải n ảnh mới nhất.
 
@@ -198,39 +254,42 @@ def index_series(lat: float, lon: float, index: str = "NDVI",
     box = bbox_around(lat, lon, buffer_m)
 
     from app.services import cache_store, jobs
-    key = cache_store.make_key("mpc-series", index, round(lat, 4), round(lon, 4),
+    key = cache_store.make_key("mpc-series-m3", index, round(lat, 4), round(lon, 4),
                                int(days), int(buffer_m), end.isoformat(),
                                int(buffer_m), max_scenes)
     hit = cache_store.get(key)
     if hit is not None:
         return hit
 
-    items = search(box, start, end)
+    # limit đủ cho cả cửa sổ: mặc định 40 cảnh (mới → cũ, hai ô lưới mỗi ngày) chỉ phủ
+    # ~100 ngày, nên chuỗi "180 ngày" của mô-đun năng suất âm thầm mất nửa đầu.
+    items = search(box, start, end, limit=400)
     if items is None:
         return None
     if not items:
         return []
 
-    # HAI BƯỚC: dò lớp SCL trước (rẻ) để loại ảnh bị mây che tại chính thửa
-    # này, rồi mới lấy chỉ số cho những ảnh sống sót. Làm ngược lại thì vừa tốn
-    # gấp đôi vừa cho ra những con số trông như dữ liệu nhưng thực chất là mây.
-    probe = _spread(items, min(MAX_PROBE, len(items)))
-    fracs = jobs.gather([lambda it=it: (it, clear_fraction(it["id"], box))
-                         for it in probe])
-    good = [(it, f) for it, f in fracs if f is not None and f >= CLEAR_MIN]
+    # MỘT lượt gọi mỗi cảnh: thống kê đã che mây từng điểm ảnh, kèm luôn % quang.
+    probe = _spread(_one_per_date(items), min(MAX_PROBE, len(items)))
+    got = [g for g in jobs.gather([lambda it=it: (it, masked_stats(it["id"], box, index))
+                                   for it in probe]) if g is not None]
+    if not any(st is not None for _, st in got):
+        return None                      # mọi lượt gọi đều hỏng — KHÁC với "toàn mây"
+    good = [(it, st) for it, st in got
+            if st is not None and st.get("clear_pct", 0.0) >= CLEAR_MIN_MASKED and "mean" in st]
     if not good:
         return []
-    chosen = [(it, f) for it, f in good[:max_scenes]]
+    # Không còn cắt ở max_scenes: trần đó để tiết kiệm lượt gọi thống kê thứ hai, mà
+    # nay mỗi cảnh chỉ một lượt — bỏ đi cảnh quang đã trả tiền gọi là phí dữ liệu thật
+    # (mùa mưa, "năng suất" cần 5 điểm trong 180 ngày; trần 6 làm hụt).
+    chosen = good
 
     span_m = buffer_m * 2.0
     expect = max(1.0, (span_m / 10.0) ** 2)
 
     def one(pair):
-        it, frac = pair
-        st = _stats_one(it["id"], box, index)
-        if st is None:
-            return None
-        cov = frac
+        it, st = pair
+        cov = st["clear_pct"]
         return {
             "date": it["properties"]["datetime"][:10],
             "mean": round(st["mean"], 4),
@@ -244,7 +303,7 @@ def index_series(lat: float, lon: float, index: str = "NDVI",
             "scene": it["id"],
         }
 
-    rows = [r for r in jobs.gather([lambda p=p: one(p) for p in chosen]) if r]
+    rows = [one(p) for p in chosen]
     rows.sort(key=lambda r: r["date"])
     if not rows:
         return None
@@ -291,7 +350,7 @@ def monthly_index_series(lat: float, lon: float, index: str = "NDVI",
 
     from app.services import cache_store, jobs
 
-    key = cache_store.make_key("mpc-monthly", index, round(lat, 4), round(lon, 4),
+    key = cache_store.make_key("mpc-monthly-m2", index, round(lat, 4), round(lon, 4),
                                months, int(buffer_m), end.isoformat())
     hit = cache_store.get(key)
     if hit is not None:
@@ -304,7 +363,7 @@ def monthly_index_series(lat: float, lon: float, index: str = "NDVI",
         return []
 
     buckets: dict[tuple[int, int], list[dict]] = {}
-    for it in items:
+    for it in _one_per_date(items):
         d = date.fromisoformat(it["properties"]["datetime"][:10])
         if d < start:
             continue
@@ -317,25 +376,19 @@ def monthly_index_series(lat: float, lon: float, index: str = "NDVI",
                                min(max_per_month, len(its)))
         probe_pairs.extend((mk, it) for it in chosen_probe)
 
-    fracs = jobs.gather([
-        lambda p=p: (p[0], p[1], clear_fraction(p[1]["id"], box))
-        for p in probe_pairs
-    ])
-    good_by_month: dict[tuple[int, int], list[dict]] = {}
-    for res in fracs:
+    got = jobs.gather([lambda p=p: (p[0], masked_stats(p[1]["id"], box, index))
+                       for p in probe_pairs])
+    vals_by_month: dict[tuple[int, int], list[float]] = {}
+    for res in got:
         if res is None:
             continue
-        mk, it, frac = res
-        if frac is not None and frac >= CLEAR_MIN:
-            good_by_month.setdefault(mk, []).append(it)
+        mk, st = res
+        if st is not None and st.get("clear_pct", 0.0) >= CLEAR_MIN_MASKED and "mean" in st:
+            vals_by_month.setdefault(mk, []).append(st["mean"])
 
     rows: list[dict] = []
-    for mk in sorted(good_by_month):
-        its = good_by_month[mk]
-        stats = jobs.gather([lambda it=it: _stats_one(it["id"], box, index) for it in its])
-        vals = sorted(st["mean"] for st in stats if st)
-        if not vals:
-            continue
+    for mk in sorted(vals_by_month):
+        vals = sorted(vals_by_month[mk])
         n = len(vals)
         median = vals[n // 2] if n % 2 else (vals[n // 2 - 1] + vals[n // 2]) / 2.0
         rows.append({
