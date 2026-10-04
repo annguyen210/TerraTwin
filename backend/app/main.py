@@ -351,6 +351,23 @@ async def set_request_lang(request: Request, call_next):
 
 
 @app.middleware("http")
+async def security_headers(request: Request, call_next):
+    """Header bảo mật cho MỌI phản hồi API (phía web đã có qua next.config). API trả
+    JSON nên không cần CSP đầy đủ, nhưng nosniff/HSTS/không cho nhúng khung thì cần."""
+    resp = await call_next(request)
+    h = resp.headers
+    h.setdefault("X-Content-Type-Options", "nosniff")
+    h.setdefault("X-Frame-Options", "DENY")
+    h.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    # /docs, /redoc (tài liệu API cho đối tác) tải giao diện Swagger từ CDN — miễn CSP.
+    if not request.url.path.startswith(("/docs", "/redoc")):
+        h.setdefault("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
+    if request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https":
+        h.setdefault("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+    return resp
+
+
+@app.middleware("http")
 async def rate_limit(request: Request, call_next):
     # Preflight (OPTIONS) không tính vào hạn mức — nó không chạm nguồn dữ liệu nào.
     if _RATE > 0 and request.url.path.startswith("/api/") and request.method != "OPTIONS":
@@ -439,7 +456,8 @@ def health() -> dict:
     database = {
         "kind": db_kind,
         "provider": ("neon" if "neon.tech" in _dburl else
-                     "render" if "render.com" in _dburl else
+                     # URL nội bộ của Render là "@dpg-xxxx-a/..." — không chứa render.com.
+                     "render" if ("render.com" in _dburl or "@dpg-" in _dburl) else
                      None if db_kind == "sqlite" else "other"),
         "message": (
             "CẢNH BÁO: đang chạy SQLite trên production — dữ liệu mất mỗi lần máy "

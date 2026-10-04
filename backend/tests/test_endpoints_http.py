@@ -79,3 +79,14 @@ def test_scan_qua_http_tra_du_moi_muc(monkeypatch):
     assert len(d["modules"]) == len(list_modules())
     for m in d["modules"]:
         assert m["status"] in ("ok", "need_data", "out_of_scope", "pending")
+
+
+def test_api_co_header_bao_mat():
+    from fastapi.testclient import TestClient
+    from app.main import app
+    c = TestClient(app)
+    r = c.get("/api/health")
+    assert r.headers["X-Content-Type-Options"] == "nosniff"
+    assert r.headers["X-Frame-Options"] == "DENY"
+    assert "default-src 'none'" in r.headers["Content-Security-Policy"]
+    assert "Content-Security-Policy" not in c.get("/docs").headers
