@@ -418,12 +418,23 @@ def weather_7d_metno(lat: float, lon: float):
     except (KeyError, TypeError):
         return None
 
-    by_day: dict[str, dict] = {}
+    # MƯA KHÔNG ĐƯỢC CỘNG CHỒNG. Bản "compact" có mốc MỖI GIỜ trong ~2,5 ngày đầu rồi
+    # mỗi 6 giờ — và mốc giờ nào cũng kèm `next_6_hours`. Bản cũ cộng `next_6_hours`
+    # của mọi mốc nên mỗi giờ mưa bị tính ~6 lần: 4/10/2026 trên Render (Open-Meteo bị
+    # chặn) Cần Thơ ra "NGUY CƠ NGẬP CAO 96,7" và "SẠT LỞ CAO 97,3" — cảnh báo giả.
+    # Nay đi theo thời gian với một con trỏ "đã tính tới": mốc nằm trong khoảng đã
+    # tính thì bỏ; mốc kế cách 1 giờ thì lấy next_1_hours, không thì next_6_hours.
+    parsed = []
     for entry in series:
         try:
-            t = _dt.fromisoformat(entry["time"].replace("Z", "+00:00"))
-        except (KeyError, ValueError, TypeError):
+            parsed.append((_dt.fromisoformat(entry["time"].replace("Z", "+00:00")), entry))
+        except (KeyError, ValueError, TypeError, AttributeError):
             continue
+    parsed.sort(key=lambda x: x[0])
+
+    by_day: dict[str, dict] = {}
+    covered_until = None
+    for idx, (t, entry) in enumerate(parsed):
         local = t + _td(hours=7)
         day_key = local.strftime("%Y-%m-%d")
         info = by_day.setdefault(day_key, {"precip": 0.0, "temps": [], "has_precip": False})
@@ -434,11 +445,19 @@ def weather_7d_metno(lat: float, lon: float):
         if isinstance(temp, (int, float)):
             info["temps"].append(float(temp))
 
-        six = (data.get("next_6_hours") or {}).get("details") or {}
-        precip6 = six.get("precipitation_amount")
-        if isinstance(precip6, (int, float)):
-            info["precip"] += float(precip6)
+        if covered_until is not None and t < covered_until:
+            continue
+        nxt = parsed[idx + 1][0] if idx + 1 < len(parsed) else None
+        one = ((data.get("next_1_hours") or {}).get("details") or {}).get("precipitation_amount")
+        six = ((data.get("next_6_hours") or {}).get("details") or {}).get("precipitation_amount")
+        if isinstance(one, (int, float)) and nxt is not None and nxt - t <= _td(hours=1):
+            info["precip"] += float(one)
             info["has_precip"] = True
+            covered_until = t + _td(hours=1)
+        elif isinstance(six, (int, float)):
+            info["precip"] += float(six)
+            info["has_precip"] = True
+            covered_until = t + _td(hours=6)
 
     days = sorted(by_day)[:7]
     rows = []
@@ -607,12 +626,32 @@ def elevation_multi(points: list[tuple[float, float]]):
     return out
 
 
+def _cop_dem(lat: float, lon: float) -> float | None:
+    """Cao độ từ Copernicus DEM GLO-30 trên Planetary Computer (miễn phí, không khoá).
+
+    NGUỒN DỰ PHÒNG khi Open-Meteo chặn IP dùng chung của Render. Open-Meteo vốn cũng
+    lấy cao độ từ Copernicus DEM (GLO-90), nên hai nguồn nhất quán. Tên ô 1° tính
+    thẳng từ toạ độ — không cần lượt tìm STAC; điểm ở mép ô vẫn đúng ô của nó.
+    """
+    ns, ew = ("N" if lat >= 0 else "S"), ("E" if lon >= 0 else "W")
+    item = (f"Copernicus_DSM_COG_10_{ns}{abs(math.floor(lat)):02d}_00_"
+            f"{ew}{abs(math.floor(lon)):03d}_00_DEM")
+    d = _get("https://planetarycomputer.microsoft.com/api/data/v1/item/point/"
+             f"{lon:.5f},{lat:.5f}?collection=cop-dem-glo-30&item={item}&assets=data",
+             timeout=15.0)
+    try:
+        v = float(d["values"][0])
+    except (KeyError, IndexError, TypeError, ValueError):
+        return None
+    return v if math.isfinite(v) and -500.0 < v < 9000.0 else None
+
+
 def elevation_m(lat: float, lon: float):
     d = _get(f"https://api.open-meteo.com/v1/elevation?latitude={lat}&longitude={lon}")
     try:
         return float(d["elevation"][0])
     except (KeyError, IndexError, TypeError):
-        return None
+        return _cop_dem(lat, lon)
 
 
 def slope_deg(lat: float, lon: float, step_m: float = 500.0):
@@ -631,6 +670,12 @@ def slope_deg(lat: float, lon: float, step_m: float = 500.0):
     d = _get(f"https://api.open-meteo.com/v1/elevation?latitude={lat_q}&longitude={lon_q}")
     try:
         e = [float(x) for x in d["elevation"]]
+    except (KeyError, IndexError, TypeError, ValueError):
+        from app.services import jobs
+        e = jobs.gather([lambda la=la, lo=lo: _cop_dem(la, lo) for la, lo in zip(lats, lons)])
+        if any(v is None for v in e):
+            return None
+    try:
         _c, n, s, ea, w = e[0], e[1], e[2], e[3], e[4]
         dz_ns = (n - s) / (2 * step_m)
         dz_ew = (ea - w) / (2 * step_m)

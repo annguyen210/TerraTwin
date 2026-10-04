@@ -24,7 +24,17 @@ class FloodModule(TwinModule):
 
     def assess(self, loc: Location) -> Assessment:
         s, real, calibrated, source = hazard.module_series(self.id, loc.lat, loc.lon)
-        elev = ds.elevation_proxy(loc.lat, loc.lon)
+        elev, elev_real = ds.elevation_context(loc.lat, loc.lon)
+        if real and not elev_real:
+            # Mưa thật + cao độ MẪU = một chỉ số trông thật nhưng không phải. 4/10/2026
+            # Cần Thơ bị gán cao độ mẫu 20 m lúc nguồn cao độ bị chặn. Không cảnh báo.
+            return need_data_assessment(
+                self, loc,
+                needs=tr("cao độ thật của thửa (nguồn DEM tạm không phản hồi)",
+                         "the plot's real elevation (DEM sources not responding)"),
+                will_do=tr("kết hợp mưa dự báo với cao độ thật để tính nguy cơ ngập",
+                           "combine forecast rain with real elevation to score flood risk"),
+                next_step=tr("Thử lại sau ít phút.", "Try again in a few minutes."))
 
         # Mưa THƯỢNG NGUỒN cố ý KHÔNG nằm ở đây mà tách thành mô-đun riêng
         # (upstream_flood, nhóm B, đánh dấu nặng). Nó cần lấy mẫu cả một nan
@@ -54,8 +64,9 @@ class FloodModule(TwinModule):
                     rec = tr("Sông đang lên rất mạnh — ", "River rising fast — ") + rec
             return head, rec
 
-        base = (tr(f"Chỉ số ngập từ lượng mưa THẬT (Open-Meteo), cao độ ~{elev} m.",
-                   f"Flood index from REAL rainfall (Open-Meteo), elevation ~{elev} m.") if real
+        _rain = "MET Norway" if source == "metno" else "Open-Meteo"
+        base = (tr(f"Chỉ số ngập từ lượng mưa THẬT ({_rain}), cao độ ~{elev} m (DEM Copernicus).",
+                   f"Flood index from REAL rainfall ({_rain}), elevation ~{elev} m (Copernicus DEM).") if real
                 else tr(f"Chỉ số ngập (mẫu), cao độ ~{elev} m.",
                         f"Flood index (sample), elevation ~{elev} m."))
         if river:
@@ -99,6 +110,16 @@ class LandslideModule(TwinModule):
     def assess(self, loc: Location) -> Assessment:
         s, real, calibrated, source = hazard.module_series(self.id, loc.lat, loc.lon)
         slope, slope_real = ds.slope_context(loc.lat, loc.lon)
+        if real and not slope_real:
+            # Độ dốc "ước lượng" là số mẫu — 4/10/2026 Cần Thơ (dốc thật ~0,1°) bị gán
+            # 17,7° và báo SẠT LỞ CAO. Không có độ dốc thật thì không chấm sạt lở.
+            return need_data_assessment(
+                self, loc,
+                needs=tr("độ dốc thật quanh thửa (nguồn DEM tạm không phản hồi)",
+                         "the real slope around the plot (DEM sources not responding)"),
+                will_do=tr("kết hợp mưa dự báo với độ dốc thật để tính nguy cơ sạt lở",
+                           "combine forecast rain with real slope to score landslide risk"),
+                next_step=tr("Thử lại sau ít phút.", "Try again in a few minutes."))
 
         def texts(lvl, pk, fd):
             if fd:
@@ -117,10 +138,11 @@ class LandslideModule(TwinModule):
             return (tr(f"Nguy cơ sạt lở thấp (chỉ số {pk.value})", f"Low landslide risk (index {pk.value})"),
                     tr("Duy trì theo dõi.", "Keep monitoring."))
 
-        slope_txt = (tr(f"độ dốc THẬT ~{slope}° (DEM Open-Meteo)", f"REAL slope ~{slope}° (Open-Meteo DEM)") if slope_real
-                     else tr(f"độ dốc ~{slope}° (ước lượng)", f"slope ~{slope}° (estimated)"))
-        detail = ((tr(f"Kết hợp lượng mưa THẬT (Open-Meteo) + {slope_txt}.",
-                      f"Combines REAL rainfall (Open-Meteo) + {slope_txt}.") if real
+        slope_txt = (tr(f"độ dốc THẬT ~{slope}° (DEM Copernicus)", f"REAL slope ~{slope}° (Copernicus DEM)") if slope_real
+                     else tr(f"độ dốc ~{slope}° (mẫu)", f"slope ~{slope}° (sample)"))
+        _rain = "MET Norway" if source == "metno" else "Open-Meteo"
+        detail = ((tr(f"Kết hợp lượng mưa THẬT ({_rain}) + {slope_txt}.",
+                      f"Combines REAL rainfall ({_rain}) + {slope_txt}.") if real
                    else tr(f"Chỉ số sạt lở (mẫu), {slope_txt}.", f"Landslide index (sample), {slope_txt}."))
                   + tr(" Sạt lở cần địa hình dốc — đồng bằng phẳng gần như không rủi ro. ",
                        " Landslides need steep terrain — flat deltas have almost no risk. ")

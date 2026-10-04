@@ -344,3 +344,58 @@ def test_health_bao_loai_csdl_khong_lo_url(client):
     if d["kind"] == "sqlite":
         assert d["provider"] is None
     assert DATABASE_URL not in str(d)
+
+
+def test_metno_khong_cong_chong_mua_khi_moc_tung_gio(monkeypatch):
+    """Bản 'compact' thật: mốc MỖI GIỜ ~60 giờ đầu (mỗi mốc kèm cả next_1_hours lẫn
+    next_6_hours chồng nhau), rồi mỗi 6 giờ. Mưa đều 1 mm/giờ → mỗi ngày đúng 24 mm.
+    Bản cũ cộng next_6_hours của mọi mốc giờ → ~144 mm/ngày → cảnh báo ngập/sạt lở
+    giả ở Cần Thơ trên Render (4/10/2026)."""
+    from datetime import datetime, timedelta, timezone
+
+    from app.services import realdata
+
+    start = datetime(2026, 10, 3, 17, 0, tzinfo=timezone.utc)      # = 00:00 giờ VN
+    series, h = [], 0
+    while h < 8 * 24:
+        t = start + timedelta(hours=h)
+        data = {"instant": {"details": {"air_temperature": 28.0}},
+                "next_6_hours": {"details": {"precipitation_amount": 6.0}}}
+        if h < 60:
+            data["next_1_hours"] = {"details": {"precipitation_amount": 1.0}}
+        series.append({"time": t.strftime("%Y-%m-%dT%H:%M:%SZ"), "data": data})
+        h += 1 if h < 60 else 6
+    monkeypatch.setattr(realdata, "_get", lambda url, timeout=8.0, headers=None:
+                        {"properties": {"timeseries": series}})
+    rows = realdata.weather_7d_metno(10.05, 105.75)
+    assert rows and len(rows) == 7
+    assert all(abs(r["precip"] - 24.0) < 0.01 for r in rows), [r["precip"] for r in rows]
+
+
+def test_cao_do_du_phong_copernicus_khi_open_meteo_hong(monkeypatch):
+    from app.services import realdata
+
+    def fake_get(url, timeout=8.0, headers=None):
+        if "open-meteo" in url:
+            return None                                   # bị chặn
+        assert "cop-dem-glo-30" in url and "Copernicus_DSM_COG_10_N10_00_E105_00_DEM" in url
+        return {"values": [4.02]}
+
+    monkeypatch.setattr(realdata, "_get", fake_get)
+    assert realdata.elevation_m(10.0452, 105.7469) == 4.02
+    assert realdata.slope_deg(10.0452, 105.7469) == 0.0   # 5 điểm cùng cao độ → phẳng
+
+
+def test_mua_that_ma_do_doc_mau_thi_khong_cham_sat_lo(monkeypatch):
+    """Độ dốc 'ước lượng' là số mẫu: không được ghép với mưa thật thành cảnh báo."""
+    from app.modules.registry import get_module
+    from app.schemas import Location
+    from app.services import datasources as ds, hazard
+
+    monkeypatch.setattr(hazard, "module_series",
+                        lambda mid, la, lo: (ds.landslide_series(la, lo), True, True, "metno"))
+    monkeypatch.setattr(ds, "slope_context", lambda la, lo: (17.7, False))
+    monkeypatch.setattr(ds, "elevation_context", lambda la, lo: (20.2, False))
+    for mid in ("landslide", "flood"):
+        a = get_module(mid).assess(Location(lat=10.0452, lon=105.7469))
+        assert a.status == "need_data" and a.risk_level == "unknown", (mid, a.headline)

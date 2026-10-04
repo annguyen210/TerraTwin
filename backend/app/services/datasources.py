@@ -67,11 +67,17 @@ def series(lat: float, lon: float, key: str, base: float,
 
 # ---------- Cao độ / bức xạ (thật + fallback) ----------
 
-def elevation_proxy(lat: float, lon: float) -> float:
+def elevation_context(lat: float, lon: float) -> tuple[float, bool]:
+    """(cao_độ, is_real). Thật: Open-Meteo, dự phòng Copernicus DEM (Planetary Computer).
+    Cả hai hỏng mới rơi về giá trị MẪU — và người gọi PHẢI xem cờ is_real."""
     real = realdata.elevation_m(lat, lon)
     if real is not None:
-        return round(real, 1)
-    return round(2.0 + distance_to_coast_km(lat, lon) * 0.12 + _seed_key(lat, lon, "elev") * 15.0, 1)
+        return round(real, 1), True
+    return round(2.0 + distance_to_coast_km(lat, lon) * 0.12 + _seed_key(lat, lon, "elev") * 15.0, 1), False
+
+
+def elevation_proxy(lat: float, lon: float) -> float:
+    return elevation_context(lat, lon)[0]
 
 
 def slope_context(lat: float, lon: float):
