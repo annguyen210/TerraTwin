@@ -208,6 +208,17 @@ def _cache_key(url: str) -> str:
     return cache_store.make_key("realdata", url)
 
 
+def _snap(v: float) -> float:
+    """Toạ độ cho lượt gọi THỜI TIẾT, làm tròn 0,01° (~1,1 km).
+
+    URL là khoá cache, nên toạ độ thô (12.753412…) khiến hai lần bấm cách nhau vài
+    mét trên CÙNG một thửa là hai lượt gọi Open-Meteo — trong khi lưới mô hình dự báo
+    rộng ~9–13 km, nên hai lượt trả cùng một ô. Trên IP dùng chung của Render, mỗi lượt
+    thừa là thêm một bước tới 429. KHÔNG dùng cho cao độ (DEM 90 m đổi theo từng trăm mét).
+    """
+    return round(float(v), 2)
+
+
 def _get(url: str, timeout: float = 8.0, headers: dict | None = None):
     """Lấy JSON có cache BỀN (kv_cache, sống qua restart) + GỘP những lời gọi
     trùng nhau đang chạy cùng lúc.
@@ -302,7 +313,7 @@ def weather_7d(lat: float, lon: float):
     """
     url = (
         "https://api.open-meteo.com/v1/forecast"
-        f"?latitude={lat}&longitude={lon}"
+        f"?latitude={_snap(lat)}&longitude={_snap(lon)}"
         "&daily=precipitation_sum,et0_fao_evapotranspiration,temperature_2m_max"
         "&forecast_days=7&timezone=auto"
     )
@@ -398,7 +409,7 @@ def weather_7d_metno(lat: float, lon: float):
     from datetime import datetime as _dt
     from datetime import timedelta as _td
 
-    url = f"{_METNO_URL}?lat={lat:.4f}&lon={lon:.4f}"
+    url = f"{_METNO_URL}?lat={_snap(lat)}&lon={_snap(lon)}"
     d = _get(url, timeout=10.0, headers=_metno_headers())
     if not d:
         return None
@@ -637,7 +648,7 @@ def historical_weather(lat: float, lon: float, start: str, end: str):
     """
     url = (
         "https://archive-api.open-meteo.com/v1/archive"
-        f"?latitude={lat}&longitude={lon}"
+        f"?latitude={_snap(lat)}&longitude={_snap(lon)}"
         f"&start_date={start}&end_date={end}"
         "&daily=precipitation_sum,et0_fao_evapotranspiration,temperature_2m_max"
         "&timezone=auto"
@@ -673,7 +684,7 @@ def river_discharge_7d(lat: float, lon: float):
     """
     url = (
         "https://flood-api.open-meteo.com/v1/flood"
-        f"?latitude={lat}&longitude={lon}"
+        f"?latitude={_snap(lat)}&longitude={_snap(lon)}"
         "&daily=river_discharge,river_discharge_mean&forecast_days=7"
     )
     d = _get(url, timeout=12.0)
@@ -706,7 +717,7 @@ def marine_7d(lat: float, lon: float):
     """
     url = (
         "https://marine-api.open-meteo.com/v1/marine"
-        f"?latitude={lat}&longitude={lon}"
+        f"?latitude={_snap(lat)}&longitude={_snap(lon)}"
         "&daily=sea_surface_temperature_max,wave_height_max&forecast_days=7"
     )
     d = _get(url, timeout=12.0)
