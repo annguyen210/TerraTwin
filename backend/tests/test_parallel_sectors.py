@@ -268,9 +268,12 @@ def test_urban_do_duoc_be_tong_hoa(fake_osm, monkeypatch):
 
 
 def test_urban_khong_co_osm_thi_noi_that(monkeypatch):
+    """OSM chết VÀ bản đồ phủ đất dự phòng cũng chết → nói thật là thiếu dữ liệu."""
     from app.modules.registry import get_module
+    from app.services import landuse
 
     monkeypatch.setattr(osm, "_query", lambda q: None)
+    monkeypatch.setattr(landuse, "composition", lambda *a, **k: None)
     a = get_module("urban").assess(Location(lat=10.0, lon=106.0))
     assert a.status == "need_data"
     assert a.risk_level == "unknown"
@@ -483,3 +486,22 @@ def test_osm_truy_van_sai_khong_ngat_cau_dao(monkeypatch):
     monkeypatch.setattr(osm.urllib.request, "urlopen", bad)
     assert osm._fetch("sai cú pháp") is None
     assert osm._down_until == {}
+
+
+def test_do_thi_du_phong_worldcover_khi_osm_chet(monkeypatch):
+    """Overpass chết thì mô-đun đô thị vẫn tính chảy tràn từ WorldCover — và nói rõ nguồn."""
+    from app.modules.registry import get_module
+    from app.schemas import Location
+    from app.services import datasources as ds, landuse
+
+    monkeypatch.setattr(osm, "built_environment", lambda *a, **k: None)
+    monkeypatch.setattr(landuse, "composition", lambda la, lo, radius_m=None: {
+        "source": "ESA WorldCover 2021 v200 (10 m)", "year": "2021",
+        "group_pct": {"built": 60.0, "tree": 10.0, "crop": 20.0, "water": 10.0}})
+    monkeypatch.setattr(ds, "forecast_precip_7d_total", lambda la, lo: (80.0, True))
+    monkeypatch.setattr(ds, "elevation_proxy", lambda la, lo: 3.0)
+    a = get_module("urban").assess(Location(lat=10.78, lon=106.70))
+    assert a.status == "ok" and a.is_real
+    assert a.metrics["be_tong_hoa_pct"] == 60.0 and a.metrics["mang_xanh_pct"] == 30.0
+    assert "WorldCover" in a.data_sources[0] and "OpenStreetMap" in a.detail
+

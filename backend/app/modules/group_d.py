@@ -74,11 +74,23 @@ class UrbanModule(TwinModule):
 
     def assess(self, loc: Location) -> Assessment:
         env = osm.built_environment(loc.lat, loc.lon, radius_m=1000.0)
+        wc = None
+        if env is None:
+            # DỰ PHÒNG: Overpass công cộng rất chậm từ máy chủ đám mây (đo trên Render
+            # 10/2026: 60–170 giây rồi vẫn không có). Tỉ lệ bê tông hoá — đầu vào chính
+            # của phép tính chảy tràn — lấy được từ bản đồ phủ đất ESA WorldCover 10 m
+            # (lớp "Bề mặt xây dựng"). Không đếm được công trình/đường thì NÓI RÕ.
+            from app.services import landuse
+            wc = landuse.composition(loc.lat, loc.lon, radius_m=1000.0)
+            if wc is not None:
+                gp = wc["group_pct"]
+                env = {"built_fraction": gp.get("built", 0.0) / 100.0,
+                       "built_pct": round(gp.get("built", 0.0), 1), "source": wc["source"]}
         if env is None:
             return need_data_assessment(
                 self, loc,
-                needs=tr("dữ liệu hạ tầng OpenStreetMap cho vùng này",
-                         "OpenStreetMap infrastructure data for this area"),
+                needs=tr("dữ liệu hạ tầng OpenStreetMap hoặc bản đồ phủ đất cho vùng này",
+                         "OpenStreetMap infrastructure or land-cover data for this area"),
                 will_do=tr("đo tỉ lệ bê tông hoá rồi tính nước mưa chảy tràn tăng "
                            "thêm bao nhiêu so với khi chưa đô thị hoá",
                            "measure the built-up fraction, then compute how much more "
@@ -108,9 +120,12 @@ class UrbanModule(TwinModule):
         score += min(30.0, extra * 1.2)          # phần chảy tràn tăng thêm
         lvl = "danger" if score >= 70 else "warning" if score >= 40 else "safe"
 
-        green_ha = env["landuse_ha"].get("forest", 0.0) + \
-            env["landuse_ha"].get("farmland", 0.0)
-        green_pct = round(100.0 * green_ha / max(0.1, env["area_ha"]), 1)
+        if wc is not None:
+            green_pct = round(wc["group_pct"].get("tree", 0.0) + wc["group_pct"].get("crop", 0.0), 1)
+        else:
+            green_ha = env["landuse_ha"].get("forest", 0.0) + \
+                env["landuse_ha"].get("farmland", 0.0)
+            green_pct = round(100.0 * green_ha / max(0.1, env["area_ha"]), 1)
 
         head = (tr(f"Bê tông hoá {env['built_pct']}% trong bán kính 1 km",
                    f"{env['built_pct']}% built-up within 1 km")
@@ -138,6 +153,32 @@ class UrbanModule(TwinModule):
         else:
             rec = tr("Mức bê tông hoá và địa hình hiện chưa tạo áp lực ngập rõ rệt.",
                      "Current built-up level and terrain pose no clear flood pressure.")
+
+        rain_src = (tr("Mưa dự báo 7 ngày tới (thật)", "7-day rain forecast (real)")
+                    if has_rain else tr("Mưa: chưa lấy được", "Rain: not yet available"))
+        if wc is not None:
+            return Assessment(
+                module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
+                risk_level=lvl, headline=head, score=round(score, 1),
+                detail=tr(
+                    f"Tỉ lệ bề mặt xây dựng (gồm cả đường, sân bãi — khác OSM chỉ đếm nhà) và mảng xanh/nông nghiệp ({green_pct}%) đo từ bản đồ "
+                    f"phủ đất {wc['source']} trong bán kính 1 km · nền {elev} m. OpenStreetMap "
+                    "đang không phản hồi nên CHƯA đếm được công trình và mật độ đường; bản đồ "
+                    f"phủ đất phản ánh năm {wc.get('year') or 'gần nhất'}, khu mới xây sau đó "
+                    "chưa có. Dòng chảy tính bằng phương pháp SCS Curve Number (USDA TR-55), "
+                    f"CN pha trộn {cn_now:.0f}.",
+                    f"Built-up surface (incl. roads and yards — unlike OSM, which counts buildings only) and green/farm ({green_pct}%) fractions measured from "
+                    f"{wc['source']} land cover within 1 km · ground {elev} m. OpenStreetMap "
+                    "isn't responding, so buildings and road density are NOT counted; the land-"
+                    f"cover map reflects {wc.get('year') or 'its latest year'}, newer construction "
+                    "is missing. Runoff computed with the SCS Curve Number method (USDA TR-55), "
+                    f"blended CN {cn_now:.0f}."),
+                recommendation=rec, confidence=0.55, confidence_low=0.42,
+                confidence_high=0.66, is_real=True,
+                metrics={"be_tong_hoa_pct": env["built_pct"], "mang_xanh_pct": green_pct,
+                         "chay_tran_mm": round(q_now, 1),
+                         "chay_tran_tu_nhien_mm": round(q_natural, 1), "cao_do_m": elev},
+                data_sources=[wc["source"], rain_src, "SCS Curve Number (USDA-NRCS TR-55)"])
 
         return Assessment(
             module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
