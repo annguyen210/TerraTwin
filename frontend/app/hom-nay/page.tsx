@@ -62,6 +62,29 @@ export default function TodayPage() {
         {err && <p className="bat-err">{err}</p>}
         {!d && !err && <div className="hn-skel"><div className="tt-skel" /><div className="tt-skel" /><div className="tt-skel" /></div>}
 
+        {d?.readiness && (
+          <section className="hn-ready tt-card" aria-label={t("Mức sẵn sàng EUDR", "EUDR readiness")}>
+            <div className="hn-ready-head">
+              <h2>{t("Mức sẵn sàng EUDR", "EUDR readiness")}</h2>
+              <small>{d.readiness.note}</small>
+            </div>
+            <ol className="hn-funnel">
+              {d.readiness.steps.map((s) => (
+                <li key={s.key}>
+                  <div className="hn-funnel-row">
+                    <span>{s.label}</span>
+                    <b>{s.pct === null ? "—" : `${s.pct}%`}</b>
+                  </div>
+                  <div className="hn-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={s.pct ?? 0} aria-label={s.label}>
+                    <i style={{ width: `${s.pct ?? 0}%` }} />
+                  </div>
+                  <small>{s.of ? `${s.n.toLocaleString("vi-VN")} / ${s.of.toLocaleString("vi-VN")}` : t("chưa có dữ liệu", "no data yet")}</small>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
+
         {d?.signed_in && (
           <section className="hn-list">
             <h2>{t("Việc cần làm", "To do")}</h2>

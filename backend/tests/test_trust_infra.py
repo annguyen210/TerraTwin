@@ -390,11 +390,16 @@ def test_bang_tin_hom_nay(env):
     assert not pub["signed_in"] and pub["deadlines"][0]["date"] == "2026-12-30" and pub["tip"]["id"]
     h = _login(c, "hn@vd.vn")
     a = _issue(c, "VHN", 12.97, h)
-    c.post("/api/lots", headers=_login(c, "hn2@vd.vn"), json={"operator": "Cty B", "season": "2030/31",
+    h2 = _login(c, "hn2@vd.vn")
+    c.post("/api/lots", headers=h2, json={"operator": "Cty B", "season": "2030/31",
                                                                "deliveries": [{"dossier_id": a["id"], "kg": 500}]})
     me = c.get("/api/today", headers=h).json()
     assert me["signed_in"] and me["counts"]["eudr_dossiers"] == 1
     assert any(i["kind"] == "delivery" and "Cty B" in i["title"] for i in me["items"])
+    assert me["readiness"] is None                     # nông hộ: chưa có bộ vườn / lô hàng
+    biz = c.get("/api/today", headers=h2).json()
+    kg = next(s for s in biz["readiness"]["steps"] if s["key"] == "kg_certified")
+    assert kg["of"] == 500 and kg["n"] == 0 and kg["pct"] == 0.0   # lô nháp chưa chứng thư
 
 
 def test_429_co_header_cors_va_preflight_khong_tinh(monkeypatch):

@@ -35,6 +35,53 @@ def _tip(today: date) -> dict | None:
     return {"id": d["id"], "title": d["title"], "text": d["text"], "source": d["source"], "url": d["url"]}
 
 
+def _readiness(db: Session, user: User, eudr_ids: set) -> dict | None:
+    """MỨC SẴN SÀNG EUDR của doanh nghiệp — phễu từ ranh tới sản lượng có chứng thư.
+
+    Chỉ ĐẾM, không chấm điểm tổng hợp: một con số "78% sẵn sàng" sẽ phải gán trọng số
+    tuỳ ý cho từng bước. Mỗi bước là một tỉ lệ đo được, kèm mẫu số của nó.
+    """
+    from app.services import eudr_forest
+    sets = db.execute(select(EudrSet).where(EudrSet.user_id == user.id)).scalars().all()
+    lots = db.execute(select(Lot).where(Lot.user_id == user.id)).scalars().all()
+    if not sets and not lots:
+        return None
+    n_plots = n_valid = 0
+    levels = {k: 0 for k in eudr_forest.LEVELS}
+    for st in sets:
+        ps = json.loads(st.plots_json or "[]")
+        n_plots += len(ps)
+        n_valid += sum(1 for p in ps if p.get("valid"))
+        for r in json.loads(st.results_json or "{}").values():
+            lv = r.get("level") if r.get("level") in levels else "unknown"
+            levels[lv] += 1
+    screened = sum(levels.values())
+    kg_all = kg_cert = 0.0
+    for lot in lots:
+        kg = sum(float(d.get("kg") or 0) for d in json.loads(lot.deliveries_json or "[]"))
+        kg_all += kg
+        if lot.state == "certified":
+            kg_cert += kg
+
+    def step(key, vi, en, n, of):
+        return {"key": key, "label": tr(vi, en), "n": n, "of": of,
+                "pct": None if not of else round(100.0 * n / of, 1)}
+
+    return {
+        "steps": [
+            step("valid", "Ranh đúng chuẩn EU", "Boundary meets EU format", n_valid, n_plots),
+            step("screened", "Đã sàng lọc phá rừng", "Deforestation-screened", screened, n_valid),
+            step("passed", "Đạt sàng lọc", "Passed screening", levels["low"], screened),
+            step("kg_certified", "Sản lượng có chứng thư lô (kg)", "Quantity with a lot certificate (kg)",
+                 round(kg_cert), round(kg_all)),
+        ],
+        "levels": {k: {"n": v, "label": eudr_forest.label(k)} for k, v in levels.items()},
+        "eudr_dossiers": len(eudr_ids),
+        "note": tr("Mỗi bước là tỉ lệ đo được trên mẫu số của nó — không gộp thành một điểm tổng.",
+                   "Each step is a measured share of its own denominator — not merged into one score."),
+    }
+
+
 @router.get("/api/today")
 def today(lang: str = "vi", user: User | None = Depends(auth.optional_user), db: Session = Depends(get_session)) -> dict:
     reqlang.set_lang(lang)
@@ -108,6 +155,7 @@ def today(lang: str = "vi", user: User | None = Depends(auth.optional_user), db:
                       "title": a.headline, "body": tr("Cảnh báo tham khảo — bản tin chính thức: nchmf.gov.vn.",
                                                       "Reference alert — official bulletins: nchmf.gov.vn.")})
     items.sort(key=lambda x: _RANK.get(x["priority"], 9))
+    out["readiness"] = _readiness(db, user, eudr_ids)
     out["counts"] = {"plots_saved": int(db.scalar(select(func.count()).select_from(Plot).where(Plot.user_id == user.id)) or 0),
                      "dossiers": len(my_dossiers), "eudr_dossiers": len(eudr_ids)}
     return out
