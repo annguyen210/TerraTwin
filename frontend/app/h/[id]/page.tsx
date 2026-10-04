@@ -101,6 +101,7 @@ export default function DossierPage() {
     <AppShell extra={d ? <span className="dos-noprint tt-dos-actions">
         <button className="doc-link-btn" onClick={download}>{t("Tải JSON đã ký", "Download signed JSON")}</button>
         <button className="doc-link-btn" onClick={() => window.print()}>{t("In", "Print")}</button>
+        <Link className="doc-link-btn" href={`/h/${id}/the`}>{t("Thẻ in A6", "A6 card")}</Link>
       </span> : null}>
       <div className="dos">
         {d && <div className="dos-noprint tt-dos-mobile">

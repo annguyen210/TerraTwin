@@ -4705,3 +4705,35 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .tt-actions .acct-who { display: flex; align-items: center; gap: 6px; margin: 0; }
 .tt-actions .acct-out { margin: 0; padding: 6px 10px; font-size: .76rem; white-space: nowrap; }
 .tt-actions .acct-in { margin: 0; }
+
+/* ── Thẻ vườn A6 (/h/[id]/the) — bản giấy nông hộ giữ, người mua quét ───────────── */
+.a6-wrap { min-height: 100vh; display: grid; justify-items: center; align-content: start; gap: 14px; padding: 24px 16px; }
+.a6-tools { width: min(105mm, 100%); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.a6-card { width: min(105mm, 100%); aspect-ratio: 105 / 148; box-sizing: border-box; padding: 6mm; border-radius: 10px;
+  background: #fff; color: #10201a; display: grid; grid-template-rows: auto auto auto 1fr auto auto; gap: 3mm;
+  box-shadow: 0 18px 50px rgba(0,0,0,.35); font-size: 9.5pt; }
+.a6-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1.5px solid #1f6f50; padding-bottom: 2mm; }
+.a6-head b { color: #1f6f50; font-size: 11pt; }
+.a6-head span { font-size: 8pt; color: #4a5a52; text-transform: uppercase; letter-spacing: .04em; }
+.a6-plot h1 { margin: 0; font-size: 15pt; line-height: 1.15; color: #10201a; }
+.a6-plot p { margin: 1mm 0 0; color: #33443c; }
+.a6-coord { font-family: ui-monospace, Consolas, monospace; font-size: 8.5pt; }
+.a6-verdict { border-radius: 6px; padding: 2mm 3mm; border: 1.5px solid; display: grid; gap: .5mm; }
+.a6-verdict b { font-size: 11pt; }
+.a6-verdict small { font-size: 7.5pt; color: #33443c; }
+.a6-verdict.ok { border-color: #1f8a5a; background: #e7f6ee; } .a6-verdict.ok b { color: #136b43; }
+.a6-verdict.warn { border-color: #b07a2e; background: #fbf1e2; } .a6-verdict.warn b { color: #8a5a17; }
+.a6-verdict.bad { border-color: #c2412e; background: #fbe9e6; } .a6-verdict.bad b { color: #9c2c1c; }
+.a6-verdict.dim { border-color: #8a9690; background: #f1f3f2; }
+.a6-qr { justify-self: center; align-self: center; width: 46mm; height: 46mm; image-rendering: pixelated; }
+.a6-meta { margin: 0; display: grid; gap: .8mm; font-size: 8pt; }
+.a6-meta div { display: flex; justify-content: space-between; gap: 3mm; }
+.a6-meta dt { color: #4a5a52; } .a6-meta dd { margin: 0; font-family: ui-monospace, Consolas, monospace; text-align: right; }
+.a6-foot { font-size: 6.8pt; line-height: 1.35; color: #4a5a52; border-top: 1px solid #d5ddd9; padding-top: 1.5mm; }
+@media print {
+  @page { size: A6; margin: 0; }
+  body { background: #fff !important; }
+  .no-print { display: none !important; }
+  .a6-wrap { padding: 0; min-height: 0; }
+  .a6-card { width: 105mm; height: 148mm; aspect-ratio: auto; border-radius: 0; box-shadow: none; }
+}
