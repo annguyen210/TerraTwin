@@ -623,7 +623,19 @@ def elevation_multi(points: list[tuple[float, float]]):
             out.extend([None] * len(chunk))
             continue
         out.extend(vals[i] if i < len(vals) else None for i in range(len(chunk)))
+
+    # Dự phòng Copernicus DEM khi Open-Meteo chặn — chỉ cho tập NHỎ (nan quạt thượng
+    # nguồn, vòng địa hình của hồ sơ thửa, vòng đất/nước): mỗi điểm một lượt gọi, nên
+    # bản đồ nhiệt hàng trăm điểm KHÔNG đi đường này (sẽ dội nguồn dự phòng).
+    miss = [i for i, v in enumerate(out) if v is None]
+    if miss and len(points) <= _COP_DEM_MAX_POINTS:
+        got = jobs.gather([lambda i=i: _cop_dem(*points[i]) for i in miss])
+        for i, v in zip(miss, got):
+            out[i] = v
     return out
+
+
+_COP_DEM_MAX_POINTS = 48
 
 
 def _cop_dem(lat: float, lon: float) -> float | None:

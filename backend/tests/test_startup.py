@@ -399,3 +399,20 @@ def test_mua_that_ma_do_doc_mau_thi_khong_cham_sat_lo(monkeypatch):
     for mid in ("landslide", "flood"):
         a = get_module(mid).assess(Location(lat=10.0452, lon=105.7469))
         assert a.status == "need_data" and a.risk_level == "unknown", (mid, a.headline)
+
+
+def test_cao_do_nhieu_diem_du_phong_copernicus_chi_cho_tap_nho(monkeypatch):
+    from app.services import realdata
+    calls = []
+
+    def fake_get(url, timeout=8.0, headers=None):
+        if "open-meteo" in url:
+            return None
+        calls.append(url)
+        return {"values": [12.0]}
+
+    monkeypatch.setattr(realdata, "_get", fake_get)
+    assert realdata.elevation_multi([(11.5, 107.8), (11.51, 107.81)]) == [12.0, 12.0]
+    calls.clear()
+    big = [(11.5 + i * 0.001, 107.8) for i in range(realdata._COP_DEM_MAX_POINTS + 1)]
+    assert realdata.elevation_multi(big) == [None] * len(big) and calls == []
