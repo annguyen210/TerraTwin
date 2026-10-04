@@ -19,8 +19,8 @@ from sqlalchemy.orm import Session
 from app import auth
 from app.services import plans
 from app.db import (
-    ActionLog, Alert, ApiKey, AuditLog, BatchRun, Dataset, Dossier, EudrSet, FieldPhoto, Lot,
-    KnowledgeNote, NotifyChannel, Observation, Plot, PushSub, Twin, User, get_session,
+    ActionLog, Alert, ApiKey, AuditLog, BatchRun, Dataset, Device, Dossier, EudrSet, FieldPhoto, Lot,
+    KnowledgeNote, NotifyChannel, Observation, Plot, PushSub, SensorReading, Twin, User, get_session,
 )
 from app.schemas import Location
 
@@ -428,6 +428,7 @@ _OWNED = [
     ("knowledge_notes", KnowledgeNote), ("api_keys", ApiKey),
     ("datasets", Dataset), ("alerts", Alert), ("audit_logs", AuditLog),
     ("push_subs", PushSub), ("batch_runs", BatchRun), ("eudr_sets", EudrSet),
+    ("devices", Device),
 ]
 # Xuất nhưng KHÔNG xoá theo tài khoản: hồ sơ đất số nằm trong sổ đăng ký công
 # khai móc xích — xoá một hồ sơ là gãy mọi mắt xích sau nó; ảnh đã gắn vào hồ sơ
@@ -511,6 +512,11 @@ def delete_my_account(user: User = Depends(auth.current_user),
     mặc định KHÔNG bật khoá ngoại, nên 'ON DELETE CASCADE' có thể im lặng không
     chạy và để lại dữ liệu mồ côi sau khi người dùng tưởng đã xoá sạch.
     """
+    # Số đo IoT không có user_id — xoá theo thiết bị của người dùng, TRƯỚC khi xoá thiết bị.
+    dev_ids = [d.id for d in db.execute(select(Device).where(Device.user_id == user.id)).scalars().all()]
+    if dev_ids:
+        for r in db.execute(select(SensorReading).where(SensorReading.device_id.in_(dev_ids))).scalars().all():
+            db.delete(r)
     for _, model in _OWNED:
         for r in db.execute(
                 select(model).where(model.user_id == user.id)).scalars().all():

@@ -4742,3 +4742,22 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
   .a6-wrap { padding: 0; min-height: 0; }
   .a6-card { width: 105mm; height: 148mm; aspect-ratio: auto; border-radius: 0; box-shadow: none; }
 }
+
+/* ── Thiết bị IoT (/thiet-bi) ─────────────────────────────────────────────────── */
+.iot-form { display: grid; gap: 10px; }
+.iot-form label { display: grid; gap: 4px; font-size: .88rem; color: var(--dim); }
+.iot-form input[type="text"], .iot-form input:not([type]) { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--panel); color: var(--text); }
+.iot-form .mono, .iot-spark small, .doc-note code { font-family: ui-monospace, Consolas, monospace; }
+.iot-check { display: flex !important; align-items: center; gap: 8px; }
+.iot-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.iot-list li.on { outline: 2px solid var(--terra); }
+.iot-pick { all: unset; cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 14px; width: 100%; box-sizing: border-box; }
+.iot-pick small { flex-basis: 100%; color: var(--dim); }
+.iot-pick:focus-visible { outline: 2px solid var(--terra); border-radius: 10px; }
+.iot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.iot-spark { margin: 0; padding: 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); }
+.iot-spark figcaption { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: .85rem; }
+.iot-spark figcaption small { color: var(--dim); }
+.iot-spark svg { width: 100%; height: 64px; margin-top: 6px; }
+.iot-spark polyline { stroke: var(--terra); }
+.doc-note code { word-break: break-all; font-size: .78rem; }

@@ -154,6 +154,9 @@ def today(lang: str = "vi", user: User | None = Depends(auth.optional_user), db:
         items.append({"kind": "alert", "priority": "urgent" if a.risk_level == "danger" else "info", "link": "/",
                       "title": a.headline, "body": tr("Cảnh báo tham khảo — bản tin chính thức: nchmf.gov.vn.",
                                                       "Reference alert — official bulletins: nchmf.gov.vn.")})
+    # 6) Thiết bị IoT: im lặng quá lâu / đất khô dưới ngưỡng (tự động hoá).
+    from app.routes_iot import today_items as _iot_items
+    items.extend(_iot_items(db, user))
     items.sort(key=lambda x: _RANK.get(x["priority"], 9))
     out["readiness"] = _readiness(db, user, eudr_ids)
     out["counts"] = {"plots_saved": int(db.scalar(select(func.count()).select_from(Plot).where(Plot.user_id == user.id)) or 0),

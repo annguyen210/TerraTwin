@@ -23,7 +23,7 @@ OUT = os.path.join(os.environ.get("TEMP", "."), "terratwin-audit")
 os.makedirs(OUT, exist_ok=True)
 ROUTES = ["/", "/hom-nay", "/eudr", "/eudr?tab=lo", "/eudr?tab=tong-quan", "/eudr?tab=hoi-dap", "/eudr?tab=phuong-phap",
           "/lo", "/kiem", "/about", "/pricing", "/help", "/privacy", "/terms", "/status", "/buyer", "/batch",
-          "/forgot", "/plot/12.7530,108.1120", "/embed/12.7530,108.1120", "/admin"]
+          "/forgot", "/thiet-bi", "/plot/12.7530,108.1120", "/embed/12.7530,108.1120", "/admin"]
 if DID:
     ROUTES.append(f"/h/{DID}")
 

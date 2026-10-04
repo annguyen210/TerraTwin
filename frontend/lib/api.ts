@@ -2553,3 +2553,31 @@ export type ReadinessStep = { key: string; label: string; n: number; of: number;
 export type Readiness = { steps: ReadinessStep[]; levels: Record<string, { n: number; label: string }>;
                           eudr_dossiers: number; note: string };
 export function getToday() { return getJson<Today>(`/api/today?lang=${curLang()}`, "Không tải được bảng tin"); }
+
+// ── IoT ký số: thiết bị là khoá Ed25519, mọi số đo mang chữ ký kiểm được ──────────
+export type IotDevice = {
+  id: string; name: string; kind: "sensor" | "simulator"; public_key: string;
+  lat: number | null; lon: number | null; dossier_id: string | null; revoked: boolean;
+  created_at: string; last_seen: string | null; last_seq: number;
+  latest: { measured_at: string; metrics: Record<string, number> } | null;
+};
+export type IotSeries = {
+  device: IotDevice;
+  series: ({ t: string } & Record<string, number | string>)[];
+  catalog: Record<string, { unit: string; label: string }>;
+};
+export function iotDevices() {
+  return authed<{ devices: IotDevice[] }>(`/api/iot/devices?lang=${curLang()}`, { method: "GET" }, "Không tải được thiết bị");
+}
+export function iotRegister(body: { name: string; public_key: string; kind: "sensor" | "simulator"; dossier_id?: string | null }) {
+  return authed<IotDevice>(`/api/iot/devices?lang=${curLang()}`, { method: "POST", body: JSON.stringify(body) }, "Không đăng ký được thiết bị");
+}
+export function iotRevoke(id: string) {
+  return authed<{ id: string; revoked: boolean }>(`/api/iot/devices/${id}`, { method: "DELETE" }, "Không thu hồi được thiết bị");
+}
+export function iotReadings(id: string, hours = 168) {
+  return authed<IotSeries>(`/api/iot/devices/${id}/readings?hours=${hours}&lang=${curLang()}`, { method: "GET" }, "Không tải được số đo");
+}
+export function iotExport(id: string) {
+  return authed<Record<string, unknown>>(`/api/iot/devices/${id}/export`, { method: "GET" }, "Không xuất được số đo");
+}

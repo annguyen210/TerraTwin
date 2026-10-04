@@ -52,3 +52,6 @@ backend/data/ml/foc_parts/
 
 # MapLibre worker chép từ node_modules lúc cài (scripts/copy-maplibre-worker.mjs)
 frontend/public/maplibre/
+
+# Khoá bí mật của trình giả lập IoT — KHÔNG commit
+iot_sim_key*.txt

@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertOctagon, ArrowRight, Bell, BookOpen, CheckCircle2, ClipboardCheck, Footprints, Package, ShieldCheck, Sparkles } from "lucide-react";
+import { AlertOctagon, ArrowRight, Bell, BookOpen, CheckCircle2, Radio, ClipboardCheck, Footprints, Package, ShieldCheck, Sparkles } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { getToday, type Today } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
@@ -129,6 +129,7 @@ export default function TodayPage() {
             <Link href="/eudr" className="tt-card lift hn-tile"><Footprints size={22} aria-hidden="true" /><b>{t("Lấy ranh một vườn", "Map a plot")}</b><small>{t("Vẽ hoặc đi bộ GPS, sàng lọc, phát hành hồ sơ", "Draw or GPS-walk, screen, issue a dossier")}</small></Link>
             <Link href="/eudr?tab=lo" className="tt-card lift hn-tile"><ClipboardCheck size={22} aria-hidden="true" /><b>{t("Kiểm cả lô nhà cung cấp", "Check a supplier set")}</b><small>{t("GeoJSON, KML, Excel → chuẩn EU + sàng lọc", "GeoJSON, KML, Excel → EU format + screening")}</small></Link>
             <Link href="/lo" className="tt-card lift hn-tile"><Package size={22} aria-hidden="true" /><b>{t("Ghép lô hàng", "Build a lot")}</b><small>{t("Cân bằng khối lượng, chứng thư Merkle, DDS", "Mass balance, Merkle certificate, DDS")}</small></Link>
+            <Link href="/thiet-bi" className="tt-card lift hn-tile"><Radio size={22} aria-hidden="true" /><b>{t("Thiết bị tại vườn", "Field devices")}</b><small>{t("Cảm biến ký số Ed25519, gửi bù khi mất sóng", "Ed25519-signed sensors, back-fill offline")}</small></Link>
             <Link href="/kiem" className="tt-card lift hn-tile"><ShieldCheck size={22} aria-hidden="true" /><b>{t("Kiểm một hồ sơ", "Verify a dossier")}</b><small>{t("Ngay trong trình duyệt, tắt mạng vẫn kiểm", "In your browser, works offline")}</small></Link>
           </div>
         </section>

@@ -689,6 +689,46 @@ class EudrSet(Base):
     state: Mapped[str] = mapped_column(String(12), default="queued")   # queued | running | done
 
 
+
+class Device(Base):
+    """Thiết bị IoT tại vườn (trạm đo ẩm đất, mưa, nhiệt…) — NHẬN DẠNG BẰNG KHOÁ CÔNG KHAI.
+
+    Thiết bị tự sinh khoá Ed25519; khoá bí mật KHÔNG BAO GIỜ rời thiết bị, máy chủ chỉ
+    giữ public_b64. Vì vậy cả máy chủ cũng không giả được số liệu "của thiết bị": mọi số
+    đo phải mang chữ ký kiểm được bằng khoá công khai này. kind="simulator" là thiết bị
+    giả lập để demo — luôn hiện nhãn, không bao giờ lẫn với số đo thật.
+    """
+    __tablename__ = "devices"
+
+    id: Mapped[str] = mapped_column(String(16), primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    name: Mapped[str] = mapped_column(String(80), default="")
+    kind: Mapped[str] = mapped_column(String(16), default="sensor")      # sensor | simulator
+    public_b64: Mapped[str] = mapped_column(String(64), unique=True)
+    lat: Mapped[float | None] = mapped_column(Float, nullable=True)
+    lon: Mapped[float | None] = mapped_column(Float, nullable=True)
+    dossier_id: Mapped[str | None] = mapped_column(String(16), nullable=True, index=True)
+    last_seq: Mapped[int] = mapped_column(Integer, default=0)            # chống phát lại
+    last_seen: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    revoked: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class SensorReading(Base):
+    """Một số đo ĐÃ KÝ của thiết bị. Lưu nguyên chuỗi đã ký + chữ ký để BẤT KỲ AI cũng
+    kiểm lại được bằng khoá công khai của thiết bị — không cần tin máy chủ."""
+    __tablename__ = "sensor_readings"
+    __table_args__ = (UniqueConstraint("device_id", "seq", name="uq_reading_device_seq"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    device_id: Mapped[str] = mapped_column(String(16), index=True)
+    seq: Mapped[int] = mapped_column(Integer)
+    measured_at: Mapped[datetime] = mapped_column(DateTime, index=True)
+    received_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    metrics_json: Mapped[str] = mapped_column(Text)
+    signed: Mapped[str] = mapped_column(Text)            # chuỗi canonical đúng như đã ký
+    signature: Mapped[str] = mapped_column(String(96))
+
 # Cột thêm sau khi đã có database chạy thật. `create_all` KHÔNG thêm cột vào
 # bảng sẵn có, nên thiếu bước này thì bản deploy cũ sẽ đổ ngay lần truy vấn đầu
 # — lỗi chỉ lộ ra ở production, không bao giờ lộ trong test trên database sạch.

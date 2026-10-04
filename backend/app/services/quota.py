@@ -26,6 +26,9 @@ LIMITS = {
                 int(os.environ.get("TERRATWIN_USER_DOSSIERS_PER_DAY", "300")), 86_400),
     "screen": (int(os.environ.get("TERRATWIN_ANON_SCREENS_PER_HOUR", "20")),
                int(os.environ.get("TERRATWIN_USER_SCREENS_PER_HOUR", "200")), 3_600),
+    # Lượt GỬI của một thiết bị IoT (mỗi lượt tới 200 số đo gửi bù) — theo thiết bị.
+    "iot": (int(os.environ.get("TERRATWIN_IOT_POSTS_PER_HOUR", "120")),
+            int(os.environ.get("TERRATWIN_IOT_POSTS_PER_HOUR", "120")), 3_600),
 }
 
 
