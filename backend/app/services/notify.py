@@ -33,6 +33,7 @@ người dùng có thể biến máy chủ thành công cụ quét mạng nội 
 """
 from __future__ import annotations
 
+import http.client
 import ipaddress
 import json
 import os
@@ -60,43 +61,75 @@ def validate_webhook(url: str) -> str | None:
     Chặn địa chỉ nội bộ (loopback, link-local, private, metadata cloud) để máy
     chủ TerraTwin không bị dùng làm bàn đạp quét mạng nội bộ.
     """
+    return _resolve_public(url)[0]
+
+
+def _resolve_public(url: str) -> tuple[str | None, str | None]:
+    """(lỗi, IP công khai đã kiểm). Gửi đi PHẢI dùng đúng IP này — xem send_webhook."""
     try:
         u = urllib.parse.urlparse(url)
     except ValueError:
-        return "URL không hợp lệ."
+        return "URL không hợp lệ.", None
     if u.scheme not in ("http", "https"):
-        return "Chỉ chấp nhận http hoặc https."
+        return "Chỉ chấp nhận http hoặc https.", None
     if not u.hostname:
-        return "URL thiếu tên máy chủ."
+        return "URL thiếu tên máy chủ.", None
     try:
         infos = socket.getaddrinfo(u.hostname, None)
     except socket.gaierror:
-        return f"Không phân giải được tên miền '{u.hostname}'."
+        return f"Không phân giải được tên miền '{u.hostname}'.", None
     for info in infos:
         ip = ipaddress.ip_address(info[4][0])
         if (ip.is_private or ip.is_loopback or ip.is_link_local
-                or ip.is_reserved or ip.is_multicast):
+                or ip.is_reserved or ip.is_multicast or ip.is_unspecified):
             return ("Địa chỉ nội bộ không được phép (chống lạm dụng máy chủ để "
-                    "quét mạng riêng).")
-    return None
+                    "quét mạng riêng)."), None
+    return None, infos[0][4][0]
+
+
+class _PinnedHTTP(http.client.HTTPConnection):
+    """Kết nối tới ĐÚNG IP đã kiểm, giữ tên miền cho Host/SNI. Chặn DNS rebinding."""
+    def __init__(self, host, ip, **kw):
+        super().__init__(host, **kw)
+        self._ip = ip
+
+    def connect(self):
+        self.sock = socket.create_connection((self._ip, self.port), self.timeout)
+
+
+class _PinnedHTTPS(http.client.HTTPSConnection):
+    def __init__(self, host, ip, **kw):
+        super().__init__(host, **kw)
+        self._ip = ip
+
+    def connect(self):
+        sock = socket.create_connection((self._ip, self.port), self.timeout)
+        self.sock = self._context.wrap_socket(sock, server_hostname=self.host)
 
 
 def send_webhook(url: str, payload: dict) -> str | None:
     """Trả None nếu gửi được, hoặc chuỗi mô tả lỗi."""
-    err = validate_webhook(url)
+    # CHỐNG SSRF ĐƯỜNG VÒNG (tự kiểm thử xâm nhập 4/10/2026): urllib tự đi theo chuyển hướng
+    # 30x — máy chủ của kẻ xấu trả 302 tới 169.254.169.254 (metadata đám mây) hay 127.0.0.1
+    # là lọt qua lớp kiểm địa chỉ; và tên miền có thể phân giải ra IP khác giữa lúc kiểm và
+    # lúc gửi (DNS rebinding). Nay: kết nối thẳng tới IP ĐÃ KIỂM và KHÔNG theo chuyển hướng.
+    err, ip = _resolve_public(url)
     if err:
         return err
+    u = urllib.parse.urlparse(url)
+    path = (u.path or "/") + (f"?{u.query}" if u.query else "")
+    cls = _PinnedHTTPS if u.scheme == "https" else _PinnedHTTP
     try:
-        req = urllib.request.Request(
-            url, data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-            headers={"content-type": "application/json",
-                     "user-agent": "TerraTwin/1.0"})
-        with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-            if 200 <= r.status < 300:
-                return None
-            return f"Máy chủ trả mã {r.status}."
-    except urllib.error.HTTPError as e:
-        return f"Máy chủ trả mã {e.code}."
+        conn = cls(u.hostname, ip, port=u.port, timeout=TIMEOUT)
+        conn.request("POST", path, body=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+                     headers={"content-type": "application/json", "user-agent": "TerraTwin/1.0"})
+        r = conn.getresponse()
+        conn.close()
+        if 200 <= r.status < 300:
+            return None
+        if 300 <= r.status < 400:
+            return f"Máy chủ trả chuyển hướng {r.status} — không đi theo (chống SSRF)."
+        return f"Máy chủ trả mã {r.status}."
     except Exception as e:
         return f"Không gửi được: {type(e).__name__}."
 

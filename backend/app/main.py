@@ -8,6 +8,7 @@ Cấu hình qua biến môi trường (xem .env.example):
 """
 from __future__ import annotations
 
+import json
 import os
 import time
 from collections import defaultdict, deque
@@ -351,6 +352,72 @@ async def set_request_lang(request: Request, call_next):
     return await call_next(request)
 
 
+# GIỚI HẠN KÍCH THƯỚC GÓI GỬI LÊN — đếm byte NGAY KHI NHẬN (tự kiểm thử xâm nhập 4/10/2026).
+# FastAPI không có trần mặc định; max_length của Pydantic chỉ kiểm SAU khi đã đọc trọn gói vào
+# RAM — một gói 500 MB làm máy chủ 512 MB của Render sập trước khi kịp từ chối. Thiếu
+# Content-Length (chunked) vẫn bị đếm. Đường cần gói lớn được nới riêng.
+_BODY_DEFAULT = 2 * 1024 * 1024
+_BODY_CAPS = (("/api/eudr/validate", 30 * 1024 * 1024),      # tệp lô thửa: EU cho phép 25 MB
+              ("/api/eudr/export", 30 * 1024 * 1024),
+              ("/api/eudr/sets", 30 * 1024 * 1024),
+              ("/api/landdoc/extract", 13 * 1024 * 1024),    # ảnh sổ đỏ (base64)
+              ("/api/evidence", 13 * 1024 * 1024))          # ảnh thực địa (base64)
+
+
+class BodyLimit:
+    def __init__(self, app_):
+        self.app = app_
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+        path = scope.get("path", "")
+        cap = next((c for p, c in _BODY_CAPS if path.startswith(p)), _BODY_DEFAULT)
+        hdrs = dict(scope.get("headers") or [])
+        cl = hdrs.get(b"content-length", b"")
+        if cl.isdigit() and int(cl) > cap:
+            return await self._reject(scope, send, cap)
+        # Không ném ngoại lệ khi vượt trần: FastAPI bắt mọi lỗi lúc đọc body và đổi thành 400
+        # (đo được khi tự kiểm thử). Thay vào đó CẮT body tại đó, CHẶN mọi phản hồi của ứng
+        # dụng, rồi tự trả 413 khi ứng dụng kết thúc.
+        state = {"seen": 0, "over": False}
+
+        async def limited():
+            if state["over"]:
+                return {"type": "http.disconnect"}
+            msg = await receive()
+            if msg["type"] == "http.request":
+                state["seen"] += len(msg.get("body", b""))
+                if state["seen"] > cap:
+                    state["over"] = True
+                    return {"type": "http.request", "body": b"", "more_body": False}
+            return msg
+
+        async def guarded_send(msg):
+            if not state["over"]:
+                await send(msg)
+
+        try:
+            await self.app(scope, limited, guarded_send)
+        except Exception:
+            if not state["over"]:
+                raise
+        if state["over"]:
+            await self._reject(scope, send, cap)
+
+    @staticmethod
+    async def _reject(scope, send, cap):
+        origin = dict(scope.get("headers") or []).get(b"origin", b"").decode()
+        headers = [(b"content-type", b"application/json")]
+        if origin and ("*" in _ORIGINS or origin in _ORIGINS):
+            headers += [(b"access-control-allow-origin", (b"*" if "*" in _ORIGINS else origin.encode())),
+                        (b"vary", b"Origin")]
+        body = json.dumps({"detail": f"Dữ liệu gửi lên quá lớn (tối đa {cap // (1024 * 1024)} MB)."},
+                          ensure_ascii=False).encode()
+        await send({"type": "http.response.start", "status": 413, "headers": headers})
+        await send({"type": "http.response.body", "body": body})
+
+
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
     """Header bảo mật cho MỌI phản hồi API (phía web đã có qua next.config). API trả
@@ -395,6 +462,7 @@ async def rate_limit(request: Request, call_next):
     return await call_next(request)
 
 
+app.add_middleware(BodyLimit)      # đăng ký SAU CÙNG = lớp NGOÀI CÙNG, chặn trước mọi thứ
 app.include_router(account_router)
 app.include_router(data_router)
 app.include_router(dossier_router)

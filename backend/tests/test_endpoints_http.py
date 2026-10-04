@@ -90,3 +90,49 @@ def test_api_co_header_bao_mat():
     assert r.headers["X-Frame-Options"] == "DENY"
     assert "default-src 'none'" in r.headers["Content-Security-Policy"]
     assert "Content-Security-Policy" not in c.get("/docs").headers
+
+
+def test_goi_qua_lon_bi_chan_413_ca_khi_khong_co_content_length():
+    """Tự kiểm thử xâm nhập: không trần kích thước = một gói lớn làm sập máy chủ 512 MB."""
+    from fastapi.testclient import TestClient
+    from app.main import app
+    c = TestClient(app)
+    big = b'{"q":"' + b"x" * (3 * 1024 * 1024) + b'"}'
+    r = c.post("/api/eudr/ask", content=big, headers={"content-type": "application/json"})
+    assert r.status_code == 413 and "quá lớn" in r.json()["detail"]
+
+    def gen():                                    # chunked, không có Content-Length
+        for _ in range(40):
+            yield b"x" * 100_000
+    r = c.post("/api/eudr/ask", content=gen(), headers={"content-type": "application/json"})
+    assert r.status_code == 413
+    # đường được nới: tệp lô thửa 3 MB KHÔNG bị chặn bởi trần (có thể lỗi định dạng, nhưng không 413)
+    r = c.post("/api/eudr/validate", content=big, headers={"content-type": "application/json"})
+    assert r.status_code != 413
+
+
+def test_webhook_khong_theo_chuyen_huong_toi_mang_noi_bo(monkeypatch):
+    """SSRF đường vòng: máy chủ ngoài trả 302 → 169.254.169.254 không được đi theo."""
+    from app.services import notify
+    calls = []
+
+    class FakeConn:
+        def __init__(self, host, ip, port=None, timeout=None):
+            calls.append((host, ip))
+
+        def request(self, *a, **k):
+            pass
+
+        def getresponse(self):
+            return type("R", (), {"status": 302})()
+
+        def close(self):
+            pass
+
+    assert notify.validate_webhook("http://127.0.0.1:8000/x") is not None
+    assert notify.validate_webhook("http://169.254.169.254/latest/meta-data") is not None
+    monkeypatch.setattr(notify, "_resolve_public", lambda url: (None, "93.184.216.34"))
+    monkeypatch.setattr(notify, "_PinnedHTTPS", FakeConn)
+    err = notify.send_webhook("https://attacker.example/hook", {"x": 1})
+    assert err and "chuyển hướng" in err
+    assert calls == [("attacker.example", "93.184.216.34")]       # nối đúng IP đã kiểm
