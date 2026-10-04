@@ -1,0 +1,36 @@
+[
+ {
+  "date": "2026-10-04",
+  "chosen": "logreg",
+  "val": {
+   "logreg": 0.9024,
+   "mlp": 0.8796,
+   "cnn1d": 0.8891
+  },
+  "test": {
+   "balanced_accuracy": 0.8917,
+   "forest_recall": 0.9093,
+   "tree_crop_recall": 0.8741,
+   "n": 507,
+   "confusion": {
+    "tp": 331,
+    "tn": 125,
+    "fp": 18,
+    "fn": 33
+   },
+   "accuracy": 0.8994
+  },
+  "pass_thresholds": {
+   "balanced_accuracy_test": 0.85,
+   "forest_recall_test": 0.9
+  },
+  "passed": true,
+  "numpy_vs_torch_max_diff": 0.0,
+  "n": {
+   "train": 2052,
+   "val": 614,
+   "test": 507
+  },
+  "status": "accepted"
+ }
+]

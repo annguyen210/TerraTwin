@@ -19,6 +19,7 @@ import { Copy, Download, FileCheck2, FileSignature, MessageCircleQuestion, Packa
 import AppShell from "@/components/AppShell";
 import EudrResult, { IssueList, LevelBadge } from "@/components/EudrResult";
 import LandDocForm from "@/components/LandDocForm";
+import ForestOrCropHint from "@/components/ForestOrCropHint";
 import {
   eudrDeleteSet, eudrDownloadSet, eudrExport, eudrGetSet, eudrIssueDossier, eudrListSets, eudrMethod, eudrScreen,
   eudrAiStatus, eudrAsk, eudrOverview, eudrSetDossiers, eudrSubmitSet, eudrValidate, fetchMe, getToken,
@@ -187,6 +188,7 @@ function OnePlot() {
         <section className="bat-card">
           <h2>3 · {t("Sàng lọc phá rừng sau 31/12/2020", "Deforestation screening after 31/12/2020")}</h2>
           <EudrResult s={res.screening} geometry={res.plot.geometry} areaHa={res.plot.area_ha} />
+          {res.plot.geometry && <ForestOrCropHint key={JSON.stringify(res.plot.geometry).slice(0, 200)} geometry={res.plot.geometry} />}
         </section>
       )}
 

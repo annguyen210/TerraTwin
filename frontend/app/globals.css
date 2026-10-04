@@ -4761,3 +4761,11 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .iot-spark svg { width: 100%; height: 64px; margin-top: 6px; }
 .iot-spark polyline { stroke: var(--terra); }
 .doc-note code { word-break: break-all; font-size: .78rem; }
+
+/* AI tham khảo rừng/vườn cây (components/ForestOrCropHint) */
+.foc { margin-top: 14px; padding: 14px; border-radius: 12px; border: 1px dashed var(--line-2); background: var(--panel); display: grid; gap: 8px; }
+.foc-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.foc-head b { flex: 1; font-size: .92rem; }
+.foc-bar { height: 10px; border-radius: 99px; background: #5fcb8e33; overflow: hidden; }
+.foc-bar i { display: block; height: 100%; background: linear-gradient(90deg, #1f8a5a, #2e9e67); transform-origin: left; animation: hn-grow 1s var(--tt-ease) both; }
+.foc-legend { display: flex; justify-content: space-between; font-size: .82rem; color: var(--dim); font-variant-numeric: tabular-nums; }

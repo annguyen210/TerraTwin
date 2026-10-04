@@ -2581,3 +2581,13 @@ export function iotReadings(id: string, hours = 168) {
 export function iotExport(id: string) {
   return authed<Record<string, unknown>>(`/api/iot/devices/${id}/export`, { method: "GET" }, "Không xuất được số đo");
 }
+
+// AI "rừng hay vườn cây?" — THAM KHẢO, không vào hồ sơ ký; chỉ bật khi đã qua ngưỡng đặt trước.
+export type ForestOrCrop = {
+  available: boolean; probability_forest: number | null; label?: string; message?: string;
+  evidence_class?: string;
+  model?: { kind: string; date: string; test: { balanced_accuracy: number; forest_recall: number; tree_crop_recall: number; n: number } };
+};
+export function eudrForestOrCrop(geometry: GeoGeometry) {
+  return postJson<ForestOrCrop>(`/api/eudr/ai/forest-or-crop?lang=${curLang()}`, { geometry }, "AI chưa trả lời được");
+}
