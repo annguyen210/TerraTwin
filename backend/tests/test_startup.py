@@ -416,3 +416,23 @@ def test_cao_do_nhieu_diem_du_phong_copernicus_chi_cho_tap_nho(monkeypatch):
     calls.clear()
     big = [(11.5 + i * 0.001, 107.8) for i in range(realdata._COP_DEM_MAX_POINTS + 1)]
     assert realdata.elevation_multi(big) == [None] * len(big) and calls == []
+
+
+def test_mua_nhieu_diem_du_phong_metno_chi_cho_tap_nho(monkeypatch):
+    """Lưới thượng nguồn không được trắng chỉ vì Open-Meteo chặn IP Render."""
+    from app.services import realdata
+    body = _metno_fake_body()
+    calls = []
+
+    def fake_get(url, timeout=8.0, headers=None):
+        if "open-meteo" in url:
+            return None
+        calls.append(url)
+        return body
+
+    monkeypatch.setattr(realdata, "_get", fake_get)
+    got = realdata.weather_multi([(11.5, 107.8), (11.6, 107.9)])
+    assert all(rows and rows[0]["source"] == "metno" for rows in got)
+    calls.clear()
+    big = [(11.0 + i * 0.05, 107.8) for i in range(realdata._METNO_MAX_POINTS + 1)]
+    assert all(not r for r in realdata.weather_multi(big)) and calls == []

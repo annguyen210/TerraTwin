@@ -572,7 +572,22 @@ def weather_multi(points: list[tuple[float, float]]):
             "&forecast_days=7&timezone=auto"
         )
 
-    return _parallel_chunks(points, _url, 25.0)
+    out = _parallel_chunks(points, _url, 25.0)
+
+    # Dự phòng MET Norway khi Open-Meteo chặn IP dùng chung của Render — chỉ cho tập
+    # NHỎ (lưới thượng nguồn, vùng nguyên liệu): mỗi điểm một lượt gọi. Bản đồ nhiệt
+    # hàng chục điểm không đi đường này để khỏi dội nguồn dự phòng.
+    miss = [i for i, v in enumerate(out) if not v]
+    if miss and len(points) <= _METNO_MAX_POINTS:
+        from app.services import jobs
+        got = jobs.gather([lambda i=i: weather_7d_metno(*points[i]) for i in miss])
+        for i, v in zip(miss, got):
+            if v:
+                out[i] = v
+    return out
+
+
+_METNO_MAX_POINTS = 25          # lưới vùng nguyên liệu 5×5
 
 
 def _rows_from_daily(item):
