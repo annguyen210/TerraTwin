@@ -46,6 +46,8 @@ export default function PlotCard() {
 
   return (
     <main className="a6-wrap">
+      {/* Chỉ trang này in khổ A6; rời trang là thẻ <style> biến mất cùng component. */}
+      <style>{"@page { size: 105mm 148mm; margin: 0; }"}</style>
       <div className="a6-tools no-print">
         <Link href={`/h/${id}`} className="doc-home">← {t("Về hồ sơ", "Back to dossier")}</Link>
         <button className="doc-btn" onClick={() => window.print()}>{t("In thẻ A6", "Print A6 card")}</button>

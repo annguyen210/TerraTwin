@@ -4733,8 +4733,10 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .a6-meta div { display: flex; justify-content: space-between; gap: 3mm; }
 .a6-meta dt { color: #4a5a52; } .a6-meta dd { margin: 0; font-family: ui-monospace, Consolas, monospace; text-align: right; }
 .a6-foot { font-size: 6.8pt; line-height: 1.35; color: #4a5a52; border-top: 1px solid #d5ddd9; padding-top: 1.5mm; }
+/* Khổ A6 đặt bằng <style> NGAY TRONG trang thẻ (app/h/[id]/the) — @page trong CSS chung sẽ
+   biến mọi bản in của site thành A6; trang có tên (@page a6card) và từ khoá "A6" Chrome đều bỏ qua
+   khi in (đo bằng Chrome in PDF 4/10/2026) — phải ghi kích thước tường minh 105mm 148mm. */
 @media print {
-  @page { size: A6; margin: 0; }
   body { background: #fff !important; }
   .no-print { display: none !important; }
   .a6-wrap { padding: 0; min-height: 0; }
