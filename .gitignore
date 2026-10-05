@@ -57,3 +57,4 @@ frontend/public/maplibre/
 iot_sim_key*.txt
 .secrets-to-set.txt
 .api-keys.txt
+.prod-setup-state.json
