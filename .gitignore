@@ -55,3 +55,4 @@ frontend/public/maplibre/
 
 # Khoá bí mật của trình giả lập IoT — KHÔNG commit
 iot_sim_key*.txt
+.secrets-to-set.txt
