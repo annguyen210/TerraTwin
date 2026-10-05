@@ -30,11 +30,15 @@ class Location(BaseModel):
     def _lat_in_vn(cls, v: float) -> float:
         if not (VN_LAT_MIN <= v <= VN_LAT_MAX):
             from app.services.reqlang import tr
+            # Nói rõ GIÁ TRỊ đã nhận: lỗi thật 4/10/2026 — trình duyệt máy tính đoán vị trí
+            # theo mạng ra Singapore (vĩ độ ~1,3); câu cũ không cho người dùng biết vì sao.
             raise ValueError(tr(
-                f"Vĩ độ phải trong khoảng {VN_LAT_MIN}–{VN_LAT_MAX} "
-                "(khung bao quanh Việt Nam). Toạ độ này nằm quá xa.",
-                f"Latitude must be within {VN_LAT_MIN}–{VN_LAT_MAX} "
-                "(bounding box around Vietnam). This coordinate is too far outside it."
+                f"Vĩ độ nhận được là {v:g} — ngoài khung Việt Nam ({VN_LAT_MIN}–{VN_LAT_MAX}). "
+                "Nếu bạn dùng nút định vị trên máy tính, trình duyệt có thể đoán sai vị trí theo "
+                "mạng; hãy gõ tên xã hoặc dán toạ độ từ Google Maps.",
+                f"Received latitude {v:g} — outside Vietnam's box ({VN_LAT_MIN}–{VN_LAT_MAX}). "
+                "If you used the locate button on a computer, the browser may have guessed your "
+                "location from the network; type a commune name or paste coordinates from Google Maps."
             ))
         return v
 
@@ -44,10 +48,10 @@ class Location(BaseModel):
         if not (VN_LON_MIN <= v <= VN_LON_MAX):
             from app.services.reqlang import tr
             raise ValueError(tr(
-                f"Kinh độ phải trong khoảng {VN_LON_MIN}–{VN_LON_MAX} "
-                "(khung bao quanh Việt Nam). Toạ độ này nằm quá xa.",
-                f"Longitude must be within {VN_LON_MIN}–{VN_LON_MAX} "
-                "(bounding box around Vietnam). This coordinate is too far outside it."
+                f"Kinh độ nhận được là {v:g} — ngoài khung Việt Nam ({VN_LON_MIN}–{VN_LON_MAX}). "
+                "Kiểm tra lại thứ tự: vĩ độ trước, kinh độ sau (vd 21.18, 106.07).",
+                f"Received longitude {v:g} — outside Vietnam's box ({VN_LON_MIN}–{VN_LON_MAX}). "
+                "Check the order: latitude first, then longitude (e.g. 21.18, 106.07)."
             ))
         return v
 

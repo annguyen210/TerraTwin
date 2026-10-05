@@ -34,6 +34,7 @@ import ModelCard from "@/components/ModelCard";
 import ChangeDetect from "@/components/ChangeDetect";
 import { useLang } from "@/lib/i18n";
 import ModuleIcon from "@/components/ModuleIcon";
+import { inVietnam, outsideMessage } from "@/lib/geo";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
@@ -122,6 +123,8 @@ export default function Home() {
   const [terra, setTerra] = useState<TerraScore | null>(null);
   const [story, setStory] = useState(false);
   const [coord, setCoord] = useState<{ lat: number; lon: number } | null>(null);
+  // Chốt chặn chung: toạ độ ngoài Việt Nam (từ bất kỳ nguồn nào) không được gửi lên API.
+  const [outside, setOutside] = useState<string | null>(null);
   const [area, setArea] = useState<number | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -190,6 +193,8 @@ export default function Home() {
 
   const onPick = useCallback(
     (lat: number, lon: number, areaHa?: number) => {
+      if (!inVietnam(lat, lon)) { setOutside(outsideMessage(lat, lon)); return; }
+      setOutside(null);
       setCoord({ lat, lon });
       setArea(areaHa);
       setPlaceLabel(undefined);
@@ -205,6 +210,8 @@ export default function Home() {
   // Từ màn hình đầu: có tên nơi, và bay bản đồ tới đó.
   const onStart = useCallback(
     (lat: number, lon: number, label?: string) => {
+      if (!inVietnam(lat, lon)) { setOutside(outsideMessage(lat, lon)); return; }
+      setOutside(null);
       setCoord({ lat, lon });
       setArea(undefined);
       setPlaceLabel(label);
@@ -222,6 +229,8 @@ export default function Home() {
 
   const loadPlot = useCallback(
     (lat: number, lon: number) => {
+      if (!inVietnam(lat, lon)) { setOutside(outsideMessage(lat, lon)); return; }
+      setOutside(null);
       setCoord({ lat, lon });
       setArea(undefined);
       setFlyTo({ lat, lon, key: Date.now() });
@@ -283,6 +292,7 @@ export default function Home() {
             <MapView onPick={onPick} flyTo={flyTo} heat={heat} plot={coord ? { ...coord, spanM: 1000, risk: plotRisk } : null} />
           </div>
           <div className="pw-card tt-reveal">
+            {outside && <p className="bat-err" role="alert">{outside}</p>}
             <p className="eu-eyebrow">{t("Thửa đang xem", "Current plot")}</p>
             <h1>{placeLabel ?? t("Thửa đã chọn", "Selected plot")}</h1>
             <p className="pw-coord">{coord.lat.toFixed(5)}, {coord.lon.toFixed(5)}{area != null ? ` · ${area} ha` : ""}</p>

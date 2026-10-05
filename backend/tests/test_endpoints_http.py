@@ -136,3 +136,15 @@ def test_webhook_khong_theo_chuyen_huong_toi_mang_noi_bo(monkeypatch):
     err = notify.send_webhook("https://attacker.example/hook", {"x": 1})
     assert err and "chuyển hướng" in err
     assert calls == [("attacker.example", "93.184.216.34")]       # nối đúng IP đã kiểm
+
+
+def test_toa_do_ngoai_vn_bao_ro_gia_tri_da_nhan():
+    """Lỗi thật 4/10/2026: trình duyệt máy tính đoán vị trí ra Singapore; câu cũ không nói
+    giá trị nhận được nên người dùng ở FPT Bắc Ninh không hiểu vì sao bị từ chối."""
+    import json
+    from fastapi.testclient import TestClient
+    from app.main import app
+    r = TestClient(app).post("/api/scan", json={"lat": 1.2903, "lon": 103.8519})
+    assert r.status_code == 422
+    msg = json.dumps(r.json(), ensure_ascii=False)
+    assert "1.2903" in msg and "định vị" in msg

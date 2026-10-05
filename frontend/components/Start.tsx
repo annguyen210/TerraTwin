@@ -33,6 +33,7 @@ import { useEffect, useRef, useState } from "react";
 import { searchPlace, type PlaceHit } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 import { CirclePlay, MapPin } from "lucide-react";
+import { inVietnam, outsideMessage, parseCoord } from "@/lib/geo";
 
 // 16 điểm đã kiểm chứng — cùng bộ dùng để huấn luyện mô hình khí hậu.
 const QUICK: { name: string; lat: number; lon: number; note: string; note_en: string }[] = [
@@ -72,30 +73,18 @@ export default function Start({
   // báo nhẹ, thay vì bắt người dùng tự đoán "vĩ độ hay kinh độ trước".
   function goCoord() {
     setCoordErr(null);
-    const nums = coordStr.replace(/[^\d.,\-\s]/g, " ").match(/-?\d+(\.\d+)?/g);
-    if (!nums || nums.length < 2) {
-      setCoordErr("Nhập dạng: vĩ độ, kinh độ — vd 21.0278, 105.8342");
+    const c = parseCoord(coordStr);
+    if (!c) {
+      setCoordErr("Nhập dạng: vĩ độ, kinh độ — vd 21.0278, 105.8342 (hoặc 21°01'40\"N 105°50'03\"E)");
       return;
     }
-    const a = parseFloat(nums[0]);
-    const b = parseFloat(nums[1]);
-    // Khung bao Việt Nam (khớp máy chủ): vĩ độ 7.5–24, kinh độ 101.5–115.
-    const inVN = (lat: number, lon: number) =>
-      lat >= 7.5 && lat <= 24 && lon >= 101.5 && lon <= 115;
-
-    if (inVN(a, b)) {
-      onPick(a, b, `Toạ độ ${a.toFixed(4)}, ${b.toFixed(4)}`);
-    } else if (inVN(b, a)) {
-      // Người dùng dán ngược (kinh độ trước) — tự sửa.
-      onPick(b, a, `Toạ độ ${b.toFixed(4)}, ${a.toFixed(4)} (đã tự sửa thứ tự)`);
-    } else if (Math.abs(a) > 90 || Math.abs(b) > 180) {
-      setCoordErr("Toạ độ không hợp lệ (vĩ độ ≤ 90, kinh độ ≤ 180).");
-    } else {
-      setCoordErr(
-        `Điểm này nằm ngoài Việt Nam (VN: vĩ độ 7.5–24, kinh độ 101.5–115). ` +
-        `Kiểm tra lại — hoặc bạn đang dán đúng một chỗ ở nước khác?`,
-      );
+    if (!inVietnam(c.lat, c.lon)) {
+      setCoordErr(Math.abs(c.lat) > 90 || Math.abs(c.lon) > 180
+        ? "Toạ độ không hợp lệ (vĩ độ ≤ 90, kinh độ ≤ 180)."
+        : outsideMessage(c.lat, c.lon));
+      return;
     }
+    onPick(c.lat, c.lon, `Toạ độ ${c.lat.toFixed(4)}, ${c.lon.toFixed(4)}${c.swapped ? " (đã tự sửa thứ tự)" : ""}`);
   }
 
   // Chờ người dùng ngừng gõ rồi mới hỏi. Nominatim giới hạn 1 lần/giây, gọi
@@ -136,7 +125,18 @@ export default function Start({
     navigator.geolocation.getCurrentPosition(
       (p) => {
         setLocating(false);
-        onPick(p.coords.latitude, p.coords.longitude, "Vị trí của bạn");
+        const { latitude: la, longitude: lo, accuracy } = p.coords;
+        // Máy tính không có GPS: trình duyệt ĐOÁN theo mạng — có thể ra nước khác (mạng
+        // trường, VPN) hoặc lệch nhiều km. Không gửi toạ độ ngoài Việt Nam đi; sai số lớn
+        // thì nói rõ để người dùng kéo bản đồ cho đúng thửa trước khi tin kết quả.
+        if (!inVietnam(la, lo)) {
+          setGeoErr(outsideMessage(la, lo, "gps"));
+          return;
+        }
+        const km = accuracy ? accuracy / 1000 : 0;
+        onPick(la, lo, km > 1.5
+          ? `Vị trí ƯỚC LƯỢNG theo mạng (sai số ~${km.toFixed(0)} km) — kéo bản đồ cho đúng thửa rồi bấm phân tích ô ngắm`
+          : "Vị trí của bạn");
       },
       (e) => {
         setLocating(false);
