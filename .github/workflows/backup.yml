@@ -80,8 +80,10 @@ jobs:
             echo "::error::Thiếu secret TERRATWIN_BACKUP_REPO — cần repo RIÊNG TƯ để chứa sao lưu, không được đẩy vào repo công khai này."
             fail=1
           fi
-          if [ -z "${{ secrets.TERRATWIN_BACKUP_REPO_PAT }}" ]; then
-            echo "::error::Thiếu secret TERRATWIN_BACKUP_REPO_PAT — token ghi vào TERRATWIN_BACKUP_REPO."
+          # Ưu tiên DEPLOY KEY (SSH, chỉ ghi được ĐÚNG repo sao lưu, không hết hạn, không gắn
+          # tài khoản người); PAT chỉ là phương án cũ — PAT hết hạn là sao lưu âm thầm hỏng.
+          if [ -z "${{ secrets.TERRATWIN_BACKUP_DEPLOY_KEY }}" ] && [ -z "${{ secrets.TERRATWIN_BACKUP_REPO_PAT }}" ]; then
+            echo "::error::Thiếu TERRATWIN_BACKUP_DEPLOY_KEY (khuyên dùng) lẫn TERRATWIN_BACKUP_REPO_PAT — không có quyền ghi vào TERRATWIN_BACKUP_REPO."
             fail=1
           fi
           [ "$fail" = "0" ]
@@ -133,10 +135,21 @@ jobs:
           fi
 
       - name: Chuẩn bị repo sao lưu RIÊNG TƯ (checkout nếu có, tạo mới nếu chưa)
+        env:
+          DEPLOY_KEY: ${{ secrets.TERRATWIN_BACKUP_DEPLOY_KEY }}
         run: |
           git config --global user.name "terratwin-backup-bot"
           git config --global user.email "actions@users.noreply.github.com"
-          REMOTE="https://x-access-token:${{ secrets.TERRATWIN_BACKUP_REPO_PAT }}@github.com/${{ secrets.TERRATWIN_BACKUP_REPO }}.git"
+          if [ -n "$DEPLOY_KEY" ]; then
+            mkdir -p ~/.ssh && chmod 700 ~/.ssh
+            echo "$DEPLOY_KEY" > ~/.ssh/backup_key && chmod 600 ~/.ssh/backup_key
+            ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
+            git config --global core.sshCommand "ssh -i ~/.ssh/backup_key -o IdentitiesOnly=yes"
+            REMOTE="git@github.com:${{ secrets.TERRATWIN_BACKUP_REPO }}.git"
+          else
+            REMOTE="https://x-access-token:${{ secrets.TERRATWIN_BACKUP_REPO_PAT }}@github.com/${{ secrets.TERRATWIN_BACKUP_REPO }}.git"
+          fi
+          echo "BACKUP_REMOTE=$REMOTE" >> "$GITHUB_ENV"
           if git ls-remote --exit-code --heads "$REMOTE" main >/dev/null 2>&1; then
             git clone --branch main --single-branch --depth 1 "$REMOTE" ../backups-wt
           else
@@ -160,5 +173,5 @@ jobs:
             echo "Không có gì mới (đã có bản hôm nay?)."
           else
             git commit -q -m "backup $(date -u +%Y%m%d-%H%M)Z"
-            git push -q "https://x-access-token:${{ secrets.TERRATWIN_BACKUP_REPO_PAT }}@github.com/${{ secrets.TERRATWIN_BACKUP_REPO }}.git" main
+            git push -q "$BACKUP_REMOTE" main
           fi
