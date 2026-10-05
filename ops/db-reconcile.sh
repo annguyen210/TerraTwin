@@ -92,7 +92,13 @@ while IFS=$'\t' read -r seq tbl col; do
                  WHERE format('%I.%I', schemaname, sequencename) = $seq_lit")
   mx=$(q "$DST" "SELECT coalesce(max($col)::text, 'null') FROM $tbl" 2>/dev/null || echo "?")
   ok="✅"
-  [ "$ls_" = "$ld" ] || ok="❌"
+  # Khớp khi đích GIỐNG nguồn, HOẶC đích đã được đưa lên đúng max(cột) mà nguồn thấp
+  # hơn/chưa dùng (bước 4b của migrate-neon.sh) — đích an toàn hơn nguồn, không lệch dữ liệu.
+  if [ "$ls_" != "$ld" ]; then
+    if ! { [[ "$ld" =~ ^-?[0-9]+$ ]] && [ "$ld" = "$mx" ] && { [ "$ls_" = "null" ] || { [[ "$ls_" =~ ^-?[0-9]+$ ]] && [ "$ls_" -le "$mx" ]; }; }; }; then
+      ok="❌"
+    fi
+  fi
   if [ "$mx" != "null" ]; then
     # Bảng có dòng → sequence ở đích phải đã chạy tới ít nhất max(cột).
     if [ "$ld" = "null" ] || [ -z "$ld" ] || ! [[ "$mx" =~ ^-?[0-9]+$ ]] || [ "$ld" -lt "$mx" ]; then ok="❌"; fi

@@ -90,5 +90,36 @@ psql "$DST" -X -q -v ON_ERROR_STOP=1 --single-transaction -f "$DUMP"   >/dev/nul
 rm -f "$DUMP"
 echo "   Xong."
 
+echo "── 4b. Đưa sequence CHƯA DÙNG ở đích lên bằng max(cột)"
+# Sequence của cột khoá tự gán (vd log_heads.tree_size: ứng dụng luôn ghi tường minh,
+# không gọi nextval) nằm 'null' ở NGUỒN. Chép y nguyên thì đúng, nhưng nếu sau này có
+# đường nào gọi nextval sẽ trùng khoá. Đưa lên max(cột) ở ĐÍCH — chỉ khi đang thấp hơn,
+# không bao giờ hạ. Đo thật 5/10/2026: đối chiếu báo lệch đúng vì sequence này.
+psql "$DST" -X -q -v ON_ERROR_STOP=1 >/dev/null 2>"$WORK/seq.err" <<'SQL' || { echo "::warning::Không chỉnh được sequence (bỏ qua):"; pg_err_redacted "$WORK/seq.err"; }
+DO $$
+DECLARE r record; mx bigint; lv bigint;
+BEGIN
+  FOR r IN
+    SELECT format('%I.%I', s.schemaname, s.sequencename) AS seq,
+           format('%I.%I', tn.nspname, t.relname) AS tbl, quote_ident(a.attname) AS col
+    FROM pg_sequences s
+    JOIN pg_class c ON c.relname = s.sequencename
+    JOIN pg_namespace n ON n.oid = c.relnamespace AND n.nspname = s.schemaname
+    JOIN pg_depend d ON d.objid = c.oid AND d.deptype IN ('a', 'i')
+    JOIN pg_class t ON t.oid = d.refobjid
+    JOIN pg_namespace tn ON tn.oid = t.relnamespace
+    JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = d.refobjsubid
+    WHERE s.schemaname = 'public'
+  LOOP
+    EXECUTE format('SELECT max(%s)::bigint FROM %s', r.col, r.tbl) INTO mx;
+    SELECT last_value INTO lv FROM pg_sequences WHERE format('%I.%I', schemaname, sequencename) = r.seq;
+    IF mx IS NOT NULL AND (lv IS NULL OR lv < mx) THEN
+      PERFORM setval(r.seq, mx, true);
+    END IF;
+  END LOOP;
+END $$;
+SQL
+echo "   Xong."
+
 echo "── 5. Đối chiếu"
 bash "$HERE/db-reconcile.sh" "$SRC" "$DST"
