@@ -26,6 +26,8 @@ export default function PrivacyPage() {
                  "Field observations you submit (e.g. 'the field flooded'): used to calibrate alert thresholds.")}</li>
           <li>{t("Kênh nhận cảnh báo bạn cấu hình (email/webhook Zalo/Telegram).",
                  "Alert channels you configure (email / Zalo / Telegram webhook).")}</li>
+          <li>{t("Phiếu góp ý thí điểm (/thi-diem): vai trò, điểm đánh giá, số phút, góp ý và huyện/tỉnh nếu bạn ghi. Không lưu địa chỉ IP, không bắt buộc tên. Số điện thoại hoặc email chỉ được lưu khi bạn đánh dấu đồng ý cho liên hệ lại; chỉ quản trị viên xem được.",
+                 "Pilot feedback (/thi-diem): role, ratings, minutes, comment and district if given. No IP address stored, no name required. Phone or email is stored only if you tick consent to be contacted; only administrators can see it.")}</li>
         </ul>
 
         <h2>{t("Hồ sơ vườn EUDR, giấy tờ đất và sổ minh bạch", "EUDR plot dossiers, land documents and the transparency log")}</h2>

@@ -62,11 +62,15 @@ export default function HelpPage() {
         <div className="doc-cta">
           <Link href="/eudr" className="doc-btn">{t("Bắt đầu với một vườn", "Start with a plot")}</Link>
         </div>
+        <p className="doc-note">{t("Hợp tác xã tổ chức tập huấn? ", "Running a co-op training session? ")}
+          <Link href="/thi-diem">{t("Bộ thí điểm: tờ hướng dẫn in được và phiếu góp ý", "Pilot kit: printable guides and feedback form")}</Link></p>
 
         <footer className="doc-foot">
           <Link href="/about">{t("Cách hoạt động", "How it works")}</Link>
           <span>·</span>
           <Link href="/pricing">{t("Bảng giá", "Pricing")}</Link>
+          <span>·</span>
+          <Link href="/thi-diem">{t("Bộ thí điểm", "Pilot kit")}</Link>
           <span>·</span>
           <Link href="/privacy">{t("Quyền riêng tư", "Privacy")}</Link>
           <span>·</span>

@@ -4769,3 +4769,57 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .foc-bar { height: 10px; border-radius: 99px; background: #5fcb8e33; overflow: hidden; }
 .foc-bar i { display: block; height: 100%; background: linear-gradient(90deg, #1f8a5a, #2e9e67); transform-origin: left; animation: hn-grow 1s var(--tt-ease) both; }
 .foc-legend { display: flex; justify-content: space-between; font-size: .82rem; color: var(--dim); font-variant-numeric: tabular-nums; }
+
+/* ===== Bộ thí điểm /thi-diem — tờ A4 in được. Trên màn hình tờ giấy luôn nền trắng chữ đen
+   (giống bản in), vì người xem là cán bộ chuẩn bị in, không phải đọc trên nền tối. ===== */
+.pk-wrap { max-width: 860px; }
+.pk-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 14px; }
+.pk-btn2 { background: var(--panel); color: var(--text); border: 1px solid var(--line-2); box-shadow: none; }
+.pk-sheet { background: #fff; color: #111; border-radius: 10px; border: 1px solid var(--line); padding: 34px 38px;
+  margin: 22px 0; box-shadow: var(--shadow); font-size: 15px; line-height: 1.5; }
+.pk-sheet * { color: #111; opacity: 1; }
+.pk-sheet h2 { font-size: 24px; line-height: 1.25; margin: 4px 0 10px; font-weight: 800; letter-spacing: -.01em; }
+.pk-kicker { font-size: 12px !important; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #1e6b47 !important; margin: 0 !important; }
+.pk-lead { font-size: 16px !important; margin: 0 0 14px !important; }
+.pk-sub { font-weight: 800; font-size: 15px !important; margin: 16px 0 6px !important; }
+.pk-steps { margin: 0 0 12px; padding-left: 26px; display: grid; gap: 9px; }
+.pk-steps li { font-size: 17px !important; line-height: 1.45 !important; margin: 0 !important; }
+.pk-steps-sm li { font-size: 15px !important; }
+.pk-list li { font-size: 14.5px !important; margin-bottom: 4px !important; }
+.pk-box { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border: 1.5px solid #111;
+  border-radius: 3px; vertical-align: -3px; margin: 0 6px 0 2px; font-size: 11px; font-weight: 700; }
+.pk-scale { display: inline-flex; gap: 14px; }
+.pk-scale .pk-box { width: 26px; height: 26px; border-radius: 50%; font-size: 13px; }
+.pk-note { border: 1.5px solid #1e6b47; border-radius: 8px; padding: 10px 16px; margin: 12px 0; }
+.pk-note p { margin: 0 0 4px !important; } .pk-note ul { margin: 0 !important; } .pk-note li { font-size: 14.5px !important; margin-bottom: 2px !important; }
+.pk-fill p { margin: 12px 0 0 !important; font-size: 15px !important; }
+.pk-line { display: inline-block; min-width: 220px; border-bottom: 1px solid #111; height: 1.1em; vertical-align: bottom; margin-right: 12px; }
+.pk-short { min-width: 90px; }
+.pk-full { display: block; width: 100%; margin: 14px 0 0; }
+.pk-table { width: 100%; border-collapse: collapse; margin: 4px 0 10px; }
+.pk-table td { border: 1px solid #999; padding: 8px 10px; font-size: 14px; }
+.pk-small { font-size: 13px !important; margin: 6px 0 0 !important; }
+.pk-q { margin: 0 0 12px; } .pk-q p { margin: 0 0 6px !important; font-size: 15.5px !important; }
+.pk-online { margin-top: 28px; }
+.pk-formgrid { display: grid; gap: 14px; }
+.pk-formgrid fieldset { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0; }
+.pk-formgrid legend { font-weight: 700; color: var(--text); padding: 0 6px; font-size: .92rem; }
+.pk-formgrid label { color: var(--text); font-size: .95rem; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; }
+.pk-num { min-width: 44px; }
+.pk-field { display: grid !important; gap: 6px; }
+.pk-field input, .pk-field textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line-2);
+  background: var(--panel); color: var(--text); font: inherit; }
+.pk-consent { align-items: flex-start !important; line-height: 1.45; }
+.pk-consent input { margin-top: 4px; }
+.pk-formgrid button:disabled { opacity: .6; cursor: not-allowed; }
+@media (max-width: 600px) { .pk-sheet { padding: 22px 18px; } .pk-line { min-width: 140px; } }
+@media print {
+  @page { size: A4; margin: 14mm; }
+  .pk-noprint { display: none !important; }
+  .pk-wrap { max-width: none; padding: 0 !important; margin: 0 !important; }
+  .pk-sheet { border: 0; box-shadow: none; border-radius: 0; padding: 0; margin: 0; break-after: page; }
+  .pk-sheet:last-of-type { break-after: auto; }
+  .pk-wrap[data-print="farmer"] .pk-sheet:not(.pk-farmer),
+  .pk-wrap[data-print="staff"] .pk-sheet:not(.pk-staff),
+  .pk-wrap[data-print="form"] .pk-sheet:not(.pk-form) { display: none !important; }
+}

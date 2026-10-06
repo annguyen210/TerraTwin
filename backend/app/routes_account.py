@@ -20,7 +20,7 @@ from app import auth
 from app.services import plans
 from app.db import (
     ActionLog, Alert, ApiKey, AuditLog, BatchRun, Dataset, Device, Dossier, EudrSet, FieldPhoto, Lot,
-    KnowledgeNote, NotifyChannel, Observation, Plot, PushSub, SensorReading, Twin, User, get_session,
+    KnowledgeNote, NotifyChannel, Observation, PilotFeedback, Plot, PushSub, SensorReading, Twin, User, get_session,
 )
 from app.schemas import Location
 
@@ -433,7 +433,8 @@ _OWNED = [
 # Xuất nhưng KHÔNG xoá theo tài khoản: hồ sơ đất số nằm trong sổ đăng ký công
 # khai móc xích — xoá một hồ sơ là gãy mọi mắt xích sau nó; ảnh đã gắn vào hồ sơ
 # là bằng chứng của hồ sơ đó. Xoá tài khoản thì GỠ liên kết (user_id = NULL).
-_EXPORT_ONLY = [("dossiers", Dossier), ("field_photos", FieldPhoto), ("lots", Lot)]
+_EXPORT_ONLY = [("dossiers", Dossier), ("field_photos", FieldPhoto), ("lots", Lot),
+                ("pilot_feedback", PilotFeedback)]
 
 
 def _row_to_dict(row) -> dict:
@@ -540,6 +541,12 @@ def delete_my_account(user: User = Depends(auth.current_user),
             ph.user_id = None
         else:
             db.delete(ph)
+    # Góp ý của chính mình: xoá. Phiếu giấy cán bộ nhập hộ là góp ý của NGƯỜI KHÁC: giữ, gỡ người nhập.
+    for fb in db.execute(select(PilotFeedback).where(PilotFeedback.user_id == user.id)).scalars().all():
+        if fb.source == "paper":
+            fb.user_id = None
+        else:
+            db.delete(fb)
     db.delete(user)
     db.commit()
 

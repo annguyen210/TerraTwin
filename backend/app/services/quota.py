@@ -29,6 +29,10 @@ LIMITS = {
     # Lượt GỬI của một thiết bị IoT (mỗi lượt tới 200 số đo gửi bù) — theo thiết bị.
     "iot": (int(os.environ.get("TERRATWIN_IOT_POSTS_PER_HOUR", "120")),
             int(os.environ.get("TERRATWIN_IOT_POSTS_PER_HOUR", "120")), 3_600),
+    # Phiếu góp ý thí điểm: ẩn danh đủ cho một người, đăng nhập đủ cho cán bộ HTX nhập
+    # lại cả xấp phiếu giấy sau buổi tập huấn.
+    "feedback": (int(os.environ.get("TERRATWIN_ANON_FEEDBACK_PER_DAY", "10")),
+                 int(os.environ.get("TERRATWIN_USER_FEEDBACK_PER_DAY", "300")), 86_400),
 }
 
 

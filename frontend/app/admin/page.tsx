@@ -15,11 +15,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   fetchMe, getHealth, getFunnel, getBackupStatus, getDrift, getCoopPlots, updateCoop,
-  type AuthUser, type HealthStatus, type CoopPlot,
+  getPilotSummary, downloadPilotCsv,
+  type AuthUser, type HealthStatus, type CoopPlot, type PilotSummary,
 } from "@/lib/api";
 import { LangToggle, useLang } from "@/lib/i18n";
 
-type Tab = "health" | "funnel" | "backup" | "drift" | "coop";
+type Tab = "health" | "funnel" | "pilot" | "backup" | "drift" | "coop";
 
 function when(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -109,6 +110,49 @@ function FunnelTab() {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function PilotTab() {
+  const [data, setData] = useState<PilotSummary | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    getPilotSummary().then((r) => live && setData(r)).catch((e) => live && setErr(e.message));
+    return () => { live = false; };
+  }, []);
+
+  if (err) return <p className="ws-err">⚠️ {err}</p>;
+  if (!data) return <p className="ws-hint">Đang tải…</p>;
+  const ROLE: Record<string, string> = { farmer: "Nông hộ", coop: "Cán bộ HTX", exporter: "Xuất khẩu", other: "Khác" };
+  const rows = [["Tất cả", data.all] as const, ...Object.entries(data.by_role).map(([k, b]) => [ROLE[k] ?? k, b] as const)];
+
+  return (
+    <div>
+      {data.note && <p className="ws-hint">{data.note}</p>}
+      <table className="ws-table">
+        <thead><tr><th>Nhóm</th><th>Số phiếu</th><th>Dễ dùng (1–5)</th><th>Tin kết quả (1–5)</th><th>Phút/hồ sơ (trung vị)</th><th>Dùng tiếp: có / có thể / không</th></tr></thead>
+        <tbody>
+          {rows.map(([name, b]) => (
+            <tr key={name}>
+              <td>{name}</td><td>{b.n}</td><td>{b.ease_mean ?? "—"}</td><td>{b.trust_mean ?? "—"}</td>
+              <td>{b.minutes_median ?? "—"}</td><td>{b.would_use.yes} / {b.would_use.maybe} / {b.would_use.no}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="ws-hint">Bước khó nhất: {Object.entries(data.all.hardest).map(([k, n]) => `${k} ${n}`).join(" · ")}</p>
+      <button className="doc-btn" onClick={() => downloadPilotCsv().catch((e) => setErr(e.message))}>Tải CSV</button>
+      <h4 style={{ marginTop: 18 }}>Góp ý mới nhất</h4>
+      {data.latest.length === 0 ? <p className="ws-hint">Chưa có phiếu nào. Gửi thử ở <Link href="/thi-diem">/thi-diem</Link>.</p> : (
+        <ul>
+          {data.latest.filter((r) => r.comment).slice(0, 30).map((r) => (
+            <li key={r.id}>{when(r.created_at)} · {ROLE[r.role] ?? r.role}{r.region ? ` · ${r.region}` : ""}{r.source === "paper" ? " · phiếu giấy" : ""}: {r.comment}{r.contact ? ` (liên hệ: ${r.contact})` : ""}</li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -238,6 +282,7 @@ export default function AdminPage() {
   const TABS: { id: Tab; label: string; show: boolean }[] = [
     { id: "health", label: "Sức khoẻ", show: true },
     { id: "funnel", label: "Phễu người dùng", show: isAdmin },
+    { id: "pilot", label: "Góp ý thí điểm", show: isAdmin },
     { id: "backup", label: "Sao lưu", show: isAdmin },
     { id: "drift", label: "Trôi mô hình", show: isAdmin },
     { id: "coop", label: "Hợp tác xã", show: isCoop },
@@ -272,6 +317,7 @@ export default function AdminPage() {
             <div style={{ marginTop: 18 }}>
               {tab === "health" && <HealthTab />}
               {tab === "funnel" && isAdmin && <FunnelTab />}
+              {tab === "pilot" && isAdmin && <PilotTab />}
               {tab === "backup" && isAdmin && <BackupTab />}
               {tab === "drift" && isAdmin && <DriftTab />}
               {tab === "coop" && isCoop && <CoopTab user={user} />}

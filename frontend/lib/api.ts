@@ -1390,6 +1390,41 @@ export type PlanCatalogue = {
   status: string; disclaimer: string;
 };
 
+export type PilotFeedbackIn = {
+  role: "farmer" | "coop" | "exporter" | "other"; ease: number; trust: number;
+  would_use: "yes" | "maybe" | "no";
+  hardest: "boundary" | "screen" | "dossier" | "lot" | "verify" | "none";
+  minutes: number | null; region: string; comment: string; contact: string;
+  consent_contact: boolean; source: "web" | "paper";
+};
+
+export function sendPilotFeedback(body: PilotFeedbackIn) {
+  return authed<{ ok: boolean; id: number; message: string }>(`/api/pilot/feedback?lang=${curLang()}`,
+    { method: "POST", body: JSON.stringify(body) }, "Không gửi được góp ý");
+}
+
+export type PilotBlock = { n: number; ease_mean: number | null; trust_mean: number | null; minutes_median: number | null;
+  would_use: Record<"yes" | "maybe" | "no", number>; hardest: Record<string, number> };
+export type PilotSummary = { all: PilotBlock; by_role: Record<string, PilotBlock>; note: string;
+  latest: { id: number; created_at: string | null; source: string; role: string; region: string; ease: number; trust: number;
+            minutes: number | null; would_use: string; hardest: string; comment: string; contact: string }[] };
+
+export function getPilotSummary() {
+  return authed<PilotSummary>("/api/admin/pilot/feedback", { method: "GET" }, "Không tải được góp ý thí điểm");
+}
+
+export async function downloadPilotCsv() {
+  const r = await fetch(`${BASE}/api/admin/pilot/feedback.csv`, { headers: authHeaders() });
+  if (!r.ok) throw new Error(await errMessage(r, "Không tải được tệp CSV"));
+  const blob = await r.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "gop-y-thi-diem.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function getPlans() {
   return getJson<PlanCatalogue>("/api/plans", "Không tải được bảng giá");
 }

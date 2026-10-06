@@ -729,6 +729,29 @@ class SensorReading(Base):
     signed: Mapped[str] = mapped_column(Text)            # chuỗi canonical đúng như đã ký
     signature: Mapped[str] = mapped_column(String(96))
 
+
+class PilotFeedback(Base):
+    """Một phiếu góp ý thí điểm (trên web, hoặc cán bộ HTX nhập lại từ phiếu giấy).
+
+    ÍT DỮ LIỆU CÁ NHÂN NHẤT (Nghị định 13/2023): không lưu IP, không bắt buộc tên.
+    `contact` chỉ được lưu khi người gửi tự đánh dấu đồng ý cho liên hệ lại — không đồng
+    ý thì API từ chối cả phiếu có liên hệ, không lặng lẽ lưu."""
+    __tablename__ = "pilot_feedback"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
+    source: Mapped[str] = mapped_column(String(8), default="web")       # web | paper
+    role: Mapped[str] = mapped_column(String(16))                      # farmer | coop | exporter | other
+    region: Mapped[str] = mapped_column(String(80), default="")
+    hardest: Mapped[str] = mapped_column(String(16), default="none")   # bước khó nhất
+    ease: Mapped[int] = mapped_column(Integer)                         # 1–5
+    trust: Mapped[int] = mapped_column(Integer)                        # 1–5
+    minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    would_use: Mapped[str] = mapped_column(String(8))                  # yes | maybe | no
+    comment: Mapped[str] = mapped_column(Text, default="")
+    contact: Mapped[str] = mapped_column(String(120), default="")
+    user_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
 # Cột thêm sau khi đã có database chạy thật. `create_all` KHÔNG thêm cột vào
 # bảng sẵn có, nên thiếu bước này thì bản deploy cũ sẽ đổ ngay lần truy vấn đầu
 # — lỗi chỉ lộ ra ở production, không bao giờ lộ trong test trên database sạch.
