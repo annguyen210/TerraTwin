@@ -141,21 +141,44 @@ jobs:
           git config --global user.name "terratwin-backup-bot"
           git config --global user.email "actions@users.noreply.github.com"
           if [ -n "$DEPLOY_KEY" ]; then
+            AUTH="deploy key SSH"
             mkdir -p ~/.ssh && chmod 700 ~/.ssh
-            echo "$DEPLOY_KEY" > ~/.ssh/backup_key && chmod 600 ~/.ssh/backup_key
-            ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
+            # Bỏ \r (khoá dán từ Windows) và bảo đảm có dòng trống cuối — thiếu là OpenSSH báo
+            # "invalid format" / "error in libcrypto" và git chỉ trả mã 128 khó hiểu.
+            printf '%s\n' "$DEPLOY_KEY" | tr -d '\r' > ~/.ssh/backup_key && chmod 600 ~/.ssh/backup_key
+            if ! ssh-keygen -y -f ~/.ssh/backup_key >/dev/null 2>"$RUNNER_TEMP/kg.err"; then
+              echo "::error::TERRATWIN_BACKUP_DEPLOY_KEY không phải khoá riêng OpenSSH hợp lệ (dán thiếu dòng BEGIN/END?): $(head -c 200 "$RUNNER_TEMP/kg.err")"
+              exit 1
+            fi
+            for i in 1 2 3; do
+              ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null && grep -q github.com ~/.ssh/known_hosts && break
+              sleep 5
+            done
             git config --global core.sshCommand "ssh -i ~/.ssh/backup_key -o IdentitiesOnly=yes"
             REMOTE="git@github.com:${{ secrets.TERRATWIN_BACKUP_REPO }}.git"
           else
+            AUTH="PAT (phương án cũ — có thể đã hết hạn/thu hồi)"
             REMOTE="https://x-access-token:${{ secrets.TERRATWIN_BACKUP_REPO_PAT }}@github.com/${{ secrets.TERRATWIN_BACKUP_REPO }}.git"
           fi
+          echo "::notice::Ghi vào repo sao lưu bằng: $AUTH"
           echo "BACKUP_REMOTE=$REMOTE" >> "$GITHUB_ENV"
-          if git ls-remote --exit-code --heads "$REMOTE" main >/dev/null 2>&1; then
+          echo "BACKUP_AUTH=$AUTH" >> "$GITHUB_ENV"
+          # ls-remote --exit-code: 0 = có nhánh main, 2 = repo chưa có nhánh (repo mới tạo),
+          # KHÁC = lỗi quyền/mạng. Trước đây gộp lỗi quyền vào "repo trống" → tạo lịch sử mới,
+          # rồi tới bước đẩy mới chết với mã 128 không lời giải thích (lỗi 6/10/2026).
+          set +e
+          git ls-remote --exit-code --heads "$REMOTE" main >/dev/null 2>"$RUNNER_TEMP/ls.err"
+          rc=$?
+          set -e
+          if [ "$rc" = "0" ]; then
             git clone --branch main --single-branch --depth 1 "$REMOTE" ../backups-wt
-          else
+          elif [ "$rc" = "2" ]; then
             mkdir -p ../backups-wt
             git -C ../backups-wt init -q -b main
             git -C ../backups-wt commit -q --allow-empty -m "khoi tao repo sao luu"
+          else
+            echo "::error::Không đọc được repo sao lưu bằng $AUTH (mã $rc): $(sed -E 's#x-access-token:[^@]*@#***@#g' "$RUNNER_TEMP/ls.err" | head -c 300). Deploy key: kiểm khoá công khai đã thêm ở repo sao lưu → Settings → Deploy keys và ĐÃ TICK 'Allow write access'."
+            exit 1
           fi
 
       - name: Sao lưu + mã hoá (ops/backup.sh)
@@ -173,5 +196,8 @@ jobs:
             echo "Không có gì mới (đã có bản hôm nay?)."
           else
             git commit -q -m "backup $(date -u +%Y%m%d-%H%M)Z"
-            git push -q "$BACKUP_REMOTE" main
+            if ! git push -q "$BACKUP_REMOTE" main 2>"$RUNNER_TEMP/push.err"; then
+              echo "::error::Đẩy bản sao lưu thất bại ($BACKUP_AUTH): $(sed -E 's#x-access-token:[^@]*@#***@#g' "$RUNNER_TEMP/push.err" | head -c 400). Thường là deploy key chưa tick 'Allow write access'."
+              exit 1
+            fi
           fi

@@ -58,3 +58,6 @@ iot_sim_key*.txt
 .secrets-to-set.txt
 .api-keys.txt
 .prod-setup-state.json
+
+# khoá deploy SSH cho repo sao lưu (khoá riêng KHÔNG BAO GIỜ commit)
+.backup-deploy-key*
