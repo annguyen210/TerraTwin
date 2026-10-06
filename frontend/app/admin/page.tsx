@@ -15,12 +15,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   fetchMe, getHealth, getFunnel, getBackupStatus, getDrift, getCoopPlots, updateCoop,
-  getPilotSummary, downloadPilotCsv,
-  type AuthUser, type HealthStatus, type CoopPlot, type PilotSummary,
+  getPilotSummary, downloadPilotCsv, adminLabelers, adminAddLabeler, adminRemoveLabeler, adminLabelSummary,
+  adminLabelExport,
+  type AuthUser, type HealthStatus, type CoopPlot, type PilotSummary, type LabelSummary,
 } from "@/lib/api";
 import { LangToggle, useLang } from "@/lib/i18n";
 
-type Tab = "health" | "funnel" | "pilot" | "backup" | "drift" | "coop";
+type Tab = "health" | "funnel" | "pilot" | "label" | "backup" | "drift" | "coop";
 
 function when(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -157,6 +158,53 @@ function PilotTab() {
   );
 }
 
+function LabelTab() {
+  const [sum, setSum] = useState<LabelSummary | null>(null);
+  const [list, setList] = useState<{ email: string }[]>([]);
+  const [email, setEmail] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const load = () => {
+    adminLabelSummary().then(setSum).catch((e) => setErr(e.message));
+    adminLabelers().then((r) => setList(r.labelers)).catch((e) => setErr(e.message));
+  };
+  useEffect(load, []);
+  const add = async () => {
+    if (!email.trim()) return;
+    try { await adminAddLabeler(email.trim()); setEmail(""); load(); } catch (e) { setErr((e as Error).message); }
+  };
+  const T = { T_lost: "Rừng 2020 + mất", T_forest: "Rừng 2020, không mất", T_clean: "Không phải rừng 2020" } as const;
+  return (
+    <div>
+      <p className="ws-hint">Kiểm định EUDR v3: hai người ĐỘC LẬP gán nhãn ảnh 2020 ở <Link href="/gan-nhan">/gan-nhan</Link>. Trang này
+        chỉ hiện tiến độ và độ đồng thuận — KHÔNG có kết quả máy; chỉ chấm một lần sau khi khoá nhãn.</p>
+      {err && <p className="ws-err">⚠️ {err}</p>}
+      <h4>Người được gán nhãn (ngoài quản trị viên)</h4>
+      <ul>{list.map((l) => <li key={l.email}>{l.email}{" "}
+        <button className="ws-link" onClick={() => adminRemoveLabeler(l.email).then(load).catch((e) => setErr(e.message))}>gỡ</button></li>)}
+        {list.length === 0 && <li className="ws-hint">Chưa có ai — thêm email người gán thứ hai.</li>}</ul>
+      <div className="ws-row">
+        <input type="email" placeholder="email@vd.vn" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <button className="doc-btn" onClick={add}>Cấp quyền gán nhãn</button>
+      </div>
+      {sum && (
+        <>
+          <h4 style={{ marginTop: 18 }}>Tiến độ ({sum.n_cells} ô)</h4>
+          <ul>{sum.per_labeler.map((p) => <li key={p.email}>{p.email}: {p.labeled} ô</li>)}</ul>
+          <p>Ô có ≥2 nhãn: <b>{sum.cells_2plus}</b> · đồng thuận rừng/không rừng: <b>{sum.agree_forest ?? "—"}</b> ·
+            Cohen&apos;s kappa: <b>{sum.kappa_forest ?? "—"}</b></p>
+          <table className="ws-table">
+            <thead><tr><th>Nhóm sự thật</th><th>Số ô</th><th>Cần tối thiểu</th></tr></thead>
+            <tbody>{(Object.keys(T) as (keyof typeof T)[]).map((k) => (
+              <tr key={k}><td>{T[k]}</td><td>{sum.truth_counts[k]}</td><td>{sum.min_n_per_set}</td></tr>))}</tbody>
+          </table>
+          <p className="ws-hint">Bị loại: {Object.entries(sum.excluded).map(([k, n]) => `${k} ${n}`).join(" · ")}</p>
+          <button className="doc-btn" onClick={() => adminLabelExport().catch((e) => setErr(e.message))}>Xuất nhãn (JSON) để chấm</button>
+        </>
+      )}
+    </div>
+  );
+}
+
 function BackupTab() {
   const [data, setData] = useState<Awaited<ReturnType<typeof getBackupStatus>> | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -283,6 +331,7 @@ export default function AdminPage() {
     { id: "health", label: "Sức khoẻ", show: true },
     { id: "funnel", label: "Phễu người dùng", show: isAdmin },
     { id: "pilot", label: "Góp ý thí điểm", show: isAdmin },
+    { id: "label", label: "Gán nhãn v3", show: isAdmin },
     { id: "backup", label: "Sao lưu", show: isAdmin },
     { id: "drift", label: "Trôi mô hình", show: isAdmin },
     { id: "coop", label: "Hợp tác xã", show: isCoop },
@@ -318,6 +367,7 @@ export default function AdminPage() {
               {tab === "health" && <HealthTab />}
               {tab === "funnel" && isAdmin && <FunnelTab />}
               {tab === "pilot" && isAdmin && <PilotTab />}
+              {tab === "label" && isAdmin && <LabelTab />}
               {tab === "backup" && isAdmin && <BackupTab />}
               {tab === "drift" && isAdmin && <DriftTab />}
               {tab === "coop" && isCoop && <CoopTab user={user} />}

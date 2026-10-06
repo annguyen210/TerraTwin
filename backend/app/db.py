@@ -752,6 +752,35 @@ class PilotFeedback(Base):
     contact: Mapped[str] = mapped_column(String(120), default="")
     user_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
+
+class LabelV3(Base):
+    """Một nhãn do NGƯỜI gán cho một ô của mẫu kiểm định EUDR v3 (giải đoán ảnh 2020).
+
+    Mỗi người gán một nhãn / ô (sửa được tới khi khoá). Hai người gán ĐỘC LẬP: API không
+    bao giờ trả nhãn của người khác, kết quả bản đồ hay mô hình cho người đang gán."""
+    __tablename__ = "labels_v3"
+    __table_args__ = (UniqueConstraint("cell", "user_id", name="uq_label_v3_cell_user"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    cell: Mapped[int] = mapped_column(Integer, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    cover2020: Mapped[str] = mapped_column(String(16))     # natural_forest|planted_forest|tree_crop|no_trees|unclear
+    loss: Mapped[str] = mapped_column(String(8))           # yes|no|unclear — mất tán cây SAU 31/12/2020
+    confidence: Mapped[int] = mapped_column(Integer, default=2)   # 1 đoán · 2 khá chắc · 3 chắc
+    seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    note: Mapped[str] = mapped_column(String(300), default="")
+
+
+class LabelerGrant(Base):
+    """Quản trị viên cấp quyền gán nhãn cho một email (người thứ hai không cần là admin)."""
+    __tablename__ = "labeler_grants"
+
+    email: Mapped[str] = mapped_column(String(254), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    granted_by: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
 # Cột thêm sau khi đã có database chạy thật. `create_all` KHÔNG thêm cột vào
 # bảng sẵn có, nên thiếu bước này thì bản deploy cũ sẽ đổ ngay lần truy vấn đầu
 # — lỗi chỉ lộ ra ở production, không bao giờ lộ trong test trên database sạch.

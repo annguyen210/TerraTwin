@@ -52,7 +52,7 @@ from datetime import date, datetime, timezone
 from app.services import cache_store, eudr_geo, mpc
 from app.services.reqlang import tr
 
-RULES = {1: "terratwin.eudr-screen/1", 2: "terratwin.eudr-screen/2"}
+RULES = {1: "terratwin.eudr-screen/1", 2: "terratwin.eudr-screen/2", 3: "terratwin.eudr-screen/3"}
 # Quy tắc ĐANG DÙNG trên production. Chỉ đổi sang bản mới SAU KHI nó đạt kiểm định độc lập
 # theo giao thức đặt trước (data/eudr_validation_protocol*.json). v2 chỉ NỚI "cần xem lại"
 # thành "đạt" cho thửa có tán cây thưa không mất cây — không bao giờ làm kết luận xấu đi.
@@ -64,6 +64,10 @@ THRESHOLDS = {
     "forest_vote_pct": 10.0,       # ngưỡng tán 10% của định nghĩa rừng EU/FAO
     "forest_strong_pct": 30.0,
     "forest_majority_pct": 50.0,   # v2: "phiếu rừng" để CẦN XEM LẠI khi không mất cây = ≥50% thửa
+    # v3: ca tán dày, KHÔNG mất cây → hỏi mô hình "rừng hay vườn cây" (đã kiểm định riêng).
+    # Chỉ hạ xuống ĐẠT khi xác suất rừng ≤ 0,2 — chọn trên tập KIỂM ĐỊNH của mô hình đó
+    # (4,6% rừng bị gọi nhầm là vườn, nhận ra 72,7% vườn), KHÔNG trên mẫu kiểm định v3.
+    "foc_crop_max_p": 0.2,
     "loss_pts": 20.0,              # tán cây TB 2022–23 thấp hơn TB 2018–20 ≥ 20 điểm %
     "ndvi_forest": 0.6,            # NDVI trước mốc đủ cao mới xét giảm NDVI
     "ndvi_drop": 0.15,
@@ -298,10 +302,13 @@ def label(level: str) -> str:
 
 
 def verdict(f2020: dict, io_traj: dict, ndvi_before: float | None, ndvi_after: float | None,
-            protected: list[str], rule: int | None = None) -> tuple[str, list[str], dict]:
+            protected: list[str], rule: int | None = None,
+            p_forest: float | None = None) -> tuple[str, list[str], dict]:
     """Quy tắc sàng lọc THUẦN (không mạng) — xem đầu tệp. Trả (mức, lý do, tín hiệu).
 
-    f2020: {"wc2020": %, "alos2020": %, "io": % (TB 2018–2020)} — None nếu thiếu."""
+    f2020: {"wc2020": %, "alos2020": %, "io": % (TB 2018–2020)} — None nếu thiếu.
+    p_forest: xác suất "rừng" của mô hình rừng-hay-vườn (chỉ quy tắc 3 dùng; None = không có
+    → quy tắc 3 cư xử y như quy tắc 2, tức là luôn THẬN TRỌNG khi thiếu mô hình)."""
     T = THRESHOLDS
     rule = rule or ACTIVE_RULE
     avail = {k: v for k, v in f2020.items() if v is not None}
@@ -318,7 +325,8 @@ def verdict(f2020: dict, io_traj: dict, ndvi_before: float | None, ndvi_after: f
                "io_before_pct": io_b, "io_after_pct": io_a,
                "io_drop_pts": None if io_drop is None else round(io_drop, 1),
                "ndvi_drop": None if nd_drop is None else round(nd_drop, 3),
-               "loss": loss, "loss_by": [n for n, b in (("io", loss_io), ("ndvi", loss_nd)) if b]}
+               "loss": loss, "loss_by": [n for n, b in (("io", loss_io), ("ndvi", loss_nd)) if b],
+               "p_forest": p_forest}
 
     if len(avail) < T["min_maps"]:
         return "unknown", [tr(f"Chỉ lấy được {len(avail)}/3 bản đồ rừng quanh năm 2020 — cần ít nhất 2.",
@@ -341,6 +349,19 @@ def verdict(f2020: dict, io_traj: dict, ndvi_before: float | None, ndvi_after: f
                           f"và có dấu hiệu mất cây sau mốc: {loss_s}.",
                           f"{len(strong)}/{len(avail)} maps show ≥30% of the plot as forest in 2020 ({names(strong)}), "
                           f"and there are signs of tree loss after the cutoff: {loss_s}."))
+    elif (rule >= 3 and len(majority) >= 2 and not loss and p_forest is not None
+          and p_forest <= T["foc_crop_max_p"]):
+        # v3 — ba bản đồ chỉ thấy "tán dày", không phân biệt rừng với cao su/cà phê/điều trồng
+        # sau 2000 (kiểm định v2: 12/16 ô sai là loại này). Mô hình đọc NHỊP SINH TRƯỞNG 12
+        # tháng (vườn cây có mùa thu hoạch, tỉa cành, tưới; rừng thì không) mới tách được.
+        level = "low"
+        reasons.append(tr(f"{len(majority)}/{len(avail)} bản đồ thấy tán cây dày năm 2020 ({names(majority)}), "
+                          f"nhưng mô hình rừng-hay-vườn (đọc nhịp sinh trưởng 12 tháng Sentinel-2) chỉ cho "
+                          f"{p_forest * 100:.0f}% khả năng là rừng, và không có dấu hiệu mất cây sau mốc — "
+                          "nhiều khả năng là vườn cây lâu năm.",
+                          f"{len(majority)}/{len(avail)} maps show dense tree cover in 2020 ({names(majority)}), "
+                          f"but the forest-or-crop model (12-month Sentinel-2 growth rhythm) gives only "
+                          f"{p_forest * 100:.0f}% chance of forest, and there are no tree-loss signs — most likely a tree crop."))
     elif rule >= 2 and len(majority) >= 2:
         # v2 — rừng thật gần như luôn ≥50% trên cả ba bản đồ; vườn cây lâu năm (cà phê, cao su,
         # cây ăn quả) thường chỉ 10–45% "tán cây" ở WorldCover/IO dù ALOS xếp là rừng.
@@ -464,7 +485,7 @@ def screen(plot: dict) -> dict:
     return _localize(raw)
 
 
-def _localize(raw: dict, rule: int | None = None) -> dict:
+def _localize(raw: dict, rule: int | None = None, p_forest: float | None = None) -> dict:
     """Mức, lý do, chú thích tính lại lúc ĐỌC từ số đo (cache dùng chung hai ngôn ngữ,
     và ai cầm số đo cũng tự tính lại ra đúng kết luận này)."""
     f2020 = {f["id"]: f.get("pct") for f in raw["forest_2020"]}
@@ -472,7 +493,8 @@ def _localize(raw: dict, rule: int | None = None) -> dict:
     s2 = raw.get("s2") or {}
     level, reasons, signals = verdict(f2020, traj, (s2.get("before") or {}).get("ndvi_mean"),
                                       (s2.get("after") or {}).get("ndvi_mean"),
-                                      (raw.get("protected") or {}).get("inside") or [], rule=rule)
+                                      (raw.get("protected") or {}).get("inside") or [], rule=rule,
+                                      p_forest=p_forest)
     out = dict(raw)
     out.update(level=level, label=label(level), reasons=reasons, signals=signals, caveats=caveats(raw),
                method=RULES[rule or ACTIVE_RULE])

@@ -20,7 +20,7 @@ from app import auth
 from app.services import plans
 from app.db import (
     ActionLog, Alert, ApiKey, AuditLog, BatchRun, Dataset, Device, Dossier, EudrSet, FieldPhoto, Lot,
-    KnowledgeNote, NotifyChannel, Observation, PilotFeedback, Plot, PushSub, SensorReading, Twin, User, get_session,
+    KnowledgeNote, LabelerGrant, LabelV3, NotifyChannel, Observation, PilotFeedback, Plot, PushSub, SensorReading, Twin, User, get_session,
 )
 from app.schemas import Location
 
@@ -434,7 +434,7 @@ _OWNED = [
 # khai móc xích — xoá một hồ sơ là gãy mọi mắt xích sau nó; ảnh đã gắn vào hồ sơ
 # là bằng chứng của hồ sơ đó. Xoá tài khoản thì GỠ liên kết (user_id = NULL).
 _EXPORT_ONLY = [("dossiers", Dossier), ("field_photos", FieldPhoto), ("lots", Lot),
-                ("pilot_feedback", PilotFeedback)]
+                ("pilot_feedback", PilotFeedback), ("labels_v3", LabelV3)]
 
 
 def _row_to_dict(row) -> dict:
@@ -547,6 +547,13 @@ def delete_my_account(user: User = Depends(auth.current_user),
             fb.user_id = None
         else:
             db.delete(fb)
+    # Nhãn kiểm định v3 là THƯỚC ĐO đã dùng/sẽ dùng để chấm — giữ, nhưng gỡ khỏi tài khoản
+    # (user_id âm: không trỏ tới ai, vẫn tách được hai người gán). Quyền gán nhãn: xoá.
+    for lb in db.execute(select(LabelV3).where(LabelV3.user_id == user.id)).scalars().all():
+        lb.user_id = -user.id
+    g = db.get(LabelerGrant, (user.email or "").strip().lower())
+    if g is not None:
+        db.delete(g)
     db.delete(user)
     db.commit()
 

@@ -554,6 +554,10 @@ function Method({ lang }: { lang: string }) {
                 <p>{t("Bước tiếp theo", "Next step")}: {h.post_hoc_diagnosis!.next_step}</p>
               </div>
             ))}
+            <p className="eu-src">{t(
+              "Đang làm: kiểm định v3 trên nhãn do hai người giải đoán ảnh năm 2020 (giao thức đã ghi trước, mẫu mới seed 20261007). Người được cấp quyền gán nhãn tại ",
+              "In progress: v3 validation on labels from two people interpreting 2020 imagery (protocol registered first, new sample seed 20261007). Authorised labelers work at ")}
+              <Link href="/gan-nhan">/gan-nhan</Link>.</p>
           </>
         )}
       </section>

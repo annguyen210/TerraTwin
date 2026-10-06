@@ -29,6 +29,7 @@ from app.routes_eudr import router as eudr_router
 from app.routes_lots import router as lots_router
 from app.routes_iot import router as iot_router
 from app.routes_pilot import router as pilot_router
+from app.routes_label import router as label_router
 from app.routes_today import router as today_router
 from app.routes_learn import router as learn_router
 from app.routes_trust import router as trust_router
@@ -472,6 +473,7 @@ app.include_router(eudr_router)
 app.include_router(lots_router)
 app.include_router(iot_router)
 app.include_router(pilot_router)
+app.include_router(label_router)
 app.include_router(today_router)
 app.include_router(learn_router)
 app.include_router(trust_router)

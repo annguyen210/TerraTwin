@@ -1403,6 +1403,64 @@ export function sendPilotFeedback(body: PilotFeedbackIn) {
     { method: "POST", body: JSON.stringify(body) }, "Không gửi được góp ý");
 }
 
+// ---------- Gán nhãn kiểm định EUDR v3 (người giải đoán ảnh 2020) ----------
+export type LabelBox = { left: number; top: number; width: number; height: number };
+export type LabelView = {
+  cell: number; center: { lat: number; lon: number }; bounds: number[]; area_ha: number; mosaic_box: LabelBox;
+  wayback: Record<"before" | "after", { release_date: string; acquired: string | null; resolution_m: number | null;
+                                        source: string | null; tiles: string[][] }>;
+  s2: Record<string, { date: string; cloud_pct: number; url: string; box: LabelBox } | null>;
+};
+export type LabelCover = "natural_forest" | "planted_forest" | "tree_crop" | "no_trees" | "unclear";
+export type LabelIn = { cover2020: LabelCover; loss: "yes" | "no" | "unclear"; confidence: number;
+                        seconds?: number | null; note: string };
+export type LabelNext = { done: boolean; labeled: number; n_cells: number; position?: number;
+                          view?: LabelView; mine?: LabelIn | null };
+export type LabelSummary = { n_cells: number; per_labeler: { email: string; labeled: number }[];
+  truth_counts: Record<"T_lost" | "T_forest" | "T_clean", number>; cells_2plus: number;
+  excluded: Record<string, number>; kappa_forest: number | null; agree_forest: number | null; min_n_per_set: number };
+
+export function labelMe() {
+  return authed<{ can_label: boolean; n_cells: number; done: number; sample_ready: boolean }>(
+    "/api/label/v3/me", { method: "GET" }, "Không tải được trạng thái gán nhãn");
+}
+export function labelNext(after?: number) {
+  return authed<LabelNext>(`/api/label/v3/next?lang=${curLang()}${after != null ? `&after=${after}` : ""}`,
+    { method: "GET" }, "Không tải được ô tiếp theo");
+}
+export function labelCell(k: number) {
+  return authed<LabelNext>(`/api/label/v3/cell/${k}`, { method: "GET" }, "Không tải được ô");
+}
+export function labelSave(k: number, body: LabelIn) {
+  return authed<{ ok: boolean; labeled: number }>(`/api/label/v3/cell/${k}`,
+    { method: "POST", body: JSON.stringify(body) }, "Không lưu được nhãn");
+}
+export function adminLabelers() {
+  return authed<{ labelers: { email: string; created_at: string | null }[] }>(
+    "/api/admin/label/v3/labelers", { method: "GET" }, "Không tải được danh sách người gán nhãn");
+}
+export function adminAddLabeler(email: string) {
+  return authed<{ ok: boolean }>("/api/admin/label/v3/labelers",
+    { method: "POST", body: JSON.stringify({ email }) }, "Không thêm được người gán nhãn");
+}
+export function adminRemoveLabeler(email: string) {
+  return authed<{ ok: boolean }>(`/api/admin/label/v3/labelers/${encodeURIComponent(email)}`,
+    { method: "DELETE" }, "Không gỡ được người gán nhãn");
+}
+export function adminLabelSummary() {
+  return authed<LabelSummary>("/api/admin/label/v3/summary", { method: "GET" }, "Không tải được tiến độ gán nhãn");
+}
+export async function adminLabelExport() {
+  const data = await authed<unknown>("/api/admin/label/v3/export", { method: "GET" }, "Không xuất được nhãn");
+  const blob = new Blob([JSON.stringify(data, null, 1)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "eudr-labels-v3.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export type PilotBlock = { n: number; ease_mean: number | null; trust_mean: number | null; minutes_median: number | null;
   would_use: Record<"yes" | "maybe" | "no", number>; hardest: Record<string, number> };
 export type PilotSummary = { all: PilotBlock; by_role: Record<string, PilotBlock>; note: string;
