@@ -67,6 +67,33 @@ PROTOCOL_DOC = {
 }
 
 
+# ------------------------------------------------------------------ v2 (đặt trước 6/10/2026)
+PROTOCOL_V2 = os.path.join(DATA, "eudr_validation_protocol_v2.json")
+SAMPLE_V2 = os.path.join(DATA, "eudr_validation_sample_v2.json")
+RESULT_V2 = os.path.join(DATA, "eudr_validation_v2.json")
+PROTOCOL_DOC_V2 = {
+    **{k: v for k, v in PROTOCOL_DOC.items() if k not in ("registered", "rule_version", "region", "seed", "windows")},
+    "title": "Kiểm định độc lập quy tắc sàng lọc EUDR v2 của TerraTwin — trên MẪU MỚI",
+    "registered": "2026-10-06",
+    "rule_version": "terratwin.eudr-screen/2",
+    "rule_change": ("So với v1: thửa KHÔNG có dấu hiệu mất cây chỉ CẦN XEM LẠI khi ≥2 bản đồ thấy ≥50% "
+                    "diện tích là rừng năm 2020 (v1: ≥10%). Mọi nhánh có dấu hiệu mất cây giữ nguyên "
+                    "(≥1 bản đồ ≥10% + mất cây → cần xem lại; ≥2 bản đồ ≥30% + mất cây → rủi ro). "
+                    "v2 không bao giờ cho mức nặng hơn v1 (có test)."),
+    "development_set": ("Ngưỡng 50% được CHỌN trên mẫu v1 (eudr_validation_sample.json): v1 0,925/0,925/0,525; "
+                        "v2 0,925/0,90/0,75. Vì đã dùng mẫu v1 để chọn, mẫu v1 KHÔNG được dùng để kết luận."),
+    "region": {"boxes": [
+        {"name": "Tây Nguyên", "lat": [11.3, 15.0], "lon": [107.2, 109.0], "commodity": "cà phê"},
+        {"name": "Đông Nam Bộ", "lat": [10.8, 12.2], "lon": [106.2, 107.6], "commodity": "cao su"}],
+        "note": "Thêm Đông Nam Bộ (cao su — trên bản đồ rất giống rừng) để thử khả năng khái quát."},
+    "seed": 20261006,
+    "windows": 200,
+    "exclude_km_from_v1": 1.0,
+    "decision": ("ĐẠT khi cả ba M1, M2, M3 ≥ ngưỡng TRÊN MẪU MỚI → mới bật v2 trên production. "
+                 "Không đạt → công bố, giữ v1, không chấm lại trên mẫu này."),
+}
+
+
 def write_protocol() -> None:
     with open(PROTOCOL, "w", encoding="utf-8") as f:
         json.dump(PROTOCOL_DOC, f, ensure_ascii=False, indent=1)

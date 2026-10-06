@@ -416,3 +416,37 @@ def test_phuong_phap_cong_khai(env):
     m = env.get("/api/eudr/method").json()
     assert m["rule_version"] == "terratwin.eudr-screen/1" and m["thresholds"]["forest_vote_pct"] == 10.0
     assert m["eu_rules"]["min_decimals"] == 6 and m["levels"]["high"] == "Rủi ro phá rừng"
+
+
+def test_quy_tac_v2_vuon_cay_thua_khong_mat_cay_thi_dat():
+    """v2: vườn cây lâu năm (ALOS xếp rừng 100%, WorldCover/IO thấy 10–45% tán) không mất cây
+    → ĐẠT; v1 đẩy sang CẦN XEM LẠI (lý do M3 v1 chỉ 0,525)."""
+    from app.services import eudr_forest as ef
+    maps = {"wc2020": 47.2, "alos2020": 100.0, "io": 22.2}
+    flat = {y: 20.0 for y in ef.IO_YEARS}
+    assert ef.verdict(maps, flat, None, None, [], rule=1)[0] == "review"
+    lv, reasons, sig = ef.verdict(maps, flat, None, None, [], rule=2)
+    assert lv == "low" and "dưới 50%" in reasons[0] and sig["rule"] == "terratwin.eudr-screen/2"
+
+
+def test_quy_tac_v2_rung_that_van_bi_co_va_khong_bao_gio_xau_hon_v1():
+    from app.services import eudr_forest as ef
+    flat = {y: 90.0 for y in ef.IO_YEARS}
+    forest = {"wc2020": 100.0, "alos2020": 100.0, "io": 100.0}
+    assert ef.verdict(forest, flat, None, None, [], rule=2)[0] == "review"
+    # 1 bản đồ thấy rừng + mất cây → vẫn bị cờ ở v2
+    lost = {y: (60.0 if y <= 2020 else 20.0) for y in ef.IO_YEARS}
+    assert ef.verdict({"wc2020": 15.0, "alos2020": 0.0, "io": 60.0}, lost, None, None, [], rule=2)[0] in ("review", "high")
+    # v2 không bao giờ nặng hơn v1 trên một lưới tổ hợp
+    rank = {"low": 0, "review": 1, "high": 2, "unknown": 0}
+    for a in (0, 15, 40, 60, 100):
+        for b in (0, 15, 40, 60, 100):
+            for c in (0, 15, 40, 60, 100):
+                for traj in (flat, lost):
+                    m = {"wc2020": float(a), "alos2020": float(b), "io": float(c)}
+                    assert rank[ef.verdict(m, traj, None, None, [], rule=2)[0]] <= rank[ef.verdict(m, traj, None, None, [], rule=1)[0]]
+
+
+def test_production_van_dung_quy_tac_v1_cho_toi_khi_v2_dat_kiem_dinh():
+    from app.services import eudr_forest as ef
+    assert ef.ACTIVE_RULE == 1 and ef.METHOD_VERSION == "terratwin.eudr-screen/1"

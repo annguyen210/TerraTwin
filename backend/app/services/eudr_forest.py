@@ -52,12 +52,18 @@ from datetime import date, datetime, timezone
 from app.services import cache_store, eudr_geo, mpc
 from app.services.reqlang import tr
 
-METHOD_VERSION = "terratwin.eudr-screen/1"
+RULES = {1: "terratwin.eudr-screen/1", 2: "terratwin.eudr-screen/2"}
+# Quy tắc ĐANG DÙNG trên production. Chỉ đổi sang bản mới SAU KHI nó đạt kiểm định độc lập
+# theo giao thức đặt trước (data/eudr_validation_protocol*.json). v2 chỉ NỚI "cần xem lại"
+# thành "đạt" cho thửa có tán cây thưa không mất cây — không bao giờ làm kết luận xấu đi.
+ACTIVE_RULE = 1
+METHOD_VERSION = RULES[ACTIVE_RULE]
 CUTOFF = date(2020, 12, 31)
 
 THRESHOLDS = {
     "forest_vote_pct": 10.0,       # ngưỡng tán 10% của định nghĩa rừng EU/FAO
     "forest_strong_pct": 30.0,
+    "forest_majority_pct": 50.0,   # v2: "phiếu rừng" để CẦN XEM LẠI khi không mất cây = ≥50% thửa
     "loss_pts": 20.0,              # tán cây TB 2022–23 thấp hơn TB 2018–20 ≥ 20 điểm %
     "ndvi_forest": 0.6,            # NDVI trước mốc đủ cao mới xét giảm NDVI
     "ndvi_drop": 0.15,
@@ -292,21 +298,24 @@ def label(level: str) -> str:
 
 
 def verdict(f2020: dict, io_traj: dict, ndvi_before: float | None, ndvi_after: float | None,
-            protected: list[str]) -> tuple[str, list[str], dict]:
+            protected: list[str], rule: int | None = None) -> tuple[str, list[str], dict]:
     """Quy tắc sàng lọc THUẦN (không mạng) — xem đầu tệp. Trả (mức, lý do, tín hiệu).
 
     f2020: {"wc2020": %, "alos2020": %, "io": % (TB 2018–2020)} — None nếu thiếu."""
     T = THRESHOLDS
+    rule = rule or ACTIVE_RULE
     avail = {k: v for k, v in f2020.items() if v is not None}
     votes = [k for k, v in avail.items() if v >= T["forest_vote_pct"]]
     strong = [k for k, v in avail.items() if v >= T["forest_strong_pct"]]
+    majority = [k for k, v in avail.items() if v >= T["forest_majority_pct"]]
     io_b, io_a = io_mean(io_traj, IO_BEFORE), io_mean(io_traj, IO_AFTER)
     io_drop = (io_b - io_a) if io_b is not None and io_a is not None else None
     nd_drop = (ndvi_before - ndvi_after) if ndvi_before is not None and ndvi_after is not None else None
     loss_io = io_drop is not None and io_drop >= T["loss_pts"]
     loss_nd = nd_drop is not None and ndvi_before >= T["ndvi_forest"] and nd_drop >= T["ndvi_drop"]
     loss = loss_io or loss_nd
-    signals = {"votes": votes, "strong": strong, "io_before_pct": io_b, "io_after_pct": io_a,
+    signals = {"votes": votes, "strong": strong, "majority": majority, "rule": RULES[rule],
+               "io_before_pct": io_b, "io_after_pct": io_a,
                "io_drop_pts": None if io_drop is None else round(io_drop, 1),
                "ndvi_drop": None if nd_drop is None else round(nd_drop, 3),
                "loss": loss, "loss_by": [n for n, b in (("io", loss_io), ("ndvi", loss_nd)) if b]}
@@ -332,7 +341,21 @@ def verdict(f2020: dict, io_traj: dict, ndvi_before: float | None, ndvi_after: f
                           f"và có dấu hiệu mất cây sau mốc: {loss_s}.",
                           f"{len(strong)}/{len(avail)} maps show ≥30% of the plot as forest in 2020 ({names(strong)}), "
                           f"and there are signs of tree loss after the cutoff: {loss_s}."))
-    elif len(votes) >= 2:
+    elif rule >= 2 and len(majority) >= 2:
+        # v2 — rừng thật gần như luôn ≥50% trên cả ba bản đồ; vườn cây lâu năm (cà phê, cao su,
+        # cây ăn quả) thường chỉ 10–45% "tán cây" ở WorldCover/IO dù ALOS xếp là rừng.
+        level = "review"
+        reasons.append(tr(f"{len(majority)}/{len(avail)} bản đồ cho thấy PHẦN LỚN thửa (≥50%) là rừng năm 2020 "
+                          f"({names(majority)}). Cần người xem ảnh, giấy tờ để phân biệt rừng với cây lâu năm.",
+                          f"{len(majority)}/{len(avail)} maps show MOST of the plot (≥50%) as forest in 2020 "
+                          f"({names(majority)}). A person must check imagery and documents to tell forest from tree crops."))
+        if loss_txt:
+            reasons.append(tr(f"Dấu hiệu mất cây sau mốc: {loss_s}.", f"Signs of tree loss after the cutoff: {loss_s}."))
+    elif rule >= 2 and len(votes) >= 1 and loss:
+        level = "review"
+        reasons.append(tr(f"Bản đồ thấy có rừng năm 2020 ({names(votes)}) và có dấu hiệu mất cây sau mốc: {loss_s}.",
+                          f"Maps show some forest in 2020 ({names(votes)}) and there are signs of tree loss: {loss_s}."))
+    elif rule == 1 and len(votes) >= 2:
         level = "review"
         reasons.append(tr(f"{len(votes)}/{len(avail)} bản đồ cho thấy có rừng ≥10% diện tích năm 2020 ({names(votes)}). "
                           "Cần người xem ảnh, giấy tờ để phân biệt rừng với cây lâu năm (cao su, cà phê che bóng).",
@@ -350,7 +373,14 @@ def verdict(f2020: dict, io_traj: dict, ndvi_before: float | None, ndvi_after: f
                           f"Only {len(avail)} maps and they disagree ({names(list(avail))}) — not enough to conclude."))
     else:
         level = "low"
-        if votes:
+        if rule >= 2 and len(votes) >= 2:
+            reasons.append(tr(f"{len(votes)}/{len(avail)} bản đồ thấy tán cây nhưng dưới 50% diện tích thửa "
+                              f"({names(list(avail))}), và không có dấu hiệu mất cây sau mốc — thường là vườn cây "
+                              "lâu năm (cà phê, cao su, cây ăn quả), không phải rừng.",
+                              f"{len(votes)}/{len(avail)} maps show tree cover but under 50% of the plot "
+                              f"({names(list(avail))}), and no tree-loss signs after the cutoff — usually tree crops "
+                              "(coffee, rubber, orchards), not forest."))
+        elif votes:
             reasons.append(tr(f"Chỉ 1/3 bản đồ thấy tán cây ({names(votes)}); hai bản đồ còn lại "
                               f"({names([k for k in avail if k not in votes])}) không thấy rừng năm 2020 — thường là "
                               "cây lâu năm che bóng hoặc cây rải rác, không phải rừng.",
@@ -385,7 +415,9 @@ def screen(plot: dict) -> dict:
     geom = eudr_geo.shapely_geom(plot)
     gj = eudr_geo.geojson_of(geom)
     (b0, b1, bp), (a0, a1, ap) = s2_windows()
-    key = cache_store.make_key("eudr-screen", _CACHE_V, METHOD_VERSION, gj, a0.isoformat())
+    # Khoá cache theo SỐ ĐO (không theo quy tắc): kết luận tính lại lúc đọc (_localize), nên
+    # đổi quy tắc không bắt đo lại vệ tinh.
+    key = cache_store.make_key("eudr-screen", _CACHE_V, "raw1", gj, a0.isoformat())
     hit = cache_store.get(key)
     if hit is not None:
         return _localize(hit)
@@ -432,7 +464,7 @@ def screen(plot: dict) -> dict:
     return _localize(raw)
 
 
-def _localize(raw: dict) -> dict:
+def _localize(raw: dict, rule: int | None = None) -> dict:
     """Mức, lý do, chú thích tính lại lúc ĐỌC từ số đo (cache dùng chung hai ngôn ngữ,
     và ai cầm số đo cũng tự tính lại ra đúng kết luận này)."""
     f2020 = {f["id"]: f.get("pct") for f in raw["forest_2020"]}
@@ -440,9 +472,10 @@ def _localize(raw: dict) -> dict:
     s2 = raw.get("s2") or {}
     level, reasons, signals = verdict(f2020, traj, (s2.get("before") or {}).get("ndvi_mean"),
                                       (s2.get("after") or {}).get("ndvi_mean"),
-                                      (raw.get("protected") or {}).get("inside") or [])
+                                      (raw.get("protected") or {}).get("inside") or [], rule=rule)
     out = dict(raw)
-    out.update(level=level, label=label(level), reasons=reasons, signals=signals, caveats=caveats(raw))
+    out.update(level=level, label=label(level), reasons=reasons, signals=signals, caveats=caveats(raw),
+               method=RULES[rule or ACTIVE_RULE])
     return out
 
 
