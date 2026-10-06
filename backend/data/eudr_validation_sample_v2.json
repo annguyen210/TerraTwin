@@ -1,0 +1,1282 @@
+{
+ "protocol": {
+  "title": "Kiểm định độc lập quy tắc sàng lọc EUDR v2 của TerraTwin — trên MẪU MỚI",
+  "reference": "Hansen/UMD/Google Global Forest Change v1.12 (2000–2024), 30 m — tile 20N_100E",
+  "plot": "ô vuông 4×4 điểm ảnh Hansen (~111 m × 109 m ≈ 1,2 ha), đúng ranh điểm ảnh",
+  "window_px": 160,
+  "per_set": 40,
+  "sets": {
+   "lost_after_2020": {
+    "criteria": "≥50% điểm ảnh trong ô có lossyear 21–24 (mất cây 2021–2024) VÀ treecover2000 TB ≥30%",
+    "expected": "review hoặc high (KHÔNG được 'low')"
+   },
+   "stable_forest": {
+    "criteria": "không điểm ảnh nào mất cây 2001–2024 VÀ treecover2000 TB ≥70%",
+    "expected": "review hoặc high (rừng không được lọt qua sàng lọc)"
+   },
+   "never_forest": {
+    "criteria": "không điểm ảnh nào mất cây 2001–2024 VÀ treecover2000 TB <10%",
+    "expected": "low"
+   }
+  },
+  "metrics": {
+   "M1_detect_lost": "tỉ lệ ô lost_after_2020 được gắn review/high",
+   "M2_flag_forest": "tỉ lệ ô stable_forest được gắn review/high",
+   "M3_pass_clean": "tỉ lệ ô never_forest được gắn low",
+   "info_high_share_lost": "tỉ lệ ô lost_after_2020 được gắn high (chỉ báo cáo)"
+  },
+  "pass_thresholds": {
+   "M1_detect_lost": 0.8,
+   "M2_flag_forest": 0.8,
+   "M3_pass_clean": 0.7
+  },
+  "unknown_policy": "'unknown' (thiếu dữ liệu) tính là SAI cho mọi nhóm",
+  "decision": "ĐẠT khi cả ba M1, M2, M3 ≥ ngưỡng TRÊN MẪU MỚI → mới bật v2 trên production. Không đạt → công bố, giữ v1, không chấm lại trên mẫu này.",
+  "registered": "2026-10-06",
+  "rule_version": "terratwin.eudr-screen/2",
+  "rule_change": "So với v1: thửa KHÔNG có dấu hiệu mất cây chỉ CẦN XEM LẠI khi ≥2 bản đồ thấy ≥50% diện tích là rừng năm 2020 (v1: ≥10%). Mọi nhánh có dấu hiệu mất cây giữ nguyên (≥1 bản đồ ≥10% + mất cây → cần xem lại; ≥2 bản đồ ≥30% + mất cây → rủi ro). v2 không bao giờ cho mức nặng hơn v1 (có test).",
+  "development_set": "Ngưỡng 50% được CHỌN trên mẫu v1 (eudr_validation_sample.json): v1 0,925/0,925/0,525; v2 0,925/0,90/0,75. Vì đã dùng mẫu v1 để chọn, mẫu v1 KHÔNG được dùng để kết luận.",
+  "region": {
+   "boxes": [
+    {
+     "name": "Tây Nguyên",
+     "lat": [
+      11.3,
+      15.0
+     ],
+     "lon": [
+      107.2,
+      109.0
+     ],
+     "commodity": "cà phê"
+    },
+    {
+     "name": "Đông Nam Bộ",
+     "lat": [
+      10.8,
+      12.2
+     ],
+     "lon": [
+      106.2,
+      107.6
+     ],
+     "commodity": "cao su"
+    }
+   ],
+   "note": "Thêm Đông Nam Bộ (cao su — trên bản đồ rất giống rừng) để thử khả năng khái quát."
+  },
+  "seed": 20261006,
+  "windows": 200,
+  "exclude_km_from_v1": 1.0
+ },
+ "created": "2026-10-06T15:04:50+00:00",
+ "skipped_near_v1": 2,
+ "sets": {
+  "lost_after_2020": [
+   {
+    "lon0": 106.65475,
+    "lat0": 11.82525,
+    "lon1": 106.65575,
+    "lat1": 11.82625,
+    "treecover2000_mean": 34.9,
+    "recent_loss_frac": 0.88,
+    "window": 153,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.54125,
+    "lat0": 12.024,
+    "lon1": 107.54225,
+    "lat1": 12.025,
+    "treecover2000_mean": 54.7,
+    "recent_loss_frac": 0.81,
+    "window": 187,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 106.505,
+    "lat0": 11.80525,
+    "lon1": 106.506,
+    "lat1": 11.80625,
+    "treecover2000_mean": 67.9,
+    "recent_loss_frac": 0.5,
+    "window": 105,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.56375,
+    "lat0": 11.37775,
+    "lon1": 107.56475,
+    "lat1": 11.37875,
+    "treecover2000_mean": 30.8,
+    "recent_loss_frac": 0.56,
+    "window": 146,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.946,
+    "lat0": 13.26725,
+    "lon1": 107.947,
+    "lat1": 13.26825,
+    "treecover2000_mean": 61.3,
+    "recent_loss_frac": 0.81,
+    "window": 63,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 108.039,
+    "lat0": 11.666,
+    "lon1": 108.04,
+    "lat1": 11.667,
+    "treecover2000_mean": 60.1,
+    "recent_loss_frac": 0.69,
+    "window": 79,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.1655,
+    "lat0": 11.78575,
+    "lon1": 107.1665,
+    "lat1": 11.78675,
+    "treecover2000_mean": 66.5,
+    "recent_loss_frac": 0.94,
+    "window": 118,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 106.97975,
+    "lat0": 11.93775,
+    "lon1": 106.98075,
+    "lat1": 11.93875,
+    "treecover2000_mean": 45.3,
+    "recent_loss_frac": 0.56,
+    "window": 117,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.2435,
+    "lat0": 10.8145,
+    "lon1": 107.2445,
+    "lat1": 10.8155,
+    "treecover2000_mean": 84.8,
+    "recent_loss_frac": 0.56,
+    "window": 131,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 106.3395,
+    "lat0": 11.76025,
+    "lon1": 106.3405,
+    "lat1": 11.76125,
+    "treecover2000_mean": 76.6,
+    "recent_loss_frac": 0.56,
+    "window": 136,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.224,
+    "lat0": 14.07175,
+    "lon1": 108.225,
+    "lat1": 14.07275,
+    "treecover2000_mean": 75.6,
+    "recent_loss_frac": 0.62,
+    "window": 31,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.77275,
+    "lat0": 12.37,
+    "lon1": 107.77375,
+    "lat1": 12.371,
+    "treecover2000_mean": 30.1,
+    "recent_loss_frac": 0.88,
+    "window": 71,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 106.47925,
+    "lat0": 11.175,
+    "lon1": 106.48025,
+    "lat1": 11.176,
+    "treecover2000_mean": 65.1,
+    "recent_loss_frac": 0.56,
+    "window": 161,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 106.4455,
+    "lat0": 11.352,
+    "lon1": 106.4465,
+    "lat1": 11.353,
+    "treecover2000_mean": 67.0,
+    "recent_loss_frac": 1.0,
+    "window": 188,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.65375,
+    "lat0": 14.374,
+    "lon1": 108.65475,
+    "lat1": 14.375,
+    "treecover2000_mean": 46.5,
+    "recent_loss_frac": 0.81,
+    "window": 57,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.849,
+    "lat0": 14.80775,
+    "lon1": 107.85,
+    "lat1": 14.80875,
+    "treecover2000_mean": 47.3,
+    "recent_loss_frac": 0.5,
+    "window": 47,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 108.90175,
+    "lat0": 14.68675,
+    "lon1": 108.90275,
+    "lat1": 14.68775,
+    "treecover2000_mean": 98.3,
+    "recent_loss_frac": 0.5,
+    "window": 18,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 108.468,
+    "lat0": 12.02675,
+    "lon1": 108.469,
+    "lat1": 12.02775,
+    "treecover2000_mean": 70.0,
+    "recent_loss_frac": 0.5,
+    "window": 69,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 106.51475,
+    "lat0": 11.85125,
+    "lon1": 106.51575,
+    "lat1": 11.85225,
+    "treecover2000_mean": 34.1,
+    "recent_loss_frac": 0.69,
+    "window": 178,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.90925,
+    "lat0": 14.449,
+    "lon1": 107.91025,
+    "lat1": 14.45,
+    "treecover2000_mean": 63.5,
+    "recent_loss_frac": 0.56,
+    "window": 85,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 106.666,
+    "lat0": 12.16975,
+    "lon1": 106.667,
+    "lat1": 12.17075,
+    "treecover2000_mean": 92.8,
+    "recent_loss_frac": 0.5,
+    "window": 185,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.47075,
+    "lat0": 11.81875,
+    "lon1": 107.47175,
+    "lat1": 11.81975,
+    "treecover2000_mean": 48.1,
+    "recent_loss_frac": 0.56,
+    "window": 119,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.3675,
+    "lat0": 12.979,
+    "lon1": 108.3685,
+    "lat1": 12.98,
+    "treecover2000_mean": 58.2,
+    "recent_loss_frac": 0.88,
+    "window": 53,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 106.4695,
+    "lat0": 12.16925,
+    "lon1": 106.4705,
+    "lat1": 12.17025,
+    "treecover2000_mean": 34.9,
+    "recent_loss_frac": 0.75,
+    "window": 134,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.17675,
+    "lat0": 12.339,
+    "lon1": 108.17775,
+    "lat1": 12.34,
+    "treecover2000_mean": 51.1,
+    "recent_loss_frac": 0.62,
+    "window": 64,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 108.347,
+    "lat0": 14.16025,
+    "lon1": 108.348,
+    "lat1": 14.16125,
+    "treecover2000_mean": 97.2,
+    "recent_loss_frac": 0.75,
+    "window": 29,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.2895,
+    "lat0": 10.92375,
+    "lon1": 107.2905,
+    "lat1": 10.92475,
+    "treecover2000_mean": 59.2,
+    "recent_loss_frac": 0.5,
+    "window": 101,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.43975,
+    "lat0": 13.3185,
+    "lon1": 108.44075,
+    "lat1": 13.3195,
+    "treecover2000_mean": 33.8,
+    "recent_loss_frac": 0.56,
+    "window": 24,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 106.54275,
+    "lat0": 11.55525,
+    "lon1": 106.54375,
+    "lat1": 11.55625,
+    "treecover2000_mean": 32.4,
+    "recent_loss_frac": 0.5,
+    "window": 104,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.81275,
+    "lat0": 11.58625,
+    "lon1": 108.81375,
+    "lat1": 11.58725,
+    "treecover2000_mean": 50.5,
+    "recent_loss_frac": 0.81,
+    "window": 86,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.81775,
+    "lat0": 14.2905,
+    "lon1": 107.81875,
+    "lat1": 14.2915,
+    "treecover2000_mean": 31.1,
+    "recent_loss_frac": 0.5,
+    "window": 89,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.85,
+    "lat0": 14.604,
+    "lon1": 107.851,
+    "lat1": 14.605,
+    "treecover2000_mean": 56.6,
+    "recent_loss_frac": 0.62,
+    "window": 38,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 108.22,
+    "lat0": 13.38525,
+    "lon1": 108.221,
+    "lat1": 13.38625,
+    "treecover2000_mean": 80.1,
+    "recent_loss_frac": 0.56,
+    "window": 30,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.394,
+    "lat0": 14.927,
+    "lon1": 107.395,
+    "lat1": 14.928,
+    "treecover2000_mean": 90.2,
+    "recent_loss_frac": 0.69,
+    "window": 25,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.26175,
+    "lat0": 11.88725,
+    "lon1": 107.26275,
+    "lat1": 11.88825,
+    "treecover2000_mean": 53.7,
+    "recent_loss_frac": 0.56,
+    "window": 144,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.16925,
+    "lat0": 12.00725,
+    "lon1": 108.17025,
+    "lat1": 12.00825,
+    "treecover2000_mean": 94.7,
+    "recent_loss_frac": 0.5,
+    "window": 96,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 108.03725,
+    "lat0": 13.30275,
+    "lon1": 108.03825,
+    "lat1": 13.30375,
+    "treecover2000_mean": 80.0,
+    "recent_loss_frac": 0.62,
+    "window": 21,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 106.65325,
+    "lat0": 12.04275,
+    "lon1": 106.65425,
+    "lat1": 12.04375,
+    "treecover2000_mean": 90.4,
+    "recent_loss_frac": 1.0,
+    "window": 151,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.6525,
+    "lat0": 11.3655,
+    "lon1": 107.6535,
+    "lat1": 11.3665,
+    "treecover2000_mean": 69.2,
+    "recent_loss_frac": 0.56,
+    "window": 76,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.442,
+    "lat0": 11.04225,
+    "lon1": 107.443,
+    "lat1": 11.04325,
+    "treecover2000_mean": 39.2,
+    "recent_loss_frac": 0.5,
+    "window": 143,
+    "region": "Đông Nam Bộ"
+   }
+  ],
+  "stable_forest": [
+   {
+    "lon0": 107.45775,
+    "lat0": 11.80675,
+    "lon1": 107.45875,
+    "lat1": 11.80775,
+    "treecover2000_mean": 95.2,
+    "recent_loss_frac": 0.0,
+    "window": 119,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.616,
+    "lat0": 14.3905,
+    "lon1": 108.617,
+    "lat1": 14.3915,
+    "treecover2000_mean": 97.1,
+    "recent_loss_frac": 0.0,
+    "window": 54,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.509,
+    "lat0": 11.97725,
+    "lon1": 107.51,
+    "lat1": 11.97825,
+    "treecover2000_mean": 70.0,
+    "recent_loss_frac": 0.0,
+    "window": 88,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 108.8285,
+    "lat0": 14.6355,
+    "lon1": 108.8295,
+    "lat1": 14.6365,
+    "treecover2000_mean": 95.4,
+    "recent_loss_frac": 0.0,
+    "window": 14,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.575,
+    "lat0": 13.4215,
+    "lon1": 107.576,
+    "lat1": 13.4225,
+    "treecover2000_mean": 86.2,
+    "recent_loss_frac": 0.0,
+    "window": 65,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.45125,
+    "lat0": 11.637,
+    "lon1": 107.45225,
+    "lat1": 11.638,
+    "treecover2000_mean": 94.9,
+    "recent_loss_frac": 0.0,
+    "window": 182,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 106.66125,
+    "lat0": 12.05875,
+    "lon1": 106.66225,
+    "lat1": 12.05975,
+    "treecover2000_mean": 90.9,
+    "recent_loss_frac": 0.0,
+    "window": 151,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.2635,
+    "lat0": 13.74475,
+    "lon1": 108.2645,
+    "lat1": 13.74575,
+    "treecover2000_mean": 78.1,
+    "recent_loss_frac": 0.0,
+    "window": 92,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.32675,
+    "lat0": 11.43575,
+    "lon1": 107.32775,
+    "lat1": 11.43675,
+    "treecover2000_mean": 90.9,
+    "recent_loss_frac": 0.0,
+    "window": 165,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.063,
+    "lat0": 11.5835,
+    "lon1": 108.064,
+    "lat1": 11.5845,
+    "treecover2000_mean": 76.1,
+    "recent_loss_frac": 0.0,
+    "window": 34,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 106.506,
+    "lat0": 11.81825,
+    "lon1": 106.507,
+    "lat1": 11.81925,
+    "treecover2000_mean": 94.8,
+    "recent_loss_frac": 0.0,
+    "window": 105,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.93175,
+    "lat0": 14.68875,
+    "lon1": 108.93275,
+    "lat1": 14.68975,
+    "treecover2000_mean": 97.1,
+    "recent_loss_frac": 0.0,
+    "window": 18,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 108.20375,
+    "lat0": 13.38625,
+    "lon1": 108.20475,
+    "lat1": 13.38725,
+    "treecover2000_mean": 79.2,
+    "recent_loss_frac": 0.0,
+    "window": 16,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.30025,
+    "lat0": 11.67675,
+    "lon1": 107.30125,
+    "lat1": 11.67775,
+    "treecover2000_mean": 97.2,
+    "recent_loss_frac": 0.0,
+    "window": 138,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.6885,
+    "lat0": 13.0555,
+    "lon1": 108.6895,
+    "lat1": 13.0565,
+    "treecover2000_mean": 77.6,
+    "recent_loss_frac": 0.0,
+    "window": 73,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.85,
+    "lat0": 14.605,
+    "lon1": 107.851,
+    "lat1": 14.606,
+    "treecover2000_mean": 71.4,
+    "recent_loss_frac": 0.0,
+    "window": 38,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.77175,
+    "lat0": 13.9975,
+    "lon1": 107.77275,
+    "lat1": 13.9985,
+    "treecover2000_mean": 89.9,
+    "recent_loss_frac": 0.0,
+    "window": 15,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 106.2775,
+    "lat0": 11.925,
+    "lon1": 106.2785,
+    "lat1": 11.926,
+    "treecover2000_mean": 85.1,
+    "recent_loss_frac": 0.0,
+    "window": 152,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 106.51225,
+    "lat0": 11.191,
+    "lon1": 106.51325,
+    "lat1": 11.192,
+    "treecover2000_mean": 80.9,
+    "recent_loss_frac": 0.0,
+    "window": 161,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.3285,
+    "lat0": 12.16575,
+    "lon1": 108.3295,
+    "lat1": 12.16675,
+    "treecover2000_mean": 97.2,
+    "recent_loss_frac": 0.0,
+    "window": 39,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.8295,
+    "lat0": 11.327,
+    "lon1": 107.8305,
+    "lat1": 11.328,
+    "treecover2000_mean": 97.0,
+    "recent_loss_frac": 0.0,
+    "window": 97,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 106.502,
+    "lat0": 11.19325,
+    "lon1": 106.503,
+    "lat1": 11.19425,
+    "treecover2000_mean": 72.7,
+    "recent_loss_frac": 0.0,
+    "window": 103,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 106.62625,
+    "lat0": 11.599,
+    "lon1": 106.62725,
+    "lat1": 11.6,
+    "treecover2000_mean": 80.8,
+    "recent_loss_frac": 0.0,
+    "window": 198,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 106.55275,
+    "lat0": 11.43175,
+    "lon1": 106.55375,
+    "lat1": 11.43275,
+    "treecover2000_mean": 74.2,
+    "recent_loss_frac": 0.0,
+    "window": 112,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 106.91875,
+    "lat0": 12.045,
+    "lon1": 106.91975,
+    "lat1": 12.046,
+    "treecover2000_mean": 88.3,
+    "recent_loss_frac": 0.0,
+    "window": 190,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 106.31475,
+    "lat0": 12.05125,
+    "lon1": 106.31575,
+    "lat1": 12.05225,
+    "treecover2000_mean": 88.6,
+    "recent_loss_frac": 0.0,
+    "window": 106,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.17275,
+    "lat0": 12.346,
+    "lon1": 108.17375,
+    "lat1": 12.347,
+    "treecover2000_mean": 71.6,
+    "recent_loss_frac": 0.0,
+    "window": 64,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 106.3795,
+    "lat0": 12.05825,
+    "lon1": 106.3805,
+    "lat1": 12.05925,
+    "treecover2000_mean": 79.3,
+    "recent_loss_frac": 0.0,
+    "window": 120,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.44325,
+    "lat0": 11.34625,
+    "lon1": 107.44425,
+    "lat1": 11.34725,
+    "treecover2000_mean": 86.7,
+    "recent_loss_frac": 0.0,
+    "window": 135,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.358,
+    "lat0": 13.97775,
+    "lon1": 107.359,
+    "lat1": 13.97875,
+    "treecover2000_mean": 86.2,
+    "recent_loss_frac": 0.0,
+    "window": 19,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 106.81,
+    "lat0": 11.41375,
+    "lon1": 106.811,
+    "lat1": 11.41475,
+    "treecover2000_mean": 90.9,
+    "recent_loss_frac": 0.0,
+    "window": 122,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.2365,
+    "lat0": 11.1005,
+    "lon1": 107.2375,
+    "lat1": 11.1015,
+    "treecover2000_mean": 77.8,
+    "recent_loss_frac": 0.0,
+    "window": 175,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 106.95125,
+    "lat0": 11.173,
+    "lon1": 106.95225,
+    "lat1": 11.174,
+    "treecover2000_mean": 95.6,
+    "recent_loss_frac": 0.0,
+    "window": 121,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.2365,
+    "lat0": 12.14,
+    "lon1": 107.2375,
+    "lat1": 12.141,
+    "treecover2000_mean": 96.3,
+    "recent_loss_frac": 0.0,
+    "window": 132,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.11775,
+    "lat0": 10.8855,
+    "lon1": 107.11875,
+    "lat1": 10.8865,
+    "treecover2000_mean": 84.1,
+    "recent_loss_frac": 0.0,
+    "window": 124,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.359,
+    "lat0": 14.906,
+    "lon1": 107.36,
+    "lat1": 14.907,
+    "treecover2000_mean": 97.9,
+    "recent_loss_frac": 0.0,
+    "window": 25,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.90875,
+    "lat0": 14.09,
+    "lon1": 107.90975,
+    "lat1": 14.091,
+    "treecover2000_mean": 90.4,
+    "recent_loss_frac": 0.0,
+    "window": 49,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.3705,
+    "lat0": 12.13675,
+    "lon1": 107.3715,
+    "lat1": 12.13775,
+    "treecover2000_mean": 94.5,
+    "recent_loss_frac": 0.0,
+    "window": 157,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.25425,
+    "lat0": 11.86175,
+    "lon1": 107.25525,
+    "lat1": 11.86275,
+    "treecover2000_mean": 97.0,
+    "recent_loss_frac": 0.0,
+    "window": 133,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.63475,
+    "lat0": 14.368,
+    "lon1": 108.63575,
+    "lat1": 14.369,
+    "treecover2000_mean": 96.8,
+    "recent_loss_frac": 0.0,
+    "window": 57,
+    "region": "Tây Nguyên"
+   }
+  ],
+  "never_forest": [
+   {
+    "lon0": 107.8245,
+    "lat0": 12.68925,
+    "lon1": 107.8255,
+    "lat1": 12.69025,
+    "treecover2000_mean": 0.0,
+    "recent_loss_frac": 0.0,
+    "window": 58,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 106.702,
+    "lat0": 11.94625,
+    "lon1": 106.703,
+    "lat1": 11.94725,
+    "treecover2000_mean": 4.9,
+    "recent_loss_frac": 0.0,
+    "window": 140,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.355,
+    "lat0": 13.97175,
+    "lon1": 107.356,
+    "lat1": 13.97275,
+    "treecover2000_mean": 4.8,
+    "recent_loss_frac": 0.0,
+    "window": 19,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.1515,
+    "lat0": 11.3145,
+    "lon1": 107.1525,
+    "lat1": 11.3155,
+    "treecover2000_mean": 0.0,
+    "recent_loss_frac": 0.0,
+    "window": 173,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.3075,
+    "lat0": 11.5645,
+    "lon1": 107.3085,
+    "lat1": 11.5655,
+    "treecover2000_mean": 0.0,
+    "recent_loss_frac": 0.0,
+    "window": 159,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.352,
+    "lat0": 13.56125,
+    "lon1": 108.353,
+    "lat1": 13.56225,
+    "treecover2000_mean": 0.0,
+    "recent_loss_frac": 0.0,
+    "window": 48,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.15175,
+    "lat0": 12.08325,
+    "lon1": 107.15275,
+    "lat1": 12.08425,
+    "treecover2000_mean": 2.9,
+    "recent_loss_frac": 0.0,
+    "window": 195,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.23975,
+    "lat0": 13.13625,
+    "lon1": 107.24075,
+    "lat1": 13.13725,
+    "treecover2000_mean": 6.4,
+    "recent_loss_frac": 0.0,
+    "window": 22,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 106.4825,
+    "lat0": 12.15325,
+    "lon1": 106.4835,
+    "lat1": 12.15425,
+    "treecover2000_mean": 0.0,
+    "recent_loss_frac": 0.0,
+    "window": 134,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.49275,
+    "lat0": 11.79675,
+    "lon1": 107.49375,
+    "lat1": 11.79775,
+    "treecover2000_mean": 7.2,
+    "recent_loss_frac": 0.0,
+    "window": 119,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.3065,
+    "lat0": 10.89775,
+    "lon1": 107.3075,
+    "lat1": 10.89875,
+    "treecover2000_mean": 7.1,
+    "recent_loss_frac": 0.0,
+    "window": 101,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.0005,
+    "lat0": 14.57475,
+    "lon1": 108.0015,
+    "lat1": 14.57575,
+    "treecover2000_mean": 0.1,
+    "recent_loss_frac": 0.0,
+    "window": 6,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.199,
+    "lat0": 11.6045,
+    "lon1": 107.2,
+    "lat1": 11.6055,
+    "treecover2000_mean": 0.0,
+    "recent_loss_frac": 0.0,
+    "window": 139,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 106.2775,
+    "lat0": 11.932,
+    "lon1": 106.2785,
+    "lat1": 11.933,
+    "treecover2000_mean": 0.0,
+    "recent_loss_frac": 0.0,
+    "window": 152,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.2905,
+    "lat0": 12.15475,
+    "lon1": 108.2915,
+    "lat1": 12.15575,
+    "treecover2000_mean": 8.8,
+    "recent_loss_frac": 0.0,
+    "window": 39,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.2365,
+    "lat0": 10.8145,
+    "lon1": 107.2375,
+    "lat1": 10.8155,
+    "treecover2000_mean": 3.0,
+    "recent_loss_frac": 0.0,
+    "window": 131,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.30525,
+    "lat0": 11.09025,
+    "lon1": 107.30625,
+    "lat1": 11.09125,
+    "treecover2000_mean": 0.0,
+    "recent_loss_frac": 0.0,
+    "window": 145,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.2865,
+    "lat0": 11.5275,
+    "lon1": 107.2875,
+    "lat1": 11.5285,
+    "treecover2000_mean": 0.0,
+    "recent_loss_frac": 0.0,
+    "window": 111,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.67225,
+    "lat0": 13.19775,
+    "lon1": 107.67325,
+    "lat1": 13.19875,
+    "treecover2000_mean": 0.0,
+    "recent_loss_frac": 0.0,
+    "window": 51,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 108.464,
+    "lat0": 12.01375,
+    "lon1": 108.465,
+    "lat1": 12.01475,
+    "treecover2000_mean": 1.7,
+    "recent_loss_frac": 0.0,
+    "window": 69,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.6605,
+    "lat0": 11.3505,
+    "lon1": 107.6615,
+    "lat1": 11.3515,
+    "treecover2000_mean": 3.1,
+    "recent_loss_frac": 0.0,
+    "window": 76,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.407,
+    "lat0": 13.7455,
+    "lon1": 107.408,
+    "lat1": 13.7465,
+    "treecover2000_mean": 9.1,
+    "recent_loss_frac": 0.0,
+    "window": 50,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 108.89975,
+    "lat0": 14.69675,
+    "lon1": 108.90075,
+    "lat1": 14.69775,
+    "treecover2000_mean": 5.7,
+    "recent_loss_frac": 0.0,
+    "window": 18,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 108.039,
+    "lat0": 12.3395,
+    "lon1": 108.04,
+    "lat1": 12.3405,
+    "treecover2000_mean": 0.0,
+    "recent_loss_frac": 0.0,
+    "window": 60,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 108.84575,
+    "lat0": 11.61625,
+    "lon1": 108.84675,
+    "lat1": 11.61725,
+    "treecover2000_mean": 0.0,
+    "recent_loss_frac": 0.0,
+    "window": 86,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.0595,
+    "lat0": 12.00475,
+    "lon1": 107.0605,
+    "lat1": 12.00575,
+    "treecover2000_mean": 5.5,
+    "recent_loss_frac": 0.0,
+    "window": 193,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.9295,
+    "lat0": 14.80625,
+    "lon1": 108.9305,
+    "lat1": 14.80725,
+    "treecover2000_mean": 0.0,
+    "recent_loss_frac": 0.0,
+    "window": 83,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 108.04325,
+    "lat0": 13.32675,
+    "lon1": 108.04425,
+    "lat1": 13.32775,
+    "treecover2000_mean": 5.3,
+    "recent_loss_frac": 0.0,
+    "window": 21,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 107.95,
+    "lat0": 13.27325,
+    "lon1": 107.951,
+    "lat1": 13.27425,
+    "treecover2000_mean": 8.6,
+    "recent_loss_frac": 0.0,
+    "window": 63,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 106.4645,
+    "lat0": 11.6165,
+    "lon1": 106.4655,
+    "lat1": 11.6175,
+    "treecover2000_mean": 4.2,
+    "recent_loss_frac": 0.0,
+    "window": 123,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.95275,
+    "lat0": 11.81325,
+    "lon1": 107.95375,
+    "lat1": 11.81425,
+    "treecover2000_mean": 1.8,
+    "recent_loss_frac": 0.0,
+    "window": 56,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 106.796,
+    "lat0": 11.40775,
+    "lon1": 106.797,
+    "lat1": 11.40875,
+    "treecover2000_mean": 5.6,
+    "recent_loss_frac": 0.0,
+    "window": 122,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 107.2185,
+    "lat0": 11.7145,
+    "lon1": 107.2195,
+    "lat1": 11.7155,
+    "treecover2000_mean": 0.5,
+    "recent_loss_frac": 0.0,
+    "window": 155,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 106.4375,
+    "lat0": 11.01775,
+    "lon1": 106.4385,
+    "lat1": 11.01875,
+    "treecover2000_mean": 0.0,
+    "recent_loss_frac": 0.0,
+    "window": 166,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 106.3675,
+    "lat0": 12.06425,
+    "lon1": 106.3685,
+    "lat1": 12.06525,
+    "treecover2000_mean": 0.0,
+    "recent_loss_frac": 0.0,
+    "window": 120,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 106.48,
+    "lat0": 11.81725,
+    "lon1": 106.481,
+    "lat1": 11.81825,
+    "treecover2000_mean": 0.0,
+    "recent_loss_frac": 0.0,
+    "window": 105,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 106.523,
+    "lat0": 11.19625,
+    "lon1": 106.524,
+    "lat1": 11.19725,
+    "treecover2000_mean": 0.2,
+    "recent_loss_frac": 0.0,
+    "window": 103,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 106.50925,
+    "lat0": 11.172,
+    "lon1": 106.51025,
+    "lat1": 11.173,
+    "treecover2000_mean": 0.0,
+    "recent_loss_frac": 0.0,
+    "window": 161,
+    "region": "Đông Nam Bộ"
+   },
+   {
+    "lon0": 108.70375,
+    "lat0": 13.1385,
+    "lon1": 108.70475,
+    "lat1": 13.1395,
+    "treecover2000_mean": 0.0,
+    "recent_loss_frac": 0.0,
+    "window": 98,
+    "region": "Tây Nguyên"
+   },
+   {
+    "lon0": 106.81025,
+    "lat0": 11.6025,
+    "lon1": 106.81125,
+    "lat1": 11.6035,
+    "treecover2000_mean": 0.8,
+    "recent_loss_frac": 0.0,
+    "window": 158,
+    "region": "Đông Nam Bộ"
+   }
+  ]
+ }
+}

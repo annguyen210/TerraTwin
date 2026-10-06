@@ -309,6 +309,23 @@ def method(lang: str = "vi") -> dict:
             protocol = json.load(f)
     except (OSError, ValueError):
         pass
+    # Mọi lần kiểm định, kể cả lần trượt — để không ai chỉ thấy lần đẹp nhất.
+    history = []
+    if validation:
+        history.append({"rule_version": validation["rule_version"], "sample": "v1", "n": validation["n"],
+                        "metrics": validation["metrics"], "passed": validation["passed"],
+                        "decision": None, "post_hoc_diagnosis": None})
+    try:
+        with open(os.path.join(base, "eudr_validation_v2.json"), encoding="utf-8") as f:
+            v2 = json.load(f)
+        history.append({"rule_version": v2.get("rule_version"), "sample": "v2", "n": v2.get("n"),
+                        "run_at": v2.get("run_at"), "metrics": v2.get("metrics"),
+                        "metrics_v1_same_sample": v2.get("metrics_v1_same_sample"),
+                        "pass_thresholds": v2.get("pass_thresholds"), "passed": v2.get("passed"),
+                        "by_region": v2.get("by_region"), "decision": v2.get("decision"),
+                        "post_hoc_diagnosis": v2.get("post_hoc_diagnosis")})
+    except (OSError, ValueError):
+        pass
     return {"rule_version": eudr_forest.METHOD_VERSION, "cutoff": eudr_forest.CUTOFF.isoformat(),
             "thresholds": eudr_forest.THRESHOLDS, "sources": eudr_forest.sources(),
             "levels": {k: eudr_forest.label(k) for k in eudr_forest.LEVELS},
@@ -316,7 +333,7 @@ def method(lang: str = "vi") -> dict:
                          "default_point_ha": eudr_geo.EU_DEFAULT_POINT_HA,
                          "max_file_mb": eudr_geo.EU_MAX_FILE_BYTES // (1024 * 1024)},
             "max_screen_per_set": eudr.max_screen(),
-            "validation": validation, "validation_protocol": protocol}
+            "validation": validation, "validation_protocol": protocol, "validation_history": history}
 
 
 # ------------------------------------------------------------------ lô thửa (cần đăng nhập)

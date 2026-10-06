@@ -450,3 +450,19 @@ def test_quy_tac_v2_rung_that_van_bi_co_va_khong_bao_gio_xau_hon_v1():
 def test_production_van_dung_quy_tac_v1_cho_toi_khi_v2_dat_kiem_dinh():
     from app.services import eudr_forest as ef
     assert ef.ACTIVE_RULE == 1 and ef.METHOD_VERSION == "terratwin.eudr-screen/1"
+
+
+def test_v2_truot_duoc_cong_bo_va_production_khong_bat_v2(env):
+    """Kết quả v2 (mẫu mới seed 20261006) đã có và TRƯỢT → phải hiện công khai trong lịch sử
+    kiểm định, kèm quyết định và chẩn đoán; quy tắc đang chạy vẫn là v1. Nếu một ngày kết quả
+    đổi thành đạt mà quên bật, hoặc bật v2 khi kết quả trượt, test này đỏ."""
+    from app.services import eudr_forest as ef
+    m = env.get("/api/eudr/method").json()
+    hist = {h["sample"]: h for h in m["validation_history"]}
+    assert set(hist) == {"v1", "v2"} and hist["v1"]["passed"] is False
+    v2 = hist["v2"]
+    assert v2["rule_version"] == "terratwin.eudr-screen/2" and v2["n"] == 120
+    assert v2["passed"] is False and "KHÔNG bật" in v2["decision"]
+    assert v2["metrics"]["M3_pass_clean"] < v2["pass_thresholds"]["M3_pass_clean"]
+    assert "không thay đổi kết luận" in v2["post_hoc_diagnosis"]["label"]
+    assert (ef.ACTIVE_RULE == 2) == bool(v2["passed"])

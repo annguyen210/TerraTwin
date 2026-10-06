@@ -527,6 +527,35 @@ function Method({ lang }: { lang: string }) {
               `${g}: ${c.low} ${t("đạt", "low")} / ${c.review} ${t("xem lại", "review")} / ${c.high} ${t("rủi ro", "high")} / ${c.unknown} ${t("thiếu", "unknown")}`).join(" · ")}</p>
           </>
         )}
+        {m.validation_history && m.validation_history.length > 1 && (
+          <>
+            <h3>{t("Mọi lần kiểm định, kể cả lần trượt", "Every validation run, failures included")}</h3>
+            <div className="bat-table-wrap">
+              <table className="bat-table">
+                <thead><tr><th>{t("Quy tắc · mẫu", "Rule · sample")}</th><th>M1</th><th>M2</th><th>M3</th><th>{t("Kết quả", "Result")}</th></tr></thead>
+                <tbody>
+                  {m.validation_history.map((h) => (
+                    <tr key={h.sample + h.rule_version}>
+                      <td><code>{h.rule_version.replace("terratwin.eudr-screen/", "v")}</code> · {t("mẫu", "sample")} {h.sample} ({h.n})
+                        {h.metrics_v1_same_sample && <small>{t("v1 trên cùng mẫu", "v1 on the same sample")}: {
+                          ["M1_detect_lost", "M2_flag_forest", "M3_pass_clean"].map((k) => h.metrics_v1_same_sample?.[k] ?? "—").join(" / ")}</small>}</td>
+                      {["M1_detect_lost", "M2_flag_forest", "M3_pass_clean"].map((k) => (
+                        <td key={k} className="num">{h.metrics[k] != null ? `${Math.round((h.metrics[k] as number) * 100)}%` : "—"}</td>
+                      ))}
+                      <td><span className={`eu-badge ${h.passed ? "eu-low" : "eu-high"}`}>{h.passed ? t("Đạt", "Passed") : t("Trượt — không bật", "Failed — not enabled")}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {m.validation_history.filter((h) => h.post_hoc_diagnosis).map((h) => (
+              <div key={"d" + h.sample} className="doc-note">
+                <p><b>{h.post_hoc_diagnosis!.label}</b> ({t("mẫu", "sample")} {h.sample}). {h.post_hoc_diagnosis!.finding}</p>
+                <p>{t("Bước tiếp theo", "Next step")}: {h.post_hoc_diagnosis!.next_step}</p>
+              </div>
+            ))}
+          </>
+        )}
       </section>
       <section className="bat-card">
         <h2>{t("Mô hình AI “Rừng hay vườn cây?” (học yếu giám sát)", "AI model “Forest or tree crop?” (weak supervision)")}</h2>

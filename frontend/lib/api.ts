@@ -2328,6 +2328,14 @@ export type EudrMethod = {
                 counts: Record<string, Record<EudrLevel, number>> } | null;
   validation_protocol: { registered: string; reference: string; sets: Record<string, { criteria: string; expected: string }>;
                          pass_thresholds: Record<string, number>; per_set: number; region: { note: string } } | null;
+  validation_history?: {
+    rule_version: string; sample: string; n: number; run_at?: string; passed: boolean;
+    metrics: Record<string, number | null>; metrics_v1_same_sample?: Record<string, number | null>;
+    pass_thresholds?: Record<string, number>; decision: string | null;
+    by_region?: Record<string, Record<string, { n: number; ok_v2: number }>>;
+    post_hoc_diagnosis: { label: string; finding: string; next_step: string;
+                          never_forest_not_low: number; of_which_all_3_maps_ge_50pct_2020: number } | null;
+  }[];
 };
 export type EudrPlotInput = { geometry: GeoGeometry; ref?: string; producer?: string; area_ha?: number | null;
                               gps_accuracy_m?: number | null };
