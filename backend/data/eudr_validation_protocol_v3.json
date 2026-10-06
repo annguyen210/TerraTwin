@@ -1,0 +1,99 @@
+{
+ "title": "Kiểm định sàng lọc EUDR v3 trên NHÃN NGƯỜI GIẢI ĐOÁN ẢNH NĂM 2020",
+ "registered": "2026-10-06",
+ "why": "v2 trượt (M3 0,60 < 0,70) và chẩn đoán cho thấy thước đo Hansen theo năm 2000 lệch mốc EUDR 31/12/2020: 12/16 ô sai là cây mọc/trồng sau 2000. Lần này sự thật là nhãn của người.",
+ "rules": {
+  "primary": "terratwin.eudr-screen/3",
+  "secondary": "terratwin.eudr-screen/2",
+  "baseline": "terratwin.eudr-screen/1 (đang chạy production — chỉ để so sánh)",
+  "v3_change": "Như v2, thêm MỘT nhánh: thửa KHÔNG có dấu hiệu mất cây mà ≥2 bản đồ thấy ≥50% tán cây năm 2020 → hỏi mô hình 'rừng hay vườn cây' (nhịp sinh trưởng 12 tháng Sentinel-2, đã đạt kiểm định riêng 4/10/2026); xác suất rừng ≤ 0,2 → ĐẠT, ngược lại → CẦN XEM LẠI như v2. Không có mô hình → CẦN XEM LẠI (thận trọng). v3 không bao giờ nặng hơn v2 (có test).",
+  "foc_threshold": "0,2 chọn trên tập KIỂM ĐỊNH (614 mẫu) của mô hình rừng-hay-vườn: 4,6% rừng bị gọi là vườn, nhận ra 72,7% vườn. Không nhìn mẫu v3 khi chọn."
+ },
+ "development_sets": "Mẫu v1 (seed 20261003), mẫu v2 (seed 20261006), tập kiểm định của mô hình rừng-hay-vườn. Không dùng để kết luận.",
+ "region": {
+  "boxes": [
+   {
+    "name": "Tây Nguyên",
+    "lat": [
+     11.3,
+     15.0
+    ],
+    "lon": [
+     107.2,
+     109.0
+    ],
+    "commodity": "cà phê"
+   },
+   {
+    "name": "Đông Nam Bộ",
+    "lat": [
+     10.8,
+     12.2
+    ],
+    "lon": [
+     106.2,
+     107.6
+    ],
+    "commodity": "cao su"
+   }
+  ]
+ },
+ "seed": 20261007,
+ "windows": 240,
+ "window_px": 160,
+ "per_stratum": 60,
+ "exclude_km_from_previous": 1.0,
+ "plot": "ô vuông 4×4 điểm ảnh Hansen (~111 m × 109 m ≈ 1,2 ha), đúng ranh điểm ảnh",
+ "strata": {
+  "_note": "Tầng CHỈ để lấy đủ ca khó (Hansen GFC v1.12). Sự thật là nhãn người; tầng không bao giờ hiện cho người gán.",
+  "S_loss": "≥50% điểm ảnh lossyear 21–24 VÀ treecover2000 TB ≥30%",
+  "S_old_trees": "không mất cây 2001–2024 VÀ treecover2000 TB ≥70%",
+  "S_new_trees": "không mất cây VÀ treecover2000 TB <10% VÀ ≥25% điểm ảnh có 'gain' 2000–2012",
+  "S_open": "không mất cây VÀ treecover2000 TB <10% VÀ không điểm ảnh nào có 'gain'"
+ },
+ "labeling": {
+  "imagery": [
+   "Esri World Imagery Wayback bản 16/12/2020 (ảnh ≤0,5 m; hiện NGÀY CHỤP thật của từng ảnh)",
+   "Esri World Imagery Wayback bản 05/08/2026",
+   "Sentinel-2 L2A mùa khô (1–4) năm 2020",
+   "Sentinel-2 L2A mùa khô (1–4) năm 2026"
+  ],
+  "question_cover": "Ngày 31/12/2020, phần lớn ô (khung đỏ) là gì?",
+  "classes": {
+   "natural_forest": "Rừng tự nhiên",
+   "planted_forest": "Rừng trồng lấy gỗ (keo, bạch đàn, thông…)",
+   "tree_crop": "Cây trồng lâu năm: cà phê, cao su, điều, tiêu, cây ăn quả, nông lâm kết hợp",
+   "no_trees": "Không có tán cây: lúa, hoa màu, cỏ, đất trống, nhà, mặt nước",
+   "unclear": "Không xác định được (ảnh mờ, mây, ảnh quá cũ)"
+  },
+  "eudr_forest": [
+   "natural_forest",
+   "planted_forest"
+  ],
+  "not_forest": [
+   "no_trees",
+   "tree_crop"
+  ],
+  "question_loss": "Sau 31/12/2020, ô có mất tán cây không (chặt, đốt, chuyển đổi — từ khoảng 1/4 ô trở lên)?",
+  "labelers": "≥2 người ĐỘC LẬP, đã đọc hướng dẫn; không xem nhãn người khác, không xem kết quả bản đồ, mô hình hay Hansen; không mở tệp mẫu.",
+  "agreement": "Ô vào bộ chấm khi có ≥2 nhãn, không ai chọn 'không xác định', mọi người cùng rừng/không rừng; với ô rừng thì cùng mất/không mất (không ai 'không rõ'). Công bố Cohen's kappa."
+ },
+ "truth_sets": {
+  "T_lost": "rừng năm 2020 VÀ mất tán cây sau mốc",
+  "T_forest": "rừng năm 2020 VÀ không mất",
+  "T_clean": "không phải rừng năm 2020 (cây trồng lâu năm hoặc không có cây), bất kể sau đó"
+ },
+ "metrics": {
+  "M1_detect_lost": "tỉ lệ ô T_lost được gắn review/high",
+  "M2_flag_forest": "tỉ lệ ô T_forest được gắn review/high",
+  "M3_pass_clean": "tỉ lệ ô T_clean được gắn low"
+ },
+ "pass_thresholds": {
+  "M1_detect_lost": 0.8,
+  "M2_flag_forest": 0.8,
+  "M3_pass_clean": 0.7
+ },
+ "min_n_per_set": 25,
+ "unknown_policy": "'unknown' (thiếu dữ liệu) tính là SAI cho mọi nhóm",
+ "decision": "v3 đạt cả ba ngưỡng, mỗi nhóm ≥25 ô → bật v3. v3 trượt mà v2 đạt → bật v2. Cả hai trượt → giữ v1, công bố. Nhóm nào <25 ô → CHƯA KẾT LUẬN; gán thêm theo đúng thứ tự mẫu, không chọn ô. Chấm MỘT lần sau khi khoá nhãn; không chỉnh quy tắc rồi chấm lại trên mẫu này."
+}

@@ -56,8 +56,12 @@ function Views({ v }: { v: LabelView }) {
         `taken ${w.acquired}${w.resolution_m ? ` · ${w.resolution_m} m` : ""}${w.source ? ` · ${w.source}` : ""}`)
     : t("chưa rõ ngày chụp", "capture date unknown");
   const old = wb.before.acquired && wb.before.acquired < "2018-01-01";
+  const staleAfter = wb.after.acquired && wb.after.acquired <= "2020-12-31";
   return (
     <>
+      {staleAfter && <p className="doc-note">{t(
+        `Ảnh chi tiết "gần đây" thực ra chụp ${wb.after.acquired} — TRƯỚC mốc, nên không dùng để xét mất cây. Hãy so hai ảnh Sentinel-2 (2020 và 2026).`,
+        `The "recent" detailed image was actually taken ${wb.after.acquired} — BEFORE the cutoff, so don't use it for loss. Compare the two Sentinel-2 images (2020 vs 2026).`)}</p>}
       {old && <p className="doc-note">{t(
         `Ảnh chi tiết "trước mốc" chụp từ ${wb.before.acquired} — có thể đã cũ so với 31/12/2020. Đối chiếu ảnh Sentinel-2 năm 2020; vẫn không chắc thì chọn "Không xác định được".`,
         `The detailed "before" image was taken ${wb.before.acquired} — possibly outdated for 31/12/2020. Check the 2020 Sentinel-2 image; if still unsure pick "Cannot tell".`)}</p>}
