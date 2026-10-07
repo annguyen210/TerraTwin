@@ -14,6 +14,20 @@ không phá rừng sau 31/12/2020. Đây là nhu cầu BẮT BUỘC có hạn ch
 | 3. Hồ sơ ký số thuộc về nông hộ | Ed25519 + QR + sổ móc xích công khai; chỉ số ĐO và số TÍNH LẠI ĐƯỢC, không dự báo; lô thửa chạy nền cho doanh nghiệp, HTX (CSV, GeoJSON thửa đạt, hồ sơ từng vườn) | `services/eudr.py`, `routes_eudr.py` |
 | 4. Kiểm định độc lập, ngưỡng đặt trước | đối chiếu Hansen GFC v1.12 trên 120 thửa Tây Nguyên; giao thức + mẫu commit TRƯỚC khi chạy (3332597); kết quả công bố kể cả khi không đạt | `app/eudr_validate.py`, `data/eudr_validation*.json` |
 
+**Kết quả kiểm định — công bố cả lần trượt** (chi tiết: tab *Phương pháp & kiểm định* trên `/eudr`, `GET /api/eudr/method`):
+
+| Hạng mục | Ngưỡng đặt trước | Kết quả | Trạng thái |
+|---|---|---|---|
+| Sàng lọc v1 (đang chạy) — bắt rừng mất / giữ rừng / cho qua đất sạch | 0,80 / 0,80 / 0,70 | 0,925 / 0,925 / **0,525** | trượt M3 |
+| Sàng lọc v2, 120 ô MỚI (Tây Nguyên + Đông Nam Bộ) | như trên | 0,975 / 0,90 / **0,60** | trượt → không bật; 12/16 ô sai là cây mọc/trồng sau 2000 mà thước đo Hansen 2000 không biết |
+| Mô hình "rừng hay vườn cây" (logreg/MLP/1D-CNN, 507 mẫu giữ lại) | BA 0,85, bắt rừng 0,90 | 0,892 / 0,909 | **đạt, đã bật** (tham khảo, không vào hồ sơ ký) |
+| "Chạm là có ranh" (77 ranh OSM) | IoU 0,60 | 0,38 | trượt, không bật |
+| U-Net lớp phủ đất (2 lần) | mIoU 0,35 | 0,232 → 0,314 | trượt, không bật |
+| **Sàng lọc v3** (v2 + mô hình rừng/vườn cho ca tán dày) | như v1, mỗi nhóm ≥25 ô | **đang gán nhãn** | 240 ô mới (seed 20261007), sự thật = 2 người giải đoán ảnh 2020 độc lập ở `/gan-nhan`; giao thức + mẫu commit trước nhãn (0fdd138) |
+
+**Thí điểm với hợp tác xã:** `/thi-diem` — thư mời HTX, tờ hướng dẫn nông hộ, tờ cán bộ, phiếu góp ý (in A4) + phiếu
+trực tuyến (`POST /api/pilot/feedback`, không lưu IP, liên hệ chỉ khi đồng ý); tổng hợp + CSV ở `/admin`.
+
 Đây là **sàng lọc**, không phải chứng nhận tuân thủ EUDR; TerraTwin không xác nhận quyền sử dụng
 đất. Quy tắc tin cậy cho cả phần mềm: mỗi con số mang nhãn **Đo / Tính lại được / Dự đoán** — chỉ
 hai loại đầu được đưa vào hồ sơ ký số dùng cho mua bán, vay vốn. 18 công cụ theo dõi bên dưới vẫn
