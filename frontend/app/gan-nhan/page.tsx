@@ -174,7 +174,7 @@ export default function LabelPage() {
             <h1>{t("Gán nhãn: ngày 31/12/2020, ô này là gì?", "Label: what was this plot on 31/12/2020?")}</h1>
           </div>
           {me?.can_label && <div className="gn-progress" aria-label={t("Tiến độ", "Progress")}>
-            <b>{me.done}</b>/{me.n_cells}
+            <span><b>{me.done}</b> / {me.n_cells} {t("ô", "plots")}</span>
             <span className="gn-bar"><i style={{ width: `${me.n_cells ? (me.done / me.n_cells) * 100 : 0}%` }} /></span>
           </div>}
         </header>
