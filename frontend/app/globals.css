@@ -4819,6 +4819,7 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
   .pk-wrap { max-width: none; padding: 0 !important; margin: 0 !important; }
   .pk-sheet { border: 0; box-shadow: none; border-radius: 0; padding: 0; margin: 0; break-after: page; }
   .pk-sheet:last-of-type { break-after: auto; }
+  .pk-wrap[data-print="invite"] .pk-sheet:not(.pk-invite),
   .pk-wrap[data-print="farmer"] .pk-sheet:not(.pk-farmer),
   .pk-wrap[data-print="staff"] .pk-sheet:not(.pk-staff),
   .pk-wrap[data-print="form"] .pk-sheet:not(.pk-form) { display: none !important; }

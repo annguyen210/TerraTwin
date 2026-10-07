@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import { getToken, sendPilotFeedback, type PilotFeedbackIn } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
-type Sheet = "all" | "farmer" | "staff" | "form";
+type Sheet = "all" | "invite" | "farmer" | "staff" | "form";
 
 const SITE = "terratwin-web.onrender.com";
 
@@ -34,10 +34,11 @@ export default function PilotKitPage() {
         <div className="pk-noprint">
           <h1>{t("Bộ thí điểm cho hợp tác xã", "Pilot kit for co-operatives")}</h1>
           <p className="doc-lede">{t(
-            "Ba tờ in khổ A4 cho một buổi tập huấn: tờ cho nông hộ, tờ cho cán bộ HTX và đơn vị xuất khẩu, phiếu góp ý giấy. Phiếu góp ý trực tuyến ở cuối trang.",
-            "Three A4 sheets for one training session: a farmer sheet, a sheet for co-op staff and exporters, and a paper feedback form. The online feedback form is at the bottom.")}</p>
+            "Bốn tờ in khổ A4: thư mời hợp tác xã tham gia thí điểm, tờ cho nông hộ, tờ cho cán bộ HTX và đơn vị xuất khẩu, phiếu góp ý giấy. Phiếu góp ý trực tuyến ở cuối trang.",
+            "Four A4 sheets: an invitation letter for co-operatives, a farmer sheet, a sheet for co-op staff and exporters, and a paper feedback form. The online feedback form is at the bottom.")}</p>
           <div className="pk-actions">
-            <button className="doc-btn" onClick={() => print("farmer")}>{t("In tờ nông hộ", "Print farmer sheet")}</button>
+            <button className="doc-btn" onClick={() => print("invite")}>{t("In thư mời HTX", "Print co-op invitation")}</button>
+            <button className="doc-btn pk-btn2" onClick={() => print("farmer")}>{t("In tờ nông hộ", "Print farmer sheet")}</button>
             <button className="doc-btn pk-btn2" onClick={() => print("staff")}>{t("In tờ cán bộ", "Print staff sheet")}</button>
             <button className="doc-btn pk-btn2" onClick={() => print("form")}>{t("In phiếu góp ý", "Print feedback form")}</button>
             <button className="doc-btn pk-btn2" onClick={() => print("all")}>{t("In cả bộ", "Print all")}</button>
@@ -47,6 +48,7 @@ export default function PilotKitPage() {
             "Sheets are in Vietnamese for local sessions. When printing, choose A4 and turn off \"headers and footers\".")}</p>
         </div>
 
+        <InviteSheet />
         <FarmerSheet />
         <StaffSheet />
         <PaperForm />
@@ -68,6 +70,45 @@ export default function PilotKitPage() {
 
 function Box({ n }: { n?: number }) {
   return <span className="pk-box" aria-hidden="true">{n ?? ""}</span>;
+}
+
+function InviteSheet() {
+  return (
+    <section className="pk-sheet pk-invite" lang="vi">
+      <p className="pk-kicker">TerraTwin · Thư mời tham gia thí điểm</p>
+      <h2>Kính gửi Ban quản trị hợp tác xã,</h2>
+      <p className="pk-lead">Từ 30/12/2026, cà phê, cao su bán vào Liên minh châu Âu phải kèm toạ độ từng vườn và bằng chứng
+        không phá rừng sau 31/12/2020 (Quy định EU 2023/1115 — EUDR). Đại lý và doanh nghiệp xuất khẩu đang bắt đầu đòi
+        hồ sơ này từ nông hộ. TerraTwin là công cụ giúp hợp tác xã làm hồ sơ đó cho thành viên, <b>miễn phí cho nông hộ</b>.</p>
+      <p className="pk-sub">Hợp tác xã nhận được</p>
+      <ul className="pk-list">
+        <li>Hồ sơ vườn ký số cho từng hộ: ranh đúng chuẩn EU, kết quả sàng lọc phá rừng từ ba bản đồ vệ tinh, mã QR để đưa đại lý.</li>
+        <li>Người mua tự kiểm được hồ sơ (chữ ký số, sổ minh bạch công khai) — không phải tin lời khai.</li>
+        <li>Ghép lô hàng có cân bằng khối lượng, tệp GeoJSON và nháp tờ khai DDS cho đơn vị xuất khẩu.</li>
+        <li>Theo dõi vườn hằng tuần sau khi làm hồ sơ, báo ngay khi có thay đổi.</li>
+      </ul>
+      <p className="pk-sub">Chúng tôi đề nghị</p>
+      <ul className="pk-list">
+        <li>Một buổi tập huấn 2–3 giờ tại hợp tác xã, khoảng 30 hộ mang điện thoại có định vị.</li>
+        <li>Cán bộ HTX hỗ trợ hộ đi ranh vườn và xem lại các vườn "Cần xem lại".</li>
+        <li>Mỗi người điền một phiếu góp ý 5 phút. Chúng tôi đo: mất bao nhiêu phút một hồ sơ, bước nào khó, có dùng tiếp không.</li>
+      </ul>
+      <p className="pk-sub">Cam kết về dữ liệu</p>
+      <ul className="pk-list">
+        <li>Tên chủ hộ không hiện công khai trên hồ sơ hay mã QR. Không bán, không chia sẻ dữ liệu cá nhân.</li>
+        <li>Sàng lọc là bằng chứng hỗ trợ, không phải giấy chứng nhận và không thay giấy tờ đất.</li>
+        <li>Mọi tính năng miễn phí trong thời gian thử nghiệm; nông hộ luôn miễn phí.</li>
+      </ul>
+      <div className="pk-note">
+        <p><b>Liên hệ:</b> vào <b>{SITE}/thi-diem</b>, gửi phiếu góp ý trực tuyến, ghi số điện thoại và đánh dấu
+          đồng ý liên hệ — chúng tôi gọi lại để hẹn lịch. Xem thử công cụ tại <b>{SITE}/eudr</b>.</p>
+      </div>
+      <div className="pk-fill">
+        <p>Hợp tác xã: <span className="pk-line" /> Người liên hệ: <span className="pk-line pk-short" /></p>
+        <p>Số hộ dự kiến: <span className="pk-line pk-short" /> Ngày đề xuất tập huấn: <span className="pk-line pk-short" /></p>
+      </div>
+    </section>
+  );
 }
 
 function FarmerSheet() {
