@@ -4777,7 +4777,10 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .pk-btn2 { background: var(--panel); color: var(--text); border: 1px solid var(--line-2); box-shadow: none; }
 .pk-sheet { background: #fff; color: #111; border-radius: 10px; border: 1px solid var(--line); padding: 34px 38px;
   margin: 22px 0; box-shadow: var(--shadow); font-size: 15px; line-height: 1.5; }
-.pk-sheet * { color: #111; opacity: 1; }
+/* !important có chủ đích: .doc-body p/h2/li (đặc hiệu cao hơn) tô màu chữ sáng của giao diện tối →
+   chữ gần như vô hình trên nền giấy trắng, và IN RA cũng nhạt (phát hiện bằng audit 7/10/2026). */
+.pk-sheet, .pk-sheet * { color: #111 !important; opacity: 1 !important; }
+.pk-sheet .pk-kicker { color: #1e6b47 !important; }
 .pk-sheet h2 { font-size: 24px; line-height: 1.25; margin: 4px 0 10px; font-weight: 800; letter-spacing: -.01em; }
 .pk-kicker { font-size: 12px !important; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #1e6b47 !important; margin: 0 !important; }
 .pk-lead { font-size: 16px !important; margin: 0 0 14px !important; }
@@ -4812,7 +4815,13 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .pk-consent { align-items: flex-start !important; line-height: 1.45; }
 .pk-consent input { margin-top: 4px; }
 .pk-formgrid button:disabled { opacity: .6; cursor: not-allowed; }
-@media (max-width: 600px) { .pk-sheet { padding: 22px 18px; } .pk-line { min-width: 140px; } }
+@media (max-width: 600px) {
+  .pk-sheet { padding: 22px 16px; overflow-x: auto; }
+  .pk-line { min-width: 110px; }
+  .pk-line.pk-short { min-width: 56px; }
+  .pk-table td { padding: 6px; font-size: 13px; }
+  .pk-scale { gap: 8px; }
+}
 @media print {
   @page { size: A4; margin: 14mm; }
   .pk-noprint { display: none !important; }
