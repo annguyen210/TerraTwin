@@ -62,6 +62,12 @@ _RADAR_RETRY_INTERVAL_MIN = float(os.environ.get("TERRATWIN_RADAR_RETRY_INTERVAL
 
 # Hâm nóng cache ngay sau khi dựng lại tiến trình. "0" = tắt; mặc định bật.
 _STARTUP_WARMUP = os.environ.get("TERRATWIN_STARTUP_WARMUP", "1").strip() != "0"
+# Render free NGỦ sau 15 phút không ai gọi và DẬY lại nhiều lần mỗi ngày (cron, khách). Mỗi lần
+# dậy mà hâm nóng đủ 8 điểm là ~60 lượt gọi Open-Meteo dồn một lúc — từ một IP dùng chung với
+# khách Render khác — và chính nó làm /api/health báo "bị chặn hạn mức" khi CHƯA có người dùng.
+# Hiệu chuẩn nằm trong cache BỀN (CSDL) nên sau khi dậy một lượt quét vẫn chỉ ~4 s: hâm nóng
+# nhiều nhất mỗi N giờ là đủ (ghi mốc vào kv_cache — sống qua lần khởi động lại).
+_WARMUP_EVERY_H = float(os.environ.get("TERRATWIN_WARMUP_EVERY_H", "6"))
 
 # Đ10 — nhịp thăm dò hàng đợi việc dài BỀN (bảng jobs, xem services/jobs_db.py).
 # 0 = tắt (test đặt biến này về 0 — không muốn một luồng nền tự chạy khi test
@@ -221,7 +227,15 @@ async def _startup_warmup() -> None:
     """
     import asyncio
 
+    from app.services import cache_store
     from app.warm import DEMO, warm_one
+
+    if _WARMUP_EVERY_H > 0:
+        mark = "warmup:last-run"
+        if await asyncio.to_thread(cache_store.get, mark) is not None:
+            log(f"[TerraTwin] Bỏ hâm nóng: đã hâm trong {_WARMUP_EVERY_H:g} giờ qua (tránh dội Open-Meteo mỗi lần Render dậy).")
+            return
+        await asyncio.to_thread(cache_store.put, mark, {"at": time.time()}, int(_WARMUP_EVERY_H * 3600))
 
     for lat, lon, name in DEMO:
         try:
