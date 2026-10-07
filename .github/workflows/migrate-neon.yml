@@ -39,7 +39,7 @@ jobs:
     env:
       PG_CLIENT_MAJOR: "18"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Kiểm secret bắt buộc
         env:

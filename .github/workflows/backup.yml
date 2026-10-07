@@ -63,7 +63,7 @@ jobs:
     env:
       PG_CLIENT_MAJOR: "18"     # = bản chính CSDL Render; Neon cùng bản hoặc cũ hơn
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Kiểm secret bắt buộc
         run: |

@@ -45,7 +45,7 @@ jobs:
     # Đánh thức ~2 phút + quét tối đa 50 phút (POLL_MAX_MIN) + giám sát.
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Đánh thức api → quét nền → hỏi tiến độ tới khi xong
         env:
