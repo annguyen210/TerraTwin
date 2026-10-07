@@ -33,6 +33,9 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.webmanifest",
   applicationName: "TerraTwin",
+  // Mã commit của bản đang chạy (Render đặt RENDER_GIT_COMMIT lúc build). Không có quyền xem
+  // log Render vẫn kiểm được deploy đã lên hay chưa: so <meta name="tt-build"> với git log.
+  other: { "tt-build": (process.env.RENDER_GIT_COMMIT || "local").slice(0, 7) },
   appleWebApp: {
     capable: true,
     title: "TerraTwin",
