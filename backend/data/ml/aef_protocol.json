@@ -1,0 +1,32 @@
+{
+ "title": "AlphaEarth Foundations phân biệt rừng / vườn cây — giao thức đặt trước",
+ "registered": "2026-10-08",
+ "data": "AlphaEarth Foundations Satellite Embedding v1 (Google DeepMind), năm 2020, bản GeoZarr công khai source.coop/tge-labs/aef-mosaic (CC-BY 4.0). Ghi công: 'The AlphaEarth Foundations Satellite Embedding dataset is produced by Google and Google DeepMind.'",
+ "h1_weak_labels": {
+  "points": "ĐÚNG 3.179 ô 100 m của bộ dữ liệu rừng-hay-vườn (data/ml/foc_dataset.npz): cùng nhãn yếu (nơi ba bản đồ đồng ý), cùng chia theo vĩ độ (huấn luyện 12,0–14,2; kiểm định 14,2–15,0; kiểm tra 11,3–12,0).",
+  "feature": "chỉ vectơ AlphaEarth 2020: trung bình các vectơ đơn vị trên ô 100 m rồi chuẩn hoá lại — 64 chiều, không thêm đặc trưng nào khác. Ô không có dữ liệu bị loại và đếm công khai.",
+  "model": "hồi quy logistic L2, trọng số cân bằng lớp; độ mạnh L2 chọn trong {0,01; 0,1; 1; 10} theo độ chính xác cân bằng trên tập KIỂM ĐỊNH; ngưỡng 0,5.",
+  "pass": {
+   "balanced_accuracy_test": 0.85,
+   "forest_recall_test": 0.9
+  },
+  "comparator": "mô hình Sentinel-2 hiện tại trên cùng tập kiểm tra: BA 0,892, độ nhạy rừng 0,909 (chỉ báo cáo)",
+  "decision": "Đạt cả hai → bật làm TÍN HIỆU THAM KHẢO THỨ HAI (không vào hồ sơ ký, không vào quy tắc sàng lọc). Không đạt → không bật, công bố."
+ },
+ "h2_human_labels": {
+  "data": "các ô ĐỒNG THUẬN của kiểm định v3 (hai người giải đoán ảnh 2020, eudr_validation_protocol_v3.json)",
+  "task": "rừng năm 2020 (tự nhiên + rừng trồng gỗ) so với không phải rừng (cây trồng lâu năm + không có cây)",
+  "model": "ĐÚNG mô hình đã khoá ở H1 — không huấn luyện lại trên nhãn người",
+  "pass": {
+   "balanced_accuracy": 0.85,
+   "forest_recall": 0.9,
+   "min_n_each_class": 25
+  },
+  "decision": "Chấm MỘT lần cùng lúc với v3. Đạt → ứng viên cho quy tắc sàng lọc v4 (phải đăng ký riêng). Trượt → công bố. Báo cáo kèm mô hình Sentinel-2 trên cùng các ô."
+ },
+ "limits": [
+  "Tập kiểm tra H1 là nhãn yếu (ca bản đồ đồng ý = ca dễ) — H2 trên nhãn người mới là phép thử chính.",
+  "AlphaEarth học từ nhiều nguồn vệ tinh công khai; có thể đã thấy dữ liệu tương tự các bản đồ làm nhãn yếu → H1 có thể lạc quan.",
+  "Độ đổi vectơ 2020→2025 (cosin) hiện trên giao diện là THỬ NGHIỆM, chưa kiểm định ở giao thức này."
+ ]
+}

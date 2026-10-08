@@ -32,3 +32,6 @@ Pillow==12.3.0
 
 # PostgreSQL cho production (SQLite là mặc định, không cần gì thêm):
 # psycopg[binary]==3.2.3
+
+# AlphaEarth (services/aef.py): giải nén khối con GeoZarr (zstd) — nhẹ, không kéo GDAL.
+zstandard>=0.23,<1
