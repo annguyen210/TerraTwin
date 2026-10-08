@@ -21,6 +21,7 @@ không phá rừng sau 31/12/2020. Đây là nhu cầu BẮT BUỘC có hạn ch
 | Sàng lọc v1 (đang chạy) — bắt rừng mất / giữ rừng / cho qua đất sạch | 0,80 / 0,80 / 0,70 | 0,925 / 0,925 / **0,525** | trượt M3 |
 | Sàng lọc v2, 120 ô MỚI (Tây Nguyên + Đông Nam Bộ) | như trên | 0,975 / 0,90 / **0,60** | trượt → không bật; 12/16 ô sai là cây mọc/trồng sau 2000 mà thước đo Hansen 2000 không biết |
 | Mô hình "rừng hay vườn cây" (logreg/MLP/1D-CNN, 507 mẫu giữ lại) | BA 0,85, bắt rừng 0,90 | 0,892 / 0,909 | **đạt, đã bật** (tham khảo, không vào hồ sơ ký) |
+| **AlphaEarth (Google DeepMind, mô hình nền tảng 2025) + logistic** — cùng 507 mẫu với dòng trên | BA 0,85, bắt rừng 0,90 | **0,957 / 0,942** (bắt vườn 0,972) | **đạt, đã bật** (tham khảo); giao thức ghi trước khi tải dữ liệu (fd9c927) |
 | "Chạm là có ranh" (77 ranh OSM) | IoU 0,60 | 0,38 | trượt, không bật |
 | U-Net lớp phủ đất (2 lần) | mIoU 0,35 | 0,232 → 0,314 | trượt, không bật |
 | **Sàng lọc v3** (v2 + mô hình rừng/vườn cho ca tán dày) | như v1, mỗi nhóm ≥25 ô | **đang gán nhãn** | 240 ô mới (seed 20261007), sự thật = 2 người giải đoán ảnh 2020 độc lập ở `/gan-nhan`; giao thức + mẫu commit trước nhãn (0fdd138) |
