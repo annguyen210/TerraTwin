@@ -44,7 +44,7 @@ _CHUNK: OrderedDict[tuple, np.ndarray] = OrderedDict()     # (shard, iy, ix) →
 _MAX_INDEX, _MAX_CHUNK = 256, 12                           # ~48 MB trần bộ nhớ khối con
 
 
-def _get(url: str, rng: str | None = None, timeout: float = 90.0, tries: int = 5) -> bytes:
+def _get(url: str, rng: str | None = None, timeout: float = 30.0, tries: int = 5) -> bytes:
     """Tải (một đoạn) tệp; thử lại khi mạng chập chờn — 404 thì trả ngay cho người gọi xử lý."""
     import time
     h = dict(_UA)

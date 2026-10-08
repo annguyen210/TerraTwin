@@ -1,0 +1,49 @@
+[
+ {
+  "date": "2026-10-08",
+  "year": 2020,
+  "lambda": 0.01,
+  "val": {
+   "balanced_accuracy": 0.9166,
+   "forest_recall": 0.981,
+   "tree_crop_recall": 0.8523,
+   "accuracy": 0.9625,
+   "n": 614,
+   "confusion": {
+    "tp": 516,
+    "tn": 75,
+    "fp": 13,
+    "fn": 10
+   }
+  },
+  "test": {
+   "balanced_accuracy": 0.9572,
+   "forest_recall": 0.9423,
+   "tree_crop_recall": 0.972,
+   "accuracy": 0.9507,
+   "n": 507,
+   "confusion": {
+    "tp": 343,
+    "tn": 139,
+    "fp": 4,
+    "fn": 21
+   }
+  },
+  "n": {
+   "train": 2052,
+   "val": 614,
+   "test": 507,
+   "no_data": 0
+  },
+  "pass_thresholds": {
+   "balanced_accuracy_test": 0.85,
+   "forest_recall_test": 0.9
+  },
+  "passed": true,
+  "status": "accepted",
+  "comparator_s2_test": {
+   "balanced_accuracy": 0.8917,
+   "forest_recall": 0.9093
+  }
+ }
+]
