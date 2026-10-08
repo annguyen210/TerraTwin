@@ -4869,3 +4869,4 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .gn-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .gn-actions button:disabled { opacity: .55; cursor: not-allowed; }
 .ws-link { background: none; border: 0; padding: 0 4px; color: var(--terra); cursor: pointer; text-decoration: underline; font: inherit; }
+.foc-src { display: flex; align-items: center; gap: 6px; margin: 10px 0 4px; font-size: .85rem; font-weight: 700; color: var(--text); }

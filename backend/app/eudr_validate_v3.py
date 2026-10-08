@@ -212,18 +212,67 @@ def run(labels_path: str, workers: int = 3) -> None:
     for r in (1, 2, 3):
         m = label_v3.metrics({c: v["levels"][r] for c, v in rows.items()}, t["sets"])
         res[eudr_forest.RULES[r]] = {"metrics": m, "decision": label_v3.decide(m, t["counts"])}
+    h2 = _aef_h2(rows, cs, t["sets"])
     v3, v2 = res[eudr_forest.RULES[3]]["decision"], res[eudr_forest.RULES[2]]["decision"]
     enable = (3 if v3 == "pass" else 2 if v3 == "fail" and v2 == "pass" else None)
     out = {"protocol": "eudr_validation_protocol_v3.json", "run_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
            "agreement": {k: t[k] for k in ("cells_labeled", "cells_2plus", "excluded", "kappa_forest", "agree_forest")},
-           "truth_counts": t["counts"], "results": res,
+           "truth_counts": t["counts"], "results": res, "aef_h2": h2,
            "enable_rule": None if enable is None else eudr_forest.RULES[enable],
            "decision": ("CHƯA KẾT LUẬN — có nhóm dưới 25 ô" if v3 == "insufficient" else
                         f"bật {eudr_forest.RULES[enable]}" if enable else "cả v3 lẫn v2 trượt — giữ v1, công bố"),
            "rows": {str(k): v for k, v in sorted(rows.items())}}
     with open(label_v3.SAMPLE_V3.replace("sample_v3", "v3"), "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
-    print(json.dumps({k: out[k] for k in ("agreement", "truth_counts", "results", "decision")}, ensure_ascii=False, indent=1))
+    print(json.dumps({k: out[k] for k in ("agreement", "truth_counts", "results", "decision", "aef_h2")},
+                     ensure_ascii=False, indent=1, default=str))
+
+
+def _aef_h2(rows: dict, cs: list, sets: dict) -> dict:
+    """Giả thuyết 2 của giao thức AlphaEarth (data/ml/aef_protocol.json): mô hình KHOÁ từ H1, chấm rừng
+    năm 2020 trên các ô đồng thuận; báo cáo kèm mô hình Sentinel-2 trên CÙNG các ô."""
+    import numpy as np
+
+    from app.ml import aef_model
+    from app.services import aef, eudr_geo, forest_or_crop
+
+    m = aef_model._model()
+    P = aef_model.PROTOCOL_DOC["h2_human_labels"]["pass"]
+    if m is None:
+        return {"status": "not_applicable", "reason": "H1 không đạt nên không có mô hình khoá để chấm H2."}
+    probs_aef, probs_s2, truth = {}, {}, {}
+    for cell in sorted(sets):
+        c = cs[cell]
+        truth[cell] = sets[cell] in ("T_lost", "T_forest")
+        v, _ = aef.mean_embedding(c["lat0"], c["lon0"], c["lat1"], c["lon1"], m["year"])
+        if v is not None:
+            probs_aef[cell] = 1 / (1 + np.exp(-(float(np.dot(v, np.array(m["w"]))) + m["b"])))
+        geom = {"type": "Polygon", "coordinates": [[[c["lon0"], c["lat0"]], [c["lon1"], c["lat0"]],
+                                                    [c["lon1"], c["lat1"]], [c["lon0"], c["lat1"]],
+                                                    [c["lon0"], c["lat0"]]]]}
+        try:
+            q = forest_or_crop.predict(eudr_geo.validate_geometry(geom, ref=f"v3-{cell}")).get("probability_forest")
+        except Exception:               # noqa: BLE001
+            q = None
+        if q is not None:
+            probs_s2[cell] = q
+
+    def score(probs):
+        cells = [c for c in truth if c in probs]
+        y = np.array([1 if truth[c] else 0 for c in cells])
+        p = np.array([probs[c] for c in cells])
+        if len(cells) == 0:
+            return None
+        return aef_model._metrics(p, y)
+    sa, ss = score(probs_aef), score(probs_s2)
+    n_f = sum(1 for v in truth.values() if v)
+    n_nf = len(truth) - n_f
+    if n_f < P["min_n_each_class"] or n_nf < P["min_n_each_class"]:
+        decision = "insufficient"
+    else:
+        decision = "pass" if sa and sa["balanced_accuracy"] >= P["balanced_accuracy"] and sa["forest_recall"] >= P["forest_recall"] else "fail"
+    return {"status": "scored", "decision": decision, "n_forest": n_f, "n_not_forest": n_nf,
+            "aef": sa, "sentinel2_model_same_cells": ss, "missing_aef": len(truth) - len(probs_aef)}
 
 
 if __name__ == "__main__":

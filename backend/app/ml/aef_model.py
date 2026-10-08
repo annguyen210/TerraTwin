@@ -193,6 +193,59 @@ def runs() -> list:
         return []
 
 
+def status() -> dict:
+    """Trạng thái + MỌI lần chạy (kể cả trượt) — để không ai chỉ thấy lần đẹp nhất."""
+    from app.services import aef
+    from app.services.reqlang import tr
+    m, rs = _model(), runs()
+    out = {"available": m is not None, "runs": rs, "protocol": PROTOCOL_DOC, "attribution": aef.ATTRIBUTION,
+           "source": "source.coop/tge-labs/aef-mosaic (CC-BY 4.0)"}
+    if m is None:
+        last = rs[-1] if rs else None
+        out["message"] = tr(
+            "AI nền tảng AlphaEarth chưa bật: " + (
+                f"lần chạy {last['date']} không đạt ngưỡng đặt trước (độ chính xác cân bằng "
+                f"{last['test']['balanced_accuracy']}, độ nhạy rừng {last['test']['forest_recall']})." if last
+                else "đang chờ huấn luyện theo giao thức đặt trước."),
+            "AlphaEarth foundation-model signal not enabled: " + (
+                f"the {last['date']} run missed the pre-set bar (balanced accuracy {last['test']['balanced_accuracy']}, "
+                f"forest recall {last['test']['forest_recall']})." if last else "waiting for the pre-registered training run."))
+    else:
+        out["run"] = m["run"]
+    return out
+
+
+def predict(geometry_plot: dict) -> dict:
+    """Xác suất 'rừng năm 2020' từ vectơ AlphaEarth trên thửa + độ đổi vectơ 2020→2025 (THỬ NGHIỆM)."""
+    from app.services import aef
+    from app.services.reqlang import tr
+    m = _model()
+    if m is None:
+        return {**status(), "probability_forest": None}
+    box = plot_box(geometry_plot)
+    v20, n = aef.mean_embedding(*box, m["year"])
+    if v20 is None:
+        return {"available": True, "probability_forest": None, "attribution": aef.ATTRIBUTION, "message": tr(
+            "AlphaEarth không có dữ liệu năm 2020 trên thửa này (mây, biển hoặc ngoài vùng phủ).",
+            "AlphaEarth has no 2020 data over this plot (cloud, sea or outside coverage).")}
+    z = float(np.dot(v20, np.array(m["w"])) + m["b"])
+    p = 1 / (1 + math.exp(-z))
+    change = None
+    v25, _ = aef.mean_embedding(*box, 2025)
+    if v25 is not None:
+        cos = float(np.clip(np.dot(v20, v25), -1, 1))
+        change = {"cosine_2020_2025": round(cos, 3), "status": "experimental", "label": tr(
+            f"Thử nghiệm, chưa kiểm định: độ giống nhau giữa năm 2020 và 2025 là {cos:.2f} (1 = như cũ). "
+            "Số thấp gợi ý thửa đã đổi nhiều — cần người xem ảnh, không dùng để kết luận.",
+            f"Experimental, not validated: 2020-vs-2025 similarity {cos:.2f} (1 = unchanged). A low value suggests "
+            "the plot changed a lot — needs a human look, not a conclusion.")}
+    return {"available": True, "probability_forest": round(p, 3), "pixels": n, "evidence_class": "predicted",
+            "model": {"kind": m["kind"], "date": m["run"]["date"], "test": m["run"]["test"]},
+            "change": change, "attribution": aef.ATTRIBUTION,
+            "label": tr(f"AI nền tảng AlphaEarth: {p * 100:.0f}% khả năng là rừng năm 2020, {100 - p * 100:.0f}% là vườn cây/không rừng.",
+                        f"AlphaEarth foundation model: {p * 100:.0f}% likely forest in 2020, {100 - p * 100:.0f}% tree crop / non-forest.")}
+
+
 def plot_box(geometry_plot: dict) -> tuple[float, float, float, float]:
     """Hộp đọc cho một thửa — trần ~1 km quanh tâm để một lượt chỉ chạm 1–4 khối con."""
     from app.services import eudr_geo

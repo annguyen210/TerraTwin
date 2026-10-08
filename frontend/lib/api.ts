@@ -2619,6 +2619,21 @@ export type LotCertificateFacts = {
 export type FocRun = { date: string; chosen?: string; status: "accepted" | "rejected"; val?: Record<string, number>;
                        test: { balanced_accuracy: number; forest_recall: number; tree_crop_recall?: number; n?: number };
                        pass_thresholds?: Record<string, number>; n?: Record<string, number> };
+export type AefRun = { date: string; status: "accepted" | "rejected"; lambda?: number;
+  test: { balanced_accuracy: number; forest_recall: number; tree_crop_recall?: number; n?: number };
+  n?: Record<string, number>; comparator_s2_test?: { balanced_accuracy: number; forest_recall: number } };
+export type AefStatus = { available: boolean; message?: string; runs: AefRun[]; attribution: string; source: string;
+  protocol: { registered: string; h1_weak_labels: { pass: Record<string, number> } } };
+export type AefPredict = { available: boolean; probability_forest: number | null; pixels?: number; message?: string;
+  label?: string; attribution: string; model?: { kind: string; date: string; test: AefRun["test"] };
+  change?: { cosine_2020_2025: number; status: "experimental"; label: string } | null };
+export function eudrAefStatus() {
+  return getJson<AefStatus>(`/api/eudr/ai/aef/status?lang=${curLang()}`, "Không tải được trạng thái AlphaEarth");
+}
+export function eudrAefPredict(geometry: GeoGeometry) {
+  return postJson<AefPredict>(`/api/eudr/ai/aef?lang=${curLang()}`, { geometry }, "Không đọc được AlphaEarth");
+}
+
 export function eudrAiStatus() {
   return getJson<{ available: boolean; message?: string; runs: FocRun[]; kind?: string }>(`/api/eudr/ai/status?lang=${curLang()}`,
     "Không tải được trạng thái mô hình");

@@ -22,8 +22,8 @@ import LandDocForm from "@/components/LandDocForm";
 import ForestOrCropHint from "@/components/ForestOrCropHint";
 import {
   eudrDeleteSet, eudrDownloadSet, eudrExport, eudrGetSet, eudrIssueDossier, eudrListSets, eudrMethod, eudrScreen,
-  eudrAiStatus, eudrAsk, eudrOverview, eudrSetDossiers, eudrSubmitSet, eudrValidate, fetchMe, getToken,
-  type AskCitation, type AuthUser, type Dossier, type EudrOverview, type FocRun, type LandDocInput, type EudrLevel, type EudrMethod, type EudrPlot, type EudrScreening, type EudrSet, type EudrSetInfo,
+  eudrAefStatus, eudrAiStatus, eudrAsk, eudrOverview, eudrSetDossiers, eudrSubmitSet, eudrValidate, fetchMe, getToken,
+  type AefStatus, type AskCitation, type AuthUser, type Dossier, type EudrOverview, type FocRun, type LandDocInput, type EudrLevel, type EudrMethod, type EudrPlot, type EudrScreening, type EudrSet, type EudrSetInfo,
   type EudrValidation, type GeoGeometry,
 } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
@@ -479,10 +479,12 @@ function Method({ lang }: { lang: string }) {
   const { t } = useLang();
   const [m, setM] = useState<EudrMethod | null>(null);
   const [ai, setAi] = useState<{ available: boolean; message?: string; runs: FocRun[] } | null>(null);
+  const [aefS, setAefS] = useState<AefStatus | null>(null);
   const [err, setErr] = useState<string | null>(null);
   useEffect(() => {
     eudrMethod().then(setM).catch((e) => setErr(e.message));
     eudrAiStatus().then(setAi).catch(() => setAi(null));
+    eudrAefStatus().then(setAefS).catch(() => setAefS(null));
   }, [lang]);
   if (err) return <p className="bat-err">{err}</p>;
   if (!m) return <p className="doc-note">{t("Đang tải…", "Loading…")}</p>;
@@ -577,6 +579,27 @@ function Method({ lang }: { lang: string }) {
             ))}</tbody>
           </table></div>
         )}
+      </section>
+      <section className="bat-card">
+        <h2>{t("AI nền tảng AlphaEarth (Google DeepMind) — rừng hay vườn cây?", "AlphaEarth foundation model (Google DeepMind) — forest or tree crop?")}</h2>
+        <p className="eu-src">{t(
+          "Mô hình nền tảng 2025 nén cả năm dữ liệu đa nguồn (Sentinel-1/2, Landsat, radar, khí hậu…) của mỗi điểm 10 m thành vectơ 64 chiều. Câu hỏi đo được: chỉ 64 con số đó với bộ phân loại tuyến tính đơn giản nhất có tách rừng với vườn cây tốt bằng 34 đặc trưng tự thiết kế không? Cùng 3.179 ô, cùng nhãn, cùng chia vùng, cùng ngưỡng với mô hình Sentinel-2 ở trên; giao thức ghi trước khi tải dữ liệu",
+          "A 2025 foundation model compresses a full year of multi-source data (Sentinel-1/2, Landsat, radar, climate…) for each 10 m pixel into a 64-dimensional vector. The measurable question: can those 64 numbers with the simplest linear classifier separate forest from tree crops as well as 34 hand-designed features? Same 3,179 cells, labels, regional split and bar as the Sentinel-2 model above; protocol registered before downloading data")}
+          {aefS ? ` (${aefS.protocol.registered}).` : "."}</p>
+        {!aefS ? <p className="doc-note">{t("Đang tải…", "Loading…")}</p> : aefS.runs.length === 0 ? (
+          <p className="doc-note">{aefS.message}</p>
+        ) : (
+          <div className="bat-table-wrap"><table className="bat-table">
+            <thead><tr><th>{t("Ngày", "Date")}</th><th>{t("Chính xác cân bằng", "Balanced acc.")}</th><th>{t("Độ nhạy rừng", "Forest recall")}</th><th>{t("Mô hình Sentinel-2, cùng tập", "Sentinel-2 model, same set")}</th><th>{t("Kết quả", "Result")}</th></tr></thead>
+            <tbody>{aefS.runs.map((r, i) => (
+              <tr key={i}><td>{r.date}</td><td className="num">{r.test.balanced_accuracy}</td><td className="num">{r.test.forest_recall}</td>
+                <td className="num">{r.comparator_s2_test ? `${r.comparator_s2_test.balanced_accuracy} / ${r.comparator_s2_test.forest_recall}` : "—"}</td>
+                <td><span className={`eu-badge ${r.status === "accepted" ? "eu-low" : "eu-high"}`}>{r.status === "accepted" ? t("Đạt — đã bật", "Passed — enabled") : t("Không đạt — không bật", "Failed — not enabled")}</span></td></tr>
+            ))}</tbody>
+          </table></div>
+        )}
+        {aefS && <p className="eu-src">{t("Phép thử chính còn lại: chấm lại trên nhãn người của kiểm định v3, mô hình khoá, không huấn luyện lại.",
+                                          "The main remaining test: re-scoring on the v3 human labels with the model frozen, no retraining.")} {aefS.attribution}</p>}
       </section>
       <section className="bat-card">
         <h2>{t("Quy tắc sàng lọc", "Screening rule")} <code>{m.rule_version}</code></h2>

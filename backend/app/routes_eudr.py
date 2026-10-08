@@ -539,6 +539,32 @@ def eudr_ai_predict(body: GeometryIn, lang: str = "vi") -> dict:
     return forest_or_crop.predict(plot)
 
 
+@router.get("/api/eudr/ai/aef/status")
+def eudr_aef_status(lang: str = "vi") -> dict:
+    """AI nền tảng AlphaEarth (Google DeepMind): giao thức đặt trước + mọi lần chạy, kể cả trượt."""
+    from app.ml import aef_model
+    reqlang.set_lang(lang)
+    return aef_model.status()
+
+
+@router.post("/api/eudr/ai/aef")
+def eudr_aef_predict(body: GeometryIn, request: Request, lang: str = "vi",
+                     user: User | None = Depends(auth.optional_user)) -> dict:
+    """Dự đoán THAM KHẢO từ vectơ AlphaEarth (không vào hồ sơ ký, không vào quy tắc sàng lọc).
+    Mỗi lượt tải vài MB từ kho công khai → tính vào hạn mức sàng lọc như một lượt quét."""
+    from app.ml import aef_model
+    reqlang.set_lang(lang)
+    plot = _plot_from(body)
+    if not plot["valid"]:
+        raise HTTPException(422, reqlang.tr("Ranh thửa chưa đúng chuẩn.", "The boundary is not valid."))
+    enforce_quota("screen", request, user)
+    try:
+        return aef_model.predict(plot)
+    except (OSError, ValueError) as e:
+        raise HTTPException(503, reqlang.tr(f"Không đọc được AlphaEarth lúc này ({type(e).__name__}) — thử lại sau.",
+                                            f"Couldn't read AlphaEarth right now ({type(e).__name__}) — try again later."))
+
+
 @router.post("/api/eudr/radar")
 def eudr_radar(body: GeometryIn, lang: str = "vi") -> dict:
     """Radar Sentinel-1 xuyên mây: VH 60 ngày gần nhất so với cùng kỳ năm trước (thử nghiệm,
