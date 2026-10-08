@@ -95,7 +95,7 @@ class TerraTwin:
         return self._request("GET", "/api/health")
 
     def modules(self) -> list:
-        """14 mũi nhọn và trạng thái dữ liệu của từng cái."""
+        """18 mô-đun và trạng thái dữ liệu của từng cái."""
         return self._request("GET", "/api/modules")
 
     def assess(self, module_id: str, lat: float, lon: float,
@@ -104,7 +104,7 @@ class TerraTwin:
                              self._loc(lat, lon, area_ha))
 
     def scan(self, lat: float, lon: float, area_ha: float | None = None) -> dict:
-        """Quét cả 14 module + TerraScore + cảnh báo ưu tiên trong một lần."""
+        """Quét cả 18 mô-đun + TerraScore + cảnh báo ưu tiên trong một lần."""
         return self._request("POST", "/api/scan", self._loc(lat, lon, area_ha))
 
     def terrascore(self, lat: float, lon: float) -> dict:

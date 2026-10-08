@@ -66,7 +66,7 @@ FLOWS = [
 
     # ----- Cốt lõi (12) -----
     ("C01", "Twin Builder", "core", "done",
-     "Dựng và LƯU đủ các lớp: địa hình, khí hậu, 14 module, TerraScore."),
+     "Dựng và LƯU đủ các lớp: địa hình, khí hậu, 18 mô-đun, TerraScore."),
     ("C02", "Parallel Futures", "core", "done",
      "4 kịch bản tham số minh bạch trên nền thời tiết thật."),
     ("C03", "What-If NLP", "core", "done",

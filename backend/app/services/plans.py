@@ -36,7 +36,7 @@ PLANS: dict[str, dict] = {
         "quota": 500,
         "price_vnd": 0,
         "for": "Hộ gia đình, một vài thửa đất",
-        "features": ["Toàn bộ 13 mũi nhọn chạy ngay", "Cảnh báo trên web",
+        "features": ["Toàn bộ 18 công cụ theo dõi thửa đất", "Cảnh báo trên web",
                      "Xem lại 4 thiên tai lịch sử"],
     },
     "pro": {

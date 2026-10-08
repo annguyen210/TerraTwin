@@ -99,8 +99,8 @@ function TwinsPanel({
   return (
     <>
       <p className="ws-sub">
-        {t("Twin là ảnh chụp ĐẦY ĐỦ của thửa tại một thời điểm — địa hình, khí hậu, cả 14 mô-đun và TerraScore — lưu lại để về sau đối chiếu xem mọi thứ đã đổi thế nào. Khác với “thửa đã lưu” ở cột trái: cái kia chỉ nhớ toạ độ.",
-           "A Twin is a FULL snapshot of a plot at one point in time — terrain, climate, all 14 modules and TerraScore — saved so you can later compare how things changed. Different from a “saved plot” in the left column, which only remembers the coordinates.")}
+        {t("Twin là ảnh chụp ĐẦY ĐỦ của thửa tại một thời điểm — địa hình, khí hậu, cả 18 mô-đun và TerraScore — lưu lại để về sau đối chiếu xem mọi thứ đã đổi thế nào. Khác với “thửa đã lưu” ở cột trái: cái kia chỉ nhớ toạ độ.",
+           "A Twin is a FULL snapshot of a plot at one point in time — terrain, climate, all 18 modules and TerraScore — saved so you can later compare how things changed. Different from a “saved plot” in the left column, which only remembers the coordinates.")}
       </p>
       {err && <p className="ws-err">⚠️ {err}</p>}
 
