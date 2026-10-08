@@ -38,12 +38,13 @@ _MISSING = (1 << 64) - 1
 _UA = {"User-Agent": "TerraTwin/aef (+https://terratwin-web.onrender.com)"}
 
 _LOCK = threading.Lock()
+_INFLIGHT: dict[tuple, threading.Lock] = {}               # một khối con chỉ tải MỘT lần dù nhiều luồng cùng cần
 _INDEX: OrderedDict[str, bytes] = OrderedDict()            # shard → bảng chỉ mục (4 KB)
 _CHUNK: OrderedDict[tuple, np.ndarray] = OrderedDict()     # (shard, iy, ix) → int8 [64,256,256] (4 MB)
 _MAX_INDEX, _MAX_CHUNK = 256, 12                           # ~48 MB trần bộ nhớ khối con
 
 
-def _get(url: str, rng: str | None = None, timeout: float = 90.0, tries: int = 3) -> bytes:
+def _get(url: str, rng: str | None = None, timeout: float = 90.0, tries: int = 5) -> bytes:
     """Tải (một đoạn) tệp; thử lại khi mạng chập chờn — 404 thì trả ngay cho người gọi xử lý."""
     import time
     h = dict(_UA)
@@ -53,8 +54,12 @@ def _get(url: str, rng: str | None = None, timeout: float = 90.0, tries: int = 3
         try:
             with urllib.request.urlopen(urllib.request.Request(url, headers=h), timeout=timeout) as r:
                 return r.read()
-        except urllib.error.HTTPError:
-            raise
+        except urllib.error.HTTPError as e:
+            # 404 = shard không tồn tại (người gọi xử lý). 429/5xx (Cloudflare 520…) = tạm thời → thử lại.
+            if e.code != 429 and e.code < 500 or k == tries - 1:
+                raise
+            time.sleep(3 * (k + 1))
+            continue
         except (TimeoutError, OSError):
             if k == tries - 1:
                 raise
@@ -96,6 +101,21 @@ def _chunk(t: int, sy: int, sx: int, iy: int, ix: int) -> np.ndarray | None:
         if key in _CHUNK:
             _CHUNK.move_to_end(key)
             return _CHUNK[key]
+        gate = _INFLIGHT.setdefault(key, threading.Lock())
+    with gate:
+        with _LOCK:
+            if key in _CHUNK:                 # luồng khác vừa tải xong trong lúc mình chờ
+                _CHUNK.move_to_end(key)
+                return _CHUNK[key]
+        try:
+            return _fetch_chunk(key)
+        finally:
+            with _LOCK:
+                _INFLIGHT.pop(key, None)
+
+
+def _fetch_chunk(key: tuple) -> np.ndarray | None:
+    t, sy, sx, iy, ix = key
     url = _shard_url(t, sy, sx)
     idx = _index(url)
     if not idx:

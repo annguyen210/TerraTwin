@@ -90,7 +90,10 @@ def extract(workers: int = 4) -> None:
         old = np.load(FEATURES)
         emb[:], npx[:], done[:] = old["emb"], old["npx"], old["done"]
     # gom theo khối con 256 điểm ảnh để các luồng không tải trùng
-    order = sorted(np.nonzero(~done)[0], key=lambda i: aef.pixel(lat[i], lon[i]))
+    def chunk_key(i):                      # nhóm theo KHỐI CON 256×256 — bộ đệm chỉ giữ ~12 khối
+        r, c = aef.pixel(lat[i], lon[i])
+        return (r // aef.INNER, c // aef.INNER, r, c)
+    order = sorted(np.nonzero(~done)[0], key=chunk_key)
 
     def one(i):
         v, k = aef.mean_embedding(lat[i] - HALF_DEG, lon[i] - HALF_DEG, lat[i] + HALF_DEG, lon[i] + HALF_DEG, YEAR)
@@ -144,6 +147,9 @@ def train() -> dict:
     d = np.load(os.path.join(OUT, "foc_dataset.npz"))
     f = np.load(FEATURES)
     y, lat = d["y"].astype(int), d["lat"].astype(float)
+    if not f["done"].all():
+        # Chấm tập kiểm tra chỉ được MỘT lần — không bao giờ chấm trên đặc trưng tải dở.
+        raise SystemExit(f"Chưa tải đủ đặc trưng ({int(f['done'].sum())}/{len(f['done'])}) — chạy extract tiếp, KHÔNG huấn luyện.")
     ok = f["done"] & (f["npx"] > 0)
     sp = np.array([foc.split_of(float(a)) for a in lat])
     X = f["emb"].astype("float64")
