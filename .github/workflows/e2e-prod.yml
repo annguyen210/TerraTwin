@@ -59,7 +59,8 @@ jobs:
               --chrome-flags="--headless=new --no-sandbox" || { echo "::warning::Lighthouse lỗi ở $path"; continue; }
             perf=$(node -e "const r=require('./lh.json');console.log(Math.round(r.categories.performance.score*100))")
             a11y=$(node -e "const r=require('./lh.json');console.log(Math.round(r.categories.accessibility.score*100))")
-            echo "::notice::Lighthouse $path — hiệu năng $perf · truy cập $a11y (cổng: ≥85 · ≥95)"
+            m=$(node -e "const a=require('./lh.json').audits;console.log(['first-contentful-paint','largest-contentful-paint','total-blocking-time','cumulative-layout-shift'].map(k=>k.split('-').map(w=>w[0]).join('').toUpperCase()+' '+a[k].displayValue).join(' · '))")
+            echo "::notice::Lighthouse $path — hiệu năng $perf · truy cập $a11y (cổng: ≥85 · ≥95) · $m"
             [ "$a11y" -ge 95 ] || fail=1
           done
           # Hiệu năng trên gói miễn phí dao động theo máy chủ ngủ/dậy → chỉ báo cáo; truy cập là cổng cứng.

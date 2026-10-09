@@ -9,7 +9,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarCheck, Map as MapIcon, Package, ShieldCheck, TreePine } from "lucide-react";
+import { CalendarCheck, Map as MapIcon, Package, Search, ShieldCheck, TreePine } from "lucide-react";
+import CommandPalette, { openCommandPalette } from "@/components/CommandPalette";
 import Account from "@/components/Account";
 import { fetchMe, getToken, type AuthUser } from "@/lib/api";
 import { LangToggle, useLang } from "@/lib/i18n";
@@ -60,12 +61,17 @@ export default function AppShell({ children, user: userProp, onAuth, extra, wide
           </nav>
           <div className="tt-actions">
             {extra}
+            <button type="button" className="tt-cmdk" onClick={openCommandPalette}
+                    aria-label={t("Mở thanh lệnh (Ctrl+K)", "Open command palette (Ctrl+K)")} title="Ctrl+K">
+              <Search size={15} aria-hidden="true" /><kbd>Ctrl K</kbd>
+            </button>
             <LangToggle />
             <Account user={user} onAuth={setUser} />
           </div>
         </div>
       </header>
       <div className="tt-page">{children}</div>
+      <CommandPalette />
       <nav className="tt-tabbar" aria-label={t("Điều hướng", "Navigation")}>
         {NAV.map((n) => (
           <Link key={n.href} href={n.href} className={active(path, n.href) ? "on" : ""} aria-current={active(path, n.href) ? "page" : undefined}>

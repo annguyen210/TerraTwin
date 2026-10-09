@@ -29,6 +29,7 @@ import {
 import { useLang } from "@/lib/i18n";
 
 const PlotDraw = dynamic(() => import("@/components/PlotDraw"), { ssr: false });
+import WhenVisible from "@/components/WhenVisible";
 
 type Tab = "one" | "set" | "overview" | "ask" | "method";
 const COMMODITIES: [string, string, string][] = [
@@ -146,7 +147,9 @@ function OnePlot() {
     <>
       <section className="bat-card">
         <h2>1 · {t("Ranh vườn", "Plot boundary")}</h2>
-        <PlotDraw initial={initial} onChange={onDraw} />
+        <WhenVisible minHeight="min(510px, 70vh)" label={t("Bản đồ vẽ ranh đang chờ nạp…", "Boundary map loading…")}>
+          <PlotDraw initial={initial} onChange={onDraw} />
+        </WhenVisible>
         <div className="bat-row">
           <label className="bat-btn ghost">
             <Upload size={15} aria-hidden="true" className="ui-ic" /> {t("Hoặc tải tệp ranh (GeoJSON, KML)", "Or upload a boundary file (GeoJSON, KML)")}
