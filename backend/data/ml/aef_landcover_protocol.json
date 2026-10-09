@@ -1,0 +1,33 @@
+{
+ "id": "terratwin.gd5.aef_landcover/1",
+ "question": "Vectơ AlphaEarth 2021 + bộ phân loại tuyến tính có đạt mIoU ≥ 0,35 trên 4 tỉnh giữ lại (cùng nhãn, cùng chia tập với U-Net đã trượt 0,232 và 0,314) không?",
+ "data": {
+  "labels": "ESA WorldCover 2021 — backend/data/dl2/patches.npz (213 ô 256×256, 10 m)",
+  "features": "AlphaEarth Foundations annual embedding 2021, 64 chiều (source.coop/tge-labs/aef-mosaic)",
+  "sampling": "1024 điểm ảnh ngẫu nhiên có nhãn mỗi ô, hạt giống 20261009"
+ },
+ "split": {
+  "test_provinces": [
+   "Cần Giờ",
+   "Cần Thơ",
+   "Hà Giang",
+   "Đà Nẵng"
+  ],
+  "val_provinces": [
+   "Buôn Ma Thuột",
+   "Huế"
+  ],
+  "train": "các ô còn lại"
+ },
+ "model": "hồi quy softmax 11 lớp trên vectơ 64 chiều, trọng số lớp căn bậc hai nghịch tần suất (trần 10), L2 chọn trong [0.0001, 0.001, 0.01] theo mIoU kiểm định",
+ "metric": "mIoU = trung bình IoU các lớp có mặt (tp+fp+fn > 0), như backend/app/dl/train.py; báo riêng Đất trồng trọt",
+ "threshold": {
+  "miou_test_min": 0.35
+ },
+ "rules": [
+  "Chấm tập kiểm tra đúng một lần.",
+  "Không đạt thì ghi rejected vào landcover_runs.json và không bật.",
+  "Tập kiểm tra này đã dùng cho U-Net lần 1–2; đây là lần chấm cuối trên bộ tỉnh này."
+ ],
+ "registered": "2026-10-09"
+}
