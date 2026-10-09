@@ -418,6 +418,7 @@ export type AnomalyResult = {
 // N8 — ba mục đích tách riêng: nhận cảnh báo · góp quan sát · phục vụ nghiên cứu.
 export type AuthUser = {
   id: number; email: string; name: string; role?: string; email_verified?: boolean;
+  totp_enabled?: boolean;
   consent_alerts?: boolean; consent_observations?: boolean; consent_research?: boolean;
   coop_code?: string; share_with_coop?: boolean;   // Đ11
 };
@@ -479,10 +480,32 @@ export function register(email: string, password: string, name: string) {
     "Không đăng ký được");
 }
 
-export function login(email: string, password: string) {
-  return authed<TokenResponse>("/api/auth/login",
-    { method: "POST", body: JSON.stringify({ email, password }) },
-    "Không đăng nhập được");
+/** GĐ7 — tài khoản bật hai lớp: lỗi mang cờ otpRequired để form hiện ô nhập mã 6 số. */
+export type LoginError = Error & { otpRequired?: boolean };
+export async function login(email: string, password: string, otp?: string): Promise<TokenResponse> {
+  const r = await fetch(`${BASE}/api/auth/login`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(otp ? { email, password, otp } : { email, password }),
+  });
+  if (!r.ok) {
+    const e: LoginError = new Error(await errMessage(r, "Không đăng nhập được"));
+    e.otpRequired = r.status === 401 && r.headers.get("x-otp-required") === "1";
+    throw e;
+  }
+  return r.json();
+}
+
+export type TwoFaSetup = { secret: string; otpauth_uri: string; qr: string | null };
+export function twoFaSetup() {
+  return authed<TwoFaSetup>("/api/auth/2fa/setup", { method: "POST" }, "Không bắt đầu được thiết lập hai lớp");
+}
+export function twoFaEnable(code: string) {
+  return authed<{ enabled: boolean; recovery_codes: string[]; note: string }>("/api/auth/2fa/enable",
+    { method: "POST", body: JSON.stringify({ code }) }, "Không bật được xác thực hai lớp");
+}
+export function twoFaDisable(password: string, code: string) {
+  return authed<{ enabled: boolean }>("/api/auth/2fa/disable",
+    { method: "POST", body: JSON.stringify({ password, code }) }, "Không tắt được xác thực hai lớp");
 }
 
 export function fetchMe() {

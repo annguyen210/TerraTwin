@@ -31,6 +31,8 @@ LIMITS = {
             int(os.environ.get("TERRATWIN_IOT_POSTS_PER_HOUR", "120")), 3_600),
     # Phiếu góp ý thí điểm: ẩn danh đủ cho một người, đăng nhập đủ cho cán bộ HTX nhập
     # lại cả xấp phiếu giấy sau buổi tập huấn.
+    # GĐ7 — lượt nhập mã hai lớp theo tài khoản: chặn dò 10^6 mã khi mật khẩu đã lộ. Không tắt qua env.
+    "otp": (5, 5, 900),
     "feedback": (int(os.environ.get("TERRATWIN_ANON_FEEDBACK_PER_DAY", "10")),
                  int(os.environ.get("TERRATWIN_USER_FEEDBACK_PER_DAY", "300")), 86_400),
 }

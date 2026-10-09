@@ -68,6 +68,45 @@ export default function PricingPage() {
           </div>
         </div>
 
+        {/* GĐ7 kế hoạch tổng — ba gói cho người mua đất, chủ đất, tổ chức. Giá DỰ KIẾN, đang kiểm chứng bằng
+            phỏng vấn; chưa thu tiền khi chưa có pháp nhân và cổng thanh toán. */}
+        <h2>{t("Đất ở, đất nông nghiệp — mua bán và canh đất", "Residential & farm land — buying and watching")}</h2>
+        <p className="doc-note">{t("Giá DỰ KIẾN, đang hỏi ý kiến người mua đất, môi giới và cán bộ tín dụng. Hiện mọi tính năng miễn phí; sẽ báo trước khi thu.",
+                                   "INDICATIVE prices, being validated with land buyers, brokers and loan officers. Everything is free for now; we will announce before charging.")}</p>
+        <div className="price-grid">
+          <div className="price-card">
+            <h3>{t("Hồ sơ lẻ", "Single dossier")}</h3>
+            <div className="price-amt">{t("50–100 nghìn đ", "VND 50–100k")}<small>{t(" / hồ sơ · dự kiến", " / dossier · indicative")}</small></div>
+            <p className="price-for">{t("Người sắp mua, thuê đất — kiểm trước khi đặt cọc", "About to buy or rent land — check before the deposit")}</p>
+            <ul>
+              <li>{t("Lịch sử nước radar 2017 → nay", "Radar water history 2017 → now")}</li>
+              <li>{t("Kiểm chứng tin đăng bán đất từng câu", "Sentence-by-sentence listing check")}</li>
+              <li>{t("Hồ sơ ký số, QR, neo Bitcoin", "Signed dossier, QR, Bitcoin anchor")}</li>
+            </ul>
+          </div>
+          <div className="price-card featured">
+            <span className="price-tag">{t("Mở mỗi sáng", "Every morning")}</span>
+            <h3>{t("Canh đất", "Land watch")}</h3>
+            <div className="price-amt">{t("Theo tháng", "Monthly")}<small>{t(" · miễn phí 1–3 thửa", " · free for 1–3 plots")}</small></div>
+            <p className="price-for">{t("Chủ đất, nông hộ, hợp tác xã nhiều thửa", "Landowners, farmers, co-ops with many plots")}</p>
+            <ul>
+              <li>{t("Nhật ký thửa: chỉ báo khi có thay đổi thật", "Plot journal: only real changes")}</li>
+              <li>{t("Cảnh báo đẩy, bản tin sáng", "Push alerts, morning brief")}</li>
+              <li>{t("So sánh thửa, cảm biến IoT ký số", "Plot comparison, signed IoT sensors")}</li>
+            </ul>
+          </div>
+          <div className="price-card">
+            <h3>{t("Doanh nghiệp", "Business")}</h3>
+            <div className="price-amt">{t("Hợp đồng", "Contract")}<small>{t(" · liên hệ", " · contact us")}</small></div>
+            <p className="price-for">{t("Ngân hàng, bảo hiểm, sàn môi giới", "Banks, insurers, brokerages")}</p>
+            <ul>
+              <li>{t("Thẩm định hàng loạt từ CSV", "Batch appraisal from CSV")}</li>
+              <li>{t("API có khoá, có hạn mức, xác thực hai lớp", "Keyed, metered API with two-factor login")}</li>
+              <li>{t("Cam kết mức dịch vụ (SLA) khi lên gói trả phí", "Service-level agreement on paid plans")}</li>
+            </ul>
+          </div>
+        </div>
+
         <h2>{t("Công cụ thẩm định & theo dõi thửa đất", "Land appraisal & monitoring tools")}</h2>
         {err && <p className="doc-note">{err}</p>}
         {cat && (

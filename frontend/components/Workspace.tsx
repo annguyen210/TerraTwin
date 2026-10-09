@@ -27,6 +27,7 @@ import Learning from "@/components/Learning";
 import PortfolioOverview from "@/components/PortfolioOverview";
 import Roadmap from "@/components/Roadmap";
 import { useLang } from "@/lib/i18n";
+import TwoFactor from "@/components/TwoFactor";
 
 type Tab = "portfolio" | "twins" | "data" | "alerts" | "api" | "learn" | "status";
 
@@ -474,6 +475,7 @@ function ConsentBlock({ user }: { user: AuthUser | null }) {
       </label>
 
       <CoopShareBlock user={user} />
+      <TwoFactor user={user} />
     </div>
   );
 }

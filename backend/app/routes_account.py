@@ -53,6 +53,7 @@ class RegisterIn(BaseModel):
 class LoginIn(BaseModel):
     email: EmailStr
     password: str = Field(max_length=256)
+    otp: str | None = Field(default=None, max_length=32)   # GĐ7 — mã 6 số hoặc mã khôi phục
 
 
 class TokenOut(BaseModel):
@@ -72,6 +73,7 @@ class UserOut(BaseModel):
     consent_research: bool = False      # N8
     coop_code: str = ""                 # Đ11
     share_with_coop: bool = False       # Đ11
+    totp_enabled: bool = False          # GĐ7
 
 
 class PlotIn(BaseModel):
@@ -121,7 +123,8 @@ def _out(u: User) -> UserOut:
                    consent_observations=bool(getattr(u, "consent_observations", 1)),
                    consent_research=bool(getattr(u, "consent_research", 0)),
                    coop_code=getattr(u, "coop_code", "") or "",
-                   share_with_coop=bool(getattr(u, "share_with_coop", 0)))
+                   share_with_coop=bool(getattr(u, "share_with_coop", 0)),
+                   totp_enabled=bool(getattr(u, "totp_enabled", 0)))
 
 
 def _plot_out(p: Plot) -> PlotOut:
@@ -169,6 +172,106 @@ def register(body: RegisterIn, db: Session = Depends(get_session)) -> TokenOut:
     return TokenOut(access_token=auth.create_token(user.id), user=_out(user))
 
 
+# ------------------------------------------------------------------ GĐ7: xác thực hai lớp (TOTP)
+
+_OTP_HDR = {"X-OTP-Required": "1"}
+
+
+def _check_second_factor(db: Session, user: User, code: str | None) -> None:
+    """Mã 6 số từ ứng dụng Authenticator, hoặc một mã khôi phục dùng một lần. Sai → 401; dò → 429."""
+    from app.services import quota, totp
+    if not code:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED,
+                            "Tài khoản bật xác thực hai lớp — nhập mã 6 số từ ứng dụng Authenticator.",
+                            headers=_OTP_HDR)
+    wait = quota.take("otp", f"u{user.id}", True)
+    if wait is not None:
+        raise HTTPException(429, f"Nhập sai mã quá nhiều lần — thử lại sau {wait // 60 + 1} phút.",
+                            headers={"Retry-After": str(wait)})
+    try:
+        secret = totp.unseal(user.totp_secret or "")
+    except Exception:  # noqa: BLE001 — khoá máy chủ đổi: chỉ còn đường mã khôi phục
+        secret = None
+    st = totp.verify(secret, code, user.totp_last_step) if secret else None
+    if st is not None:
+        user.totp_last_step = st
+        return
+    left = totp.use_recovery(user.totp_recovery, code)
+    if left is not None:
+        user.totp_recovery = left
+        log_audit(db, user.id, "2fa_recovery_used")
+        return
+    raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Mã xác thực hai lớp không đúng hoặc đã dùng.",
+                        headers=_OTP_HDR)
+
+
+class OtpIn(BaseModel):
+    code: str = Field(min_length=6, max_length=32)
+
+
+class Disable2faIn(BaseModel):
+    password: str = Field(max_length=256)
+    code: str = Field(min_length=6, max_length=32)
+
+
+@router.post("/api/auth/2fa/setup")
+def twofa_setup(user: User = Depends(auth.current_user), db: Session = Depends(get_session)) -> dict:
+    """Bước 1: sinh bí mật (chưa bật). Trả URI otpauth + mã QR để quét bằng ứng dụng Authenticator."""
+    from app.services import totp
+    if getattr(user, "totp_enabled", 0):
+        raise HTTPException(409, "Xác thực hai lớp đã bật.")
+    sec = totp.new_secret()
+    try:
+        user.totp_pending = totp.seal(sec)
+    except totp.NoStableSecret as e:
+        raise HTTPException(503, str(e))
+    db.commit()
+    u = totp.uri(sec, user.email)
+    try:
+        import segno
+        qr = segno.make(u, error="m").svg_data_uri(scale=4, border=2)
+    except Exception:  # noqa: BLE001
+        qr = None
+    return {"secret": sec, "otpauth_uri": u, "qr": qr}
+
+
+@router.post("/api/auth/2fa/enable")
+def twofa_enable(body: OtpIn, user: User = Depends(auth.current_user), db: Session = Depends(get_session)) -> dict:
+    """Bước 2: nhập mã đang hiện trên ứng dụng (chứng minh đã quét đúng) → bật. Trả 8 mã khôi phục, một lần."""
+    from app.services import quota, totp
+    if not user.totp_pending:
+        raise HTTPException(409, "Chưa có bước thiết lập — gọi /api/auth/2fa/setup trước.")
+    wait = quota.take("otp", f"u{user.id}", True)
+    if wait is not None:
+        raise HTTPException(429, "Nhập sai mã quá nhiều lần — thử lại sau.", headers={"Retry-After": str(wait)})
+    sec = totp.unseal(user.totp_pending)
+    st = totp.verify(sec, body.code, None)
+    if st is None:
+        raise HTTPException(422, "Mã không khớp — kiểm tra giờ trên điện thoại và nhập mã đang hiện.")
+    codes, stored = totp.new_recovery_codes()
+    user.totp_secret, user.totp_pending, user.totp_enabled = user.totp_pending, None, 1
+    user.totp_last_step, user.totp_recovery = st, stored
+    log_audit(db, user.id, "2fa_enabled")
+    db.commit()
+    return {"enabled": True, "recovery_codes": codes,
+            "note": "Lưu 8 mã khôi phục ở nơi an toàn — mỗi mã dùng một lần khi mất điện thoại. Chúng không hiện lại."}
+
+
+@router.post("/api/auth/2fa/disable")
+def twofa_disable(body: Disable2faIn, user: User = Depends(auth.current_user),
+                  db: Session = Depends(get_session)) -> dict:
+    """Tắt cần CẢ mật khẩu lẫn mã (hoặc mã khôi phục) — token bị lộ một mình không tắt được lớp bảo vệ."""
+    if not getattr(user, "totp_enabled", 0):
+        return {"enabled": False}
+    if not auth.verify_password(body.password, user.password_hash):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Mật khẩu không đúng.")
+    _check_second_factor(db, user, body.code)
+    user.totp_enabled, user.totp_secret, user.totp_recovery, user.totp_last_step = 0, None, None, None
+    log_audit(db, user.id, "2fa_disabled")
+    db.commit()
+    return {"enabled": False}
+
+
 @router.post("/api/auth/login", response_model=TokenOut)
 def login(body: LoginIn, db: Session = Depends(get_session)) -> TokenOut:
     email = body.email.strip().lower()
@@ -181,6 +284,8 @@ def login(body: LoginIn, db: Session = Depends(get_session)) -> TokenOut:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Email hoặc mật khẩu không đúng.")
     if not auth.verify_password(body.password, user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Email hoặc mật khẩu không đúng.")
+    if getattr(user, "totp_enabled", 0):
+        _check_second_factor(db, user, body.otp)
     # Đ11 sửa sau kiểm toán — email nằm trong TERRATWIN_ADMIN_EMAILS được
     # NÂNG lên admin mỗi lần đăng nhập (bắt được cả trường hợp tài khoản đã
     # tồn tại TRƯỚC khi email được thêm vào danh sách). CỐ Ý không tự động
@@ -445,7 +550,7 @@ def _row_to_dict(row) -> dict:
             v = v.isoformat()
         # Không bao giờ xuất bí mật ra ngoài, kể cả cho chính chủ: hash mật khẩu
         # và hash khoá API là thứ không được rời database.
-        if c.name in ("password_hash", "key_hash", "prefix_hash"):
+        if c.name in ("password_hash", "key_hash", "prefix_hash", "totp_secret", "totp_pending", "totp_recovery"):
             continue
         if isinstance(v, (bytes, bytearray)):
             continue                     # ảnh thu nhỏ: tải qua /api/evidence/{id}/thumb

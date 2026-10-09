@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { login, register, setToken, type AuthUser } from "@/lib/api";
+import { login, register, setToken, type AuthUser, type LoginError } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 import { LogIn } from "lucide-react";
 
@@ -20,6 +20,8 @@ export default function Account({
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [otpNeeded, setOtpNeeded] = useState(false);   // GĐ7 — tài khoản bật hai lớp
+  const [otp, setOtp] = useState("");
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,13 +30,16 @@ export default function Account({
     try {
       const r =
         mode === "login"
-          ? await login(email.trim(), password)
+          ? await login(email.trim(), password, otpNeeded ? otp.trim() : undefined)
           : await register(email.trim(), password, name.trim());
       setToken(r.access_token);
       onAuth(r.user);
       setOpen(false);
       setPassword("");
+      setOtp("");
+      setOtpNeeded(false);
     } catch (e) {
+      if ((e as LoginError).otpRequired) setOtpNeeded(true);
       setErr((e as Error).message);
     } finally {
       setBusy(false);
@@ -120,6 +125,19 @@ export default function Account({
         required
         minLength={mode === "register" ? 8 : undefined}
       />
+      {mode === "login" && otpNeeded && (
+        <input
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          aria-label={t("Mã xác thực hai lớp", "Two-factor code")}
+          placeholder={t("Mã 6 số trong ứng dụng Authenticator (hoặc mã khôi phục)", "6-digit code from your Authenticator app (or a recovery code)")}
+          value={otp}
+          onChange={(e) => setOtp(e.target.value)}
+          maxLength={32}
+          required
+          autoFocus
+        />
+      )}
       {mode === "login" && (
         <a className="acct-forgot" href="/forgot">{t("Quên mật khẩu?", "Forgot password?")}</a>
       )}

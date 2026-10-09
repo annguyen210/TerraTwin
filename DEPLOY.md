@@ -111,6 +111,17 @@ tại open-meteo.com rồi đặt `TERRATWIN_OPENMETEO_API_KEY` trên `terratwin
 tự đổi sang máy chủ `customer-*.open-meteo.com` kèm `&apikey=` (`services/openmeteo.py`); khoá chỉ chèn ở
 bước gửi đi, không vào khoá cache hay log. Kiểm: `GET /api/health` → `weather_data_plan.plan = "commercial"`.
 
+## Bảo mật tài khoản quản trị — xác thực hai lớp (GĐ7)
+
+1. Đăng nhập bằng email quản trị → Khu làm việc → **Xác thực hai lớp** → quét QR bằng ứng dụng Authenticator,
+   nhập mã 6 số → **lưu 8 mã khôi phục** (chỉ hiện một lần).
+2. Đăng xuất, đăng nhập lại bằng mật khẩu + mã 6 số để chắc chắn chạy.
+3. Render → `terratwin-api` → Environment: `TERRATWIN_ADMIN_REQUIRE_2FA` = `1`. Từ đó mục `/api/admin/*` từ chối
+   tài khoản quản trị chưa bật hai lớp và mọi khoá API.
+
+Bắt buộc có `TERRATWIN_SECRET` cố định (đã đặt khi triển khai) — thiếu thì máy chủ từ chối bật hai lớp, vì khởi
+động lại sẽ không giải mã được bí mật TOTP. Mô hình mối đe doạ đầy đủ: [`THREAT_MODEL.md`](THREAT_MODEL.md).
+
 ## (Tùy chọn) Bật trợ lý LLM
 `terratwin-api` → Environment, đặt theo nhà cung cấp:
 - OpenAI-compatible (DeepSeek/Groq/OpenRouter…): `TERRATWIN_LLM_API_KEY` + `TERRATWIN_LLM_BASE_URL` + `TERRATWIN_LLM_MODEL`.

@@ -329,6 +329,9 @@ app.add_middleware(
     allow_origins=_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
+    # GĐ7 — trình duyệt chỉ đọc được header tuỳ biến khi máy chủ cho phép: giao diện cần biết "cần mã
+    # hai lớp" (X-OTP-Required) và còn phải chờ bao lâu (Retry-After).
+    expose_headers=["X-OTP-Required", "Retry-After"],
 )
 
 # ---- Rate limit đơn giản theo IP (sliding window, in-memory) ----

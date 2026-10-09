@@ -82,6 +82,8 @@ const EMBED_HEADERS = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // GĐ7 — không quảng cáo khung phần mềm cho người dò lỗ hổng (ZAP 10037).
+  poweredByHeader: false,
   async headers() {
     return [
       // /embed trước để header nới khung của nó thắng (Next lấy match đầu tiên).

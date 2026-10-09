@@ -1,0 +1,14 @@
+# Quy tắc ZAP baseline cho TerraTwin (GĐ7). Cột: id<TAB>FAIL|WARN|IGNORE<TAB>ghi chú.
+# FAIL = cổng cứng: thiếu header bảo vệ cơ bản là lỗi, không phải cảnh báo.
+10020	FAIL	(Chống clickjacking: X-Frame-Options / frame-ancestors)
+10021	FAIL	(X-Content-Type-Options nosniff)
+10035	FAIL	(Strict-Transport-Security)
+10038	FAIL	(Thiếu Content-Security-Policy)
+10037	FAIL	(Lộ X-Powered-By)
+10098	FAIL	(CORS cấu hình sai)
+10011	FAIL	(Cookie thiếu Secure)
+10010	FAIL	(Cookie thiếu HttpOnly)
+10055	WARN	(CSP: script unsafe-inline — Next.js chèn script nội tuyến; theo dõi, chưa chặn)
+10202	IGNORE	(Anti-CSRF token: API dùng Bearer token trong header, không dùng cookie phiên)
+10049	IGNORE	(Nội dung cache được — trang tĩnh công khai, chủ ý)
+10015	IGNORE	(Cache-control — như trên)

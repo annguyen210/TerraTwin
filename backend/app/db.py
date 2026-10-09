@@ -129,6 +129,13 @@ class User(Base):
     # đây cũng là mục đích RỘNG lộ toạ độ cho người khác ngoài chủ thửa).
     coop_code: Mapped[str] = mapped_column(String(64), default="", server_default="")
     share_with_coop: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    # GĐ7 — xác thực hai lớp TOTP (services/totp.py). Bí mật lưu đã mã hoá AES-GCM; mã khôi phục chỉ
+    # lưu SHA-256; totp_last_step chống dùng lại cùng một mã trong 30 giây.
+    totp_enabled: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    totp_secret: Mapped[str | None] = mapped_column(Text, nullable=True)
+    totp_pending: Mapped[str | None] = mapped_column(Text, nullable=True)
+    totp_last_step: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    totp_recovery: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
     plots: Mapped[list["Plot"]] = relationship(
@@ -792,6 +799,12 @@ class LabelerGrant(Base):
 # trong MỘT giao dịch nên app không khởi động nổi — hỏng ở đúng nơi không ai
 # gỡ được. Dùng `TIMESTAMP`: chuẩn SQL, PostgreSQL hiểu, SQLite cũng nhận.
 _ADDED_COLUMNS = [
+    # GĐ7 — xác thực hai lớp (9/10/2026).
+    ("users", "totp_enabled", "INTEGER DEFAULT 0"),
+    ("users", "totp_secret", "TEXT"),
+    ("users", "totp_pending", "TEXT"),
+    ("users", "totp_last_step", "INTEGER"),
+    ("users", "totp_recovery", "TEXT"),
     # Thẩm định hàng loạt chạy tiếp được sau khi máy chủ ngủ (2/10/2026). Bảng
     # đã chạy trên production với các lô đã xong → mặc định 'done'.
     ("batch_runs", "state", "VARCHAR(12) DEFAULT 'done'"),

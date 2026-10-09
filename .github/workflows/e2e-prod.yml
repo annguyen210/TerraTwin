@@ -65,3 +65,38 @@ jobs:
           done
           # Hiệu năng trên gói miễn phí dao động theo máy chủ ngủ/dậy → chỉ báo cáo; truy cập là cổng cứng.
           [ "$fail" = "0" ]
+
+  zap:
+    # GĐ7 — OWASP ZAP baseline: quét THỤ ĐỘNG (chỉ đọc, không tấn công) trang web và API production.
+    # Cổng cứng: các quy tắc FAIL trong .zap/rules.tsv (thiếu header bảo vệ cơ bản, lộ X-Powered-By, CORS
+    # sai, cookie thiếu cờ). Cảnh báo còn lại vào báo cáo tải về được.
+    name: OWASP ZAP baseline (thụ động)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - name: Đánh thức web + api
+        run: |
+          for u in "$API/api/health" "$WEB/help"; do
+            for i in 1 2 3 4 5 6; do curl -fsS -o /dev/null --max-time 60 "$u" && break; sleep 20; done
+          done
+      - name: ZAP baseline — web + api
+        run: |
+          chmod a+w .
+          fail=0
+          for target in "$WEB" "$API/api/health"; do
+            name=$(echo "$target" | sed 's#https://##; s#[/.]#-#g')
+            docker run --rm -v "$PWD:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable zap-baseline.py               -t "$target" -m 2 -I -c .zap/rules.tsv -r "zap-$name.html" -J "zap-$name.json" || ec=$?
+            ec=${ec:-0}
+            echo "::notice::ZAP $target — mã thoát $ec (0 đạt, 1 có quy tắc FAIL, 3 lỗi chạy)"
+            [ "$ec" = "1" ] && fail=1
+            [ "$ec" = "3" ] && echo "::warning::ZAP không chạy trọn được với $target"
+            unset ec
+          done
+          [ "$fail" = "0" ]
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-reports
+          path: zap-*.*
+          if-no-files-found: ignore
