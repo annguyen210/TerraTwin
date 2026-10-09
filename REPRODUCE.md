@@ -178,6 +178,32 @@ phân vị VV < −18 dB **và** thấp hơn nền của chính thửa ≥ 3 dB;
 Giới hạn: đô thị (phản xạ kép), rừng rậm, sườn dốc, mặt rất phẳng; chu kỳ 6–12 ngày có thể lọt đợt ngập ngắn
 (lũ đỉnh 27–30/10/2025 được thấy ở cảnh 01/11 khi nước còn đọng). Đây là số đo radar, không phải số liệu ngập chính thức.
 
+## 8. Kiểm một hồ sơ mà không cần tin TerraTwin — CỔNG GĐ4
+
+Một tệp duy nhất, không import mã máy chủ: [`ops/verify_dossier.py`](ops/verify_dossier.py).
+
+```bash
+pip install cryptography opentimestamps     # opentimestamps chỉ cần cho bước 5
+python ops/verify_dossier.py <mã hồ sơ>       # hoặc dán cả đường dẫn https://…/h/<mã>
+python ops/verify_dossier.py --file terratwin-ho-so-<mã>.json --offline   # tệp đã tải, không mạng
+```
+
+Năm phép kiểm: (1) SHA-256 nội dung = `facts_hash` và nội dung hiển thị = nội dung đã ký; (2) mục sổ
+`terratwin.dossier/1|seq|id|issued_at|facts_hash|prev_hash` băm ra `entry_hash`; (3) chữ ký Ed25519 bằng
+khoá ở `/api/dossiers/keys`; (4) chữ ký đầu cây + bằng chứng bao hàm RFC 9162 từ lá của hồ sơ lên gốc
+Merkle; (5) neo Bitcoin: mục lục `anchors.json` đọc THẲNG từ nhánh `transparency-log` trên GitHub, hồ sơ
+nằm trong gốc cây đã neo, bằng chứng OpenTimestamps tới gốc Merkle của khối Bitcoin (đối chiếu
+blockstream.info / mempool.space).
+
+Neo hằng ngày: `.github/workflows/transparency.yml` → `ops/ots_anchor.py` ghi `sth/<n>.txt` (đúng chuỗi đầu
+cây đã ký) + `sth/<n>.txt.ots`. Tự kiểm bằng công cụ chuẩn: `ots verify sth/<n>.txt.ots` hoặc tải hai tệp
+lên https://opentimestamps.org.
+
+Cổng (test `backend/tests/test_gd4_evidence.py`, chạy trong CI): sửa một ký tự bản hồ sơ → máy chủ và
+script độc lập đều báo hỏng; con số bịa trong lời LLM → cả câu bị loại, giữ câu mẫu; mỗi câu mẫu chỉ dùng
+số có trong bằng chứng nó dẫn; inclusion proof kiểm bằng thuật toán viết lại độc lập; gốc đã neo lệch sổ
+hiện tại → trang hồ sơ báo đỏ.
+
 ## Nếu một bước không ra kết quả
 
 - **Gọi mạng hụt / rate-limit Open-Meteo**: các endpoint mục 1–3 gọi API thời

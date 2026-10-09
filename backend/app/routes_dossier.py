@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from app import auth
 from app.db import Dossier, FieldPhoto, User, get_session
 from app.schemas import Location
-from app.services import disclosure, dossier, evidence, onetap, region, reqlang, signing, translog
+from app.services import anchor, disclosure, dossier, evidence, narrative, onetap, region, reqlang, signing, translog
 
 router = APIRouter(tags=["dossier"])
 
@@ -49,6 +49,11 @@ def _payload(db: Session, row: Dossier, token: str | None = None) -> dict:
         out["transparency"] = {**tl, "head": translog.head(db)}
     except (ValueError, IndexError):
         out["transparency"] = None
+    try:
+        out["anchor"] = anchor.for_seq(db, row.seq)
+    except (ValueError, IndexError, KeyError, TypeError):
+        out["anchor"] = None
+    out["narrative"] = narrative.build(facts, row.id)
     if facts.get("kind") == "eudr_plot":
         from app.db import DossierMonitor
         m = db.execute(select(DossierMonitor).where(DossierMonitor.dossier_id == row.id)

@@ -8,11 +8,17 @@ name: Transparency witness
 # Nhánh riêng (không phải main) để không kích hoạt deploy Render mỗi ngày.
 # KHÔNG cần secret: mọi API dùng ở đây đều công khai, chỉ đọc.
 #
-# 23:17 UTC = 06:17 giờ VN.
+# NEO BITCOIN (GĐ4): sau khi ghi đầu cây, ops/ots_anchor.py gửi mã băm đầu cây lên OpenTimestamps
+# (miễn phí) và nâng cấp các bằng chứng đang chờ khi giao dịch Bitcoin được đào → sth/*.ots +
+# anchors.json trên cùng nhánh. Từ lúc vào khối, ngay cả TerraTwin cũng không lùi ngày hồ sơ được.
+#
+# 23:17 UTC = 06:17 giờ VN (ghi đầu cây + neo). 11:17 UTC: lượt thứ hai để nâng cấp bằng chứng
+# đang chờ sớm hơn (khối Bitcoin thường xác nhận sau vài giờ).
 
 on:
   schedule:
     - cron: "17 23 * * *"
+    - cron: "17 11 * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -51,14 +57,19 @@ jobs:
           pip install --quiet "cryptography>=42"
           python3 ops/translog_witness.py ../tlog/heads.jsonl
 
+      - name: Neo đầu cây vào Bitcoin (OpenTimestamps)
+        run: |
+          pip install --quiet "opentimestamps>=0.4.5,<1"
+          python3 ops/ots_anchor.py ../tlog
+
       - name: Commit lên nhánh transparency-log
         run: |
           cd ../tlog
           git config user.name "terratwin-witness"
           git config user.email "witness@users.noreply.github.com"
           if [ -n "$(git status --porcelain)" ]; then
-            git add heads.jsonl
-            git commit -m "Đầu cây $(tail -n1 heads.jsonl | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d["tree_size"], d["root_hash"][:16])')"
+            git add heads.jsonl anchors.json sth
+            git commit -m "Đầu cây $(tail -n1 heads.jsonl | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d["tree_size"], d["root_hash"][:16])') · neo: $(python3 -c 'import json; a=json.load(open("anchors.json"))["anchors"]; print(sum(x.get("status")=="confirmed" for x in a), "/", len(a), "đã vào Bitcoin")')"
             git push origin transparency-log
           else
             echo "Không có đầu cây mới."

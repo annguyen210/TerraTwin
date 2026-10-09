@@ -2266,6 +2266,23 @@ export type Dossier = DossierDoc & {
                    head: { tree_size: number; root_hash: string; timestamp: string; key_id: string; signature: string } } | null;
   monitor?: { checked_at: string; level: string; issued_level: string; changed: boolean; why?: string[];
               reasons?: string[]; s2_after?: string | null } | null;
+  narrative?: DossierNarrative | null;
+  anchor?: DossierAnchor | null;
+};
+// GĐ4 — lời diễn giải: mỗi câu dẫn id bằng chứng; bằng chứng dựng thẳng từ nội dung đã ký.
+export type EvidenceItem = { label: string; value: string; source: string; measured: string; reproduce: string; url?: string | null };
+export type DossierNarrative = {
+  mode: "template" | "llm"; blocked_sentences: number; note: string;
+  sentences: { id: string; text: string; evidence: string[]; by?: "llm" }[];
+  evidence: Record<string, EvidenceItem>;
+};
+// GĐ4 — neo gốc cây vào Bitcoin bằng OpenTimestamps (mục lục trên nhánh transparency-log).
+export type DossierAnchor = {
+  status: "confirmed" | "pending" | "not_yet" | "root_mismatch" | "unavailable";
+  tree_size?: number; root_hash?: string; sth_timestamp?: string; submitted_at?: string | null;
+  bitcoin_height?: number | null; bitcoin_time?: string | null;
+  leaf_index?: number; leaf_hash?: string; proof?: string[];
+  sth_url?: string | null; ots_url?: string | null; branch: string; latest_anchor_size?: number | null;
 };
 export type DossierFileCheck = {
   valid: boolean; found: boolean; matches_registry?: boolean;

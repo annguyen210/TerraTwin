@@ -4250,10 +4250,39 @@ a.plan-print{ text-decoration:none; display:inline-flex; align-items:center }
 .dos-photo ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: .74rem; color: var(--ink2); }
 .dos-photo li.bad { color: var(--red); }
 .dos-photo code { font-size: .68rem; color: var(--ink2); }
+/* GĐ4 — tóm tắt bấm-ra-bằng-chứng + trạng thái neo Bitcoin */
+.dn-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; counter-reset: dn; }
+.dn-list > li { counter-increment: dn; border: 1px solid var(--rule); border-radius: 6px; }
+.dn-list > li.on { border-color: var(--green); }
+.dn-s { all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: grid; grid-template-columns: 22px minmax(0, 1fr) auto;
+  gap: 4px 10px; align-items: baseline; padding: 9px 12px; font-size: .94rem; line-height: 1.5; color: var(--ink); }
+.dn-s::before { content: counter(dn); font-weight: 700; color: var(--green); font-variant-numeric: tabular-nums; }
+.dn-s:hover span { text-decoration: underline dotted var(--green); text-underline-offset: 3px; }
+.dn-s:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; border-radius: 6px; }
+.dn-count { font-size: .7rem; color: var(--ink2); white-space: nowrap; border: 1px solid var(--rule); border-radius: 99px; padding: 1px 8px; }
+.dn-ev { padding: 4px 12px 12px 44px; display: grid; gap: 10px; }
+.dn-ev dl { margin: 0; display: grid; grid-template-columns: minmax(90px, max-content) minmax(0, 1fr); gap: 3px 12px;
+  font-size: .82rem; background: #f3f6f2; border-radius: 6px; padding: 10px 12px; }
+.dn-ev dt { color: var(--ink2); }
+.dn-ev dt:first-child { grid-column: 1 / -1; font-weight: 700; color: var(--ink); }
+.dn-ev dd { margin: 0; color: var(--ink); min-width: 0; overflow-wrap: anywhere; }
+.dn-ev dd.dn-val { grid-column: 1 / -1; font-size: 1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.dn-ev dd.dn-id { grid-column: 1 / -1; color: var(--ink2); }
+.dn-ev a { color: var(--green); }
+@media (max-width: 640px) { .dn-s { grid-template-columns: 18px minmax(0, 1fr); } .dn-count { grid-column: 2; justify-self: start; } .dn-ev { padding-left: 12px; } }
+.dos-anchor { margin-top: 10px; border-radius: 6px; padding: 10px 14px; display: grid; gap: 4px; font-size: .86rem; color: var(--ink); }
+.dos-anchor p { margin: 0; line-height: 1.5; }
+.dos-anchor.ok { background: #e9f4ee; border: 1px solid #b9dcc8; }
+.dos-anchor.ok b { color: var(--green); }
+.dos-anchor.wait { background: #f6f1e6; border: 1px solid #e4d6b4; }
+.dos-anchor.bad { background: #f8e7e4; border: 1px solid #e6bdb5; }
+.dos-anchor.bad b { color: var(--red); }
 @media print {
   .dos-noprint { display: none !important; }
   .dos, .dos-wrap { background: #fff !important; padding: 0 !important; }
   .dos-paper { box-shadow: none; border-radius: 0; padding: 0; }
+  .dos-paper section { break-inside: avoid; }
+  .dn-count { display: none; }
 }
 
 /* Nút phát hành hồ sơ trong Kế hoạch thửa — hành động chính, dùng màu nhấn */

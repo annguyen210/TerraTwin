@@ -15,11 +15,12 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   evidenceThumbSrc, getDossier, verifyDossierFile,
-  type Dossier, type DossierFileCheck, type DossierModule,
+  type Dossier, type DossierAnchor, type DossierFileCheck, type DossierModule,
 } from "@/lib/api";
 import EudrDossierView from "@/components/EudrDossierView";
 import LotCertificateView from "@/components/LotCertificateView";
 import DeliveryConfirm from "@/components/DeliveryConfirm";
+import DossierNarrative from "@/components/DossierNarrative";
 import AppShell from "@/components/AppShell";
 import { useLang } from "@/lib/i18n";
 import { levelOf } from "@/lib/riskScale";
@@ -43,6 +44,42 @@ function statusTag(m: DossierModule, t: (vi: string, en: string) => string) {
   if (m.status === "need_data") return t("thiếu dữ liệu", "no data");
   if (m.status === "out_of_scope") return t("không áp dụng", "not applicable");
   return m.is_real ? t("đo thật", "measured") : t("ước lượng", "estimated");
+}
+
+const REPO = "https://github.com/annguyen210/TerraTwin";
+
+/** GĐ4 — trạng thái neo gốc cây vào Bitcoin (OpenTimestamps), đọc từ nhánh transparency-log công khai. */
+function AnchorLine({ a, t }: { a: DossierAnchor; t: (vi: string, en: string) => string }) {
+  if (a.status === "confirmed") return (
+    <div className="dos-anchor ok">
+      <b>{t("⚓ Đã neo vào Bitcoin", "⚓ Anchored in Bitcoin")}</b>
+      <p>{t(`Hồ sơ nằm trong gốc cây ${a.tree_size} hồ sơ, ghi vào khối Bitcoin #${a.bitcoin_height} lúc ${a.bitcoin_time ? fmtTime(a.bitcoin_time) : "—"}. Từ thời điểm đó không ai — kể cả TerraTwin — lùi ngày hồ sơ này được.`,
+             `This dossier is inside the root of a ${a.tree_size}-dossier tree recorded in Bitcoin block #${a.bitcoin_height} at ${a.bitcoin_time ? fmtTime(a.bitcoin_time) : "—"}. From then on nobody — TerraTwin included — can backdate it.`)}</p>
+      <p className="dos-src">{a.sth_url && <a href={a.sth_url} target="_blank" rel="noreferrer">{t("tệp đầu cây", "tree-head file")}</a>}
+        {a.ots_url && <> · <a href={a.ots_url} target="_blank" rel="noreferrer">{t("bằng chứng .ots", ".ots proof")}</a></>}
+        {" · "}<a href="https://opentimestamps.org" target="_blank" rel="noreferrer">{t("kiểm tại opentimestamps.org", "verify at opentimestamps.org")}</a></p>
+    </div>
+  );
+  if (a.status === "pending") return (
+    <div className="dos-anchor wait">
+      <b>{t("⏳ Đang neo vào Bitcoin", "⏳ Anchoring in Bitcoin")}</b>
+      <p>{t(`Gốc cây ${a.tree_size} hồ sơ (có chứa hồ sơ này) đã gửi lên OpenTimestamps${a.submitted_at ? " lúc " + fmtTime(a.submitted_at) : ""}; chờ Bitcoin xác nhận, thường vài giờ.`,
+             `The root of the ${a.tree_size}-dossier tree (which contains this dossier) was sent to OpenTimestamps${a.submitted_at ? " at " + fmtTime(a.submitted_at) : ""}; awaiting Bitcoin confirmation, usually a few hours.`)}</p>
+    </div>
+  );
+  if (a.status === "root_mismatch") return (
+    <div className="dos-anchor bad">
+      <b>{t("✗ Gốc cây đã neo KHÔNG khớp sổ hiện tại", "✗ The anchored tree root does NOT match the current log")}</b>
+      <p>{t("Sổ đăng ký đã bị viết lại sau khi neo. Đừng tin hồ sơ này cho tới khi có giải thích.", "The registry was rewritten after anchoring. Do not trust this dossier until explained.")}</p>
+    </div>
+  );
+  if (a.status === "not_yet") return (
+    <div className="dos-anchor wait">
+      <p>{t("Hồ sơ phát hành sau lần neo Bitcoin gần nhất; lượt neo hằng ngày tới (06:17 giờ Việt Nam) sẽ bao gồm nó.",
+             "Issued after the latest Bitcoin anchor; the next daily anchoring run (23:17 UTC) will include it.")}</p>
+    </div>
+  );
+  return <div className="dos-anchor wait"><p>{t("Chưa đọc được trạng thái neo Bitcoin — thử lại sau.", "Could not read the Bitcoin anchor status — try again later.")}</p></div>;
 }
 
 export default function DossierPage() {
@@ -135,8 +172,8 @@ export default function DossierPage() {
               )}
             </div>
 
-            <section className={`dos-verify ${v.valid ? "ok" : "bad"}`} aria-live="polite">
-              <b>{v.valid
+            <section className={`dos-verify ${v.valid && d.anchor?.status !== "root_mismatch" ? "ok" : "bad"}`} aria-live="polite">
+              <b>{v.valid && d.anchor?.status !== "root_mismatch"
                 ? t("✓ Bản gốc — đã kiểm chứng", "✓ Original — verified")
                 : t("✗ KHÔNG qua kiểm chứng — đừng tin nội dung dưới đây", "✗ FAILED verification — do not trust the content below")}</b>
               <ul>
@@ -156,6 +193,8 @@ export default function DossierPage() {
                 <small>{t("Kết quả SỐNG — không phải nội dung đã ký (hồ sơ đã ký là bất biến).", "LIVE result — not signed content (the signed dossier is immutable).")}</small>
               </section>
             )}
+
+            {!isEudr && !isLot && d.narrative && <DossierNarrative n={d.narrative} />}
 
             {isEudr && <EudrDossierView f={f as unknown as EudrDossierFacts} revealed={d.revealed} />}
             {isEudr && tok && <DeliveryConfirm id={d.id} token={tok} />}
@@ -357,6 +396,10 @@ export default function DossierPage() {
                   `Hồ sơ này là lá #${d.transparency.seq} của cây Merkle gồm ${d.transparency.tree_size} hồ sơ; đầu cây đã ký lúc ${fmtTime(d.transparency.head.timestamp)}. Mỗi ngày một tác vụ độc lập trên GitHub lưu đầu cây và kiểm cây chỉ được thêm, không bị sửa (nhánh transparency-log).`,
                   `This dossier is leaf #${d.transparency.seq} of a Merkle tree of ${d.transparency.tree_size} dossiers; tree head signed at ${fmtTime(d.transparency.head.timestamp)}. Every day an independent GitHub job stores the tree head and checks the tree is append-only (branch transparency-log).`)}</p>
                 <p className="dos-src"><code className="eu-hash">{d.transparency.root_hash}</code></p>
+                {d.anchor && <AnchorLine a={d.anchor} t={t} />}
+                <p className="dos-src">{t("Tự kiểm mọi thứ trên trang này mà không cần tin máy chủ: ", "Check everything on this page without trusting the server: ")}
+                  <code>python verify_dossier.py {d.id}</code>{" "}
+                  (<a href={`${REPO}/blob/main/ops/verify_dossier.py`} target="_blank" rel="noreferrer">{t("tải script độc lập", "get the standalone script")}</a>)</p>
               </section>
             )}
 

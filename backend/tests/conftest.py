@@ -30,6 +30,10 @@ os.environ["TERRATWIN_STARTUP_WARMUP"] = "0"
 # luồng nền tự chạy song song sẽ giành việc trước khi test kịp kiểm tra.
 os.environ["TERRATWIN_JOBS_POLL_INTERVAL_S"] = "0"
 
+# GĐ4 — trạng thái neo OpenTimestamps đọc từ nhánh transparency-log trên GitHub: test không gọi
+# mạng thật (test riêng giả lập mục lục neo).
+os.environ["TERRATWIN_ANCHORS_URL"] = "off"
+
 
 # CSDL RIÊNG CHO MỖI LẦN CHẠY TEST.
 #
