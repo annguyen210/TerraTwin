@@ -1,0 +1,17 @@
+{
+ "schema": "terratwin.anchors/1",
+ "updated": "2026-10-09T15:53:52Z",
+ "how_to_verify": "ots verify sth/<n>.txt.ots (hoặc tải cả hai tệp lên https://opentimestamps.org); python ops/verify_dossier.py <mã hồ sơ> kiểm luôn hồ sơ nằm trong gốc cây đã neo.",
+ "anchors": [
+  {
+   "tree_size": 6,
+   "submitted_at": "2026-10-09T15:53:52Z",
+   "status": "pending",
+   "root_hash": "b3c5896481b7f6fc7a5dc494f0617ef5ad33735cd1f4b90245e0f8c04bf65bd6",
+   "sth_timestamp": "2026-10-03T12:03:01Z",
+   "file": "sth/6.txt",
+   "ots": "sth/6.txt.ots",
+   "digest_sha256": "43a38032baf9c1c5e557a885affae50a43ad9efaea63cfdc5e3d5aebe7474716"
+  }
+ ]
+}
