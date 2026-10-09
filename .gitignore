@@ -61,3 +61,6 @@ iot_sim_key*.txt
 
 # khoá deploy SSH cho repo sao lưu (khoá riêng KHÔNG BAO GIỜ commit)
 .backup-deploy-key*
+
+# GĐ5 — vectơ AlphaEarth cho 213 ô loại đất (~20 MB): dựng lại được bằng `python -m app.ml.aef_landcover extract`
+backend/data/ml/aef_lc_features.npz

@@ -1,0 +1,36 @@
+{
+ "id": "terratwin.gd5/1",
+ "registered": "2026-10-09",
+ "rule": "Ngưỡng viết TRƯỚC khi huấn luyện; chia tập cố định; tập kiểm tra chấm đúng một lần; không đạt thì công khai kết quả trượt và không bật.",
+ "models": {
+  "landcover": {
+   "status": "đăng ký riêng — xem aef_landcover_protocol.json (AlphaEarth thay Prithvi: cùng loại mô hình nền, chạy được trên CPU)",
+   "threshold": {"miou_holdout_min": 0.35},
+   "holdout_provinces": ["Cần Giờ", "Cần Thơ", "Hà Giang", "Đà Nẵng"]
+  },
+  "s1_water": {
+   "id": "terratwin.gd5.s1_water/1",
+   "script": "ml/kaggle/s1_water_seg.py (GPU Kaggle)",
+   "data": "Sen1Floods11 v1.1, nhãn tay, Sentinel-1 VV/VH dB, chia tập chính thức: train 252 · valid 89 · test 90 · Bolivia 15",
+   "model": "U-Net 4 tầng, 32 kênh đầu, BCE (pos_weight 2) + Dice, AdamW 1e-3, cosine, 40 vòng, lật/xoay ngẫu nhiên, hạt giống 20261009",
+   "selection": "checkpoint có IoU nước cao nhất trên tập valid — test, Bolivia, Mekong không được nhìn",
+   "comparators": ["điểm ảnh VV < −18 dB (ngưỡng tuyệt đối của GĐ2)", "Otsu theo từng ô"],
+   "threshold": "IoU lớp nước (gộp theo điểm ảnh) của mô hình > IoU của ngưỡng −18 dB trên CẢ BA: test, Bolivia, Mekong (6 ô test)",
+   "then": "Đạt mới được thử cắm vào hàm flag() của GĐ2 — phải qua lại cổng GĐ2 (ops/water_gate.py: lũ Huế 10/2020, miền Trung 10/2025 thấy nước đúng tuần; đất cao 0 đợt)"
+  },
+  "phobert_claims": {
+   "id": "terratwin.gd5.phobert_claims/1",
+   "data": "câu tin đăng bán đất do CHỦ DỰ ÁN tự thu thập và gán nhãn (không cào trang bất động sản): mục tiêu ~1.000 câu, 8 loại khẳng định của services/listing_check.py",
+   "split": "theo TIN ĐĂNG (không theo câu): 70% huấn luyện · 15% kiểm định · 15% giữ lại",
+   "model": "vinai/phobert-base, phân loại đa nhãn trên câu đã tách từ (VnCoreNLP/pyvi), 5 vòng, lr 2e-5",
+   "threshold": {"macro_f1_holdout_min": 0.8, "and": "F1 macro > luật từ khoá trên cùng tập giữ lại"},
+   "status": "chờ dữ liệu — cổng GĐ3 cần 20 tin thật trước (backend/data/listings_gold.json)"
+  },
+  "calibration": {
+   "id": "terratwin.gd5.online_calibration/1",
+   "module": "backend/app/services/online_calibration.py (isotonic, đã viết)",
+   "threshold": "≥ 30 quan sát thực địa mỗi ô lưới × mô-đun; bật thủ công bằng TERRATWIN_ONLINE_CALIBRATION=1 sau khi xem đường cong",
+   "status": "chờ dữ liệu — production 9/10/2026: 0 quan sát (GET /api/federated)"
+  }
+ }
+}
