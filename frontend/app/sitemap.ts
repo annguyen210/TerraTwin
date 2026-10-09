@@ -12,6 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/`, lastModified: now, changeFrequency: "daily", priority: 1 },
     { url: `${BASE}/eudr`, lastModified: now, changeFrequency: "weekly", priority: 0.95 },
     { url: `${BASE}/kiem`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/so-sanh`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     { url: `${BASE}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE}/pricing`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     { url: `${BASE}/help`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },

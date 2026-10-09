@@ -35,6 +35,9 @@ METRICS = {
     "rain_mm": (0.0, 300.0, "mm", "Lượng mưa (kỳ đo)", "Rainfall (interval)"),
     "leaf_wetness_pct": (0.0, 100.0, "%", "Độ ướt lá", "Leaf wetness"),
     "battery_v": (0.0, 15.0, "V", "Điện áp pin", "Battery voltage"),
+    # GĐ6 — cảm biến độ dẫn điện (ESP32 + đầu đo EC) cho độ mặn: nước biển ≈ 50 mS/cm ≈ 35‰.
+    "ec_ms_cm": (0.0, 200.0, "mS/cm", "Độ dẫn điện (EC)", "Electrical conductivity (EC)"),
+    "salinity_ppt": (0.0, 60.0, "‰", "Độ mặn", "Salinity"),
 }
 MAX_FUTURE = timedelta(minutes=10)
 MAX_PAST = timedelta(days=30)

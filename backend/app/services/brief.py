@@ -29,6 +29,9 @@ def compose(db: Session, user: User) -> tuple[str, str] | None:
                                Alert.acknowledged == 0)).scalars().all()
     ngay = datetime.now(timezone.utc).strftime("%d/%m")
     title = f"☀️ TerraTwin — bản tin sáng {ngay}"
+    changed = _journal_lines(db, user)
+    if changed:
+        return title, (f"Đang canh {len(n_plots)} thửa. Từ hôm qua: " + " · ".join(changed))[:300]
     if unread:
         body = (f"Đang canh {len(n_plots)} thửa. "
                 f"⚠️ {len(unread)} cảnh báo cần xem hôm nay (tham khảo — bản tin "
@@ -37,6 +40,26 @@ def compose(db: Session, user: User) -> tuple[str, str] | None:
         body = (f"Đang canh {len(n_plots)} thửa. "
                 f"Tất cả đang an toàn — không có gì bất thường sáng nay.")
     return title, body
+
+
+def _journal_lines(db: Session, user: User, limit: int = 3) -> list[str]:
+    """GĐ6 — bản tin sáng lấy từ NHẬT KÝ THỬA (24 giờ qua): chỉ thửa có thay đổi thật mới được kể."""
+    import os
+    from datetime import timedelta
+
+    from app.services import plot_journal
+    fast = os.environ.get("TERRATWIN_BRIEF_JOURNAL_EXT", "1") == "0"
+    since = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=24)
+    out = []
+    for p in db.execute(select(Plot).where(Plot.user_id == user.id).order_by(Plot.id).limit(limit)).scalars():
+        try:
+            j = plot_journal.journal(db, user.id, p, since=since, fast=fast)
+        except Exception:  # noqa: BLE001 — bản tin vẫn đi dù một nguồn hỏng
+            continue
+        if j["changed"]:
+            sig = [e["text"] for e in j["events"] if e["significant"]][:2]
+            out.append(f"{p.name}: " + "; ".join(sig))
+    return out
 
 
 def run_all(db: Session, force: bool = False) -> dict:

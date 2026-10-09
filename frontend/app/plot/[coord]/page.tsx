@@ -46,6 +46,15 @@ export default function PlotPassportPage() {
     return () => { live = false; };
   }, [lat, lon, valid]);
 
+  function toCompare() {
+    // GĐ6 — thêm thửa này vào danh sách so sánh (tối đa 4, lưu trên máy) rồi mở trang so sánh.
+    let cur: { lat: number; lon: number; name?: string }[] = [];
+    try { cur = JSON.parse(localStorage.getItem("tt-compare") || "[]"); } catch { /* bỏ qua */ }
+    if (!cur.some((x) => Math.abs(x.lat - lat) < 1e-5 && Math.abs(x.lon - lon) < 1e-5)) cur = [...cur, { lat, lon }].slice(-4);
+    try { localStorage.setItem("tt-compare", JSON.stringify(cur)); } catch { /* bỏ qua */ }
+    window.location.href = "/so-sanh";
+  }
+
   function share() {
     const url = window.location.href;
     navigator.clipboard?.writeText(url).then(() => {
@@ -58,9 +67,11 @@ export default function PlotPassportPage() {
   const terr = pp?.terrain;
 
   return (
-    <AppShell extra={<button className="pp-share" onClick={share}>
+    <AppShell extra={<>
+          {valid && <button className="pp-share" onClick={toCompare}>{t("⇄ So sánh", "⇄ Compare")}</button>}
+          <button className="pp-share" onClick={share}>
             {copied ? t("✓ Đã sao chép", "✓ Copied") : t("🔗 Chia sẻ", "🔗 Share")}
-          </button>}>
+          </button></>}>
 
       <main className="doc-body pp">
         <div className="pp-badge">{t("SỔ TAY THỬA · Hồ sơ dữ liệu", "LAND PASSPORT · Data record")}</div>

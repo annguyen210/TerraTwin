@@ -77,14 +77,20 @@ def main() -> int:
     ap.add_argument("--count", type=int, default=48)
     ap.add_argument("--step-min", type=int, default=30)
     ap.add_argument("--seq-start", type=int, default=1)
+    # GĐ6 — trình diễn "nhúng đầu đo vào cốc nước muối": gửi thêm độ mặn (‰) và EC (mS/cm ≈ ‰ / 0,68).
+    ap.add_argument("--salinity", type=float, help="độ mặn ‰ cho các số đo (vd 0.5 nước ngọt, 35 nước biển)")
+    ap.add_argument("--lat", type=float, help="vị trí thiết bị — nhật ký thửa gắn thiết bị trong 500 m")
+    ap.add_argument("--lon", type=float)
     a = ap.parse_args()
 
     tok = _post(f"{a.api}/api/auth/login", {"email": a.email, "password": a.password})["access_token"]
     k = load_or_create_key(a.key)
     dev_id = a.device_id
     if not dev_id:
-        dev = _post(f"{a.api}/api/iot/devices", {"name": a.name, "public_key": public_b64(k),
-                                                 "kind": "simulator"}, token=tok)
+        body = {"name": a.name, "public_key": public_b64(k), "kind": "simulator"}
+        if a.lat is not None and a.lon is not None:
+            body.update(lat=a.lat, lon=a.lon)
+        dev = _post(f"{a.api}/api/iot/devices", body, token=tok)
         dev_id = dev["id"]
         print("đã đăng ký thiết bị giả lập", dev_id)
     rng = random.Random(dev_id)
@@ -93,6 +99,8 @@ def main() -> int:
     for i in range(a.count):                       # gửi BÙ: các mốc trong quá khứ tới hiện tại
         t = now - timedelta(minutes=a.step_min * (a.count - 1 - i))
         m, soil = synth(t, rng, soil)
+        if a.salinity is not None:
+            m.update(salinity_ppt=round(a.salinity, 2), ec_ms_cm=round(a.salinity / 0.68, 2))
         payload = json.dumps({"device_id": dev_id, "seq": a.seq_start + i,
                               "ts": t.isoformat(timespec="seconds"), "metrics": m}, ensure_ascii=False)
         batch.append({"payload": payload, "sig": base64.b64encode(k.sign(payload.encode())).decode()})

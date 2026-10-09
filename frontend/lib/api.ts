@@ -2752,3 +2752,33 @@ export type ForestOrCrop = {
 export function eudrForestOrCrop(geometry: GeoGeometry) {
   return postJson<ForestOrCrop>(`/api/eudr/ai/forest-or-crop?lang=${curLang()}`, { geometry }, "AI chưa trả lời được");
 }
+
+// ---- GĐ6: nhật ký thửa ("từ lần mở trước có gì đổi") + so sánh 2–4 thửa ----
+export type JournalEvent = {
+  at: string; kind: "alert" | "graded" | "answer" | "photo" | "sensor" | "rain" | "water" | "radar";
+  significant: boolean; text: string; source: string;
+  metrics?: Record<string, number>; simulated?: boolean; device_id?: string; received_at?: string;
+  reconcile?: { verdict: "match" | "partial" | "mismatch" | "insufficient"; radar_water: boolean | null;
+                radar_dates: string[]; rain_3d_mm: number | null; user_says: string };
+};
+export type PlotJournal = {
+  plot_id: number; since: string; first_open: boolean; fast: boolean; changed: boolean; n_significant: number;
+  summary: string | null; events: JournalEvent[]; rule: string;
+  context: { rain_total_mm?: number | null; rain_ok?: boolean; radar_ok?: boolean };
+};
+export function getPlotJournal(plotId: number, fast = false) {
+  return authed<PlotJournal>(`/api/plots/${plotId}/journal?fast=${fast ? 1 : 0}&lang=${curLang()}`,
+    { method: "GET" }, "Không tải được nhật ký thửa");
+}
+export function markJournalSeen(plotId: number) {
+  return authed<{ seen_at: string }>(`/api/plots/${plotId}/journal/seen`, { method: "POST" },
+    "Không đánh dấu được");
+}
+export type CompareResult = {
+  columns: { name: string; lat: number; lon: number; water_read: boolean }[];
+  rows: { key: string; label: string; unit: string; values: (number | string | null)[]; best: number[] | null; source: string }[];
+  note: string;
+};
+export function comparePlots(points: { lat: number; lon: number; name?: string }[]) {
+  return postJson<CompareResult>(`/api/compare?lang=${curLang()}`, { points }, "Không so sánh được");
+}

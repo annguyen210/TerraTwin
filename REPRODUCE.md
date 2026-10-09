@@ -204,6 +204,29 @@ script độc lập đều báo hỏng; con số bịa trong lời LLM → cả 
 số có trong bằng chứng nó dẫn; inclusion proof kiểm bằng thuật toán viết lại độc lập; gốc đã neo lệch sổ
 hiện tại → trang hồ sơ báo đỏ.
 
+## 9. Canh đất mỗi ngày — nhật ký thửa, so sánh thửa, cảm biến (GĐ6)
+
+Nhật ký thửa (`backend/app/services/plot_journal.py`, `GET /api/plots/{id}/journal`) dựng khi mở từ dữ liệu
+sẵn có: cảnh báo + kết quả chấm, câu trả lời/quan sát, ảnh thực địa, số đo cảm biến đã ký, mưa ngày
+(Open-Meteo), cảnh radar Sentinel-1 mới (so với nền của chính thửa nếu đã đọc lịch sử nước). Chỉ bật cờ
+"thay đổi thật" khi: mưa ≥ 50 mm/ngày, radar thấy nước, cảnh báo mới/kết quả chấm, câu trả lời/ảnh của
+người dùng, cảm biến vượt ngưỡng nhắc (đất khô < 20%, mặn ≥ 4‰). Ngưỡng cố định trong mã.
+
+Phát lại 7 ngày trên dữ liệu thật — `cd backend && python ../ops/journal_gate.py 7`. Chạy 9/10/2026, 6 thửa
+(Huế, Cần Thơ, Hà Nội, Lâm Đồng, Cà Mau, Quảng Nam): **1 sự kiện bật cờ** (mưa rất to 95 mm ở Điện Bàn
+ngày 8/10), 14 sự kiện bối cảnh (mưa to 16–50 mm, ảnh radar mới), **0 sự kiện rác**. Đây là phát lại, chưa
+phải 7 ngày chạy sống với người dùng thật; cổng "7 ngày chạy thử" tính từ khi có thửa thí điểm.
+
+Cảm biến: số đo đã ký Ed25519 hiện trên nhật ký ở lượt gọi nhanh kế tiếp (giao diện gọi `?fast=1` mỗi 5 giây
+khi thẻ đang mở) — test `test_so_do_cam_bien_hien_ngay_tren_nhat_ky_va_man_vuot_nguong`. Trình diễn cốc nước
+muối không cần phần cứng: `python ops/iot_simulator.py --email … --password … --lat … --lon … --count 1
+--salinity 35`.
+
+So sánh 2–4 thửa: `/so-sanh` (`POST /api/compare`), mỗi tiêu chí đánh dấu giá trị thuận lợi nhất theo riêng
+tiêu chí đó; không điểm tổng. Đối chiếu ba chiều: câu trả lời "ruộng có ngập" ↔ radar ±6 ngày ↔ mưa 3 ngày →
+khớp / khớp một phần / lệch / chưa đủ dữ liệu. Nhận nước trong ẢNH bằng SegFormer cần mô hình qua cổng GĐ5 —
+chưa bật.
+
 ## Nếu một bước không ra kết quả
 
 - **Gọi mạng hụt / rate-limit Open-Meteo**: các endpoint mục 1–3 gọi API thời

@@ -17,6 +17,7 @@ import {
   ackAlert,
   getContribution,
   getMyQuestions,
+  getPlotJournal,
   listAlerts,
   listPlots,
   resendVerification,
@@ -26,12 +27,15 @@ import {
   type RadarProgress,
   type AuthUser,
   type Contribution,
+  type PlotJournal as Journal,
   type ServerPlot,
   type TapQuestion,
 } from "@/lib/api";
 import { enablePush, pushState } from "@/lib/push";
 import { getBriefStatus, toggleBrief } from "@/lib/api";
 import PlotHistory from "@/components/PlotHistory";
+import PlotJournal from "@/components/PlotJournal";
+import Link from "next/link";
 import { useLang } from "@/lib/i18n";
 import { Bell, CircleCheck, Inbox, ScrollText, ShieldCheck, Sprout, Sun, TriangleAlert } from "lucide-react";
 
@@ -62,6 +66,8 @@ export default function MyLand({
   const [openId, setOpenId] = useState<number | null>(null);   // Đ9 — thửa đang mở lịch sử
   const [verifyMsg, setVerifyMsg] = useState<string | null>(null);   // N1
   const [contribution, setContribution] = useState<Contribution | null>(null);   // M5
+  const [journals, setJournals] = useState<Record<number, Journal>>({});   // GĐ6 — từ lần mở trước
+  const [cmp, setCmp] = useState<number[]>([]);   // GĐ6 — thửa chọn để so sánh
 
   async function resend() {
     setVerifyMsg(t("Đang gửi…", "Sending…"));
@@ -116,6 +122,18 @@ export default function MyLand({
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  // GĐ6 — nhật ký 4 thửa đầu: chỉ thửa CÓ thay đổi thật mới hiện; không có thì một câu yên tâm.
+  useEffect(() => {
+    let live = true;
+    Promise.allSettled(plots.slice(0, 4).map((p) => getPlotJournal(p.id))).then((rs) => {
+      if (!live) return;
+      const m: Record<number, Journal> = {};
+      rs.forEach((r, i) => { if (r.status === "fulfilled") m[plots[i].id] = r.value; });
+      setJournals(m);
+    });
+    return () => { live = false; };
+  }, [plots, lang]);
 
   async function scanNow() {
     setScanning(true);
@@ -295,11 +313,47 @@ export default function MyLand({
                                        "No new risk on your saved plots. Rest easy — TerraTwin will alert you if anything comes up.")}</p>
       )}
 
+      {Object.keys(journals).length > 0 && (() => {
+        const changed = plots.filter((p) => journals[p.id]?.changed);
+        return (
+          <div className="pj-digest">
+            <span className="ml-cap">{t("Từ lần mở trước", "Since your last visit")}</span>
+            {changed.length === 0 ? (
+              <p className="ml-calm"><CircleCheck size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t(
+                `Không có thay đổi đáng kể ở ${Object.keys(journals).length} thửa.`, `No significant change on ${Object.keys(journals).length} plot(s).`)}</p>
+            ) : changed.map((p) => (
+              <button key={p.id} type="button" className="pj-digest-item" onClick={() => setOpenId(p.id)}>
+                <b>{p.name}</b><span>{journals[p.id].summary}</span>
+              </button>
+            ))}
+          </div>
+        );
+      })()}
+
       <span className="ml-cap">{t("Thửa của bạn", "Your plots")}</span>
+      {plots.length >= 2 && (
+        <div className="pj-cmpbar">
+          <span>{cmp.length < 2 ? t("Chọn 2–4 thửa để so sánh", "Pick 2–4 plots to compare")
+            : t(`Đã chọn ${cmp.length} thửa`, `${cmp.length} plots selected`)}</span>
+          {cmp.length >= 2 && (
+            <Link className="pj-cmpgo" href={`/so-sanh?p=${encodeURIComponent(plots.filter((p) => cmp.includes(p.id))
+              .map((p) => `${p.lat.toFixed(5)},${p.lon.toFixed(5)},${p.name.replace(/[|,]/g, " ")}`).join("|"))}`}>
+              {t("So sánh", "Compare")} →</Link>
+          )}
+        </div>
+      )}
       <div className="ml-plots">
         {plots.map((p) => (
           <div key={p.id}>
             <div style={{ display: "flex", alignItems: "stretch", gap: 4 }}>
+              {plots.length >= 2 && (
+                <label className="pj-cmpchk" title={t("Chọn để so sánh", "Select to compare")}>
+                  <input type="checkbox" checked={cmp.includes(p.id)}
+                         disabled={!cmp.includes(p.id) && cmp.length >= 4}
+                         aria-label={t(`So sánh ${p.name}`, `Compare ${p.name}`)}
+                         onChange={(e) => setCmp((xs) => e.target.checked ? [...xs, p.id] : xs.filter((x) => x !== p.id))} />
+                </label>
+              )}
               <button
                 className="ml-plot"
                 style={{ flex: 1 }}
@@ -332,7 +386,7 @@ export default function MyLand({
                 <ScrollText size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" />
               </button>
             </div>
-            {openId === p.id && <PlotHistory plotId={p.id} />}
+            {openId === p.id && <><PlotJournal plotId={p.id} /><PlotHistory plotId={p.id} /></>}
           </div>
         ))}
       </div>
