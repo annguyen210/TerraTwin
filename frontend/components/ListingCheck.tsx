@@ -28,7 +28,7 @@ export default function ListingCheck({ lat, lon }: { lat: number; lon: number })
     setIssuing(true); setErr(null);
     try {
       const d = await issueDossier(lat, lon, null, [], text);
-      window.location.href = `/h/${d.id}`;
+      window.location.href = `/h/${d.id}?moi=1`;
     } catch (e) { setErr((e as Error).message); setIssuing(false); }
   }
 

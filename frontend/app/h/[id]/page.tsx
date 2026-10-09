@@ -91,12 +91,19 @@ export default function DossierPage() {
   const [fileCheck, setFileCheck] = useState<DossierFileCheck | null>(null);
   const [fileErr, setFileErr] = useState<string | null>(null);
   const [tok, setTok] = useState<string | null>(null);
+  const [fresh, setFresh] = useState(false);   // GĐ1 — vừa phát hành: hiệu ứng "đóng dấu" một lần
 
   useEffect(() => {
     let live = true;
     // ?d=… = chuỗi tiết lộ chọn lọc chủ hồ sơ đưa (vd họ tên) — máy chủ đối chiếu với cam kết đã ký.
-    const token = new URLSearchParams(window.location.search).get("d");
+    const qs = new URLSearchParams(window.location.search);
+    const token = qs.get("d");
     setTok(token);
+    if (qs.get("moi") === "1") {
+      setFresh(true);
+      qs.delete("moi");                      // tải lại trang không đóng dấu lần nữa
+      window.history.replaceState(null, "", window.location.pathname + (qs.toString() ? `?${qs}` : ""));
+    }
     getDossier(id, token).then((x) => live && setD(x)).catch((e) => live && setErr(e.message));
     return () => { live = false; };
   }, [id, lang]);
@@ -164,6 +171,9 @@ export default function DossierPage() {
                   {isLot ? null : isEudr ? <> · {f.plot!.area_ha} ha</> : f.location.area_ha ? <> · {f.location.area_ha} ha</> : null}
                 </p>
               </div>
+              {fresh && v.valid && (
+                <div className="dos-stamp" role="status">{t("ĐÃ KÝ SỐ", "SIGNED")}<small>{fmtTime(d.issued_at)}</small></div>
+              )}
               {d.qr && (
                 <figure className="dos-qr">
                   <img src={d.qr} alt={t("Mã QR tới trang kiểm chứng", "QR code to the verification page")} width={112} height={112} />

@@ -272,7 +272,7 @@ export default function PlotPlan({
                 }
                 setIssuing(t("Đang phát hành…", "Issuing…"));
                 const d = await issueDossier(lat, lon, area, ids);
-                router.push(`/h/${d.id}`);
+                router.push(`/h/${d.id}?moi=1`);
               } catch (e) {
                 setIssueErr((e as Error).message);
                 setIssuing(null);
