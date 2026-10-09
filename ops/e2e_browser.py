@@ -87,6 +87,9 @@ with sync_playwright() as p:
     @step("/eudr vẽ ranh trên bản đồ")
     def draw():
         page.goto(WEB + "/eudr", wait_until="networkidle", timeout=180_000)
+        ph = page.locator(".wv-ph button")          # bản đồ hoãn nạp tới thao tác đầu tiên
+        if ph.count():
+            ph.first.click()
         canvas = page.locator(".eu-map canvas").first
         canvas.wait_for(timeout=60_000)
         page.wait_for_timeout(2500)

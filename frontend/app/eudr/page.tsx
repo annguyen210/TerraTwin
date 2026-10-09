@@ -147,7 +147,7 @@ function OnePlot() {
     <>
       <section className="bat-card">
         <h2>1 · {t("Ranh vườn", "Plot boundary")}</h2>
-        <WhenVisible minHeight="min(510px, 70vh)" label={t("Bản đồ vẽ ranh đang chờ nạp…", "Boundary map loading…")}>
+        <WhenVisible minHeight="calc(min(460px, 62vh) + 84px)" label={t("Bản đồ vẽ ranh đang chờ nạp…", "Boundary map loading…")}>
           <PlotDraw initial={initial} onChange={onDraw} />
         </WhenVisible>
         <div className="bat-row">
