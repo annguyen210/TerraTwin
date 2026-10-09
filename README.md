@@ -26,6 +26,23 @@ không phá rừng sau 31/12/2020. Đây là nhu cầu BẮT BUỘC có hạn ch
 | U-Net lớp phủ đất (2 lần) | mIoU 0,35 | 0,232 → 0,314 | trượt, không bật |
 | **Sàng lọc v3** (v2 + mô hình rừng/vườn cho ca tán dày) | như v1, mỗi nhóm ≥25 ô | **đang gán nhãn** | 240 ô mới (seed 20261007), sự thật = 2 người giải đoán ảnh 2020 độc lập ở `/gan-nhan`; giao thức + mẫu commit trước nhãn (0fdd138) |
 
+## Hồ sơ đất cho người mua đất — kế hoạch tổng (cập nhật 9/10/2026)
+
+Cùng hạ tầng niềm tin, cho thửa đất ở và đất nông nghiệp: **sự thật về một mảnh đất — đo bằng vệ tinh, ký bằng
+mật mã, ai cũng kiểm lại được.** Không điểm rủi ro hộp đen; mọi kết luận có số đo, ngày đo, nguồn.
+
+| Năng lực | Cái người dùng thấy | Bằng chứng / cổng | Mã |
+|---|---|---|---|
+| Lịch sử nước nhìn xuyên mây | "Nước đã phủ N đợt từ 2017" + kéo thanh theo năm: ảnh radar và mặt nước hiện lên bản đồ | Cổng GĐ2: thấy đúng tuần lũ Huế 10/2020, miền Trung 10/2025; đất cao 0 đợt (`REPRODUCE.md` §7) | `services/water_history.py` |
+| Kiểm chứng tin đăng bán đất | Từng câu "không ngập", "cao ráo", "gần sông"… → Khớp / Mâu thuẫn / Không đủ dữ liệu; đưa kết quả vào hồ sơ ký số (không lưu nguyên văn) | Luật từ khoá có/không dấu; cổng 20 tin thật **chờ dữ liệu** (`ops/listing_gate.py`) | `services/listing_check.py` |
+| Mỗi câu bấm ra bằng chứng | Tóm tắt dễ hiểu trên hồ sơ; bấm câu → số liệu gốc, nguồn, ngày đo, cách tái lập | LLM chỉ viết lại từ bằng chứng của câu; câu có số lạ bị loại cả câu (`tests/test_gd4_evidence.py`) | `services/narrative.py` |
+| Không ai lùi ngày được, kể cả TerraTwin | Trang hồ sơ: "Đã neo vào Bitcoin, khối #…" | Sổ Merkle RFC 6962 + nhân chứng GitHub + **OpenTimestamps** 2 lần/ngày; script kiểm độc lập `ops/verify_dossier.py` | `services/anchor.py`, `ops/ots_anchor.py` |
+| Nhật ký thửa mỗi sáng | "Từ lần mở trước: mưa 42 mm, ảnh radar mới ngày … không thấy nước"; không có thay đổi thật thì im | Phát lại 7 ngày thật trên 6 thửa: 1 sự kiện, 0 rác (`ops/journal_gate.py`) | `services/plot_journal.py` |
+| Đối chiếu ba chiều | Câu trả lời "ruộng có ngập" ↔ radar cùng tuần ↔ mưa 3 ngày → khớp / lệch | `tests/test_gd6_journal.py` | như trên |
+| So sánh 2–4 thửa | `/so-sanh`: nước phủ, độ cao, sông/biển, vùng mặn, lũ/sạt lở 10 năm, loại đất | Đánh dấu giá trị thuận lợi theo RIÊNG từng tiêu chí, không điểm tổng | `services/plot_compare.py` |
+| Cảm biến ký số | Đầu đo EC/độ mặn vào nhật ký thửa trong ≤ 10 giây (giả lập `ops/iot_simulator.py --salinity 35`) | Ed25519 từng số đo, chống phát lại | `services/iot.py` |
+| Bảo mật | Xác thực hai lớp TOTP (bắt buộc với quản trị khi bật cờ), OWASP ZAP hằng ngày | [`THREAT_MODEL.md`](THREAT_MODEL.md) | `services/totp.py` |
+
 **Thí điểm với hợp tác xã:** `/thi-diem` — thư mời HTX, tờ hướng dẫn nông hộ, tờ cán bộ, phiếu góp ý (in A4) + phiếu
 trực tuyến (`POST /api/pilot/feedback`, không lưu IP, liên hệ chỉ khi đồng ý); tổng hợp + CSV ở `/admin`.
 
