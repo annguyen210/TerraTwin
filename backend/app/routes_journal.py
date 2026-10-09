@@ -72,3 +72,19 @@ def compare(body: CompareIn, request: Request, lang: str = "vi",
     from app.routes_eudr import enforce_quota
     enforce_quota("screen", request, user)
     return plot_compare.compare([p.model_dump() for p in body.points])
+
+
+@router.get("/api/landcover/change")
+def landcover_change(lat: float, lon: float, request: Request, lang: str = "vi",
+                     user: User | None = Depends(auth.optional_user)) -> dict:
+    """GĐ5 — loại đất 2021 so với năm mới nhất, bằng AlphaEarth + bộ phân loại đã qua kiểm định đăng ký trước.
+    DỰ ĐOÁN, tham khảo — không vào hồ sơ ký. Mỗi lượt có thể tải vài MB vectơ → tính hạn mức như một lượt quét."""
+    from app.services import aef_landuse, cache_store
+    reqlang.set_lang(lang)
+    if not (8.0 <= lat <= 24.0 and 102.0 <= lon <= 110.5):
+        raise HTTPException(422, reqlang.tr("Ngoài phạm vi Việt Nam.", "Outside Vietnam."))
+    m = aef_landuse.model()
+    if m is not None and cache_store.get(cache_store.make_key("aef-lc", round(lat, 5), round(lon, 5), m.get("miou_test"))) is None:
+        from app.routes_eudr import enforce_quota
+        enforce_quota("screen", request, user)
+    return aef_landuse.change(lat, lon)

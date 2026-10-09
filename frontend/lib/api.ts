@@ -2818,3 +2818,12 @@ export function waterScene(lat: number, lon: number, date: string) {
   return getJson<WaterScene>(`/api/water/scene?lat=${lat}&lon=${lon}&date=${date}&lang=${curLang()}`,
     "Không lấy được cảnh radar ngày này");
 }
+
+// ---- GĐ5: loại đất 2021 so với năm mới nhất (AlphaEarth + bộ phân loại đã qua kiểm định) ----
+export type LandChange = { available: boolean; message?: string; evidence_class?: "predicted"; changed: boolean; headline: string;
+  base_year: number; latest_year: number; delta_pts: Record<string, number>;
+  years: Record<string, { pixels: number; groups_pct: Record<string, number>; classes: { name: string; pct: number }[] }>;
+  model: { miou_holdout: number; protocol: string; holdout: string }; caveat: string; attribution: string };
+export function landcoverChange(lat: number, lon: number) {
+  return getJson<LandChange>(`/api/landcover/change?lat=${lat}&lon=${lon}&lang=${curLang()}`, "Không đọc được loại đất AlphaEarth");
+}

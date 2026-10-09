@@ -227,6 +227,26 @@ tiêu chí đó; không điểm tổng. Đối chiếu ba chiều: câu trả l�
 khớp / khớp một phần / lệch / chưa đủ dữ liệu. Nhận nước trong ẢNH bằng SegFormer cần mô hình qua cổng GĐ5 —
 chưa bật.
 
+## 10. Loại đất bằng AlphaEarth — CỔNG GĐ5 (mục 1) ĐẠT 10/10/2026
+
+Giao thức đăng ký trước: `backend/data/ml/aef_landcover_protocol.json` (commit 0f1997d, TRƯỚC khi tải vectơ). Cùng
+nhãn ESA WorldCover 2021 (213 ô của U-Net lần 2) và cùng chia tỉnh: kiểm tra Cần Giờ, Cần Thơ, Hà Giang, Đà Nẵng ·
+kiểm định Buôn Ma Thuột, Huế.
+
+```bash
+cd backend
+python -m app.dl.fetch --seasons 2 --out data/dl2        # nếu chưa có bộ nhãn (xem app/dl/fetch.py)
+python -m app.ml.aef_landcover extract                    # ~1 giờ, tiếp tục được nếu đứt
+python -m app.ml.aef_landcover train                      # chọn L2 trên kiểm định, chấm kiểm tra MỘT lần
+```
+
+Kết quả (ghi trong `backend/data/landcover_runs.json`, lần 3): **mIoU 0,420** trên tỉnh giữ lại (ngưỡng 0,35; U-Net
+0,232 và 0,314), kiểm định 0,463, đúng 84% điểm ảnh; IoU từng lớp: mặt nước 0,975 · tán cây 0,773 · xây dựng 0,638 ·
+**trồng trọt 0,578** · đất trống 0,367 · đồng cỏ 0,342 · rừng ngập mặn 0,106 · cây bụi 0 · đất ngập nước 0. Chấm trên
+1.024 điểm ảnh ngẫu nhiên mỗi ô (49.152 điểm ảnh kiểm tra). 4 tỉnh kiểm tra đã dùng cho U-Net lần 1–2; đây là lần
+chấm cuối trên bộ tỉnh này. Bật: `GET /api/landcover/change` (2021 so với năm mới nhất, nhóm đổi ≥ 25 điểm % mới
+gọi là đổi khác) — dự đoán, không vào hồ sơ ký.
+
 ## Nếu một bước không ra kết quả
 
 - **Gọi mạng hụt / rate-limit Open-Meteo**: các endpoint mục 1–3 gọi API thời

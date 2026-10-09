@@ -215,3 +215,28 @@ def test_ban_tin_sang_lay_tu_nhat_ky_chi_ke_thua_co_thay_doi(c):
         assert "Từ hôm qua: Ruộng Quảng Điền" in body and "9.5" in body
     finally:
         db.close()
+
+
+def test_loai_dat_alphaearth_2021_so_voi_nam_moi_nhat(c, monkeypatch):
+    """GĐ5 — mô hình đã qua kiểm định: tỉ lệ nhóm theo năm, đổi ≥25 điểm % mới gọi là đổi khác; nhãn DỰ ĐOÁN."""
+    import numpy as np
+    from app.services import aef, aef_landuse
+    m = aef_landuse.model()
+    assert m is not None and m["miou_test"] >= 0.35                     # chỉ có tệp mô hình khi đã đạt
+    W, b = m["W"], m["b"]
+    # chỉ số lớp: 0 = "Tán cây", 4 = "Bề mặt xây dựng" (thứ tự WorldCover trong app/dl/fetch.py)
+    rng = np.random.default_rng(0)
+
+    def vec_for(cls, n):                                                 # tìm vectơ đơn vị mà mô hình xếp vào lớp cls
+        out = []
+        while len(out) < n:
+            v = rng.normal(size=(512, 64)); v /= np.linalg.norm(v, axis=1, keepdims=True)
+            out += [x for x in v if int(np.argmax(x @ W + b)) == cls]
+        return np.array(out[:n], dtype="float32")
+    pool = {k: vec_for(k, 60) for k in (0, 4)}
+    monkeypatch.setattr(aef, "window", lambda la0, lo0, la1, lo1, y: pool[0] if y == 2021 else np.concatenate([pool[0][:20], pool[4][:40]]))
+    r = c.get("/api/landcover/change?lat=16.4637&lon=107.5909").json()
+    assert r["available"] and r["evidence_class"] == "predicted" and r["changed"] is True
+    assert r["years"]["2021"]["groups_pct"]["tree"] == 100.0 and r["delta_pts"]["built"] > 60
+    assert "xây dựng tăng" in r["headline"] and "cây xanh giảm" in r["headline"] and "không vào hồ sơ ký" in r["caveat"]
+    assert c.get("/api/landcover/change?lat=40&lon=107").status_code == 422

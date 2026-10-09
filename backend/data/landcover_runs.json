@@ -105,5 +105,52 @@
   },
   "diagnosis": "Ảnh hai mùa sửa đúng chỗ hỏng của lần 1: đất trồng trọt 0,026 → 0,228, độ chính xác điểm ảnh 0,59 → 0,77. Vẫn hỏng: rừng ngập mặn 0 (tập kiểm tra có Cần Giờ — vùng rừng ngập mặn, trong khi lớp này chỉ chiếm 1,6% dữ liệu huấn luyện), đất ngập nước 0, cây bụi 0 (gần như không có mẫu). Kiểm định 0,393 nhưng kiểm tra 0,314: tỉnh kiểm tra khó hơn (rừng ngập mặn Cần Giờ, núi đá Hà Giang).",
   "note": "Không chấm lại lần này trên tập lớp gộp hay ngưỡng khác — đổi thước đo SAU khi thấy kết quả là tự đánh lừa. Muốn thử thước đo khác (vd 5 nhóm lớp mà tính năng thay đổi đất thật sự dùng) thì phải là một lần chạy MỚI, chốt thước đo trước."
+ },
+ {
+  "date": "2026-10-10",
+  "status": "accepted",
+  "model": "AlphaEarth 2021 + hồi quy softmax (CPU)",
+  "reason": "mIoU trên tỉnh giữ lại 0.420 ≥ ngưỡng 0,35 đặt trước",
+  "miou_test": 0.42,
+  "miou_val": 0.463,
+  "l2": 0.0001,
+  "val_by_l2": {
+   "0.0001": 0.463,
+   "0.001": 0.445,
+   "0.01": 0.377
+  },
+  "pixel_acc_test": 0.84,
+  "iou_per_class_test": {
+   "Tán cây": 0.773,
+   "Cây bụi": 0.0,
+   "Đồng cỏ": 0.342,
+   "Đất trồng trọt": 0.578,
+   "Bề mặt xây dựng": 0.638,
+   "Đất trống": 0.367,
+   "Băng tuyết": null,
+   "Mặt nước": 0.975,
+   "Đất ngập nước": 0.0,
+   "Rừng ngập mặn": 0.106,
+   "Rêu địa y": null
+  },
+  "test_provinces": [
+   "Cần Giờ",
+   "Cần Thơ",
+   "Hà Giang",
+   "Đà Nẵng"
+  ],
+  "val_provinces": [
+   "Buôn Ma Thuột",
+   "Huế"
+  ],
+  "n_pixels": {
+   "train": 145408,
+   "val": 23552,
+   "test": 49152
+  },
+  "protocol": "terratwin.gd5.aef_landcover/1",
+  "protocol_sha256": "a592a1d26fa97e988210b1ba8f9515c4a9cb4a4d4c4c84c685824ab2d00729bb",
+  "data": "AlphaEarth Foundations annual embedding 2021, 64 chiều (source.coop/tge-labs/aef-mosaic) · nhãn ESA WorldCover 2021 · 1024 điểm ảnh ngẫu nhiên có nhãn mỗi ô, hạt giống 20261009",
+  "attribution": "The AlphaEarth Foundations Satellite Embedding dataset is produced by Google and Google DeepMind."
  }
 ]

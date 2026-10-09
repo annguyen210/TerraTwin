@@ -16,6 +16,7 @@
 import AppShell from "@/components/AppShell";
 import WaterHistory from "@/components/WaterHistory";
 import ListingCheck from "@/components/ListingCheck";
+import LandChangeAI from "@/components/LandChangeAI";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -93,6 +94,7 @@ export default function PlotPassportPage() {
 
             {/* BẰNG CHỨNG TRƯỚC: lịch sử nước đo bằng radar (chỉ hiện khi cổng kiểm chứng đạt) */}
             <WaterHistory lat={lat} lon={lon} />
+            <LandChangeAI lat={lat} lon={lon} />
             <ListingCheck lat={lat} lon={lon} />
 
             {/* ĐỊA HÌNH */}

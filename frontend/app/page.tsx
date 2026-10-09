@@ -30,6 +30,7 @@ const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 const Answer = dynamic(() => import("@/components/Answer"));
 const ListingCheck = dynamic(() => import("@/components/ListingCheck"));
 const WaterHistory = dynamic(() => import("@/components/WaterHistory"));
+const LandChangeAI = dynamic(() => import("@/components/LandChangeAI"));
 const PlotPlan = dynamic(() => import("@/components/PlotPlan"));
 const Story = dynamic(() => import("@/components/Story"));
 const MyLand = dynamic(() => import("@/components/MyLand"));
@@ -346,6 +347,7 @@ export default function Home() {
             <>
               {/* Bằng chứng trước, điểm số sau: dải lịch sử nước radar luôn ở trên cùng tab Hồ sơ. */}
               {serviceable && <WaterHistory lat={coord.lat} lon={coord.lon} onScene={setRadar} />}
+              {serviceable && <LandChangeAI lat={coord.lat} lon={coord.lon} />}
               {serviceable && <PlotPlan lat={coord.lat} lon={coord.lon} area={area} onSelectModule={selectModule} />}
               {serviceable && <h3 className="ev-h">{t("Bằng chứng chi tiết — lưới mũi nhọn", "Detailed evidence — the spearhead grid")}</h3>}
               <Answer lat={coord.lat} lon={coord.lon} area={area} label={placeLabel} modules={modules}
