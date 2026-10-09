@@ -104,6 +104,13 @@ python -m app.warm --provinces   # phủ cả nước (~35 phút)
 
 ---
 
+## BẮT BUỘC trước khi thu tiền — khoá Open-Meteo trả phí
+
+Gói miễn phí của Open-Meteo chỉ cho mục đích **phi thương mại**. Trước đồng doanh thu đầu tiên: mua gói
+tại open-meteo.com rồi đặt `TERRATWIN_OPENMETEO_API_KEY` trên `terratwin-api`. Có khoá thì mọi lượt gọi
+tự đổi sang máy chủ `customer-*.open-meteo.com` kèm `&apikey=` (`services/openmeteo.py`); khoá chỉ chèn ở
+bước gửi đi, không vào khoá cache hay log. Kiểm: `GET /api/health` → `weather_data_plan.plan = "commercial"`.
+
 ## (Tùy chọn) Bật trợ lý LLM
 `terratwin-api` → Environment, đặt theo nhà cung cấp:
 - OpenAI-compatible (DeepSeek/Groq/OpenRouter…): `TERRATWIN_LLM_API_KEY` + `TERRATWIN_LLM_BASE_URL` + `TERRATWIN_LLM_MODEL`.

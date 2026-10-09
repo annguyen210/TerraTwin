@@ -12,8 +12,8 @@ export default function TermsPage() {
       <main className="doc-body">
         <h1>{t("Điều khoản sử dụng", "Terms of Use")}</h1>
         <p className="doc-note">
-          {t("Bản tóm tắt cho giai đoạn thử nghiệm. Cần rà soát pháp lý trước khi phát hành thương mại.",
-             "A summary for the trial phase. Requires legal review before commercial release.")}
+          {t("BẢN NHÁP cho giai đoạn thử nghiệm — chờ luật sư duyệt trước khi phát hành thương mại. Việc xử lý dữ liệu cá nhân theo Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15, chi tiết ở trang Quyền riêng tư.",
+             "DRAFT for the trial phase — pending legal review before commercial release. Personal data is processed under Personal Data Protection Law No. 91/2025/QH15; details on the Privacy page.")}
         </p>
 
         <h2>{t("TerraTwin là công cụ HỖ TRỢ quyết định", "TerraTwin is a decision-SUPPORT tool")}</h2>

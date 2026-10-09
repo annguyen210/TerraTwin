@@ -12,8 +12,8 @@ export default function PrivacyPage() {
       <main className="doc-body">
         <h1>{t("Chính sách quyền riêng tư", "Privacy Policy")}</h1>
         <p className="doc-note">
-          {t("Bản tóm tắt trung thực về dữ liệu TerraTwin thu thập và cách dùng. Cần rà soát pháp lý trước khi phát hành thương mại chính thức.",
-             "An honest summary of what TerraTwin collects and how it is used. Requires legal review before a formal commercial release.")}
+          {t("Soạn theo Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 (hiệu lực 01/01/2026) và Nghị định 356/2025/NĐ-CP hướng dẫn. BẢN NHÁP — chờ luật sư duyệt trước khi phát hành thương mại chính thức.",
+             "Drafted under Vietnam's Personal Data Protection Law No. 91/2025/QH15 (in force 1 January 2026) and guiding Decree 356/2025/ND-CP. DRAFT — pending legal review before a formal commercial release.")}
         </p>
 
         <h2>{t("Dữ liệu chúng tôi lưu", "Data we store")}</h2>
@@ -76,10 +76,24 @@ export default function PrivacyPage() {
              "Account/plot/observation/alert data is kept while the account is active. Deleting your account removes it from the running app IMMEDIATELY. Because the system keeps encrypted periodic backups to protect against data loss, a copy may persist for up to 7 days (daily backups) or 4 weeks (weekly backups) before being automatically overwritten/expired.")}
         </p>
 
-        <h2>{t("Quyền của bạn", "Your rights")}</h2>
+        <h2>{t("Quyền của bạn theo Luật 91/2025/QH15 — và cách thực hiện ngay trong ứng dụng", "Your rights under Law 91/2025/QH15 — and how to exercise them in the app")}</h2>
+        <ul>
+          <li>{t("Được biết: trang này liệt kê đủ loại dữ liệu, mục đích, nơi gửi đi và thời hạn lưu.",
+                 "To be informed: this page lists every data type, purpose, where it is sent and how long it is kept.")}</li>
+          <li>{t("Đồng ý và rút lại đồng ý: ba công tắc mục đích trong Khu làm việc (cảnh báo, góp quan sát, nghiên cứu — mặc định TẮT). Rút lại không làm mất dữ liệu đã xử lý trước đó một cách hợp lệ.",
+                 "To consent and withdraw consent: three purpose toggles in the Workspace (alerts, observations, research — OFF by default). Withdrawal does not undo processing lawfully done before.")}</li>
+          <li>{t("Truy cập, sao chép: nút \"Tải toàn bộ dữ liệu của tôi (JSON)\" trong Khu làm việc trả mọi bảng thuộc tài khoản, gồm cả góp ý thí điểm và nhãn kiểm định.",
+                 "To access and copy: the \"Download all my data (JSON)\" button in the Workspace returns every table tied to your account, including pilot feedback and validation labels.")}</li>
+          <li>{t("Chỉnh sửa: sửa tên, ranh, ghi chú thửa trong Khu làm việc. Hồ sơ đã ký số không sửa được (sửa là gãy chữ ký) — phát hành hồ sơ mới thay thế.",
+                 "To correct: edit names, boundaries and notes in the Workspace. A signed dossier cannot be edited (that would break the signature) — issue a new one instead.")}</li>
+          <li>{t("Xoá: nút \"Xoá tài khoản\" xoá ngay phần riêng (tên thật, muối, thửa, lô nháp, góp ý của bạn). Hồ sơ đã phát hành chỉ còn mã băm trong sổ công khai — không dò ngược ra tên.",
+                 "To erase: the \"Delete account\" button immediately removes your private data (real name, salts, plots, draft lots, your feedback). Issued dossiers keep only hashes in the public log — they cannot be traced back to your name.")}</li>
+          <li>{t("Không mua bán dữ liệu cá nhân — điều luật cấm và TerraTwin không làm.",
+                 "No buying or selling of personal data — prohibited by law and never done by TerraTwin.")}</li>
+        </ul>
         <p>
-          {t("Bạn có thể xoá thửa và tài khoản bất cứ lúc nào trong Khu làm việc. Yêu cầu xuất hoặc xoá toàn bộ dữ liệu: liên hệ qua repo/kênh hỗ trợ của phần mềm.",
-             "You can delete plots and your account anytime in the Workspace. To export or erase all your data, contact us via the app's support channel.")}
+          {t("Yêu cầu khác (khiếu nại, hỏi về xử lý dữ liệu): gửi qua phiếu góp ý tại /thi-diem và đánh dấu đồng ý liên hệ lại. Đầu mối bảo vệ dữ liệu chính thức sẽ được ghi tại đây khi TerraTwin có pháp nhân.",
+             "Other requests (complaints, questions about processing): send them via the feedback form at /thi-diem with consent to be contacted. An official data-protection contact will be listed here once TerraTwin is a legal entity.")}
         </p>
 
         <footer className="doc-foot">

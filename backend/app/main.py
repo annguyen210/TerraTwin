@@ -498,6 +498,11 @@ class CopilotRequest(BaseModel):
     location: Location
 
 
+def _openmeteo_plan() -> dict:
+    from app.services import openmeteo
+    return openmeteo.plan()
+
+
 @app.get("/api/health")
 def health() -> dict:
     """Sức khoẻ máy chủ VÀ tình trạng hạn mức nguồn dữ liệu.
@@ -568,6 +573,7 @@ def health() -> dict:
             "service": "terratwin", "modules": len(list_modules()),
             "quota": q, "jobs": jobs.stats(), "email": email,
             "database": database,
+            "weather_data_plan": _openmeteo_plan(),
             "signing": signing_info,
             "field_photos": photos,
             # Đếm lời gọi ra ngoài từ lúc tiến trình này khởi động + tỉ lệ

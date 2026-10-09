@@ -66,8 +66,9 @@ _PHOTON_OK = {
 
 def _get(url: str, timeout: float = TIMEOUT) -> dict | None:
     try:
-        req = urllib.request.Request(
-            url, headers={"User-Agent": USER_AGENT, "Accept-Language": "vi,en"})
+        from app.services import openmeteo
+        req = urllib.request.Request(        # khoá Open-Meteo trả phí (nếu có) chèn ở bước gửi đi
+            openmeteo.sign(url), headers={"User-Agent": USER_AGENT, "Accept-Language": "vi,en"})
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return json.loads(r.read().decode("utf-8"))
     except Exception:

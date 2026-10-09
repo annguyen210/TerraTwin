@@ -190,8 +190,10 @@ def _fetch(url: str, timeout: float, headers: dict | None = None):
             # người gọi đã biết xử lý None; treo thì không ai xử lý được.
             return None
         try:
+            from app.services import openmeteo
+            # Khoá trả phí (nếu có) chỉ chèn ở ĐÂY — khoá cache và log vẫn dùng URL gốc.
             req = urllib.request.Request(
-                url, headers=headers or {"User-Agent": "TerraTwin/0.2"})
+                openmeteo.sign(url), headers=headers or {"User-Agent": "TerraTwin/0.2"})
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return json.loads(r.read().decode("utf-8"))
         except urllib.error.HTTPError as e:
