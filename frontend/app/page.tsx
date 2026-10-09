@@ -16,29 +16,33 @@ import {
 import type { HeatmapResult, WaterScene } from "@/lib/api";
 import AppShell from "@/components/AppShell";
 import Link from "next/link";
-import Answer from "@/components/Answer";
-import ListingCheck from "@/components/ListingCheck";
-import WaterHistory from "@/components/WaterHistory";
-import PlotPlan from "@/components/PlotPlan";
 import Start from "@/components/Start";
-import Story from "@/components/Story";
-import MyLand from "@/components/MyLand";
 import Landing from "@/components/Landing";
-import Onboarding from "@/components/Onboarding";
-import Alerts from "@/components/Alerts";
-import Heatmap from "@/components/Heatmap";
-import ResultsPanel from "@/components/ResultsPanel";
-import Copilot from "@/components/Copilot";
-import Backtest from "@/components/Backtest";
-import Overview from "@/components/Overview";
-import Portfolio from "@/components/Portfolio";
-import ModelCard from "@/components/ModelCard";
-import ChangeDetect from "@/components/ChangeDetect";
 import { useLang } from "@/lib/i18n";
 import ModuleIcon from "@/components/ModuleIcon";
 import { inVietnam, outsideMessage } from "@/lib/geo";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
+
+// Trang chủ cho khách MỚI chỉ hiện Landing. Khu làm việc thửa (kế hoạch, bằng chứng, công cụ chuyên sâu,
+// thửa đã lưu) chỉ tải mã khi người dùng chọn thửa — trước đây tất cả nằm trong bundle đầu, Lighthouse đo
+// TBT 970 ms trên điện thoại (9/10/2026).
+const Answer = dynamic(() => import("@/components/Answer"));
+const ListingCheck = dynamic(() => import("@/components/ListingCheck"));
+const WaterHistory = dynamic(() => import("@/components/WaterHistory"));
+const PlotPlan = dynamic(() => import("@/components/PlotPlan"));
+const Story = dynamic(() => import("@/components/Story"));
+const MyLand = dynamic(() => import("@/components/MyLand"));
+const Onboarding = dynamic(() => import("@/components/Onboarding"));
+const Alerts = dynamic(() => import("@/components/Alerts"));
+const Heatmap = dynamic(() => import("@/components/Heatmap"));
+const ResultsPanel = dynamic(() => import("@/components/ResultsPanel"));
+const Copilot = dynamic(() => import("@/components/Copilot"));
+const Backtest = dynamic(() => import("@/components/Backtest"));
+const Overview = dynamic(() => import("@/components/Overview"));
+const Portfolio = dynamic(() => import("@/components/Portfolio"));
+const ModelCard = dynamic(() => import("@/components/ModelCard"));
+const ChangeDetect = dynamic(() => import("@/components/ChangeDetect"));
 
 // P4 — 13 panel "xem sâu" chỉ tải mã khi người dùng THỰC SỰ bấm vào (mỗi cái
 // gate sau `deep === "..."` hoặc mở như lớp phủ riêng, xem DEEP/Workspace bên

@@ -12,18 +12,21 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   BadgeCheck, Check, ClipboardList, FileSignature, Footprints, House, Minus, Package, Radar, ScanSearch, Settings,
   ShieldCheck, TreePine, X, type LucideIcon,
 } from "lucide-react";
 
 import AppShell from "./AppShell";
-import MyLand from "./MyLand";
 import Scorecard from "./Scorecard";
 import Start from "./Start";
 import { eudrPublicStats, getScorecard, trackEvent, type AuthUser, type ModuleInfo, type Scorecard as SC } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 import { DataSaverToggle } from "@/lib/net";
+
+// Chỉ người ĐÃ đăng nhập mới thấy "Thửa của tôi" — khách mới không phải tải mã của nó (Lighthouse TBT).
+const MyLand = dynamic(() => import("./MyLand"));
 
 // Ảnh lưu sẵn trong /public (tải từ Planetary Computer): trang đầu không phải chờ máy chủ dựng ảnh.
 const HERO_IMG = "/hero-coffee-s2.png";
