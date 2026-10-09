@@ -70,3 +70,22 @@ def water_history_poll(job_id: str, db: Session = Depends(get_session)) -> dict:
     if st is None or st.get("kind") != water_history.JOB_KIND:
         raise HTTPException(404, "Không có việc này.")
     return st
+
+
+# ------------------------------------------------------------------ GĐ3: kiểm chứng tin đăng
+
+class ListingIn(BaseModel):
+    text: str = Field(min_length=3, max_length=5000)
+    lat: float = Field(ge=8.0, le=24.0)
+    lon: float = Field(ge=102.0, le=110.0)
+
+
+@router.post("/api/listing/check")
+def listing_check_api(body: ListingIn, request: Request, lang: str = "vi",
+                      user: User | None = Depends(auth.optional_user)) -> dict:
+    """Tách câu khẳng định trong tin đăng người dùng TỰ DÁN và đối chiếu với số đo của thửa. Không lưu nội dung."""
+    from app.routes_eudr import enforce_quota
+    from app.services import listing_check
+    reqlang.set_lang(lang)
+    enforce_quota("screen", request, user)
+    return listing_check.check(body.text, body.lat, body.lon)

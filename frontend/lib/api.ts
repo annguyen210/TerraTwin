@@ -2640,6 +2640,13 @@ export function waterPoll(jobId: string) {
   return getJson<WaterJob>(`/api/water/history/${encodeURIComponent(jobId)}`, "Không hỏi được tiến độ");
 }
 
+export type ListingClaim = { type: string; label: string; sentence: string;
+  verdict: "consistent" | "contradicted" | "insufficient"; evidence: string; source: string };
+export type ListingCheckResult = { claims: ListingClaim[]; counts: Record<string, number>; note: string };
+export function listingCheck(text: string, lat: number, lon: number) {
+  return postJson<ListingCheckResult>(`/api/listing/check?lang=${curLang()}`, { text, lat, lon }, "Không kiểm được tin đăng");
+}
+
 export type AefRun = { date: string; status: "accepted" | "rejected"; lambda?: number;
   test: { balanced_accuracy: number; forest_recall: number; tree_crop_recall?: number; n?: number };
   n?: Record<string, number>; comparator_s2_test?: { balanced_accuracy: number; forest_recall: number } };

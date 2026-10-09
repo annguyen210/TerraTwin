@@ -4906,3 +4906,16 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .wh-list { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
 .wh-list li { color: var(--text); font-size: .9rem; }
 .wh-list li span { color: var(--dim); margin-left: 6px; }
+
+/* ===== Kiểm chứng tin đăng (GĐ3) ===== */
+.lc { display: grid; gap: 10px; margin: 18px 0; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); }
+.lc-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.lc-list li { border-left: 4px solid var(--line-2); padding: 8px 12px; border-radius: 6px; background: var(--card); color: var(--text); }
+.lc-list li p { margin: 4px 0 0; color: var(--dim); font-size: .88rem; }
+.lc-list li.lc-ok { border-left-color: var(--ok); }
+.lc-list li.lc-bad { border-left-color: var(--bad); }
+.lc-list li.lc-na { border-left-color: var(--warn); }
+.lc-tag { display: inline-block; font-size: .72rem; font-weight: 700; padding: 1px 8px; margin-right: 8px; border-radius: 99px; background: var(--line); }
+.lc-ok .lc-tag { background: rgba(62, 203, 131, .18); color: var(--ok); }
+.lc-bad .lc-tag { background: rgba(229, 112, 90, .18); color: var(--bad); }
+.lc-na .lc-tag { background: rgba(224, 164, 74, .18); color: var(--warn); }
