@@ -90,9 +90,16 @@ def training_runs() -> list:
 
 def status() -> dict:
     """Trạng thái để hiển thị — nói rõ đang thiếu gì và ai làm được việc đó."""
-    runs = training_runs()
+    allruns = training_runs()
+    # Tệp ghi cả các lần U-Net (mô hình ONNX ở đây) lẫn lần AlphaEarth (services/aef_landuse.py) — câu "dưới
+    # ngưỡng nên không bật" chỉ được nói về U-Net, không được lấy lần AlphaEarth đã ĐẠT làm "lần cuối".
+    runs = [r for r in allruns if not str(r.get("model", "")).startswith("AlphaEarth")]
+    aef = next((r for r in reversed(allruns) if str(r.get("model", "")).startswith("AlphaEarth")), None)
     if _load() is None:
         out = _status_missing()
+        if aef and aef.get("status") == "accepted":
+            out["alternative"] = {"model": aef.get("model"), "miou_test": aef.get("miou_test"),
+                                  "endpoint": "/api/landcover/change", "date": aef.get("date")}
         if runs:
             last = runs[-1]
             out.update({
@@ -102,6 +109,10 @@ def status() -> dict:
                             + (last.get("diagnosis") or "")),
                 "last_run": last, "runs": len(runs), "min_miou_required": MIN_MIOU,
             })
+            if out.get("alternative"):
+                out["message"] += (f" Thay vào đó: AlphaEarth + bộ phân loại tuyến tính ĐẠT mIoU "
+                                   f"{out['alternative']['miou_test']} trên cùng 4 tỉnh giữ lại — đã bật ở "
+                                   "/api/landcover/change (tham khảo, không vào hồ sơ ký).")
         return out
     return _status_ready()
 
