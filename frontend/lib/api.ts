@@ -2232,6 +2232,9 @@ export async function uploadEvidence(lat: number, lon: number, areaHa: number | 
 }
 
 export type DossierFacts = {
+  // GĐ3 — kết quả kiểm chứng tin đăng đóng băng vào hồ sơ (không có nguyên văn tin).
+  listing_check?: { checked_at: string; note: string; counts: Record<string, number>;
+                    claims: { type: string; label: string; verdict: "consistent" | "contradicted" | "insufficient"; evidence: string; source: string }[] };
   schema: string;
   lang: string;
   // "eudr_plot" = Hồ sơ vườn chuẩn EUDR (xem EudrDossierFacts); vắng = hồ sơ đất số.
@@ -2312,11 +2315,13 @@ export type DossierFileCheck = {
   registry?: DossierVerification; message: string;
 };
 
-export async function issueDossier(lat: number, lon: number, areaHa?: number | null, evidenceIds: string[] = []) {
+export async function issueDossier(lat: number, lon: number, areaHa?: number | null, evidenceIds: string[] = [],
+                                   listingText?: string) {
   // Không bắt buộc đăng nhập (người mua đất thường chưa có tài khoản); có token
   // thì gửi kèm để hồ sơ gắn với tài khoản.
   const body: Record<string, unknown> = { lat, lon, evidence_ids: evidenceIds };
   if (areaHa != null) body.area_ha = areaHa;
+  if (listingText) body.listing_text = listingText;   // GĐ3 — máy chủ đối chiếu lại, không lưu nguyên văn
   const r = await fetch(`${BASE}/api/dossier?lang=${curLang()}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },

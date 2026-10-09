@@ -236,3 +236,19 @@ def test_trang_thai_neo_opentimestamps(env, monkeypatch):
         assert anchor.for_seq(db, 1)["status"] == "unavailable"
     finally:
         db.close()
+
+
+def test_dua_ket_qua_kiem_tin_dang_vao_ho_so_khong_luu_nguyen_van(env, monkeypatch):
+    from app.services import listing_check as lc
+    monkeypatch.setattr(lc, "evidence", lambda lat, lon, types: {
+        "water": {"n_events": 2, "first": "2017-01-04", "n_scenes": 287,
+                  "events": [{"start": "2020-10-11"}, {"start": "2025-10-29"}]}, "terrain": None})
+    tin = "Bán lô đất đẹp chính chủ, KHÔNG BAO GIỜ NGẬP, sổ hồng riêng, liên hệ 0905xxxxxx."
+    r = env.post("/api/dossier", json={"lat": 16.46, "lon": 107.59, "area_ha": 0.5, "listing_text": tin})
+    assert r.status_code == 200, r.text
+    d = r.json()
+    cl = d["facts"]["listing_check"]["claims"]
+    assert [c["type"] for c in cl] == ["no_flood"] and cl[0]["verdict"] == "contradicted" and "sentence" not in cl[0]
+    assert "KHÔNG BAO GIỜ NGẬP" not in d["facts_canonical"] and "0905" not in d["facts_canonical"]
+    s = next(x for x in d["narrative"]["sentences"] if x["evidence"] == ["listing.no_flood"])
+    assert "2 đợt" in s["text"] and d["verification"]["valid"] is True

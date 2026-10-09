@@ -67,6 +67,9 @@ def _payload(db: Session, row: Dossier, token: str | None = None) -> dict:
 class DossierIn(Location):
     # Ảnh thực địa ĐÃ KIỂM (POST /api/evidence) muốn đóng băng vào hồ sơ.
     evidence_ids: list[str] = Field(default_factory=list, max_length=6)
+    # GĐ3 — nội dung tin đăng người dùng muốn đối chiếu VÀO hồ sơ. Máy chủ tự chạy lại phép đối chiếu (không
+    # tin kết quả gửi lên) và chỉ đóng băng LOẠI câu khẳng định + kết quả + số đo — không lưu nội dung tin.
+    listing_text: str | None = Field(default=None, min_length=3, max_length=5000)
 
 
 @router.post("/api/dossier")
@@ -95,6 +98,8 @@ def issue_dossier(body: DossierIn, request: Request, lang: str = "vi",
         photos.append(ph)
 
     facts = dossier.build_facts(body.lat, body.lon, body.area_ha, db)
+    if body.listing_text:
+        facts["listing_check"] = dossier.listing_section(body.listing_text, body.lat, body.lon)
     if photos:
         # Đóng băng vào nội dung đã ký: SHA-256 bản gốc + mã băm ảnh thu nhỏ —
         # thay ảnh trong CSDL là lệch mã băm (phép kiểm "evidence").

@@ -6,7 +6,7 @@
  */
 import { useState } from "react";
 import { FileSearch } from "lucide-react";
-import { listingCheck, type ListingCheckResult } from "@/lib/api";
+import { issueDossier, listingCheck, type ListingCheckResult } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 const V: Record<string, { cls: string; vi: string; en: string }> = {
@@ -21,6 +21,16 @@ export default function ListingCheck({ lat, lon }: { lat: number; lon: number })
   const [r, setR] = useState<ListingCheckResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [issuing, setIssuing] = useState(false);
+
+  async function toDossier() {
+    // GĐ3 — phát hành Hồ sơ đất số kèm kết quả đối chiếu (máy chủ chạy lại; nguyên văn tin không được lưu).
+    setIssuing(true); setErr(null);
+    try {
+      const d = await issueDossier(lat, lon, null, [], text);
+      window.location.href = `/h/${d.id}`;
+    } catch (e) { setErr((e as Error).message); setIssuing(false); }
+  }
 
   async function run() {
     setBusy(true); setErr(null);
@@ -58,6 +68,10 @@ export default function ListingCheck({ lat, lon }: { lat: number; lon: number })
             ))}
           </ul>
           <p className="eu-src">{r.note}</p>
+          <div className="gn-actions">
+            <button className="bat-btn ghost" onClick={toDossier} disabled={issuing}>
+              {issuing ? t("Đang phát hành…", "Issuing…") : t("Đưa kết quả vào Hồ sơ đất số ký số", "Add the result to a signed land dossier")}</button>
+          </div>
         </>
       ))}
     </section>

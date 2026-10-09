@@ -347,6 +347,21 @@ export default function DossierPage() {
               </section>
             )}
 
+            {f.listing_check && f.listing_check.claims.length > 0 && (
+              <section>
+                <h2>{t("Đối chiếu tin đăng bán đất (lúc phát hành)", "Land listing check (at issuance)")}</h2>
+                <ul className="dos-list dos-lc">
+                  {f.listing_check.claims.map((c, i) => (
+                    <li key={i} className={`dos-lc-${c.verdict}`}>
+                      <span><b>{c.label}</b> — {c.evidence}</span>
+                      <b>{c.verdict === "contradicted" ? t("Mâu thuẫn", "Contradicted") : c.verdict === "consistent" ? t("Khớp", "Consistent") : t("Không đủ dữ liệu", "Not enough data")}</b>
+                    </li>
+                  ))}
+                </ul>
+                <p className="dos-src">{f.listing_check.note}</p>
+              </section>
+            )}
+
             {f.field_evidence && f.field_evidence.length > 0 && (
               <section>
                 <h2>{t("Ảnh thực địa đã kiểm", "Verified field photos")}</h2>

@@ -160,6 +160,22 @@ def catalog(facts: dict, lang: str | None = None) -> dict[str, dict]:
             "url": f"{REPO}/backend/app/services/evidence.py",
         }
 
+    lc = facts.get("listing_check") or {}
+    for c in lc.get("claims") or []:
+        word = {"contradicted": _t("mâu thuẫn", "contradicted", lang), "consistent": _t("khớp", "consistent", lang),
+                "insufficient": _t("không đủ dữ liệu", "not enough data", lang)}[c["verdict"]]
+        out[f"listing.{c['type']}"] = {
+            "label": _t(f"Tin đăng khẳng định: {c['label']}", f"Listing claims: {c['label']}", lang),
+            "value": f"{word} — {c['evidence']}",
+            "source": c.get("source") or "",
+            "measured": (lc.get("checked_at") or "")[:10],
+            "reproduce": _t("Dán lại nguyên văn tin đăng vào ô Kiểm chứng tin đăng (POST /api/listing/check) — nguyên văn "
+                            "không được lưu trong hồ sơ.",
+                            "Paste the listing text again into the listing check (POST /api/listing/check) — the text "
+                            "itself is not stored in the dossier.", lang),
+            "url": f"{REPO}/backend/app/services/listing_check.py",
+        }
+
     if facts.get("missing"):
         out["missing"] = {
             "label": _t("Mục không lấy được lúc phát hành", "Sections unavailable at issuance", lang),
@@ -191,6 +207,12 @@ def template_sentences(facts: dict, cat: dict, lang: str | None = None) -> list[
                       f"from {w['first']} to {w['last']}" + (f"; the latest began {last}." if last else "."), lang)
             ids = ["water.summary"] + ([f"water.event.{len(w['events'])}"] if w.get("events") else [])
         s.append({"text": text, "evidence": ids})
+
+    for c in (facts.get("listing_check") or {}).get("claims") or []:
+        if c["verdict"] == "contradicted":
+            s.append({"text": _t(f"Tin đăng khẳng định “{c['label'].lower()}”, nhưng dữ liệu đo ghi nhận: {c['evidence']}",
+                                 f"The listing claims “{c['label'].lower()}”, but the measured data shows: {c['evidence']}", lang),
+                      "evidence": [f"listing.{c['type']}"]})
 
     if "land_use.dominant" in cat:
         lu = facts["land_use"]

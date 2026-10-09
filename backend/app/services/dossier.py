@@ -90,6 +90,20 @@ def _water_section(lat: float, lon: float) -> dict | None:
             "method": r["method"], "limits": r["limits"]}
 
 
+def listing_section(text: str, lat: float, lon: float) -> dict:
+    """GĐ3 — kết quả kiểm chứng tin đăng, CHẠY LẠI phía máy chủ. Chỉ giữ loại câu, kết quả, số đo, nguồn —
+    bỏ nguyên văn câu (nội dung tin đăng không được lưu, kể cả trong hồ sơ)."""
+    from app.services import listing_check
+    r = listing_check.check(text, lat, lon)
+    return {"checked_at": _iso(datetime.utcnow()),
+            "claims": [{k: c[k] for k in ("type", "label", "verdict", "evidence", "source")} for c in r["claims"]],
+            "counts": r["counts"],
+            "note": tr("Đối chiếu từng loại câu khẳng định trong tin đăng với dữ liệu đo lúc phát hành. Nguyên văn tin "
+                       "đăng KHÔNG được lưu; lời văn trung lập, không phải kết luận pháp lý về người bán.",
+                       "Each type of claim in the listing compared against measured data at issuance. The listing text "
+                       "itself is NOT stored; neutral wording, not a legal finding about the seller.")}
+
+
 def build_facts(lat: float, lon: float, area_ha: float | None, db: Session) -> dict:
     """Ghép các dịch vụ SẴN CÓ thành nội dung hồ sơ. Không mô hình mới, không số mới.
 

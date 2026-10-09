@@ -5044,3 +5044,11 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .wh-scene { margin: 0; font-size: .86rem; color: var(--text); }
 .wh-off { all: unset; cursor: pointer; color: var(--terra); text-decoration: underline; font-size: .82rem; }
 .wh-off:focus-visible { outline: 2px solid var(--terra); outline-offset: 2px; }
+
+/* GĐ3 — kiểm tin đăng trong hồ sơ */
+.dos-lc li { align-items: baseline; }
+.dos-lc li > span { min-width: 0; }
+.dos-lc li > b { white-space: nowrap; }
+.dos-lc-contradicted > b { color: var(--red); }
+.dos-lc-consistent > b { color: var(--green); }
+.dos-lc-insufficient > b { color: var(--ink2); font-weight: 600; }
