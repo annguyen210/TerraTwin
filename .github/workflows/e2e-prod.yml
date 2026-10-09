@@ -94,7 +94,7 @@ jobs:
             unset ec
           done
           [ "$fail" = "0" ]
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: always()
         with:
           name: zap-reports
