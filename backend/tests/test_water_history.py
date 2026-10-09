@@ -60,3 +60,20 @@ def test_cong_chua_dat_thi_api_tu_choi_bat(monkeypatch, tmp_path):
         assert c.get("/api/water/status").json()["enabled"] is False
         r = c.post("/api/water/history", json={"lat": 16.575, "lon": 107.495})
     assert r.status_code == 409
+
+
+def test_ho_so_chi_dua_lich_su_nuoc_da_doc_va_khi_cong_dat(monkeypatch):
+    from app import routes_water
+    from app.services import cache_store, dossier
+    fake = {"available": True, "n_scenes": 300, "first": "2017-01-11", "last": "2026-09-28",
+            "track": {"orbit": "descending", "relative_orbit": 18, "collection": "sentinel-1-rtc"}, "n_events": 1,
+            "events": [{"start": "2020-10-10", "end": "2020-10-13", "peak_cover": "≥50%", "n_scenes": 2,
+                        "min_p50_db": -18.3, "dates": ["2020-10-10", "2020-10-13"]}],
+            "method": "m", "limits": "l", "series": [["2020-10-10", -18.3, -19.8]]}
+    monkeypatch.setattr(cache_store, "get", lambda key: fake if key.startswith("water:") else None)
+    monkeypatch.setattr(routes_water, "gate", lambda: {"passed": True})
+    w = dossier._water_section(16.575, 107.495)
+    assert w["n_events"] == 1 and w["events"][0]["peak_cover"] == "≥50%" and "series" not in w and "dates" not in w["events"][0]
+    assert dossier.EVIDENCE_CLASSES["water_history_radar"] == "measured"
+    monkeypatch.setattr(routes_water, "gate", lambda: {"passed": False})
+    assert dossier._water_section(16.575, 107.495) is None          # cổng chưa đạt → không vào hồ sơ ký

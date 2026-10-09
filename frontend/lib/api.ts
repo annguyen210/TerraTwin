@@ -2217,6 +2217,9 @@ export type DossierFacts = {
   land_use: LandUse | null;
   terrain: NonNullable<Passport["terrain"]> | null;
   history_10y: Record<string, PassportHazard> | null;
+  water_history_radar?: { n_scenes: number; first: string; last: string; n_events: number;
+    events: { start: string; end: string; peak_cover: string; n_scenes: number; min_p50_db: number }[];
+    method: string; limits: string } | null;
   history_caveat: string | null;
   // Từ 3/10/2026 hồ sơ KHÔNG ký dự báo (predictions_included=false); hồ sơ cũ vẫn có.
   predictions_included?: boolean;

@@ -193,6 +193,26 @@ export default function DossierPage() {
               </section>
             </div>
 
+            {f.water_history_radar && (
+              <section>
+                <h2>{t("Lịch sử nước — radar Sentinel-1, ĐO THẬT", "Water history — Sentinel-1 radar, MEASURED")}</h2>
+                <p><b>{f.water_history_radar.n_events === 0
+                  ? t(`Không thấy đợt nước phủ nào trong ${f.water_history_radar.n_scenes} cảnh radar (${f.water_history_radar.first} → ${f.water_history_radar.last}).`,
+                      `No water events in ${f.water_history_radar.n_scenes} radar scenes (${f.water_history_radar.first} → ${f.water_history_radar.last}).`)
+                  : t(`Nước đã phủ ${f.water_history_radar.n_events} đợt trong ${f.water_history_radar.n_scenes} cảnh radar (${f.water_history_radar.first} → ${f.water_history_radar.last}).`,
+                      `Water covered the plot ${f.water_history_radar.n_events} times in ${f.water_history_radar.n_scenes} radar scenes (${f.water_history_radar.first} → ${f.water_history_radar.last}).`)}</b></p>
+                {f.water_history_radar.events.length > 0 && (
+                  <ul className="dos-list">
+                    {f.water_history_radar.events.map((e) => (
+                      <li key={e.start}><span>{e.start === e.end ? e.start : `${e.start} → ${e.end}`}</span>
+                        <b>{t(`phủ ${e.peak_cover}`, `${e.peak_cover} covered`)} · {e.n_scenes} {t("cảnh", "scenes")}</b></li>
+                    ))}
+                  </ul>
+                )}
+                <p className="dos-note">{f.water_history_radar.method} {f.water_history_radar.limits}</p>
+              </section>
+            )}
+
             <section>
               <h2>{t("Mười năm hiểm hoạ tại chính thửa này", "Ten years of hazards at this exact plot")}</h2>
               {hist.length ? (

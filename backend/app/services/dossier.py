@@ -68,7 +68,26 @@ SOURCES = [
 # ĐO được và số TÍNH LẠI được từ số đo. Dự báo (rủi ro 7 ngày tới, mô hình học sâu)
 # KHÔNG vào nội dung được ký — chúng đổi theo giờ và luôn có xác suất sai; người
 # xem tra trực tiếp trên trang thửa, kèm tỉ lệ đúng đã đo (sổ điểm tự chấm).
-EVIDENCE_CLASSES = {"land_use": "measured", "terrain": "measured", "history_10y": "derived"}
+EVIDENCE_CLASSES = {"land_use": "measured", "terrain": "measured", "history_10y": "derived",
+                    "water_history_radar": "measured"}
+S1_SOURCE = "Sentinel-1 RTC (Copernicus) — Microsoft Planetary Computer: lịch sử nước radar 2017 → nay"
+
+
+def _water_section(lat: float, lon: float) -> dict | None:
+    """Lịch sử nước radar ĐÃ ĐỌC cho thửa (cache) — chỉ khi cổng GĐ2 đạt. Không tự chạy ở đây: đọc
+    vài trăm cảnh mất ~1–2 phút, không bắt người phát hành chờ; người dùng bấm "Xem lịch sử nước" trước."""
+    from app import routes_water
+    from app.services import cache_store, water_history as wh
+    if not routes_water.gate()["passed"]:
+        return None
+    r = cache_store.get(cache_store.make_key("water", round(lat, 4), round(lon, 4), int(wh.RADIUS_M)))
+    if not r or not r.get("available"):
+        return None
+    return {"n_scenes": r["n_scenes"], "first": r["first"], "last": r["last"], "track": r["track"],
+            "n_events": r["n_events"],
+            "events": [{k: e[k] for k in ("start", "end", "peak_cover", "n_scenes", "min_p50_db")} for e in r["events"]],
+            "rule": {"water_db": wh.WATER_DB, "drop_db": wh.DROP_DB, "merge_gap_days": wh.MERGE_GAP_DAYS},
+            "method": r["method"], "limits": r["limits"]}
 
 
 def build_facts(lat: float, lon: float, area_ha: float | None, db: Session) -> dict:
@@ -80,6 +99,7 @@ def build_facts(lat: float, lon: float, area_ha: float | None, db: Session) -> d
 
     pp, lu = jobs.gather([lambda: passport.build(lat, lon), lambda: landuse.composition(lat, lon)])
     ok_pp = bool(pp and pp.get("available"))
+    water = _water_section(lat, lon)
     return {
         "schema": SCHEMA,
         "lang": reqlang.cur_lang(),
@@ -88,6 +108,7 @@ def build_facts(lat: float, lon: float, area_ha: float | None, db: Session) -> d
         "terrain": pp.get("terrain") if ok_pp else None,
         "history_10y": pp.get("history") if ok_pp else None,
         "history_caveat": (pp or {}).get("caveat") if pp else None,
+        "water_history_radar": water,
         "evidence_classes": EVIDENCE_CLASSES,
         "predictions_included": False,
         "predictions_note": tr(
@@ -95,7 +116,7 @@ def build_facts(lat: float, lon: float, area_ha: float | None, db: Session) -> d
             "suất sai. Xem trực tiếp trên trang thửa, kèm tỉ lệ đúng đã đo của chính TerraTwin.",
             "Forecasts (7-day risk, alerts) are NOT part of the signed dossier: they change hourly and can "
             "always be wrong. See them live on the plot page, with TerraTwin's own measured hit rate."),
-        "sources": SOURCES,
+        "sources": SOURCES + ([S1_SOURCE] if water else []),
         "missing": [name for name, v in (("land_use", lu), ("passport", ok_pp)) if not v],
         "disclaimer": tr(
             "Hồ sơ tổng hợp dữ liệu ĐO và số tính lại được từ dữ liệu mở tại thời điểm phát hành. KHÔNG thay "
