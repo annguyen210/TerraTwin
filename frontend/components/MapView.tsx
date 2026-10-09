@@ -51,10 +51,13 @@ export default function MapView({
   flyTo,
   heat,
   plot,
+  radar,
 }: {
   onPick: (lat: number, lon: number, areaHa?: number) => void;
   flyTo?: { lat: number; lon: number; key: number } | null;
   heat?: Heat;
+  // GĐ2 — ảnh radar Sentinel-1 của một ngày + mặt nạ nước (kéo thanh thời gian trong Lịch sử nước).
+  radar?: { radar_tiles: string; water_tiles: string; item: string } | null;
   // Ô ĐANG PHÂN TÍCH. Trước đây bản đồ — thứ CHIẾM NHIỀU CHỖ NHẤT trên màn
   // hình — không phản ánh gì cả, kể cả sau khi đã quét xong: nó vẫn là một tấm
   // nền trơn. Người dùng nhìn vào phần lớn nhất của sản phẩm và thấy trống.
@@ -225,6 +228,25 @@ export default function MapView({
     if (map.isStyleLoaded()) draw();
     else map.once("load", draw);
   }, [heat]);
+
+  // GĐ2 — lớp radar: ảnh xám VV + mặt nạ nước, đặt DƯỚI khung thửa và lớp vẽ tay.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const apply = () => {
+      for (const id of ["s1-water", "s1-radar"]) if (map.getLayer(id)) map.removeLayer(id);
+      for (const id of ["s1-water", "s1-radar"]) if (map.getSource(id)) map.removeSource(id);
+      if (!radar) return;
+      const before = map.getLayer("plot-line") ? "plot-line" : undefined;
+      map.addSource("s1-radar", { type: "raster", tiles: [radar.radar_tiles], tileSize: 256, maxzoom: 14,
+                                  attribution: "Copernicus Sentinel-1 · Microsoft Planetary Computer" });
+      map.addLayer({ id: "s1-radar", type: "raster", source: "s1-radar", paint: { "raster-opacity": 0.55 } }, before);
+      map.addSource("s1-water", { type: "raster", tiles: [radar.water_tiles], tileSize: 256, maxzoom: 14 });
+      map.addLayer({ id: "s1-water", type: "raster", source: "s1-water", paint: { "raster-opacity": 0.9 } }, before);
+    };
+    if (map.isStyleLoaded()) apply();
+    else map.once("load", apply);
+  }, [radar]);
 
   // Vẽ khung ô vừa phân tích.
   useEffect(() => {

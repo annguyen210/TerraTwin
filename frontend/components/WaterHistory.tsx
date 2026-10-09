@@ -7,7 +7,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Waves } from "lucide-react";
-import { waterPoll, waterStart, waterStatus, type WaterHistoryResult } from "@/lib/api";
+import { waterPoll, waterScene, waterStart, waterStatus, type WaterHistoryResult, type WaterScene } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 const COVER_COLOR: Record<string, string> = { "≥50%": "#1d5e87", "25–50%": "#3d8fc4", "10–25%": "#8cc3e6" };
@@ -40,7 +40,60 @@ function Chart({ r }: { r: WaterHistoryResult }) {
   );
 }
 
-export default function WaterHistory({ lat, lon }: { lat: number; lon: number }) {
+/** Mỗi năm: cảnh "ướt nhất" của chính thửa (trung vị VV thấp nhất) — thanh kéo 2017 → nay trên bản đồ. */
+function wettestByYear(r: WaterHistoryResult): { year: number; date: string; p50: number }[] {
+  const by = new Map<number, { year: number; date: string; p50: number }>();
+  for (const [d, p50] of r.series) {
+    const y = Number(d.slice(0, 4));
+    const cur = by.get(y);
+    if (!cur || p50 < cur.p50) by.set(y, { year: y, date: d, p50 });
+  }
+  return [...by.values()].sort((a, b) => a.year - b.year);
+}
+
+function MapScrubber({ r, lat, lon, onScene }: { r: WaterHistoryResult; lat: number; lon: number;
+                                                  onScene: (s: WaterScene | null) => void }) {
+  const { t } = useLang();
+  const years = useMemo(() => wettestByYear(r), [r]);
+  const [i, setI] = useState<number | null>(null);
+  const [scene, setScene] = useState<WaterScene | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const wet = new Set(r.events.flatMap((e) => (e.dates ?? [e.start])));
+
+  useEffect(() => () => onScene(null), [onScene]);
+  useEffect(() => {
+    if (i == null) return;
+    let live = true;
+    setBusy(true); setErr(null);
+    waterScene(lat, lon, years[i].date)
+      .then((s) => { if (live) { setScene(s); onScene(s); } })
+      .catch((e) => live && setErr((e as Error).message))
+      .finally(() => live && setBusy(false));
+    return () => { live = false; };
+  }, [i, lat, lon, years, onScene]);
+
+  if (!years.length) return null;
+  const cur = i == null ? null : years[i];
+  return (
+    <div className="wh-scrub">
+      <label htmlFor="wh-year"><b>{t("Xem trên bản đồ", "Show on the map")}</b> — {t("kéo theo năm: mỗi năm lấy cảnh radar ướt nhất của thửa",
+        "drag by year: each year shows the plot's wettest radar scene")}</label>
+      <input id="wh-year" type="range" min={0} max={years.length - 1} step={1} value={i ?? years.length - 1}
+             aria-valuetext={cur ? `${cur.year}: ${cur.date}` : undefined}
+             onChange={(e) => setI(Number(e.target.value))} onPointerDown={() => i == null && setI(years.length - 1)} />
+      <div className="wh-years" aria-hidden="true">{years.map((y) => <span key={y.year}>{String(y.year).slice(2)}</span>)}</div>
+      {cur && <p className="wh-scene">{busy ? t("Đang tải ảnh radar…", "Loading radar image…")
+        : scene ? <>{t(`Ảnh radar ngày ${scene.date}`, `Radar image of ${scene.date}`)}{wet.has(cur.date) ? t(" — nằm trong một đợt nước phủ của thửa", " — inside one of the plot's water events") : ""}.{" "}
+          <button type="button" className="wh-off" onClick={() => { setI(null); setScene(null); onScene(null); }}>{t("Tắt lớp radar", "Hide radar layer")}</button></> : null}</p>}
+      {i == null && <button type="button" className="bat-btn ghost" onClick={() => setI(years.length - 1)}>{t("Hiện lớp radar", "Show radar layer")}</button>}
+      {scene && <p className="eu-src">{scene.legend} {scene.attribution}.</p>}
+      {err && <p className="bat-err">{err}</p>}
+    </div>
+  );
+}
+
+export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: number; onScene?: (s: WaterScene | null) => void }) {
   const { t } = useLang();
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [r, setR] = useState<WaterHistoryResult | null>(null);
@@ -106,6 +159,7 @@ export default function WaterHistory({ lat, lon }: { lat: number; lon: number })
         <>
           <p className="wh-sum"><b>{summary}</b></p>
           <Chart r={r} />
+          {onScene && <MapScrubber r={r} lat={lat} lon={lon} onScene={onScene} />}
           <p className="eu-src">{t("Đường: trung vị tán xạ VV (dB); vạch đứt: ngưỡng nước −18 dB; khối xanh: đợt nước phủ.",
                                    "Line: median VV backscatter (dB); dashed: −18 dB water threshold; blue blocks: water events.")}</p>
           {r.events.length > 0 && (

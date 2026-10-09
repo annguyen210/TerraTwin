@@ -5035,3 +5035,12 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .tf-codes ul { margin: 6px 0; padding-left: 18px; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 2px 12px; }
 .tf-codes small { color: var(--dim); }
 .tf-off { display: grid; gap: 8px; } .tf-off summary { cursor: pointer; color: var(--dim); font-size: .86rem; }
+
+/* GĐ2 — thanh kéo theo năm: lớp radar trên bản đồ */
+.wh-scrub { display: grid; gap: 6px; margin: 6px 0 4px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); }
+.wh-scrub label { font-size: .86rem; color: var(--text); line-height: 1.45; }
+.wh-scrub input[type="range"] { width: 100%; accent-color: #1d5e87; }
+.wh-years { display: flex; justify-content: space-between; font-size: .72rem; color: var(--dim); font-variant-numeric: tabular-nums; }
+.wh-scene { margin: 0; font-size: .86rem; color: var(--text); }
+.wh-off { all: unset; cursor: pointer; color: var(--terra); text-decoration: underline; font-size: .82rem; }
+.wh-off:focus-visible { outline: 2px solid var(--terra); outline-offset: 2px; }

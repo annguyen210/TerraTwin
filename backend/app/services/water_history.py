@@ -181,6 +181,53 @@ def history(lat: float, lon: float, radius_m: float = RADIUS_M, today: date | No
     return out
 
 
+TILER = "https://planetarycomputer.microsoft.com/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x"
+# Mặt nạ hiển thị: điểm ảnh VV < −18 dB (tuyến tính 10^-1.8 ≈ 0,0158), bỏ điểm ngoài dải quét (VV = 0).
+_MASK_EXPR = "where((vv>0)&(vv<0.0158),1,0)"
+_MASK_COLOR = '{"1":[29,120,200,215]}'
+
+
+def scene(lat: float, lon: float, day: str) -> dict | None:
+    """Cảnh Sentinel-1 RTC chụp thửa ngày `day` (ưu tiên đúng quỹ đạo của lịch sử nước đã đọc) + mẫu URL
+    ô ảnh để vẽ lên bản đồ: ảnh radar xám và mặt nạ nước. Trình duyệt tải ô thẳng từ Planetary Computer."""
+    d = date.fromisoformat(day)
+    key = cache_store.make_key("s1scene", round(lat, 4), round(lon, 4), d.isoformat())
+    hit = cache_store.get(key)
+    if hit is not None:
+        return hit or None
+    box = mpc.bbox_around(lat, lon, RADIUS_M)
+    r = mpc._call(mpc.STAC, {"collections": [COLLECTION], "bbox": box,
+                             "datetime": f"{d.isoformat()}T00:00:00Z/{d.isoformat()}T23:59:59Z", "limit": 10})
+    if r is None:
+        return None                                   # lỗi mạng: không cache
+    feats = r.get("features") or []
+    hist = cache_store.get(cache_store.make_key("water", round(lat, 4), round(lon, 4), int(RADIUS_M)))
+    if hist and hist.get("available"):
+        tr_ = (hist["track"]["orbit"], hist["track"]["relative_orbit"])
+        feats = sorted(feats, key=lambda f: (f["properties"].get("sat:orbit_state"),
+                                             f["properties"].get("sat:relative_orbit")) != tr_)
+    if not feats:
+        cache_store.put(key, {}, 86400)
+        return None
+    f = feats[0]
+    q = urllib.parse.urlencode
+    out = {
+        "item": f["id"], "date": f["properties"]["datetime"][:10],
+        "orbit": f["properties"].get("sat:orbit_state"), "relative_orbit": f["properties"].get("sat:relative_orbit"),
+        "radar_tiles": TILER + "?" + q({"collection": COLLECTION, "item": f["id"], "assets": "vv",
+                                       "rescale": "0,0.25", "colormap_name": "greys_r"}),
+        "water_tiles": TILER + "?" + q({"collection": COLLECTION, "item": f["id"], "expression": _MASK_EXPR,
+                                       "asset_as_band": "True", "colormap": _MASK_COLOR, "nodata": "0"}),
+        "legend": tr("Xanh: điểm ảnh VV < −18 dB — mặt nước lúc chụp, GỒM CẢ sông, hồ, đầm thường trực. "
+                     "Đợt nước của thửa được tính so với nền của chính thửa, không phải lớp này.",
+                     "Blue: pixels with VV < −18 dB — water at capture time, INCLUDING permanent rivers, lakes and lagoons. "
+                     "The plot's water events are computed against its own baseline, not this layer."),
+        "attribution": "Copernicus Sentinel-1 RTC · Microsoft Planetary Computer",
+    }
+    cache_store.put(key, out, 30 * 86400)
+    return out
+
+
 def _register() -> None:
     from app.services import jobs_db
 

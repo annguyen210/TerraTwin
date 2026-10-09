@@ -2805,3 +2805,11 @@ export type CompareResult = {
 export function comparePlots(points: { lat: number; lon: number; name?: string }[]) {
   return postJson<CompareResult>(`/api/compare?lang=${curLang()}`, { points }, "Không so sánh được");
 }
+
+// ---- GĐ2: cảnh radar của một ngày để vẽ lên bản đồ (thanh thời gian nước) ----
+export type WaterScene = { item: string; date: string; orbit: string | null; relative_orbit: number | null;
+  radar_tiles: string; water_tiles: string; legend: string; attribution: string };
+export function waterScene(lat: number, lon: number, date: string) {
+  return getJson<WaterScene>(`/api/water/scene?lat=${lat}&lon=${lon}&date=${date}&lang=${curLang()}`,
+    "Không lấy được cảnh radar ngày này");
+}

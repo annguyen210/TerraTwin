@@ -77,3 +77,28 @@ def test_ho_so_chi_dua_lich_su_nuoc_da_doc_va_khi_cong_dat(monkeypatch):
     assert dossier.EVIDENCE_CLASSES["water_history_radar"] == "measured"
     monkeypatch.setattr(routes_water, "gate", lambda: {"passed": False})
     assert dossier._water_section(16.575, 107.495) is None          # cổng chưa đạt → không vào hồ sơ ký
+
+
+def test_canh_radar_mot_ngay_cho_thanh_thoi_gian(monkeypatch):
+    """GĐ2 — thanh kéo theo năm: chọn đúng quỹ đạo của lịch sử đã đọc, URL ô ảnh có mặt nạ bỏ vùng ngoài dải quét."""
+    from fastapi.testclient import TestClient
+    from app import routes_water
+    from app.main import app
+    from app.services import cache_store, mpc, water_history as wh
+    feats = [{"id": "S1B_khac_rtc", "properties": {"datetime": "2020-10-13T22:44:00Z", "sat:orbit_state": "descending", "sat:relative_orbit": 18}},
+             {"id": "S1A_dung_rtc", "properties": {"datetime": "2020-10-13T10:56:54Z", "sat:orbit_state": "ascending", "sat:relative_orbit": 55}}]
+    store: dict = {"water:x": None}
+    hist = {"available": True, "track": {"orbit": "ascending", "relative_orbit": 55, "collection": wh.COLLECTION}}
+    monkeypatch.setattr(cache_store, "get", lambda key: hist if key.startswith("water:") else store.get(key))
+    monkeypatch.setattr(cache_store, "put", lambda key, v, ttl: store.__setitem__(key, v))
+    monkeypatch.setattr(mpc, "_call", lambda url, payload=None, timeout=None: {"features": feats})
+    s = wh.scene(16.5751, 107.4952, "2020-10-13")
+    assert s["item"] == "S1A_dung_rtc" and s["relative_orbit"] == 55
+    assert "where%28%28vv%3E0%29%26%28vv%3C0.0158%29%2C1%2C0%29" in s["water_tiles"] and "{z}/{x}/{y}" in s["water_tiles"]
+    assert "GỒM CẢ sông" in s["legend"]
+    monkeypatch.setattr(routes_water, "gate", lambda: {"passed": True})
+    with TestClient(app) as c:
+        assert c.get("/api/water/scene?lat=16.5751&lon=107.4952&date=2020-10-13").json()["item"] == "S1A_dung_rtc"
+        assert c.get("/api/water/scene?lat=16.5751&lon=107.4952&date=13-10-2020").status_code == 422
+        monkeypatch.setattr(wh, "scene", lambda *a: None)
+        assert c.get("/api/water/scene?lat=16.5751&lon=107.4952&date=2020-10-12").status_code == 404

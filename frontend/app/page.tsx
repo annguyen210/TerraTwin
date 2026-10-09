@@ -13,7 +13,7 @@ import {
   type ModuleInfo,
   type TerraScore,
 } from "@/lib/api";
-import type { HeatmapResult } from "@/lib/api";
+import type { HeatmapResult, WaterScene } from "@/lib/api";
 import AppShell from "@/components/AppShell";
 import Link from "next/link";
 import Answer from "@/components/Answer";
@@ -146,6 +146,7 @@ export default function Home() {
   // Bố cục 3.0: bản đồ lớn làm phần chính, nội dung chia CHƯƠNG (thay ba cột "danh sách
   // mô-đun trái / phân tích phải" — người dùng thấy giống công cụ phụ thuộc AI, rối mắt).
   const [chapter, setChapter] = useState<"plan" | "mine" | "verify" | "tools">("plan");
+  const [radar, setRadar] = useState<WaterScene | null>(null);   // GĐ2 — lớp radar theo thanh thời gian
   const [deep, setDeep] = useState<
     | "none" | "playback" | "timelapse" | "genome" | "design" | "knowledge"
     | "mrv" | "provenance" | "model"
@@ -302,7 +303,7 @@ export default function Home() {
       <div className="pw">
         <section className="pw-hero">
           <div className="pw-map">
-            <MapView onPick={onPick} flyTo={flyTo} heat={heat} plot={coord ? { ...coord, spanM: 1000, risk: plotRisk } : null} />
+            <MapView onPick={onPick} flyTo={flyTo} heat={heat} plot={coord ? { ...coord, spanM: 1000, risk: plotRisk } : null} radar={radar} />
           </div>
           <div className="pw-card tt-reveal">
             {outside && <p className="bat-err" role="alert">{outside}</p>}
@@ -340,7 +341,7 @@ export default function Home() {
           {chapter === "plan" && (
             <>
               {/* Bằng chứng trước, điểm số sau: dải lịch sử nước radar luôn ở trên cùng tab Hồ sơ. */}
-              {serviceable && <WaterHistory lat={coord.lat} lon={coord.lon} />}
+              {serviceable && <WaterHistory lat={coord.lat} lon={coord.lon} onScene={setRadar} />}
               {serviceable && <PlotPlan lat={coord.lat} lon={coord.lon} area={area} onSelectModule={selectModule} />}
               {serviceable && <h3 className="ev-h">{t("Bằng chứng chi tiết — lưới mũi nhọn", "Detailed evidence — the spearhead grid")}</h3>}
               <Answer lat={coord.lat} lon={coord.lon} area={area} label={placeLabel} modules={modules}

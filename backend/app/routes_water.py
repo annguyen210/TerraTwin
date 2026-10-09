@@ -64,6 +64,21 @@ def water_history_start(body: WaterIn, request: Request, lang: str = "vi",
     return {"state": "queued", "job_id": job_id}
 
 
+@router.get("/api/water/scene")
+def water_scene(lat: float, lon: float, date: str, lang: str = "vi") -> dict:
+    """Ô ảnh radar + mặt nạ nước của cảnh chụp thửa ngày `date` — để kéo thanh thời gian trên bản đồ."""
+    import re
+    reqlang.set_lang(lang)
+    if not gate()["passed"]:
+        raise HTTPException(409, tr("Lịch sử nước radar chưa bật.", "Radar water history not enabled."))
+    if not (8.0 <= lat <= 24.0 and 102.0 <= lon <= 110.0) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date):
+        raise HTTPException(422, tr("Toạ độ hoặc ngày không hợp lệ.", "Invalid coordinates or date."))
+    s = water_history.scene(lat, lon, date)
+    if s is None:
+        raise HTTPException(404, tr("Không có cảnh radar nào chụp thửa vào ngày này.", "No radar scene over this plot on that day."))
+    return s
+
+
 @router.get("/api/water/history/{job_id}")
 def water_history_poll(job_id: str, db: Session = Depends(get_session)) -> dict:
     st = jobs_db.status(db, job_id)
