@@ -39,6 +39,9 @@ _GATE = threading.BoundedSemaphore(1)
 ENDPOINTS = [
     "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",   # gương, dùng khi cái đầu nghẽn
+    # GĐ6 (9/10/2026): trên Render hai máy trên hay trả 504/429 cho IP dùng chung → khoảng cách tới sông
+    # thành "không tra được". Gương thứ ba, chậm hơn (~25 s) nhưng nhận truy vấn khi hai máy kia nghẽn.
+    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
 ]
 ENDPOINT = ENDPOINTS[0]
 # Overpass yêu cầu User-Agent nhận dạng được. Phải THUẦN ASCII — header HTTP
@@ -92,8 +95,9 @@ def _fetch(q: str) -> dict | None:
                 _down_until.pop(url, None)
                 break
             except urllib.error.HTTPError as e:
-                if e.code not in (429, 504):
+                if e.code == 400:
                     return None          # truy vấn sai — máy chủ khác cũng trả như vậy
+                # 429/5xx/403: máy này bận hoặc chặn IP dùng chung — thử gương kế tiếp, đừng bỏ cuộc.
                 _down_until[url] = time.time() + _COOLDOWN
             except Exception:            # hết giờ, mất kết nối
                 _down_until[url] = time.time() + _COOLDOWN

@@ -32,7 +32,8 @@ def one(lat: float, lon: float) -> dict:
         "elevation_m": (terr or {}).get("elevation_m"),
         "lower_than_pct": (terr or {}).get("lower_than_pct"),
         "slope_deg": (terr or {}).get("slope_deg"),
-        "river_km": river,
+        # Không có sông/kênh nào trong 5 km → chuỗi "> 5" (inf không hợp lệ trong JSON, và 0 hay None đều sai nghĩa).
+        "river_km": "> 5 km" if river == float("inf") else river,
         "coast_km": ds.distance_to_coast_km(lat, lon),
         "salinity_zone": ds.salinity_zone(lat, lon),
         "flood_10y": (hist.get("flood") or {}).get("events"),
@@ -52,7 +53,7 @@ ROWS = [
     ("elevation_m", "Cao độ", "Elevation", " m", "high", "Copernicus DEM"),
     ("lower_than_pct", "Thấp hơn % đất trong 5 km", "Lower than % of land within 5 km", "%", "low", "Copernicus DEM"),
     ("slope_deg", "Độ dốc", "Slope", "°", "low", "Copernicus DEM"),
-    ("river_km", "Tới sông/kênh gần nhất", "To nearest river/canal", " km", "high", "OpenStreetMap"),
+    ("river_km", "Tới sông/kênh gần nhất", "To nearest river/canal", " km", None, "OpenStreetMap"),   # gần sông: dễ ngập NHƯNG có nước tưới — không chấm
     ("coast_km", "Tới bờ biển", "To the coast", " km", "high", "TerraTwin coastline"),
     ("salinity_zone", "Vùng nhiễm mặn nông nghiệp", "Agricultural salinity zone", "", None, "TerraTwin"),
     ("flood_10y", "Đợt lũ vượt ngưỡng (10 năm)", "Flood episodes over threshold (10 y)", "", "low", "ERA5"),
