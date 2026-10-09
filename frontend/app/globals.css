@@ -5012,3 +5012,12 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 }
 
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* GĐ1 — tab Kiểm chứng trên thẻ thửa */
+.pw-verify { display: grid; gap: 14px; }
+.pw-vlinks { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 10px; }
+.pw-vlink { all: unset; box-sizing: border-box; cursor: pointer; display: grid; gap: 4px; padding: 12px 14px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--text); text-decoration: none; }
+.pw-vlink:hover { border-color: var(--terra); }
+.pw-vlink:focus-visible { outline: 2px solid var(--terra); outline-offset: 2px; }
+.pw-vlink span { color: var(--dim); font-size: .84rem; line-height: 1.45; }

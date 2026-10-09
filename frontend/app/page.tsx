@@ -17,6 +17,8 @@ import type { HeatmapResult } from "@/lib/api";
 import AppShell from "@/components/AppShell";
 import Link from "next/link";
 import Answer from "@/components/Answer";
+import ListingCheck from "@/components/ListingCheck";
+import WaterHistory from "@/components/WaterHistory";
 import PlotPlan from "@/components/PlotPlan";
 import Start from "@/components/Start";
 import Story from "@/components/Story";
@@ -143,7 +145,7 @@ export default function Home() {
   const [plotRisk, setPlotRisk] = useState<string>("safe");
   // Bố cục 3.0: bản đồ lớn làm phần chính, nội dung chia CHƯƠNG (thay ba cột "danh sách
   // mô-đun trái / phân tích phải" — người dùng thấy giống công cụ phụ thuộc AI, rối mắt).
-  const [chapter, setChapter] = useState<"plan" | "tools" | "mine">("plan");
+  const [chapter, setChapter] = useState<"plan" | "mine" | "verify" | "tools">("plan");
   const [deep, setDeep] = useState<
     | "none" | "playback" | "timelapse" | "genome" | "design" | "knowledge"
     | "mrv" | "provenance" | "model"
@@ -276,11 +278,22 @@ export default function Home() {
   }
 
   const serviceable = terra?.region?.serviceable !== false;
-  const CHAPTERS: { id: "plan" | "tools" | "mine"; vi: string; en: string }[] = [
-    { id: "plan", vi: "Kế hoạch & rủi ro", en: "Plan & risk" },
-    { id: "tools", vi: `Công cụ chuyên sâu (${modules.length || 18})`, en: `Deep tools (${modules.length || 18})` },
-    { id: "mine", vi: "Thửa đã lưu & cảnh báo", en: "Saved plots & alerts" },
+  // GĐ1 kế hoạch tổng — thẻ thửa: Hồ sơ · Canh đất · Kiểm chứng; 18 công cụ lùi vào "Chuyên sâu".
+  const CHAPTERS: { id: "plan" | "mine" | "verify" | "tools"; vi: string; en: string }[] = [
+    { id: "plan", vi: "Hồ sơ", en: "Dossier" },
+    { id: "mine", vi: "Canh đất", en: "Watch" },
+    { id: "verify", vi: "Kiểm chứng", en: "Verify" },
+    { id: "tools", vi: `Chuyên sâu (${modules.length || 18} công cụ)`, en: `In depth (${modules.length || 18} tools)` },
   ];
+  function compareHere() {
+    // Thêm thửa đang xem vào danh sách so sánh (tối đa 4, lưu trên máy) rồi mở /so-sanh.
+    let cur: { lat: number; lon: number; name?: string }[] = [];
+    try { cur = JSON.parse(localStorage.getItem("tt-compare") || "[]"); } catch { /* bỏ qua */ }
+    if (!cur.some((x) => Math.abs(x.lat - coord!.lat) < 1e-5 && Math.abs(x.lon - coord!.lon) < 1e-5))
+      cur = [...cur, { lat: coord!.lat, lon: coord!.lon, name: placeLabel ?? undefined }].slice(-4);
+    try { localStorage.setItem("tt-compare", JSON.stringify(cur)); } catch { /* bỏ qua */ }
+    window.location.href = "/so-sanh";
+  }
 
   return (
     <AppShell user={user} onAuth={setUser} wide>
@@ -326,6 +339,8 @@ export default function Home() {
         <div className="pw-body tt-reveal" key={chapter}>
           {chapter === "plan" && (
             <>
+              {/* Bằng chứng trước, điểm số sau: dải lịch sử nước radar luôn ở trên cùng tab Hồ sơ. */}
+              {serviceable && <WaterHistory lat={coord.lat} lon={coord.lon} />}
               {serviceable && <PlotPlan lat={coord.lat} lon={coord.lon} area={area} onSelectModule={selectModule} />}
               {serviceable && <h3 className="ev-h">{t("Bằng chứng chi tiết — lưới mũi nhọn", "Detailed evidence — the spearhead grid")}</h3>}
               <Answer lat={coord.lat} lon={coord.lon} area={area} label={placeLabel} modules={modules}
@@ -394,6 +409,22 @@ export default function Home() {
               )}
               <Backtest />
             </>
+          )}
+
+          {chapter === "verify" && (
+            <div className="pw-verify">
+              <ListingCheck lat={coord.lat} lon={coord.lon} />
+              <div className="pw-vlinks">
+                <Link href="/kiem" className="pw-vlink"><b>{t("Kiểm một hồ sơ", "Check a dossier")}</b>
+                  <span>{t("Dán mã, quét QR hoặc thả tệp JSON đã ký — biết ngay bản gốc hay đã bị sửa.", "Paste an ID, scan the QR or drop the signed JSON — know at once if it is the original.")}</span></Link>
+                <button type="button" className="pw-vlink" onClick={compareHere}><b>{t("So sánh với thửa khác", "Compare with other plots")}</b>
+                  <span>{t("Đặt 2–4 thửa cạnh nhau: nước phủ, độ cao, sông/biển, mặn, lũ, sạt lở.", "2–4 plots side by side: water, elevation, river/sea, salinity, floods, landslides.")}</span></button>
+                <Link href="/batch" className="pw-vlink"><b>{t("Thẩm định hàng loạt", "Batch appraisal")}</b>
+                  <span>{t("Tệp CSV nhiều thửa cho ngân hàng, bảo hiểm.", "A CSV of many plots for banks and insurers.")}</span></Link>
+                <Link href="/eudr" className="pw-vlink"><b>{t("Hồ sơ EUDR", "EUDR dossier")}</b>
+                  <span>{t("Vườn cà phê, cao su: sàng lọc phá rừng sau 31/12/2020.", "Coffee and rubber plots: deforestation screening after 31/12/2020.")}</span></Link>
+              </div>
+            </div>
           )}
 
           {chapter === "mine" && (

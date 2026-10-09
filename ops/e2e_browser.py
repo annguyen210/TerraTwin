@@ -259,7 +259,7 @@ with sync_playwright() as p:
         page.locator(".pw-map canvas").first.wait_for(timeout=60_000)
         page.wait_for_timeout(6000)
         shot(page, "14-workspace", full=False)
-        page.get_by_role("tab", name=re.compile("Công cụ chuyên sâu")).click()
+        page.get_by_role("tab", name=re.compile("Chuyên sâu")).click()
         page.locator(".pw-mod").first.wait_for(timeout=30_000)
         shot(page, "15-workspace-tools", full=False)
         return f"{page.locator('.pw-mod').count()} công cụ"
