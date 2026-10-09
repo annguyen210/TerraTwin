@@ -4893,3 +4893,16 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 @media (prefers-reduced-motion: reduce) { .cp-back { animation: none; } }
 .wv-ph { display: grid; place-content: center; justify-items: center; gap: 10px; border: 1px dashed var(--line-2);
   border-radius: 12px; color: var(--dim); font-size: .9rem; background: var(--panel); }
+
+/* ===== Lịch sử nước radar (GĐ2) ===== */
+.wh { display: grid; gap: 10px; margin: 18px 0; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--text); }
+.wh-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: #4ea8de; }
+.wh-head h3 { margin: 0; font-size: 1rem; color: var(--text); }
+.wh-badge { font-size: .72rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: rgba(78, 168, 222, .15); color: #4ea8de; }
+.wh-start { display: grid; gap: 8px; }
+.wh-start p, .wh-sum { margin: 0; color: var(--text); }
+.wh-chart { width: 100%; height: auto; color: var(--text); }
+.wh-list { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.wh-list li { color: var(--text); font-size: .9rem; }
+.wh-list li span { color: var(--dim); margin-left: 6px; }

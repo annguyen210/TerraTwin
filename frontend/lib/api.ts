@@ -2619,6 +2619,24 @@ export type LotCertificateFacts = {
 export type FocRun = { date: string; chosen?: string; status: "accepted" | "rejected"; val?: Record<string, number>;
                        test: { balanced_accuracy: number; forest_recall: number; tree_crop_recall?: number; n?: number };
                        pass_thresholds?: Record<string, number>; n?: Record<string, number> };
+// ---------- Lịch sử nước nhìn xuyên mây (radar Sentinel-1) ----------
+export type WaterEvent = { start: string; end: string; n_scenes: number; dates: string[]; peak_cover: string; min_p50_db: number };
+export type WaterHistoryResult = { available: boolean; message?: string; n_scenes: number; first: string; last: string;
+  track: { orbit: string; relative_orbit: number; collection: string }; events: WaterEvent[]; n_events: number;
+  baseline_db: Record<string, number>; series: [string, number, number][]; method: string; limits: string; computed: string };
+export type WaterJob = { state: "queued" | "running" | "done" | "error"; job_id?: string; id?: string;
+  progress?: { done: number; total: number }; result?: WaterHistoryResult; message?: string };
+export function waterStatus() {
+  return getJson<{ enabled: boolean; gate: { passed: boolean; run_at: string | null } }>(`/api/water/status?lang=${curLang()}`,
+    "Không tải được trạng thái lịch sử nước");
+}
+export function waterStart(lat: number, lon: number) {
+  return postJson<WaterJob>(`/api/water/history?lang=${curLang()}`, { lat, lon }, "Không bắt đầu được lịch sử nước");
+}
+export function waterPoll(jobId: string) {
+  return getJson<WaterJob>(`/api/water/history/${encodeURIComponent(jobId)}`, "Không hỏi được tiến độ");
+}
+
 export type AefRun = { date: string; status: "accepted" | "rejected"; lambda?: number;
   test: { balanced_accuracy: number; forest_recall: number; tree_crop_recall?: number; n?: number };
   n?: Record<string, number>; comparator_s2_test?: { balanced_accuracy: number; forest_recall: number } };

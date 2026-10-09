@@ -1,0 +1,127 @@
+"use client";
+
+/**
+ * LỊCH SỬ NƯỚC NHÌN XUYÊN MÂY (GĐ2 kế hoạch tổng) — dải thời gian 2017 → nay cho đúng thửa, từ ảnh radar
+ * Sentinel-1: mỗi chấm là một ĐỢT nước phủ đã ĐO (không phải dự báo). Chỉ hiện khi cổng kiểm chứng đạt.
+ * Lần đầu đọc vài trăm cảnh (~2 phút, chạy nền) — người dùng bấm mới chạy, không tự tốn hạn mức.
+ */
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Waves } from "lucide-react";
+import { waterPoll, waterStart, waterStatus, type WaterHistoryResult } from "@/lib/api";
+import { useLang } from "@/lib/i18n";
+
+const COVER_COLOR: Record<string, string> = { "≥50%": "#1d5e87", "25–50%": "#3d8fc4", "10–25%": "#8cc3e6" };
+
+function Chart({ r }: { r: WaterHistoryResult }) {
+  const { t } = useLang();
+  const W = 640, H = 120, pad = 6;
+  const t0 = Date.parse(r.first), t1 = Date.parse(r.last);
+  const x = (d: string) => pad + ((Date.parse(d) - t0) / Math.max(1, t1 - t0)) * (W - 2 * pad);
+  const y = (db: number) => pad + ((-3 - Math.max(-27, Math.min(-3, db))) / 24) * (H - 2 * pad);
+  const line = r.series.map(([d, p50]) => `${x(d).toFixed(1)},${y(p50).toFixed(1)}`).join(" ");
+  const years = [];
+  for (let yr = new Date(t0).getFullYear(); yr <= new Date(t1).getFullYear(); yr++) years.push(yr);
+  return (
+    <svg viewBox={`0 0 ${W} ${H + 18}`} className="wh-chart" role="img"
+         aria-label={t(`Tán xạ radar VV theo thời gian, ${r.n_events} đợt nước phủ`, `Radar VV backscatter over time, ${r.n_events} water events`)}>
+      <rect x={pad} y={y(-18)} width={W - 2 * pad} height={H - pad - y(-18)} fill="currentColor" opacity=".06" />
+      <line x1={pad} x2={W - pad} y1={y(-18)} y2={y(-18)} stroke="currentColor" strokeDasharray="4 4" opacity=".45" />
+      <polyline points={line} fill="none" stroke="currentColor" strokeWidth="1.2" opacity=".75" />
+      {r.events.map((e) => (
+        <rect key={e.start} x={x(e.start) - 3} width={Math.max(6, x(e.end) - x(e.start) + 6)} y={pad} height={H - 2 * pad}
+              fill={COVER_COLOR[e.peak_cover] || "#3d8fc4"} opacity=".35" rx="2" />
+      ))}
+      {years.map((yr) => {
+        const d = `${yr}-01-01`;
+        if (Date.parse(d) < t0) return null;
+        return <text key={yr} x={x(d)} y={H + 14} fontSize="10" textAnchor="middle" fill="currentColor" opacity=".7">{yr}</text>;
+      })}
+    </svg>
+  );
+}
+
+export default function WaterHistory({ lat, lon }: { lat: number; lon: number }) {
+  const { t } = useLang();
+  const [enabled, setEnabled] = useState<boolean | null>(null);
+  const [r, setR] = useState<WaterHistoryResult | null>(null);
+  const [prog, setProg] = useState<{ done: number; total: number } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => { waterStatus().then((s) => setEnabled(s.enabled)).catch(() => setEnabled(false)); }, []);
+  useEffect(() => { setR(null); setErr(null); setProg(null); return () => { if (timer.current) clearTimeout(timer.current); }; }, [lat, lon]);
+
+  async function run() {
+    setBusy(true); setErr(null); setProg(null);
+    try {
+      const j = await waterStart(lat, lon);
+      if (j.state === "done" && j.result) { setR(j.result); setBusy(false); return; }
+      const id = j.job_id!;
+      const tick = async () => {
+        try {
+          const s = await waterPoll(id);
+          if (s.progress) setProg(s.progress);
+          if (s.state === "done" && s.result) { setR(s.result); setBusy(false); return; }
+          if (s.state === "error") { setErr(s.message || t("Việc chạy nền lỗi.", "Background job failed.")); setBusy(false); return; }
+          timer.current = setTimeout(tick, 3000);
+        } catch (e) { setErr((e as Error).message); setBusy(false); }
+      };
+      timer.current = setTimeout(tick, 2500);
+    } catch (e) { setErr((e as Error).message); setBusy(false); }
+  }
+
+  const summary = useMemo(() => {
+    if (!r || !r.available) return null;
+    const last = r.events[r.events.length - 1];
+    return r.n_events === 0
+      ? t(`Không thấy đợt nước phủ nào trong ${r.n_scenes} cảnh radar từ ${r.first.slice(0, 4)}.`,
+          `No water events in ${r.n_scenes} radar scenes since ${r.first.slice(0, 4)}.`)
+      : t(`Nước đã phủ ${r.n_events} đợt từ ${r.first.slice(0, 4)} (${r.n_scenes} cảnh radar), gần nhất ${last.start}.`,
+          `Water covered the plot ${r.n_events} times since ${r.first.slice(0, 4)} (${r.n_scenes} radar scenes), most recently ${last.start}.`);
+  }, [r, t]);
+
+  if (!enabled) return null;
+  return (
+    <section className="wh">
+      <div className="wh-head">
+        <Waves size={18} aria-hidden="true" />
+        <h3>{t("Lịch sử nước nhìn xuyên mây", "Water history through clouds")}</h3>
+        <span className="wh-badge">{t("radar · đo thật", "radar · measured")}</span>
+      </div>
+      {!r && (
+        <div className="wh-start">
+          <p>{t("Đọc toàn bộ ảnh radar Sentinel-1 từ 2017 của đúng thửa này — radar nhìn xuyên mây, kể cả giữa cơn bão.",
+                "Read every Sentinel-1 radar image since 2017 for this exact plot — radar sees through clouds, even mid-storm.")}</p>
+          <button className="bat-btn" onClick={run} disabled={busy}>
+            {busy ? (prog ? t(`Đang đọc ${prog.done}/${prog.total} cảnh…`, `Reading ${prog.done}/${prog.total} scenes…`)
+                          : t("Đang chuẩn bị… (~2 phút lần đầu)", "Preparing… (~2 min the first time)"))
+                  : t("Xem lịch sử nước", "Show water history")}
+          </button>
+        </div>
+      )}
+      {err && <p className="bat-err">{err}</p>}
+      {r && !r.available && <p className="doc-note">{r.message}</p>}
+      {r && r.available && (
+        <>
+          <p className="wh-sum"><b>{summary}</b></p>
+          <Chart r={r} />
+          <p className="eu-src">{t("Đường: trung vị tán xạ VV (dB); vạch đứt: ngưỡng nước −18 dB; khối xanh: đợt nước phủ.",
+                                   "Line: median VV backscatter (dB); dashed: −18 dB water threshold; blue blocks: water events.")}</p>
+          {r.events.length > 0 && (
+            <ol className="wh-list">
+              {r.events.slice().reverse().map((e) => (
+                <li key={e.start}>
+                  <b>{e.start === e.end ? e.start : `${e.start} → ${e.end}`}</b>
+                  <span>{t(`phủ ${e.peak_cover} thửa`, `${e.peak_cover} of plot covered`)} · {t(`${e.n_scenes} cảnh`, `${e.n_scenes} scenes`)} · {t("VV thấp nhất", "min VV")} {e.min_p50_db} dB</span>
+                </li>
+              ))}
+            </ol>
+          )}
+          <p className="eu-src">{r.method}</p>
+          <p className="doc-note">{r.limits}</p>
+        </>
+      )}
+    </section>
+  );
+}

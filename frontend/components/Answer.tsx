@@ -22,6 +22,7 @@
  *    toàn". "Chưa biết" và "không sao" là hai chuyện khác hẳn nhau.
  */
 
+import WaterHistory from "@/components/WaterHistory";
 import { useEffect, useRef, useState } from "react";
 import { scanAll, trackEvent, type ScanResult, type ScanModule, type ModuleInfo } from "@/lib/api";
 import SpeakButton from "@/components/SpeakButton";
@@ -543,6 +544,7 @@ export default function Answer({
       {/* Hồ sơ riêng đặt TRƯỚC khối đối chiếu: nó trả lời "phần mềm này hơn
           app thời tiết ở chỗ nào" bằng ba con số cụ thể của chính thửa này,
           còn khối đối chiếu trả lời "vì sao tin được con số đó". */}
+      <WaterHistory lat={lat} lon={lon} />
       <Passport lat={lat} lon={lon} />
 
       <WhyTrust lat={lat} lon={lon} />

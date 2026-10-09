@@ -14,6 +14,7 @@
  */
 
 import AppShell from "@/components/AppShell";
+import WaterHistory from "@/components/WaterHistory";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -77,6 +78,9 @@ export default function PlotPassportPage() {
         {pp && pp.available !== false && (
           <>
             {pp.headline && <p className="doc-lede">{pp.headline}</p>}
+
+            {/* BẰNG CHỨNG TRƯỚC: lịch sử nước đo bằng radar (chỉ hiện khi cổng kiểm chứng đạt) */}
+            <WaterHistory lat={lat} lon={lon} />
 
             {/* ĐỊA HÌNH */}
             {terr && (
