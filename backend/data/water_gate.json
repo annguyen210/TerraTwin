@@ -1,0 +1,171 @@
+{
+ "run_at": "2026-10-08",
+ "passed": true,
+ "rule": {
+  "water_db": -18.0,
+  "drop_db": 3.0,
+  "merge_gap_days": 24,
+  "radius_m": 100.0
+ },
+ "cases": [
+  {
+   "case": "Đồng lúa Quảng Điền, Huế",
+   "lat": 16.575,
+   "lon": 107.495,
+   "n_scenes": 325,
+   "first": "2017-01-11",
+   "last": "2026-09-28",
+   "track": {
+    "orbit": "descending",
+    "relative_orbit": 18,
+    "collection": "sentinel-1-rtc"
+   },
+   "n_events": 7,
+   "events": [
+    {
+     "start": "2017-11-07",
+     "end": "2017-11-07",
+     "n_scenes": 1,
+     "dates": [
+      "2017-11-07"
+     ],
+     "peak_cover": "10–25%",
+     "min_p50_db": -15.62
+    },
+    {
+     "start": "2020-10-10",
+     "end": "2020-10-10",
+     "n_scenes": 1,
+     "dates": [
+      "2020-10-10"
+     ],
+     "peak_cover": "25–50%",
+     "min_p50_db": -17.06
+    },
+    {
+     "start": "2020-11-09",
+     "end": "2020-11-15",
+     "n_scenes": 2,
+     "dates": [
+      "2020-11-09",
+      "2020-11-15"
+     ],
+     "peak_cover": "10–25%",
+     "min_p50_db": -14.79
+    },
+    {
+     "start": "2021-10-17",
+     "end": "2021-10-17",
+     "n_scenes": 1,
+     "dates": [
+      "2021-10-17"
+     ],
+     "peak_cover": "25–50%",
+     "min_p50_db": -14.78
+    },
+    {
+     "start": "2023-10-19",
+     "end": "2023-10-19",
+     "n_scenes": 1,
+     "dates": [
+      "2023-10-19"
+     ],
+     "peak_cover": "25–50%",
+     "min_p50_db": -15.09
+    },
+    {
+     "start": "2025-11-01",
+     "end": "2025-11-19",
+     "n_scenes": 3,
+     "dates": [
+      "2025-11-01",
+      "2025-11-07",
+      "2025-11-19"
+     ],
+     "peak_cover": "25–50%",
+     "min_p50_db": -16.3
+    },
+    {
+     "start": "2026-01-30",
+     "end": "2026-01-30",
+     "n_scenes": 1,
+     "dates": [
+      "2026-01-30"
+     ],
+     "peak_cover": "10–25%",
+     "min_p50_db": -14.66
+    }
+   ],
+   "baseline_db": {
+    "p10": -11.8,
+    "p25": -10.46,
+    "p50": -8.76,
+    "p75": -7.34
+   },
+   "checks": [
+    {
+     "label": "lũ Huế 10/2020",
+     "pass": true
+    },
+    {
+     "label": "lũ miền Trung 10/2025",
+     "pass": true
+    }
+   ]
+  },
+  {
+   "case": "Đất cao Đà Lạt",
+   "lat": 11.9404,
+   "lon": 108.4583,
+   "n_scenes": 291,
+   "first": "2017-01-06",
+   "last": "2026-09-29",
+   "track": {
+    "orbit": "descending",
+    "relative_orbit": 120,
+    "collection": "sentinel-1-rtc"
+   },
+   "n_events": 0,
+   "events": [],
+   "baseline_db": {
+    "p10": -9.85,
+    "p25": -7.85,
+    "p50": -5.49,
+    "p75": -2.38
+   },
+   "checks": [
+    {
+     "label": "0 đợt",
+     "pass": true
+    }
+   ]
+  },
+  {
+   "case": "Đồi thông Thiên An, Huế",
+   "lat": 16.4283,
+   "lon": 107.5628,
+   "n_scenes": 325,
+   "first": "2017-01-11",
+   "last": "2026-09-28",
+   "track": {
+    "orbit": "descending",
+    "relative_orbit": 18,
+    "collection": "sentinel-1-rtc"
+   },
+   "n_events": 0,
+   "events": [],
+   "baseline_db": {
+    "p10": -18.7,
+    "p25": -13.19,
+    "p50": -10.65,
+    "p75": -8.84
+   },
+   "checks": [
+    {
+     "label": "0 đợt",
+     "pass": true
+    }
+   ]
+  }
+ ]
+}

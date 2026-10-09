@@ -160,6 +160,24 @@ khoản/API key — ngoài phạm vi "không cần gì từ chủ dự án" củ
 đóng nốt: (a) chủ dự án cung cấp một toạ độ + tháng mình biết chắc đã mất
 rừng, hoặc (b) tạo tài khoản GFW Data API rồi truy vấn toạ độ cảnh báo thật.
 
+## 7. Lịch sử nước nhìn xuyên mây (radar Sentinel-1) — CỔNG GĐ2 ĐẠT 9/10/2026
+
+```bash
+python ops/water_gate.py      # ~5 phút: đọc ~300 cảnh/điểm qua Planetary Computer, ghi backend/data/water_gate.json
+```
+
+Quy tắc (viết trước khi chạy, `services/water_history.py`): một quỹ đạo cố định, ảnh Sentinel-1 RTC; cảnh có nước khi
+phân vị VV < −18 dB **và** thấp hơn nền của chính thửa ≥ 3 dB; cảnh cách nhau ≤ 24 ngày ghép thành một đợt.
+
+| Điểm | Cảnh đọc được | Kỳ vọng | Kết quả |
+|---|---|---|---|
+| Đồng lúa Quảng Điền, Huế (16,575; 107,495) | 325 (2017-01 → 2026-09, quỹ đạo giảm #18) | có nước tuần lũ 06–20/10/2020 và 25/10–10/11/2025 | **đạt** — 10/10/2020 (phủ 25–50%), 01–19/11/2025 (25–50%); tổng 7 đợt |
+| Đất cao Đà Lạt (11,940; 108,458) | 291 | 0 đợt | **đạt** — 0 |
+| Đồi thông Thiên An, Huế (16,428; 107,563) | 325 | 0 đợt | **đạt** — 0 |
+
+Giới hạn: đô thị (phản xạ kép), rừng rậm, sườn dốc, mặt rất phẳng; chu kỳ 6–12 ngày có thể lọt đợt ngập ngắn
+(lũ đỉnh 27–30/10/2025 được thấy ở cảnh 01/11 khi nước còn đọng). Đây là số đo radar, không phải số liệu ngập chính thức.
+
 ## Nếu một bước không ra kết quả
 
 - **Gọi mạng hụt / rate-limit Open-Meteo**: các endpoint mục 1–3 gọi API thời
