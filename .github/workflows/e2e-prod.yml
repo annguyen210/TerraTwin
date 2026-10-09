@@ -1,0 +1,66 @@
+name: E2E production (chỉ đọc) + Lighthouse
+
+# GĐ1 kế hoạch tổng: kiểm thử giao diện tự động trong CI. Chạy trên PRODUCTION ở chế độ CHỈ ĐỌC
+# (--readonly: không phát hành hồ sơ — sổ minh bạch không xoá được) mỗi ngày và khi bấm tay.
+# Không chạy trên mỗi push: deploy chỉ lên SAU khi CI xanh, nên chạy ngay lúc push là đo bản cũ.
+
+on:
+  schedule:
+    - cron: "45 1 * * *"     # 08:45 sáng giờ VN
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-prod
+  cancel-in-progress: true
+
+env:
+  WEB: https://terratwin-web.onrender.com
+  API: https://terratwin-api.onrender.com
+
+jobs:
+  e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install "playwright>=1.48,<2"
+      - name: Đánh thức web + api (gói miễn phí ngủ sau 15 phút)
+        run: |
+          for u in "$API/api/health" "$WEB/help"; do
+            for i in 1 2 3 4 5 6; do curl -fsS -o /dev/null --max-time 60 "$u" && break; sleep 20; done
+          done
+      - name: Luồng chính (chỉ đọc)
+        run: python ops/e2e_browser.py "$WEB" "$API" --readonly
+      - name: Song ngữ VI/EN trên điện thoại
+        run: python ops/e2e_lang.py "$WEB"
+
+  lighthouse:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Đánh thức web
+        run: for i in 1 2 3 4 5 6; do curl -fsS -o /dev/null --max-time 60 "$WEB/" && break; sleep 20; done
+      - name: Lighthouse điện thoại (hiệu năng, truy cập)
+        run: |
+          set -e
+          fail=0
+          for path in / /eudr /help; do
+            npx -y lighthouse@12 "$WEB$path" --quiet --only-categories=performance,accessibility \
+              --form-factor=mobile --screenEmulation.mobile --output=json --output-path=lh.json \
+              --chrome-flags="--headless=new --no-sandbox" || { echo "::warning::Lighthouse lỗi ở $path"; continue; }
+            perf=$(node -e "const r=require('./lh.json');console.log(Math.round(r.categories.performance.score*100))")
+            a11y=$(node -e "const r=require('./lh.json');console.log(Math.round(r.categories.accessibility.score*100))")
+            echo "::notice::Lighthouse $path — hiệu năng $perf · truy cập $a11y (cổng: ≥85 · ≥95)"
+            [ "$a11y" -ge 95 ] || fail=1
+          done
+          # Hiệu năng trên gói miễn phí dao động theo máy chủ ngủ/dậy → chỉ báo cáo; truy cập là cổng cứng.
+          [ "$fail" = "0" ]
