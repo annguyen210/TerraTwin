@@ -110,6 +110,8 @@ def issue_dossier(body: DossierIn, request: Request, lang: str = "vi",
         raise HTTPException(503, str(e))
     for p in photos:
         p.dossier_id = p.dossier_id or row.id
+    from app.db import Event
+    db.add(Event(name="dossier", meta_json=""))       # GĐ7 — bước "phát hành hồ sơ" của phễu, ẩn danh
     db.commit()
     return _payload(db, row)
 

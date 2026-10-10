@@ -1662,7 +1662,9 @@ export function getHealth() {
 // hợp đồng công khai cần khoá kiểu chặt.
 export function getFunnel(days = 30) {
   return authed<{ window_days: number; counts: Record<string, number>;
-    steps: { step: string; count: number; pct_of_open: number | null }[]; note: string }>(
+    steps: { step: string; count: number; pct_of_open: number | null }[]; note: string;
+    sales?: { step: string; count: number; pct_of_open: number | null }[];
+    return_7d?: { cohort: number; returned: number; rate_pct: number | null; note: string } }>(
     `/api/admin/funnel?days=${days}`, { method: "GET" }, "Không tải được phễu người dùng");
 }
 export function getBackupStatus() {

@@ -8,6 +8,7 @@ import {
   getModules,
   getTerraScore,
   getToken,
+  trackEvent,
   type Assessment,
   type AuthUser,
   type ModuleInfo,
@@ -203,6 +204,7 @@ export default function Home() {
     (lat: number, lon: number, areaHa?: number) => {
       if (!inVietnam(lat, lon)) { setOutside(outsideMessage(lat, lon)); return; }
       setOutside(null);
+      trackEvent("pick_plot");                          // GĐ7 — bước "chọn thửa" của phễu (ẩn danh)
       setCoord({ lat, lon });
       setArea(areaHa);
       setPlaceLabel(undefined);
@@ -220,6 +222,7 @@ export default function Home() {
     (lat: number, lon: number, label?: string) => {
       if (!inVietnam(lat, lon)) { setOutside(outsideMessage(lat, lon)); return; }
       setOutside(null);
+      trackEvent("pick_plot");
       setCoord({ lat, lon });
       setArea(undefined);
       setPlaceLabel(label);

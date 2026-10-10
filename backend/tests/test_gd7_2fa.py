@@ -136,3 +136,29 @@ def test_khong_co_khoa_may_chu_co_dinh_thi_tu_choi_bat(c, monkeypatch):
     monkeypatch.delenv("TERRATWIN_SECRET", raising=False)
     r = c.post("/api/auth/2fa/setup", headers=h)
     assert r.status_code == 503 and "TERRATWIN_SECRET" in r.json()["detail"]
+
+
+def test_pheu_ban_hang_va_ti_le_quay_lai_7_ngay(c):
+    from datetime import datetime, timedelta
+    from app.db import AuditLog, Event, SessionLocal, User
+    h = _reg(c, "quantri@vd.vn")
+    for n in ("open", "open", "pick_plot", "bogus"):
+        c.post("/api/events", json={"name": n})
+    c.get("/api/auth/me", headers=h); c.get("/api/auth/me", headers=h)          # "active" tối đa 1 lần/ngày
+    db = SessionLocal()
+    try:
+        uid = db.query(User).filter(User.email == "quantri@vd.vn").one().id
+        assert db.query(AuditLog).filter(AuditLog.user_id == uid, AuditLog.action == "active").count() == 1
+        db.add(Event(name="dossier", meta_json=""))
+        old = datetime.utcnow() - timedelta(days=12)                        # một người cũ quay lại sau 3 ngày,
+        u2 = User(email="cu@vd.vn", password_hash="x"); u3 = User(email="cu2@vd.vn", password_hash="x")   # một người không
+        db.add_all([u2, u3]); db.flush()
+        db.add_all([AuditLog(user_id=u2.id, action="login", at=old), AuditLog(user_id=u2.id, action="active", at=old + timedelta(days=3)),
+                    AuditLog(user_id=u3.id, action="login", at=old)])
+        db.commit()
+    finally:
+        db.close()
+    f = c.get("/api/admin/funnel", headers=h).json()
+    sales = {s["step"]: s["count"] for s in f["sales"]}
+    assert sales == {"open": 2, "pick_plot": 1, "dossier": 1, "pay": 0}
+    assert f["return_7d"]["cohort"] == 2 and f["return_7d"]["returned"] == 1 and f["return_7d"]["rate_pct"] == 50.0

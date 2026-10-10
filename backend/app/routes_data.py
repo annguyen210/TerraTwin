@@ -532,7 +532,10 @@ def test_channel(channel_id: int, user: User = Depends(auth.current_user),
 # Đúng SÁU sự kiện, không hơn. Mỗi tên thêm vào là một chỗ để lỡ tay nhét dữ
 # liệu định danh — giữ danh sách đóng thì chuyện đó không xảy ra được.
 _FUNNEL = ["open", "scan", "save_plot", "view_scorecard", "tap_open", "tap_answer"]
-_ALLOWED_EVENTS = set(_FUNNEL)
+# GĐ7 — phễu bán hàng của kế hoạch tổng: mở → chọn thửa → phát hành hồ sơ → trả tiền. "dossier" ghi phía máy chủ
+# lúc phát hành; "pay" để sẵn = 0 cho tới khi có pháp nhân và cổng thanh toán (không giả số).
+_SALES = ["open", "pick_plot", "dossier", "pay"]
+_ALLOWED_EVENTS = set(_FUNNEL) | {"pick_plot"}
 
 
 class EventIn(BaseModel):
@@ -577,7 +580,7 @@ def funnel(days: int = 30, user: User = Depends(auth.require_admin),
     rows = db.execute(
         select(Event.name, func.count(Event.id))
         .where(Event.at >= since).group_by(Event.name)).all()
-    counts = {k: 0 for k in _FUNNEL}
+    counts = {k: 0 for k in _FUNNEL + _SALES}
     for name, n in rows:
         if name in counts:
             counts[name] = int(n)
@@ -585,12 +588,40 @@ def funnel(days: int = 30, user: User = Depends(auth.require_admin),
     steps = [{"step": k, "count": counts[k],
               "pct_of_open": round(100.0 * counts[k] / base, 1) if base else None}
              for k in _FUNNEL]
+    sales = [{"step": k, "count": counts[k],
+              "pct_of_open": round(100.0 * counts[k] / base, 1) if base else None} for k in _SALES]
     return {
-        "window_days": days, "counts": counts, "steps": steps,
+        "window_days": days, "counts": counts, "steps": steps, "sales": sales,
+        "return_7d": return_7d(db, days),
         "note": ("Đếm ẩn danh, không id người dùng, không IP. open=mở app · "
                  "scan=chạy quét · save_plot=lưu thửa · view_scorecard=xem sổ "
                  "điểm · tap_open=mở liên kết một chạm · tap_answer=trả lời."),
     }
+
+
+def return_7d(db: Session, days: int = 30) -> dict:
+    """GĐ7 — tỉ lệ QUAY LẠI trong 7 ngày của người đã đăng nhập: trong nhóm có hoạt động đầu tiên trong cửa sổ (và
+    đã qua đủ 7 ngày), bao nhiêu người hoạt động lại trong 1–7 ngày sau. Hoạt động = nhật ký kiểm toán (đăng nhập,
+    "active" ghi tối đa một lần mỗi ngày khi mở app). Chỉ trả SỐ ĐẾM gộp — không lộ ai."""
+    from datetime import timedelta, timezone
+    from app.db import AuditLog
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    since = now - timedelta(days=max(8, min(days, 365)))
+    rows = db.execute(select(AuditLog.user_id, AuditLog.at).where(AuditLog.at >= since).order_by(AuditLog.at)).all()
+    seen: dict[int, list[datetime]] = {}
+    for uid, at in rows:
+        seen.setdefault(uid, []).append(at)
+    cohort = returned = 0
+    for ats in seen.values():
+        first = ats[0]
+        if now - first < timedelta(days=7):
+            continue                                  # chưa đủ 7 ngày để biết có quay lại không
+        cohort += 1
+        if any(timedelta(days=1) <= a - first <= timedelta(days=8) for a in ats[1:]):
+            returned += 1
+    return {"cohort": cohort, "returned": returned,
+            "rate_pct": round(100.0 * returned / cohort, 1) if cohort else None,
+            "note": "Người có hoạt động đầu tiên trong cửa sổ (đã qua ≥7 ngày) và quay lại trong ngày 1–7 sau đó."}
 
 
 @router.get("/api/explain/{alert_id}/lineage")

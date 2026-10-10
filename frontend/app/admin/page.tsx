@@ -111,6 +111,28 @@ function FunnelTab() {
           ))}
         </tbody>
       </table>
+      {data.sales && (
+        <>
+          <h4 style={{ margin: "18px 0 6px" }}>Phễu bán hàng (kế hoạch tổng GĐ7)</h4>
+          <table className="ws-table">
+            <thead><tr><th>Bước</th><th>Số lượt</th><th>% so với "mở app"</th></tr></thead>
+            <tbody>
+              {data.sales.map((s) => (
+                <tr key={s.step}>
+                  <td>{{ open: "Mở app", pick_plot: "Chọn thửa", dossier: "Phát hành hồ sơ", pay: "Trả tiền (chưa mở)" }[s.step] ?? s.step}</td>
+                  <td>{s.count}</td>
+                  <td>{s.pct_of_open != null ? `${s.pct_of_open}%` : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
+      {data.return_7d && (
+        <p className="ws-hint" style={{ marginTop: 12 }}>
+          <b>Quay lại trong 7 ngày:</b> {data.return_7d.rate_pct != null ? `${data.return_7d.rate_pct}%` : "—"} ({data.return_7d.returned}/{data.return_7d.cohort} tài khoản) — {data.return_7d.note}
+        </p>
+      )}
     </div>
   );
 }

@@ -300,7 +300,17 @@ def login(body: LoginIn, db: Session = Depends(get_session)) -> TokenOut:
 
 
 @router.get("/api/auth/me", response_model=UserOut)
-def me(user: User = Depends(auth.current_user)) -> UserOut:
+def me(user: User = Depends(auth.current_user), db: Session = Depends(get_session)) -> UserOut:
+    # GĐ7 — dấu "đang dùng" tối đa MỘT lần mỗi ngày mỗi tài khoản (để đo tỉ lệ quay lại 7 ngày, xem
+    # routes_data.return_7d). Giao diện gọi /me mỗi lần mở app; không ghi thêm gì định danh.
+    try:
+        today = datetime.now(timezone.utc).replace(tzinfo=None, hour=0, minute=0, second=0, microsecond=0)
+        if db.execute(select(AuditLog.id).where(AuditLog.user_id == user.id, AuditLog.action == "active",
+                                                AuditLog.at >= today).limit(1)).first() is None:
+            log_audit(db, user.id, "active")
+            db.commit()
+    except Exception:  # noqa: BLE001 — đo lường không bao giờ được làm hỏng /me
+        db.rollback()
     return _out(user)
 
 
