@@ -51,42 +51,56 @@ function wettestByYear(r: WaterHistoryResult): { year: number; date: string; p50
   return [...by.values()].sort((a, b) => a.year - b.year);
 }
 
-function MapScrubber({ r, lat, lon, onScene }: { r: WaterHistoryResult; lat: number; lon: number;
-                                                  onScene: (s: WaterScene | null) => void }) {
+/** Cảnh ướt nhất (trung vị VV thấp nhất) TRONG một đợt nước — ảnh đáng xem nhất của đợt đó. */
+export function wettestOfEvent(r: WaterHistoryResult, dates: string[]): string {
+  const p50 = new Map(r.series.map(([d, v]) => [d, v] as [string, number]));
+  return dates.reduce((best, d) => ((p50.get(d) ?? 0) < (p50.get(best) ?? 0) ? d : best), dates[0]);
+}
+
+function MapScrubber({ r, lat, lon, onScene, focus }: { r: WaterHistoryResult; lat: number; lon: number;
+                                                         onScene: (s: WaterScene | null) => void; focus?: { date: string; n: number } | null }) {
   const { t } = useLang();
   const years = useMemo(() => wettestByYear(r), [r]);
   const [i, setI] = useState<number | null>(null);
+  const [day, setDay] = useState<string | null>(null);        // ngày đang hiện: theo năm (thanh kéo) hoặc theo đợt (bấm)
   const [scene, setScene] = useState<WaterScene | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const wet = new Set(r.events.flatMap((e) => (e.dates ?? [e.start])));
 
   useEffect(() => () => onScene(null), [onScene]);
+  useEffect(() => { if (i != null) setDay(years[i].date); }, [i, years]);
+  useEffect(() => {                                            // bấm một đợt trong danh sách → đúng ngày đó
+    if (!focus) return;
+    setI(null);                                                // thanh kéo nhả ra; ngày do đợt quyết định
+    setDay(focus.date);
+  }, [focus]);
   useEffect(() => {
-    if (i == null) return;
+    if (day == null) return;
     let live = true;
     setBusy(true); setErr(null);
-    waterScene(lat, lon, years[i].date)
+    waterScene(lat, lon, day)
       .then((s) => { if (live) { setScene(s); onScene(s); } })
       .catch((e) => live && setErr((e as Error).message))
       .finally(() => live && setBusy(false));
     return () => { live = false; };
-  }, [i, lat, lon, years, onScene]);
+  }, [day, lat, lon, onScene]);
 
   if (!years.length) return null;
-  const cur = i == null ? null : years[i];
+  const cur = day == null ? null : { date: day };
+  const yearIdx = day == null ? years.length - 1 : Math.max(0, years.findIndex((y) => y.year === Number(day.slice(0, 4))));
   return (
     <div className="wh-scrub">
       <label htmlFor="wh-year"><b>{t("Xem trên bản đồ", "Show on the map")}</b> — {t("kéo theo năm: mỗi năm lấy cảnh radar ướt nhất của thửa",
         "drag by year: each year shows the plot's wettest radar scene")}</label>
-      <input id="wh-year" type="range" min={0} max={years.length - 1} step={1} value={i ?? years.length - 1}
-             aria-valuetext={cur ? `${cur.year}: ${cur.date}` : undefined}
+      <input id="wh-year" type="range" min={0} max={years.length - 1} step={1} value={i ?? yearIdx}
+             aria-valuetext={cur ? cur.date : undefined}
              onChange={(e) => setI(Number(e.target.value))} onPointerDown={() => i == null && setI(years.length - 1)} />
       <div className="wh-years" aria-hidden="true">{years.map((y) => <span key={y.year}>{String(y.year).slice(2)}</span>)}</div>
       {cur && <p className="wh-scene">{busy ? t("Đang tải ảnh radar…", "Loading radar image…")
         : scene ? <>{t(`Ảnh radar ngày ${scene.date}`, `Radar image of ${scene.date}`)}{wet.has(cur.date) ? t(" — nằm trong một đợt nước phủ của thửa", " — inside one of the plot's water events") : ""}.{" "}
-          <button type="button" className="wh-off" onClick={() => { setI(null); setScene(null); onScene(null); }}>{t("Tắt lớp radar", "Hide radar layer")}</button></> : null}</p>}
-      {i == null && <button type="button" className="bat-btn ghost" onClick={() => setI(years.length - 1)}>{t("Hiện lớp radar", "Show radar layer")}</button>}
+          <button type="button" className="wh-off" onClick={() => { setI(null); setDay(null); setScene(null); onScene(null); }}>{t("Tắt lớp radar", "Hide radar layer")}</button></> : null}</p>}
+      {day == null && <button type="button" className="bat-btn ghost" onClick={() => setI(years.length - 1)}>{t("Hiện lớp radar", "Show radar layer")}</button>}
       {scene && <p className="eu-src">{scene.legend} {scene.attribution}.</p>}
       {err && <p className="bat-err">{err}</p>}
     </div>
@@ -101,6 +115,7 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [focus, setFocus] = useState<{ date: string; n: number } | null>(null);   // đợt nước đang xem trên bản đồ
 
   useEffect(() => { waterStatus().then((s) => setEnabled(s.enabled)).catch(() => setEnabled(false)); }, []);
   useEffect(() => { setR(null); setErr(null); setProg(null); return () => { if (timer.current) clearTimeout(timer.current); }; }, [lat, lon]);
@@ -159,7 +174,7 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
         <>
           <p className="wh-sum"><b>{summary}</b></p>
           <Chart r={r} />
-          {onScene && <MapScrubber r={r} lat={lat} lon={lon} onScene={onScene} />}
+          {onScene && <MapScrubber r={r} lat={lat} lon={lon} onScene={onScene} focus={focus} />}
           <p className="eu-src">{t("Đường: trung vị tán xạ VV (dB); vạch đứt: ngưỡng nước −18 dB; khối xanh: đợt nước phủ.",
                                    "Line: median VV backscatter (dB); dashed: −18 dB water threshold; blue blocks: water events.")}</p>
           {r.events.length > 0 && (
@@ -168,6 +183,8 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
                 <li key={e.start}>
                   <b>{e.start === e.end ? e.start : `${e.start} → ${e.end}`}</b>
                   <span>{t(`phủ ${e.peak_cover} thửa`, `${e.peak_cover} of plot covered`)} · {t(`${e.n_scenes} cảnh`, `${e.n_scenes} scenes`)} · {t("VV thấp nhất", "min VV")} {e.min_p50_db} dB</span>
+                  {onScene && <button type="button" className="wh-off" onClick={() => setFocus({ date: wettestOfEvent(r, e.dates ?? [e.start]), n: Date.now() })}>
+                    {t("Xem ảnh radar trên bản đồ", "Show radar image on the map")}</button>}
                 </li>
               ))}
             </ol>
