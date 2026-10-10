@@ -52,12 +52,15 @@ export default function MapView({
   heat,
   plot,
   radar,
+  onMove,
 }: {
   onPick: (lat: number, lon: number, areaHa?: number) => void;
   flyTo?: { lat: number; lon: number; key: number } | null;
   heat?: Heat;
   // GĐ2 — ảnh radar Sentinel-1 của một ngày + mặt nạ nước (kéo thanh thời gian trong Lịch sử nước).
   radar?: { radar_tiles: string; water_tiles: string; item: string } | null;
+  // GĐ1 — người dùng bắt đầu kéo bản đồ (trang thu tấm trượt điện thoại về nấc thấp để thấy tâm ngắm).
+  onMove?: () => void;
   // Ô ĐANG PHÂN TÍCH. Trước đây bản đồ — thứ CHIẾM NHIỀU CHỖ NHẤT trên màn
   // hình — không phản ánh gì cả, kể cả sau khi đã quét xong: nó vẫn là một tấm
   // nền trơn. Người dùng nhìn vào phần lớn nhất của sản phẩm và thấy trống.
@@ -68,6 +71,8 @@ export default function MapView({
   const { t } = useLang();
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const moveRef = useRef<(() => void) | undefined>(undefined);
+  useEffect(() => { moveRef.current = onMove; }, [onMove]);
   const ptsRef = useRef<Pt[]>([]);
   const [count, setCount] = useState(0);
   const [autoDrawing, setAutoDrawing] = useState(false);   // A8
@@ -177,6 +182,7 @@ export default function MapView({
       map.addSource("dpts", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
       map.addLayer({ id: "dpts-c", type: "circle", source: "dpts", paint: { "circle-radius": 5, "circle-color": "#2E9E67", "circle-stroke-color": "#fff", "circle-stroke-width": 1.5 } });
     });
+    map.on("dragstart", () => moveRef.current?.());
     map.on("click", (e) => {
       ptsRef.current.push([e.lngLat.lng, e.lngLat.lat]);
       refresh();

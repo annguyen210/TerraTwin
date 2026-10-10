@@ -5095,3 +5095,37 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .mc-card dl { margin: 0; display: grid; grid-template-columns: minmax(96px, max-content) minmax(0, 1fr); gap: 4px 10px; font-size: .82rem; }
 .mc-card dt { color: var(--dim); } .mc-card dd { margin: 0; overflow-wrap: anywhere; }
 .mc-code { color: var(--terra); font-size: .84rem; text-decoration: none; justify-self: start; }
+
+/* ===== GĐ1 — khu làm việc: bản đồ toàn màn hình + thẻ thửa nổi (máy tính) / tấm trượt 3 nấc (điện thoại) ===== */
+.pw.pw-full { max-width: none; padding: 0; display: block; }
+.pw-full .pw-hero { position: fixed; top: calc(var(--tt-top-h) + env(safe-area-inset-top, 0px)); left: 0; right: 0; bottom: 0;
+  height: auto; min-height: 0; border-radius: 0; border: 0; box-shadow: none; z-index: 1; }
+.pw-full .pw-panel { position: fixed; z-index: 30; top: calc(var(--tt-top-h) + env(safe-area-inset-top, 0px) + 12px); right: 12px; bottom: 12px;
+  width: min(640px, 46vw); overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 12px; align-content: start; padding: 12px;
+  border-radius: 18px; border: 1px solid var(--line-2); background: rgba(11, 18, 24, .86);
+  backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%); box-shadow: 0 30px 80px -40px rgba(0, 0, 0, .9); }
+.pw-full .pw-card { position: static; width: auto; box-shadow: none; background: var(--panel); }
+.pw-full .pw-tabs { top: -12px; }
+.pw-full .maplibregl-ctrl-top-right { right: calc(min(640px, 46vw) + 24px); }
+.pw-grip { display: none; }
+.pw-full .pw-body { animation: pw-fade .24s var(--tt-ease) both; }
+@keyframes pw-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .22s; }
+@media (prefers-reduced-motion: reduce) { .pw-full .pw-body { animation: none; } }
+@media (max-width: 860px) {
+  .pw-full .pw-panel { top: auto; left: 0; right: 0; bottom: calc(var(--tt-tab-h) + env(safe-area-inset-bottom, 0px)); width: auto;
+    border-radius: 18px 18px 0 0; padding: 0 10px 12px; transition: height .25s var(--tt-ease); }
+  .pw-full.sheet-peek .pw-panel { height: 168px; overflow: hidden; }
+  .pw-full.sheet-half .pw-panel { height: 56dvh; }
+  .pw-full.sheet-full .pw-panel { height: calc(100dvh - var(--tt-top-h) - var(--tt-tab-h) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 8px); }
+  .pw-full .pw-grip { display: grid; place-items: center; position: sticky; top: 0; z-index: 25; height: 30px; margin: 0 -10px; border: 0;
+    background: rgba(11, 18, 24, .96); cursor: grab; touch-action: none; border-radius: 18px 18px 0 0; }
+  .pw-full .pw-grip span { width: 44px; height: 5px; border-radius: 3px; background: var(--line-2); }
+  .pw-full .pw-grip:focus-visible { outline: 2px solid var(--terra); outline-offset: -4px; }
+  .pw-full .pw-card { padding: 10px 12px; }
+  .pw-full .pw-tabs { top: 30px; }
+  .pw-full .maplibregl-ctrl-top-right { right: 0; }
+  .pw-full .drawbar { top: 10px; bottom: auto; }
+  .pw-full .terra-sum, .pw-full .terra-real { display: none; }
+  @media (prefers-reduced-motion: reduce) { .pw-full .pw-panel { transition: none; } }
+}

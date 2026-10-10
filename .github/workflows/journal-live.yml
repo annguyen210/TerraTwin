@@ -46,7 +46,7 @@ jobs:
 
       # Nền radar của từng thửa (lịch sử nước, vài trăm cảnh) giữ qua các ngày — chỉ lần đầu đọc đủ, sau đó
       # chỉ thêm cảnh mới. Không có nền thì radar chỉ báo "có cảnh mới", không phán được có nước hay không.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: backend/journal-ci.db
           key: journal-db-${{ github.run_id }}

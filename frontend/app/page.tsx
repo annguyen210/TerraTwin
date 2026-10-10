@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import {
   assess,
@@ -92,8 +92,25 @@ const GROUPS: Record<string, [string, string]> = {
   D: ["Đô thị, mỏ & chuỗi cung ứng", "Urban, mining & supply chain"],
 };
 
+function useCountUp(target: number, ms = 380) {
+  const [v, setV] = useState(target);
+  useEffect(() => {
+    if (typeof window === "undefined" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { setV(target); return; }
+    let raf = 0; const t0 = performance.now();
+    const step = (now: number) => {
+      const k = Math.min(1, (now - t0) / ms);
+      setV(Math.round(target * (1 - Math.pow(1 - k, 3))));
+      if (k < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, ms]);
+  return v;
+}
+
 function TerraBadge({ t }: { t: TerraScore }) {
   const { t: tr } = useLang();
+  const shown = useCountUp(t.score);
   const color =
     t.grade === "A"
       ? "#2E9E67"
@@ -105,7 +122,7 @@ function TerraBadge({ t }: { t: TerraScore }) {
   return (
     <div className="terra">
       <div className="terra-score" style={{ borderColor: color, color }}>
-        <b>{t.score}</b>
+        <b aria-label={`${t.score}`}>{shown}</b>
         <span>/100</span>
       </div>
       <div className="terra-txt">
@@ -152,6 +169,27 @@ export default function Home() {
   // Bố cục 3.0: bản đồ lớn làm phần chính, nội dung chia CHƯƠNG (thay ba cột "danh sách
   // mô-đun trái / phân tích phải" — người dùng thấy giống công cụ phụ thuộc AI, rối mắt).
   const [chapter, setChapter] = useState<"plan" | "mine" | "verify" | "tools">("plan");
+  // GĐ1 — thẻ thửa trên điện thoại là TẤM TRƯỢT 3 nấc (thấy tên thửa · nửa màn · toàn màn); máy tính bỏ qua.
+  const [sheet, setSheet] = useState<"peek" | "half" | "full">("half");
+  const drag = useRef<{ y: number } | null>(null);
+  const SNAPS = ["peek", "half", "full"] as const;
+  function switchChapter(id: "plan" | "mine" | "verify" | "tools") {
+    if (sheet === "peek") setSheet("half");
+    // View Transitions: đổi chương mờ chéo < 300 ms; trình duyệt không hỗ trợ hoặc bật giảm chuyển động thì đổi ngay.
+    const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
+    if (doc.startViewTransition && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) doc.startViewTransition(() => setChapter(id));
+    else setChapter(id);
+  }
+  function gripDown(e: React.PointerEvent) { drag.current = { y: e.clientY }; (e.target as HTMLElement).setPointerCapture?.(e.pointerId); }
+  function gripUp(e: React.PointerEvent) {
+    const start = drag.current; drag.current = null;
+    const i = SNAPS.indexOf(sheet);
+    if (!start) return;
+    const dy = e.clientY - start.y;
+    if (Math.abs(dy) < 8) setSheet(SNAPS[(i + 1) % 3]);                 // chạm = sang nấc kế tiếp
+    else if (dy < -40) setSheet(SNAPS[Math.min(2, i + 1)]);            // kéo lên
+    else if (dy > 40) setSheet(SNAPS[Math.max(0, i - 1)]);             // kéo xuống
+  }
   const [radar, setRadar] = useState<WaterScene | null>(null);   // GĐ2 — lớp radar theo thanh thời gian
   const [deep, setDeep] = useState<
     | "none" | "playback" | "timelapse" | "genome" | "design" | "knowledge"
@@ -308,11 +346,19 @@ export default function Home() {
     <AppShell user={user} onAuth={setUser} wide>
       {story && <Story onClose={() => setStory(false)} onExplore={onStart} />}
       <Onboarding />
-      <div className="pw">
+      <div className={`pw pw-full sheet-${sheet}`}>
         <section className="pw-hero">
           <div className="pw-map">
-            <MapView onPick={onPick} flyTo={flyTo} heat={heat} plot={coord ? { ...coord, spanM: 1000, risk: plotRisk } : null} radar={radar} />
+            <MapView onPick={onPick} flyTo={flyTo} heat={heat} plot={coord ? { ...coord, spanM: 1000, risk: plotRisk } : null} radar={radar}
+                     onMove={() => { if (window.matchMedia("(max-width: 860px)").matches) setSheet("peek"); }} />
           </div>
+        </section>
+
+        <aside className="pw-panel" aria-label={t("Thẻ thửa", "Plot card")}>
+          <button type="button" className="pw-grip" onPointerDown={gripDown} onPointerUp={gripUp}
+                  onKeyDown={(e) => { if (e.key === "ArrowUp") setSheet(SNAPS[Math.min(2, SNAPS.indexOf(sheet) + 1)]); if (e.key === "ArrowDown") setSheet(SNAPS[Math.max(0, SNAPS.indexOf(sheet) - 1)]); }}
+                  aria-label={t(`Kéo hoặc bấm để đổi cỡ thẻ thửa (đang: ${{ peek: "thu gọn", half: "nửa màn", full: "toàn màn" }[sheet]})`,
+                                `Drag or tap to resize the plot card (now: ${sheet})`)}><span /></button>
           <div className="pw-card tt-reveal">
             {outside && <p className="bat-err" role="alert">{outside}</p>}
             <p className="eu-eyebrow">{t("Thửa đang xem", "Current plot")}</p>
@@ -325,7 +371,6 @@ export default function Home() {
             </div>
             <small className="pw-tip">{t("Bấm vào bản đồ để đổi thửa, hoặc vẽ một vùng.", "Click the map to change plot, or draw an area.")}</small>
           </div>
-        </section>
 
         {loading && <div className="pw-loading"><div className="tt-skel" /></div>}
         {err && <p className="err pw-err">{err}</p>}
@@ -339,7 +384,7 @@ export default function Home() {
 
         <nav className="pw-tabs" role="tablist">
           {CHAPTERS.map((c) => (
-            <button key={c.id} role="tab" aria-selected={chapter === c.id} className={chapter === c.id ? "on" : ""} onClick={() => setChapter(c.id)}>
+            <button key={c.id} role="tab" aria-selected={chapter === c.id} className={chapter === c.id ? "on" : ""} onClick={() => switchChapter(c.id)}>
               {t(c.vi, c.en)}
             </button>
           ))}
@@ -449,6 +494,7 @@ export default function Home() {
             </div>
           )}
         </div>
+        </aside>
       </div>
 
       {workspace && (
