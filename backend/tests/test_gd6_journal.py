@@ -240,3 +240,12 @@ def test_loai_dat_alphaearth_2021_so_voi_nam_moi_nhat(c, monkeypatch):
     assert r["years"]["2021"]["groups_pct"]["tree"] == 100.0 and r["delta_pts"]["built"] > 60
     assert "xây dựng tăng" in r["headline"] and "cây xanh giảm" in r["headline"] and "không vào hồ sơ ký" in r["caveat"]
     assert c.get("/api/landcover/change?lat=40&lon=107").status_code == 422
+
+
+def test_the_mo_hinh_doc_dung_tep_kiem_dinh(c):
+    r = c.get("/api/models/cards").json()
+    ids = {x["id"]: x for x in r["cards"]}
+    assert {"eudr_screen", "forest_or_crop", "aef_forest", "landcover_aef", "water_radar", "listing_rules", "autoboundary"} <= set(ids)
+    assert ids["landcover_aef"]["status"] == "accepted" and ids["landcover_aef"]["metrics"][0]["value"] == "0.42"
+    assert ids["autoboundary"]["status"] == "rejected"                      # cái trượt cũng có thẻ
+    assert all(x.get("not_for") for x in r["cards"]) and all(x.get("code") for x in r["cards"])

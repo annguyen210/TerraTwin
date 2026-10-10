@@ -23,6 +23,7 @@ const ITEMS: Item[] = [
   { href: "/lo", vi: "Lô hàng — cân bằng khối lượng", en: "Lots — mass balance" },
   { href: "/kiem", vi: "Kiểm hồ sơ (cả khi không có mạng)", en: "Verify a dossier (works offline)" },
   { href: "/so-sanh", vi: "So sánh 2–4 thửa đất", en: "Compare 2–4 plots" },
+  { href: "/mo-hinh", vi: "Thẻ mô hình AI (kể cả cái trượt)", en: "AI model cards (incl. failures)" },
   { href: "/thi-diem", vi: "Bộ thí điểm cho hợp tác xã", en: "Pilot kit for co-operatives" },
   { href: "/gan-nhan", vi: "Gán nhãn kiểm định v3", en: "Label validation v3" },
   { href: "/thiet-bi", vi: "Thiết bị IoT tại vườn", en: "IoT devices" },

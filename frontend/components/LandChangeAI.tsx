@@ -67,7 +67,7 @@ export default function LandChangeAI({ lat, lon }: { lat: number; lon: number })
                 {r.delta_pts[g.k] !== 0 && <small> ({r.delta_pts[g.k] > 0 ? "+" : ""}{r.delta_pts[g.k]})</small>}</li>
             ))}
           </ul>
-          <p className="eu-src">{r.caveat} {r.attribution}</p>
+          <p className="eu-src">{r.caveat} {r.attribution} <a href="/mo-hinh">{t("Thẻ mô hình", "Model card")}</a></p>
         </>
       )}
     </section>

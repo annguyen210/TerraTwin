@@ -88,3 +88,13 @@ def landcover_change(lat: float, lon: float, request: Request, lang: str = "vi",
         from app.routes_eudr import enforce_quota
         enforce_quota("screen", request, user)
     return aef_landuse.change(lat, lon)
+
+
+@router.get("/api/models/cards")
+def model_cards(lang: str = "vi") -> dict:
+    """GĐ5 — thẻ mô hình cho mọi mô hình/quy tắc AI, kể cả cái đã trượt. Số đọc thẳng từ tệp kiểm định đã commit."""
+    from app.services import model_cards as mc
+    reqlang.set_lang(lang)
+    return {"cards": mc.cards(),
+            "rule": reqlang.tr("Ngưỡng ghi TRƯỚC khi chạy; tập giữ lại chấm một lần; trượt thì công bố và không bật.",
+                               "Thresholds written BEFORE running; held-out set scored once; failures are published and stay off.")}

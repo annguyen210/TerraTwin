@@ -5074,3 +5074,24 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .lc2-legend li { display: inline-flex; align-items: center; gap: 6px; }
 .lc2-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 .lc2-legend small { color: var(--dim); }
+
+/* GĐ5 — thẻ mô hình /mo-hinh */
+.mc-wrap { max-width: 1180px; margin: 0 auto; padding: 28px 16px 80px; display: grid; gap: 14px; }
+.mc-wrap h1 { margin: 0; font-size: clamp(24px, 4vw, 34px); color: var(--text); letter-spacing: -.02em; }
+.mc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr)); gap: 14px; }
+.mc-card { display: grid; gap: 10px; align-content: start; padding: 16px 18px; border-radius: 12px; border: 1px solid var(--line);
+  border-top: 4px solid var(--line-2); background: var(--panel); color: var(--text); min-width: 0; }
+.mc-card.mc-ok { border-top-color: #2E9E67; } .mc-card.mc-bad { border-top-color: #C2412E; } .mc-card.mc-mid { border-top-color: #B07A2E; }
+.mc-card header { display: grid; gap: 2px; }
+.mc-card h2 { margin: 0; font-size: 1.05rem; }
+.mc-kind { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+.mc-status { font-size: .84rem; }
+.mc-ok .mc-status { color: #2E9E67; } .mc-bad .mc-status { color: #C2412E; } .mc-mid .mc-status { color: #B07A2E; }
+.mc-card p { margin: 0; font-size: .88rem; line-height: 1.5; color: var(--dim); }
+.mc-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.mc-table th { text-align: left; color: var(--dim); font-weight: 600; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+.mc-table td { padding: 4px 6px; border-bottom: 1px dotted var(--line); vertical-align: top; overflow-wrap: anywhere; }
+.mc-pass { color: #2E9E67; font-weight: 700; } .mc-fail { color: #C2412E; font-weight: 700; }
+.mc-card dl { margin: 0; display: grid; grid-template-columns: minmax(96px, max-content) minmax(0, 1fr); gap: 4px 10px; font-size: .82rem; }
+.mc-card dt { color: var(--dim); } .mc-card dd { margin: 0; overflow-wrap: anywhere; }
+.mc-code { color: var(--terra); font-size: .84rem; text-decoration: none; justify-self: start; }

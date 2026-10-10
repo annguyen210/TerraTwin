@@ -2827,3 +2827,12 @@ export type LandChange = { available: boolean; message?: string; evidence_class?
 export function landcoverChange(lat: number, lon: number) {
   return getJson<LandChange>(`/api/landcover/change?lat=${lat}&lon=${lon}&lang=${curLang()}`, "Không đọc được loại đất AlphaEarth");
 }
+
+// ---- GĐ5: thẻ mô hình (đọc thẳng từ tệp kiểm định đã commit) ----
+export type AiModelCard = { id: string; kind: string; name: string; status: string; status_label: string; task: string;
+  data: string | null; split: string; limits: string | null; not_for: string; code: string;
+  metrics: { label: string; value: string | null; threshold: string; passed: boolean | null }[] };
+export type AiModelCards = { cards: AiModelCard[]; rule: string };
+export function getModelCards() {
+  return getJson<AiModelCards>(`/api/models/cards?lang=${curLang()}`, "Không tải được thẻ mô hình");
+}
