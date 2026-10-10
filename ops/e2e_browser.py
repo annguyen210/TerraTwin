@@ -324,3 +324,8 @@ print(f"Phản hồi HTTP ≥400 ({len(bad_responses)}):")
 for e in dict.fromkeys(bad_responses):
     print("  ", e)
 print("Ảnh chụp:", OUT)
+# Bước nào trượt thì CI phải ĐỎ — trước đây script chỉ in FAIL rồi thoát mã 0, CI luôn "xanh" (sửa 10/10/2026).
+failed = [n for n, ok, _ in results if not ok]
+if failed:
+    print(f"\n{len(failed)} bước TRƯỢT: {', '.join(failed)}")
+    sys.exit(1)
