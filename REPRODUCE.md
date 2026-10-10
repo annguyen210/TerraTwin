@@ -215,7 +215,9 @@ người dùng, cảm biến vượt ngưỡng nhắc (đất khô < 20%, mặn 
 Phát lại 7 ngày trên dữ liệu thật — `cd backend && python ../ops/journal_gate.py 7`. Chạy 9/10/2026, 6 thửa
 (Huế, Cần Thơ, Hà Nội, Lâm Đồng, Cà Mau, Quảng Nam): **1 sự kiện bật cờ** (mưa rất to 95 mm ở Điện Bàn
 ngày 8/10), 14 sự kiện bối cảnh (mưa to 16–50 mm, ảnh radar mới), **0 sự kiện rác**. Đây là phát lại, chưa
-phải 7 ngày chạy sống với người dùng thật; cổng "7 ngày chạy thử" tính từ khi có thửa thí điểm.
+phải 7 ngày chạy sống. Lượt SỐNG hằng ngày chạy từ 10/10/2026 trong `.github/workflows/journal-live.yml`, ghi từng
+ngày vào nhánh `journal-log` (`journal.jsonl` + `SUMMARY.txt`); `python ../ops/journal_gate.py --summary journal.jsonl`
+báo ĐẠT khi đủ 7 ngày sống, 0 rác.
 
 Cảm biến: số đo đã ký Ed25519 hiện trên nhật ký ở lượt gọi nhanh kế tiếp (giao diện gọi `?fast=1` mỗi 5 giây
 khi thẻ đang mở) — test `test_so_do_cam_bien_hien_ngay_tren_nhat_ky_va_man_vuot_nguong`. Trình diễn cốc nước

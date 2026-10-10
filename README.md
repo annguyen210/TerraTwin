@@ -43,6 +43,8 @@ mật mã, ai cũng kiểm lại được.** Không điểm rủi ro hộp đen;
 | So sánh 2–4 thửa | `/so-sanh`: nước phủ, độ cao, sông/biển, vùng mặn, lũ/sạt lở 10 năm, loại đất | Đánh dấu giá trị thuận lợi theo RIÊNG từng tiêu chí, không điểm tổng | `services/plot_compare.py` |
 | Cảm biến ký số | Đầu đo EC/độ mặn vào nhật ký thửa trong ≤ 10 giây (giả lập `ops/iot_simulator.py --salinity 35`) | Ed25519 từng số đo, chống phát lại | `services/iot.py` |
 | Bảo mật | Xác thực hai lớp TOTP (bắt buộc với quản trị khi bật cờ), OWASP ZAP hằng ngày | [`THREAT_MODEL.md`](THREAT_MODEL.md) | `services/totp.py` |
+| Thẻ mô hình | `/mo-hinh`: mọi mô hình/quy tắc AI kể cả cái trượt — dữ liệu, chia tập, điểm giữ lại so với ngưỡng, giới hạn, không nên dùng cho | Số đọc thẳng từ tệp kiểm định đã commit | `services/model_cards.py` |
+| Nhật ký chạy sống | Mỗi ngày nhật ký 6 thửa mẫu trên dữ liệu thật, ghi công khai nhánh `journal-log` | Cổng GĐ6: 7 ngày sống, 0 rác (bắt đầu 10/10/2026) | `.github/workflows/journal-live.yml` |
 
 **Thí điểm với hợp tác xã:** `/thi-diem` — thư mời HTX, tờ hướng dẫn nông hộ, tờ cán bộ, phiếu góp ý (in A4) + phiếu
 trực tuyến (`POST /api/pilot/feedback`, không lưu IP, liên hệ chỉ khi đồng ý); tổng hợp + CSV ở `/admin`.
