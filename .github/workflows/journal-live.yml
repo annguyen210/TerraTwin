@@ -1,0 +1,94 @@
+name: Journal live (GĐ6)
+
+# CỔNG GĐ6: "nhật ký thửa không sinh sự kiện rác trong 7 ngày chạy thử". Mỗi ngày chạy nhật ký 24 giờ qua trên
+# 6 thửa mẫu bằng dữ liệu THẬT (mưa Open-Meteo, cảnh radar Sentinel-1), ghi một dòng vào nhánh `journal-log`
+# của kho công khai, rồi tổng kết. Đủ 7 ngày sống, 0 rác → cổng đạt (ops/journal_gate.py --summary).
+#
+# Nhánh riêng để không kích hoạt deploy Render. Không cần secret: chỉ đọc nguồn công khai.
+# 00:40 UTC = 07:40 giờ VN.
+
+on:
+  schedule:
+    - cron: "40 0 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: journal-live
+  cancel-in-progress: false
+
+jobs:
+  live:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Mở nhánh journal-log (tạo mới nếu chưa có)
+        run: |
+          git config user.name "terratwin-journal"
+          git config user.email "journal@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin journal-log >/dev/null; then
+            git fetch origin journal-log
+            git worktree add ../jlog origin/journal-log
+            git -C ../jlog checkout -B journal-log
+          else
+            git worktree add --orphan -b journal-log ../jlog
+          fi
+
+      # Nền radar của từng thửa (lịch sử nước, vài trăm cảnh) giữ qua các ngày — chỉ lần đầu đọc đủ, sau đó
+      # chỉ thêm cảnh mới. Không có nền thì radar chỉ báo "có cảnh mới", không phán được có nước hay không.
+      - uses: actions/cache@v4
+        with:
+          path: backend/journal-ci.db
+          key: journal-db-${{ github.run_id }}
+          restore-keys: journal-db-
+
+      - name: Nền radar cho 6 thửa (lịch sử nước)
+        working-directory: backend
+        env:
+          TERRATWIN_DATABASE_URL: sqlite:///./journal-ci.db
+          TERRATWIN_RADAR_INTERVAL_H: "0"
+          TERRATWIN_STARTUP_WARMUP: "0"
+        run: |
+          pip install --quiet -r requirements.txt
+          python - <<'PY'
+          import sys, time
+          sys.path.insert(0, ".")
+          sys.path.insert(0, "../ops")
+          from app.db import init_db
+          init_db()
+          from app.services import water_history as wh
+          from journal_gate import PLOTS
+          for name, lat, lon in PLOTS:
+              t = time.time(); r = wh.history(lat, lon)
+              print(f"{name}: {r.get('n_scenes')} cảnh, {r.get('n_events')} đợt ({time.time() - t:.0f}s)", flush=True)
+          PY
+
+      - name: Chạy nhật ký 24 giờ qua trên 6 thửa mẫu
+        working-directory: backend
+        env:
+          TERRATWIN_DATABASE_URL: sqlite:///./journal-ci.db
+          TERRATWIN_RADAR_INTERVAL_H: "0"
+          TERRATWIN_STARTUP_WARMUP: "0"
+        run: |
+          python ../ops/journal_gate.py --days 1 --jsonl ../../jlog/journal.jsonl || echo "::error::Có sự kiện rác hôm nay — xem log"
+          python ../ops/journal_gate.py --summary ../../jlog/journal.jsonl | tee ../../jlog/SUMMARY.txt || true
+          echo "::notice::$(tail -n1 ../../jlog/SUMMARY.txt)"
+
+      - name: Commit lên nhánh journal-log
+        run: |
+          cd ../jlog
+          git config user.name "terratwin-journal"
+          git config user.email "journal@users.noreply.github.com"
+          git add journal.jsonl SUMMARY.txt
+          git commit -m "Nhật ký sống $(date -u +%F): $(tail -n1 SUMMARY.txt)" || echo "Không có gì mới."
+          git push origin journal-log
