@@ -265,6 +265,37 @@ with sync_playwright() as p:
         return f"{page.locator('.pw-mod').count()} công cụ"
     workspace()
 
+    @step("Khu làm việc trên điện thoại: tấm trượt 3 nấc, không tràn ngang")
+    def phone_workspace():
+        m = browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True, has_touch=True)
+        pg = m.new_page()
+        pg.goto(WEB + "/", wait_until="networkidle", timeout=120_000)
+        pg.locator(".start-quick button").first.click()
+        pg.locator(".pw-tabs").wait_for(timeout=60_000)
+        skip = pg.get_by_role("button", name="Bỏ qua")
+        if skip.count():
+            skip.first.click()
+        pg.wait_for_timeout(1500)
+        h = lambda: pg.evaluate("Math.round(document.querySelector('.pw-panel').getBoundingClientRect().height)")  # noqa: E731
+        half = h()
+        pg.locator(".pw-grip").click()                 # nửa màn → toàn màn
+        pg.wait_for_timeout(500)
+        full = h()
+        pg.locator(".pw-grip").click()                 # toàn màn → thu gọn
+        pg.wait_for_timeout(500)
+        peek = h()
+        pg.get_by_role("tab", name=re.compile("Kiểm chứng")).click()   # bấm tab khi thu gọn → mở nửa màn
+        pg.wait_for_timeout(500)
+        back = h()
+        w = pg.evaluate("document.documentElement.scrollWidth")
+        pg.screenshot(path=os.path.join(OUT, "17-phone-workspace.png"), full_page=False)
+        m.close()
+        assert peek < 220 < half < full, (peek, half, full)
+        assert abs(back - half) < 8, (back, half)
+        assert w <= 392, w
+        return f"thu gọn {peek}px · nửa {half}px · toàn {full}px"
+    phone_workspace()
+
     @step("Ảnh điện thoại (390 px) không tràn ngang")
     def phone():
         m = browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True)
