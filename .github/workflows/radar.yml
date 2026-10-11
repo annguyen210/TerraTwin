@@ -60,6 +60,13 @@ jobs:
 
       # if: always() — bước quét ở trên có thể đã exit 1 (thiếu khoá, api chết);
       # đúng lúc đó là lúc cần biết health nhất.
+      # Thửa mẫu của trang đầu (nút "Xem ngay: lịch sử nước thửa ở Huế", "Kiểm một tin đăng"): giữ lịch sử nước radar
+      # trong bộ nhớ đệm (hạn 6 ngày) để khách mở là thấy ngay, không chờ 2 phút. Đã có thì máy chủ trả ngay, không tốn gì.
+      - name: Hâm nóng lịch sử nước thửa mẫu (Huế)
+        continue-on-error: true
+        run: |
+          curl -fsS --max-time 120 -X POST -H "Content-Type: application/json"             -d '{"lat":16.5751,"lon":107.4952}' https://terratwin-api.onrender.com/api/water/history | head -c 200; echo
+
       - name: Cảnh báo nếu API đang degraded (hạn mức Open-Meteo)
         if: always()
         run: |
