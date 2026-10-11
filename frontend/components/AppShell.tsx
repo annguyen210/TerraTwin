@@ -9,7 +9,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarCheck, Map as MapIcon, Package, Search, ShieldCheck, TreePine } from "lucide-react";
+import { CalendarCheck, LayoutDashboard, Map as MapIcon, Package, Search, ShieldCheck, TreePine } from "lucide-react";
 import CommandPalette, { openCommandPalette } from "@/components/CommandPalette";
 import Account from "@/components/Account";
 import { fetchMe, getToken, type AuthUser } from "@/lib/api";
@@ -61,6 +61,11 @@ export default function AppShell({ children, user: userProp, onAuth, extra, wide
           </nav>
           <div className="tt-actions">
             {extra}
+            {(user?.role === "admin" || user?.role === "coop") && (
+              <Link href="/admin" className={`tt-admin ${path.startsWith("/admin") ? "on" : ""}`} title={t("Trang quản trị", "Admin page")}>
+                <LayoutDashboard size={15} aria-hidden="true" /> <span>{t("Quản trị", "Admin")}</span>
+              </Link>
+            )}
             <button type="button" className="tt-cmdk" onClick={openCommandPalette}
                     aria-label={t("Mở thanh lệnh (Ctrl+K)", "Open command palette (Ctrl+K)")} title="Ctrl+K">
               <Search size={15} aria-hidden="true" /><kbd>Ctrl K</kbd>

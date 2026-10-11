@@ -5129,3 +5129,16 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
   .pw-full .terra-sum, .pw-full .terra-real { display: none; }
   @media (prefers-reduced-motion: reduce) { .pw-full .pw-panel { transition: none; } }
 }
+
+/* Trang quản trị: ai đang đăng nhập, vì sao chưa có quyền, trang có gì */
+.tt-admin { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 9px; border: 1px solid var(--line-2);
+  color: var(--text); text-decoration: none; font-size: .8rem; font-weight: 700; white-space: nowrap; }
+.tt-admin.on, .tt-admin:hover { border-color: var(--terra); color: var(--terra); }
+@media (max-width: 860px) { .tt-admin span { display: none; } }
+.adm-who { margin: 4px 0 10px; font-size: .9rem; color: var(--dim); }
+.adm-note { margin: 10px 0; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--panel); color: var(--text); line-height: 1.55; }
+.adm-note ul { margin: 6px 0 0; padding-left: 20px; }
+.adm-warn { border-color: rgba(176, 122, 46, .6); }
+.adm-help { margin: 8px 0 4px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); }
+.adm-help summary { cursor: pointer; font-weight: 700; color: var(--text); }
+.adm-help ul { margin: 8px 0; padding-left: 20px; display: grid; gap: 4px; font-size: .88rem; color: var(--text); }

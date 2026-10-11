@@ -19,7 +19,9 @@ import {
   adminLabelExport,
   type AuthUser, type HealthStatus, type CoopPlot, type PilotSummary, type LabelSummary,
 } from "@/lib/api";
-import { LangToggle, useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
+import AppShell from "@/components/AppShell";
+import { getToken } from "@/lib/api";
 
 type Tab = "health" | "funnel" | "pilot" | "label" | "backup" | "drift" | "coop";
 
@@ -343,6 +345,7 @@ export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("health");
 
   useEffect(() => {
+    if (!getToken()) { setUser(null); return; }
     fetchMe().then(setUser).catch(() => setUser(null));
   }, []);
 
@@ -360,20 +363,48 @@ export default function AdminPage() {
   ];
 
   return (
-    <div className="doc">
-      <header className="doc-top">
-        <Link href="/" className="doc-brand">◵ TerraTwin</Link>
-        <div className="doc-actions"><LangToggle /><Link href="/" className="doc-home">{t("← Về trang chính", "← Home")}</Link></div>
-      </header>
-      <main className="doc-body" style={{ maxWidth: 820 }}>
-        <h1>Quản trị</h1>
+    <AppShell user={user ?? null} onAuth={(u) => setUser(u)}>
+      <main className="doc-body" style={{ maxWidth: 900 }}>
+        <h1>{t("Quản trị", "Admin")}</h1>
 
         {user === undefined && <p className="ws-hint">Đang tải…</p>}
         {user === null && (
-          <p className="ws-err">⚠️ Cần đăng nhập để xem trang này.</p>
+          <div className="adm-note">
+            <b>{t("Chưa đăng nhập.", "Not signed in.")}</b>{" "}
+            {t("Bấm nút \"Đăng nhập\" ở góc trên bên phải, dùng email quản trị (email nằm trong TERRATWIN_ADMIN_EMAILS trên máy chủ). Đăng nhập xong trang này tự hiện các mục quản trị.",
+               "Press \"Log in\" at the top right with the admin email (listed in TERRATWIN_ADMIN_EMAILS on the server). The admin sections appear once you are signed in.")}
+          </div>
+        )}
+        {user && (
+          <p className="adm-who">{t("Đang đăng nhập", "Signed in as")}: <b>{user.email}</b> · {t("vai trò", "role")}: <b>{user.role ?? "user"}</b>
+            {user.totp_enabled ? " · 🔐 " + t("hai lớp: bật", "2FA: on") : " · " + t("hai lớp: chưa bật", "2FA: off")}</p>
         )}
         {user && !isAdmin && !isCoop && (
-          <p className="ws-err">⚠️ Chỉ quản trị viên hoặc hợp tác xã mới xem được trang này.</p>
+          <div className="adm-note adm-warn">
+            <b>{t("Tài khoản này chưa có quyền quản trị.", "This account has no admin rights yet.")}</b>
+            <ul>
+              <li>{t("Quyền quản trị được cấp LÚC ĐĂNG NHẬP cho email nằm trong biến TERRATWIN_ADMIN_EMAILS trên Render (terratwin-api → Environment).",
+                     "Admin rights are granted AT LOGIN to emails listed in TERRATWIN_ADMIN_EMAILS on Render (terratwin-api → Environment).")}</li>
+              <li>{t("Nếu vừa thêm email vào biến đó: Đăng xuất (góc trên phải) rồi đăng nhập lại.", "If the email was just added: log out (top right) and log in again.")}</li>
+              <li>{t("Kiểm email đúng chính tả, không thừa dấu cách.", "Check the email spelling, no stray spaces.")}</li>
+            </ul>
+          </div>
+        )}
+        {user && isAdmin && (
+          <details className="adm-help" open={tab === "health"}>
+            <summary>{t("Trang quản trị có gì?", "What is on this page?")}</summary>
+            <ul>
+              <li><b>Sức khoẻ</b> — {t("máy chủ, CSDL Neon, khoá ký, hạn mức nguồn dữ liệu, gói Open-Meteo.", "server, Neon DB, signing key, data-source quotas, Open-Meteo plan.")}</li>
+              <li><b>Phễu người dùng</b> — {t("mở app → quét → lưu thửa…; phễu bán hàng mở → chọn thửa → hồ sơ → trả tiền; tỉ lệ quay lại 7 ngày.", "open → scan → save…; sales funnel open → pick plot → dossier → pay; 7-day return rate.")}</li>
+              <li><b>Góp ý thí điểm</b> — {t("phiếu góp ý từ hợp tác xã (trực tuyến + phiếu giấy nhập lại), tải CSV.", "pilot feedback from co-ops (online + paper), CSV download.")}</li>
+              <li><b>Gán nhãn v3</b> — {t("thêm người gán nhãn (email), xem tiến độ, độ đồng thuận, xuất nhãn để chấm kiểm định v3.", "add labelers, progress, agreement, export labels to score validation v3.")}</li>
+              <li><b>Sao lưu</b> — {t("lần sao lưu CSDL mã hoá gần nhất.", "latest encrypted DB backup.")}</li>
+              <li><b>Trôi mô hình</b> — {t("dữ liệu đầu vào có lệch khỏi lúc huấn luyện không.", "whether inputs drift from training data.")}</li>
+              <li><b>Hợp tác xã</b> — {t("thửa của thành viên đã đồng ý chia sẻ.", "members' plots shared with consent.")}</li>
+            </ul>
+            <p className="ws-hint">{t("Bảo mật: bật xác thực hai lớp ở Thửa đất → Khu làm việc → Xác thực hai lớp, rồi đặt TERRATWIN_ADMIN_REQUIRE_2FA=1 trên Render.",
+                                      "Security: turn on 2FA in Land → Workspace → Two-factor, then set TERRATWIN_ADMIN_REQUIRE_2FA=1 on Render.")}</p>
+          </details>
         )}
 
         {user && (isAdmin || isCoop) && (
@@ -397,6 +428,6 @@ export default function AdminPage() {
           </>
         )}
       </main>
-    </div>
+    </AppShell>
   );
 }
