@@ -37,6 +37,10 @@ _memo: dict = {"at": 0.0, "anchors": None}
 
 
 def _url() -> str | None:
+    # Máy chạy thử (TERRATWIN_ENV=dev) có sổ riêng, khác production: đem so với mục lục neo của production sẽ báo
+    # "gốc lệch" giả. Chỉ đọc neo khi chạy production hoặc khi đặt rõ TERRATWIN_ANCHORS_URL.
+    if "TERRATWIN_ANCHORS_URL" not in os.environ and os.environ.get("TERRATWIN_ENV", "prod") == "dev":
+        return None
     u = os.environ.get("TERRATWIN_ANCHORS_URL", f"{REPO_RAW}/anchors.json").strip()
     return None if u.lower() in ("", "0", "off", "none") else u
 

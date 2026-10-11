@@ -194,7 +194,9 @@ def check(text: str, lat: float, lon: float) -> dict:
         verdict, msg, src = judge(c["type"], ev)
         rows.append({**c, "label": _label(c["type"]), "verdict": verdict, "evidence": msg, "source": src})
     count = {v: sum(1 for r in rows if r["verdict"] == v) for v in ("consistent", "contradicted", "insufficient")}
-    return {"claims": rows, "counts": count, "location": {"lat": lat, "lon": lon},
+    # Câu về ngập/cao ráo cần lịch sử nước radar; chưa đọc thì giao diện mời đọc (~2 phút) rồi tự đối chiếu lại.
+    needs_water = any(r["type"] in ("no_flood", "high_ground") for r in rows) and not ev.get("water")
+    return {"claims": rows, "counts": count, "location": {"lat": lat, "lon": lon}, "needs_water": needs_water,
             "note": tr("Đối chiếu từ dữ liệu đo, lời văn trung lập — không phải kết luận pháp lý về người bán. "
                        "Nội dung tin đăng không được lưu.",
                        "Compared against measured data, in neutral wording — not a legal finding about the seller. "

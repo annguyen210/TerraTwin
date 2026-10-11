@@ -6,7 +6,7 @@
  */
 import { useState } from "react";
 import { FileSearch } from "lucide-react";
-import { issueDossier, listingCheck, type ListingCheckResult } from "@/lib/api";
+import { issueDossier, listingCheck, waterPoll, waterStart, type ListingCheckResult } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 const V: Record<string, { cls: string; vi: string; en: string }> = {
@@ -22,6 +22,25 @@ export default function ListingCheck({ lat, lon }: { lat: number; lon: number })
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [issuing, setIssuing] = useState(false);
+  const [water, setWater] = useState<string | null>(null);   // tiến độ đọc lịch sử nước radar
+
+  async function readWaterThenRecheck() {
+    // "Không ngập"/"cao ráo" cần lịch sử nước radar của thửa. Đọc (~2 phút lần đầu, chạy nền) rồi tự đối chiếu lại.
+    setErr(null); setWater(t("Đang bắt đầu đọc ảnh radar…", "Starting the radar read…"));
+    try {
+      const j = await waterStart(lat, lon);
+      let id = j.state === "done" ? null : j.job_id!;
+      while (id) {
+        await new Promise((r) => setTimeout(r, 3000));
+        const s = await waterPoll(id);
+        if (s.progress) setWater(t(`Đang đọc ${s.progress.done}/${s.progress.total} cảnh radar…`, `Reading ${s.progress.done}/${s.progress.total} radar scenes…`));
+        if (s.state === "done") id = null;
+        if (s.state === "error") throw new Error(s.message || t("Đọc radar lỗi.", "Radar read failed."));
+      }
+      setWater(null);
+      setR(await listingCheck(text, lat, lon));
+    } catch (e) { setWater(null); setErr((e as Error).message); }
+  }
 
   async function toDossier() {
     // GĐ3 — phát hành Hồ sơ đất số kèm kết quả đối chiếu (máy chủ chạy lại; nguyên văn tin không được lưu).
@@ -67,6 +86,13 @@ export default function ListingCheck({ lat, lon }: { lat: number; lon: number })
               </li>
             ))}
           </ul>
+          {r.needs_water && (
+            <div className="lc-water">
+              <p>{t("Câu về ngập / cao ráo cần lịch sử nước radar Sentinel-1 của thửa này — chưa đọc.", "Flood / high-ground claims need this plot's Sentinel-1 radar water history — not read yet.")}</p>
+              <button className="bat-btn" onClick={readWaterThenRecheck} disabled={!!water}>
+                {water ?? t("Đọc lịch sử nước radar (~2 phút) rồi đối chiếu lại", "Read the radar water history (~2 min) and re-check")}</button>
+            </div>
+          )}
           <p className="eu-src">{r.note}</p>
           <div className="gn-actions">
             <button className="bat-btn ghost" onClick={toDossier} disabled={issuing}>

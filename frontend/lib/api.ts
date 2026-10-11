@@ -2701,7 +2701,7 @@ export function waterPoll(jobId: string) {
 
 export type ListingClaim = { type: string; label: string; sentence: string;
   verdict: "consistent" | "contradicted" | "insufficient"; evidence: string; source: string };
-export type ListingCheckResult = { claims: ListingClaim[]; counts: Record<string, number>; note: string };
+export type ListingCheckResult = { needs_water?: boolean; claims: ListingClaim[]; counts: Record<string, number>; note: string };
 export function listingCheck(text: string, lat: number, lon: number) {
   return postJson<ListingCheckResult>(`/api/listing/check?lang=${curLang()}`, { text, lat, lon }, "Không kiểm được tin đăng");
 }

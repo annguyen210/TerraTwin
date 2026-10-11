@@ -5214,3 +5214,6 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
   .lp4-pillars { grid-template-columns: 1fr; } .lp4-caps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 520px) { .lp4-caps { grid-template-columns: 1fr; } }
+
+.lc-water { display: grid; gap: 8px; padding: 10px 12px; border-radius: 10px; border: 1px dashed rgba(95, 203, 142, .5); background: rgba(95, 203, 142, .06); }
+.lc-water p { margin: 0; font-size: .86rem; color: var(--text); }
