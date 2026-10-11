@@ -599,6 +599,18 @@ export function getAccountAudit(limit = 50) {
     "Không tải được nhật ký tài khoản");
 }
 
+// Trang "Tài khoản của tôi" — thông tin, vai trò bằng lời, dữ liệu đang có, mục gần đây.
+export type AccountSummary = {
+  account: AuthUser & { created_at: string | null; morning_brief: boolean };
+  role: { id: string; name: string; can: string };
+  counts: Record<string, number>;
+  recent_dossiers: { id: string; seq: number; issued_at: string; kind: string; where: string }[];
+  recent_plots: { id: number; name: string; lat: number; lon: number; created_at: string }[];
+};
+export function getAccountSummary() {
+  return authed<AccountSummary>("/api/account/summary", { method: "GET" }, "Không tải được thông tin tài khoản");
+}
+
 // ---- C06 Heatmap ----
 export type HeatCell = {
   lat: number;

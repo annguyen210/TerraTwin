@@ -162,3 +162,18 @@ def test_pheu_ban_hang_va_ti_le_quay_lai_7_ngay(c):
     sales = {s["step"]: s["count"] for s in f["sales"]}
     assert sales == {"open": 2, "pick_plot": 1, "dossier": 1, "pay": 0}
     assert f["return_7d"]["cohort"] == 2 and f["return_7d"]["returned"] == 1 and f["return_7d"]["rate_pct"] == 50.0
+
+
+def test_trang_tai_khoan_cua_toi(c):
+    h = _reg(c, "tk@vd.vn")
+    c.post("/api/plots", headers=h, json={"name": "Ruộng nhà", "location": {"lat": 16.5, "lon": 107.5}})
+    c.get("/api/auth/me", headers=h)
+    s = c.get("/api/account/summary", headers=h).json()
+    assert s["account"]["email"] == "tk@vd.vn" and s["role"]["id"] == "user" and "Lưu thửa" in s["role"]["can"]
+    assert s["counts"]["plots"] == 1 and s["recent_plots"][0]["name"] == "Ruộng nhà"
+    assert "password_hash" not in str(s) and "totp_secret" not in str(s)
+    a = c.get("/api/account/audit", headers=h).json()["entries"]
+    assert any(e["label"] == "Mở ứng dụng" for e in a)
+    h2 = _reg(c, "quantri@vd.vn")
+    assert c.get("/api/account/summary", headers=h2).json()["role"]["name"].startswith("Quản trị")
+    assert c.get("/api/account/summary").status_code == 401

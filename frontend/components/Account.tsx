@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { login, register, setToken, type AuthUser, type LoginError } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
-import { LogIn } from "lucide-react";
+import { ChevronDown, LayoutDashboard, LogIn, LogOut, UserRound } from "lucide-react";
+
+const ROLE_VI: Record<string, string> = { admin: "Quản trị", coop: "Hợp tác xã", user: "Người dùng" };
+const ROLE_EN: Record<string, string> = { admin: "Admin", coop: "Co-op", user: "User" };
 
 export default function Account({
   user,
@@ -51,21 +55,7 @@ export default function Account({
     onAuth(null);
   }
 
-  if (user) {
-    return (
-      <div className="acct">
-        <div className="acct-who">
-          <span className="acct-dot" />
-          <span className="acct-mail" title={user.email}>
-            {user.name || user.email}
-          </span>
-        </div>
-        <button className="acct-out" onClick={logout}>
-          {t("Đăng xuất", "Log out")}
-        </button>
-      </div>
-    );
-  }
+  if (user) return <AccountMenu user={user} onLogout={logout} />;
 
   if (!open) {
     return (
@@ -152,5 +142,51 @@ export default function Account({
         </button>
       </div>
     </form>
+  );
+}
+
+
+/** Bấm tên tài khoản → menu: ai đang đăng nhập, vai trò (nói bằng lời), Tài khoản của tôi, Quản trị (nếu có quyền), Đăng xuất. */
+function AccountMenu({ user, onLogout }: { user: AuthUser; onLogout: () => void }) {
+  const { t, lang } = useLang();
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent | KeyboardEvent) => {
+      if (e instanceof KeyboardEvent ? e.key === "Escape" : !box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close); document.addEventListener("keydown", close);
+    return () => { document.removeEventListener("mousedown", close); document.removeEventListener("keydown", close); };
+  }, [open]);
+  const role = user.role ?? "user";
+  return (
+    <div className="acct acct-menu-wrap" ref={box}>
+      <button type="button" className="acct-who acct-btn" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <span className={`acct-dot role-${role}`} />
+        <span className="acct-mail" title={user.email}>{user.name || user.email}</span>
+        {role !== "user" && <span className={`acct-role role-${role}`}>{(lang === "en" ? ROLE_EN : ROLE_VI)[role] ?? role}</span>}
+        <ChevronDown size={14} aria-hidden="true" />
+      </button>
+      {open && (
+        <div className="acct-menu" role="menu">
+          <div className="acct-menu-head">
+            <b>{user.name || t("(chưa đặt tên)", "(no name)")}</b>
+            <span>{user.email}</span>
+            <small>{t("Vai trò", "Role")}: {(lang === "en" ? ROLE_EN : ROLE_VI)[role] ?? role}
+              {" · "}{user.email_verified ? t("email đã xác thực", "email verified") : t("email chưa xác thực", "email not verified")}
+              {" · "}{user.totp_enabled ? t("hai lớp: bật", "2FA: on") : t("hai lớp: chưa bật", "2FA: off")}</small>
+          </div>
+          <Link href="/tai-khoan" role="menuitem" className="acct-menu-item" onClick={() => setOpen(false)}>
+            <UserRound size={16} aria-hidden="true" /> {t("Tài khoản của tôi — thông tin, dữ liệu, lịch sử", "My account — details, data, history")}</Link>
+          {(role === "admin" || role === "coop") && (
+            <Link href="/admin" role="menuitem" className="acct-menu-item" onClick={() => setOpen(false)}>
+              <LayoutDashboard size={16} aria-hidden="true" /> {role === "admin" ? t("Trang quản trị", "Admin page") : t("Hợp tác xã", "Co-op")}</Link>
+          )}
+          <button type="button" role="menuitem" className="acct-menu-item" onClick={() => { setOpen(false); onLogout(); }}>
+            <LogOut size={16} aria-hidden="true" /> {t("Đăng xuất", "Log out")}</button>
+        </div>
+      )}
+    </div>
   );
 }

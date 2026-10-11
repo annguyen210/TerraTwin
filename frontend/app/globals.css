@@ -5142,3 +5142,39 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .adm-help { margin: 8px 0 4px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); }
 .adm-help summary { cursor: pointer; font-weight: 700; color: var(--text); }
 .adm-help ul { margin: 8px 0; padding-left: 20px; display: grid; gap: 4px; font-size: .88rem; color: var(--text); }
+
+/* Menu tài khoản (bấm tên) + trang /tai-khoan */
+.acct-menu-wrap { position: relative; }
+.acct-btn { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px;
+  border-radius: 9px; border: 1px solid var(--line-2); color: var(--text); font-size: .82rem; max-width: 260px; }
+.acct-btn:hover, .acct-btn[aria-expanded="true"] { border-color: var(--terra); }
+.acct-btn:focus-visible { outline: 2px solid var(--terra); outline-offset: 2px; }
+.acct-btn .acct-mail { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; }
+.acct-role { font-size: .68rem; font-weight: 800; padding: 1px 6px; border-radius: 99px; background: rgba(95, 203, 142, .16); color: #7fe0a7; }
+.acct-role.role-admin { background: rgba(176, 122, 46, .2); color: #e4ac52; }
+.acct-dot.role-admin { background: #e4ac52 !important; }
+.acct-menu { position: absolute; right: 0; top: calc(100% + 8px); z-index: 70; width: min(330px, calc(100vw - 24px)); display: grid; gap: 2px;
+  padding: 8px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--card, #111c24); box-shadow: 0 20px 50px -20px rgba(0, 0, 0, .8); }
+.acct-menu-head { display: grid; gap: 2px; padding: 8px 10px 10px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+.acct-menu-head b { color: var(--text); } .acct-menu-head span { color: var(--dim); font-size: .82rem; overflow-wrap: anywhere; }
+.acct-menu-head small { color: var(--dim); font-size: .74rem; line-height: 1.45; }
+.acct-menu-item { all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 9px 10px;
+  border-radius: 8px; color: var(--text); font-size: .86rem; text-decoration: none; }
+.acct-menu-item:hover, .acct-menu-item:focus-visible { background: var(--panel); }
+@media (max-width: 860px) { .acct-btn .acct-mail { max-width: 90px; } }
+.tk-wrap { max-width: 980px; margin: 0 auto; padding: 28px 16px 80px; display: grid; gap: 16px; }
+.tk-wrap h1 { margin: 0; font-size: clamp(24px, 4vw, 32px); color: var(--text); }
+.tk-card { padding: 16px 18px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); display: grid; gap: 10px; min-width: 0; }
+.tk-card h2 { margin: 0; font-size: 1.02rem; color: var(--text); }
+.tk-dl { margin: 0; display: grid; grid-template-columns: minmax(130px, max-content) minmax(0, 1fr); gap: 6px 14px; font-size: .9rem; }
+.tk-dl dt { color: var(--dim); } .tk-dl dd { margin: 0; color: var(--text); overflow-wrap: anywhere; }
+.tk-counts { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.tk-count { padding: 10px 12px; border-radius: 10px; background: var(--card); border: 1px solid var(--line); display: grid; gap: 2px; text-decoration: none; color: var(--text); }
+.tk-count b { font-size: 1.3rem; font-variant-numeric: tabular-nums; } .tk-count span { font-size: .78rem; color: var(--dim); }
+.tk-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: .88rem; }
+.tk-list li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px dotted var(--line); color: var(--text); }
+.tk-list a { color: var(--terra); text-decoration: none; overflow-wrap: anywhere; }
+.tk-list small { color: var(--dim); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tk-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); gap: 16px; }
+.tk-role { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--card); font-size: .88rem; line-height: 1.5; }
+.tk-danger { border-color: rgba(194, 65, 46, .5); }

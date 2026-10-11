@@ -597,7 +597,48 @@ _AUDIT_LABELS = {
     "verify_email": "Xác thực email",
     "update_consent": "Đổi lựa chọn đồng ý",
     "update_coop": "Đổi mã/chia sẻ hợp tác xã",
+    "2fa_enabled": "Bật xác thực hai lớp",
+    "2fa_disabled": "Tắt xác thực hai lớp",
+    "2fa_recovery_used": "Dùng mã khôi phục hai lớp",
+    "active": "Mở ứng dụng",
 }
+
+# Vai trò nói bằng lời — người dùng không cần biết chữ "admin" hay "coop" nghĩa là gì.
+_ROLE_TEXT = {
+    "user": ("Người dùng", "Lưu thửa, nhận cảnh báo, phát hành hồ sơ của chính mình."),
+    "coop": ("Hợp tác xã", "Như người dùng, thêm: xem thửa của thành viên đã đồng ý chia sẻ trong cùng mã hợp tác xã."),
+    "admin": ("Quản trị (admin)", "Vận hành hệ thống: sức khoẻ máy chủ, phễu người dùng, góp ý thí điểm, gán nhãn kiểm định, sao lưu."),
+}
+
+
+@router.get("/api/account/summary")
+def my_summary(user: User = Depends(auth.current_user), db: Session = Depends(get_session)) -> dict:
+    """Trang "Tài khoản của tôi": thông tin, vai trò bằng lời, mọi thứ tài khoản đang có (đếm từng loại) và vài
+    mục gần đây để bấm mở. Chỉ dữ liệu của CHÍNH người gọi."""
+    import json as _json
+    counts = {}
+    for label, model in _OWNED + _EXPORT_ONLY:
+        if label == "audit_logs":
+            continue
+        counts[label] = int(db.scalar(select(func.count()).select_from(model).where(model.user_id == user.id)) or 0)
+    dossiers = []
+    for d in db.execute(select(Dossier).where(Dossier.user_id == user.id).order_by(Dossier.created_at.desc()).limit(10)).scalars():
+        try:
+            f = _json.loads(d.facts_json)
+        except ValueError:
+            f = {}
+        loc = f.get("location") or {}
+        dossiers.append({"id": d.id, "seq": d.seq, "issued_at": d.created_at.isoformat(timespec="seconds") + "Z",
+                         "kind": f.get("kind") or "land",
+                         "where": (f.get("plot") or {}).get("ref") or (f"{loc.get('lat')}, {loc.get('lon')}" if loc else "")})
+    plots = [{"id": p.id, "name": p.name, "lat": p.lat, "lon": p.lon, "created_at": p.created_at.isoformat(timespec="seconds") + "Z"}
+             for p in db.execute(select(Plot).where(Plot.user_id == user.id).order_by(Plot.created_at.desc()).limit(10)).scalars()]
+    role = getattr(user, "role", "user") or "user"
+    name, what = _ROLE_TEXT.get(role, _ROLE_TEXT["user"])
+    return {"account": {**_out(user).model_dump(), "created_at": user.created_at.isoformat(timespec="seconds") + "Z" if user.created_at else None,
+                        "morning_brief": bool(getattr(user, "morning_brief", 0))},
+            "role": {"id": role, "name": name, "can": what}, "counts": counts,
+            "recent_dossiers": dossiers, "recent_plots": plots}
 
 
 @router.get("/api/account/audit")
