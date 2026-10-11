@@ -8,11 +8,11 @@ const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "https://terratwin-web.onrende
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: {
-    default: "TerraTwin — Hồ sơ vườn chuẩn EUDR, kiểm được",
+    default: "TerraTwin — Sự thật về một mảnh đất",
     template: "%s · TerraTwin",
   },
   description:
-    "Chứng minh vườn cà phê, cao su, gỗ không phá rừng trước hạn EUDR 30/12/2026: ranh thửa đúng chuẩn EU, sàng lọc phá rừng bằng dữ liệu vệ tinh đo trên đúng ranh, hồ sơ ký số và sổ minh bạch ai cũng tự kiểm được.",
+    "Thửa đất từng ngập chưa, tin đăng có nói thật không: lịch sử nước radar Sentinel-1 từ 2017, loại đất, hiểm hoạ 10 năm, kiểm chứng tin đăng bán đất, hồ sơ ký số neo Bitcoin ai cũng tự kiểm được. Kèm hồ sơ vườn chuẩn EUDR.",
   keywords: [
     "EUDR", "quy định chống phá rừng EU", "truy xuất nguồn gốc", "cà phê", "cao su", "hồ sơ vườn",
     "GeoJSON", "Sentinel-2", "chữ ký số", "Việt Nam", "TerraTwin",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "vi_VN",
     siteName: "TerraTwin",
-    title: "TerraTwin — Chứng minh vườn không phá rừng trước 30/12/2026",
+    title: "TerraTwin — Sự thật về một mảnh đất",
     description:
       "Ranh chuẩn EU, sàng lọc bằng ba bản đồ rừng 2020 và ảnh vệ tinh, hồ sơ ký số nông hộ giữ, lô hàng có cân bằng khối lượng.",
   },

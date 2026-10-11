@@ -154,9 +154,9 @@ export default function Start({
     <div className="start">
       <h2 className="start-h">{t("Thửa đất của bạn ở đâu?", "Where is your plot?")}</h2>
       <p className="start-sub">
-        {t("Chọn một chỗ, TerraTwin sẽ kiểm tra ", "Pick a spot and TerraTwin checks ")}
-        <b>{t("toàn bộ rủi ro trong 7 ngày tới", "every risk over the next 7 days")}</b>{" "}
-        {t("và cho biết nên làm gì. Mất khoảng ba giây.", "and tells you what to do. Takes about three seconds.")}
+        {t("Chọn một chỗ: ", "Pick a spot: ")}
+        <b>{t("lịch sử nước radar, loại đất, hiểm hoạ 10 năm, kiểm tin đăng", "radar water history, land cover, 10-year hazards, listing check")}</b>{" "}
+        {t("và hồ sơ ký số — chọn tab mở sẵn ở trên.", "and a signed dossier — choose the tab to open above.")}
       </p>
 
       {onStory && (

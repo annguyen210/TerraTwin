@@ -257,10 +257,11 @@ export default function Home() {
 
   // Từ màn hình đầu: có tên nơi, và bay bản đồ tới đó.
   const onStart = useCallback(
-    (lat: number, lon: number, label?: string) => {
+    (lat: number, lon: number, label?: string, ch?: "plan" | "mine" | "verify" | "tools") => {
       if (!inVietnam(lat, lon)) { setOutside(outsideMessage(lat, lon)); return; }
       setOutside(null);
       trackEvent("pick_plot");
+      if (ch) setChapter(ch);                           // "Thử ngay" ở trang đầu mở đúng tab của thửa
       setCoord({ lat, lon });
       setArea(undefined);
       setPlaceLabel(label);
@@ -374,7 +375,7 @@ export default function Home() {
 
         {loading && <div className="pw-loading"><div className="tt-skel" /></div>}
         {err && <p className="err pw-err">{err}</p>}
-        {terra?.region && !terra.region.serviceable && (
+        {terra?.region && terra.region.serviceable === false && (
           <div className="offsite pw-err">
             <b>{terra.region.kind === "sea" ? t("Đây là mặt nước", "This is open water")
               : `${t("Ngoài phạm vi phục vụ", "Outside service area")}${terra.region.country ? ` (${terra.region.country.toUpperCase()})` : ""}`}</b>

@@ -5101,7 +5101,7 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .pw-full .pw-hero { position: fixed; top: calc(var(--tt-top-h) + env(safe-area-inset-top, 0px)); left: 0; right: 0; bottom: 0;
   height: auto; min-height: 0; border-radius: 0; border: 0; box-shadow: none; z-index: 1; }
 .pw-full .pw-panel { position: fixed; z-index: 30; top: calc(var(--tt-top-h) + env(safe-area-inset-top, 0px) + 12px); right: 12px; bottom: 12px;
-  width: min(640px, 46vw); overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 12px; align-content: start; padding: 12px;
+  width: min(640px, 46vw); overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 12px; padding: 12px;
   border-radius: 18px; border: 1px solid var(--line-2); background: rgba(11, 18, 24, .86);
   backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%); box-shadow: 0 30px 80px -40px rgba(0, 0, 0, .9); }
 .pw-full .pw-card { position: static; width: auto; box-shadow: none; background: var(--panel); }
@@ -5178,3 +5178,39 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .tk-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); gap: 16px; }
 .tk-role { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--card); font-size: .88rem; line-height: 1.5; }
 .tk-danger { border-color: rgba(194, 65, 46, .5); }
+
+/* Thanh tab trong thẻ thửa KHÔNG được co lại — trước đây khung lưới có chiều cao cố định ép nó còn vài px (11/10/2026). */
+.pw-full .pw-panel > * { flex-shrink: 0; }
+.pw-full .pw-tabs { min-height: 50px; }
+
+/* ===== Trang đầu theo kế hoạch tổng: "Sự thật về một mảnh đất" ===== */
+.lp4-hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 36px; align-items: start; padding: 44px 0 10px; }
+.lp4-search { padding: 18px; border-radius: 18px; border: 1px solid var(--line-2); background: var(--panel); display: grid; gap: 10px; scroll-margin-top: 80px; }
+.lp4-want { display: flex; gap: 6px; flex-wrap: wrap; }
+.lp4-want button { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line-2); background: transparent; color: var(--dim); font-weight: 700; font-size: .8rem; cursor: pointer; }
+.lp4-want button.on { background: rgba(95, 203, 142, .16); border-color: #5fcb8e; color: #7fe0a7; }
+.lp4-free { margin: 12px 0 0; color: #7fe0a7; font-size: .9rem; font-weight: 600; }
+.lp4-pillars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.lp4-pillar { display: grid; gap: 8px; align-content: start; padding: 18px; }
+.lp4-pillar h3 { margin: 0; font-size: 1.25rem; color: var(--text); }
+.lp4-pillar p { margin: 0; color: var(--dim); }
+.lp4-pillar ul { list-style: none; margin: 4px 0; padding: 0; display: grid; gap: 6px; font-size: .88rem; color: var(--text); }
+.lp4-pillar li { display: flex; gap: 6px; align-items: baseline; } .lp4-pillar li svg { color: #7fe0a7; flex: none; }
+.lp4-pillar small { color: var(--dim); font-size: .78rem; border-top: 1px solid var(--line); padding-top: 8px; }
+.lp4-tag { font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: #7fe0a7; font-weight: 800; }
+.lp4-pillar-go { display: flex; gap: 8px; flex-wrap: wrap; }
+.lp4-caps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.lp4-cap { all: unset; box-sizing: border-box; cursor: pointer; display: grid; gap: 6px; align-content: start; padding: 16px; position: relative;
+  border-radius: 14px; border: 1px solid var(--line); background: var(--panel); color: var(--text); text-decoration: none; }
+.lp4-cap:hover { border-color: #5fcb8e; } .lp4-cap:focus-visible { outline: 2px solid #5fcb8e; outline-offset: 2px; }
+.lp4-cap svg { color: #7fe0a7; } .lp4-cap b { font-size: .98rem; } .lp4-cap p { margin: 0; color: var(--dim); font-size: .84rem; line-height: 1.5; }
+.lp4-cap-n { position: absolute; top: 10px; right: 14px; font-weight: 800; color: var(--line-2); font-size: 1.4rem; }
+.lp4-cap-go { color: #7fe0a7; font-weight: 700; font-size: .84rem; }
+.lp4-eudr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .8fr); gap: 30px; align-items: center; }
+.lp4-steps { margin: 8px 0 14px; padding: 0; list-style: none; display: grid; gap: 6px; color: var(--text); }
+.lp4-steps li { display: flex; gap: 8px; align-items: center; } .lp4-steps svg { color: #7fe0a7; }
+@media (max-width: 960px) {
+  .lp4-hero, .lp4-eudr { grid-template-columns: 1fr; gap: 22px; padding-top: 24px; }
+  .lp4-pillars { grid-template-columns: 1fr; } .lp4-caps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) { .lp4-caps { grid-template-columns: 1fr; } }

@@ -73,9 +73,11 @@ with sync_playwright() as p:
     page.on("pageerror", lambda e: console_errors.append(f"{page.url} :: PAGEERROR {str(e)[:200]}"))
     page.on("response", lambda r: r.status >= 400 and bad_responses.append(f"{r.status} {r.request.method} {r.url[:140]}"))
 
-    @step("Trang đầu hiện EUDR")
+    @step("Trang đầu: sự thật về một mảnh đất + chương EUDR")
     def landing():
         page.goto(WEB + "/", wait_until="networkidle", timeout=180_000)
+        page.get_by_text("Sự thật về một mảnh đất").first.wait_for(timeout=60_000)
+        assert page.locator(".lp4-cap").count() == 8, "thiếu 8 năng lực"
         page.get_by_text("Chứng minh vườn không phá rừng").first.wait_for(timeout=60_000)
         page.get_by_role("link", name="Lấy ranh và kiểm một vườn").first.wait_for()
         assert page.locator(".tt-nav a").count() == 5, "thiếu thanh điều hướng"
@@ -247,6 +249,24 @@ with sync_playwright() as p:
         shot(page, "13-today")
         return f"{page.locator('.hn-item').count()} việc"
     today()
+
+    @step("Trang đầu → 'Kiểm một tin đăng' mở thửa mẫu đúng tab Kiểm chứng, tab không bị ép")
+    def try_now():
+        page.goto(WEB + "/", wait_until="networkidle", timeout=120_000)
+        page.get_by_role("button", name=re.compile("Kiểm một tin đăng")).first.click()
+        page.locator(".pw-tabs").wait_for(timeout=60_000)
+        skip = page.get_by_role("button", name="Bỏ qua")
+        if skip.count():
+            skip.first.click()
+        page.wait_for_timeout(1500)
+        sel = page.get_by_role("tab", selected=True).inner_text()
+        hgt = page.evaluate("Math.round(document.querySelector('.pw-tabs').getBoundingClientRect().height)")
+        offsite = page.locator(".offsite").count()
+        assert "Kiểm chứng" in sel, sel
+        assert hgt >= 40, f"thanh tab bị ép còn {hgt}px"
+        page.locator(".lc textarea").wait_for(timeout=30_000)
+        return f"tab {sel.strip()} · cao {hgt}px · khung 'ngoài phạm vi': {offsite}"
+    try_now()
 
     @step("Khu làm việc thửa đất: bản đồ lớn + chương")
     def workspace():
