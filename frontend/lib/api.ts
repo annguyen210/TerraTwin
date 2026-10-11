@@ -2871,7 +2871,7 @@ export function adminUsers(q = "") {
   return authed<{ total: number; pending_requests: number; users: AdminUser[] }>(`/api/admin/users?q=${encodeURIComponent(q)}`,
     { method: "GET" }, "Không tải được danh sách tài khoản");
 }
-export function adminUpdateUser(id: number, body: { role?: "user" | "coop"; plan?: "free" | "pro" | "enterprise"; months?: number; note?: string }) {
+export function adminUpdateUser(id: number, body: { role?: "user" | "coop" | "admin"; plan?: "free" | "pro" | "enterprise"; months?: number; note?: string }) {
   return authed<{ ok: boolean; changed: string[] }>(`/api/admin/users/${id}`, { method: "POST", body: JSON.stringify(body) },
     "Không cập nhật được tài khoản");
 }

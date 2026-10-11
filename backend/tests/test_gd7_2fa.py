@@ -70,6 +70,11 @@ def _reg(c, email):
     return {"Authorization": f"Bearer {r.json()['access_token']}"}
 
 
+def _login_again(c, email):
+    r = c.post("/api/auth/login", json={"email": email, "password": PW})
+    return {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+
 def _enable(c, h):
     from app.services import totp
     s = c.post("/api/auth/2fa/setup", headers=h).json()
@@ -202,7 +207,11 @@ def test_quan_tri_cap_goi_han_muc_va_duyet_yeu_cau(c, monkeypatch):
     uid = users["nong@vd.vn"]["id"]
     assert users["nong@vd.vn"]["plan_effective"] == "pro"
     assert c.post(f"/api/admin/users/{uid}", headers=ha, json={"role": "coop"}).json()["role"] == "coop"
-    assert c.post(f"/api/admin/users/{uid}", headers=ha, json={"role": "admin"}).status_code == 422     # không cấp admin từ giao diện
+    assert c.post(f"/api/admin/users/{uid}", headers=ha, json={"role": "admin"}).json()["role"] == "admin"   # quản trị cấp được quản trị
+    assert c.get("/api/admin/users", headers=_login_again(c, "nong@vd.vn")).status_code == 200
+    me = next(x for x in c.get("/api/admin/users?q=quantri", headers=ha).json()["users"] if x["email"] == "quantri@vd.vn")
+    assert c.post(f"/api/admin/users/{me['id']}", headers=ha, json={"role": "user"}).status_code == 409    # không tự bỏ quyền
+    assert c.post(f"/api/admin/users/{uid}", headers=ha, json={"role": "coop"}).json()["role"] == "coop"     # bỏ quyền người được cấp
     audit = [e["label"] for e in c.get("/api/account/audit", headers=hu).json()["entries"]]
     assert "Quản trị cấp quyền / gói" in audit and "Gửi yêu cầu nâng hạn mức" in audit
     # hạn mức nhân thật: người dùng gói pro qua được nhiều lượt hơn trần người thường

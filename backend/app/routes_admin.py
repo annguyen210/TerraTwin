@@ -4,8 +4,11 @@ Nguyên tắc của chủ dự án: MỌI tài khoản có ĐỦ MỌI tính nă
 quét/giờ, lượt API/tháng — services/plans.py). Quản trị là người CẤP: duyệt yêu cầu, cấp gói có hạn dùng, cấp vai
 trò hợp tác xã. Mọi thao tác của quản trị ghi vào nhật ký của CẢ hai tài khoản (người làm và người được cấp).
 
-Vai trò "admin" KHÔNG cấp được từ giao diện — chỉ qua biến TERRATWIN_ADMIN_EMAILS trên máy chủ. Lý do: một tài khoản
-quản trị bị chiếm không được phép tự nhân bản quyền quản trị cho tài khoản khác của kẻ tấn công.
+Quản trị CẤP ĐƯỢC cả quyền quản trị cho tài khoản khác (theo yêu cầu chủ dự án 11/10/2026). Rào chắn giữ lại:
+  · không tự bỏ quyền của chính mình (tránh khoá mình ra ngoài);
+  · không bỏ quyền của email nằm trong TERRATWIN_ADMIN_EMAILS (họ được nâng lại mỗi lần đăng nhập — gốc tin cậy);
+  · mọi lần cấp/bỏ ghi nhật ký của CẢ hai tài khoản; bật TERRATWIN_ADMIN_REQUIRE_2FA=1 thì chỉ quản trị đã bật hai lớp
+    mới vào được các API này (auth.require_admin).
 """
 from __future__ import annotations
 
@@ -111,7 +114,7 @@ def admin_users(q: str = "", limit: int = 50, admin: User = Depends(auth.require
 
 
 class GrantIn(BaseModel):
-    role: str | None = Field(default=None, pattern="^(user|coop)$")
+    role: str | None = Field(default=None, pattern="^(user|coop|admin)$")
     plan: str | None = Field(default=None, pattern="^(free|pro|enterprise)$")
     months: int | None = Field(default=None, ge=0, le=60)          # 0 hoặc None = không hạn
     note: str = Field(default="", max_length=200)
@@ -121,7 +124,11 @@ def _grant(db: Session, admin: User, u: User, body: GrantIn) -> list[str]:
     done = []
     if body.role and body.role != (u.role or "user"):
         if (u.role or "user") == "admin":
-            raise HTTPException(409, "Không đổi vai trò của tài khoản quản trị từ giao diện — quyền quản trị theo TERRATWIN_ADMIN_EMAILS.")
+            from app.routes_account import _is_admin_email
+            if u.id == admin.id:
+                raise HTTPException(409, "Không tự bỏ quyền quản trị của chính mình — nhờ một quản trị khác.")
+            if _is_admin_email(u.email):
+                raise HTTPException(409, "Email này là quản trị gốc theo biến TERRATWIN_ADMIN_EMAILS trên máy chủ — bỏ ở đó trước.")
         u.role = body.role
         done.append(f"vai trò → {body.role}")
     if body.plan:

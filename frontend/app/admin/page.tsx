@@ -198,8 +198,8 @@ function UsersTab() {
   }
   return (
     <div>
-      <p className="ws-hint">Mọi tài khoản có <b>đủ mọi tính năng</b>. Ở đây quản trị <b>cấp hạn mức</b> (gói) có thời hạn và vai trò hợp tác xã.
-        Quyền quản trị chỉ cấp qua biến TERRATWIN_ADMIN_EMAILS trên máy chủ (an toàn hơn khi một tài khoản bị chiếm).</p>
+      <p className="ws-hint">Mọi tài khoản có <b>đủ mọi tính năng</b>. Ở đây quản trị <b>cấp hạn mức</b> (gói) có thời hạn, vai trò hợp tác xã và cả
+        <b> quyền quản trị</b>. Không tự bỏ quyền của chính mình được; email quản trị gốc (biến TERRATWIN_ADMIN_EMAILS) chỉ bỏ được trên máy chủ.</p>
       <div className="ws-row">
         <input placeholder="Tìm theo email hoặc tên" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && load()} />
         <button className="doc-btn" onClick={() => load()}>Tìm</button>
@@ -222,14 +222,18 @@ function UsersTab() {
                   <td>{u.plots} / {u.dossiers}</td>
                   <td>{when(u.last_active)}</td>
                   <td style={{ whiteSpace: "nowrap" }}>
+                    <button className="ws-link" onClick={() => act(u, { plan: "pro", months })}>Mở rộng ×3</button>{" · "}
+                    <button className="ws-link" onClick={() => act(u, { plan: "enterprise", months })}>Doanh nghiệp ×10</button>{" · "}
+                    <button className="ws-link" onClick={() => act(u, { plan: "free" })}>Về miễn phí</button><br />
                     {u.role !== "admin" && <>
-                      <button className="ws-link" onClick={() => act(u, { plan: "pro", months })}>Mở rộng ×3</button>{" · "}
-                      <button className="ws-link" onClick={() => act(u, { plan: "enterprise", months })}>Doanh nghiệp ×10</button>{" · "}
-                      <button className="ws-link" onClick={() => act(u, { plan: "free" })}>Về miễn phí</button><br />
                       <button className="ws-link" onClick={() => act(u, { role: u.role === "coop" ? "user" : "coop" })}>
-                        {u.role === "coop" ? "Bỏ vai trò HTX" : "Cấp vai trò HTX"}</button>
+                        {u.role === "coop" ? "Bỏ vai trò HTX" : "Cấp vai trò HTX"}</button>{" · "}
+                      <button className="ws-link" onClick={() => { if (window.confirm(`Cấp QUYỀN QUẢN TRỊ cho ${u.email}? Người này sẽ thấy và làm được mọi thứ trong trang Quản trị.`)) act(u, { role: "admin" }); }}>
+                        Cấp quyền quản trị</button>
                     </>}
-                    {u.role === "admin" && <small>quản trị (theo biến máy chủ)</small>}
+                    {u.role === "admin" && (
+                      <button className="ws-link" onClick={() => { if (window.confirm(`Bỏ quyền quản trị của ${u.email}?`)) act(u, { role: "user" }); }}>Bỏ quyền quản trị</button>
+                    )}
                   </td>
                 </tr>
               ))}
