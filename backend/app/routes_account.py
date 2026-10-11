@@ -20,7 +20,7 @@ from app import auth
 from app.services import plans
 from app.db import (
     ActionLog, Alert, ApiKey, AuditLog, BatchRun, Dataset, Device, Dossier, EudrSet, FieldPhoto, Lot,
-    KnowledgeNote, LabelerGrant, LabelV3, NotifyChannel, Observation, PilotFeedback, Plot, PushSub, SensorReading, Twin, User, get_session,
+    KnowledgeNote, LabelerGrant, LabelV3, NotifyChannel, Observation, PilotFeedback, Plot, PushSub, SensorReading, Twin, UpgradeRequest, User, get_session,
 )
 from app.schemas import Location
 
@@ -466,19 +466,28 @@ def list_keys(user: User = Depends(auth.current_user),
                       calls_total=k.calls_total or 0,
                       calls_period=k.calls_period or 0,
                       period=k.period or "",
-                      plan=getattr(k, "plan", None) or plans.DEFAULT_PLAN,
-                      monthly_quota=plans.quota_for(getattr(k, "plan", None)))
+                      plan=plans.effective(user),
+                      monthly_quota=plans.quota_for(plans.effective(user)))
             for k in rows]
 
 
 @router.post("/api/keys", response_model=ApiKeyCreated, status_code=201)
-def create_key(label: str = "", plan: str = plans.DEFAULT_PLAN,
+def create_key(label: str = "", plan: str | None = None,
                user: User = Depends(auth.current_user),
                db: Session = Depends(get_session)) -> ApiKeyCreated:
-    if plan not in plans.PLANS:
+    """Khoá API mang gói CỦA TÀI KHOẢN (quản trị cấp). Không tự chọn gói cao hơn được nữa — trước đây ai cũng tự
+    ghi plan=enterprise để lấy 50.000 lượt/tháng. Gói chỉ đổi hạn mức; mọi tính năng mở cho mọi tài khoản."""
+    if plan is not None and plan not in plans.PLANS:
         raise HTTPException(
             status_code=400,
             detail=f"Gói không hợp lệ. Chọn một trong: {', '.join(plans.PLANS)}")
+    eff = plans.effective(user)
+    if plan is not None and plan != eff and plans.PLANS[plan]["quota"] > plans.PLANS[eff]["quota"]:
+        raise HTTPException(
+            status_code=403,
+            detail=("Gói do quản trị cấp. Muốn hạn mức cao hơn, gửi yêu cầu nâng cấp ở Tài khoản của tôi → "
+                    "Gói & hạn mức. (Mọi tính năng đã mở cho mọi tài khoản — gói chỉ đổi hạn mức.)"))
+    plan = eff
     raw, digest, prefix = auth.generate_api_key()
     k = ApiKey(user_id=user.id, label=label[:120], key_hash=digest,
                prefix=prefix, plan=plan)
@@ -508,7 +517,7 @@ def usage(user: User = Depends(auth.current_user),
     rows = db.execute(
         select(ApiKey).where(ApiKey.user_id == user.id, ApiKey.revoked == 0)
     ).scalars().all()
-    kê = [plans.statement(k) for k in rows]
+    kê = [plans.statement(k, plans.effective(user)) for k in rows]
     return {
         "keys": kê,
         "total_calls_this_period": sum(k["used"] for k in kê),
@@ -543,7 +552,7 @@ _OWNED = [
     ("knowledge_notes", KnowledgeNote), ("api_keys", ApiKey),
     ("datasets", Dataset), ("alerts", Alert), ("audit_logs", AuditLog),
     ("push_subs", PushSub), ("batch_runs", BatchRun), ("eudr_sets", EudrSet),
-    ("devices", Device),
+    ("devices", Device), ("upgrade_requests", UpgradeRequest),
 ]
 # Xuất nhưng KHÔNG xoá theo tài khoản: hồ sơ đất số nằm trong sổ đăng ký công
 # khai móc xích — xoá một hồ sơ là gãy mọi mắt xích sau nó; ảnh đã gắn vào hồ sơ
@@ -601,6 +610,10 @@ _AUDIT_LABELS = {
     "2fa_disabled": "Tắt xác thực hai lớp",
     "2fa_recovery_used": "Dùng mã khôi phục hai lớp",
     "active": "Mở ứng dụng",
+    "upgrade_requested": "Gửi yêu cầu nâng hạn mức",
+    "upgrade_rejected": "Yêu cầu nâng hạn mức bị từ chối",
+    "admin_grant": "Quản trị cấp quyền / gói",
+    "admin_grant_given": "Cấp quyền / gói cho tài khoản khác",
 }
 
 # Vai trò nói bằng lời — người dùng không cần biết chữ "admin" hay "coop" nghĩa là gì.

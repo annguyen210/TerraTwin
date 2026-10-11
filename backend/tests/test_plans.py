@@ -89,15 +89,25 @@ def test_tu_choi_goi_khong_hop_le_khi_tao_khoa():
     assert "không hợp lệ" in r.json()["detail"].lower()
 
 
-def test_khoa_tao_ra_mang_dung_goi_va_han_muc(monkeypatch):
+def test_khoa_mang_goi_quan_tri_cap_khong_tu_chon_duoc(monkeypatch):
+    """Gói do QUẢN TRỊ cấp: tự ghi plan=pro bị từ chối; được cấp rồi thì khoá mang đúng gói và hạn mức."""
     monkeypatch.delenv("TERRATWIN_KEY_MONTHLY_QUOTA", raising=False)
     tok = _dang_ky("goi-pro@test.vn")
     h = {"Authorization": f"Bearer {tok}"}
     r = client.post("/api/keys?label=chinh&plan=pro", headers=h)
-    assert r.status_code == 201
-    body = r.json()
-    assert body["plan"] == "pro"
-    assert body["monthly_quota"] == 5000
+    assert r.status_code == 403 and "quản trị cấp" in r.json()["detail"]
+    r = client.post("/api/keys?label=chinh", headers=h)
+    assert r.status_code == 201 and r.json()["plan"] == "free" and r.json()["monthly_quota"] == 500
+    from app.db import SessionLocal, User
+    db = SessionLocal()
+    try:
+        u = db.query(User).filter(User.email == "goi-pro@test.vn").one()
+        u.plan = "pro"
+        db.commit()
+    finally:
+        db.close()
+    body = client.post("/api/keys?label=chinh2&plan=pro", headers=h).json()
+    assert body["plan"] == "pro" and body["monthly_quota"] == 5000
 
 
 def test_han_muc_duoc_THI_HANH_that_chu_khong_chi_hien_thi(monkeypatch):
@@ -184,10 +194,10 @@ def test_endpoint_usage_liet_ke_tung_khoa(monkeypatch):
     tok = _dang_ky("bang-ke@test.vn")
     h = {"Authorization": f"Bearer {tok}"}
     client.post("/api/keys?label=a&plan=free", headers=h)
-    client.post("/api/keys?label=b&plan=enterprise", headers=h)
+    client.post("/api/keys?label=b", headers=h)
     d = client.get("/api/usage", headers=h).json()
     assert len(d["keys"]) >= 2
-    assert {k["plan"] for k in d["keys"]} >= {"free", "enterprise"}
+    assert {k["plan"] for k in d["keys"]} == {"free"}
 
 
 # ──────────── KHÔNG NÓI DỐI VỀ TÌNH TRẠNG THANH TOÁN ────────────

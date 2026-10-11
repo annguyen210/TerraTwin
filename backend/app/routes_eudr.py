@@ -56,7 +56,8 @@ def enforce_quota(kind: str, request: Request, user) -> None:
     from app.main import _client_ip
     from app.services import quota
     key = f"u{user.id}" if user else f"ip{_client_ip(request)}"
-    wait = quota.take(kind, key, user is not None)
+    from app.services import plans
+    wait = quota.take(kind, key, user is not None, plans.mult_for(user))
     if wait is not None:
         msg = {"dossier": reqlang.tr(
                    "Đã hết lượt phát hành hồ sơ hôm nay cho người chưa đăng nhập — đăng nhập để phát hành tiếp (sổ hồ sơ không xoá được nên cần gắn trách nhiệm).",

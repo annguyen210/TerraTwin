@@ -30,36 +30,56 @@ from datetime import datetime, timezone
 # mới là thứ khan hiếm cần phân bổ giữa các gói.
 UPSTREAM_CALLS_PER_SCAN = 6
 
+# NGUYÊN TẮC (10/10/2026, theo chủ dự án): MỌI tài khoản có ĐỦ MỌI tính năng. Gói chỉ đổi HẠN MỨC — số hồ sơ
+# mỗi ngày, lượt quét mỗi giờ, lượt API mỗi tháng — vì thứ khan hiếm là hạn mức của nguồn dữ liệu miễn phí,
+# không phải tính năng. Gói do QUẢN TRỊ cấp (có hạn dùng), người dùng không tự chọn.
+# `mult` nhân hạn mức người đăng nhập trong services/quota.py.
 PLANS: dict[str, dict] = {
     "free": {
         "name": "Miễn phí",
         "quota": 500,
+        "mult": 1,
         "price_vnd": 0,
-        "for": "Hộ gia đình, một vài thửa đất",
-        "features": ["Toàn bộ 18 công cụ theo dõi thửa đất", "Cảnh báo trên web",
-                     "Xem lại 4 thiên tai lịch sử"],
+        "for": "Mọi người dùng — đủ mọi tính năng",
+        "features": ["Đủ mọi tính năng: hồ sơ ký số, lịch sử nước radar, kiểm tin đăng, nhật ký thửa, so sánh, EUDR, IoT, API",
+                     "Hạn mức: 300 hồ sơ/ngày · 200 lượt quét/giờ · 500 lượt API/tháng"],
     },
     "pro": {
-        "name": "Chuyên nghiệp",
+        "name": "Mở rộng",
         "quota": 5000,
+        "mult": 3,
         "price_vnd": 299_000,
-        "for": "Hợp tác xã, trang trại nhiều thửa",
-        "features": ["Mọi thứ của gói Miễn phí", "Danh mục nhiều thửa",
-                     "Rà soát tự động 6 giờ một lần", "Xuất báo cáo",
-                     "Khoá API"],
+        "for": "Hợp tác xã, môi giới, trang trại nhiều thửa",
+        "features": ["Cùng tính năng như Miễn phí — chỉ khác hạn mức",
+                     "Hạn mức ×3: 900 hồ sơ/ngày · 600 lượt quét/giờ · 5.000 lượt API/tháng"],
     },
     "enterprise": {
         "name": "Doanh nghiệp",
         "quota": 50000,
+        "mult": 10,
         "price_vnd": 2_990_000,
-        "for": "Doanh nghiệp thu mua, bảo hiểm, ngân hàng",
-        "features": ["Mọi thứ của gói Chuyên nghiệp", "Hồ sơ MRV carbon/ESG",
-                     "Rủi ro vùng nguyên liệu", "Dấu niêm phong truy xuất",
-                     "Hạn mức API cao"],
+        "for": "Ngân hàng, bảo hiểm, doanh nghiệp thu mua",
+        "features": ["Cùng tính năng như Miễn phí — chỉ khác hạn mức",
+                     "Hạn mức ×10: 3.000 hồ sơ/ngày · 2.000 lượt quét/giờ · 50.000 lượt API/tháng"],
     },
 }
 
 DEFAULT_PLAN = "free"
+
+
+def effective(user) -> str:
+    """Gói đang có hiệu lực của một người dùng: gói quản trị đã cấp, trừ khi đã hết hạn."""
+    if user is None:
+        return DEFAULT_PLAN
+    plan = getattr(user, "plan", None) or DEFAULT_PLAN
+    until = getattr(user, "plan_until", None)
+    if plan != DEFAULT_PLAN and until is not None and until < datetime.now(timezone.utc).replace(tzinfo=None):
+        return DEFAULT_PLAN
+    return plan if plan in PLANS else DEFAULT_PLAN
+
+
+def mult_for(user) -> int:
+    return int(PLANS[effective(user)].get("mult", 1))
 
 
 def quota_for(plan: str | None) -> int:
@@ -80,6 +100,7 @@ def catalogue() -> dict:
         "currency": "VND",
         "billing_period": "tháng",
         "status": "đề xuất",
+        "principle": "Mọi tài khoản có đủ mọi tính năng; gói chỉ đổi hạn mức và do quản trị cấp.",
         "disclaimer": (
             "Giá đề xuất, CHƯA có cổng thanh toán và chưa có khách hàng trả "
             "tiền. Phần thu tiền cần giấy phép kinh doanh và hợp đồng thương "

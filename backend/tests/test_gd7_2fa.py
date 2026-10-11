@@ -177,3 +177,44 @@ def test_trang_tai_khoan_cua_toi(c):
     h2 = _reg(c, "quantri@vd.vn")
     assert c.get("/api/account/summary", headers=h2).json()["role"]["name"].startswith("Quản trị")
     assert c.get("/api/account/summary").status_code == 401
+
+
+def test_quan_tri_cap_goi_han_muc_va_duyet_yeu_cau(c, monkeypatch):
+    """Mọi tài khoản đủ tính năng; nâng cấp = HẠN MỨC, do quản trị cấp. Người dùng xin → quản trị duyệt → hạn mức
+    nhân lên thật; cấp vai trò hợp tác xã được, cấp quyền quản trị thì không (chỉ qua biến môi trường)."""
+    from app.services import quota
+    ha = _reg(c, "quantri@vd.vn")
+    hu = _reg(c, "nong@vd.vn")
+    p = c.get("/api/account/plan", headers=hu).json()
+    assert p["effective"] == "free" and "đủ mọi tính năng" in p["principle"] and p["limits"]["screen_per_hour"] == quota.LIMITS["screen"][1]
+    assert c.get("/api/admin/users", headers=hu).status_code == 403                       # người thường không vào được
+    r = c.post("/api/account/upgrade-request", headers=hu, json={"plan_wanted": "pro", "reason": "HTX 40 hộ"})
+    assert r.status_code == 201
+    assert c.post("/api/account/upgrade-request", headers=hu, json={"plan_wanted": "pro"}).status_code == 409   # một yêu cầu chờ
+    reqs = c.get("/api/admin/upgrade-requests", headers=ha).json()["requests"]
+    assert reqs[0]["email"] == "nong@vd.vn" and reqs[0]["reason"] == "HTX 40 hộ"
+    d = c.post(f"/api/admin/upgrade-requests/{reqs[0]['id']}", headers=ha, json={"approve": True, "months": 3, "note": "Thí điểm"}).json()
+    assert d["status"] == "approved"
+    p = c.get("/api/account/plan", headers=hu).json()
+    assert p["effective"] == "pro" and p["until"] and p["limits"]["screen_per_hour"] == 3 * quota.LIMITS["screen"][1]
+    assert p["requests"][0]["status"] == "approved" and p["requests"][0]["admin_note"] == "Thí điểm"
+    users = {u["email"]: u for u in c.get("/api/admin/users?q=nong", headers=ha).json()["users"]}
+    uid = users["nong@vd.vn"]["id"]
+    assert users["nong@vd.vn"]["plan_effective"] == "pro"
+    assert c.post(f"/api/admin/users/{uid}", headers=ha, json={"role": "coop"}).json()["role"] == "coop"
+    assert c.post(f"/api/admin/users/{uid}", headers=ha, json={"role": "admin"}).status_code == 422     # không cấp admin từ giao diện
+    audit = [e["label"] for e in c.get("/api/account/audit", headers=hu).json()["entries"]]
+    assert "Quản trị cấp quyền / gói" in audit and "Gửi yêu cầu nâng hạn mức" in audit
+    # hạn mức nhân thật: người dùng gói pro qua được nhiều lượt hơn trần người thường
+    monkeypatch.setitem(quota.LIMITS, "screen", (1, 2, 3600))
+    quota.reset()
+    from app.db import SessionLocal, User
+    db = SessionLocal()
+    try:
+        u = db.get(User, uid)
+        assert quota.take("screen", "uX", True, 1) is None and quota.take("screen", "uX", True, 1) is None
+        assert quota.take("screen", "uX", True, 1) is not None                             # gói thường: hết sau 2
+        from app.services import plans
+        assert all(quota.take("screen", "uY", True, plans.mult_for(u)) is None for _ in range(6))   # gói pro ×3 = 6
+    finally:
+        db.close()

@@ -2850,3 +2850,34 @@ export type AiModelCards = { cards: AiModelCard[]; rule: string };
 export function getModelCards() {
   return getJson<AiModelCards>(`/api/models/cards?lang=${curLang()}`, "Không tải được thẻ mô hình");
 }
+
+// ---- Gói = HẠN MỨC (mọi tài khoản đủ mọi tính năng), quản trị cấp; yêu cầu nâng cấp ----
+export type UpgradeReq = { id: number; user_id: number; email: string | null; created_at: string; plan_wanted: string;
+  plan_wanted_name: string; reason: string; status: "pending" | "approved" | "rejected"; decided_at: string | null; admin_note: string };
+export type MyPlan = { plan: string; effective: string; name: string; until: string | null; note: string; mult: number; api_month: number;
+  limits: { dossier_per_day: number; screen_per_hour: number; api_per_month: number }; principle: string;
+  catalogue: { id: string; name: string; mult: number; api_month: number; for: string }[]; requests: UpgradeReq[] };
+export function getMyPlan() {
+  return authed<MyPlan>("/api/account/plan", { method: "GET" }, "Không tải được gói");
+}
+export function requestUpgrade(plan_wanted: "pro" | "enterprise", reason: string) {
+  return authed<UpgradeReq>("/api/account/upgrade-request", { method: "POST", body: JSON.stringify({ plan_wanted, reason }) },
+    "Không gửi được yêu cầu");
+}
+export type AdminUser = { id: number; email: string; name: string; role: string; created_at: string | null; email_verified: boolean;
+  totp_enabled: boolean; plots: number; dossiers: number; last_active: string | null; plan_plan: string; plan_effective: string;
+  plan_name: string; plan_until: string | null; plan_note: string };
+export function adminUsers(q = "") {
+  return authed<{ total: number; pending_requests: number; users: AdminUser[] }>(`/api/admin/users?q=${encodeURIComponent(q)}`,
+    { method: "GET" }, "Không tải được danh sách tài khoản");
+}
+export function adminUpdateUser(id: number, body: { role?: "user" | "coop"; plan?: "free" | "pro" | "enterprise"; months?: number; note?: string }) {
+  return authed<{ ok: boolean; changed: string[] }>(`/api/admin/users/${id}`, { method: "POST", body: JSON.stringify(body) },
+    "Không cập nhật được tài khoản");
+}
+export function adminUpgradeRequests(status = "pending") {
+  return authed<{ requests: UpgradeReq[] }>(`/api/admin/upgrade-requests?status=${status}`, { method: "GET" }, "Không tải được yêu cầu");
+}
+export function adminDecideUpgrade(id: number, body: { approve: boolean; plan?: "pro" | "enterprise"; months?: number; note?: string }) {
+  return authed<UpgradeReq>(`/api/admin/upgrade-requests/${id}`, { method: "POST", body: JSON.stringify(body) }, "Không xử lý được yêu cầu");
+}

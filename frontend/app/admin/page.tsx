@@ -16,14 +16,15 @@ import Link from "next/link";
 import {
   fetchMe, getHealth, getFunnel, getBackupStatus, getDrift, getCoopPlots, updateCoop,
   getPilotSummary, downloadPilotCsv, adminLabelers, adminAddLabeler, adminRemoveLabeler, adminLabelSummary,
-  adminLabelExport,
+  adminLabelExport, adminUsers, adminUpdateUser, adminUpgradeRequests, adminDecideUpgrade,
+  type AdminUser, type UpgradeReq,
   type AuthUser, type HealthStatus, type CoopPlot, type PilotSummary, type LabelSummary,
 } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 import AppShell from "@/components/AppShell";
 import { getToken } from "@/lib/api";
 
-type Tab = "health" | "funnel" | "pilot" | "label" | "backup" | "drift" | "coop";
+type Tab = "users" | "upgrades" | "health" | "funnel" | "pilot" | "label" | "backup" | "drift" | "coop";
 
 function when(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -178,6 +179,105 @@ function PilotTab() {
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+function UsersTab() {
+  const [q, setQ] = useState("");
+  const [d, setD] = useState<Awaited<ReturnType<typeof adminUsers>> | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [months, setMonths] = useState(3);
+  const load = (qq = q) => adminUsers(qq).then(setD).catch((e) => setErr(e.message));
+  useEffect(() => { load(""); }, []);  // eslint-disable-line react-hooks/exhaustive-deps
+  async function act(u: AdminUser, body: Parameters<typeof adminUpdateUser>[1]) {
+    setErr(null); setMsg(null);
+    try { const r = await adminUpdateUser(u.id, body); setMsg(`${u.email}: ${r.changed.join("; ") || "không đổi"}`); load(); }
+    catch (e) { setErr((e as Error).message); }
+  }
+  return (
+    <div>
+      <p className="ws-hint">Mọi tài khoản có <b>đủ mọi tính năng</b>. Ở đây quản trị <b>cấp hạn mức</b> (gói) có thời hạn và vai trò hợp tác xã.
+        Quyền quản trị chỉ cấp qua biến TERRATWIN_ADMIN_EMAILS trên máy chủ (an toàn hơn khi một tài khoản bị chiếm).</p>
+      <div className="ws-row">
+        <input placeholder="Tìm theo email hoặc tên" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && load()} />
+        <button className="doc-btn" onClick={() => load()}>Tìm</button>
+        <label className="ws-hint">Thời hạn gói cấp: <select value={months} onChange={(e) => setMonths(Number(e.target.value))}>
+          {[1, 3, 6, 12, 0].map((m) => <option key={m} value={m}>{m ? `${m} tháng` : "không hạn"}</option>)}</select></label>
+      </div>
+      {err && <p className="ws-err">⚠️ {err}</p>}
+      {msg && <p className="ws-hint">✓ {msg}</p>}
+      {d && <p className="ws-hint">{d.total} tài khoản · {d.pending_requests} yêu cầu nâng cấp đang chờ</p>}
+      {d && (
+        <div style={{ overflowX: "auto" }}>
+          <table className="ws-table">
+            <thead><tr><th>Tài khoản</th><th>Vai trò</th><th>Gói (hạn mức)</th><th>Thửa / hồ sơ</th><th>Hoạt động gần nhất</th><th>Cấp</th></tr></thead>
+            <tbody>
+              {d.users.map((u) => (
+                <tr key={u.id}>
+                  <td><b>{u.email}</b><br /><small>{u.name || "—"} · {u.email_verified ? "email ✓" : "email chưa xác thực"} · {u.totp_enabled ? "2FA ✓" : "2FA —"}</small></td>
+                  <td>{u.role}</td>
+                  <td>{u.plan_name}{u.plan_until ? <><br /><small>đến {when(u.plan_until)}</small></> : null}</td>
+                  <td>{u.plots} / {u.dossiers}</td>
+                  <td>{when(u.last_active)}</td>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    {u.role !== "admin" && <>
+                      <button className="ws-link" onClick={() => act(u, { plan: "pro", months })}>Mở rộng ×3</button>{" · "}
+                      <button className="ws-link" onClick={() => act(u, { plan: "enterprise", months })}>Doanh nghiệp ×10</button>{" · "}
+                      <button className="ws-link" onClick={() => act(u, { plan: "free" })}>Về miễn phí</button><br />
+                      <button className="ws-link" onClick={() => act(u, { role: u.role === "coop" ? "user" : "coop" })}>
+                        {u.role === "coop" ? "Bỏ vai trò HTX" : "Cấp vai trò HTX"}</button>
+                    </>}
+                    {u.role === "admin" && <small>quản trị (theo biến máy chủ)</small>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function UpgradesTab() {
+  const [status, setStatus] = useState("pending");
+  const [list, setList] = useState<UpgradeReq[] | null>(null);
+  const [note, setNote] = useState<Record<number, string>>({});
+  const [months, setMonths] = useState(3);
+  const [err, setErr] = useState<string | null>(null);
+  const load = (st = status) => adminUpgradeRequests(st).then((r) => setList(r.requests)).catch((e) => setErr(e.message));
+  useEffect(() => { load(status); }, [status]);  // eslint-disable-line react-hooks/exhaustive-deps
+  async function decide(r: UpgradeReq, approve: boolean) {
+    try { await adminDecideUpgrade(r.id, { approve, months, note: note[r.id] ?? "" }); load(); } catch (e) { setErr((e as Error).message); }
+  }
+  const ST: Record<string, string> = { pending: "Đang chờ", approved: "Đã duyệt", rejected: "Đã từ chối" };
+  return (
+    <div>
+      <p className="ws-hint">Người dùng xin <b>nâng hạn mức</b> (không phải tính năng — tính năng đã mở hết). Duyệt là cấp gói ngay, có thời hạn; ghi chú hiện cho người dùng ở Tài khoản của tôi.</p>
+      <div className="ws-row">
+        {["pending", "approved", "rejected", "all"].map((s) => (
+          <button key={s} className={status === s ? "doc-btn" : "ws-link"} onClick={() => setStatus(s)}>{ST[s] ?? "Tất cả"}</button>
+        ))}
+        <label className="ws-hint">Thời hạn khi duyệt: <select value={months} onChange={(e) => setMonths(Number(e.target.value))}>
+          {[1, 3, 6, 12, 0].map((m) => <option key={m} value={m}>{m ? `${m} tháng` : "không hạn"}</option>)}</select></label>
+      </div>
+      {err && <p className="ws-err">⚠️ {err}</p>}
+      {list && list.length === 0 && <p className="ws-hint">Không có yêu cầu nào.</p>}
+      {list?.map((r) => (
+        <div key={r.id} className="adm-note">
+          <b>{r.email}</b> xin <b>{r.plan_wanted_name}</b> · {when(r.created_at)} · {ST[r.status]}
+          {r.reason && <p style={{ margin: "6px 0" }}>“{r.reason}”</p>}
+          {r.status === "pending" ? (
+            <div className="ws-row">
+              <input placeholder="Ghi chú cho người dùng (tuỳ chọn)" value={note[r.id] ?? ""} onChange={(e) => setNote({ ...note, [r.id]: e.target.value })} />
+              <button className="doc-btn" onClick={() => decide(r, true)}>Duyệt & cấp</button>
+              <button className="ws-link" onClick={() => decide(r, false)}>Từ chối</button>
+            </div>
+          ) : r.admin_note ? <p className="ws-hint">Ghi chú: {r.admin_note}</p> : null}
+        </div>
+      ))}
     </div>
   );
 }
@@ -342,7 +442,7 @@ function CoopTab({ user }: { user: AuthUser }) {
 export default function AdminPage() {
   const { t } = useLang();
   const [user, setUser] = useState<AuthUser | null | undefined>(undefined);
-  const [tab, setTab] = useState<Tab>("health");
+  const [tab, setTab] = useState<Tab>("users");
 
   useEffect(() => {
     if (!getToken()) { setUser(null); return; }
@@ -351,8 +451,11 @@ export default function AdminPage() {
 
   const isAdmin = user?.role === "admin";
   const isCoop = user?.role === "coop" || isAdmin;
+  useEffect(() => { if (user && !isAdmin && tab === "users") setTab(isCoop ? "coop" : "health"); }, [user, isAdmin, isCoop, tab]);
 
   const TABS: { id: Tab; label: string; show: boolean }[] = [
+    { id: "users", label: "Người dùng", show: isAdmin },
+    { id: "upgrades", label: "Yêu cầu nâng cấp", show: isAdmin },
     { id: "health", label: "Sức khoẻ", show: true },
     { id: "funnel", label: "Phễu người dùng", show: isAdmin },
     { id: "pilot", label: "Góp ý thí điểm", show: isAdmin },
@@ -394,6 +497,8 @@ export default function AdminPage() {
           <details className="adm-help" open={tab === "health"}>
             <summary>{t("Trang quản trị có gì?", "What is on this page?")}</summary>
             <ul>
+              <li><b>Người dùng</b> — {t("tìm tài khoản, xem thửa/hồ sơ/hoạt động, cấp gói hạn mức có thời hạn, cấp vai trò hợp tác xã.", "find accounts, see plots/dossiers/activity, grant time-limited quota plans and the co-op role.")}</li>
+              <li><b>Yêu cầu nâng cấp</b> — {t("người dùng xin thêm hạn mức → duyệt & cấp hoặc từ chối kèm ghi chú.", "users ask for more quota → approve & grant or reject with a note.")}</li>
               <li><b>Sức khoẻ</b> — {t("máy chủ, CSDL Neon, khoá ký, hạn mức nguồn dữ liệu, gói Open-Meteo.", "server, Neon DB, signing key, data-source quotas, Open-Meteo plan.")}</li>
               <li><b>Phễu người dùng</b> — {t("mở app → quét → lưu thửa…; phễu bán hàng mở → chọn thửa → hồ sơ → trả tiền; tỉ lệ quay lại 7 ngày.", "open → scan → save…; sales funnel open → pick plot → dossier → pay; 7-day return rate.")}</li>
               <li><b>Góp ý thí điểm</b> — {t("phiếu góp ý từ hợp tác xã (trực tuyến + phiếu giấy nhập lại), tải CSV.", "pilot feedback from co-ops (online + paper), CSV download.")}</li>
@@ -417,6 +522,8 @@ export default function AdminPage() {
               ))}
             </div>
             <div style={{ marginTop: 18 }}>
+              {tab === "users" && isAdmin && <UsersTab />}
+              {tab === "upgrades" && isAdmin && <UpgradesTab />}
               {tab === "health" && <HealthTab />}
               {tab === "funnel" && isAdmin && <FunnelTab />}
               {tab === "pilot" && isAdmin && <PilotTab />}

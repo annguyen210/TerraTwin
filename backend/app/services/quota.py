@@ -38,10 +38,11 @@ LIMITS = {
 }
 
 
-def take(kind: str, key: str, signed_in: bool) -> int | None:
-    """Ghi một lượt. Trả None nếu còn hạn mức, hoặc số giây phải chờ nếu đã hết."""
+def take(kind: str, key: str, signed_in: bool, mult: int = 1) -> int | None:
+    """Ghi một lượt. Trả None nếu còn hạn mức, hoặc số giây phải chờ nếu đã hết.
+    `mult` = hệ số của gói người đăng nhập (plans.mult_for) — chỉ nhân hạn mức, không mở khoá gì thêm."""
     anon, user, window = LIMITS[kind]
-    cap = user if signed_in else anon
+    cap = user * max(1, mult) if signed_in else anon
     if cap <= 0:
         return None
     now = time.time()

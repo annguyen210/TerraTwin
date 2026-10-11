@@ -136,6 +136,10 @@ class User(Base):
     totp_pending: Mapped[str | None] = mapped_column(Text, nullable=True)
     totp_last_step: Mapped[int | None] = mapped_column(Integer, nullable=True)
     totp_recovery: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Gói = HẠN MỨC (services/plans.py), quản trị cấp; mọi gói có đủ mọi tính năng. plan_until = hết hạn (None = không hạn).
+    plan: Mapped[str] = mapped_column(String(16), default="free", server_default="free")
+    plan_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    plan_note: Mapped[str] = mapped_column(String(200), default="", server_default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
     plots: Mapped[list["Plot"]] = relationship(
@@ -780,6 +784,21 @@ class LabelV3(Base):
     note: Mapped[str] = mapped_column(String(300), default="")
 
 
+class UpgradeRequest(Base):
+    """Người dùng xin nâng HẠN MỨC (không phải tính năng — mọi tài khoản đã đủ tính năng); quản trị duyệt/từ chối."""
+    __tablename__ = "upgrade_requests"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
+    plan_wanted: Mapped[str] = mapped_column(String(16))
+    reason: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[str] = mapped_column(String(12), default="pending", index=True)   # pending | approved | rejected
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    decided_by: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    admin_note: Mapped[str] = mapped_column(String(300), default="")
+
+
 class LabelerGrant(Base):
     """Quản trị viên cấp quyền gán nhãn cho một email (người thứ hai không cần là admin)."""
     __tablename__ = "labeler_grants"
@@ -799,6 +818,10 @@ class LabelerGrant(Base):
 # trong MỘT giao dịch nên app không khởi động nổi — hỏng ở đúng nơi không ai
 # gỡ được. Dùng `TIMESTAMP`: chuẩn SQL, PostgreSQL hiểu, SQLite cũng nhận.
 _ADDED_COLUMNS = [
+    # Gói do quản trị cấp (10/10/2026).
+    ("users", "plan", "VARCHAR(16) DEFAULT 'free'"),
+    ("users", "plan_until", "TIMESTAMP"),
+    ("users", "plan_note", "VARCHAR(200) DEFAULT ''"),
     # GĐ7 — xác thực hai lớp (9/10/2026).
     ("users", "totp_enabled", "INTEGER DEFAULT 0"),
     ("users", "totp_secret", "TEXT"),

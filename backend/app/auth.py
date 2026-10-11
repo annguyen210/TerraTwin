@@ -135,10 +135,12 @@ def current_user(
         row.last_used_at = now
         db.commit()
 
-        limit = plans.quota_for(getattr(row, "plan", None))
+        owner = db.get(User, row.user_id)
+        # Gói do quản trị cấp cho CHỦ khoá (có hạn dùng) — không phải nhãn tự chọn lúc tạo khoá.
+        eff = plans.effective(owner)
+        limit = plans.quota_for(eff)
         if limit > 0 and row.calls_period > limit:
-            tier = plans.PLANS.get(getattr(row, "plan", None) or "free",
-                                   plans.PLANS["free"])
+            tier = plans.PLANS.get(eff, plans.PLANS["free"])
             raise HTTPException(
                 status_code=429,
                 detail=(f"Khóa này đã dùng {row.calls_period} lượt trong tháng "

@@ -70,6 +70,8 @@ export default function PricingPage() {
 
         {/* GĐ7 kế hoạch tổng — ba gói cho người mua đất, chủ đất, tổ chức. Giá DỰ KIẾN, đang kiểm chứng bằng
             phỏng vấn; chưa thu tiền khi chưa có pháp nhân và cổng thanh toán. */}
+        <p className="tk-role" style={{ margin: "14px 0" }}>✓ {t("MỌI tài khoản có ĐỦ MỌI tính năng — không có tính năng nào bị khoá sau gói trả phí. Gói chỉ khác HẠN MỨC (số hồ sơ, lượt quét, lượt API) và mức hỗ trợ; quản trị cấp khi bạn gửi yêu cầu ở Tài khoản của tôi.",
+                                                                  "EVERY account has EVERY feature — nothing is locked behind a paid plan. Plans differ only in QUOTA (dossiers, scans, API calls) and support; an admin grants them when you request in My account.")}</p>
         <h2>{t("Đất ở, đất nông nghiệp — mua bán và canh đất", "Residential & farm land — buying and watching")}</h2>
         <p className="doc-note">{t("Giá DỰ KIẾN, đang hỏi ý kiến người mua đất, môi giới và cán bộ tín dụng. Hiện mọi tính năng miễn phí; sẽ báo trước khi thu.",
                                    "INDICATIVE prices, being validated with land buyers, brokers and loan officers. Everything is free for now; we will announce before charging.")}</p>
@@ -87,7 +89,7 @@ export default function PricingPage() {
           <div className="price-card featured">
             <span className="price-tag">{t("Mở mỗi sáng", "Every morning")}</span>
             <h3>{t("Canh đất", "Land watch")}</h3>
-            <div className="price-amt">{t("Theo tháng", "Monthly")}<small>{t(" · miễn phí 1–3 thửa", " · free for 1–3 plots")}</small></div>
+            <div className="price-amt">{t("Theo tháng", "Monthly")}<small>{t(" · có sẵn cho mọi tài khoản", " · included for every account")}</small></div>
             <p className="price-for">{t("Chủ đất, nông hộ, hợp tác xã nhiều thửa", "Landowners, farmers, co-ops with many plots")}</p>
             <ul>
               <li>{t("Nhật ký thửa: chỉ báo khi có thay đổi thật", "Plot journal: only real changes")}</li>
@@ -107,7 +109,7 @@ export default function PricingPage() {
           </div>
         </div>
 
-        <h2>{t("Công cụ thẩm định & theo dõi thửa đất", "Land appraisal & monitoring tools")}</h2>
+        <h2>{t("Hạn mức theo gói (cùng đủ mọi tính năng)", "Quota by plan (all with every feature)")}</h2>
         {err && <p className="doc-note">{err}</p>}
         {cat && (
           <>

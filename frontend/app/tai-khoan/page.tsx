@@ -10,8 +10,8 @@ import Link from "next/link";
 import AppShell from "@/components/AppShell";
 import TwoFactor from "@/components/TwoFactor";
 import {
-  changePassword, deleteMyAccount, exportMyData, getAccountAudit, getAccountSummary, getToken, setToken,
-  type AccountSummary, type AuditEntry, type AuthUser,
+  changePassword, deleteMyAccount, exportMyData, getAccountAudit, getAccountSummary, getMyPlan, getToken, requestUpgrade, setToken,
+  type AccountSummary, type AuditEntry, type AuthUser, type MyPlan,
 } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
@@ -47,11 +47,16 @@ export default function MyAccountPage() {
   const [pw, setPw] = useState({ old: "", next: "" });
   const [pwMsg, setPwMsg] = useState<string | null>(null);
   const [confirm, setConfirm] = useState("");
+  const [plan, setPlan] = useState<MyPlan | null>(null);
+  const [want, setWant] = useState<"pro" | "enterprise">("pro");
+  const [reason, setReason] = useState("");
+  const [reqMsg, setReqMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!getToken()) { setUser(null); return; }
     getAccountSummary().then((x) => { setS(x); setUser(x.account); }).catch((e) => { setErr(e.message); setUser(null); });
     getAccountAudit(100).then((r) => setAudit(r.entries)).catch(() => {});
+    getMyPlan().then(setPlan).catch(() => {});
   }, [lang]);
 
   async function download() {
@@ -63,6 +68,11 @@ export default function MyAccountPage() {
     setPwMsg(null);
     try { setPwMsg((await changePassword(pw.old, pw.next)).message || t("Đã đổi mật khẩu.", "Password changed.")); setPw({ old: "", next: "" }); }
     catch (e) { setPwMsg((e as Error).message); }
+  }
+  async function sendUpgrade() {
+    setReqMsg(null);
+    try { await requestUpgrade(want, reason); setReason(""); setReqMsg(t("Đã gửi — quản trị sẽ xem và trả lời ở đây.", "Sent — an admin will review and reply here.")); setPlan(await getMyPlan()); }
+    catch (e) { setReqMsg((e as Error).message); }
   }
   async function removeAccount() {
     await deleteMyAccount(); setToken(null); window.location.href = "/";
@@ -102,6 +112,36 @@ export default function MyAccountPage() {
                                          "\"Admin\" is the operator role, granted by email in the server config at login.")}</p>
               </section>
             </div>
+
+            {plan && (
+              <section className="tk-card">
+                <h2>{t("Gói & hạn mức", "Plan & quotas")}: {plan.name}{plan.until ? ` · ${t("đến", "until")} ${when(plan.until)}` : ""}</h2>
+                <p className="tk-role">✓ {plan.principle}</p>
+                <dl className="tk-dl">
+                  <dt>{t("Hồ sơ ký số / ngày", "Signed dossiers / day")}</dt><dd>{plan.limits.dossier_per_day.toLocaleString("vi-VN")}</dd>
+                  <dt>{t("Lượt quét nặng / giờ", "Heavy scans / hour")}</dt><dd>{plan.limits.screen_per_hour.toLocaleString("vi-VN")}</dd>
+                  <dt>{t("Lượt API / tháng", "API calls / month")}</dt><dd>{plan.limits.api_per_month.toLocaleString("vi-VN")}</dd>
+                </dl>
+                {plan.requests.length > 0 && (
+                  <ul className="tk-list">
+                    {plan.requests.map((r) => (
+                      <li key={r.id}><span>{t("Yêu cầu", "Request")} {r.plan_wanted_name}: <b>{{ pending: t("đang chờ", "pending"), approved: t("đã duyệt", "approved"), rejected: t("từ chối", "rejected") }[r.status]}</b>
+                        {r.admin_note ? ` — ${r.admin_note}` : ""}</span><small>{when(r.created_at)}</small></li>
+                    ))}
+                  </ul>
+                )}
+                {!plan.requests.some((r) => r.status === "pending") && (
+                  <div className="ws-row">
+                    <select value={want} onChange={(e) => setWant(e.target.value as "pro" | "enterprise")} aria-label={t("Gói muốn xin", "Plan wanted")}>
+                      {plan.catalogue.filter((c) => c.id !== "free").map((c) => <option key={c.id} value={c.id}>{c.name} — {t("hạn mức", "quota")} ×{c.mult}</option>)}
+                    </select>
+                    <input placeholder={t("Vì sao cần thêm hạn mức? (vd HTX 40 hộ)", "Why more quota? (e.g. co-op with 40 farms)")} value={reason} maxLength={1000} onChange={(e) => setReason(e.target.value)} />
+                    <button className="bat-btn ghost" onClick={sendUpgrade}>{t("Xin nâng hạn mức", "Request more quota")}</button>
+                  </div>
+                )}
+                {reqMsg && <p className="ws-hint">{reqMsg}</p>}
+              </section>
+            )}
 
             <section className="tk-card">
               <h2>{t("Dữ liệu của tôi", "My data")}</h2>
