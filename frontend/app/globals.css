@@ -5256,3 +5256,7 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .doc-btn.ghost { background: transparent; color: var(--terra); border: 1px solid var(--terra); }
 
 .wh-list li .wh-off { margin-left: 8px; }
+
+.wh-prog.ind > span { width: 32%; animation: wh-ind 1.3s ease-in-out infinite; }
+@keyframes wh-ind { 0% { transform: translateX(-100%); } 100% { transform: translateX(320%); } }
+@media (prefers-reduced-motion: reduce) { .wh-prog.ind > span { animation: none; width: 100%; opacity: .5; } }

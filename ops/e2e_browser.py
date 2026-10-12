@@ -288,6 +288,8 @@ with sync_playwright() as p:
         pg.locator(".wh").first.wait_for(timeout=60_000)
         button = pg.get_by_role("button", name=re.compile("Xem lịch sử nước")).count()
         assert button == 0, "vẫn còn nút bắt bấm 'Xem lịch sử nước'"
+        assert pg.get_by_role("button", name=re.compile("Xem đất có đổi khác")).count() == 0, "ô loại đất vẫn bắt bấm"
+        pg.locator(".lc2 .wh-sum, .lc2 .doc-note").first.wait_for(timeout=90_000)   # loại đất tự chạy xong
         pg.locator(".wh-sum, .wh-prog").first.wait_for(timeout=60_000)
         pg.wait_for_timeout(1500)
         pg.screenshot(path=os.path.join(OUT, "18-xem-ngay-hue.png"), full_page=False)
