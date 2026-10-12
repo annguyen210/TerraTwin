@@ -252,3 +252,32 @@ def test_dua_ket_qua_kiem_tin_dang_vao_ho_so_khong_luu_nguyen_van(env, monkeypat
     assert "KHÔNG BAO GIỜ NGẬP" not in d["facts_canonical"] and "0905" not in d["facts_canonical"]
     s = next(x for x in d["narrative"]["sentences"] if x["evidence"] == ["listing.no_flood"])
     assert "2 đợt" in s["text"] and d["verification"]["valid"] is True
+
+
+
+def test_kiem_tep_bao_do_khi_sua_loi_dien_giai_ngay_so_thu_tu_bang_chung(env):
+    """Báo cáo kiểm toàn bộ 12/10/2026, mục 1: sửa narrative / issued_at / seq / chữ ký trong tệp → phải ĐỎ."""
+    c = env
+    d = _issue(env)
+    good = {**_doc(d), "narrative": d["narrative"]}
+    r = c.post("/api/dossier/verify", json=good).json()
+    assert r["valid"] is True and r["problems"] == [] and r["registry_document"]["id"] == d["id"]
+
+    bad = json.loads(json.dumps(good))
+    bad["narrative"]["sentences"][0]["text"] = "Thửa này CHƯA TỪNG ngập, rất an toàn."
+    r = c.post("/api/dossier/verify", json=bad).json()
+    assert r["valid"] is False and any("diễn giải" in p for p in r["problems"])
+
+    for field, val in (("issued_at", "2025-01-01T00:00:00Z"), ("seq", 999)):
+        bad = {**_doc(d), field: val}
+        r = c.post("/api/dossier/verify", json=bad).json()
+        assert r["valid"] is False, field
+
+    bad = _doc(d); bad["proof"] = {**bad["proof"], "signature": "AAAA" + bad["proof"]["signature"][4:]}
+    assert c.post("/api/dossier/verify", json=bad).json()["valid"] is False
+
+    bad = _doc(d); bad["facts_canonical"] = bad["facts_canonical"].replace("3.4", "9.9", 1)
+    assert c.post("/api/dossier/verify", json=bad).json()["valid"] is False
+
+    r = c.post("/api/dossier/verify", json={**_doc(d), "ket_luan": "an toàn tuyệt đối"}).json()
+    assert r["valid"] is True and r["ignored_fields"] == ["ket_luan"] and "Bỏ qua" in r["message"]

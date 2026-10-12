@@ -270,18 +270,57 @@ def verify_document(db: Session, doc: dict) -> dict:
         return {"valid": False, "found": False, "message": tr(
             "Không có hồ sơ nào mang mã này trong sổ đăng ký TerraTwin.",
             "No dossier with this ID exists in the TerraTwin registry.")}
+    # Kiểm TỪNG trường của tệp với sổ (12/10/2026 — trước đây chỉ băm doc["facts"]: sửa lời diễn giải, ngày phát
+    # hành, số thứ tự trong tệp vẫn ra "khớp"). Giá trị hiển thị phải lấy từ sổ (registry_document), không từ tệp.
+    problems: list[str] = []
     given = sha256_hex(canonical(doc.get("facts")))
     same = given == row.facts_hash
+    if not same:
+        problems.append(tr("nội dung (facts) khác mã băm đã ký", "content (facts) differs from the signed hash"))
+    fc = doc.get("facts_canonical")
+    if fc is not None:
+        try:
+            ok_fc = sha256_hex(str(fc)) == row.facts_hash and json.loads(fc) == doc.get("facts")
+        except (TypeError, ValueError):
+            ok_fc = False
+        if not ok_fc:
+            problems.append(tr("chuỗi nội dung đã ký (facts_canonical) bị sửa hoặc không khớp facts",
+                               "signed content string (facts_canonical) altered or inconsistent with facts"))
+    if "seq" in doc and str(doc.get("seq")) != str(row.seq):
+        problems.append(tr(f"số thứ tự trong tệp ({doc.get('seq')}) khác sổ ({row.seq})", f"sequence in file ({doc.get('seq')}) differs from the log ({row.seq})"))
+    if "issued_at" in doc and str(doc.get("issued_at")) != _iso(row.created_at):
+        problems.append(tr(f"ngày phát hành trong tệp ({doc.get('issued_at')}) khác sổ ({_iso(row.created_at)})",
+                           f"issue time in file ({doc.get('issued_at')}) differs from the log ({_iso(row.created_at)})"))
+    proof = doc.get("proof") or {}
+    for k, real in (("facts_hash", row.facts_hash), ("prev_hash", row.prev_hash), ("entry_hash", row.entry_hash),
+                    ("signature", row.signature), ("key_id", row.key_id)):
+        if k in proof and proof.get(k) != real:
+            problems.append(tr(f"bằng chứng '{k}' trong tệp khác sổ", f"proof field '{k}' differs from the log"))
+    if "narrative" in doc:
+        # Lời diễn giải KHÔNG nằm trong phần ký — nhưng ai đó có thể sửa nó trong tệp để người đọc tin nhầm. Dựng
+        # lại từ nội dung ĐÃ KÝ (mẫu câu tất định) và so từng câu + id bằng chứng.
+        from app.services import narrative as narr
+        rebuilt = narr.build(json.loads(row.facts_json), row.id) or {}
+        def key(n):
+            return [(s.get("text"), tuple(s.get("evidence") or [])) for s in (n or {}).get("sentences", [])]
+        if key(doc.get("narrative")) != key(rebuilt):
+            problems.append(tr("lời diễn giải trong tệp khác bản dựng lại từ nội dung đã ký",
+                               "the narrative in the file differs from the one rebuilt from the signed content"))
+    known = {"id", "seq", "issued_at", "facts", "facts_canonical", "proof", "narrative"}
+    extra = sorted(k for k in doc if k not in known)
     reg = verify_row(db, row)
-    valid = same and reg["valid"]
-    return {"valid": valid, "found": True, "matches_registry": same, "registry": reg,
+    valid = not problems and reg["valid"]
+    return {"valid": valid, "found": True, "matches_registry": same and not problems, "registry": reg,
+            "problems": problems, "ignored_fields": extra,
+            "registry_document": document(row, db),
             "message": tr(
-                "Tệp KHỚP bản đã phát hành — nội dung chưa bị sửa." if valid else
-                ("Tệp KHÁC bản đã phát hành — nội dung đã bị sửa." if not same else
+                "Tệp KHỚP bản đã phát hành — nội dung, ngày, số thứ tự, bằng chứng đều đúng như sổ." if valid else
+                ("Tệp KHÁC bản đã phát hành: " + "; ".join(problems) + "." if problems else
                  "Tệp khớp sổ, nhưng chính sổ đăng ký không qua kiểm chứng."),
-                "File MATCHES the issued dossier — content unaltered." if valid else
-                ("File DIFFERS from the issued dossier — content was altered." if not same else
-                 "File matches the registry, but the registry itself failed verification."))}
+                "File MATCHES the issued dossier — content, date, sequence and proof all match the log." if valid else
+                ("File DIFFERS from the issued dossier: " + "; ".join(problems) + "." if problems else
+                 "File matches the registry, but the registry itself failed verification."))
+            + (tr(f" Bỏ qua các trường không thuộc bản phát hành: {', '.join(extra)}.", f" Ignored fields not part of the issued record: {', '.join(extra)}.") if extra else "")}
 
 
 def public_log(db: Session, limit: int = 100) -> dict:

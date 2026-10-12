@@ -122,6 +122,13 @@ export async function verifyDossierOffline(doc: DossierFile, t: (vi: string, en:
   out.push({ id: "entry", ok: eh === p.entry_hash, label: eh === p.entry_hash
     ? t("Mục sổ đăng ký (số thứ tự, mã, thời điểm, mắt xích) toàn vẹn", "Registry entry (seq, ID, time, chain link) intact")
     : t("Mục sổ đăng ký bị sửa", "Registry entry altered") });
+  // Lời diễn giải không thuộc phần ký; tệp tải từ TerraTwin KHÔNG có nó. Có trong tệp nghĩa là ai đó đã thêm vào —
+  // offline không dựng lại được nên KHÔNG hiển thị, chỉ cảnh báo (kiểm trực tuyến sẽ dựng lại và so từng câu).
+  const extra = Object.keys(doc as unknown as Record<string, unknown>).filter((k) => !["id", "seq", "issued_at", "facts", "facts_canonical", "proof"].includes(k));
+  if (extra.length) {
+    out.push({ id: "extra", ok: null, label: t(`Tệp có thêm trường KHÔNG thuộc bản đã ký (${extra.join(", ")}) — đừng tin các trường này; chỉ số liệu trong phần đã ký là bằng chứng.`,
+      `File carries fields NOT in the signed record (${extra.join(", ")}) — do not trust them; only the signed content is evidence.`) });
+  }
   if (!p.public_key_b64) {
     out.push({ id: "signature", ok: null, label: t("Tệp không kèm khoá công khai — chưa kiểm chữ ký offline.", "No public key in the file — signature not checked offline.") });
   } else {
