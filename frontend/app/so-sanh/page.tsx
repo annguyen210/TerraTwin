@@ -7,10 +7,10 @@
  *
  * Nguồn danh sách: ?p=lat,lon,tên|lat,lon,tên (từ "Thửa của tôi") hoặc danh sách đã thêm từ Sổ tay thửa.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
-import { comparePlots, type CompareResult } from "@/lib/api";
+import { comparePlots, waterPoll, waterStart, waterStatus, type CompareResult } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 type Pt = { lat: number; lon: number; name?: string };
@@ -38,6 +38,9 @@ export default function ComparePage() {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [add, setAdd] = useState("");
+  const [reading, setReading] = useState<string | null>(null);   // tự đọc lịch sử nước cho thửa chưa đọc
+  const tried = useRef(new Set<string>());
+  const [round, setRound] = useState(0);
 
   useEffect(() => {
     const fromUrl = parse(new URLSearchParams(window.location.search).get("p"));
@@ -53,7 +56,41 @@ export default function ComparePage() {
     comparePlots(pts).then((x) => live && setR(x)).catch((e) => live && setErr(e.message))
       .finally(() => live && setBusy(false));
     return () => { live = false; };
-  }, [pts, lang]);
+  }, [pts, lang, round]);
+
+  const unread = r ? r.columns.filter((c) => !c.water_read).map((c) => `${c.lat},${c.lon}`).join("|") : "";
+  useEffect(() => {
+    // Báo cáo kiểm toàn bộ 12/10/2026, mục 4: thửa nào chưa đọc lịch sử nước radar thì TỰ đọc (chạy nền), xong
+    // lấy lại bảng — không bắt người dùng mở từng Sổ tay thửa. Mỗi thửa chỉ thử một lần mỗi lượt xem.
+    if (!unread) return;
+    const todo = unread.split("|").map((k) => { const [a, b] = k.split(","); return { key: k, lat: +a, lon: +b }; })
+      .filter((c) => !tried.current.has(c.key));
+    if (!todo.length) return;
+    todo.forEach((c) => tried.current.add(c.key));
+    let live = true;
+    (async () => {
+      try { if (!(await waterStatus()).enabled) return; } catch { return; }
+      let done = 0;
+      setReading(t(`Đang tự đọc lịch sử nước radar cho ${todo.length} thửa (~2 phút mỗi thửa lần đầu)…`,
+                   `Reading radar water history for ${todo.length} plot(s) (~2 min each the first time)…`));
+      await Promise.all(todo.map(async (c) => {
+        try {
+          const j = await waterStart(c.lat, c.lon);
+          let id = j.state === "done" ? null : j.job_id ?? null;
+          while (id && live) {
+            await new Promise((ok) => setTimeout(ok, 4000));
+            const s = await waterPoll(id);
+            if (s.state === "done" || s.state === "error") id = null;
+          }
+        } catch { /* hết hạn mức / lỗi mạng: giữ "chưa đọc" */ }
+        done += 1;
+        if (live) setReading(t(`Đã đọc ${done}/${todo.length} thửa…`, `Read ${done}/${todo.length} plot(s)…`));
+      }));
+      if (live) { setReading(null); setRound((n) => n + 1); }
+    })();
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unread]);
 
   function addPoint() {
     const m = add.match(/-?\d+(\.\d+)?/g);
@@ -85,6 +122,7 @@ export default function ComparePage() {
         {pts && pts.length < 2 && <p className="doc-note">{t("Cần ít nhất 2 thửa. Chọn trong \"Thửa của tôi\" hoặc bấm \"So sánh\" ở Sổ tay thửa.",
                                                             "Need at least 2 plots. Pick them in \"My plots\" or press \"Compare\" on a Land Passport.")}</p>}
         {busy && <p className="doc-note">{t("Đang lấy số đo cho từng thửa…", "Fetching measurements for each plot…")}</p>}
+        {reading && <p className="doc-note" aria-live="polite">{reading}</p>}
         {err && <p className="bat-err">{err}</p>}
 
         {r && (
@@ -96,7 +134,7 @@ export default function ComparePage() {
                 <div key={i} className="cmp-col" role="columnheader">
                   <b>{c.name}</b>
                   <Link href={`/plot/${c.lat},${c.lon}`}>{c.lat.toFixed(4)}, {c.lon.toFixed(4)}</Link>
-                  {!c.water_read && <small>{t("Chưa đọc lịch sử nước — mở Sổ tay thửa", "Water history not read — open the passport")}</small>}
+                  {!c.water_read && <small>{reading ? t("Đang đọc lịch sử nước…", "Reading water history…") : t("Chưa đọc được lịch sử nước", "Water history not available yet")}</small>}
                   <button type="button" className="cmp-x" aria-label={t(`Bỏ ${c.name}`, `Remove ${c.name}`)}
                           onClick={() => setPts((pts ?? []).filter((_, j) => j !== i))}>×</button>
                 </div>

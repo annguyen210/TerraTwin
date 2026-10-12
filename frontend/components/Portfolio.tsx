@@ -29,12 +29,14 @@ export default function Portfolio({
   area,
   terra,
   onLoad,
+  label,
 }: {
   user: AuthUser | null;
   coord: { lat: number; lon: number } | null;
   area?: number;
   terra: TerraScore | null;
   onLoad: (lat: number, lon: number) => void;
+  label?: string;                 // địa danh khi mở từ thửa mẫu / tìm kiếm (vd "Đồng lúa Quảng Điền, Huế")
 }) {
   const { t } = useLang();
   const [plots, setPlots] = useState<ServerPlot[]>([]);
@@ -62,11 +64,9 @@ export default function Portfolio({
 
   async function addCurrent() {
     if (!coord || !terra) return;
-    const name =
-      window.prompt(
-        "Tên thửa đất:",
-        `Thửa (${coord.lat.toFixed(3)}, ${coord.lon.toFixed(3)})`,
-      ) || `Thửa (${coord.lat.toFixed(3)}, ${coord.lon.toFixed(3)})`;
+    // Báo cáo 12/10/2026, mục 10: lưu từ thửa mẫu từng ra "Thửa (16.575, 107.495)" — dùng địa danh nếu có.
+    const fallback = label?.trim() || `Thửa (${coord.lat.toFixed(3)}, ${coord.lon.toFixed(3)})`;
+    const name = window.prompt(t("Tên thửa đất:", "Plot name:"), fallback)?.trim() || fallback;
     setBusy(true);
     setErr(null);
     try {

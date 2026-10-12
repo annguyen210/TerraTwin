@@ -95,22 +95,38 @@ def baseline(rows: list[dict]) -> dict:
     return {f"p{p}": round(statistics.median(r[f"p{p}"] for r in rows), 2) for p in PCTS}
 
 
-def flag(row: dict, base: dict) -> str | None:
-    """Mức phủ nước của một cảnh, hoặc None. GĐ5 thay hàm này bằng mô hình học sâu khi vượt cổng."""
+def cache_key(lat: float, lon: float, radius_m: float = RADIUS_M) -> str:
+    """Khoá cache kết quả lịch sử nước của thửa — MỘT chỗ duy nhất cho mọi nơi đọc (hồ sơ, tin đăng, sổ tay,
+    so sánh). v2 (12/10/2026): mỗi đợt có thêm phân vị quyết định — kết quả cũ thiếu trường đó nên bỏ."""
+    return cache_store.make_key("water", round(lat, 4), round(lon, 4), int(radius_m), "v2")
+
+
+def flag_detail(row: dict, base: dict) -> tuple[str, int, float] | None:
+    """(mức phủ, phân vị đã quyết định, giá trị dB của phân vị đó) — hoặc None nếu cảnh không có nước."""
     for p, label in ((50, "≥50%"), (25, "25–50%"), (10, "10–25%")):
         v = row[f"p{p}"]
         if v < WATER_DB and v <= base[f"p{p}"] - DROP_DB:
-            return label
+            return label, p, v
     return None
+
+
+def flag(row: dict, base: dict) -> str | None:
+    """Mức phủ nước của một cảnh, hoặc None. GĐ5 thay hàm này bằng mô hình học sâu khi vượt cổng."""
+    d = flag_detail(row, base)
+    return d[0] if d else None
 
 
 def events(rows: list[dict], base: dict) -> list[dict]:
     order = {"10–25%": 1, "25–50%": 2, "≥50%": 3}
     out: list[dict] = []
+    # Mỗi đợt ghi ĐÚNG đại lượng đã quyết định (báo cáo kiểm toàn bộ 12/10/2026, mục 6): trước đây chỉ in trung vị
+    # (vd −14,48 dB) trong khi quy tắc bắt nước ở phân vị 10/25 < −18 dB — người đọc thấy "−14 mà gọi là nước?".
+    # flag_pct = phân vị của mức phủ cao nhất trong đợt; min_flag_db = giá trị thấp nhất của phân vị đó trong đợt.
     for r in rows:
-        f = flag(r, base)
-        if not f:
+        det = flag_detail(r, base)
+        if not det:
             continue
+        f, pct, v = det
         d = date.fromisoformat(r["date"])
         if out and (d - date.fromisoformat(out[-1]["end"])).days <= MERGE_GAP_DAYS:
             e = out[-1]
@@ -118,18 +134,21 @@ def events(rows: list[dict], base: dict) -> list[dict]:
             e["n_scenes"] += 1
             e["dates"].append(r["date"])
             if order[f] > order[e["peak_cover"]]:
-                e["peak_cover"] = f
+                e.update(peak_cover=f, flag_pct=pct, min_flag_db=v, flag_date=r["date"])
+            elif f == e["peak_cover"] and v < e["min_flag_db"]:
+                e.update(min_flag_db=v, flag_date=r["date"])
             e["min_p50_db"] = min(e["min_p50_db"], r["p50"])
         else:
             out.append({"start": r["date"], "end": r["date"], "n_scenes": 1, "dates": [r["date"]],
-                        "peak_cover": f, "min_p50_db": r["p50"]})
+                        "peak_cover": f, "flag_pct": pct, "min_flag_db": v, "flag_date": r["date"],
+                        "min_p50_db": r["p50"]})
     return out
 
 
 def history(lat: float, lon: float, radius_m: float = RADIUS_M, today: date | None = None,
             progress=None, use_cache: bool = True) -> dict:
     today = today or date.today()
-    key = cache_store.make_key("water", round(lat, 4), round(lon, 4), int(radius_m))
+    key = cache_key(lat, lon, radius_m)
     if use_cache:
         hit = cache_store.get(key)
         if hit is not None:
@@ -201,7 +220,7 @@ def scene(lat: float, lon: float, day: str) -> dict | None:
     if r is None:
         return None                                   # lỗi mạng: không cache
     feats = r.get("features") or []
-    hist = cache_store.get(cache_store.make_key("water", round(lat, 4), round(lon, 4), int(RADIUS_M)))
+    hist = cache_store.get(cache_key(lat, lon))
     if hist and hist.get("available"):
         tr_ = (hist["track"]["orbit"], hist["track"]["relative_orbit"])
         feats = sorted(feats, key=lambda f: (f["properties"].get("sat:orbit_state"),

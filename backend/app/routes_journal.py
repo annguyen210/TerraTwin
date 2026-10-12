@@ -40,6 +40,22 @@ def get_journal(plot_id: int, fast: bool = False, since: str | None = None, lang
     return plot_journal.journal(db, user.id, p, since=when, fast=fast)
 
 
+@router.get("/api/journal/public")
+def public_journal(lat: float, lon: float, days: int = 7, lang: str = "vi") -> dict:
+    """Nhật ký công khai của một toạ độ + nhật ký sống 6 thửa mẫu — KHÔNG cần đăng nhập (tab Canh đất).
+    Không trừ hạn mức sàng lọc: chỉ mưa + tìm cảnh radar, cache theo (toạ độ, ngày)."""
+    reqlang.set_lang(lang)
+    if not (8.0 <= lat <= 24.0 and 102.0 <= lon <= 110.5):
+        raise HTTPException(422, reqlang.tr("Toạ độ ngoài Việt Nam.", "Coordinates outside Vietnam."))
+    return plot_journal.public_journal(round(lat, 4), round(lon, 4), days=max(1, min(days, 30)))
+
+
+@router.get("/api/journal/samples")
+def journal_samples() -> dict:
+    """Bản ghi mới nhất của nhật ký sống 6 thửa mẫu (nhánh journal-log) — cho trang Hôm nay khi chưa có thửa."""
+    return {"samples": plot_journal.live_samples()}
+
+
 @router.post("/api/plots/{plot_id}/journal/seen")
 def journal_seen(plot_id: int, user: User = Depends(auth.current_user), db: Session = Depends(get_session)) -> dict:
     """Đánh dấu đã xem — lần mở sau nhật ký chỉ kể từ thời điểm này."""

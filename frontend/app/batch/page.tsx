@@ -9,6 +9,7 @@
  */
 
 import AppShell from "@/components/AppShell";
+import BizTabs from "@/components/BizTabs";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -91,6 +92,7 @@ export default function BatchPage() {
 
   return (
     <AppShell>
+      <BizTabs />
 
       <main className="bat-wrap">
         <h1>{t("Thẩm định hàng loạt", "Batch appraisal")}</h1>

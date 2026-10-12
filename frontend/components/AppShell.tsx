@@ -3,13 +3,16 @@
 /**
  * KHUNG ỨNG DỤNG — một thanh điều hướng cho MỌI trang (thay cho mỗi trang một kiểu đầu
  * trang), và trên điện thoại một THANH TAB DƯỚI ĐÁY như ứng dụng dùng hằng ngày:
- * Hôm nay · Thửa đất · EUDR · Lô hàng · Kiểm. Trang nào đang mở thì sáng lên.
+ * Hôm nay · Thửa đất · So sánh · Kiểm · Doanh nghiệp. Trang nào đang mở thì sáng lên.
+ *
+ * Trục chính là HỒ SƠ ĐẤT (báo cáo kiểm toàn bộ 12/10/2026, mục 9): trước đây 2/5 mục là EUDR + Lô hàng nên
+ * người dùng đất tưởng đây là phần mềm xuất khẩu cà phê. EUDR, lô hàng, sàng lọc hàng loạt gom vào "Doanh nghiệp".
  */
 
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarCheck, LayoutDashboard, Map as MapIcon, Package, Search, ShieldCheck, TreePine } from "lucide-react";
+import { Building2, CalendarCheck, Columns2, LayoutDashboard, Map as MapIcon, Search, ShieldCheck } from "lucide-react";
 import CommandPalette, { openCommandPalette } from "@/components/CommandPalette";
 import Account from "@/components/Account";
 import { fetchMe, getToken, type AuthUser } from "@/lib/api";
@@ -18,13 +21,17 @@ import { LangToggle, useLang } from "@/lib/i18n";
 const NAV = [
   { href: "/hom-nay", vi: "Hôm nay", en: "Today", icon: CalendarCheck },
   { href: "/", vi: "Thửa đất", en: "Land", icon: MapIcon },
-  { href: "/eudr", vi: "EUDR", en: "EUDR", icon: TreePine },
-  { href: "/lo", vi: "Lô hàng", en: "Lots", icon: Package },
+  { href: "/so-sanh", vi: "So sánh", en: "Compare", icon: Columns2 },
   { href: "/kiem", vi: "Kiểm", en: "Verify", icon: ShieldCheck },
+  { href: "/eudr", vi: "Doanh nghiệp", en: "Business", icon: Building2 },
 ];
+/** Các trang thuộc mục "Doanh nghiệp" (EUDR, lô hàng, sàng lọc hàng loạt, bên mua, thí điểm). */
+export const BIZ_PATHS = ["/eudr", "/lo", "/batch", "/buyer", "/thi-diem"];
 
 function active(path: string, href: string) {
-  return href === "/" ? path === "/" || path.startsWith("/plot") : path.startsWith(href);
+  if (href === "/") return path === "/" || path.startsWith("/plot");
+  if (href === "/eudr") return BIZ_PATHS.some((p) => path.startsWith(p));
+  return path.startsWith(href);
 }
 
 export default function AppShell({ children, user: userProp, onAuth, extra, wide = false }: {

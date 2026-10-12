@@ -25,6 +25,7 @@ from app.services import guard
 from app.services.reqlang import cur_lang
 
 REPO = "https://github.com/annguyen210/TerraTwin/blob/main"
+WATER_DB_TXT = "−18"
 WATER_RULE = "VV p10 < −18 dB và thấp hơn nền của chính thửa ≥ 3 dB"
 WATER_RULE_EN = "VV p10 < −18 dB and ≥ 3 dB below the plot's own baseline"
 
@@ -142,8 +143,15 @@ def catalog(facts: dict, lang: str | None = None) -> dict[str, dict]:
                               f", {e['peak_cover']} covered, {e['n_scenes']} scene(s)", lang),
                 "source": "Sentinel-1 RTC (Copernicus) — Microsoft Planetary Computer",
                 "measured": e["start"],
-                "reproduce": _t(f"Cảnh radar ngày {e['start']}, VV thấp nhất (trung vị) {_num(e.get('min_p50_db', '?'))} dB.",
-                                f"Radar scene of {e['start']}, lowest median VV {_num(e.get('min_p50_db', '?'))} dB.", lang),
+                # Hồ sơ phát hành từ 12/10/2026 mang phân vị ĐÃ QUYẾT ĐỊNH; hồ sơ cũ giữ đúng câu cũ (lời diễn giải
+                # được dựng lại khi kiểm tệp — đổi câu của hồ sơ cũ sẽ làm tệp thật bị báo "đã sửa").
+                "reproduce": (_t(f"Cảnh radar ngày {e['start']}: VV phân vị {e['flag_pct']} thấp nhất {_num(e['min_flag_db'])} dB "
+                                 f"(ngưỡng nước {WATER_DB_TXT} dB; trung vị {_num(e.get('min_p50_db', '?'))} dB).",
+                                 f"Radar scene of {e['start']}: lowest VV {e['flag_pct']}th percentile {_num(e['min_flag_db'])} dB "
+                                 f"(water threshold {WATER_DB_TXT} dB; median {_num(e.get('min_p50_db', '?'))} dB).", lang)
+                              if "min_flag_db" in e and "flag_pct" in e else
+                              _t(f"Cảnh radar ngày {e['start']}, VV thấp nhất (trung vị) {_num(e.get('min_p50_db', '?'))} dB.",
+                                 f"Radar scene of {e['start']}, lowest median VV {_num(e.get('min_p50_db', '?'))} dB.", lang)),
                 "url": f"{REPO}/backend/app/services/water_history.py",
             }
 

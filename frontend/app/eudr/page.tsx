@@ -17,6 +17,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Copy, Download, FileCheck2, FileSignature, MessageCircleQuestion, Package, ScanSearch, Upload } from "lucide-react";
 import AppShell from "@/components/AppShell";
+import BizTabs from "@/components/BizTabs";
 import EudrResult, { IssueList, LevelBadge } from "@/components/EudrResult";
 import LandDocForm from "@/components/LandDocForm";
 import ForestOrCropHint from "@/components/ForestOrCropHint";
@@ -66,6 +67,7 @@ export default function EudrPage() {
 
   return (
     <AppShell user={user} onAuth={setUser}>
+      <BizTabs />
       <main className="bat-wrap eu-wrap tt-reveal">
         <div>
           <p className="eu-eyebrow">{t("EUDR · Quy định chống phá rừng của EU · áp dụng 30/12/2026", "EUDR · EU Deforestation Regulation · applies 30/12/2026")}</p>

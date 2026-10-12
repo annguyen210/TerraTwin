@@ -100,7 +100,7 @@ def radar(lat: float, lon: float, since: date) -> dict | None:
     if r is None:
         return None
     feats = r.get("features") or []
-    hist = cache_store.get(cache_store.make_key("water", round(lat, 4), round(lon, 4), int(wh.RADIUS_M)))
+    hist = cache_store.get(wh.cache_key(lat, lon))
     base = track = None
     if hist and hist.get("available"):
         base = hist["baseline_db"]
@@ -307,3 +307,57 @@ def summary(since: datetime, sig: list[dict], ctx: dict) -> str:
         return tr(f"Từ {when}: không có thay đổi đáng kể" + (f" ({', '.join(bits)})." if bits else "."),
                   f"Since {when}: no significant change" + (f" ({', '.join(bits)})." if bits else "."))
     return tr(f"Từ {when}: ", f"Since {when}: ") + "; ".join(bits + head) + "."
+
+
+# ------------------------------------------------------------------ nhật ký CÔNG KHAI (chưa đăng nhập)
+
+# Sáu thửa mẫu mà tác vụ .github/workflows/journal-live.yml canh MỖI NGÀY bằng dữ liệu thật (giữ khớp với
+# ops/journal_gate.py PLOTS). Kết quả ghi trên nhánh `journal-log` của kho công khai.
+SAMPLE_PLOTS = [("Quảng Điền, Huế (lúa)", 16.5751, 107.4952), ("Phong Điền, Cần Thơ", 10.0452, 105.7469),
+                ("Đông Anh, Hà Nội", 21.1405, 105.8468), ("Lâm Hà, Lâm Đồng (cà phê)", 11.7536, 108.2190),
+                ("Trần Văn Thời, Cà Mau", 9.0820, 104.9690), ("Điện Bàn, Quảng Nam", 15.8890, 108.2500)]
+LIVE_URL = "https://raw.githubusercontent.com/annguyen210/TerraTwin/journal-log/journal.jsonl"
+LIVE_BRANCH = "https://github.com/annguyen210/TerraTwin/tree/journal-log"
+_live_memo: dict = {"at": 0.0, "v": None}
+
+
+def live_samples() -> dict | None:
+    """Bản ghi mới nhất của nhật ký sống 6 thửa mẫu (cache 1 giờ). Lỗi mạng → bản cũ hoặc None."""
+    import time
+    import urllib.request
+    if _live_memo["v"] is not None and time.time() - _live_memo["at"] < 3600:
+        return _live_memo["v"]
+    try:
+        req = urllib.request.Request(LIVE_URL, headers={"User-Agent": "terratwin-journal/1"})
+        with urllib.request.urlopen(req, timeout=8) as r:
+            lines = [ln for ln in r.read().decode("utf-8").splitlines() if ln.strip()]
+        rec = json.loads(lines[-1])
+    except Exception:  # noqa: BLE001
+        _live_memo["at"] = time.time() - 3300            # thử lại sau 5 phút
+        return _live_memo["v"]
+    where = {n: (la, lo) for n, la, lo in SAMPLE_PLOTS}
+    v = {"at": rec.get("at"), "days": rec.get("days"), "n_days": len(lines), "branch": LIVE_BRANCH,
+         "plots": [{"name": p.get("name"), "lat": where.get(p.get("name"), (None, None))[0],
+                    "lon": where.get(p.get("name"), (None, None))[1], "rain_total_mm": p.get("rain_total_mm"),
+                    "n_significant": len(p.get("significant") or []), "significant": p.get("significant") or [],
+                    "rain_ok": p.get("rain_ok"), "radar_ok": p.get("radar_ok")} for p in rec.get("plots", [])]}
+    _live_memo.update(at=time.time(), v=v)
+    return v
+
+
+def public_journal(lat: float, lon: float, days: int = 7) -> dict:
+    """Nhật ký `days` ngày qua của MỘT TOẠ ĐỘ chỉ từ nguồn công khai (mưa Open-Meteo, radar Sentinel-1) — cho người
+    chưa đăng nhập (báo cáo kiểm toàn bộ 12/10/2026, mục 5: tab Canh đất gần như trống). Không có câu trả lời, ảnh,
+    cảm biến — những thứ đó cần thửa đã lưu."""
+    since = datetime.combine(date.today() - timedelta(days=max(1, min(days, 30))), datetime.min.time())
+    ext = _external(lat, lon, since)
+    events, ctx = _ext_events(ext, since)
+    events.sort(key=lambda e: e["at"], reverse=True)
+    sig = [e for e in events if e["significant"]]
+    return {"lat": lat, "lon": lon, "since": _iso(since), "days": days, "changed": bool(sig), "n_significant": len(sig),
+            "summary": summary(since, sig, ctx), "events": events, "context": ctx,
+            "rule": tr("Chỉ nguồn công khai: mưa ≥ 50 mm/ngày (Open-Meteo), radar Sentinel-1 thấy nước. Lưu thửa để thêm "
+                       "câu trả lời, ảnh, cảm biến và báo đẩy.",
+                       "Public sources only: rain ≥ 50 mm/day (Open-Meteo), Sentinel-1 radar sees water. Save the plot to add "
+                       "your answers, photos, sensors and push alerts."),
+            "samples": live_samples()}

@@ -43,6 +43,7 @@ const Copilot = dynamic(() => import("@/components/Copilot"));
 const Backtest = dynamic(() => import("@/components/Backtest"));
 const Overview = dynamic(() => import("@/components/Overview"));
 const Portfolio = dynamic(() => import("@/components/Portfolio"));
+const WatchHere = dynamic(() => import("@/components/WatchHere"));
 const ModelCard = dynamic(() => import("@/components/ModelCard"));
 const ChangeDetect = dynamic(() => import("@/components/ChangeDetect"));
 
@@ -485,8 +486,9 @@ export default function Home() {
 
           {chapter === "mine" && (
             <div className="pw-mine">
+              <WatchHere user={user} coord={coord} onOpen={(lat, lon, label) => onStart(lat, lon, label, "mine")} />
               <Alerts user={user} />
-              <Portfolio user={user} coord={coord} area={area} terra={terra} onLoad={loadPlot} />
+              <Portfolio user={user} coord={coord} area={area} terra={terra} onLoad={loadPlot} label={placeLabel} />
               <MyLand user={user} onOpen={onStart} />
               <button className="ws-open" onClick={() => setWorkspace(true)}>
                 {t("Khu làm việc", "Workspace")}

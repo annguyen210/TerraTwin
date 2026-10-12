@@ -23,6 +23,18 @@ def test_nhan_dien_tung_loai(text, typ):
     assert typ in {c["type"] for c in lc.extract(text)}
 
 
+def test_moi_khang_dinh_trich_dung_ve_cua_no():
+    """Mục 7 báo cáo 12/10/2026: mỗi loại trích ĐÚNG vế của nó, không phải cụm đầu của tin."""
+    from app.services import listing_check as lc
+    got = {c["type"]: c["sentence"] for c in lc.extract(TIN)}
+    assert got["high_ground"] == "Đất cao ráo"
+    assert got["no_flood"] == "không bao giờ ngập nước"
+    assert got["near_river"] == "view sông thoáng mát"
+    assert got["flat"] == "Mặt bằng vuông vức" and got["fresh_water"] == "nuoc ngot quanh nam"
+    got = {c["type"]: c["sentence"] for c in lc.extract("Bán đất thổ cư, gần sông mát mẻ, không lo ngập")}
+    assert got == {"residential": "Bán đất thổ cư", "near_river": "gần sông mát mẻ", "no_flood": "không lo ngập"}
+
+
 def test_cau_khong_khang_dinh_gi_thi_khong_bat_bua():
     from app.services import listing_check as lc
     assert lc.extract("Liên hệ chính chủ, giá thương lượng, xem đất thứ Bảy.") == []
@@ -68,3 +80,24 @@ def test_api_kiem_tin_dang_khong_luu_noi_dung(monkeypatch):
     v = {x["type"]: x["verdict"] for x in r["claims"]}
     assert v["high_ground"] == "contradicted" and v["flat"] == "consistent" and v["residential"] == "insufficient"
     assert "không được lưu" in r["note"]
+
+
+def test_luoi_song_kenh_tinh_tra_khoang_cach_khong_can_overpass(monkeypatch, tmp_path):
+    """Mục 8 báo cáo 12/10/2026: Overpass không gọi được (Render) thì vẫn có khoảng cách tới sông từ lưới đóng gói."""
+    import json as _json
+    import numpy as np
+    from app.services import listing_check as lc, osm, river_grid
+    rows, cols, cell = 200, 200, 0.001
+    grid = np.zeros((rows, cols), dtype=bool)
+    grid[:, 120] = True                                   # một con kênh chạy bắc–nam ở kinh độ 105.1205
+    p = tmp_path / "g.npz"
+    meta = {"lat0": 10.0, "lon0": 105.0, "cell_deg": cell, "rows": rows, "cols": cols, "built": "2026-10-12"}
+    np.savez_compressed(p, bits=np.packbits(grid, axis=None), meta=np.array(_json.dumps(meta)))
+    monkeypatch.setattr(river_grid, "_PATH", str(p))
+    monkeypatch.setattr(river_grid, "_g", None)
+    monkeypatch.setattr(river_grid, "_missing", False)
+    monkeypatch.setattr(osm, "_query", lambda q: (_ for _ in ()).throw(AssertionError("không được gọi Overpass")))
+    km = lc._nearest_river_km(10.1, 105.1105)               # cách kênh 0,01° kinh độ ≈ 1,09 km
+    assert 1.0 <= km <= 1.2
+    assert lc._nearest_river_km(10.1, 105.02, radius_m=3000.0) == float("inf")   # ~11 km → ngoài 3 km
+    assert river_grid.nearest_km(20.0, 105.1) is None       # ngoài lưới → để Overpass lo

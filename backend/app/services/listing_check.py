@@ -45,15 +45,28 @@ def sentences(text: str) -> list[str]:
     return [p.strip(" .;!?") for p in parts if p and len(p.strip()) >= 3]
 
 
+def clauses(sentence: str) -> list[str]:
+    """Vế câu: tách theo dấu phẩy, chấm phẩy, hai chấm, ngoặc, gạch nối có khoảng trắng."""
+    parts = re.split(r"\s*[,;:()]\s*|\s+[-–—]\s+", sentence)
+    return [p.strip(" .!?") for p in parts if p and len(p.strip()) >= 2]
+
+
 def extract(text: str) -> list[dict]:
-    """Câu khẳng định trong tin đăng → [{type, sentence}] (một câu có thể chứa nhiều loại)."""
+    """Câu khẳng định trong tin đăng → [{type, sentence}] (một câu có thể chứa nhiều loại).
+
+    `sentence` là ĐÚNG VẾ chứa khẳng định đó, không phải cả câu (báo cáo kiểm toàn bộ 12/10/2026, mục 7: "Gần
+    sông" trích "Đất cao ráo" vì cả câu bị trích cho mọi loại). Mẫu vắt qua dấu phẩy thì trích cả câu."""
     out, seen = [], set()
     for s in sentences(text[:5000]):
         f = fold(s)
+        cl = [(c, fold(c)) for c in clauses(s)]
         for typ, _vi, _en, pats in CLAIMS:
-            if any(re.search(p, f) for p in pats) and (typ, s) not in seen:
-                seen.add((typ, s))
-                out.append({"type": typ, "sentence": s})
+            if not any(re.search(p, f) for p in pats):
+                continue
+            quote = next((c for c, fc in cl if any(re.search(p, fc) for p in pats)), s)
+            if (typ, quote) not in seen:
+                seen.add((typ, quote))
+                out.append({"type": typ, "sentence": quote})
     return out
 
 
@@ -71,13 +84,19 @@ def _water(lat: float, lon: float) -> dict | None:
     from app.services import cache_store, water_history as wh
     if not routes_water.gate()["passed"]:
         return None
-    r = cache_store.get(cache_store.make_key("water", round(lat, 4), round(lon, 4), int(wh.RADIUS_M)))
+    r = cache_store.get(wh.cache_key(lat, lon))
     return r if r and r.get("available") else None
 
 
 def _nearest_river_km(lat: float, lon: float, radius_m: float = 3000.0) -> float | None:
-    """Khoảng cách tới ĐIỂM GẦN NHẤT trên sông/kênh (không phải tâm đường — sông dài có tâm rất xa)."""
-    from app.services import datasources as ds, osm
+    """Khoảng cách tới ĐIỂM GẦN NHẤT trên sông/kênh (không phải tâm đường — sông dài có tâm rất xa).
+
+    Ưu tiên lưới sông/kênh OSM đóng gói (services/river_grid.py: tức thì, không phụ thuộc Overpass — trên Render
+    Overpass hay 429/504 nên trước đây luôn ra "—"). Chỉ gọi Overpass khi không có lưới hoặc điểm nằm ngoài lưới."""
+    from app.services import datasources as ds, osm, river_grid
+    km = river_grid.nearest_km(lat, lon, radius_m)
+    if km is not None:
+        return km
     s, w, n, e = osm._bbox(lat, lon, radius_m)
     d = osm._query(f'[out:json][timeout:30];way["waterway"~"river|canal"]({s:.5f},{w:.5f},{n:.5f},{e:.5f});out geom;')
     if d is None or "elements" not in d:

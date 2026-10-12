@@ -10,6 +10,7 @@
  */
 
 import AppShell from "@/components/AppShell";
+import BizTabs from "@/components/BizTabs";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Start from "@/components/Start";
@@ -25,6 +26,7 @@ export default function BuyerPage() {
 
   return (
     <AppShell>
+      <BizTabs />
 
       <main className="doc-body" style={{ maxWidth: 640 }}>
         <div className="pp-badge">{t("TRƯỚC KHI KÝ", "BEFORE YOU SIGN")}</div>

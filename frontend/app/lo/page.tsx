@@ -11,6 +11,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { BadgeCheck, Download, Package, Trash2 } from "lucide-react";
 import AppShell from "@/components/AppShell";
+import BizTabs from "@/components/BizTabs";
 import {
   fetchMe, getToken, lotCertify, lotCreate, lotDelete, lotDownload, lotFromSet, lotGet, lotUpdate, lotsList,
   type AuthUser, type Lot, type LotDelivery,
@@ -84,6 +85,7 @@ export default function LotsPage() {
 
   return (
     <AppShell user={user} onAuth={setUser}>
+      <BizTabs />
       <main className="bat-wrap eu-wrap tt-reveal">
         <div>
           <p className="eu-eyebrow">{t("Lô hàng · cân bằng khối lượng · chứng thư Merkle", "Lots · mass balance · Merkle certificate")}</p>

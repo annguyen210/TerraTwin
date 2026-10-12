@@ -1,16 +1,18 @@
 "use client";
 
 /**
- * HÔM NAY — trang người dùng mở mỗi sáng. Không phải trang phân tích: là DANH SÁCH
- * VIỆC của chính họ (xếp theo độ gấp), đồng hồ đếm ngược tới hạn EUDR, lối tắt, và một
- * điều khoản EUDR mỗi ngày có nguồn.
+ * HÔM NAY — trang người dùng mở mỗi sáng. Không phải trang phân tích: là NHẬT KÝ CÁC THỬA của chính họ
+ * (mưa, radar, cảnh báo, cảm biến — từ lần mở trước có gì đổi) và DANH SÁCH VIỆC xếp theo độ gấp.
+ * Chưa có thửa → nhật ký sống của 6 thửa mẫu được canh mỗi ngày. Phần EUDR (đồng hồ hạn, mức sẵn sàng,
+ * điều khoản mỗi ngày) chỉ hiện cho doanh nghiệp đã có bộ vườn / lô hàng (báo cáo 12/10/2026, mục 9).
  */
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertOctagon, ArrowRight, Bell, BookOpen, CheckCircle2, Radio, ClipboardCheck, Footprints, Package, ShieldCheck, Sparkles } from "lucide-react";
+import { AlertOctagon, ArrowRight, Bell, BookOpen, CheckCircle2, Columns2, Radio, ClipboardCheck, FileSearch, Footprints, Map as MapIcon, Package, ShieldCheck, Sparkles } from "lucide-react";
 import AppShell from "@/components/AppShell";
-import { getToday, type Today } from "@/lib/api";
+import PlotJournal from "@/components/PlotJournal";
+import { getJournalSamples, getToday, listPlots, type PublicJournal, type ServerPlot, type Today } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 import { enablePush, pushState } from "@/lib/push";
 
@@ -39,8 +41,17 @@ export default function TodayPage() {
     try { setPush(await enablePush()); } catch { setPush("off"); }
   }
   const [err, setErr] = useState<string | null>(null);
-  const load = () => getToday().then(setD).catch((e) => setErr(e.message));
+  const [plots, setPlots] = useState<ServerPlot[] | null>(null);
+  const [samples, setSamples] = useState<PublicJournal["samples"] | undefined>(undefined);
+  const load = () => getToday().then((x) => {
+    setD(x);
+    if (x.signed_in) listPlots().then(setPlots).catch(() => setPlots([])); else setPlots([]);
+  }).catch((e) => setErr(e.message));
   useEffect(() => { load(); }, [lang]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (plots && plots.length === 0 && samples === undefined) getJournalSamples().then((r) => setSamples(r.samples)).catch(() => setSamples(null));
+  }, [plots, samples]);
+  const biz = !!d?.readiness;                       // doanh nghiệp đã có bộ vườn EUDR / lô hàng
 
   // Giờ/ngày tính ở TRÌNH DUYỆT (giờ Việt Nam), không ở máy chủ dựng trang (giờ UTC) —
   // tính cả hai nơi là lệch chữ khi hydrate (lỗi React #418, đã gặp trên Render).
@@ -60,17 +71,50 @@ export default function TodayPage() {
             <p className="doc-lede">{d?.signed_in
               ? (d.items.length ? t(`Có ${d.items.length} việc đang chờ bạn.`, `${d.items.length} things are waiting for you.`)
                 : t("Không có việc gì gấp. Vườn của bạn đang được canh.", "Nothing urgent. Your plots are being watched."))
-              : t("Đăng nhập để thấy việc của riêng bạn: đợt giao hàng chờ xác nhận, vườn bị đánh dấu, lô hàng bị chặn.",
-                  "Sign in to see your own tasks: deliveries to confirm, flagged plots, blocked lots.")}</p>
+              : t("Mỗi sáng: thửa đất của bạn đêm qua có gì đổi — mưa, ảnh radar, cảnh báo, cảm biến. Đăng nhập và lưu thửa để có nhật ký riêng; dưới đây là nhật ký sống của 6 thửa mẫu.",
+                  "Every morning: what changed on your land overnight — rain, radar images, alerts, sensors. Sign in and save a plot for its own journal; below is the live journal of 6 sample plots.")}</p>
           </div>
-          {d && <div className="hn-rings">{d.deadlines.map((x, i) => <Ring key={x.date} days={x.days} total={i === 0 ? 450 : 630} label={x.who} date={x.date} unit={t("ngày", "days")} />)}</div>}
+          {d && biz && <div className="hn-rings">{d.deadlines.map((x, i) => <Ring key={x.date} days={x.days} total={i === 0 ? 450 : 630} label={x.who} date={x.date} unit={t("ngày", "days")} />)}</div>}
         </section>
+
+        {plots && plots.length > 0 && (
+          <section className="hn-plots" aria-label={t("Thửa của bạn hôm nay", "Your plots today")}>
+            <h2>{t("Thửa của bạn hôm nay", "Your plots today")}</h2>
+            {plots.slice(0, 4).map((p) => (
+              <div key={p.id} className="hn-plot tt-card">
+                <div className="hn-plot-head"><b>{p.name}</b><Link href={`/plot/${p.lat},${p.lon}`}>{t("Mở sổ tay thửa", "Open passport")}</Link></div>
+                <PlotJournal plotId={p.id} compact />
+              </div>
+            ))}
+            {plots.length > 4 && <Link href="/" className="doc-note">{t(`Còn ${plots.length - 4} thửa nữa — xem ở tab Canh đất`, `${plots.length - 4} more plots — see the Watch tab`)}</Link>}
+          </section>
+        )}
+        {plots && plots.length === 0 && samples && samples.plots.length > 0 && (
+          <section className="hn-plots" aria-label={t("Nhật ký sống 6 thửa mẫu", "Live journal of 6 sample plots")}>
+            <h2>{t(`6 thửa mẫu được canh mỗi ngày — ${samples.n_days} ngày nhật ký sống`, `6 sample plots watched daily — ${samples.n_days} days of live journal`)}</h2>
+            <div className="wh-samples">
+              <ul>
+                {samples.plots.map((p) => (
+                  <li key={p.name}>
+                    <div><b>{p.name}</b>
+                      <small>{p.rain_total_mm == null ? t("mưa: không lấy được", "rain: unavailable") : t(`mưa 24 giờ ${p.rain_total_mm} mm`, `24 h rain ${p.rain_total_mm} mm`)}
+                        {" · "}{p.n_significant ? t(`${p.n_significant} thay đổi thật`, `${p.n_significant} real change(s)`) : t("yên", "quiet")}</small>
+                    </div>
+                    {p.lat != null && <Link className="bat-btn ghost" href={`/plot/${p.lat},${p.lon}`}>{t("Mở", "Open")}</Link>}
+                  </li>
+                ))}
+              </ul>
+              <small className="pj-note">{t(`Cập nhật ${new Date(samples.at).toLocaleString("vi-VN")} · `, `Updated ${new Date(samples.at).toLocaleString("en-GB")} · `)}
+                <a href={samples.branch} target="_blank" rel="noreferrer">{t("nhật ký công khai", "public log")}</a></small>
+            </div>
+          </section>
+        )}
 
         {err && <p className="bat-err">{err}</p>}
         {!d && !err && <div className="hn-skel"><div className="tt-skel" /><div className="tt-skel" /><div className="tt-skel" /></div>}
 
         {d?.readiness && (
-          <section className="hn-ready tt-card" aria-label={t("Mức sẵn sàng EUDR", "EUDR readiness")}>
+          <section className="hn-ready tt-card" aria-label={t("Doanh nghiệp — mức sẵn sàng EUDR", "Business — EUDR readiness")}>
             <div className="hn-ready-head">
               <h2>{t("Mức sẵn sàng EUDR", "EUDR readiness")}</h2>
               <small>{d.readiness.note}</small>
@@ -109,7 +153,9 @@ export default function TodayPage() {
               </div>
             )}
             {d.items.length === 0 ? (
-              <div className="hn-empty"><CheckCircle2 size={22} aria-hidden="true" /> {t("Mọi thứ ổn. Giám sát sau phát hành chạy mỗi tuần, radar xuyên mây canh cả mùa mưa.", "All clear. Post-issuance monitoring runs weekly; cloud-piercing radar watches through the rainy season.")}</div>
+              <div className="hn-empty"><CheckCircle2 size={22} aria-hidden="true" /> {plots && plots.length === 0
+                ? t("Chưa có việc nào — bạn chưa lưu thửa nào. Mở thửa đất của bạn trên bản đồ rồi bấm Lưu ở tab Canh đất.", "Nothing yet — you haven't saved a plot. Open your land on the map, then press Save in the Watch tab.")
+                : t("Mọi thứ ổn. Radar xuyên mây canh thửa của bạn cả mùa mưa; có thay đổi thật sẽ hiện ở đây.", "All clear. Cloud-piercing radar watches your plots through the rainy season; real changes show up here.")}</div>
             ) : d.items.map((it, i) => {
               const Ic = icon[it.priority];
               return (
@@ -126,15 +172,24 @@ export default function TodayPage() {
         <section className="hn-quick">
           <h2>{t("Lối tắt", "Shortcuts")}</h2>
           <div className="hn-grid">
-            <Link href="/eudr" className="tt-card lift hn-tile"><Footprints size={22} aria-hidden="true" /><b>{t("Lấy ranh một vườn", "Map a plot")}</b><small>{t("Vẽ hoặc đi bộ GPS, sàng lọc, phát hành hồ sơ", "Draw or GPS-walk, screen, issue a dossier")}</small></Link>
-            <Link href="/eudr?tab=lo" className="tt-card lift hn-tile"><ClipboardCheck size={22} aria-hidden="true" /><b>{t("Kiểm cả lô nhà cung cấp", "Check a supplier set")}</b><small>{t("GeoJSON, KML, Excel → chuẩn EU + sàng lọc", "GeoJSON, KML, Excel → EU format + screening")}</small></Link>
-            <Link href="/lo" className="tt-card lift hn-tile"><Package size={22} aria-hidden="true" /><b>{t("Ghép lô hàng", "Build a lot")}</b><small>{t("Cân bằng khối lượng, chứng thư Merkle, DDS", "Mass balance, Merkle certificate, DDS")}</small></Link>
-            <Link href="/thiet-bi" className="tt-card lift hn-tile"><Radio size={22} aria-hidden="true" /><b>{t("Thiết bị tại vườn", "Field devices")}</b><small>{t("Cảm biến ký số Ed25519, gửi bù khi mất sóng", "Ed25519-signed sensors, back-fill offline")}</small></Link>
+            <Link href="/" className="tt-card lift hn-tile"><MapIcon size={22} aria-hidden="true" /><b>{t("Mở hồ sơ một thửa đất", "Open a land dossier")}</b><small>{t("Lịch sử nước radar 2017→nay, loại đất, phát hành hồ sơ ký số", "Radar water history 2017→now, land cover, issue a signed dossier")}</small></Link>
+            <Link href="/" className="tt-card lift hn-tile"><FileSearch size={22} aria-hidden="true" /><b>{t("Kiểm một tin đăng bán đất", "Check a land listing")}</b><small>{t("Dán tin, đối chiếu từng câu với số đo thật (tab Kiểm chứng)", "Paste a listing, check each claim against measurements (Verify tab)")}</small></Link>
+            <Link href="/so-sanh" className="tt-card lift hn-tile"><Columns2 size={22} aria-hidden="true" /><b>{t("So sánh 2–4 thửa", "Compare 2–4 plots")}</b><small>{t("Cùng một bộ số đo, cạnh nhau", "Same measurements, side by side")}</small></Link>
             <Link href="/kiem" className="tt-card lift hn-tile"><ShieldCheck size={22} aria-hidden="true" /><b>{t("Kiểm một hồ sơ", "Verify a dossier")}</b><small>{t("Ngay trong trình duyệt, tắt mạng vẫn kiểm", "In your browser, works offline")}</small></Link>
+            <Link href="/thiet-bi" className="tt-card lift hn-tile"><Radio size={22} aria-hidden="true" /><b>{t("Thiết bị tại vườn", "Field devices")}</b><small>{t("Cảm biến ký số Ed25519, gửi bù khi mất sóng", "Ed25519-signed sensors, back-fill offline")}</small></Link>
           </div>
         </section>
 
-        {d?.tip && (
+        <section className="hn-quick hn-biz">
+          <h2>{t("Doanh nghiệp xuất khẩu (EUDR)", "Exporters (EUDR)")}</h2>
+          <div className="hn-grid">
+            <Link href="/eudr" className="tt-card lift hn-tile"><Footprints size={22} aria-hidden="true" /><b>{t("Lấy ranh một vườn", "Map a plot")}</b><small>{t("Vẽ hoặc đi bộ GPS, sàng lọc, phát hành hồ sơ", "Draw or GPS-walk, screen, issue a dossier")}</small></Link>
+            <Link href="/eudr?tab=lo" className="tt-card lift hn-tile"><ClipboardCheck size={22} aria-hidden="true" /><b>{t("Kiểm cả bộ vườn nhà cung cấp", "Check a supplier set")}</b><small>{t("GeoJSON, KML, Excel → chuẩn EU + sàng lọc", "GeoJSON, KML, Excel → EU format + screening")}</small></Link>
+            <Link href="/lo" className="tt-card lift hn-tile"><Package size={22} aria-hidden="true" /><b>{t("Ghép lô hàng", "Build a lot")}</b><small>{t("Cân bằng khối lượng, chứng thư Merkle, DDS", "Mass balance, Merkle certificate, DDS")}</small></Link>
+          </div>
+        </section>
+
+        {biz && d?.tip && (
           <section className="hn-tip tt-card">
             <span className="hn-ic"><BookOpen size={18} aria-hidden="true" /></span>
             <div>

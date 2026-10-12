@@ -80,8 +80,9 @@ export default function MyLand({
   }
 
   useEffect(() => { pushState().then(setPush).catch(() => {}); }, []);
-  useEffect(() => { getBriefStatus().then((r) => setBrief(r.enabled)).catch(() => {}); }, []);
-  useEffect(() => { getContribution().then(setContribution).catch(() => {}); }, []);   // M5
+  // Chỉ gọi khi ĐÃ đăng nhập — trước đây khách cũng gọi và nhận 401 (báo cáo 12/10/2026, mục 10).
+  useEffect(() => { if (user) getBriefStatus().then((r) => setBrief(r.enabled)).catch(() => {}); }, [user]);
+  useEffect(() => { if (user) getContribution().then(setContribution).catch(() => {}); }, [user]);   // M5
   async function turnOnPush() {
     setPush("...");
     try { setPush(await enablePush()); } catch { setPush("off"); }

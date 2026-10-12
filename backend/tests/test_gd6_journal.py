@@ -249,3 +249,28 @@ def test_the_mo_hinh_doc_dung_tep_kiem_dinh(c):
     assert ids["landcover_aef"]["status"] == "accepted" and ids["landcover_aef"]["metrics"][0]["value"] == "0.42"
     assert ids["autoboundary"]["status"] == "rejected"                      # cái trượt cũng có thẻ
     assert all(x.get("not_for") for x in r["cards"]) and all(x.get("code") for x in r["cards"])
+
+
+def test_nhat_ky_cong_khai_khong_can_dang_nhap_kem_thua_mau(c, monkeypatch):
+    """Mục 5 báo cáo 12/10/2026: tab Canh đất khi CHƯA đăng nhập có nhật ký 7 ngày của toạ độ + 6 thửa mẫu sống."""
+    from app.services import plot_journal
+    monkeypatch.setattr(plot_journal, "live_samples", lambda: {"at": "2026-10-12T06:28:45+00:00", "days": 1, "n_days": 9,
+                        "branch": plot_journal.LIVE_BRANCH, "plots": [{"name": "Quảng Điền, Huế (lúa)", "lat": 16.5751, "lon": 107.4952,
+                        "rain_total_mm": 17.2, "n_significant": 0, "significant": [], "rain_ok": True, "radar_ok": True}]})
+    r = c.get(f"/api/journal/public?lat={LAT}&lon={LON}")
+    assert r.status_code == 200, r.text
+    j = r.json()
+    assert j["changed"] is False and "không có thay đổi đáng kể" in j["summary"]
+    assert any(e["kind"] == "radar" for e in j["events"]) and j["samples"]["plots"][0]["lat"] == 16.5751
+    assert c.get("/api/journal/samples").json()["samples"]["n_days"] == 9
+    assert c.get("/api/journal/public?lat=40&lon=107").status_code == 422
+    assert {n for n, _, _ in plot_journal.SAMPLE_PLOTS} >= {"Quảng Điền, Huế (lúa)", "Điện Bàn, Quảng Nam"}
+
+
+def test_thua_mau_backend_khop_tac_vu_nhat_ky_song():
+    import os
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "ops"))
+    from journal_gate import PLOTS
+    from app.services import plot_journal
+    assert list(PLOTS) == list(plot_journal.SAMPLE_PLOTS)

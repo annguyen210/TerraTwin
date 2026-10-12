@@ -3,7 +3,8 @@
 /**
  * LỊCH SỬ NƯỚC NHÌN XUYÊN MÂY (GĐ2 kế hoạch tổng) — dải thời gian 2017 → nay cho đúng thửa, từ ảnh radar
  * Sentinel-1: mỗi chấm là một ĐỢT nước phủ đã ĐO (không phải dự báo). Chỉ hiện khi cổng kiểm chứng đạt.
- * Lần đầu đọc vài trăm cảnh (~2 phút, chạy nền) — người dùng bấm mới chạy, không tự tốn hạn mức.
+ * TỰ ĐỌC khi mở thửa (báo cáo kiểm toàn bộ 12/10/2026, mục 4): đã có trong cache thì hiện ngay; chưa có thì xếp
+ * hàng chạy nền với thanh tiến độ — người dùng xem phần khác trong lúc chờ, không phải bấm rồi ngồi đợi.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Waves } from "lucide-react";
@@ -117,27 +118,39 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [focus, setFocus] = useState<{ date: string; n: number } | null>(null);   // đợt nước đang xem trên bản đồ
 
+  const gen = useRef(0);                                        // đổi thửa giữa chừng → bỏ kết quả của thửa cũ
+
   useEffect(() => { waterStatus().then((s) => setEnabled(s.enabled)).catch(() => setEnabled(false)); }, []);
-  useEffect(() => { setR(null); setErr(null); setProg(null); return () => { if (timer.current) clearTimeout(timer.current); }; }, [lat, lon]);
 
   async function run() {
+    const my = ++gen.current;
+    if (timer.current) clearTimeout(timer.current);
     setBusy(true); setErr(null); setProg(null);
     try {
       const j = await waterStart(lat, lon);
+      if (my !== gen.current) return;
       if (j.state === "done" && j.result) { setR(j.result); setBusy(false); return; }
       const id = j.job_id!;
       const tick = async () => {
         try {
           const s = await waterPoll(id);
+          if (my !== gen.current) return;
           if (s.progress) setProg(s.progress);
           if (s.state === "done" && s.result) { setR(s.result); setBusy(false); return; }
           if (s.state === "error") { setErr(s.message || t("Việc chạy nền lỗi.", "Background job failed.")); setBusy(false); return; }
           timer.current = setTimeout(tick, 3000);
-        } catch (e) { setErr((e as Error).message); setBusy(false); }
+        } catch (e) { if (my === gen.current) { setErr((e as Error).message); setBusy(false); } }
       };
       timer.current = setTimeout(tick, 2500);
-    } catch (e) { setErr((e as Error).message); setBusy(false); }
+    } catch (e) { if (my === gen.current) { setErr((e as Error).message); setBusy(false); } }
   }
+
+  useEffect(() => {                                            // mở thửa (hoặc đổi thửa) → tự đọc
+    setR(null); setErr(null); setProg(null); setFocus(null);
+    if (enabled) run();
+    return () => { gen.current++; if (timer.current) clearTimeout(timer.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lat, lon, enabled]);
 
   const summary = useMemo(() => {
     if (!r || !r.available) return null;
@@ -157,16 +170,20 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
         <h3>{t("Lịch sử nước nhìn xuyên mây", "Water history through clouds")}</h3>
         <span className="wh-badge">{t("radar · đo thật", "radar · measured")}</span>
       </div>
-      {!r && (
-        <div className="wh-start">
-          <p>{t("Đọc toàn bộ ảnh radar Sentinel-1 từ 2017 của đúng thửa này — radar nhìn xuyên mây, kể cả giữa cơn bão.",
-                "Read every Sentinel-1 radar image since 2017 for this exact plot — radar sees through clouds, even mid-storm.")}</p>
-          <button className="bat-btn" onClick={run} disabled={busy}>
-            {busy ? (prog ? t(`Đang đọc ${prog.done}/${prog.total} cảnh…`, `Reading ${prog.done}/${prog.total} scenes…`)
-                          : t("Đang chuẩn bị… (~2 phút lần đầu)", "Preparing… (~2 min the first time)"))
-                  : t("Xem lịch sử nước", "Show water history")}
-          </button>
+      {!r && busy && (
+        <div className="wh-start" aria-live="polite">
+          <p>{t("Đang tự đọc toàn bộ ảnh radar Sentinel-1 từ 2017 của đúng thửa này (radar nhìn xuyên mây). Lần đầu ~2 phút — cứ xem các phần khác, xong sẽ tự hiện.",
+                "Reading every Sentinel-1 radar image since 2017 for this exact plot (radar sees through clouds). ~2 min the first time — keep browsing, it appears by itself.")}</p>
+          <div className="wh-prog" role="progressbar" aria-valuemin={0} aria-valuemax={prog?.total ?? 100}
+               aria-valuenow={prog?.done ?? 0} aria-label={t("Tiến độ đọc ảnh radar", "Radar read progress")}>
+            <span style={{ width: `${prog && prog.total ? Math.max(4, Math.round((prog.done / prog.total) * 100)) : 4}%` }} />
+          </div>
+          <small>{prog ? t(`Đã đọc ${prog.done}/${prog.total} cảnh radar`, `Read ${prog.done}/${prog.total} radar scenes`)
+                       : t("Đang xếp hàng / tìm cảnh radar…", "Queued / finding radar scenes…")}</small>
         </div>
+      )}
+      {!r && !busy && err && (
+        <button className="bat-btn ghost" onClick={run}>{t("Thử đọc lại lịch sử nước", "Retry the water history")}</button>
       )}
       {err && <p className="bat-err">{err}</p>}
       {r && !r.available && <p className="doc-note">{r.message}</p>}
@@ -182,7 +199,10 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
               {r.events.slice().reverse().map((e) => (
                 <li key={e.start}>
                   <b>{e.start === e.end ? e.start : `${e.start} → ${e.end}`}</b>
-                  <span>{t(`phủ ${e.peak_cover} thửa`, `${e.peak_cover} of plot covered`)} · {t(`${e.n_scenes} cảnh`, `${e.n_scenes} scenes`)} · {t("VV thấp nhất", "min VV")} {e.min_p50_db} dB</span>
+                  <span>{t(`phủ ${e.peak_cover} thửa`, `${e.peak_cover} of plot covered`)} · {t(`${e.n_scenes} cảnh`, `${e.n_scenes} scenes`)} · {e.min_flag_db != null && e.flag_pct != null
+                    ? t(`VV phân vị ${e.flag_pct} thấp nhất ${e.min_flag_db} dB (ngưỡng −18; trung vị ${e.min_p50_db})`,
+                        `lowest VV p${e.flag_pct} ${e.min_flag_db} dB (threshold −18; median ${e.min_p50_db})`)
+                    : t(`VV trung vị thấp nhất ${e.min_p50_db} dB`, `lowest median VV ${e.min_p50_db} dB`)}</span>
                   {onScene && <button type="button" className="wh-off" onClick={() => setFocus({ date: wettestOfEvent(r, e.dates ?? [e.start]), n: Date.now() })}>
                     {t("Xem ảnh radar trên bản đồ", "Show radar image on the map")}</button>}
                 </li>

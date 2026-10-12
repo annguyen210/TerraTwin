@@ -2258,7 +2258,7 @@ export type DossierFacts = {
   terrain: NonNullable<Passport["terrain"]> | null;
   history_10y: Record<string, PassportHazard> | null;
   water_history_radar?: { n_scenes: number; first: string; last: string; n_events: number;
-    events: { start: string; end: string; peak_cover: string; n_scenes: number; min_p50_db: number }[];
+    events: { start: string; end: string; peak_cover: string; n_scenes: number; min_p50_db: number; flag_pct?: number; min_flag_db?: number }[];
     method: string; limits: string } | null;
   history_caveat: string | null;
   // Từ 3/10/2026 hồ sơ KHÔNG ký dự báo (predictions_included=false); hồ sơ cũ vẫn có.
@@ -2682,7 +2682,8 @@ export type FocRun = { date: string; chosen?: string; status: "accepted" | "reje
                        test: { balanced_accuracy: number; forest_recall: number; tree_crop_recall?: number; n?: number };
                        pass_thresholds?: Record<string, number>; n?: Record<string, number> };
 // ---------- Lịch sử nước nhìn xuyên mây (radar Sentinel-1) ----------
-export type WaterEvent = { start: string; end: string; n_scenes: number; dates: string[]; peak_cover: string; min_p50_db: number };
+export type WaterEvent = { start: string; end: string; n_scenes: number; dates: string[]; peak_cover: string; min_p50_db: number;
+  flag_pct?: number; min_flag_db?: number; flag_date?: string };
 export type WaterHistoryResult = { available: boolean; message?: string; n_scenes: number; first: string; last: string;
   track: { orbit: string; relative_orbit: number; collection: string }; events: WaterEvent[]; n_events: number;
   baseline_db: Record<string, number>; series: [string, number, number][]; method: string; limits: string; computed: string };
@@ -2811,6 +2812,19 @@ export type PlotJournal = {
 export function getPlotJournal(plotId: number, fast = false) {
   return authed<PlotJournal>(`/api/plots/${plotId}/journal?fast=${fast ? 1 : 0}&lang=${curLang()}`,
     { method: "GET" }, "Không tải được nhật ký thửa");
+}
+export type LiveSample = { name: string; lat: number | null; lon: number | null; rain_total_mm: number | null;
+  n_significant: number; significant: { text?: string }[]; rain_ok: boolean; radar_ok: boolean };
+export type PublicJournal = {
+  lat: number; lon: number; since: string; days: number; changed: boolean; n_significant: number; summary: string;
+  events: JournalEvent[]; rule: string; context: { rain_total_mm?: number | null; rain_ok?: boolean; radar_ok?: boolean };
+  samples: { at: string; days: number; n_days: number; branch: string; plots: LiveSample[] } | null;
+};
+export function getJournalSamples() {
+  return getJson<{ samples: PublicJournal["samples"] }>(`/api/journal/samples`, "Không tải được nhật ký mẫu");
+}
+export function getPublicJournal(lat: number, lon: number) {
+  return getJson<PublicJournal>(`/api/journal/public?lat=${lat}&lon=${lon}&lang=${curLang()}`, "Không tải được nhật ký");
 }
 export function markJournalSeen(plotId: number) {
   return authed<{ seen_at: string }>(`/api/plots/${plotId}/journal/seen`, { method: "POST" },

@@ -268,6 +268,34 @@ with sync_playwright() as p:
         return f"tab {sel.strip()} · cao {hgt}px · khung 'ngoài phạm vi': {offsite}"
     try_now()
 
+    @step("Trang đầu → 'Xem ngay: Huế': không lớp phủ nào chặn bấm, lịch sử nước TỰ đọc (không phải bấm nút)")
+    def try_hue():
+        # Báo cáo kiểm toàn bộ 12/10/2026, mục 3–4: hộp hướng dẫn từng che cả màn sau khi đã chọn thửa; lịch sử
+        # nước bắt bấm nút rồi chờ ~150 s. Ngữ cảnh mới = lần đầu vào (chưa có cờ đã xem hướng dẫn).
+        ctx = browser.new_context(viewport={"width": 1366, "height": 860})
+        pg = ctx.new_page()
+        pg.goto(WEB + "/", wait_until="networkidle", timeout=120_000)
+        pg.get_by_role("button", name=re.compile("Xem ngay")).first.click()
+        pg.locator(".pw-tabs").wait_for(timeout=60_000)
+        pg.wait_for_timeout(2500)
+        covered = pg.evaluate("""(() => { const pts = ['.pw-tabs', '.pw-map canvas'].map((s) => document.querySelector(s)).filter(Boolean);
+            return pts.filter((el) => { const r = el.getBoundingClientRect(); const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+              return !el.contains(hit) && !(hit && hit.closest('.maplibregl-map')); }).length; })()""")
+        assert covered == 0, f"{covered} vùng bị lớp phủ che"
+        pg.get_by_role("tab", name=re.compile("Canh đất")).click()     # bấm được ngay → không bị chặn
+        pg.locator(".wh-here").wait_for(timeout=30_000)
+        pg.get_by_role("tab", name=re.compile("Hồ sơ")).click()
+        pg.locator(".wh").first.wait_for(timeout=60_000)
+        button = pg.get_by_role("button", name=re.compile("Xem lịch sử nước")).count()
+        assert button == 0, "vẫn còn nút bắt bấm 'Xem lịch sử nước'"
+        pg.locator(".wh-sum, .wh-prog").first.wait_for(timeout=60_000)
+        pg.wait_for_timeout(1500)
+        pg.screenshot(path=os.path.join(OUT, "18-xem-ngay-hue.png"), full_page=False)
+        state_txt = "đã có kết quả" if pg.locator(".wh-sum").count() else "đang tự đọc (có thanh tiến độ)"
+        ctx.close()
+        return f"không lớp phủ che · lịch sử nước {state_txt}"
+    try_hue()
+
     @step("Khu làm việc thửa đất: bản đồ lớn + chương")
     def workspace():
         page.goto(WEB + "/", wait_until="networkidle", timeout=120_000)

@@ -53,14 +53,20 @@ def water_history_start(body: WaterIn, request: Request, lang: str = "vi",
     if not gate()["passed"]:
         raise HTTPException(409, tr("Lịch sử nước radar chưa bật: chưa qua cổng kiểm chứng (lũ Huế 10/2020, miền Trung 10/2025, đất cao 0 đợt).",
                                     "Radar water history not enabled: it has not passed its verification gate yet."))
-    key = cache_store.make_key("water", round(body.lat, 4), round(body.lon, 4), int(water_history.RADIUS_M))
-    hit = cache_store.get(key)
+    hit = cache_store.get(water_history.cache_key(body.lat, body.lon))
     if hit is not None:
         return {"state": "done", "result": hit}
+    # Giao diện TỰ đọc khi mở thửa (mục 4 báo cáo 12/10/2026): nhiều tab / nhiều người cùng mở một thửa thì nối vào
+    # việc đang chạy, không xếp thêm việc và không trừ hạn mức lần nữa.
+    from app.db import Job
+    label = f"Lịch sử nước {body.lat:.4f},{body.lon:.4f}"
+    running = (db.query(Job).filter(Job.kind == water_history.JOB_KIND, Job.label == label,
+                                   Job.state.in_(("queued", "running"))).order_by(Job.created_at.desc()).first())
+    if running is not None:
+        return {"state": running.state, "job_id": running.id}
     from app.routes_eudr import enforce_quota
     enforce_quota("screen", request, user)
-    job_id = jobs_db.submit(db, water_history.JOB_KIND, {"lat": body.lat, "lon": body.lon},
-                            label=f"Lịch sử nước {body.lat:.4f},{body.lon:.4f}")
+    job_id = jobs_db.submit(db, water_history.JOB_KIND, {"lat": body.lat, "lon": body.lon}, label=label)
     return {"state": "queued", "job_id": job_id}
 
 

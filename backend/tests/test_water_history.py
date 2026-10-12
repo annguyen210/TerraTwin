@@ -31,6 +31,15 @@ def test_ghep_dot_va_muc_phu_cao_nhat():
     assert ev[0]["start"] == "2020-10-10" and ev[0]["end"] == "2020-10-13" and ev[0]["peak_cover"] == "≥50%"
     assert ev[0]["n_scenes"] == 2 and ev[0]["min_p50_db"] == -18.3
     assert ev[1]["start"] == "2020-11-15" and ev[1]["peak_cover"] == "10–25%"   # cách >24 ngày → đợt riêng
+    # Mục 6 báo cáo 12/10/2026: in ĐÚNG đại lượng đã quyết định, không phải trung vị (−14,4 dB "mà gọi là nước?")
+    assert (ev[0]["flag_pct"], ev[0]["min_flag_db"], ev[0]["flag_date"]) == (50, -18.3, "2020-10-13")
+    assert (ev[1]["flag_pct"], ev[1]["min_flag_db"]) == (10, -19) and ev[1]["min_p50_db"] == -14.4
+
+
+def test_khoa_cache_lich_su_nuoc_mot_cho_va_co_phien_ban():
+    from app.services import water_history as wh
+    assert wh.cache_key(16.57512, 107.49518) == wh.cache_key(16.5751, 107.4952)
+    assert wh.cache_key(16.5751, 107.4952).startswith("water:")
 
 
 def test_nen_la_trung_vi_theo_thoi_gian():

@@ -1,25 +1,24 @@
 "use client";
 
 /**
- * M2 — ONBOARDING 3 bước cho người mở LẦN ĐẦU.
+ * GỢI Ý LẦN ĐẦU trong khu làm việc thửa — KHÔNG CHẶN thao tác.
  *
- * Khác Story (tour 90 giây dùng Huế làm ví dụ): đây là chỉ đường NGẮN cho chính
- * người dùng bắt tay làm — chọn thửa → xem kết quả → bật cảnh báo. Hiện đúng một
- * lần (cờ localStorage), bỏ qua được ngay. Không chặn thao tác: chỉ là lớp phủ
- * mờ giải thích ba việc, đóng là vào dùng ngay.
+ * Bản cũ là lớp phủ toàn màn "1. Chọn thửa của bạn" bật lên SAU KHI người dùng đã chọn thửa (vd bấm "Xem ngay: Huế")
+ * và nuốt mọi cú bấm (báo cáo kiểm toàn bộ 12/10/2026, mục 3). Nay: một thẻ nhỏ ở góc dưới, nói đúng việc tiếp theo
+ * khi ĐÃ có thửa; bấm đâu trên trang vẫn được; đóng một lần là thôi (cờ localStorage).
  */
 import { useEffect, useState } from "react";
-import { useLang, LangToggle } from "@/lib/i18n";
+import { X } from "lucide-react";
+import { useLang } from "@/lib/i18n";
 
-const KEY = "tt_onboarded_v1";
+const KEY = "tt_onboarded_v2";
 
 export default function Onboarding() {
   const { t } = useLang();
   const [show, setShow] = useState(false);
-  const [step, setStep] = useState(0);
 
   useEffect(() => {
-    try { if (!localStorage.getItem(KEY)) setShow(true); } catch { /* */ }
+    try { if (!localStorage.getItem(KEY)) setShow(true); } catch { /* chế độ riêng tư: không hiện */ }
   }, []);
 
   function close() {
@@ -28,58 +27,16 @@ export default function Onboarding() {
   }
 
   if (!show) return null;
-
-  const steps = [
-    { icon: "📍", title: t("1. Chọn thửa của bạn", "1. Pick your plot"),
-      body: t("Bấm một địa điểm mẫu, gõ tên xã/huyện, dán toạ độ GPS, hoặc bấm thẳng vào bản đồ.",
-              "Tap a sample place, type a commune name, paste GPS coordinates, or click the map directly.") },
-    { icon: "🔬", title: t("2. Xem kết quả", "2. See the result"),
-      body: t("TerraTwin kiểm toàn bộ rủi ro 7 ngày tới cho đúng thửa đó — hiệu chuẩn riêng, kèm việc cần làm.",
-              "TerraTwin checks every risk for the next 7 days for that exact plot — calibrated to it, with actions.") },
-    { icon: "🛡️", title: t("3. Bật cảnh báo", "3. Turn on alerts"),
-      body: t("Đăng nhập và lưu thửa — TerraTwin tự canh nền và báo TRƯỚC khi có rủi ro, bạn không cần nhớ mở.",
-              "Log in and save the plot — TerraTwin watches in the background and warns you BEFORE risk hits.") },
-  ];
-  const s = steps[step];
-  const last = step === steps.length - 1;
-
   return (
-    <div onClick={close} style={{
-      position: "fixed", inset: 0, zIndex: 60, background: "rgba(8,11,9,.55)",
-      display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
-    }}>
-      {/* Dùng đúng token màu của app (globals.css). Trước đây trỏ tới --surface/
-          --ink/--pine không hề tồn tại → rơi về nền TRẮNG giữa app nền tối. */}
-      <div onClick={(e) => e.stopPropagation()} style={{
-        maxWidth: 400, width: "100%", background: "var(--panel)", border: "1px solid var(--line-2)",
-        color: "var(--text)", borderRadius: 14, padding: "26px 24px",
-        boxShadow: "0 20px 60px -20px rgba(0,0,0,.5)",
-      }}>
-        {/* Nút đổi ngôn ngữ NGAY trong thẻ — onboarding không che mất nút EN. */}
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 4 }}>
-          <LangToggle />
-        </div>
-        <div style={{ fontSize: 46, textAlign: "center" }}>{s.icon}</div>
-        <h2 style={{ fontSize: 20, fontWeight: 800, textAlign: "center", margin: "8px 0 6px" }}>{s.title}</h2>
-        <p style={{ textAlign: "center", color: "var(--dim)", margin: "0 0 18px", lineHeight: 1.55 }}>{s.body}</p>
-        <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 16 }}>
-          {steps.map((_, i) => (
-            <span key={i} style={{ width: 7, height: 7, borderRadius: 99,
-              background: i === step ? "var(--terra)" : "var(--line-2)" }} />
-          ))}
-        </div>
-        <div style={{ display: "flex", gap: 10, justifyContent: "space-between", alignItems: "center" }}>
-          <button onClick={close} style={{ padding: "8px 12px", border: "none", background: "none",
-            color: "var(--dim)", cursor: "pointer", fontSize: 13 }}>
-            {t("Bỏ qua", "Skip")}
-          </button>
-          <button onClick={() => (last ? close() : setStep(step + 1))} style={{
-            padding: "10px 22px", borderRadius: 8, border: "none", cursor: "pointer",
-            background: "var(--terra)", color: "var(--on-accent)", fontWeight: 700 }}>
-            {last ? t("Bắt đầu", "Start") : t("Tiếp →", "Next →")}
-          </button>
-        </div>
-      </div>
-    </div>
+    <aside className="ob-hint" role="note" aria-label={t("Gợi ý", "Tip")}>
+      <button type="button" className="ob-x" onClick={close} aria-label={t("Đóng gợi ý", "Close tip")}><X size={14} /></button>
+      <b>{t("Đã mở thửa — bước tiếp theo", "Plot open — what next")}</b>
+      <ol>
+        <li>{t("Tab Hồ sơ: lịch sử nước radar tự đọc, loại đất, rồi phát hành hồ sơ ký số.", "Dossier tab: radar water history loads by itself, land cover, then issue a signed dossier.")}</li>
+        <li>{t("Tab Kiểm chứng: dán tin đăng bán đất để đối chiếu từng câu.", "Verify tab: paste a sale listing to check each claim.")}</li>
+        <li>{t("Đổi thửa: kéo bản đồ cho thửa vào giữa ô ngắm rồi bấm nút xanh.", "Change plot: drag the map so the plot sits in the crosshair, then press the green button.")}</li>
+      </ol>
+      <button type="button" className="bat-btn ghost" onClick={close}>{t("Đã hiểu", "Got it")}</button>
+    </aside>
   );
 }

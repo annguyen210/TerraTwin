@@ -80,12 +80,13 @@ def _water_section(lat: float, lon: float) -> dict | None:
     from app.services import cache_store, water_history as wh
     if not routes_water.gate()["passed"]:
         return None
-    r = cache_store.get(cache_store.make_key("water", round(lat, 4), round(lon, 4), int(wh.RADIUS_M)))
+    r = cache_store.get(wh.cache_key(lat, lon))
     if not r or not r.get("available"):
         return None
     return {"n_scenes": r["n_scenes"], "first": r["first"], "last": r["last"], "track": r["track"],
             "n_events": r["n_events"],
-            "events": [{k: e[k] for k in ("start", "end", "peak_cover", "n_scenes", "min_p50_db")} for e in r["events"]],
+            "events": [{k: e[k] for k in ("start", "end", "peak_cover", "n_scenes", "min_p50_db", "flag_pct", "min_flag_db")
+                        if k in e} for e in r["events"]],
             "rule": {"water_db": wh.WATER_DB, "drop_db": wh.DROP_DB, "merge_gap_days": wh.MERGE_GAP_DAYS},
             "method": r["method"], "limits": r["limits"]}
 
