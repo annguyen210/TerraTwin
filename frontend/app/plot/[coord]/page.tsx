@@ -86,7 +86,19 @@ export default function PlotPassportPage() {
         )}
 
         {err && <p className="doc-note">{err}</p>}
-        {!pp && !err && <p className="doc-note">{t("Đang dựng hồ sơ thửa…", "Building the plot record…")}</p>}
+        {pp?.headline && pp.available !== false && <p className="doc-lede">{pp.headline}</p>}
+
+        {/* BẰNG CHỨNG TRƯỚC — chạy NGAY khi mở trang, song song với hồ sơ thửa: chỉ cần toạ độ. Trước đây phải đợi
+            /api/passport (10 năm khí tượng; toạ độ mới trên Render có khi > 2 phút) xong mới bắt đầu đọc radar. */}
+        {valid && (
+          <>
+            <WaterHistory lat={lat} lon={lon} />
+            <LandChangeAI lat={lat} lon={lon} />
+            <ListingCheck lat={lat} lon={lon} />
+          </>
+        )}
+
+        {!pp && !err && <p className="doc-note">{t("Đang dựng phần địa hình và 10 năm hiểm hoạ của thửa…", "Building the terrain and 10-year hazard record…")}</p>}
 
         {pp && pp.available === false && (
           <p className="doc-note">{pp.message || t("Chưa dựng được hồ sơ cho vị trí này.", "Couldn't build a record for this location.")}</p>
@@ -94,12 +106,6 @@ export default function PlotPassportPage() {
 
         {pp && pp.available !== false && (
           <>
-            {pp.headline && <p className="doc-lede">{pp.headline}</p>}
-
-            {/* BẰNG CHỨNG TRƯỚC: lịch sử nước đo bằng radar (chỉ hiện khi cổng kiểm chứng đạt) */}
-            <WaterHistory lat={lat} lon={lon} />
-            <LandChangeAI lat={lat} lon={lon} />
-            <ListingCheck lat={lat} lon={lon} />
 
             {/* ĐỊA HÌNH */}
             {terr && (
