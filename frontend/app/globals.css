@@ -5254,3 +5254,5 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 
 .doc-cta { display: flex; gap: 10px; flex-wrap: wrap; }
 .doc-btn.ghost { background: transparent; color: var(--terra); border: 1px solid var(--terra); }
+
+.wh-list li .wh-off { margin-left: 8px; }

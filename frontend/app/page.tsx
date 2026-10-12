@@ -368,7 +368,14 @@ export default function Home() {
             <p className="pw-coord">{coord.lat.toFixed(5)}, {coord.lon.toFixed(5)}{area != null ? ` · ${area} ha` : ""}</p>
             {terra && serviceable && <TerraBadge t={terra} />}
             <div className="pw-card-actions">
-              <Link href="/eudr" className="bat-btn">{t("Lập hồ sơ EUDR", "Build EUDR dossier")}</Link>
+              {/* Trục chính là HỒ SƠ ĐẤT (báo cáo 12/10/2026, mục 9) — EUDR nằm trong mục Doanh nghiệp. */}
+              <button className="bat-btn" onClick={() => {
+                switchChapter("plan");
+                window.setTimeout(() => {
+                  const b = document.querySelector<HTMLButtonElement>(".plan-issue-btn");
+                  b?.scrollIntoView({ behavior: "smooth", block: "center" }); b?.focus({ preventScroll: true });
+                }, 400);
+              }}>{t("Phát hành hồ sơ đất", "Issue land dossier")}</button>
               <button className="bat-btn ghost" onClick={() => setWorkspace(true)}>{t("Khu làm việc", "Workspace")}</button>
             </div>
             <small className="pw-tip">{t("Bấm vào bản đồ để đổi thửa, hoặc vẽ một vùng.", "Click the map to change plot, or draw an area.")}</small>

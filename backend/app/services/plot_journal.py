@@ -121,7 +121,11 @@ def radar(lat: float, lon: float, since: date) -> dict | None:
 
 
 def _external(lat: float, lon: float, since: datetime) -> dict:
-    key = cache_store.make_key("journal-ext", round(lat, 4), round(lon, 4), since.date().isoformat())
+    from app.services import water_history as wh
+    # Có/chưa có nền radar (lịch sử nước) là một phần của khoá: vừa đọc xong lịch sử nước thì nhật ký so nền ngay,
+    # không giữ câu "chưa so nền" thêm 1 giờ.
+    based = cache_store.get(wh.cache_key(lat, lon)) is not None
+    key = cache_store.make_key("journal-ext", round(lat, 4), round(lon, 4), since.date().isoformat(), based)
     hit = cache_store.get(key)
     if hit is not None:
         return hit
