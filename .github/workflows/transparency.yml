@@ -74,3 +74,6 @@ jobs:
           else
             echo "Không có đầu cây mới."
           fi
+
+      - name: Báo đỏ nếu một lần neo chờ quá 24 giờ
+        run: python3 ops/ots_anchor.py ../tlog --check-pending

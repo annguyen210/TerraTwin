@@ -28,6 +28,19 @@ from verify_dossier import verify_ots  # noqa: E402 — cùng thư mục ops/
 CALENDARS = ["https://a.pool.opentimestamps.org", "https://b.pool.opentimestamps.org",
              "https://a.pool.eternitywall.com", "https://ots.btc.catallaxy.com"]
 MIN_CALENDARS = 2
+# Máy chủ lịch được phép hỏi khi NÂNG CẤP. Bằng chứng không ghi địa chỉ "pool" ở trên mà ghi máy chủ lịch thật
+# (alice/bob.btc.calendar.opentimestamps.org, finney.calendar.eternitywall.com, btc.calendar.catallaxy.com) — bản
+# đầu so với danh sách pool nên KHÔNG BAO GIỜ nâng cấp, neo kẹt "chờ" từ 9/10 (phát hiện 12/10/2026). Danh sách theo
+# whitelist mặc định của opentimestamps-client.
+TRUSTED_SUFFIXES = (".calendar.opentimestamps.org", ".calendar.eternitywall.com", ".calendar.catallaxy.com",
+                    ".pool.opentimestamps.org", ".pool.eternitywall.com")
+PENDING_MAX_H = 24
+
+
+def trusted(uri: str) -> bool:
+    from urllib.parse import urlparse
+    u = urlparse(uri)
+    return u.scheme == "https" and any(u.hostname and (u.hostname.endswith(s) or "." + u.hostname == s) for s in TRUSTED_SUFFIXES)
 
 
 def now() -> str:
@@ -77,7 +90,7 @@ def upgrade(ots: bytes) -> tuple[bytes, bool]:
     changed = False
     for st in list(leaves(dtf.timestamp)):
         for att in list(st.attestations):
-            if not isinstance(att, PendingAttestation) or att.uri not in CALENDARS:
+            if not isinstance(att, PendingAttestation) or not trusted(att.uri):
                 continue                   # chỉ hỏi máy chủ lịch trong danh sách tin cậy
             try:
                 st.merge(RemoteCalendar(att.uri, user_agent="terratwin-anchor/1").get_timestamp(st.msg, timeout=20))
@@ -159,5 +172,25 @@ def main(tlog: str) -> None:
     print(f"anchors.json: {len(anchors)} lần neo, {sum(a.get('status') == 'confirmed' for a in anchors)} đã vào Bitcoin.")
 
 
+def check_pending(tlog: str) -> int:
+    """Báo ĐỎ khi một lần neo còn "chờ" quá PENDING_MAX_H giờ — bình thường Bitcoin xác nhận trong vài giờ;
+    chờ lâu nghĩa là bước nâng cấp hỏng (như lỗi danh sách máy chủ lịch trước 12/10/2026)."""
+    idx = os.path.join(tlog, "anchors.json")
+    if not os.path.exists(idx):
+        return 0
+    late = []
+    for a in json.load(open(idx, encoding="utf-8")).get("anchors", []):
+        if a.get("status") == "confirmed" or not a.get("submitted_at"):
+            continue
+        age = datetime.now(timezone.utc) - datetime.fromisoformat(a["submitted_at"].replace("Z", "+00:00"))
+        if age.total_seconds() > PENDING_MAX_H * 3600:
+            late.append(f"cây {a['tree_size']} chờ {age.total_seconds() / 3600:.0f} giờ")
+    for m in late:
+        print(f"::error::Neo Bitcoin treo quá {PENDING_MAX_H} giờ: {m}")
+    return 1 if late else 0
+
+
 if __name__ == "__main__":
+    if len(sys.argv) > 2 and sys.argv[2] == "--check-pending":
+        sys.exit(check_pending(sys.argv[1]))
     main(sys.argv[1])
