@@ -61,15 +61,16 @@ export default function AppShell({ children, user: userProp, onAuth, extra, wide
           </Link>
           <nav className="tt-nav" aria-label={t("Điều hướng chính", "Main navigation")}>
             {NAV.map((n) => (
-              <Link key={n.href} href={n.href} className={active(path, n.href) ? "on" : ""} aria-current={active(path, n.href) ? "page" : undefined}>
-                <n.icon size={16} strokeWidth={2} aria-hidden="true" /> {t(n.vi, n.en)}
+              <Link key={n.href} href={n.href} className={active(path, n.href) ? "on" : ""} aria-current={active(path, n.href) ? "page" : undefined}
+                    aria-label={t(n.vi, n.en)} title={t(n.vi, n.en)}>
+                <n.icon size={16} strokeWidth={2} aria-hidden="true" /> <span className="tt-nav-l">{t(n.vi, n.en)}</span>
               </Link>
             ))}
           </nav>
           <div className="tt-actions">
             {extra}
             {(user?.role === "admin" || user?.role === "coop") && (
-              <Link href="/admin" className={`tt-admin ${path.startsWith("/admin") ? "on" : ""}`} title={t("Trang quản trị", "Admin page")}>
+              <Link href="/admin" className={`tt-admin ${path.startsWith("/admin") ? "on" : ""}`} title={t("Trang quản trị", "Admin page")} aria-label={t("Trang quản trị", "Admin page")}>
                 <LayoutDashboard size={15} aria-hidden="true" /> <span>{t("Quản trị", "Admin")}</span>
               </Link>
             )}

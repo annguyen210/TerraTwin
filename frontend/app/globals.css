@@ -4496,7 +4496,7 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .tt-top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 40; height: var(--tt-top-h);
   background: rgba(11, 18, 24, .72); backdrop-filter: saturate(160%) blur(14px); -webkit-backdrop-filter: saturate(160%) blur(14px);
   border-bottom: 1px solid var(--line); }
-.tt-top-in { max-width: 1180px; height: 100%; margin: 0 auto; padding: 0 16px; display: flex; align-items: center; gap: 18px; }
+.tt-top-in { max-width: 1360px; height: 100%; margin: 0 auto; padding: 0 16px; display: flex; align-items: center; gap: 18px; }
 .tt-top-in.wide { max-width: none; }
 .tt-brand { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--text); flex: none; }
 .tt-brand b { font-weight: 800; letter-spacing: -.02em; font-size: 1.05rem; }
@@ -5260,3 +5260,12 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .wh-prog.ind > span { width: 32%; animation: wh-ind 1.3s ease-in-out infinite; }
 @keyframes wh-ind { 0% { transform: translateX(-100%); } 100% { transform: translateX(320%); } }
 @media (prefers-reduced-motion: reduce) { .wh-prog.ind > span { animation: none; width: 100%; opacity: .5; } }
+
+.pp-head-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.pp-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+/* Thanh trên không được tràn vào khu nút bên phải khi có tên tài khoản + "Quản trị": thanh điều hướng đo CHÍNH
+   chỗ còn lại của nó (container query) — thiếu chỗ thì chỉ còn biểu tượng, nhãn vẫn có qua aria-label/title. */
+.tt-nav { container-type: inline-size; }
+@container (max-width: 640px) { .tt-nav a { padding: 8px 9px; gap: 5px; } }
+@container (max-width: 560px) { .tt-nav a .tt-nav-l { display: none; } .tt-nav a { padding: 8px 11px; } .tt-nav a.on::after { left: 8px; right: 8px; } }
+@media (max-width: 1520px) { .tt-cmdk kbd { display: none; } .tt-admin span { display: none; } .acct-btn .acct-mail { max-width: 120px; } }

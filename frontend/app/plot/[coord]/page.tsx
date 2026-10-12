@@ -68,17 +68,21 @@ export default function PlotPassportPage() {
   const terr = pp?.terrain;
 
   return (
-    <AppShell extra={<>
-          {valid && <button className="pp-share" onClick={toCompare}>{t("⇄ So sánh", "⇄ Compare")}</button>}
-          <button className="pp-share" onClick={share}>
-            {copied ? t("✓ Đã sao chép", "✓ Copied") : t("🔗 Chia sẻ", "🔗 Share")}
-          </button></>}>
+    <AppShell>
 
       <main className="doc-body pp">
         <div className="pp-badge">{t("SỔ TAY THỬA · Hồ sơ dữ liệu", "LAND PASSPORT · Data record")}</div>
         <h1>{t("Sổ tay thửa đất", "Land Passport")}</h1>
         {valid && (
-          <p className="pp-coord">📍 {lat.toFixed(4)}, {lon.toFixed(4)}</p>
+          <div className="pp-head-row">
+            <p className="pp-coord">📍 {lat.toFixed(4)}, {lon.toFixed(4)}</p>
+            {/* Nút của TRANG này nằm trong trang, không chen lên thanh điều hướng (trước đây "So sánh" lặp với mục
+                So sánh trên thanh và đẩy "Doanh nghiệp" chạm vào nút). */}
+            <div className="pp-actions">
+              <button className="pp-share" onClick={toCompare}>{t("⇄ Thêm vào so sánh", "⇄ Add to compare")}</button>
+              <button className="pp-share" onClick={share}>{copied ? t("✓ Đã sao chép", "✓ Copied") : t("🔗 Chia sẻ", "🔗 Share")}</button>
+            </div>
+          </div>
         )}
 
         {err && <p className="doc-note">{err}</p>}

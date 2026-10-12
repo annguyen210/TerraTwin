@@ -182,10 +182,10 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
                        : t("Đang xếp hàng / tìm cảnh radar…", "Queued / finding radar scenes…")}</small>
         </div>
       )}
+      {err && <p className="bat-err">{err}</p>}
       {!r && !busy && err && (
         <button className="bat-btn ghost" onClick={run}>{t("Thử đọc lại lịch sử nước", "Retry the water history")}</button>
       )}
-      {err && <p className="bat-err">{err}</p>}
       {r && !r.available && <p className="doc-note">{r.message}</p>}
       {r && r.available && (
         <>
