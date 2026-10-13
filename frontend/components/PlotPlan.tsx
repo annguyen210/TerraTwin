@@ -220,7 +220,7 @@ export default function PlotPlan({
           </span>
         </div>
         <div className="plan-head-btns">
-          <Link
+          <Link prefetch={false}
             className="plan-print"
             href={`/plot/${lat.toFixed(5)},${lon.toFixed(5)}`}
             title={t("Sổ tay thửa — hồ sơ dữ liệu chia sẻ được (ngân hàng, bảo hiểm, người mua)",

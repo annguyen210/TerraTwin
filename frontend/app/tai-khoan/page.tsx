@@ -159,7 +159,7 @@ export default function MyAccountPage() {
                   <ul className="tk-list">
                     {s.recent_dossiers.length === 0 && <li><span>—</span></li>}
                     {s.recent_dossiers.map((d) => (
-                      <li key={d.id}><Link href={`/h/${d.id}`}>{d.kind === "eudr_plot" ? "EUDR" : d.kind === "lot_certificate" ? t("Chứng thư lô", "Lot") : t("Hồ sơ đất", "Land")} · {d.where} · <code>{d.id}</code></Link><small>{when(d.issued_at)}</small></li>
+                      <li key={d.id}><Link prefetch={false} href={`/h/${d.id}`}>{d.kind === "eudr_plot" ? "EUDR" : d.kind === "lot_certificate" ? t("Chứng thư lô", "Lot") : t("Hồ sơ đất", "Land")} · {d.where} · <code>{d.id}</code></Link><small>{when(d.issued_at)}</small></li>
                     ))}
                   </ul>
                 </div>
@@ -168,7 +168,7 @@ export default function MyAccountPage() {
                   <ul className="tk-list">
                     {s.recent_plots.length === 0 && <li><span>—</span></li>}
                     {s.recent_plots.map((p) => (
-                      <li key={p.id}><Link href={`/plot/${p.lat},${p.lon}`}>{p.name}</Link><small>{when(p.created_at)}</small></li>
+                      <li key={p.id}><Link prefetch={false} href={`/plot/${p.lat},${p.lon}`}>{p.name}</Link><small>{when(p.created_at)}</small></li>
                     ))}
                   </ul>
                 </div>

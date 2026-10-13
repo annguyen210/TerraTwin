@@ -5219,13 +5219,13 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .lc-water p { margin: 0; font-size: .86rem; color: var(--text); }
 
 /* Gợi ý lần đầu — không chặn (thay lớp phủ toàn màn cũ) */
-.ob-hint { position: fixed; left: 16px; bottom: 90px; z-index: 35; width: min(340px, calc(100vw - 32px)); display: grid; gap: 6px;
+.ob-hint { position: relative; margin: 0 0 10px; width: auto; display: grid; gap: 6px;
   padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--card, #111c24); color: var(--text);
   box-shadow: 0 18px 40px -20px rgba(0, 0, 0, .8); font-size: .84rem; }
 .ob-hint ol { margin: 0; padding-left: 18px; display: grid; gap: 3px; color: var(--dim); line-height: 1.45; }
 .ob-hint .bat-btn { justify-self: start; padding: 6px 12px; }
 .ob-x { position: absolute; top: 6px; right: 6px; border: 0; background: transparent; color: var(--dim); cursor: pointer; padding: 4px; }
-@media (max-width: 860px) { .ob-hint { top: calc(var(--tt-top-h) + 10px); bottom: auto; } }
+
 
 .wh-prog { height: 8px; border-radius: 99px; background: rgba(127, 127, 127, .18); overflow: hidden; }
 .wh-prog > span { display: block; height: 100%; background: linear-gradient(90deg, #3d8fc4, #5fcb8e); border-radius: inherit; transition: width .6s ease; }

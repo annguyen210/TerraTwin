@@ -133,7 +133,7 @@ export default function ComparePage() {
               {r.columns.map((c, i) => (
                 <div key={i} className="cmp-col" role="columnheader">
                   <b>{c.name}</b>
-                  <Link href={`/plot/${c.lat},${c.lon}`}>{c.lat.toFixed(4)}, {c.lon.toFixed(4)}</Link>
+                  <Link prefetch={false} href={`/plot/${c.lat},${c.lon}`}>{c.lat.toFixed(4)}, {c.lon.toFixed(4)}</Link>
                   {!c.water_read && <small>{reading ? t("Đang đọc lịch sử nước…", "Reading water history…") : t("Chưa đọc được lịch sử nước", "Water history not available yet")}</small>}
                   <button type="button" className="cmp-x" aria-label={t(`Bỏ ${c.name}`, `Remove ${c.name}`)}
                           onClick={() => setPts((pts ?? []).filter((_, j) => j !== i))}>×</button>

@@ -133,7 +133,7 @@ export default function LotsPage() {
                         const c = byId[r.dossier_id];
                         return (
                           <tr key={`${r.dossier_id}-${i}`} className={c?.status === "blocked" ? "bat-failed" : ""}>
-                            <td><Link href={`/h/${r.dossier_id}`}>{r.dossier_id}</Link><small>{c?.ref ?? r.ref ?? ""}{c?.area_ha ? ` · ${c.area_ha} ha` : ""}{c?.level ? ` · ${c.level}` : ""}</small></td>
+                            <td><Link prefetch={false} href={`/h/${r.dossier_id}`}>{r.dossier_id}</Link><small>{c?.ref ?? r.ref ?? ""}{c?.area_ha ? ` · ${c.area_ha} ha` : ""}{c?.level ? ` · ${c.level}` : ""}</small></td>
                             <td><input className="bat-input eu-num" disabled={locked} inputMode="decimal" value={r.kg || ""} onChange={(e) => setRows(rows.map((x, j) => j === i ? { ...x, kg: Number(e.target.value.replace(",", ".")) } : x))} /></td>
                             <td><input className="bat-input eu-num" disabled={locked} value={r.date ?? ""} placeholder="YYYY-MM-DD" onChange={(e) => setRows(rows.map((x, j) => j === i ? { ...x, date: e.target.value } : x))} /></td>
                             <td>{c ? <span className={`eu-badge ${c.status === "ok" ? "eu-low" : c.status === "warning" ? "eu-review" : "eu-high"}`}>{c.status === "ok" ? t("Đạt", "OK") : c.status === "warning" ? t("Lưu ý", "Warning") : t("Bị chặn", "Blocked")}</span> : "—"}
@@ -156,7 +156,7 @@ export default function LotsPage() {
                 {!locked && cur && <button className="bat-btn" disabled={busy || !chk?.certifiable} onClick={certify}><BadgeCheck size={15} aria-hidden="true" className="ui-ic" /> {t("Phát hành chứng thư lô hàng", "Issue lot certificate")}</button>}
                 {cur && <button className="bat-btn ghost" onClick={() => lotDownload(cur.id, "dds").catch((e) => setErr(e.message))}><Download size={15} aria-hidden="true" className="ui-ic" /> {t("Tờ khai DDS nháp (.json)", "Draft DDS (.json)")}</button>}
                 {cur && <button className="bat-btn ghost" onClick={() => lotDownload(cur.id, "geojson").catch((e) => setErr(e.message))}><Download size={15} aria-hidden="true" className="ui-ic" /> {t("GeoJSON vị trí cả lô", "GeoJSON for the lot")}</button>}
-                {cur?.certificate_id && <Link className="bat-btn" href={`/h/${cur.certificate_id}`}>{t("Mở chứng thư", "Open the certificate")}</Link>}
+                {cur?.certificate_id && <Link prefetch={false} className="bat-btn" href={`/h/${cur.certificate_id}`}>{t("Mở chứng thư", "Open the certificate")}</Link>}
                 {cur && !locked && <button className="bat-btn ghost danger" onClick={async () => { await lotDelete(cur.id).catch((e) => setErr(e.message)); setCur(null); setRows([]); refresh().catch(() => {}); }}>{t("Xoá bản nháp", "Delete draft")}</button>}
               </div>
             </section>

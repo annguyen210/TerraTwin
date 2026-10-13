@@ -420,7 +420,7 @@ function WholeSet({ user }: { user: AuthUser | null }) {
                         <td className="num">{m.wc2020 != null ? `${(m.wc2020 as number).toFixed(0)}%` : "—"}</td>
                         <td className="num">{m.alos2020 != null ? `${(m.alos2020 as number).toFixed(0)}%` : "—"}</td>
                         <td className="num">{m.io != null ? `${(m.io as number).toFixed(0)}%` : "—"}</td>
-                        <td>{r?.dossier_id ? <Link href={`/h/${r.dossier_id}`}>{r.dossier_id}</Link> : "—"}</td>
+                        <td>{r?.dossier_id ? <Link prefetch={false} href={`/h/${r.dossier_id}`}>{r.dossier_id}</Link> : "—"}</td>
                       </tr>
                       {open === k && r && (
                         <tr className="eu-detail"><td colSpan={7}><EudrResult s={r} geometry={p.geometry} areaHa={p.area_ha} /></td></tr>
@@ -763,7 +763,7 @@ function Overview({ user }: { user: AuthUser | null }) {
             <thead><tr><th>{t("Vườn", "Plot")}</th><th>{t("Lô thửa", "Set")}</th><th>{t("Mức", "Level")}</th><th>{t("Hồ sơ", "Dossier")}</th></tr></thead>
             <tbody>{o.attention.map((a, i) => (
               <tr key={i}><td>{a.ref}</td><td>{a.set}</td><td><LevelBadge level={a.level} label={a.level === "high" ? t("Rủi ro phá rừng", "Deforestation risk") : t("Cần xem lại", "Needs review")} /></td>
-                <td>{a.dossier_id ? <Link href={`/h/${a.dossier_id}`}>{a.dossier_id}</Link> : "—"}</td></tr>
+                <td>{a.dossier_id ? <Link prefetch={false} href={`/h/${a.dossier_id}`}>{a.dossier_id}</Link> : "—"}</td></tr>
             ))}</tbody>
           </table></div>
         </section>

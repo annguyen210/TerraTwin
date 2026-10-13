@@ -200,7 +200,7 @@ export default function BatchPage() {
                             <td>{r.error ?? (r.drivers.join(", ") || "—")}</td>
                             <td className="num">{r.history_10y.flood ?? "—"}</td>
                             <td className="num">{r.history_10y.drought ?? "—"}</td>
-                            <td><Link href={`/plot/${r.lat.toFixed(5)},${r.lon.toFixed(5)}`}>{t("Sổ tay", "Passport")}</Link></td>
+                            <td><Link prefetch={false} href={`/plot/${r.lat.toFixed(5)},${r.lon.toFixed(5)}`}>{t("Sổ tay", "Passport")}</Link></td>
                           </tr>
                         );
                       })}

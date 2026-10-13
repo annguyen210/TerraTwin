@@ -347,7 +347,6 @@ export default function Home() {
   return (
     <AppShell user={user} onAuth={setUser} wide>
       {story && <Story onClose={() => setStory(false)} onExplore={onStart} />}
-      <Onboarding />
       <div className={`pw pw-full sheet-${sheet}`}>
         <section className="pw-hero">
           <div className="pw-map">
@@ -398,6 +397,10 @@ export default function Home() {
             </button>
           ))}
         </nav>
+
+        {/* Gợi ý lần đầu NẰM TRONG thẻ thửa, dưới hàng tab — không ghim đè lên bản đồ / nút kéo / tab (trên điện thoại
+            bản ghim cũ che nút kéo tấm thẻ khi mở toàn màn — E2E 13/10/2026). */}
+        <Onboarding />
 
         <div className="pw-body tt-reveal" key={chapter}>
           {chapter === "plan" && (

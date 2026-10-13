@@ -82,7 +82,7 @@ export default function TodayPage() {
             <h2>{t("Thửa của bạn hôm nay", "Your plots today")}</h2>
             {plots.slice(0, 4).map((p) => (
               <div key={p.id} className="hn-plot tt-card">
-                <div className="hn-plot-head"><b>{p.name}</b><Link href={`/plot/${p.lat},${p.lon}`}>{t("Mở sổ tay thửa", "Open passport")}</Link></div>
+                <div className="hn-plot-head"><b>{p.name}</b><Link prefetch={false} href={`/plot/${p.lat},${p.lon}`}>{t("Mở sổ tay thửa", "Open passport")}</Link></div>
                 <PlotJournal plotId={p.id} compact />
               </div>
             ))}
@@ -100,7 +100,7 @@ export default function TodayPage() {
                       <small>{p.rain_total_mm == null ? t("mưa: không lấy được", "rain: unavailable") : t(`mưa 24 giờ ${p.rain_total_mm} mm`, `24 h rain ${p.rain_total_mm} mm`)}
                         {" · "}{p.n_significant ? t(`${p.n_significant} thay đổi thật`, `${p.n_significant} real change(s)`) : t("yên", "quiet")}</small>
                     </div>
-                    {p.lat != null && <Link className="bat-btn ghost" href={`/plot/${p.lat},${p.lon}`}>{t("Mở", "Open")}</Link>}
+                    {p.lat != null && <Link prefetch={false} className="bat-btn ghost" href={`/plot/${p.lat},${p.lon}`}>{t("Mở", "Open")}</Link>}
                   </li>
                 ))}
               </ul>
