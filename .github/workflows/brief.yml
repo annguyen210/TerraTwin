@@ -9,7 +9,7 @@ name: Morning brief
 #
 # CHỊU ĐƯỢC MÁY ĐANG NGỦ: api gói free ngủ sau 15 phút không có request, lượt
 # gọi đầu có thể trả 503 trong 30–60 giây. Đánh thức trước bằng
-# ops/wake-api.sh (GET /api/health, 6 lần cách 20 giây), rồi mới POST.
+# ops/wake-api.sh (GET /api/health, 12 lần cách 30 giây), rồi mới POST.
 #
 # XÁC THỰC: gửi header X-Cron-Key = secret TERRATWIN_CRON_KEY (đặt cùng giá trị
 # trong GitHub Secrets và biến môi trường terratwin-api). Không dùng token đăng

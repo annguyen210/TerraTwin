@@ -65,7 +65,7 @@ wait_port http://127.0.0.1:8781/ || true
 t0=$SECONDS
 WAKE_DELAY=5 bash "$HERE/wake-api.sh" http://127.0.0.1:8781 > "$WORK/w1.log" 2>&1; rc=$?
 if [ $rc -ne 0 ] && grep -q "ĐÌNH CHỈ" "$WORK/w1.log" && [ $((SECONDS - t0)) -lt 5 ]; then
-  ok "nhận ra bị đình chỉ, không chờ hết 6 lượt"
+  ok "nhận ra bị đình chỉ, không chờ hết các lượt"
 else cat "$WORK/w1.log"; bad "ca 1 (rc=$rc, $((SECONDS - t0))s)" "$WORK/w1.log"; fi
 
 echo "── Ca 2: api đang dậy (503, 503, rồi 200) → chờ và thành công"

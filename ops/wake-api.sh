@@ -4,10 +4,12 @@
 # khi cron gọi việc thật — dùng chung cho radar.yml và brief.yml.
 #
 #   bash ops/wake-api.sh [URL gốc api]      # mặc định bản production
-#   WAKE_TRIES=6 WAKE_DELAY=20 ...          # mặc định: 6 lần, cách 20 giây
+#   WAKE_TRIES=12 WAKE_DELAY=30 ...         # mặc định: 12 lần, cách 30 giây (tới ~18 phút)
 #
 # Lượt gọi đầu vào một máy đang ngủ có thể treo tới lúc máy dậy hoặc trả 503
-# trong 30–60 giây. Gọi GET /api/health (không đổi gì) cho tới khi nhận 200, rồi
+# trong 30–60 giây — nhưng KHÔNG phải lúc nào cũng vậy: 13/10/2026 Render mất ~8 phút
+# mới dựng xong máy (nhật ký: "Started server process" lúc 21:21:00, ứng dụng sẵn sàng
+# sau 1 giây), trong khi bản 6×20 giây cũ bỏ cuộc lúc ~21:21 → lượt radar đỏ oan. Gọi GET /api/health (không đổi gì) cho tới khi nhận 200, rồi
 # mới gửi POST — không bao giờ thử lại một POST chỉ vì máy còn đang dậy.
 #
 # Bị ĐÌNH CHỈ (hết 750 giờ free) khác với NGỦ: Render trả 503 kèm header
@@ -17,8 +19,8 @@
 set -uo pipefail
 
 BASE="${1:-https://terratwin-api.onrender.com}"
-TRIES="${WAKE_TRIES:-6}"
-DELAY="${WAKE_DELAY:-20}"
+TRIES="${WAKE_TRIES:-12}"
+DELAY="${WAKE_DELAY:-30}"
 HDR="$(mktemp)"
 trap 'rm -f "$HDR"' EXIT
 
