@@ -241,13 +241,19 @@ with sync_playwright() as p:
     if not READONLY:
         lots()
 
-    @step("Trang Hôm nay")
+    @step("Trang Hôm nay: đất trước — nhật ký sống 6 thửa mẫu (khách), EUDR chỉ là lối tắt Doanh nghiệp")
     def today():
+        # Báo cáo 12/10/2026, mục 9: vòng đếm ngược EUDR (.hn-ring) chỉ hiện cho doanh nghiệp đã có bộ vườn / lô hàng.
         page.goto(WEB + "/hom-nay", wait_until="networkidle", timeout=120_000)
-        page.locator(".hn-ring").first.wait_for(timeout=60_000)
+        page.locator(".hn-quick").first.wait_for(timeout=60_000)
+        page.locator(".wh-samples li").first.wait_for(timeout=60_000)
+        n = page.locator(".wh-samples li").count()
+        rings = page.locator(".hn-ring").count()
         page.wait_for_timeout(800)
         shot(page, "13-today")
-        return f"{page.locator('.hn-item').count()} việc"
+        assert n == 6, f"{n} thửa mẫu"
+        assert rings == 0, "khách thấy vòng đếm ngược EUDR"
+        return f"{n} thửa mẫu sống · {page.locator('.hn-biz .hn-tile').count()} lối tắt Doanh nghiệp"
     today()
 
     @step("Trang đầu → 'Kiểm một tin đăng' mở thửa mẫu đúng tab Kiểm chứng, tab không bị ép")
