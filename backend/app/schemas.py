@@ -104,6 +104,9 @@ class TerraScoreResult(BaseModel):
     breakdown: dict[str, int] = {}
     real_data_ratio: float = 0.0   # tỉ lệ hiểm họa được đánh giá bằng dữ liệu thật
     region: dict = {}
+    # Phạm vi của con số, hiện NGAY CẠNH nó (16/10/2026: TerraScore 100 "Đất an toàn" cạnh "Điểm an toàn đất 49" — hai
+    # con số đo hai thứ khác nhau mà cùng gọi là "an toàn").
+    scope: str = ""
 
 
 class KnowledgeCitation(BaseModel):

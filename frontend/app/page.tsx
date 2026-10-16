@@ -128,9 +128,10 @@ function TerraBadge({ t }: { t: TerraScore }) {
       </div>
       <div className="terra-txt">
         <div className="terra-grade" style={{ color }}>
-          {tr("TerraScore · Hạng", "TerraScore · Grade")} {t.grade}
+          {tr("TerraScore · hiểm hoạ 7 ngày tới · Hạng", "TerraScore · next-7-day hazards · Grade")} {t.grade}
         </div>
         <div className="terra-sum">{t.summary}</div>
+        {t.scope && <div className="terra-scope">{t.scope}</div>}
         {t.real_data_ratio != null && (
           <div className="terra-real">
             🛰️ {Math.round(t.real_data_ratio * 100)}% {tr("hiểm họa dùng dữ liệu thật", "of hazards use real data")}
@@ -365,10 +366,12 @@ export default function Home() {
             <p className="eu-eyebrow">{t("Thửa đang xem", "Current plot")}</p>
             <h1>{placeLabel ?? t("Thửa đã chọn", "Selected plot")}</h1>
             <p className="pw-coord">{coord.lat.toFixed(5)}, {coord.lon.toFixed(5)}{area != null ? ` · ${area} ha` : ""}</p>
-            {terra && serviceable && <TerraBadge t={terra} />}
+            {terra && serviceable && terra.grade !== "—" && <TerraBadge t={terra} />}
             <div className="pw-card-actions">
               {/* Trục chính là HỒ SƠ ĐẤT (báo cáo 12/10/2026, mục 9) — EUDR nằm trong mục Doanh nghiệp. */}
-              <button className="bat-btn" onClick={() => {
+              <button className="bat-btn" disabled={!serviceable}
+                      title={serviceable ? undefined : t("Không phát hành hồ sơ cho điểm này — xem lý do bên dưới.", "No dossier for this point — see why below.")}
+                      onClick={() => {
                 switchChapter("plan");
                 window.setTimeout(() => {
                   const b = document.querySelector<HTMLButtonElement>(".plan-issue-btn");
@@ -385,8 +388,10 @@ export default function Home() {
         {terra?.region && terra.region.serviceable === false && (
           <div className="offsite pw-err">
             <b>{terra.region.kind === "sea" ? t("Đây là mặt nước", "This is open water")
+              : terra.region.kind === "inland_water" ? t("Điểm này nằm trên mặt nước thường xuyên (sông/kênh/ao)", "This point is on permanent water (river/canal/pond)")
               : `${t("Ngoài phạm vi phục vụ", "Outside service area")}${terra.region.country ? ` (${terra.region.country.toUpperCase()})` : ""}`}</b>
             <p>{terra.region.note}</p>
+            {terra.region.caveat && <p className="doc-note">{terra.region.caveat}</p>}
           </div>
         )}
 

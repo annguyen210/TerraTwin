@@ -111,3 +111,27 @@ def test_canh_radar_mot_ngay_cho_thanh_thoi_gian(monkeypatch):
         assert c.get("/api/water/scene?lat=16.5751&lon=107.4952&date=13-10-2020").status_code == 422
         monkeypatch.setattr(wh, "scene", lambda *a: None)
         assert c.get("/api/water/scene?lat=16.5751&lon=107.4952&date=2020-10-12").status_code == 404
+
+
+def test_ham_nong_thua_demo_can_khoa_cron_bo_qua_thua_da_co(monkeypatch):
+    """Việc 3 kiểm toàn bộ 16/10/2026: hâm trước lịch sử nước các thửa demo; không trừ hạn mức khách, không xếp đôi."""
+    from fastapi.testclient import TestClient
+    from app import routes_water
+    from app.main import app
+    from app.services import aef_landuse, cache_store, demo_plots, water_history as wh
+    monkeypatch.setenv("TERRATWIN_CRON_KEY", "khoa-thu")
+    monkeypatch.setattr(routes_water, "gate", lambda: {"passed": True})
+    monkeypatch.setattr(aef_landuse, "change", lambda la, lo: {"available": True})
+    first = demo_plots.DEMO_PLOTS[0]
+    have = {wh.cache_key(first[0], first[1])}
+    real_get = cache_store.get
+    monkeypatch.setattr(cache_store, "get", lambda k: {"available": True} if k in have else (None if k.startswith("water:") else real_get(k)))
+    with TestClient(app) as c:
+        assert c.post("/api/water/warm-demo").status_code == 401
+        assert c.post("/api/water/warm-demo", headers={"X-Cron-Key": "sai"}).status_code == 401
+        r = c.post("/api/water/warm-demo", headers={"X-Cron-Key": "khoa-thu"}).json()
+        assert r["n_total"] == len(demo_plots.DEMO_PLOTS) == 14 and r["n_cached"] == 1
+        assert r["plots"][0]["water"] == "cached" and all(p["water"] == "queued" for p in r["plots"][1:])
+        again = c.post("/api/water/warm-demo", headers={"X-Cron-Key": "khoa-thu"}).json()
+        assert all(p["water"] == "running" for p in again["plots"][1:])          # gọi lại không xếp đôi
+        assert [p["job_id"] for p in again["plots"][1:]] == [p["job_id"] for p in r["plots"][1:]]

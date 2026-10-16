@@ -302,7 +302,8 @@ export default function Answer({
   }, [d, onRisk]);
 
   useEffect(() => {
-    if (d?.terrascore && onTerra) onTerra(d.terrascore);
+    // region đi kèm TerraScore — thẻ thửa dựa vào nó để ẩn điểm và khoá "Phát hành hồ sơ" ở điểm không phục vụ.
+    if (d?.terrascore && onTerra) onTerra(d.region ? { ...d.terrascore, region: d.region } : d.terrascore);
   }, [d, onTerra]);
 
   if (busy) {
@@ -355,9 +356,13 @@ export default function Answer({
           <b>
             {d.region.kind === "sea"
               ? t("🌊 Chỗ này là mặt nước", "🌊 This is open water")
-              : t("🗺️ Ngoài phạm vi phục vụ", "🗺️ Outside service area")}
+              : d.region.kind === "inland_water"
+                ? t("🌊 Điểm này nằm trên mặt nước thường xuyên (sông/kênh/ao)", "🌊 This point is on permanent water (river/canal/pond)")
+                : t("🗺️ Ngoài phạm vi phục vụ", "🗺️ Outside service area")}
           </b>
-          <p>{d.region.note}</p>
+          {/* Thẻ thửa phía trên đã in đủ lý do + căn cứ — ở đây chỉ nhắc, không lặp nguyên đoạn. */}
+          <p>{t("Không chấm điểm và không phát hành hồ sơ cho điểm này — lý do và căn cứ ở khung phía trên. Dời ô ngắm vào đúng thửa đất rồi bấm nút xanh.",
+                "No score and no dossier for this point — the reason and evidence are in the box above. Move the crosshair onto the actual plot and press the green button.")}</p>
         </div>
       </div>
     );

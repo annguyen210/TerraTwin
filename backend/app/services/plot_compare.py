@@ -16,7 +16,7 @@ _TTL = 6 * 3600
 def one(lat: float, lon: float) -> dict:
     """Một cột so sánh. Mục nào hỏng ghi None (giao diện ghi "không lấy được"), không đoán."""
     from app.services import datasources as ds, jobs, landuse, listing_check as lc, passport
-    key = cache_store.make_key("compare", round(lat, 5), round(lon, 5))
+    key = cache_store.make_key("compare", round(lat, 5), round(lon, 5), "v2")   # v2: thêm on_water (16/10/2026)
     hit = cache_store.get(key)
     if hit is not None:
         return hit
@@ -24,9 +24,12 @@ def one(lat: float, lon: float) -> dict:
         lambda: lc._water(lat, lon), lambda: passport.terrain(lat, lon), lambda: passport.history(lat, lon),
         lambda: landuse.composition(lat, lon), lambda: lc._nearest_river_km(lat, lon, 5000.0)], timeout=60)
     hist = hist or {}
+    from app.services import region
+    on_water = region.inland_water(lat, lon)
     out = {
-        "lat": lat, "lon": lon,
-        "water_events": (water or {}).get("n_events"),
+        "lat": lat, "lon": lon, "on_water": bool(on_water),
+        # Giữa sông "0 đợt nước" chỉ vì nước có quanh năm (16/10/2026) — ghi chữ, không để thành số "tốt nhất".
+        "water_events": tr("mặt nước thường xuyên", "permanent water") if on_water else (water or {}).get("n_events"),
         "water_scenes": (water or {}).get("n_scenes"),
         "water_last": ((water or {}).get("events") or [{}])[-1].get("start") if water and water.get("events") else None,
         "elevation_m": (terr or {}).get("elevation_m"),
@@ -80,11 +83,12 @@ def compare(points: list[dict]) -> dict:
             vals = [v or tr("ngoài vùng", "outside") for v in vals]
         rows.append({"key": k, "label": tr(vi, en), "unit": unit, "values": vals, "best": best, "source": src})
     return {
-        "columns": [{"name": c["name"], "lat": c["lat"], "lon": c["lon"], "water_read": c.get("water_events") is not None}
+        "columns": [{"name": c["name"], "lat": c["lat"], "lon": c["lon"], "water_read": c.get("water_events") is not None,
+                     "on_water": bool(c.get("on_water"))}
                     for c in cols],
         "rows": rows,
         "note": tr("Đánh dấu giá trị thuận lợi nhất theo RIÊNG từng tiêu chí — không phải điểm tổng, không phải lời khuyên mua. "
-                   "Số đợt nước phủ chỉ có khi đã đọc lịch sử nước radar của thửa (~2 phút mỗi thửa).",
+                   "Số đợt nước phủ chỉ có khi đã đọc lịch sử nước radar của thửa (thửa mới thường 1–3 phút mỗi thửa).",
                    "Highlights the most favourable value for EACH criterion alone — not an overall score, not buying advice. "
-                   "Water events appear only once the plot's radar water history has been read (~2 min per plot)."),
+                   "Water events appear only once the plot's radar water history has been read (a new plot usually takes 1–3 min)."),
     }

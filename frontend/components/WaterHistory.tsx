@@ -119,12 +119,24 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
   const [focus, setFocus] = useState<{ date: string; n: number } | null>(null);   // đợt nước đang xem trên bản đồ
 
   const gen = useRef(0);                                        // đổi thửa giữa chừng → bỏ kết quả của thửa cũ
+  const started = useRef<number>(0);                            // lúc bắt đầu đọc — hiện thời gian thật, không hứa suông
+  // Thời gian chạy của CHÍNH lượt đọc trên máy chủ (elapsed_s) — mở trang khi lượt đọc đã chạy dở (người khác / tab
+  // khác đã bắt đầu) thì đồng hồ của trang này sẽ sai nếu chỉ đếm từ lúc mở.
+  const jobEl = useRef<{ el: number; at: number } | null>(null);
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (!busy) return;
+    const id = window.setInterval(() => setTick((n) => n + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [busy]);
 
   useEffect(() => { waterStatus().then((s) => setEnabled(s.enabled)).catch(() => setEnabled(false)); }, []);
 
   async function run() {
     const my = ++gen.current;
     if (timer.current) clearTimeout(timer.current);
+    started.current = Date.now();
+    jobEl.current = null;
     setBusy(true); setErr(null); setProg(null);
     try {
       const j = await waterStart(lat, lon);
@@ -135,6 +147,7 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
         try {
           const s = await waterPoll(id);
           if (my !== gen.current) return;
+          if (s.state === "running" && s.elapsed_s != null) jobEl.current = { el: s.elapsed_s, at: Date.now() };
           if (s.progress) setProg(s.progress);
           if (s.state === "done" && s.result) { setR(s.result); setBusy(false); return; }
           if (s.state === "error") { setErr(s.message || t("Việc chạy nền lỗi.", "Background job failed.")); setBusy(false); return; }
@@ -172,14 +185,23 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
       </div>
       {!r && busy && (
         <div className="wh-start" aria-live="polite">
-          <p>{t("Đang tự đọc toàn bộ ảnh radar Sentinel-1 từ 2017 của đúng thửa này (radar nhìn xuyên mây). Lần đầu ~2 phút — cứ xem các phần khác, xong sẽ tự hiện.",
-                "Reading every Sentinel-1 radar image since 2017 for this exact plot (radar sees through clouds). ~2 min the first time — keep browsing, it appears by itself.")}</p>
+          <p>{t("Đang tự đọc toàn bộ ảnh radar Sentinel-1 từ 2017 của đúng thửa này (radar nhìn xuyên mây). Thửa mới thường mất 1–3 phút, tuỳ số cảnh và độ bận của máy chủ — cứ xem các phần khác, xong sẽ tự hiện.",
+                "Reading every Sentinel-1 radar image since 2017 for this exact plot (radar sees through clouds). A new plot usually takes 1–3 minutes, depending on the number of scenes and server load — keep browsing, it appears by itself.")}</p>
           <div className="wh-prog" role="progressbar" aria-valuemin={0} aria-valuemax={prog?.total ?? 100}
                aria-valuenow={prog?.done ?? 0} aria-label={t("Tiến độ đọc ảnh radar", "Radar read progress")}>
             <span style={{ width: `${prog && prog.total ? Math.max(4, Math.round((prog.done / prog.total) * 100)) : 4}%` }} />
           </div>
-          <small>{prog ? t(`Đã đọc ${prog.done}/${prog.total} cảnh radar`, `Read ${prog.done}/${prog.total} radar scenes`)
-                       : t("Đang xếp hàng / tìm cảnh radar…", "Queued / finding radar scenes…")}</small>
+          <small>{(() => {
+            const el = Math.max(0, Math.round(jobEl.current ? jobEl.current.el + (Date.now() - jobEl.current.at) / 1000
+                                                           : (Date.now() - started.current) / 1000));
+            const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+            // Ước lượng phần còn lại theo TỐC ĐỘ THẬT của lượt này (sau ≥ 40 cảnh mới đủ tin), không theo con số cố định.
+            const left = prog && prog.done >= 40 && el > 0 ? Math.round(((prog.total - prog.done) * el) / prog.done) : null;
+            return (prog ? t(`Đã đọc ${prog.done}/${prog.total} cảnh radar`, `Read ${prog.done}/${prog.total} radar scenes`)
+                         : t("Đang xếp hàng / tìm cảnh radar…", "Queued / finding radar scenes…"))
+              + t(` · đã chạy ${mmss(el)}`, ` · ${mmss(el)} elapsed`)
+              + (left != null ? t(` · còn khoảng ${mmss(left)}`, ` · about ${mmss(left)} left`) : "");
+          })()}</small>
         </div>
       )}
       {err && <p className="bat-err">{err}</p>}
@@ -189,6 +211,7 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
       {r && !r.available && <p className="doc-note">{r.message}</p>}
       {r && r.available && (
         <>
+          {r.water_surface && <p className="wh-surface" role="note"><b>{t("Khung đo có mặt nước thường xuyên.", "The frame contains permanent water.")}</b> {r.water_surface.note}</p>}
           <p className="wh-sum"><b>{summary}</b></p>
           <Chart r={r} />
           {onScene && <MapScrubber r={r} lat={lat} lon={lon} onScene={onScene} focus={focus} />}

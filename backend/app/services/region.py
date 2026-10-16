@@ -107,6 +107,59 @@ def country_code(lat: float, lon: float) -> str | None:
     return jobs.single_flight(f"cc:{key}", _work)
 
 
+# ------------------------------------------------------------------ mặt nước THƯỜNG XUYÊN trong đất liền
+#
+# Kiểm biển ở trên chỉ nhìn cao độ quanh 5 km nên một điểm GIỮA LÒNG SÔNG vẫn là "đất". Đo 16/10/2026 tại
+# 15.8712, 108.3381 (sông Thu Bồn, Hội An): WorldCover 59,7% "Mặt nước"; nền radar p10 −19,1 dB, p25 −17,1,
+# p50 −12,7 → lịch sử nước 0 đợt (nước quanh năm thì không thể "thấp hơn nền ≥ 3 dB"), TerraScore 100/A.
+# So với đất thật (Huế, Điện Bàn, Cà Mau, Cần Thơ): WorldCover 0% nước, nền p10 −8,7…−11,8 dB.
+#
+#   CHẶN (không chấm điểm, không phát hành hồ sơ) khi ĐIỂM nằm trên nước:
+#     · WorldCover "Mặt nước" (mã 80) ≥ 50% trong bán kính 60 m, HOẶC
+#     · nền radar p25 < −18 dB (≥ 1/4 khung 200 m là nước ở hầu hết các lần chụp) — chỉ khi đã đọc lịch sử nước.
+#   KHÔNG chặn nhưng CẢNH BÁO khi chỉ nền p10 < −18 dB hoặc WorldCover nước 10–50%: khung đo có một phần mặt nước
+#   thường xuyên (kênh, ao) — xem water_history.water_surface().
+WC_WATER_CODE = 80
+WC_BLOCK_PCT = 50.0
+
+
+def inland_water(lat: float, lon: float) -> dict | None:
+    """Bằng chứng ĐIỂM này nằm trên mặt nước thường xuyên (sông, kênh, hồ, ao), hoặc None.
+
+    FAIL-OPEN: không lấy được WorldCover và chưa đọc lịch sử nước → None (không chặn ai vì nguồn ngoài chết).
+    Không gọi radar ở đây (vài phút) — chỉ dùng nền radar đã có trong cache."""
+    from app.services import cache_store, landuse, water_history as wh
+    ev: dict = {}
+    try:
+        raw = landuse.fetch_raw(lat, lon)
+    except Exception:  # noqa: BLE001
+        raw = None
+    if raw and raw.get("hist"):
+        hist = {int(k): float(v) for k, v in raw["hist"].items()}
+        tot = sum(hist.values()) or 1.0
+        ev["worldcover_water_pct"] = round(100.0 * hist.get(WC_WATER_CODE, 0.0) / tot, 1)
+    try:
+        h = cache_store.get(wh.cache_key(lat, lon))
+    except Exception:  # noqa: BLE001
+        h = None
+    base = (h or {}).get("baseline_db") if (h or {}).get("available") else None
+    if base:
+        ev["radar_baseline_db"] = {k: base[k] for k in ("p10", "p25", "p50") if k in base}
+    wc_hit = ev.get("worldcover_water_pct", 0.0) >= WC_BLOCK_PCT
+    radar_hit = bool(base) and base.get("p25", 0.0) < wh.WATER_DB
+    if not (wc_hit or radar_hit):
+        return None
+    why = []
+    if wc_hit:
+        why.append(tr(f"ESA WorldCover: {ev['worldcover_water_pct']:g}% quanh điểm là mặt nước thường xuyên",
+                      f"ESA WorldCover: {ev['worldcover_water_pct']:g}% around the point is permanent water"))
+    if radar_hit:
+        why.append(tr(f"nền radar Sentinel-1 của chính điểm này p25 = {base['p25']:g} dB (< {wh.WATER_DB:g} dB: nước ở hầu hết các lần chụp)",
+                      f"this point's own Sentinel-1 radar baseline p25 = {base['p25']:g} dB (< {wh.WATER_DB:g} dB: water in most scenes)"))
+    ev["why"] = why
+    return ev
+
+
 def classify(lat: float, lon: float, check_country: bool = True) -> dict:
     """Phân loại một toạ độ. Không bao giờ ném lỗi — hỏng thì trả 'unknown'."""
     from app.services import realdata
@@ -177,6 +230,22 @@ def classify(lat: float, lon: float, check_country: bool = True) -> dict:
                 "service area. Every model here is calibrated to Vietnam's "
                 "climate and terrain — running it elsewhere still produces a "
                 "number, but that number has no grounding."),
+        }
+
+    water = inland_water(lat, lon)
+    if water:
+        return {
+            "kind": "inland_water", "elevation_m": elev, "country": cc, "in_vietnam": in_vn,
+            "serviceable": False, "water": water,
+            "note": tr(
+                "Điểm này nằm trên MẶT NƯỚC THƯỜNG XUYÊN (sông, kênh, hồ, ao) — dời ô ngắm vào đúng thửa đất. "
+                "TerraTwin không chấm điểm và không phát hành hồ sơ cho mặt nước: \"0 đợt ngập\" ở đây chỉ vì nước "
+                "có sẵn quanh năm, không phải vì đất an toàn. Căn cứ: " + "; ".join(water["why"]) + ".",
+                "This point is on PERMANENT WATER (river, canal, lake, pond) — move the crosshair onto the actual plot. "
+                "TerraTwin does not score or issue dossiers for water surfaces: \"0 floods\" here only means the water "
+                "is there all year, not that the land is safe. Evidence: " + "; ".join(water["why"]) + "."),
+            "caveat": tr("Nếu đây là ao nuôi trồng thủy sản của bạn: TerraTwin chưa chấm rủi ro cho mặt nước nuôi trồng.",
+                         "If this is your aquaculture pond: TerraTwin does not yet score risk for aquaculture water."),
         }
 
     return {

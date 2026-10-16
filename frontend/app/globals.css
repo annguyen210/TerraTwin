@@ -5269,3 +5269,8 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 @container (max-width: 640px) { .tt-nav a { padding: 8px 9px; gap: 5px; } }
 @container (max-width: 560px) { .tt-nav a .tt-nav-l { display: none; } .tt-nav a { padding: 8px 11px; } .tt-nav a.on::after { left: 8px; right: 8px; } }
 @media (max-width: 1520px) { .tt-cmdk kbd { display: none; } .tt-admin span { display: none; } .acct-btn .acct-mail { max-width: 120px; } }
+
+.terra-scope { margin-top: 4px; font-size: .74rem; line-height: 1.35; color: var(--dim); }
+
+.wh-surface { margin: 0; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(224, 164, 74, .55); background: rgba(224, 164, 74, .1); font-size: .86rem; line-height: 1.45; }
+.cmp-water { color: #e0a44a; font-weight: 600; }

@@ -207,6 +207,14 @@ def template_sentences(facts: dict, cat: dict, lang: str | None = None) -> list[
                       f"Sentinel-1 radar saw no water over the plot in {w['n_scenes']} scenes, "
                       f"from {w['first']} to {w['last']}.", lang)
             ids = ["water.summary"]
+        # Hồ sơ phát hành từ 16/10/2026 có thể mang water_surface — hồ sơ cũ không có nên câu cũ giữ nguyên (lời diễn
+        # giải được dựng lại khi kiểm tệp).
+        ws = w.get("water_surface")
+        if ws:
+            text += _t(f" Lưu ý: {ws['share']} khung đo là mặt nước thường xuyên (nền p{ws['pct']} = {_num(ws['baseline_db'])} dB) — "
+                       "phần đó nước có quanh năm nên không đếm được đợt nước, \"0 đợt\" không có nghĩa là không ngập.",
+                       f" Note: {ws['share']} of the frame is permanent water (baseline p{ws['pct']} = {_num(ws['baseline_db'])} dB) — "
+                       "that part holds water all year, so no events can be counted there; \"0 events\" does not mean no flooding.", lang)
         else:
             last = w["events"][-1]["start"] if w.get("events") else None
             text = _t(f"Radar Sentinel-1 thấy nước phủ thửa {w['n_events']} đợt trong {w['n_scenes']} cảnh "

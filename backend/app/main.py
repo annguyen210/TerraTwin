@@ -654,13 +654,16 @@ def _off_site(module, loc: Location, reg: dict) -> Assessment:
                       "Đây là mặt nước — TerraTwin phục vụ đất liền và đảo có dân cư",
                       "This is open water — TerraTwin serves mainland and inhabited islands")
                   if reg["kind"] == "sea" else
+                  reqlang.tr("Điểm này nằm trên mặt nước thường xuyên (sông/kênh/ao) — dời ô ngắm vào đúng thửa",
+                             "This point is on permanent water (river/canal/pond) — move the crosshair onto the plot")
+                  if reg["kind"] == "inland_water" else
                   reqlang.tr(
                       f"Toạ độ ngoài phạm vi phục vụ ({(reg.get('country') or '?').upper()})",
                       f"Coordinate outside the service area ({(reg.get('country') or '?').upper()})")),
         detail=reg.get("note") or "",
         recommendation=(reqlang.tr("Bấm lại vào phần đất gần nhất.",
                                    "Click the nearest land instead.")
-                        if reg["kind"] == "sea" else
+                        if reg["kind"] in ("sea", "inland_water") else
                         reqlang.tr("TerraTwin hiệu chuẩn theo khí hậu và địa hình Việt Nam.",
                                    "TerraTwin is calibrated to Vietnam's climate and terrain.")),
         confidence=None,
@@ -711,7 +714,9 @@ def scan_endpoint(location: Location, deep: bool = False, lang: str = "vi") -> S
             terrascore=TerraScoreResult(
                 location=location, score=0, grade="—",
                 summary=reg.get("note") or reqlang.tr("Ngoài phạm vi phục vụ.", "Out of service area."),
-                real_data_ratio=0.0),
+                # region đi KÈM TerraScore: thẻ thửa đọc terrascore.region để ẩn điểm + khoá "Phát hành hồ sơ"
+                # (16/10/2026: thiếu trường này nên điểm giữa sông vẫn hiện huy hiệu và nút phát hành).
+                real_data_ratio=0.0, region=reg),
             modules=[], alerts=[], real_data_ratio=0.0, region=reg,
             generated_at=datetime.now(timezone.utc).isoformat(timespec="seconds"))
 
@@ -722,6 +727,8 @@ def scan_endpoint(location: Location, deep: bool = False, lang: str = "vi") -> S
     r = scan.scan(location, include_heavy=deep,
                   deadline=None if deep else scan.FAST_DEADLINE)
     r.region = reg
+    if r.terrascore is not None:
+        r.terrascore.region = reg
     return r
 
 

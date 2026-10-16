@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 import os
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -55,7 +55,7 @@ def water_history_start(body: WaterIn, request: Request, lang: str = "vi",
                                     "Radar water history not enabled: it has not passed its verification gate yet."))
     hit = cache_store.get(water_history.cache_key(body.lat, body.lon))
     if hit is not None:
-        return {"state": "done", "result": hit}
+        return {"state": "done", "result": water_history._annotate(hit)}
     # Giao diện TỰ đọc khi mở thửa (mục 4 báo cáo 12/10/2026): nhiều tab / nhiều người cùng mở một thửa thì nối vào
     # việc đang chạy, không xếp thêm việc và không trừ hạn mức lần nữa.
     from app.db import Job
@@ -68,6 +68,40 @@ def water_history_start(body: WaterIn, request: Request, lang: str = "vi",
     enforce_quota("screen", request, user)
     job_id = jobs_db.submit(db, water_history.JOB_KIND, {"lat": body.lat, "lon": body.lon}, label=label)
     return {"state": "queued", "job_id": job_id}
+
+
+@router.post("/api/water/warm-demo")
+def water_warm_demo(authorization: str | None = Header(default=None), x_cron_key: str | None = Header(default=None),
+                    db: Session = Depends(get_session)) -> dict:
+    """Hâm nóng lịch sử nước radar + loại đất AlphaEarth cho các thửa demo (services/demo_plots.py).
+
+    Thửa nào đã có trong cache thì bỏ qua; đang đọc thì không xếp thêm. Lịch sử nước chạy qua hàng đợi bền như
+    người dùng bấm; loại đất chạy tuần tự trong một luồng nền (mỗi thửa ~10–15 s, rồi nằm trong cache)."""
+    import threading
+    from app.db import Job
+    from app.routes_data import _require_cron_or_admin
+    from app.services import aef_landuse, demo_plots
+    _require_cron_or_admin(authorization, x_cron_key, db)
+    out = []
+    for lat, lon, name in demo_plots.DEMO_PLOTS:
+        if cache_store.get(water_history.cache_key(lat, lon)) is not None:
+            out.append({"name": name, "water": "cached"})
+            continue
+        label = f"Lịch sử nước {lat:.4f},{lon:.4f}"
+        running = db.query(Job).filter(Job.kind == water_history.JOB_KIND, Job.label == label,
+                                       Job.state.in_(("queued", "running"))).first()
+        jid = running.id if running else jobs_db.submit(db, water_history.JOB_KIND, {"lat": lat, "lon": lon}, label=label)
+        out.append({"name": name, "water": "running" if running else "queued", "job_id": jid})
+
+    def _landcover():
+        for lat, lon, _ in demo_plots.DEMO_PLOTS:
+            try:
+                aef_landuse.change(lat, lon)
+            except Exception:  # noqa: BLE001 — một thửa hỏng không dừng cả lượt
+                pass
+    if gate()["passed"]:
+        threading.Thread(target=_landcover, name="warm-landcover", daemon=True).start()
+    return {"plots": out, "n_cached": sum(1 for o in out if o["water"] == "cached"), "n_total": len(out)}
 
 
 @router.get("/api/water/scene")

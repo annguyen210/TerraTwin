@@ -105,3 +105,14 @@ def _khong_goi_overpass_that(monkeypatch, request):
         return
     from app.services import osm
     monkeypatch.setattr(osm, "_query", lambda q: None)
+
+
+@pytest.fixture(autouse=True)
+def _khong_tra_mat_nuoc_that(monkeypatch, request):
+    """region.inland_water() gọi WorldCover (Planetary Computer) cho MỌI toạ độ đất liền — trong test, mặc định coi
+    như không phải mặt nước để các test chấm điểm / quét không chạm mạng. Test về mặt nước tự bật lại bằng
+    @pytest.mark.mat_nuoc_that hoặc monkeypatch landuse.fetch_raw của riêng nó."""
+    if "mat_nuoc_that" in request.keywords:
+        return
+    from app.services import region
+    monkeypatch.setattr(region, "inland_water", lambda lat, lon: None)

@@ -82,7 +82,7 @@ export default function EmbedPage() {
             <span style={{ fontSize: 9 }}>/100</span>
           </div>
           <div>
-            <div style={{ fontWeight: 700, color: GRADE[g] ?? "#567" }}>TerraScore hạng {g}</div>
+            <div style={{ fontWeight: 700, color: GRADE[g] ?? "#567" }}>TerraScore hạng {g} · hiểm hoạ 7 ngày tới</div>
             <div style={{ fontSize: 13 }}>Rủi ro 7 ngày tới:{" "}
               <b style={{ color: riskColor }}>{riskLabel}</b></div>
           </div>

@@ -84,7 +84,7 @@ export type Assessment = {
   data_sources: string[];
 };
 
-export type TerraScore = {
+export type TerraScore = { scope?: string;
   location: { lat: number; lon: number };
   region?: RegionInfo;
   score: number;
@@ -223,7 +223,7 @@ export type ScanModule = {
 };
 
 export type RegionInfo = {
-  kind: "land" | "sea" | "foreign" | "unknown";
+  kind: "land" | "sea" | "inland_water" | "foreign" | "unknown";
   serviceable: boolean;
   elevation_m?: number | null;
   land_neighbours?: number | null;
@@ -231,6 +231,7 @@ export type RegionInfo = {
   in_vietnam?: boolean | null;
   note?: string | null;
   caveat?: string | null;
+  water?: { worldcover_water_pct?: number; radar_baseline_db?: Record<string, number>; why: string[] } | null;
 };
 
 export type ScanResult = {
@@ -2686,9 +2687,11 @@ export type WaterEvent = { start: string; end: string; n_scenes: number; dates: 
   flag_pct?: number; min_flag_db?: number; flag_date?: string };
 export type WaterHistoryResult = { available: boolean; message?: string; n_scenes: number; first: string; last: string;
   track: { orbit: string; relative_orbit: number; collection: string }; events: WaterEvent[]; n_events: number;
-  baseline_db: Record<string, number>; series: [string, number, number][]; method: string; limits: string; computed: string };
+  baseline_db: Record<string, number>; series: [string, number, number][]; method: string; limits: string; computed: string;
+  water_surface?: { share: string; pct: number; baseline_db: number; note: string } | null };
 export type WaterJob = { state: "queued" | "running" | "done" | "error"; job_id?: string; id?: string;
-  progress?: { done: number; total: number }; result?: WaterHistoryResult; message?: string };
+  progress?: { done: number; total: number }; result?: WaterHistoryResult; message?: string;
+  elapsed_s?: number; queued_s?: number };
 export function waterStatus() {
   return getJson<{ enabled: boolean; gate: { passed: boolean; run_at: string | null } }>(`/api/water/status?lang=${curLang()}`,
     "Không tải được trạng thái lịch sử nước");
@@ -2831,7 +2834,7 @@ export function markJournalSeen(plotId: number) {
     "Không đánh dấu được");
 }
 export type CompareResult = {
-  columns: { name: string; lat: number; lon: number; water_read: boolean }[];
+  columns: { name: string; lat: number; lon: number; water_read: boolean; on_water?: boolean }[];
   rows: { key: string; label: string; unit: string; values: (number | string | null)[]; best: number[] | null; source: string }[];
   note: string;
 };

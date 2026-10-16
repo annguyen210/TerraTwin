@@ -88,6 +88,10 @@ def _water_section(lat: float, lon: float) -> dict | None:
             "events": [{k: e[k] for k in ("start", "end", "peak_cover", "n_scenes", "min_p50_db", "flag_pct", "min_flag_db")
                         if k in e} for e in r["events"]],
             "rule": {"water_db": wh.WATER_DB, "drop_db": wh.DROP_DB, "merge_gap_days": wh.MERGE_GAP_DAYS},
+            # Khung đo có mặt nước thường xuyên (16/10/2026): "0 đợt" ở phần đó không có nghĩa là không ngập — ghi vào
+            # phần ĐÃ KÝ để người nhận hồ sơ thấy, không chỉ người xem trên web.
+            **({"water_surface": {k: ws[k] for k in ("share", "pct", "baseline_db")}}
+               if (ws := wh.water_surface(r.get("baseline_db"))) else {}),
             "method": r["method"], "limits": r["limits"]}
 
 

@@ -142,7 +142,10 @@ export default function MapView({
         },
         layers: [
           { id: "sat", type: "raster", source: "sat" },
-          { id: "labels", type: "raster", source: "labels" },
+          // Nhãn ESRI ở Việt Nam chỉ có tới z14 (z15+ là ô trong suốt — đo 16/10/2026 tại Hội An). Khi bay tới zoom
+          // sâu, MapLibre phóng to ô z14 làm ảnh giữ chỗ → chữ "Phường…" cao cả trăm điểm ảnh, vỡ hạt. Ẩn lớp nhãn
+          // từ z15: ở đó nguồn vốn không có nhãn nào.
+          { id: "labels", type: "raster", source: "labels", maxzoom: 15 },
         ],
       },
       center: [106.3, 9.6],

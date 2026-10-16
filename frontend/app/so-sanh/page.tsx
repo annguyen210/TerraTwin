@@ -71,8 +71,8 @@ export default function ComparePage() {
     (async () => {
       try { if (!(await waterStatus()).enabled) return; } catch { return; }
       let done = 0;
-      setReading(t(`Đang tự đọc lịch sử nước radar cho ${todo.length} thửa (~2 phút mỗi thửa lần đầu)…`,
-                   `Reading radar water history for ${todo.length} plot(s) (~2 min each the first time)…`));
+      setReading(t(`Đang tự đọc lịch sử nước radar cho ${todo.length} thửa (thửa mới thường 1–3 phút mỗi thửa)…`,
+                   `Reading radar water history for ${todo.length} plot(s) (a new plot usually 1–3 min each)…`));
       await Promise.all(todo.map(async (c) => {
         try {
           const j = await waterStart(c.lat, c.lon);
@@ -134,6 +134,7 @@ export default function ComparePage() {
                 <div key={i} className="cmp-col" role="columnheader">
                   <b>{c.name}</b>
                   <Link prefetch={false} href={`/plot/${c.lat},${c.lon}`}>{c.lat.toFixed(4)}, {c.lon.toFixed(4)}</Link>
+                  {c.on_water && <small className="cmp-water">{t("⚠ Điểm nằm trên mặt nước thường xuyên — dời ô ngắm vào đúng thửa", "⚠ Point is on permanent water — move it onto the plot")}</small>}
                   {!c.water_read && <small>{reading ? t("Đang đọc lịch sử nước…", "Reading water history…") : t("Chưa đọc được lịch sử nước", "Water history not available yet")}</small>}
                   <button type="button" className="cmp-x" aria-label={t(`Bỏ ${c.name}`, `Remove ${c.name}`)}
                           onClick={() => setPts((pts ?? []).filter((_, j) => j !== i))}>×</button>

@@ -145,6 +145,33 @@ def events(rows: list[dict], base: dict) -> list[dict]:
     return out
 
 
+def water_surface(base: dict | None) -> dict | None:
+    """Khung đo có MẶT NƯỚC THƯỜNG XUYÊN không (theo nền của chính thửa)?
+
+    Nền một phân vị dưới ngưỡng nước nghĩa là phần khung đó là nước ở HẦU HẾT các lần chụp — nước quanh năm thì
+    không bao giờ "thấp hơn nền ≥ 3 dB", nên "0 đợt nước" ở phần đó KHÔNG có nghĩa là không ngập (16/10/2026,
+    giữa sông Thu Bồn: nền p10 −19,1 dB, 0 đợt). Trả mức ≥ 10% / ≥ 25% / ≥ 50% khung, hoặc None."""
+    if not base:
+        return None
+    for p, share in ((50, "≥50%"), (25, "≥25%"), (10, "≥10%")):
+        v = base.get(f"p{p}")
+        if v is not None and v < WATER_DB:
+            return {"share": share, "pct": p, "baseline_db": v,
+                    "note": tr(f"{share} khung đo 200 m là MẶT NƯỚC THƯỜNG XUYÊN (nền p{p} = {v:g} dB < {WATER_DB:g} dB). "
+                               "Phần đó nước có sẵn quanh năm nên không đếm được \"đợt nước\" — \"0 đợt\" không có nghĩa là không ngập. "
+                               "Kiểm lại ô ngắm có nằm đúng thửa đất không.",
+                               f"{share} of the 200 m frame is PERMANENT WATER (baseline p{p} = {v:g} dB < {WATER_DB:g} dB). "
+                               "That part holds water all year, so no \"water events\" can be counted there — \"0 events\" does not mean no flooding. "
+                               "Check that the crosshair is on the actual plot.")}
+    return None
+
+
+def _annotate(r: dict) -> dict:
+    if r.get("available"):
+        r = {**r, "water_surface": water_surface(r.get("baseline_db"))}
+    return r
+
+
 def history(lat: float, lon: float, radius_m: float = RADIUS_M, today: date | None = None,
             progress=None, use_cache: bool = True) -> dict:
     today = today or date.today()
@@ -152,7 +179,7 @@ def history(lat: float, lon: float, radius_m: float = RADIUS_M, today: date | No
     if use_cache:
         hit = cache_store.get(key)
         if hit is not None:
-            return hit
+            return _annotate(hit)
     box = mpc.bbox_around(lat, lon, radius_m)
     orbit, rel, items = pick_track(_items(box, today))
     if not items:
@@ -197,7 +224,7 @@ def history(lat: float, lon: float, radius_m: float = RADIUS_M, today: date | No
         "computed": datetime.utcnow().isoformat(timespec="seconds") + "Z",
     }
     cache_store.put(key, out, ttl_seconds=_RESULT_TTL)
-    return out
+    return _annotate(out)
 
 
 TILER = "https://planetarycomputer.microsoft.com/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x"

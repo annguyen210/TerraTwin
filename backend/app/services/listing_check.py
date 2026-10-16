@@ -85,7 +85,7 @@ def _water(lat: float, lon: float) -> dict | None:
     if not routes_water.gate()["passed"]:
         return None
     r = cache_store.get(wh.cache_key(lat, lon))
-    return r if r and r.get("available") else None
+    return wh._annotate(r) if r and r.get("available") else None
 
 
 def _nearest_river_km(lat: float, lon: float, radius_m: float = 3000.0) -> float | None:
@@ -133,10 +133,13 @@ def evidence(lat: float, lon: float, types: set[str]) -> dict:
 def judge(typ: str, ev: dict) -> tuple[str, str, str]:
     """(verdict, bằng chứng, nguồn). verdict ∈ consistent | contradicted | insufficient."""
     w, terr = ev.get("water"), ev.get("terrain")
+    if typ in ("no_flood", "high_ground") and w and w.get("water_surface"):
+        ws = w["water_surface"]
+        return ("contradicted" if ws["pct"] >= 25 else "insufficient"), ws["note"], "Sentinel-1 RTC"
     if typ == "no_flood":
         if not w:
-            return "insufficient", tr("Chưa đọc lịch sử nước radar cho thửa này — bấm \"Xem lịch sử nước\" (~2 phút) rồi kiểm lại.",
-                                      "Radar water history not read for this plot yet — click \"Show water history\" (~2 min) and re-check."), "Sentinel-1"
+            return "insufficient", tr("Chưa đọc lịch sử nước radar cho thửa này — đọc lịch sử nước (thường 1–3 phút với thửa mới) rồi kiểm lại.",
+                                      "Radar water history not read for this plot yet — read the water history (usually 1–3 min for a new plot) and re-check."), "Sentinel-1"
         if w["n_events"] > 0:
             dates = ", ".join(e["start"] for e in w["events"][-3:])
             return "contradicted", tr(f"Radar ghi nhận nước phủ {w['n_events']} đợt từ {w['first'][:4]} (gần nhất: {dates}).",
@@ -206,16 +209,24 @@ def judge(typ: str, ev: dict) -> tuple[str, str, str]:
 
 
 def check(text: str, lat: float, lon: float) -> dict:
+    from app.services import region
     claims = extract(text)
     ev = evidence(lat, lon, {c["type"] for c in claims}) if claims else {}
+    # Điểm nằm TRÊN mặt nước thường xuyên (16/10/2026: giữa sông Thu Bồn, 0 đợt nước chỉ vì nước có quanh năm):
+    # câu "không ngập"/"cao ráo" mâu thuẫn với chính vị trí, không được chấm "khớp".
+    on_water = region.inland_water(lat, lon) if any(c["type"] in ("no_flood", "high_ground") for c in claims) else None
     rows = []
     for c in claims:
         verdict, msg, src = judge(c["type"], ev)
+        if on_water and c["type"] in ("no_flood", "high_ground"):
+            verdict, src = "contradicted", "ESA WorldCover / Sentinel-1"
+            msg = tr("Điểm đang chọn nằm trên mặt nước thường xuyên (sông/kênh/ao): ", "The selected point is on permanent water (river/canal/pond): ") + "; ".join(on_water["why"]) + "."
         rows.append({**c, "label": _label(c["type"]), "verdict": verdict, "evidence": msg, "source": src})
     count = {v: sum(1 for r in rows if r["verdict"] == v) for v in ("consistent", "contradicted", "insufficient")}
     # Câu về ngập/cao ráo cần lịch sử nước radar; chưa đọc thì giao diện mời đọc (~2 phút) rồi tự đối chiếu lại.
     needs_water = any(r["type"] in ("no_flood", "high_ground") for r in rows) and not ev.get("water")
-    return {"claims": rows, "counts": count, "location": {"lat": lat, "lon": lon}, "needs_water": needs_water,
+    return {"claims": rows, "counts": count, "location": {"lat": lat, "lon": lon}, "needs_water": needs_water and not on_water,
+            "on_water": on_water,
             "note": tr("Đối chiếu từ dữ liệu đo, lời văn trung lập — không phải kết luận pháp lý về người bán. "
                        "Nội dung tin đăng không được lưu.",
                        "Compared against measured data, in neutral wording — not a legal finding about the seller. "

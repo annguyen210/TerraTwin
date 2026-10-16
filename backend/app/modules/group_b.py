@@ -215,13 +215,16 @@ class StormDamageModule(TwinModule):
 
 
 class LandRiskModule(TwinModule):
-    id = "land_risk"; name = "Rủi ro trước khi mua đất"; name_en = "Pre-purchase land risk"; group = "B"; icon = "🏘️"; status = "active"
+    id = "land_risk"; name = "Nền đất khi mua"; name_en = "Land base for purchase"; group = "B"; icon = "🏘️"; status = "active"
     # Đây là điểm thẩm định MỘT LẦN trước khi mua, không phải sự việc sắp xảy
     # ra. Với thửa đã sở hữu, nhắc lại mỗi sáu giờ rằng "đất này trũng" là phiền
     # chứ không phải cảnh báo — nền đất không đổi từ hôm qua.
     threat = False
-    data_sources = ["Cao độ DEM Copernicus", "Open-Meteo: lượng mưa", "Khoảng cách biển"]
-    data_sources_en = ["Copernicus DEM elevation", "Open-Meteo: rainfall", "Distance to coast"]
+    # CỐ ĐỊNH theo địa hình (16/10/2026): trước đây cộng cả mưa dự báo 7 ngày vào điểm "mua đất" — điểm mua đất đổi
+    # theo thời tiết tuần này là vô nghĩa, và chồng lên TerraScore (hiểm hoạ 7 ngày). Lịch sử ngập thật xem ở "Lịch
+    # sử nước" (radar 2017→nay), không đoán từ mưa dự báo.
+    data_sources = ["Cao độ DEM Copernicus", "Độ dốc DEM", "Khoảng cách biển"]
+    data_sources_en = ["Copernicus DEM elevation", "DEM slope", "Distance to coast"]
     users = ["Người mua nhà đất", "Môi giới", "Ngân hàng"]
     description = "Nhập vị trí → lô này có ngập/sạt lở không, an toàn không."
     users_en = ["Land & home buyers", "Brokers", "Banks"]
@@ -231,32 +234,29 @@ class LandRiskModule(TwinModule):
         elev = ds.elevation_proxy(loc.lat, loc.lon)          # thật (Open-Meteo)
         slope, slope_real = ds.slope_context(loc.lat, loc.lon)
         dist = ds.distance_to_coast_km(loc.lat, loc.lon)
-        precip, has_rain = ds.forecast_precip_7d_total(loc.lat, loc.lon)
 
-        flood_pen = max(0.0, 30.0 - elev * 1.2)
-        if precip is not None:
-            flood_pen = min(45.0, flood_pen + precip * 0.15)
-        slide_pen = min(30.0, slope * 1.2)
-        salt_pen = max(0.0, 20.0 - dist * 0.4)
+        flood_pen = max(0.0, 30.0 - elev * 1.2)              # trũng thấp
+        slide_pen = min(30.0, slope * 1.2)                   # dốc
+        salt_pen = max(0.0, 20.0 - dist * 0.4)               # gần biển (mặn, triều)
         score = int(max(0.0, 100.0 - flood_pen - slide_pen - salt_pen))
         lvl = "safe" if score >= 75 else "warning" if score >= 50 else "danger"
-        head = tr(f"Điểm an toàn đất: {score}/100", f"Land safety score: {score}/100")
+        head = tr(f"Điểm nền đất khi mua: {score}/100 (địa hình, cố định)", f"Land base score for purchase: {score}/100 (terrain, fixed)")
         rec = (tr("An toàn để mua/đầu tư.", "Safe to buy/invest.") if lvl == "safe"
                else tr("Có rủi ro — thương lượng giá & kiểm tra kỹ.", "Some risk — negotiate price & inspect carefully.") if lvl == "warning"
                else tr("Rủi ro cao — cân nhắc rất kỹ trước khi mua.", "High risk — consider very carefully before buying."))
         slope_lbl = "THẬT " if slope_real else ""
-        detail = (tr(f"Cao độ THẬT ~{elev} m · dốc {slope_lbl}~{slope}° · cách biển ~{round(dist,1)} km",
-                     f"REAL elevation ~{elev} m · slope ~{slope}° · {round(dist,1)} km from coast")
-                  + (tr(f" · mưa dự báo 7 ngày tới ~{precip} mm (Open-Meteo).", f" · 7-day rain forecast ~{precip} mm (Open-Meteo).") if has_rain
-                     else tr(" (mưa: mẫu).", " (rain: sample).")))
+        detail = (tr(f"Cao độ THẬT ~{elev} m · dốc {slope_lbl}~{slope}° · cách biển ~{round(dist,1)} km. ",
+                     f"REAL elevation ~{elev} m · slope ~{slope}° · {round(dist,1)} km from coast. ")
+                  + tr("Phạm vi: chỉ nền địa hình — không đổi theo thời tiết. Hiểm hoạ 7 ngày tới là TerraScore; "
+                       "lịch sử ngập đo bằng radar xem ở \"Lịch sử nước\".",
+                       "Scope: terrain base only — does not change with the weather. The 7-day hazard outlook is TerraScore; "
+                       "the radar-measured flood history is in \"Water history\"."))
         metrics = {"diem": float(score), "cao_do_m": elev, "do_doc_deg": slope}
-        if precip is not None:
-            metrics["mua_7ngay_mm"] = precip
         return Assessment(
             module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
             risk_level=lvl, headline=head, score=float(score), detail=detail,
             recommendation=rec, confidence=0.68, confidence_low=0.55, confidence_high=0.78,
-            is_real=bool(has_rain and slope_real), metrics=metrics, data_sources=self.disp_data_sources())
+            is_real=bool(slope_real), metrics=metrics, data_sources=self.disp_data_sources())
 
 
 class IllegalBuildModule(TwinModule):
