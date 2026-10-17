@@ -65,7 +65,7 @@ def summary(path: str) -> int:
     total = sum(r["total"] for r in live)
     weak = [r["at"][:10] for r in live if sum(p["rain_ok"] for p in r["plots"]) < 5]
     print(f"{len(dates)} ngày sống ({dates[0] if dates else '—'} → {dates[-1] if dates else '—'}): {total} sự kiện bật cờ, "
-          f"{junk} rác; ngày thiếu nguồn mưa (<5/6 thửa): {weak or 'không'}")
+          f"{junk} rác; ngày thiếu nguồn mưa (<5/{len(PLOTS)} thửa): {weak or 'không'}")
     for r in live:
         for p in r["plots"]:
             for s in p["significant"]:
