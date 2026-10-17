@@ -87,7 +87,7 @@ export type Assessment = {
 export type TerraScore = { scope?: string;
   location: { lat: number; lon: number };
   region?: RegionInfo;
-  score: number;
+  score: number | null;           // null = không chấm (mặt nước, ngoài phạm vi, thiếu dữ liệu thật)
   grade: string;
   summary: string;
   breakdown: Record<string, number>;
@@ -2688,7 +2688,10 @@ export type WaterEvent = { start: string; end: string; n_scenes: number; dates: 
 export type WaterHistoryResult = { available: boolean; message?: string; n_scenes: number; first: string; last: string;
   track: { orbit: string; relative_orbit: number; collection: string }; events: WaterEvent[]; n_events: number;
   baseline_db: Record<string, number>; series: [string, number, number][]; method: string; limits: string; computed: string;
-  water_surface?: { share: string; pct: number; baseline_db: number; note: string } | null };
+  water_surface?: { share: string; pct: number; baseline_db: number; note: string } | null;
+  urban?: { built_pct: number; note: string } | null;
+  canopy?: { tree_pct: number; note: string } | null;
+  cropland?: { crop_pct: number; note: string } | null };
 export type WaterJob = { state: "queued" | "running" | "done" | "error"; job_id?: string; id?: string;
   progress?: { done: number; total: number }; result?: WaterHistoryResult; message?: string;
   elapsed_s?: number; queued_s?: number };

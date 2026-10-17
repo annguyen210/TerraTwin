@@ -166,9 +166,87 @@ def water_surface(base: dict | None) -> dict | None:
     return None
 
 
-def _annotate(r: dict) -> dict:
+URBAN_BUILT_PCT = 40.0      # WorldCover "Bề mặt xây dựng" (mã 50) trong khung đo → khu đô thị
+
+
+CANOPY_PCT = 60.0          # WorldCover Tán cây (10) + Rừng ngập mặn (95) trong khung đo → tán dày che mặt nước
+CROP_PCT = 50.0            # WorldCover Đất trồng trọt (40) → nhắc: nước tưới theo vụ cũng hiện thành "đợt nước"
+
+
+def _frame_pct(lat: float, lon: float) -> dict[int, float] | None:
+    """Tỉ lệ % từng mã WorldCover trong ĐÚNG khung đo radar (bán kính RADIUS_M), hoặc None nếu không đọc được."""
+    from app.services import landuse
+    try:
+        raw = landuse.fetch_raw(lat, lon, RADIUS_M)
+    except Exception:  # noqa: BLE001
+        return None
+    if not raw or not raw.get("hist"):
+        return None
+    hist = {int(k): float(v) for k, v in raw["hist"].items()}
+    tot = sum(hist.values()) or 1.0
+    return {k: 100.0 * v / tot for k, v in hist.items()}
+
+
+def canopy(lat: float, lon: float) -> dict | None:
+    """Khung đo dưới TÁN CÂY DÀY (rừng, vườn dừa, cà phê, rừng ngập mặn): sóng radar băng C không xuyên tán dày nên
+    không thấy nước bên dưới — "0 đợt" ở đây cũng KHÔNG có nghĩa là không ngập (cùng loại sai với đô thị, 17/10/2026)."""
+    f = _frame_pct(lat, lon)
+    if not f:
+        return None
+    pct = round(f.get(10, 0.0) + f.get(95, 0.0), 1)
+    if pct < CANOPY_PCT:
+        return None
+    return {"tree_pct": pct,
+            "note": tr(f"Tán cây dày (ESA WorldCover: {pct:g}% khung đo là tán cây/rừng ngập mặn): radar KHÔNG nhìn thấy được nước "
+                       "dưới tán — \"0 đợt\" ở đây KHÔNG có nghĩa là không ngập.",
+                       f"Dense tree canopy (ESA WorldCover: {pct:g}% of the frame is tree cover/mangrove): radar CANNOT see water "
+                       "beneath the canopy — \"0 events\" here does NOT mean no flooding.")}
+
+
+def cropland(lat: float, lon: float) -> dict | None:
+    """Khung đo là ruộng: nước TƯỚI theo vụ (cho nước vào ruộng lúa) cũng làm VV tụt như lũ, nên một phần "đợt nước phủ"
+    có thể là nước tưới. Đo 17/10/2026: ruộng phía đông Huế 16.43, 107.65 có đợt tháng 5–6 và 9–10 hằng năm (lịch cho
+    nước), trong khi đồng lúa Quảng Điền 7 đợt đều rơi vào mùa lũ 10–1. Chỉ là LỜI NHẮC — không đổi quy tắc đã qua cổng."""
+    f = _frame_pct(lat, lon)
+    if not f or f.get(40, 0.0) < CROP_PCT:
+        return None
+    pct = round(f.get(40, 0.0), 1)
+    return {"crop_pct": pct,
+            "note": tr(f"Ruộng (ESA WorldCover: {pct:g}% khung đo là đất trồng trọt): nước tưới theo vụ cũng làm radar thấy \"nước phủ\" — "
+                       "đối chiếu tháng của từng đợt với mùa lũ địa phương trước khi kết luận là lũ.",
+                       f"Cropland (ESA WorldCover: {pct:g}% of the frame): seasonal irrigation also shows up as \"water cover\" — "
+                       "compare each event's month with the local flood season before calling it a flood.")}
+
+
+def urban(lat: float, lon: float) -> dict | None:
+    """Khung đo radar (bán kính 100 m) có phải KHU ĐÔ THỊ không — nơi radar KHÔNG nhìn thấy được ngập.
+
+    Giữa nhà cửa, sóng radar dội hai lần (mặt nước → tường → vệ tinh) nên vùng ngập trông SÁNG chứ không tối; "0 đợt
+    nước" ở đó không có nghĩa là không ngập. Đo 17/10/2026 trên production, tin "Nhà phố không bao giờ ngập nước" bị
+    chấm Khớp ở Hoàn Kiếm (0 đợt/284 cảnh), TP Bến Tre (0/451), TP Cà Mau (0/440). FAIL-OPEN: không đọc được
+    WorldCover → None (không suy diễn là đô thị)."""
+    f = _frame_pct(lat, lon)
+    if not f:
+        return None
+    pct = round(f.get(50, 0.0), 1)
+    if pct < URBAN_BUILT_PCT:
+        return None
+    return {"built_pct": pct,
+            "note": tr(f"Khu đô thị (ESA WorldCover: {pct:g}% khung đo là bề mặt xây dựng): radar KHÔNG nhìn thấy được ngập giữa "
+                       "nhà cửa — sóng dội vào tường làm nước trông sáng như đất. \"0 đợt\" ở đây KHÔNG có nghĩa là không ngập; "
+                       "hỏi người dân, chính quyền địa phương hoặc bản đồ điểm ngập của đô thị.",
+                       f"Urban area (ESA WorldCover: {pct:g}% of the frame is built-up): radar CANNOT see flooding between "
+                       "buildings — the signal bounces off walls, making water look as bright as land. \"0 events\" here does NOT "
+                       "mean no flooding; ask residents, local authorities or the city's flood-spot map.")}
+
+
+def _annotate(r: dict, lat: float | None = None, lon: float | None = None) -> dict:
     if r.get("available"):
         r = {**r, "water_surface": water_surface(r.get("baseline_db"))}
+        if lat is not None and lon is not None:
+            r["urban"] = urban(lat, lon)
+            r["canopy"] = None if r["urban"] else canopy(lat, lon)
+            r["cropland"] = cropland(lat, lon) if r.get("n_events") else None
     return r
 
 
@@ -179,7 +257,7 @@ def history(lat: float, lon: float, radius_m: float = RADIUS_M, today: date | No
     if use_cache:
         hit = cache_store.get(key)
         if hit is not None:
-            return _annotate(hit)
+            return _annotate(hit, lat, lon)
     box = mpc.bbox_around(lat, lon, radius_m)
     orbit, rel, items = pick_track(_items(box, today))
     if not items:
@@ -224,7 +302,7 @@ def history(lat: float, lon: float, radius_m: float = RADIUS_M, today: date | No
         "computed": datetime.utcnow().isoformat(timespec="seconds") + "Z",
     }
     cache_store.put(key, out, ttl_seconds=_RESULT_TTL)
-    return _annotate(out)
+    return _annotate(out, lat, lon)
 
 
 TILER = "https://planetarycomputer.microsoft.com/api/data/v1/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x"

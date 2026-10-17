@@ -135,3 +135,16 @@ def test_ham_nong_thua_demo_can_khoa_cron_bo_qua_thua_da_co(monkeypatch):
         again = c.post("/api/water/warm-demo", headers={"X-Cron-Key": "khoa-thu"}).json()
         assert all(p["water"] == "running" for p in again["plots"][1:])          # gọi lại không xếp đôi
         assert [p["job_id"] for p in again["plots"][1:]] == [p["job_id"] for p in r["plots"][1:]]
+
+
+def test_danh_sach_chon_nhanh_khop_giua_giao_dien_va_may_chu():
+    """Ba nơi giữ cùng 8 điểm chọn nhanh: Start.tsx (giao diện), demo_plots (hâm nóng radar), warm (hâm hiệu chuẩn)."""
+    import os
+    import re
+    from app import warm
+    from app.services import demo_plots
+    src = open(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "components", "Start.tsx"), encoding="utf-8").read()
+    ui = [(float(a), float(b)) for a, b in re.findall(r"lat: ([\d.]+), lon: ([\d.]+), note:", src)]
+    assert len(ui) == 8
+    assert ui == [(la, lo) for la, lo, _ in warm.DEMO]
+    assert ui == [(la, lo) for la, lo, _ in demo_plots.DEMO_PLOTS[1:9]]

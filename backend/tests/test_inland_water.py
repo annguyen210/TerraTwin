@@ -79,9 +79,9 @@ def test_api_khong_cham_terrascore_khong_quet_khong_phat_hanh_ho_so(fake):
     lat, lon = HOI_AN
     with TestClient(app) as c:
         t = c.post("/api/terrascore", json={"lat": lat, "lon": lon}).json()
-        assert t["grade"] == "—" and t["score"] == 0 and t["region"]["kind"] == "inland_water"
+        assert t["grade"] == "—" and t["score"] is None and t["region"]["kind"] == "inland_water"   # null, không phải 0 (17/10)
         s = c.post("/api/scan", json={"lat": lat, "lon": lon}).json()
-        assert s["modules"] == [] and s["terrascore"]["grade"] == "—"
+        assert s["modules"] == [] and s["terrascore"]["grade"] == "—" and s["terrascore"]["score"] is None
         assert s["terrascore"]["region"]["kind"] == "inland_water"      # thẻ thửa đọc region từ đây
         a = c.post("/api/assess/land_risk", json={"lat": lat, "lon": lon}).json()
         assert a["status"] == "out_of_scope" and "mặt nước thường xuyên" in a["headline"]
@@ -119,3 +119,10 @@ def test_ho_so_mang_canh_bao_khung_do_co_mat_nuoc(fake, monkeypatch):
     cat = narrative.catalog(facts) if hasattr(narrative, "catalog") else {"water.summary": {}}
     text = narrative.template_sentences(facts, cat)[0]["text"]
     assert "không có nghĩa là không ngập" in text and "p10" in text
+
+
+def test_tham_dinh_hang_loat_cung_khong_cham_diem_giua_song(fake):
+    """17/10/2026: hàng loạt từng gọi thẳng scan.scan (không qua cửa chặn vùng) nên dòng CSV giữa sông vẫn có điểm."""
+    from app.services import batch
+    r = batch.appraise({"id": "1", "lat": HOI_AN[0], "lon": HOI_AN[1], "area_ha": 1.0})
+    assert r["score"] is None and r["grade"] is None and r["region"] == "inland_water" and "MẶT NƯỚC THƯỜNG XUYÊN" in r["error"]

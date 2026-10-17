@@ -139,7 +139,15 @@ def appraise(row: dict) -> dict:
     from app.schemas import Location
     from app.services import jobs, landuse, passport, scan
 
+    from app.services import region
     loc = Location(lat=row["lat"], lon=row["lon"], area_ha=row["area_ha"])
+    # Cùng cửa chặn với /api/scan (17/10/2026): trước đây hàng loạt gọi thẳng scan.scan nên một dòng CSV nằm giữa
+    # sông / ngoài biển vẫn được chấm điểm.
+    reg = region.classify(row["lat"], row["lon"])
+    if not reg.get("serviceable", True):
+        return {**row, "land_group": None, "land_label": None, "risk_level": "unknown", "score": None, "grade": None,
+                "drivers": [], "history_10y": {}, "real_data_ratio": None, "region": reg.get("kind"),
+                "error": reg.get("note") or tr("Ngoài phạm vi phục vụ.", "Out of service area.")}
     sc, lu, pp = jobs.gather([lambda: scan.scan(loc),
                               lambda: landuse.composition(row["lat"], row["lon"]),
                               lambda: passport.build(row["lat"], row["lon"])])

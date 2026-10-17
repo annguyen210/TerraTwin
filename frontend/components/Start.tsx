@@ -36,15 +36,19 @@ import { CirclePlay, MapPin } from "lucide-react";
 import { inVietnam, outsideMessage, parseCoord } from "@/lib/geo";
 
 // 16 điểm đã kiểm chứng — cùng bộ dùng để huấn luyện mô hình khí hậu.
+// ĐẤT NÔNG NGHIỆP / ven đô, nơi radar đọc được (17/10/2026): trước đây 7/8 điểm là TRUNG TÂM thành phố (WorldCover xây
+// dựng 63–99,8%) nên lịch sử nước đều "0 đợt" — radar không thấy ngập giữa nhà. Chọn bằng số đo WorldCover trong khung
+// radar 200 m + lịch sử nước thật; ưu tiên điểm có đợt nước rơi vào mùa lũ, không phải lịch cho nước vào ruộng.
+// Giữ backend/app/services/demo_plots.py và backend/app/warm.py khớp danh sách này.
 const QUICK: { name: string; lat: number; lon: number; note: string; note_en: string }[] = [
-  { name: "Bến Tre", lat: 10.24, lon: 106.37, note: "đồng bằng sông Cửu Long", note_en: "Mekong Delta" },
-  { name: "Cà Mau", lat: 9.18, lon: 105.15, note: "cực Nam, ngập mặn", note_en: "southernmost, saline" },
-  { name: "Trà Leng, Quảng Nam", lat: 15.33, lon: 108.05, note: "núi dốc, từng sạt lở", note_en: "steep hills, past landslide" },
-  { name: "Huế", lat: 16.46, lon: 107.59, note: "mưa lớn, từng lũ lịch sử", note_en: "heavy rain, historic floods" },
-  { name: "Phan Rang", lat: 11.56, lon: 108.99, note: "khô hạn nhất nước", note_en: "driest in the country" },
-  { name: "Buôn Ma Thuột", lat: 12.67, lon: 108.05, note: "cao nguyên bazan", note_en: "basalt highlands" },
-  { name: "Hà Nội", lat: 21.03, lon: 105.85, note: "đồng bằng Bắc Bộ", note_en: "Red River Delta" },
-  { name: "Lai Châu", lat: 22.4, lon: 103.47, note: "núi cao Tây Bắc", note_en: "high NW mountains" },
+  { name: "Bến Tre", lat: 10.07, lon: 106.57, note: "ruộng lúa, đồng bằng sông Cửu Long", note_en: "rice fields, Mekong Delta" },
+  { name: "Cà Mau", lat: 9.18, lon: 105.09, note: "ruộng lúa–tôm, cực Nam ngập mặn", note_en: "rice–shrimp fields, saline south" },
+  { name: "Trà Leng, Quảng Nam", lat: 15.33, lon: 108.05, note: "rừng núi dốc, từng sạt lở", note_en: "steep forested hills, past landslide" },
+  { name: "Huế", lat: 16.52, lon: 107.59, note: "đồng lúa, lũ mùa mưa tháng 9–11", note_en: "rice fields, Sep–Nov floods" },
+  { name: "Phan Rang", lat: 11.56, lon: 108.93, note: "ruộng ở vùng khô hạn nhất nước", note_en: "fields in the driest region" },
+  { name: "Buôn Ma Thuột", lat: 12.73, lon: 108.05, note: "vườn cà phê, cao nguyên bazan", note_en: "coffee farms, basalt highlands" },
+  { name: "Hà Nội", lat: 21.12, lon: 105.89, note: "ruộng ven đô, đồng bằng Bắc Bộ", note_en: "peri-urban rice, Red River Delta" },
+  { name: "Lai Châu", lat: 22.36, lon: 103.59, note: "nương ruộng núi cao Tây Bắc", note_en: "upland fields, high NW mountains" },
 ];
 
 export default function Start({

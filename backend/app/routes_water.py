@@ -55,7 +55,7 @@ def water_history_start(body: WaterIn, request: Request, lang: str = "vi",
                                     "Radar water history not enabled: it has not passed its verification gate yet."))
     hit = cache_store.get(water_history.cache_key(body.lat, body.lon))
     if hit is not None:
-        return {"state": "done", "result": water_history._annotate(hit)}
+        return {"state": "done", "result": water_history._annotate(hit, body.lat, body.lon)}
     # Giao diện TỰ đọc khi mở thửa (mục 4 báo cáo 12/10/2026): nhiều tab / nhiều người cùng mở một thửa thì nối vào
     # việc đang chạy, không xếp thêm việc và không trừ hạn mức lần nữa.
     from app.db import Job

@@ -85,7 +85,7 @@ def _water(lat: float, lon: float) -> dict | None:
     if not routes_water.gate()["passed"]:
         return None
     r = cache_store.get(wh.cache_key(lat, lon))
-    return wh._annotate(r) if r and r.get("available") else None
+    return wh._annotate(r, lat, lon) if r and r.get("available") else None
 
 
 def _nearest_river_km(lat: float, lon: float, radius_m: float = 3000.0) -> float | None:
@@ -115,6 +115,11 @@ def evidence(lat: float, lon: float, types: set[str]) -> dict:
     ev: dict = {}
     if types & {"no_flood", "high_ground"}:
         ev["water"] = _water(lat, lon)
+        from app.services import water_history as wh
+        w = ev["water"] or {}
+        ev["urban"] = w.get("urban") if ev["water"] else wh.urban(lat, lon)
+        ev["canopy"] = (w.get("canopy") if ev["water"] else wh.canopy(lat, lon)) if not ev["urban"] else None
+        ev["cropland"] = w.get("cropland")
     if types & {"high_ground", "flat", "no_landslide"}:
         try:
             ev["terrain"] = passport.terrain(lat, lon)
@@ -131,7 +136,24 @@ def evidence(lat: float, lon: float, types: set[str]) -> dict:
 
 
 def judge(typ: str, ev: dict) -> tuple[str, str, str]:
-    """(verdict, bằng chứng, nguồn). verdict ∈ consistent | contradicted | insufficient."""
+    """(verdict, bằng chứng, nguồn). verdict ∈ consistent | contradicted | insufficient.
+
+    Khu đô thị (17/10/2026): radar không thấy ngập giữa nhà cửa → "không ngập"/"cao ráo" KHÔNG BAO GIỜ được chấm Khớp
+    ở đó — hạ xuống Không đủ dữ liệu kèm lý do. Radar mà VẪN thấy nước (có đợt) thì "mâu thuẫn" vẫn đúng."""
+    v, msg, src = _judge(typ, ev)
+    u = ev.get("urban") or ev.get("canopy")          # radar mù: giữa nhà cửa, dưới tán cây dày
+    crop = ev.get("cropland")
+    if crop and typ in ("no_flood", "high_ground") and v == "contradicted":
+        months = sorted({e["start"][5:7] for e in ((ev.get("water") or {}).get("events") or [])})
+        msg += " " + crop["note"] + (tr(f" Tháng các đợt: {', '.join(months)}.", f" Event months: {', '.join(months)}.") if months else "")
+    if u and typ in ("no_flood", "high_ground") and v == "consistent":
+        return "insufficient", u["note"] + tr(f" (Phần đo được: {msg})", f" (What was measured: {msg})"), "ESA WorldCover / Sentinel-1"
+    if u and typ in ("no_flood", "high_ground") and v == "insufficient" and not ev.get("water"):
+        return "insufficient", u["note"], "ESA WorldCover"
+    return v, msg, src
+
+
+def _judge(typ: str, ev: dict) -> tuple[str, str, str]:
     w, terr = ev.get("water"), ev.get("terrain")
     if typ in ("no_flood", "high_ground") and w and w.get("water_surface"):
         ws = w["water_surface"]

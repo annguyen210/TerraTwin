@@ -111,7 +111,7 @@ function useCountUp(target: number, ms = 380) {
 
 function TerraBadge({ t }: { t: TerraScore }) {
   const { t: tr } = useLang();
-  const shown = useCountUp(t.score);
+  const shown = useCountUp(t.score ?? 0);
   const color =
     t.grade === "A"
       ? "#2E9E67"

@@ -16,7 +16,7 @@ _TTL = 6 * 3600
 def one(lat: float, lon: float) -> dict:
     """Một cột so sánh. Mục nào hỏng ghi None (giao diện ghi "không lấy được"), không đoán."""
     from app.services import datasources as ds, jobs, landuse, listing_check as lc, passport
-    key = cache_store.make_key("compare", round(lat, 5), round(lon, 5), "v2")   # v2: thêm on_water (16/10/2026)
+    key = cache_store.make_key("compare", round(lat, 5), round(lon, 5), "v3")   # v3: + đô thị (17/10/2026)
     hit = cache_store.get(key)
     if hit is not None:
         return hit
@@ -24,12 +24,15 @@ def one(lat: float, lon: float) -> dict:
         lambda: lc._water(lat, lon), lambda: passport.terrain(lat, lon), lambda: passport.history(lat, lon),
         lambda: landuse.composition(lat, lon), lambda: lc._nearest_river_km(lat, lon, 5000.0)], timeout=60)
     hist = hist or {}
-    from app.services import region
+    from app.services import region, water_history as wh
     on_water = region.inland_water(lat, lon)
+    is_urban = None if on_water else (wh.urban(lat, lon) or wh.canopy(lat, lon))
     out = {
         "lat": lat, "lon": lon, "on_water": bool(on_water),
         # Giữa sông "0 đợt nước" chỉ vì nước có quanh năm (16/10/2026) — ghi chữ, không để thành số "tốt nhất".
-        "water_events": tr("mặt nước thường xuyên", "permanent water") if on_water else (water or {}).get("n_events"),
+        "water_events": tr("mặt nước thường xuyên", "permanent water") if on_water else
+                        (tr(f"{n} (đô thị/tán cây dày — radar không thấy ngập)", f"{n} (urban/dense canopy — radar can't see floods)")
+                         if is_urban and (n := (water or {}).get("n_events")) is not None else (water or {}).get("n_events")),
         "water_scenes": (water or {}).get("n_scenes"),
         "water_last": ((water or {}).get("events") or [{}])[-1].get("start") if water and water.get("events") else None,
         "elevation_m": (terr or {}).get("elevation_m"),

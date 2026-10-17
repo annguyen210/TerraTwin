@@ -201,20 +201,29 @@ def template_sentences(facts: dict, cat: dict, lang: str | None = None) -> list[
 
     if "water.summary" in cat:
         w = facts["water_history_radar"]
-        if w["n_events"] == 0:
+        if w["n_events"] == 0 and w.get("urban"):
+            # Hồ sơ phát hành từ 17/10/2026 ở khu đô thị: KHÔNG nói "chưa thấy nước phủ" — radar mù với ngập giữa nhà.
+            text = _t(f"Thửa nằm trong khu đô thị ({_num(w['urban']['built_pct'])}% khung đo là bề mặt xây dựng): radar Sentinel-1 "
+                      f"không nhìn thấy được ngập giữa nhà cửa, nên 0 đợt trong {w['n_scenes']} cảnh ({w['first']} → {w['last']}) "
+                      "KHÔNG có nghĩa là không ngập.",
+                      f"The plot is in an urban area ({_num(w['urban']['built_pct'])}% of the frame is built-up): Sentinel-1 radar "
+                      f"cannot see flooding between buildings, so 0 events in {w['n_scenes']} scenes ({w['first']} → {w['last']}) "
+                      "does NOT mean no flooding.", lang)
+            ids = ["water.summary"]
+        elif w["n_events"] == 0 and w.get("canopy"):
+            text = _t(f"Thửa nằm dưới tán cây dày ({_num(w['canopy']['tree_pct'])}% khung đo là tán cây): radar Sentinel-1 không "
+                      f"nhìn thấy được nước dưới tán, nên 0 đợt trong {w['n_scenes']} cảnh ({w['first']} → {w['last']}) "
+                      "KHÔNG có nghĩa là không ngập.",
+                      f"The plot is under dense tree canopy ({_num(w['canopy']['tree_pct'])}% of the frame is tree cover): Sentinel-1 "
+                      f"radar cannot see water beneath it, so 0 events in {w['n_scenes']} scenes ({w['first']} → {w['last']}) "
+                      "does NOT mean no flooding.", lang)
+            ids = ["water.summary"]
+        elif w["n_events"] == 0:
             text = _t(f"Radar Sentinel-1 chưa thấy nước phủ thửa lần nào trong {w['n_scenes']} cảnh, "
                       f"từ {w['first']} đến {w['last']}.",
                       f"Sentinel-1 radar saw no water over the plot in {w['n_scenes']} scenes, "
                       f"from {w['first']} to {w['last']}.", lang)
             ids = ["water.summary"]
-        # Hồ sơ phát hành từ 16/10/2026 có thể mang water_surface — hồ sơ cũ không có nên câu cũ giữ nguyên (lời diễn
-        # giải được dựng lại khi kiểm tệp).
-        ws = w.get("water_surface")
-        if ws:
-            text += _t(f" Lưu ý: {ws['share']} khung đo là mặt nước thường xuyên (nền p{ws['pct']} = {_num(ws['baseline_db'])} dB) — "
-                       "phần đó nước có quanh năm nên không đếm được đợt nước, \"0 đợt\" không có nghĩa là không ngập.",
-                       f" Note: {ws['share']} of the frame is permanent water (baseline p{ws['pct']} = {_num(ws['baseline_db'])} dB) — "
-                       "that part holds water all year, so no events can be counted there; \"0 events\" does not mean no flooding.", lang)
         else:
             last = w["events"][-1]["start"] if w.get("events") else None
             text = _t(f"Radar Sentinel-1 thấy nước phủ thửa {w['n_events']} đợt trong {w['n_scenes']} cảnh "
@@ -222,6 +231,17 @@ def template_sentences(facts: dict, cat: dict, lang: str | None = None) -> list[
                       f"Sentinel-1 radar saw water over the plot {w['n_events']} time(s) in {w['n_scenes']} scenes "
                       f"from {w['first']} to {w['last']}" + (f"; the latest began {last}." if last else "."), lang)
             ids = ["water.summary"] + ([f"water.event.{len(w['events'])}"] if w.get("events") else [])
+        # Hồ sơ phát hành từ 16/10/2026 có thể mang water_surface — hồ sơ cũ không có nên câu cũ giữ nguyên (lời diễn
+        # giải được dựng lại khi kiểm tệp).
+        if w["n_events"] and w.get("cropland"):
+            text += _t(" Thửa là ruộng: nước tưới theo vụ cũng hiện thành \"nước phủ\" — đối chiếu tháng các đợt với mùa lũ địa phương.",
+                       " The plot is cropland: seasonal irrigation also shows up as \"water cover\" — compare event months with the local flood season.", lang)
+        ws = w.get("water_surface")
+        if ws:
+            text += _t(f" Lưu ý: {ws['share']} khung đo là mặt nước thường xuyên (nền p{ws['pct']} = {_num(ws['baseline_db'])} dB) — "
+                       "phần đó nước có quanh năm nên không đếm được đợt nước, \"0 đợt\" không có nghĩa là không ngập.",
+                       f" Note: {ws['share']} of the frame is permanent water (baseline p{ws['pct']} = {_num(ws['baseline_db'])} dB) — "
+                       "that part holds water all year, so no events can be counted there; \"0 events\" does not mean no flooding.", lang)
         s.append({"text": text, "evidence": ids})
 
     for c in (facts.get("listing_check") or {}).get("claims") or []:

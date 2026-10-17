@@ -690,7 +690,7 @@ def terra(location: Location, lang: str = "vi") -> TerraScoreResult:
     reg = region.classify(location.lat, location.lon)
     if not reg["serviceable"]:
         return TerraScoreResult(
-            location=location, score=0, grade="—",
+            location=location, score=None, grade="—",
             summary=reg.get("note") or reqlang.tr("Ngoài phạm vi phục vụ.", "Out of service area."),
             real_data_ratio=0.0, region=reg)
     r = terrascore.compute(location)
@@ -712,7 +712,7 @@ def scan_endpoint(location: Location, deep: bool = False, lang: str = "vi") -> S
         return ScanResult(
             location=location,
             terrascore=TerraScoreResult(
-                location=location, score=0, grade="—",
+                location=location, score=None, grade="—",
                 summary=reg.get("note") or reqlang.tr("Ngoài phạm vi phục vụ.", "Out of service area."),
                 # region đi KÈM TerraScore: thẻ thửa đọc terrascore.region để ẩn điểm + khoá "Phát hành hồ sơ"
                 # (16/10/2026: thiếu trường này nên điểm giữa sông vẫn hiện huy hiệu và nút phát hành).

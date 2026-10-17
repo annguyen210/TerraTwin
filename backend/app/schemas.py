@@ -98,7 +98,9 @@ class Assessment(BaseModel):
 
 class TerraScoreResult(BaseModel):
     location: Location
-    score: int
+    # None = KHÔNG CHẤM (mặt nước, ngoài phạm vi, thiếu dữ liệu thật) — 17/10/2026: trước đây 0 kèm hạng "—", màn nào
+    # đọc riêng con số (so sánh, danh mục, thẩm định hàng loạt) sẽ hiện "0/100".
+    score: int | None
     grade: str
     summary: str
     breakdown: dict[str, int] = {}

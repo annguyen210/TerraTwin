@@ -192,7 +192,7 @@ def test_endpoint_khong_cham_diem_mat_nuoc(client, monkeypatch):
     assert "mặt nước" in d["headline"].lower()
 
     t = client.post("/api/terrascore", json={"lat": 14.0, "lon": 111.0}).json()
-    assert t["score"] == 0 and t["grade"] == "—"
+    assert t["score"] is None and t["grade"] == "—"          # null — không màn nào hiện "0/100" (17/10/2026)
 
     s = client.post("/api/scan", json={"lat": 14.0, "lon": 111.0}).json()
     assert s["modules"] == [] and s["alerts"] == []

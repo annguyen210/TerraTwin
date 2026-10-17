@@ -117,7 +117,7 @@ def radar(lat: float, lon: float, since: date) -> dict | None:
         rows.append({"date": d, "p50": s["p50"] if s else None,
                      "water": wh.flag({"date": d, **s}, base) if (s and base) else None,
                      "judged": bool(s and base)})
-    return {"scenes": rows, "has_baseline": base is not None}
+    return {"scenes": rows, "has_baseline": base is not None, "urban": bool(wh.urban(lat, lon) or wh.canopy(lat, lon))}
 
 
 def _external(lat: float, lon: float, since: datetime) -> dict:
@@ -259,9 +259,12 @@ def _ext_events(ext: dict, since: datetime) -> tuple[list[dict], dict]:
                            tr(f"Radar ngày {s['date']} thấy nước phủ {s['water']} thửa", f"Radar on {s['date']} saw water over {s['water']} of the plot"),
                            "Sentinel-1 RTC", cover=s["water"]))
         else:
+            urb = rad.get("urban")
             out.append(_ev(s["date"] + "T00:00:00Z", "radar", False,
-                           tr(f"Ảnh radar mới ngày {s['date']}" + (": không thấy nước" if s["judged"] else " (chưa đọc lịch sử nước nên chưa so với nền)"),
-                              f"New radar image on {s['date']}" + (": no water" if s["judged"] else " (water history not read yet, no baseline)")),
+                           tr(f"Ảnh radar mới ngày {s['date']}" + ((": không thấy nước" + (" (đô thị/tán cây dày: radar không thấy được ngập ở đây)" if urb else ""))
+                                                                    if s["judged"] else " (chưa đọc lịch sử nước nên chưa so với nền)"),
+                              f"New radar image on {s['date']}" + ((": no water" + (" (urban/dense canopy: radar can't see flooding here)" if urb else ""))
+                                                                    if s["judged"] else " (water history not read yet, no baseline)")),
                            "Sentinel-1 RTC"))
         ctx["radar_latest"] = s
     return out, ctx

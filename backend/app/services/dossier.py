@@ -92,6 +92,12 @@ def _water_section(lat: float, lon: float) -> dict | None:
             # phần ĐÃ KÝ để người nhận hồ sơ thấy, không chỉ người xem trên web.
             **({"water_surface": {k: ws[k] for k in ("share", "pct", "baseline_db")}}
                if (ws := wh.water_surface(r.get("baseline_db"))) else {}),
+            # Khu đô thị (17/10/2026): radar không thấy ngập giữa nhà — ghi vào phần ĐÃ KÝ, lời diễn giải không được
+            # nói "chưa từng ngập".
+            **({"urban": {"built_pct": u["built_pct"], "source": "ESA WorldCover 2021"}} if (u := wh.urban(lat, lon)) else
+               {"canopy": {"tree_pct": c["tree_pct"], "source": "ESA WorldCover 2021"}} if (c := wh.canopy(lat, lon)) else {}),
+            **({"cropland": {"crop_pct": cr["crop_pct"], "source": "ESA WorldCover 2021"}}
+               if r.get("n_events") and (cr := wh.cropland(lat, lon)) else {}),
             "method": r["method"], "limits": r["limits"]}
 
 

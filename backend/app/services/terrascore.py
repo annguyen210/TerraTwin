@@ -53,7 +53,7 @@ def compute(
     if used == 0:
         # Offline hoặc không có nguồn thật nào → không chấm điểm khống.
         return TerraScoreResult(
-            location=loc, score=0, grade="—",
+            location=loc, score=None, grade="—",
             summary=tr("Chưa đủ dữ liệu thật để chấm điểm (kiểm tra kết nối nguồn dữ liệu).",
                        "Not enough real data to score (check data-source connection)."),
             breakdown={}, real_data_ratio=0.0, scope=scope,

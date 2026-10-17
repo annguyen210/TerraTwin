@@ -70,7 +70,7 @@ export default function Portfolio({
     setBusy(true);
     setErr(null);
     try {
-      await savePlot(name, coord.lat, coord.lon, area, terra.score, terra.grade);
+      await savePlot(name, coord.lat, coord.lon, area, terra.score ?? undefined, terra.grade);
       trackEvent("save_plot");                        // N6
       await refresh();
     } catch (e) {
@@ -241,7 +241,7 @@ function buildReportHtml(scan: any, area?: number, signed?: SignedReport | null)
   <p class="sub">Vị trí ${scan.location.lat.toFixed(4)}, ${scan.location.lon.toFixed(4)}${
     area ? ` · diện tích ${area} ha` : ""
   } · lập ${new Date(scan.generated_at).toLocaleString("vi-VN")}</p>
-  <div><span class="score">${t.score}</span><span class="sum"><b>TerraScore (hiểm hoạ 7 ngày tới) hạng ${t.grade}</b><br>${esc(
+  <div><span class="score">${t.score ?? "—"}</span><span class="sum"><b>TerraScore (hiểm hoạ 7 ngày tới) hạng ${t.grade}</b><br>${esc(
     t.summary,
   )}</span></div>
   <h3>Cảnh báo cần chú ý (từ dữ liệu thật)</h3>

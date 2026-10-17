@@ -116,3 +116,14 @@ def _khong_tra_mat_nuoc_that(monkeypatch, request):
         return
     from app.services import region
     monkeypatch.setattr(region, "inland_water", lambda lat, lon: None)
+
+
+@pytest.fixture(autouse=True)
+def _khong_tra_do_thi_that(monkeypatch, request):
+    """water_history.urban() gọi WorldCover cho mọi điểm — trong test mặc định coi là KHÔNG phải đô thị (không chạm
+    mạng). Test về đô thị dùng @pytest.mark.do_thi_that và tự giả lập landuse.fetch_raw."""
+    if "do_thi_that" in request.keywords:
+        return
+    from app.services import water_history
+    for fn in ("urban", "canopy", "cropland"):
+        monkeypatch.setattr(water_history, fn, lambda lat, lon: None)

@@ -30,15 +30,15 @@ from app.services import calibration as cal
 MODULES = ("flood", "landslide", "drought", "wildfire")
 
 # Tám nơi trong màn hình chọn nhanh — chạy trước buổi thi thì demo không lag.
-DEMO = [
-    (10.24, 106.37, "Bến Tre"),
-    (9.18, 105.15, "Cà Mau"),
+DEMO = [   # giữ khớp frontend/components/Start.tsx QUICK (đất nông nghiệp / ven đô từ 17/10/2026)
+    (10.07, 106.57, "Bến Tre"),
+    (9.18, 105.09, "Cà Mau"),
     (15.33, 108.05, "Trà Leng, Quảng Nam"),
-    (16.46, 107.59, "Huế"),
-    (11.56, 108.99, "Phan Rang"),
-    (12.67, 108.05, "Buôn Ma Thuột"),
-    (21.03, 105.85, "Hà Nội"),
-    (22.40, 103.47, "Lai Châu"),
+    (16.52, 107.59, "Huế"),
+    (11.56, 108.93, "Phan Rang"),
+    (12.73, 108.05, "Buôn Ma Thuột"),
+    (21.12, 105.89, "Hà Nội"),
+    (22.36, 103.59, "Lai Châu"),
 ]
 
 # Trung tâm các tỉnh/thành. Toạ độ xấp xỉ, đủ để hâm nóng ô lưới khí hậu quanh
