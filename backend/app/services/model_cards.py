@@ -165,6 +165,37 @@ def cards() -> list[dict]:
             "code": f"{REPO}/backend/app/services/flood_season.py",
         })
 
+    # 4c — Lớp mùa lũ v2 (mưa cực đoan bắt lũ sớm/muộn) — 17/10/2026, công bố cả khi trượt
+    f2 = _load("eval", "flood_season_v2_result.json")
+    if f2:
+        def _m2(c):
+            evs = c.get("events") or []
+            if not evs:
+                return tr("không có đợt nào trong cửa sổ — không đánh giá được", "no event in the window — not evaluable")
+            return "; ".join(f"{e['start']}={e['season']}" + (f" ({e['rain3d_mm']:g}/{e['p97_mm']:g} mm)" if "rain3d_mm" in e else "") for e in evs)
+        out.append({
+            "id": "flood_season_v2", "kind": tr("quy tắc diễn giải", "interpretation rule"),
+            "name": tr("Mùa lũ v2 — bắt lũ sớm/muộn bằng mưa cực đoan", "Flood season v2 — catch early/late floods via extreme rain"),
+            "status": "accepted" if f2.get("passed") else "rejected",
+            "status_label": tr("cổng đạt · đã bật", "gate passed · on") if f2.get("passed") else tr("trượt · không bật (giữ v1)", "failed · off (v1 kept)"),
+            "task": tr("Đợt ngoài mùa lũ v1 mà ngay sau mưa cực đoan → 'có thể là lũ sớm/muộn'",
+                       "Out-of-season (v1) events right after extreme rain → 'possibly early/late flood'"),
+            "data": tr("tổng mưa 3 ngày ERA5 lớn nhất trong ≤ 12 ngày trước cảnh ướt đầu tiên, so với P97 của điểm (2016–2025)",
+                       "max ERA5 3-day rain within ≤ 12 days before the first wet scene, vs the point's P97 (2016–2025)"),
+            "split": tr("đăng ký trước 6 ca, hai chiều: bão Soulik 19/9/2024, bão Noru 28/9/2022 (dương tính); Cà Mau tháng 3–5, Hà Nội tháng 2–3 (âm tính); 2 ca giữ v1",
+                        "6 pre-registered cases, both directions: Typhoon Soulik 19/9/2024, Typhoon Noru 28/9/2022 (positive); Cà Mau Mar–May, Hà Nội Feb–Mar (negative); 2 v1 cases"),
+            "metrics": [{"label": f"[{c.get('direction')}] {c.get('case')}", "value": _m2(c),
+                         "threshold": c.get("must"), "passed": c.get("pass")} for c in f2.get("cases", [])],
+            "limits": tr("Trượt chiều âm: Cà Mau 05/04/2025 mưa 3 ngày 70,4 mm vượt P97 69,6 mm (đợt cho nước theo vụ bị bắt nhầm). "
+                         "Ca Noru không đánh giá được: năm 2022 chỉ còn Sentinel-1A (12 ngày/lần), cảnh 25/9 và 07/10, ruộng không có đợt nước. "
+                         "Soulik đạt sát nút (125,7 / 125,2 mm) — mưa ERA5 lưới thô ~25 km phân biệt kém.",
+                         "Negative direction failed: Cà Mau 05/04/2025 3-day rain 70.4 mm above P97 69.6 mm (a seasonal-watering event caught by mistake). "
+                         "Noru case not evaluable: in 2022 only Sentinel-1A flew (12-day revisit), scenes 25/9 and 07/10, no water event on the paddies. "
+                         "Soulik passed by a hair (125.7 / 125.2 mm) — coarse ~25 km ERA5 rain separates poorly."),
+            "not_for": tr("Không bật: mọi đợt ngoài mùa vẫn diễn giải theo v1.", "Not enabled: all out-of-season events keep the v1 interpretation."),
+            "code": f"{REPO}/backend/app/services/flood_season.py",
+        })
+
     # 5 — Kiểm chứng tin đăng (luật từ khoá) và chạm-là-có-ranh (trượt)
     out.append({
         "id": "listing_rules", "kind": tr("quy tắc NLP", "NLP rules"),

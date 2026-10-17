@@ -91,3 +91,12 @@ def test_ho_so_cu_khong_co_lop_mua_lu_giu_nguyen_cau_cu():
          "events": [{"start": "2020-10-10", "end": "2020-10-12", "peak_cover": "≥50%", "n_scenes": 1}, {"start": "2025-11-01", "end": "2025-11-01", "peak_cover": "≥50%", "n_scenes": 1}]}
     t = narrative.template_sentences({"water_history_radar": w}, {"water.summary": {}})[0]["text"]
     assert t.startswith("Radar Sentinel-1 thấy nước phủ thửa 2 đợt") and "mùa lũ" not in t
+
+
+def test_v2_truot_nen_khong_bat_giu_nguyen_v1():
+    """Cổng v2 (đăng ký 2683146) TRƯỢT 17/10/2026 — Noru không đánh giá được, Cà Mau 05/04/2025 bị bắt nhầm. Giữ v1."""
+    from app.services import flood_season as fs
+    r2 = json.load(open(os.path.join(os.path.dirname(__file__), "..", "data", "eval", "flood_season_v2_result.json"), encoding="utf-8"))
+    assert r2["passed"] is False and fs.gate_v2_passed() is False and fs.gate_passed() is True
+    bad = {c["id"]: c["pass"] for c in r2["cases"]}
+    assert bad == {"pos_soulik": True, "pos_noru": False, "neg_camau": False, "neg_hanoi": True, "v1_hue_2020": True, "v1_mientrung_2025": True}

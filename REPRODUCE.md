@@ -206,6 +206,31 @@ Các đợt NGOÀI cổng (công bố đủ, không chỉnh quy tắc theo chún
 **đợt 19/09/2024 bị xếp "ngoài mùa lũ" dù trùng ngày bão Soulik đổ bộ miền Trung**: lũ sớm đầu mùa là giới hạn đã biết
 của quy tắc v1 (muốn sửa phải đăng ký v2 với ca mới, không chạy lại trên 4 ca này).
 
+### 7c. Lớp mùa lũ v2 — bắt lũ sớm/muộn bằng MƯA CỰC ĐOAN — CỔNG TRƯỢT 17/10/2026 (giữ v1, không bật)
+
+```bash
+cd backend && python ../ops/flood_season_v2_gate.py   # ghi backend/data/eval/flood_season_v2_result.json
+```
+
+Đăng ký trước (commit 2683146, `backend/data/eval/flood_season_v2_protocol.json`): với mỗi đợt NGOÀI mùa lũ v1, cửa sổ
+từ ngày sau cảnh radar khô liền trước tới ngày cảnh ướt đầu tiên (tối đa 12 ngày); tổng mưa 3 ngày ERA5 lớn nhất trong
+cửa sổ ≥ P97 của mọi tổng 3 ngày tại điểm (2016–2025) → "ngoài mùa nhưng ngay sau mưa cực đoan". P97 và 12 ngày chốt
+trước; bộ phát hiện và quy tắc v1 không đổi.
+
+| Ca | Chiều | Đợt | Mưa 3 ngày / P97 | Yêu cầu | Kết quả |
+|---|---|---|---|---|---|
+| Bão Soulik 19/09/2024 — ruộng lúa Huế (16,52; 107,59) | dương tính | 19/09/2024 | 125,7 / 125,2 mm | cực đoan | **đạt** (sát nút, hơn 0,5 mm) |
+| Bão Noru 28/09/2022 — lưới 20 điểm Vu Gia – Thu Bồn, giữ 3 điểm ruộng | dương tính | — | — | ≥ 1 đợt cực đoan | **trượt — không đánh giá được**: năm 2022 chỉ còn Sentinel-1A (12 ngày/lần), cảnh 25/09 và 07/10; 3 điểm ruộng không có đợt nước nào tháng 8–11/2022 |
+| Cà Mau (9,18; 105,09) — 10 đợt tháng 3–5 | âm tính | 9 đợt "out"; **05/04/2025 "cực đoan"** | 70,4 / 69,6 mm | nước tưới / nuôi trồng | **trượt** 9/10 |
+| Hà Nội (21,12; 105,89) — 4 đợt tháng 2–3 | âm tính | 4 đợt "out" | 5,9–61,7 / 88,9 mm | nước tưới / nuôi trồng | **đạt** 4/4 |
+| Lũ Huế 10–11/2020 — Quảng Điền | giữ v1 | 10/10/2020, 09/11/2020 | — | trong mùa | **đạt** |
+| Lũ miền Trung 11/2025 — Quảng Điền | giữ v1 | 01/11/2025 | — | trong mùa | **đạt** |
+
+Kết luận: trượt cả hai chiều (Noru không có cảnh radar đúng tuần; Cà Mau bị bắt nhầm một đợt cho nước theo vụ) → **giữ
+v1**. Mưa ERA5 lưới ~25 km tách lũ sớm khỏi mưa đầu mùa rất kém: Soulik chỉ hơn ngưỡng 0,5 mm, đợt Cà Mau sai chỉ hơn 0,8 mm.
+Không chỉnh P97 / cửa sổ / ô lưới rồi chạy lại trên 6 ca này; muốn thử tiếp phải đăng ký phiên bản mới với tín hiệu độc lập
+và ca mới.
+
 ## 8. Kiểm một hồ sơ mà không cần tin TerraTwin — CỔNG GĐ4
 
 Một tệp duy nhất, không import mã máy chủ: [`ops/verify_dossier.py`](ops/verify_dossier.py).
