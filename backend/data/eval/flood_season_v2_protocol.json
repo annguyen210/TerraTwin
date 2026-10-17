@@ -1,0 +1,38 @@
+{
+  "name": "Lớp diễn giải MÙA LŨ v2 — bắt lũ sớm/muộn bằng dấu hiệu MƯA CỰC ĐOAN (không nới mùa) — giao thức đăng ký trước",
+  "registered_at": "2026-10-17",
+  "registered_before_run": true,
+  "why": "v1 (cổng đạt 17/10/2026) xếp đợt 19/09/2024 ở ruộng lúa Huế 16,52; 107,59 — trùng ngày bão Soulik đổ bộ — là 'ngoài mùa lũ'.",
+  "unchanged": "Bộ phát hiện đợt nước (water_history.flag/events, cổng GĐ2) và quy tắc v1 (flood_season.season_from_monthly) GIỮ NGUYÊN. v2 chỉ xét lại các đợt v1 đã xếp 'ngoài mùa'. Hồ sơ đã phát hành giữ câu v1.",
+  "rule": {
+    "version": 2,
+    "code": "backend/app/services/flood_season.py (RULE_V2, three_day_sums, percentile, window, max3_in_window, label_v2)",
+    "window": "Với mỗi đợt NGOÀI mùa lũ v1: từ ngày SAU cảnh radar khô gần nhất trước đợt (cảnh liền trước trong chuỗi cảnh của điểm) tới ngày cảnh ướt đầu tiên (= ngày bắt đầu đợt), dài tối đa 12 ngày; cảnh khô xa hơn thì cửa sổ bắt đầu từ start − 11 ngày.",
+    "rain_3d": "Tổng mưa 3 ngày kết thúc ở ngày d = mưa(d−2) + mưa(d−1) + mưa(d), mưa ngày ERA5 (Open-Meteo Archive) tại chính toạ độ điểm. Lấy giá trị LỚN NHẤT với d trong cửa sổ.",
+    "threshold": "Phân vị 97 (nội suy tuyến tính, như numpy.percentile mặc định) của MỌI tổng 3 ngày liên tiếp tại điểm, ERA5 2016-01-01 → 2025-12-31.",
+    "labels": "Lớn nhất ≥ ngưỡng → 'extreme' (ngoài mùa nhưng ngay sau mưa cực đoan — có thể là lũ sớm/muộn); còn lại → 'out' (ngoài mùa — thường là nước tưới / nuôi trồng). Đợt v1 'in' giữ 'in'.",
+    "listing": "Kiểm tin đăng: đợt 'extreme' tính như đợt trong mùa lũ khi đối chiếu 'không ngập' / 'cao ráo'.",
+    "frozen": "P97 và cửa sổ 12 ngày CHỐT TRƯỚC, không chỉnh sau khi xem kết quả."
+  },
+  "gate": [
+    {"id": "pos_soulik", "direction": "dương tính", "case": "Bão Soulik đổ bộ miền Trung 19/09/2024 — ruộng lúa Huế", "lat": 16.52, "lon": 107.59,
+     "select": {"starts": ["2024-09-19"]}, "must": "extreme"},
+    {"id": "pos_noru", "direction": "dương tính", "case": "Bão Noru đổ bộ Quảng Nam – Đà Nẵng 28/09/2022 (lũ sớm trước mùa lũ tháng 10)",
+     "candidates": {"lat": [15.80, 15.84, 15.88, 15.92], "lon": [108.12, 108.16, 108.20, 108.24, 108.28],
+                    "keep_if": "WorldCover 2021 trong khung radar 100 m: Trồng trọt ≥ 50%, Bề mặt xây dựng < 10%, Mặt nước < 50%"},
+     "select": {"start_from": "2022-09-26", "start_to": "2022-09-30"},
+     "must": "extreme", "min_events": 1,
+     "note": "Đồng bằng Vu Gia – Thu Bồn (Đại Lộc, Điện Bàn, Duy Xuyên cũ). Đợt bắt đầu từ 01/10 đã thuộc mùa lũ v1 nên không kiểm v2 ở ca này."},
+    {"id": "neg_camau", "direction": "âm tính", "case": "Cà Mau — mọi đợt tháng 3–5 (cho nước theo vụ lúa–tôm)", "lat": 9.18, "lon": 105.09,
+     "select": {"start_months": [3, 4, 5]}, "must": "out"},
+    {"id": "neg_hanoi", "direction": "âm tính", "case": "Hà Nội — mọi đợt tháng 2–3 (cấy lúa xuân)", "lat": 21.12, "lon": 105.89,
+     "select": {"start_months": [2, 3]}, "must": "out"},
+    {"id": "v1_hue_2020", "direction": "giữ v1", "case": "Lũ Huế 10–11/2020 — Quảng Điền", "lat": 16.5751, "lon": 107.4952,
+     "select": {"starts": ["2020-10-10", "2020-11-09"]}, "must": "in"},
+    {"id": "v1_mientrung_2025", "direction": "giữ v1", "case": "Lũ miền Trung 11/2025 — Quảng Điền", "lat": 16.5751, "lon": 107.4952,
+     "select": {"starts": ["2025-11-01"]}, "must": "in"}
+  ],
+  "pass": "MỌI đợt được chọn ở cả 6 ca đúng nhãn yêu cầu; ca có 'starts' phải tìm thấy đủ các đợt đó; ca pos_noru phải có ≥ 1 đợt. Ca âm tính v1 (Cà Mau, Hà Nội 'ngoài mùa') được kiểm lại bằng neg_camau / neg_hanoi.",
+  "if_fail": "Giữ v1, công bố kết quả trượt trên REPRODUCE.md và thẻ mô hình; KHÔNG chỉnh P97/cửa sổ/ô lưới rồi chạy lại trên các ca này.",
+  "events_source": "Bộ phát hiện GĐ2 (water_history.history) tại đúng các toạ độ trên; ô lưới pos_noru lọc bằng WorldCover TRƯỚC khi đọc lịch sử nước."
+}

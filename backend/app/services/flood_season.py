@@ -107,3 +107,125 @@ def gate_passed() -> bool:
 
 def seasonal_note() -> str:
     return tr("thường là nước tưới / nuôi trồng theo vụ", "usually seasonal irrigation / aquaculture")
+
+
+# ======================================================================================================================
+# v2 (17/10/2026) — BẮT LŨ SỚM/MUỘN bằng dấu hiệu MƯA CỰC ĐOAN, KHÔNG nới mùa. v1 ở trên GIỮ NGUYÊN; hồ sơ cũ giữ câu v1.
+# Đăng ký trước: backend/data/eval/flood_season_v2_protocol.json. Lý do: đợt 19/09/2024 ở ruộng lúa Huế 16,52; 107,59
+# trùng ngày bão Soulik nhưng v1 xếp "ngoài mùa lũ".
+#   · Với mỗi đợt NGOÀI mùa lũ v1: cửa sổ mưa = từ ngày SAU cảnh radar khô gần nhất trước đợt tới NGÀY cảnh ướt đầu tiên
+#     (= ngày bắt đầu đợt), dài tối đa 12 ngày (chu kỳ chụp) — cảnh khô xa hơn thì cửa sổ bắt đầu từ start − 11 ngày.
+#   · Tổng mưa 3 ngày kết thúc ở ngày d: mưa(d−2) + mưa(d−1) + mưa(d) (ERA5 ngày, Open-Meteo Archive, tại điểm).
+#     Lấy giá trị LỚN NHẤT với d chạy trong cửa sổ.
+#   · Ngưỡng = phân vị 97 (nội suy tuyến tính) của MỌI tổng 3 ngày liên tiếp tại điểm, ERA5 2016-01-01 → 2025-12-31.
+#   · Lớn nhất ≥ ngưỡng → "extreme": ngoài mùa nhưng ngay sau mưa cực đoan — có thể là lũ sớm/muộn. Còn lại → "out".
+#   · Kiểm tin đăng: đợt "extreme" tính như đợt trong mùa lũ khi đối chiếu "không ngập".
+# ======================================================================================================================
+RULE_V2 = 2
+P_EXTREME = 97.0
+WINDOW_DAYS = 12
+RESULT_V2 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "data", "eval", "flood_season_v2_result.json")
+
+
+def three_day_sums(rows: list[dict]) -> dict[str, float]:
+    """{ngày d: mưa(d−2)+mưa(d−1)+mưa(d)} cho mọi d có đủ 3 ngày liên tiếp trong `rows` [{date, precip}]."""
+    from datetime import date as _d, timedelta as _td
+    rain = {r["date"]: float(r.get("precip") or 0.0) for r in rows}
+    out = {}
+    for ds in rain:
+        d = _d.fromisoformat(ds)
+        a, b = (d - _td(days=2)).isoformat(), (d - _td(days=1)).isoformat()
+        if a in rain and b in rain:
+            out[ds] = rain[a] + rain[b] + rain[ds]
+    return out
+
+
+def percentile(vals: list[float], p: float) -> float:
+    """Phân vị p (0–100), nội suy tuyến tính — cùng cách numpy.percentile mặc định."""
+    xs = sorted(vals)
+    if not xs:
+        raise ValueError("rỗng")
+    k = (len(xs) - 1) * p / 100.0
+    lo, hi = int(k), min(int(k) + 1, len(xs) - 1)
+    return xs[lo] + (xs[hi] - xs[lo]) * (k - lo)
+
+
+def window(start: str, prev_scene: str | None) -> tuple[str, str]:
+    """Cửa sổ mưa [từ, tới] của một đợt: (cảnh khô trước + 1 ngày) → ngày bắt đầu, tối đa WINDOW_DAYS ngày."""
+    from datetime import date as _d, timedelta as _td
+    s = _d.fromisoformat(start)
+    lo = s - _td(days=WINDOW_DAYS - 1)
+    if prev_scene:
+        lo = max(lo, _d.fromisoformat(prev_scene) + _td(days=1))
+    return lo.isoformat(), s.isoformat()
+
+
+def max3_in_window(sums: dict[str, float], frm: str, to: str) -> tuple[float, str] | None:
+    """(tổng 3 ngày lớn nhất, ngày kết thúc) với d trong [frm, to]; None nếu thiếu dữ liệu mưa cho cả cửa sổ."""
+    from datetime import date as _d, timedelta as _td
+    d, end, best = _d.fromisoformat(frm), _d.fromisoformat(to), None
+    while d <= end:
+        v = sums.get(d.isoformat())
+        if v is not None and (best is None or v > best[0]):
+            best = (round(v, 1), d.isoformat())
+        d += _td(days=1)
+    return best
+
+
+def _rain_rows(lat: float, lon: float) -> list[dict] | None:
+    """Mưa ngày ERA5 tại điểm: 2016–2025 (cố định, dùng cho ngưỡng) + 2026 tới 6 ngày trước (đợt gần đây)."""
+    from datetime import date as _d, timedelta as _td
+    from app.services import realdata
+    base = realdata.historical_weather(lat, lon, *WINDOW)
+    if not base:
+        return None
+    end = _d.today() - _td(days=6)
+    recent = realdata.historical_weather(lat, lon, "2026-01-01", end.isoformat()) if end.year >= 2026 else []
+    return base + (recent or [])
+
+
+def threshold_p97(lat: float, lon: float) -> float | None:
+    """Ngưỡng P97 của tổng mưa 3 ngày tại điểm, ERA5 2016–2025 (cache 1 năm)."""
+    from app.services import realdata
+    key = cache_store.make_key("flood-p97", RULE_V2, round(lat, 2), round(lon, 2))
+    hit = cache_store.get(key)
+    if hit is not None:
+        return hit.get("p97") if hit else None
+    rows = realdata.historical_weather(lat, lon, *WINDOW)
+    if not rows or len(rows) < 365 * 8:
+        return None
+    p = round(percentile(list(three_day_sums(rows).values()), P_EXTREME), 1)
+    cache_store.put(key, {"p97": p}, ttl_seconds=_TTL)
+    return p
+
+
+def label_v2(events: list[dict], scene_dates: list[str], s: dict, lat: float, lon: float) -> list[dict]:
+    """Gắn nhãn v2 cho từng đợt: 'in' (như v1) | 'extreme' | 'out', kèm bằng chứng mưa cho đợt ngoài mùa v1."""
+    p97 = threshold_p97(lat, lon)
+    rows = _rain_rows(lat, lon) if p97 is not None else None
+    sums = three_day_sums(rows) if rows else {}
+    idx = {d: i for i, d in enumerate(scene_dates)}
+    out = []
+    for e in events:
+        lab = label(e["start"], s)
+        rec = {**e, "season": lab}
+        if lab == "out" and p97 is not None:
+            i = idx.get(e["start"])
+            prev = scene_dates[i - 1] if i else None
+            frm, to = window(e["start"], prev)
+            m = max3_in_window(sums, frm, to)
+            rec.update(rain_window=[frm, to], p97_mm=p97)
+            if m is not None:
+                rec.update(rain3d_mm=m[0], rain3d_end=m[1])
+                if m[0] >= p97:
+                    rec["season"] = "extreme"
+        out.append(rec)
+    return out
+
+
+def gate_v2_passed() -> bool:
+    try:
+        with open(RESULT_V2, encoding="utf-8") as f:
+            return bool(json.load(f).get("passed"))
+    except (OSError, ValueError):
+        return False
