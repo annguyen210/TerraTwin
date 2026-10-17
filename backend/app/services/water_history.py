@@ -247,7 +247,34 @@ def _annotate(r: dict, lat: float | None = None, lon: float | None = None) -> di
             r["urban"] = urban(lat, lon)
             r["canopy"] = None if r["urban"] else canopy(lat, lon)
             r["cropland"] = cropland(lat, lon) if r.get("n_events") else None
+            r.update(seasons(lat, lon, r))
     return r
+
+
+def seasons(lat: float, lon: float, r: dict) -> dict:
+    """LỚP DIỄN GIẢI mùa lũ (services/flood_season.py, cổng đăng ký trước đạt 17/10/2026): gắn nhãn từng đợt trong/ngoài
+    mùa lũ của CHÍNH điểm. Bộ phát hiện không đổi — không thêm/bớt đợt. Cổng chưa đạt / không có ERA5 → không gắn gì."""
+    from app.services import flood_season as fs
+    if not r.get("events") or not fs.gate_passed():
+        return {}
+    s = fs.season(lat, lon)
+    if not s:
+        return {}
+    ev = [{**e, "season": fs.label(e["start"], s)} for e in r["events"]]
+    n_in = sum(1 for e in ev if e["season"] == "in")
+    n_out = len(ev) - n_in
+    f = _frame_pct(lat, lon) or {}
+    small_water = (r.get("water_surface") is not None) or (10.0 <= f.get(80, 0.0) < 50.0)
+    use = n_out > 0 and (f.get(40, 0.0) >= CROP_PCT or small_water)
+    out = {"events": ev, "n_in": n_in, "n_out": n_out,
+           "flood_season": {"months": s["months"], "core": s["core"], "text": fs.months_text(s["months"]),
+                            "window": s.get("window"), "source": s.get("source"), "rule_v": s.get("rule_v")},
+           "out_note": (fs.seasonal_note() if use else tr("ngoài các tháng mưa lớn nhất của điểm — đối chiếu sự kiện thời tiết",
+                                                           "outside the point's wettest months — check against weather events"))
+                       if n_out else None}
+    if out["flood_season"]:
+        out["cropland"] = None              # đã tách trong/ngoài mùa — lời nhắc chung không còn cần
+    return out
 
 
 def history(lat: float, lon: float, radius_m: float = RADIUS_M, today: date | None = None,

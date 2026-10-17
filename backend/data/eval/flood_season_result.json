@@ -1,0 +1,354 @@
+{
+ "run_at": "2026-10-17T08:54:28+00:00",
+ "protocol": "flood_season_protocol.json",
+ "rule_version": 1,
+ "passed": true,
+ "cases": [
+  {
+   "case": "Lũ Huế 10–11/2020",
+   "lat": 16.5751,
+   "lon": 107.4952,
+   "must": "in",
+   "pass": true,
+   "season_months": [
+    1,
+    10,
+    11,
+    12
+   ],
+   "core": [
+    10,
+    11,
+    12
+   ],
+   "monthly_mm": [
+    149.1,
+    92.8,
+    54.9,
+    100.0,
+    135.1,
+    126.9,
+    169.5,
+    157.6,
+    297.4,
+    573.1,
+    413.1,
+    350.6
+   ],
+   "events": [
+    {
+     "start": "2020-10-10",
+     "label": "in"
+    },
+    {
+     "start": "2020-11-09",
+     "label": "in"
+    }
+   ],
+   "all_events": [
+    {
+     "start": "2017-11-07",
+     "label": "in"
+    },
+    {
+     "start": "2020-10-10",
+     "label": "in"
+    },
+    {
+     "start": "2020-11-09",
+     "label": "in"
+    },
+    {
+     "start": "2021-10-17",
+     "label": "in"
+    },
+    {
+     "start": "2023-10-19",
+     "label": "in"
+    },
+    {
+     "start": "2025-11-01",
+     "label": "in"
+    },
+    {
+     "start": "2026-01-30",
+     "label": "in"
+    }
+   ]
+  },
+  {
+   "case": "Lũ miền Trung 11/2025",
+   "lat": 16.5751,
+   "lon": 107.4952,
+   "must": "in",
+   "pass": true,
+   "season_months": [
+    1,
+    10,
+    11,
+    12
+   ],
+   "core": [
+    10,
+    11,
+    12
+   ],
+   "monthly_mm": [
+    149.1,
+    92.8,
+    54.9,
+    100.0,
+    135.1,
+    126.9,
+    169.5,
+    157.6,
+    297.4,
+    573.1,
+    413.1,
+    350.6
+   ],
+   "events": [
+    {
+     "start": "2025-11-01",
+     "label": "in"
+    }
+   ],
+   "all_events": [
+    {
+     "start": "2017-11-07",
+     "label": "in"
+    },
+    {
+     "start": "2020-10-10",
+     "label": "in"
+    },
+    {
+     "start": "2020-11-09",
+     "label": "in"
+    },
+    {
+     "start": "2021-10-17",
+     "label": "in"
+    },
+    {
+     "start": "2023-10-19",
+     "label": "in"
+    },
+    {
+     "start": "2025-11-01",
+     "label": "in"
+    },
+    {
+     "start": "2026-01-30",
+     "label": "in"
+    }
+   ]
+  },
+  {
+   "case": "Cà Mau — các đợt tháng 3–5",
+   "lat": 9.18,
+   "lon": 105.09,
+   "must": "out",
+   "pass": true,
+   "season_months": [
+    7,
+    8,
+    9,
+    10,
+    11
+   ],
+   "core": [
+    7,
+    8,
+    9,
+    10
+   ],
+   "monthly_mm": [
+    57.6,
+    29.9,
+    41.2,
+    127.8,
+    250.8,
+    286.6,
+    356.6,
+    298.4,
+    381.6,
+    422.8,
+    237.1,
+    117.9
+   ],
+   "events": [
+    {
+     "start": "2017-05-29",
+     "label": "out"
+    },
+    {
+     "start": "2018-05-24",
+     "label": "out"
+    },
+    {
+     "start": "2019-05-31",
+     "label": "out"
+    },
+    {
+     "start": "2020-04-19",
+     "label": "out"
+    },
+    {
+     "start": "2021-04-14",
+     "label": "out"
+    },
+    {
+     "start": "2021-05-26",
+     "label": "out"
+    },
+    {
+     "start": "2024-03-23",
+     "label": "out"
+    },
+    {
+     "start": "2024-04-28",
+     "label": "out"
+    },
+    {
+     "start": "2025-04-05",
+     "label": "out"
+    },
+    {
+     "start": "2026-05-31",
+     "label": "out"
+    }
+   ],
+   "all_events": [
+    {
+     "start": "2017-05-29",
+     "label": "out"
+    },
+    {
+     "start": "2018-05-24",
+     "label": "out"
+    },
+    {
+     "start": "2019-05-31",
+     "label": "out"
+    },
+    {
+     "start": "2020-04-19",
+     "label": "out"
+    },
+    {
+     "start": "2020-08-05",
+     "label": "in"
+    },
+    {
+     "start": "2021-04-14",
+     "label": "out"
+    },
+    {
+     "start": "2021-05-26",
+     "label": "out"
+    },
+    {
+     "start": "2021-08-30",
+     "label": "in"
+    },
+    {
+     "start": "2024-03-23",
+     "label": "out"
+    },
+    {
+     "start": "2024-04-28",
+     "label": "out"
+    },
+    {
+     "start": "2025-04-05",
+     "label": "out"
+    },
+    {
+     "start": "2026-05-31",
+     "label": "out"
+    },
+    {
+     "start": "2026-09-16",
+     "label": "in"
+    }
+   ]
+  },
+  {
+   "case": "Hà Nội — các đợt tháng 2–3",
+   "lat": 21.12,
+   "lon": 105.89,
+   "must": "out",
+   "pass": true,
+   "season_months": [
+    7,
+    8,
+    9,
+    10
+   ],
+   "core": [
+    7,
+    8,
+    9
+   ],
+   "monthly_mm": [
+    64.7,
+    54.9,
+    74.7,
+    102.1,
+    229.1,
+    285.4,
+    330.4,
+    447.8,
+    357.4,
+    201.3,
+    54.6,
+    34.9
+   ],
+   "events": [
+    {
+     "start": "2018-03-12",
+     "label": "out"
+    },
+    {
+     "start": "2020-02-06",
+     "label": "out"
+    },
+    {
+     "start": "2022-03-03",
+     "label": "out"
+    },
+    {
+     "start": "2023-02-26",
+     "label": "out"
+    }
+   ],
+   "all_events": [
+    {
+     "start": "2018-03-12",
+     "label": "out"
+    },
+    {
+     "start": "2020-02-06",
+     "label": "out"
+    },
+    {
+     "start": "2020-07-11",
+     "label": "in"
+    },
+    {
+     "start": "2021-07-06",
+     "label": "in"
+    },
+    {
+     "start": "2022-03-03",
+     "label": "out"
+    },
+    {
+     "start": "2023-02-26",
+     "label": "out"
+    }
+   ]
+  }
+ ]
+}

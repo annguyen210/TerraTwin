@@ -16,7 +16,7 @@ _TTL = 6 * 3600
 def one(lat: float, lon: float) -> dict:
     """Một cột so sánh. Mục nào hỏng ghi None (giao diện ghi "không lấy được"), không đoán."""
     from app.services import datasources as ds, jobs, landuse, listing_check as lc, passport
-    key = cache_store.make_key("compare", round(lat, 5), round(lon, 5), "v3")   # v3: + đô thị (17/10/2026)
+    key = cache_store.make_key("compare", round(lat, 5), round(lon, 5), "v4")   # v4: + mùa lũ (17/10/2026)
     hit = cache_store.get(key)
     if hit is not None:
         return hit
@@ -32,7 +32,9 @@ def one(lat: float, lon: float) -> dict:
         # Giữa sông "0 đợt nước" chỉ vì nước có quanh năm (16/10/2026) — ghi chữ, không để thành số "tốt nhất".
         "water_events": tr("mặt nước thường xuyên", "permanent water") if on_water else
                         (tr(f"{n} (đô thị/tán cây dày — radar không thấy ngập)", f"{n} (urban/dense canopy — radar can't see floods)")
-                         if is_urban and (n := (water or {}).get("n_events")) is not None else (water or {}).get("n_events")),
+                         if is_urban and (n := (water or {}).get("n_in", (water or {}).get("n_events"))) is not None
+                         else (water or {}).get("n_in", (water or {}).get("n_events"))),
+        "water_events_out": (water or {}).get("n_out"),
         "water_scenes": (water or {}).get("n_scenes"),
         "water_last": ((water or {}).get("events") or [{}])[-1].get("start") if water and water.get("events") else None,
         "elevation_m": (terr or {}).get("elevation_m"),
@@ -55,7 +57,8 @@ def one(lat: float, lon: float) -> dict:
 
 # hàng → (nhãn VI, nhãn EN, đơn vị, hướng thuận lợi: "low" | "high" | None, nguồn)
 ROWS = [
-    ("water_events", "Số đợt nước phủ (radar, 2017→nay)", "Water events (radar, 2017→now)", "", "low", "Sentinel-1 RTC"),
+    ("water_events", "Số đợt nước phủ trong mùa lũ (radar, 2017→nay)", "Water events in flood season (radar, 2017→now)", "", "low", "Sentinel-1 RTC · ERA5"),
+    ("water_events_out", "Đợt nước ngoài mùa lũ (thường là nước tưới, nuôi trồng)", "Out-of-season water events (usually irrigation, aquaculture)", "", None, "Sentinel-1 RTC · ERA5"),
     ("elevation_m", "Cao độ", "Elevation", " m", "high", "Copernicus DEM"),
     ("lower_than_pct", "Thấp hơn % đất trong 5 km", "Lower than % of land within 5 km", "%", "low", "Copernicus DEM"),
     ("slope_deg", "Độ dốc", "Slope", "°", "low", "Copernicus DEM"),

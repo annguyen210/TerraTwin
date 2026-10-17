@@ -5275,3 +5275,7 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .wh-surface { margin: 0; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(224, 164, 74, .55); background: rgba(224, 164, 74, .1); font-size: .86rem; line-height: 1.45; }
 .cmp-water { color: #e0a44a; font-weight: 600; }
 .wh-crop { border-color: rgba(95, 203, 142, .45); background: rgba(95, 203, 142, .07); }
+
+.wh-season { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 99px; font-size: .72rem; font-weight: 600; }
+.wh-season.in { background: rgba(61, 143, 196, .18); color: #7fc0ea; }
+.wh-season.out { background: rgba(154, 168, 107, .2); color: #c3cf8f; }

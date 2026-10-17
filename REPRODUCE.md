@@ -178,6 +178,34 @@ phân vị VV < −18 dB **và** thấp hơn nền của chính thửa ≥ 3 dB;
 Giới hạn: đô thị (phản xạ kép), rừng rậm, sườn dốc, mặt rất phẳng; chu kỳ 6–12 ngày có thể lọt đợt ngập ngắn
 (lũ đỉnh 27–30/10/2025 được thấy ở cảnh 01/11 khi nước còn đọng). Đây là số đo radar, không phải số liệu ngập chính thức.
 
+### 7b. Lớp diễn giải MÙA LŨ (trong / ngoài mùa) — CỔNG ĐẠT 17/10/2026
+
+Vì sao: bộ phát hiện ở trên (không đổi) đếm cả nước cho vào ruộng/ao theo vụ. Đo production: Cà Mau 9,18; 105,09 có
+13 đợt, tháng bắt đầu 3–5 và 8–9; Hà Nội 21,12; 105,89 có 6 đợt tháng 2–3 và 7. Lớp này chỉ GẮN NHÃN từng đợt.
+
+```bash
+cd backend && python ../ops/flood_season_gate.py   # ghi backend/data/eval/flood_season_result.json
+```
+
+Quy tắc v1 + 4 ca + tiêu chí đạt đăng ký TRƯỚC khi chạy (`backend/data/eval/flood_season_protocol.json`, commit 6de80c3;
+mã `backend/app/services/flood_season.py`): mưa ngày ERA5 2016–2025 tại chính điểm → mưa trung bình từng tháng;
+**lõi** = các tháng mưa nhiều nhất, lấy dần tới khi cộng dồn ≥ 50% tổng năm; **mùa lũ** = lõi + tháng liền sau mỗi tháng
+lõi. Đợt "trong mùa lũ" nếu tháng bắt đầu thuộc mùa lũ. Đợt ngoài mùa trên ruộng (WorldCover Trồng trọt ≥ 50%) hoặc có mặt
+nước nhỏ → "thường là nước tưới / nuôi trồng theo vụ". Kiểm tin đăng: chỉ đợt TRONG mùa lũ làm "không ngập" thành
+"mâu thuẫn"; chỉ có đợt ngoài mùa → "không đủ dữ liệu".
+
+| Ca | Mùa lũ tính ra (lõi) | Đợt được chọn | Yêu cầu | Kết quả |
+|---|---|---|---|---|
+| Lũ Huế 10–11/2020 — Quảng Điền (16,5751; 107,4952) | tháng 10–1 (lõi 10, 11, 12) | 10/10/2020, 09/11/2020 | trong | **đạt** |
+| Lũ miền Trung 11/2025 — Quảng Điền | tháng 10–1 | 01/11/2025 | trong | **đạt** |
+| Cà Mau (9,18; 105,09) — các đợt tháng 3–5 | tháng 7–11 (lõi 7–10) | 10 đợt (2017-05 … 2026-05) | ngoài | **đạt** 10/10 |
+| Hà Nội (21,12; 105,89) — các đợt tháng 2–3 | tháng 7–10 (lõi 7–9) | 4 đợt (2018-03, 2020-02, 2022-03, 2023-02) | ngoài | **đạt** 4/4 |
+
+Các đợt NGOÀI cổng (công bố đủ, không chỉnh quy tắc theo chúng): Quảng Điền 7 trong / 0 ngoài; Cà Mau 3 trong (08/2020,
+08/2021, 09/2026) / 10 ngoài; Hà Nội 2 trong (07/2020, 07/2021) / 4 ngoài; đồng lúa Huế 16,52; 107,59: 5 trong / 1 ngoài —
+**đợt 19/09/2024 bị xếp "ngoài mùa lũ" dù trùng ngày bão Soulik đổ bộ miền Trung**: lũ sớm đầu mùa là giới hạn đã biết
+của quy tắc v1 (muốn sửa phải đăng ký v2 với ca mới, không chạy lại trên 4 ca này).
+
 ## 8. Kiểm một hồ sơ mà không cần tin TerraTwin — CỔNG GĐ4
 
 Một tệp duy nhất, không import mã máy chủ: [`ops/verify_dossier.py`](ops/verify_dossier.py).

@@ -140,7 +140,9 @@ def catalog(facts: dict, lang: str | None = None) -> dict[str, dict]:
                 "label": _t(f"Đợt nước {i + 1}", f"Water event {i + 1}", lang),
                 "value": (f"{e['start']} → {e['end']}" if e["start"] != e["end"] else e["start"])
                          + _t(f", phủ {e['peak_cover']}, {e['n_scenes']} cảnh",
-                              f", {e['peak_cover']} covered, {e['n_scenes']} scene(s)", lang),
+                              f", {e['peak_cover']} covered, {e['n_scenes']} scene(s)", lang)
+                         + ((_t(", trong mùa lũ", ", in flood season", lang) if e["season"] == "in"
+                             else _t(", ngoài mùa lũ", ", out of flood season", lang)) if e.get("season") else ""),
                 "source": "Sentinel-1 RTC (Copernicus) — Microsoft Planetary Computer",
                 "measured": e["start"],
                 # Hồ sơ phát hành từ 12/10/2026 mang phân vị ĐÃ QUYẾT ĐỊNH; hồ sơ cũ giữ đúng câu cũ (lời diễn giải
@@ -224,6 +226,24 @@ def template_sentences(facts: dict, cat: dict, lang: str | None = None) -> list[
                       f"Sentinel-1 radar saw no water over the plot in {w['n_scenes']} scenes, "
                       f"from {w['first']} to {w['last']}.", lang)
             ids = ["water.summary"]
+        elif w.get("flood_season") and w.get("n_in", 0) == 0:
+            # Hồ sơ phát hành từ 17/10/2026 có lớp mùa lũ: chỉ có đợt NGOÀI mùa → không nói "thấy nước phủ thửa N đợt".
+            fsn = w["flood_season"]
+            text = _t(f"Radar Sentinel-1 thấy nước phủ {w['n_out']} đợt trong {w['n_scenes']} cảnh ({w['first']} → {w['last']}), "
+                      f"đều NGOÀI mùa lũ của điểm (tháng {fsn['text']}, mưa ERA5 {fsn['window']}) — {w.get('out_note') or ''}.",
+                      f"Sentinel-1 radar saw water {w['n_out']} time(s) in {w['n_scenes']} scenes ({w['first']} → {w['last']}), "
+                      f"all OUTSIDE the point's flood season (months {fsn['text']}, ERA5 rain {fsn['window']}) — {w.get('out_note') or ''}.", lang)
+            ids = ["water.summary"]
+        elif w.get("flood_season"):
+            fsn = w["flood_season"]
+            ins = [e["start"] for e in w["events"] if e.get("season") == "in"]
+            text = _t(f"Radar Sentinel-1 thấy nước phủ thửa {w['n_in']} đợt TRONG mùa lũ (tháng {fsn['text']}, mưa ERA5 {fsn['window']}) "
+                      f"trong {w['n_scenes']} cảnh từ {w['first']} đến {w['last']}; gần nhất {ins[-1]}."
+                      + (f" Thêm {w['n_out']} đợt ngoài mùa lũ ({w.get('out_note') or ''})." if w.get("n_out") else ""),
+                      f"Sentinel-1 radar saw water over the plot {w['n_in']} time(s) IN the flood season (months {fsn['text']}, ERA5 rain {fsn['window']}) "
+                      f"in {w['n_scenes']} scenes from {w['first']} to {w['last']}; latest {ins[-1]}."
+                      + (f" Plus {w['n_out']} out-of-season event(s) ({w.get('out_note') or ''})." if w.get("n_out") else ""), lang)
+            ids = ["water.summary"] + [f"water.event.{i + 1}" for i, e in enumerate(w["events"]) if e.get("season") == "in"][-1:]
         else:
             last = w["events"][-1]["start"] if w.get("events") else None
             text = _t(f"Radar Sentinel-1 thấy nước phủ thửa {w['n_events']} đợt trong {w['n_scenes']} cảnh "

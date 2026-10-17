@@ -251,7 +251,7 @@ with sync_playwright() as p:
         rings = page.locator(".hn-ring").count()
         page.wait_for_timeout(800)
         shot(page, "13-today")
-        assert n == 6, f"{n} thửa mẫu"
+        assert n >= 6, f"{n} thửa mẫu"
         assert rings == 0, "khách thấy vòng đếm ngược EUDR"
         return f"{n} thửa mẫu sống · {page.locator('.hn-biz .hn-tile').count()} lối tắt Doanh nghiệp"
     today()

@@ -127,3 +127,14 @@ def _khong_tra_do_thi_that(monkeypatch, request):
     from app.services import water_history
     for fn in ("urban", "canopy", "cropland"):
         monkeypatch.setattr(water_history, fn, lambda lat, lon: None)
+
+
+
+@pytest.fixture(autouse=True)
+def _khong_tra_mua_lu_that(monkeypatch, request):
+    """flood_season.season() tải 10 năm ERA5 cho mỗi điểm — trong test mặc định không gắn nhãn mùa lũ. Test về mùa lũ
+    dùng @pytest.mark.mua_lu_that và tự giả lập realdata.historical_weather / flood_season.season."""
+    if "mua_lu_that" in request.keywords:
+        return
+    from app.services import flood_season
+    monkeypatch.setattr(flood_season, "season", lambda lat, lon: None)

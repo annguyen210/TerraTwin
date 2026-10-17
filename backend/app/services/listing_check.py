@@ -162,6 +162,16 @@ def _judge(typ: str, ev: dict) -> tuple[str, str, str]:
         if not w:
             return "insufficient", tr("Chưa đọc lịch sử nước radar cho thửa này — đọc lịch sử nước (thường 1–3 phút với thửa mới) rồi kiểm lại.",
                                       "Radar water history not read for this plot yet — read the water history (usually 1–3 min for a new plot) and re-check."), "Sentinel-1"
+        if "n_in" in w:                                   # lớp mùa lũ (cổng đạt 17/10/2026)
+            fsn = w["flood_season"]
+            if w["n_in"] > 0:
+                ins = [e["start"] for e in w["events"] if e.get("season") == "in"]
+                return "contradicted", (tr(f"Radar ghi nhận nước phủ {w['n_in']} đợt TRONG mùa lũ của điểm (tháng {fsn['text']}, mưa ERA5 {fsn['window']}); gần nhất: {', '.join(ins[-3:])}.",
+                                           f"Radar recorded water {w['n_in']} times IN the point's flood season (months {fsn['text']}, ERA5 rain {fsn['window']}); latest: {', '.join(ins[-3:])}.")
+                                        + (tr(f" Thêm {w['n_out']} đợt ngoài mùa ({w['out_note']}).", f" Plus {w['n_out']} out-of-season event(s) ({w['out_note']}).") if w["n_out"] else "")), "Sentinel-1 RTC · ERA5"
+            if w["n_out"] > 0:
+                return "insufficient", tr(f"Radar thấy nước phủ {w['n_out']} đợt nhưng đều NGOÀI mùa lũ của điểm (tháng {fsn['text']}, mưa ERA5 {fsn['window']}) — {w['out_note']}; không đủ để kết luận đất bị ngập.",
+                                          f"Radar saw water {w['n_out']} times but all OUTSIDE the point's flood season (months {fsn['text']}, ERA5 rain {fsn['window']}) — {w['out_note']}; not enough to conclude the land floods."), "Sentinel-1 RTC · ERA5"
         if w["n_events"] > 0:
             dates = ", ".join(e["start"] for e in w["events"][-3:])
             return "contradicted", tr(f"Radar ghi nhận nước phủ {w['n_events']} đợt từ {w['first'][:4]} (gần nhất: {dates}).",
@@ -172,7 +182,8 @@ def _judge(typ: str, ev: dict) -> tuple[str, str, str]:
         if not terr:
             return "insufficient", tr("Không lấy được địa hình lúc này.", "Terrain unavailable right now."), "DEM"
         low = terr["lower_than_pct"]
-        wet = (w or {}).get("n_events", 0)
+        # chỉ đợt TRONG mùa lũ tính là "ướt" khi có lớp mùa lũ (nước tưới theo vụ không làm đất thành "thấp trũng")
+        wet = (w or {}).get("n_in", (w or {}).get("n_events", 0))
         if low >= 70 or wet >= 2:
             msg = tr(f"Thửa thấp hơn {low}% đất trong bán kính khảo sát", f"The plot is lower than {low}% of surrounding land")
             if wet:

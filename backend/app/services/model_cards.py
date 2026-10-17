@@ -141,6 +141,30 @@ def cards() -> list[dict]:
             "code": f"{REPO}/backend/app/services/water_history.py",
         })
 
+    # 4b — Lớp diễn giải mùa lũ (trong/ngoài mùa) — 17/10/2026
+    fsr = _load("eval", "flood_season_result.json")
+    if fsr:
+        out.append({
+            "id": "flood_season", "kind": tr("quy tắc diễn giải", "interpretation rule"),
+            "name": tr("Mùa lũ của từng điểm (trong / ngoài mùa)", "Per-point flood season (in / out of season)"),
+            "status": "accepted" if fsr.get("passed") else "rejected",
+            "status_label": tr("cổng đạt · đã bật", "gate passed · on") if fsr.get("passed") else tr("trượt · không bật", "failed · off"),
+            "task": tr("Tách đợt nước trong mùa lũ khỏi nước tưới / nuôi trồng theo vụ — không thêm/bớt đợt",
+                       "Separate flood-season water events from seasonal irrigation / aquaculture — no events added or removed"),
+            "data": tr("mưa ngày ERA5 2016–2025 tại điểm; lõi = tháng mưa nhiều nhất tới ≥ 50% năm, + tháng liền sau",
+                       "daily ERA5 rain 2016–2025 at the point; core = wettest months up to ≥ 50% of the year, + the following month"),
+            "split": tr("đăng ký trước 4 ca: Huế 10–11/2020 và 11/2025 phải trong mùa; Cà Mau tháng 3–5, Hà Nội tháng 2–3 phải ngoài mùa",
+                        "4 pre-registered cases: Huế 10–11/2020 and 11/2025 must be in season; Cà Mau Mar–May, Hà Nội Feb–Mar must be out"),
+            "metrics": [{"label": c.get("case"), "value": ", ".join(f"{e['start']}={e['label']}" for e in c.get("events") or []) or "—",
+                         "threshold": tr("trong mùa", "in season") if c.get("must") == "in" else tr("ngoài mùa", "out of season"),
+                         "passed": c.get("pass")} for c in fsr.get("cases", [])],
+            "limits": tr("Lũ sớm đầu mùa bị xếp ngoài mùa (vd 19/09/2024, bão Soulik, đồng lúa Huế 16,52; 107,59). Mưa ERA5 là lưới thô ~25 km.",
+                         "Early-season floods are labelled out of season (e.g. 19/09/2024, Typhoon Soulik, Huế paddy 16.52, 107.59). ERA5 rain is a coarse ~25 km grid."),
+            "not_for": tr("Không chứng minh một đợt là nước tưới — chỉ nói đợt đó ngoài các tháng mưa lớn nhất của điểm.",
+                          "Does not prove an event is irrigation — only that it falls outside the point's wettest months."),
+            "code": f"{REPO}/backend/app/services/flood_season.py",
+        })
+
     # 5 — Kiểm chứng tin đăng (luật từ khoá) và chạm-là-có-ranh (trượt)
     out.append({
         "id": "listing_rules", "kind": tr("quy tắc NLP", "NLP rules"),

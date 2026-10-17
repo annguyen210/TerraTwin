@@ -83,10 +83,14 @@ def _water_section(lat: float, lon: float) -> dict | None:
     r = cache_store.get(wh.cache_key(lat, lon))
     if not r or not r.get("available"):
         return None
+    sea = wh.seasons(lat, lon, {**r, "water_surface": wh.water_surface(r.get("baseline_db"))})
     return {"n_scenes": r["n_scenes"], "first": r["first"], "last": r["last"], "track": r["track"],
             "n_events": r["n_events"],
-            "events": [{k: e[k] for k in ("start", "end", "peak_cover", "n_scenes", "min_p50_db", "flag_pct", "min_flag_db")
-                        if k in e} for e in r["events"]],
+            "events": [{k: e[k] for k in ("start", "end", "peak_cover", "n_scenes", "min_p50_db", "flag_pct", "min_flag_db", "season")
+                        if k in e} for e in (sea.get("events") or r["events"])],
+            # Lớp diễn giải mùa lũ (17/10/2026, cổng đăng ký trước đạt): ghi vào phần ĐÃ KÝ cách tách trong/ngoài mùa.
+            **({"n_in": sea["n_in"], "n_out": sea["n_out"], "flood_season": sea["flood_season"], "out_note": sea["out_note"]}
+               if sea.get("flood_season") else {}),
             "rule": {"water_db": wh.WATER_DB, "drop_db": wh.DROP_DB, "merge_gap_days": wh.MERGE_GAP_DAYS},
             # Khung đo có mặt nước thường xuyên (16/10/2026): "0 đợt" ở phần đó không có nghĩa là không ngập — ghi vào
             # phần ĐÃ KÝ để người nhận hồ sơ thấy, không chỉ người xem trên web.
@@ -97,7 +101,7 @@ def _water_section(lat: float, lon: float) -> dict | None:
             **({"urban": {"built_pct": u["built_pct"], "source": "ESA WorldCover 2021"}} if (u := wh.urban(lat, lon)) else
                {"canopy": {"tree_pct": c["tree_pct"], "source": "ESA WorldCover 2021"}} if (c := wh.canopy(lat, lon)) else {}),
             **({"cropland": {"crop_pct": cr["crop_pct"], "source": "ESA WorldCover 2021"}}
-               if r.get("n_events") and (cr := wh.cropland(lat, lon)) else {}),
+               if r.get("n_events") and not sea.get("flood_season") and (cr := wh.cropland(lat, lon)) else {}),
             "method": r["method"], "limits": r["limits"]}
 
 

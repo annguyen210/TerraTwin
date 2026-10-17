@@ -52,7 +52,7 @@ jobs:
           key: journal-db-${{ github.run_id }}
           restore-keys: journal-db-
 
-      - name: Nền radar cho 6 thửa (lịch sử nước)
+      - name: Nền radar cho các thửa mẫu (lịch sử nước)
         working-directory: backend
         env:
           TERRATWIN_DATABASE_URL: sqlite:///./journal-ci.db
@@ -73,7 +73,7 @@ jobs:
               print(f"{name}: {r.get('n_scenes')} cảnh, {r.get('n_events')} đợt ({time.time() - t:.0f}s)", flush=True)
           PY
 
-      - name: Chạy nhật ký 24 giờ qua trên 6 thửa mẫu
+      - name: Chạy nhật ký 24 giờ qua trên các thửa mẫu
         working-directory: backend
         env:
           TERRATWIN_DATABASE_URL: sqlite:///./journal-ci.db

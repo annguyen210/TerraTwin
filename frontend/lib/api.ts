@@ -2684,14 +2684,16 @@ export type FocRun = { date: string; chosen?: string; status: "accepted" | "reje
                        pass_thresholds?: Record<string, number>; n?: Record<string, number> };
 // ---------- Lịch sử nước nhìn xuyên mây (radar Sentinel-1) ----------
 export type WaterEvent = { start: string; end: string; n_scenes: number; dates: string[]; peak_cover: string; min_p50_db: number;
-  flag_pct?: number; min_flag_db?: number; flag_date?: string };
+  flag_pct?: number; min_flag_db?: number; flag_date?: string; season?: "in" | "out" };
 export type WaterHistoryResult = { available: boolean; message?: string; n_scenes: number; first: string; last: string;
   track: { orbit: string; relative_orbit: number; collection: string }; events: WaterEvent[]; n_events: number;
   baseline_db: Record<string, number>; series: [string, number, number][]; method: string; limits: string; computed: string;
   water_surface?: { share: string; pct: number; baseline_db: number; note: string } | null;
   urban?: { built_pct: number; note: string } | null;
   canopy?: { tree_pct: number; note: string } | null;
-  cropland?: { crop_pct: number; note: string } | null };
+  cropland?: { crop_pct: number; note: string } | null;
+  n_in?: number; n_out?: number; out_note?: string | null;
+  flood_season?: { months: number[]; core: number[]; text: string; window?: string; source?: string; rule_v?: number } };
 export type WaterJob = { state: "queued" | "running" | "done" | "error"; job_id?: string; id?: string;
   progress?: { done: number; total: number }; result?: WaterHistoryResult; message?: string;
   elapsed_s?: number; queued_s?: number };

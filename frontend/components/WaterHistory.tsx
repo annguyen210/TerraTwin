@@ -12,6 +12,7 @@ import { waterPoll, waterScene, waterStart, waterStatus, type WaterHistoryResult
 import { useLang } from "@/lib/i18n";
 
 const COVER_COLOR: Record<string, string> = { "≥50%": "#1d5e87", "25–50%": "#3d8fc4", "10–25%": "#8cc3e6" };
+const OUT_COLOR = "#9aa86b";      // đợt NGOÀI mùa lũ (thường nước tưới / nuôi trồng) — tô khác màu đợt trong mùa lũ
 
 function Chart({ r }: { r: WaterHistoryResult }) {
   const { t } = useLang();
@@ -30,7 +31,7 @@ function Chart({ r }: { r: WaterHistoryResult }) {
       <polyline points={line} fill="none" stroke="currentColor" strokeWidth="1.2" opacity=".75" />
       {r.events.map((e) => (
         <rect key={e.start} x={x(e.start) - 3} width={Math.max(6, x(e.end) - x(e.start) + 6)} y={pad} height={H - 2 * pad}
-              fill={COVER_COLOR[e.peak_cover] || "#3d8fc4"} opacity=".35" rx="2" />
+              fill={e.season === "out" ? OUT_COLOR : COVER_COLOR[e.peak_cover] || "#3d8fc4"} opacity={e.season === "out" ? ".45" : ".35"} rx="2" />
       ))}
       {years.map((yr) => {
         const d = `${yr}-01-01`;
@@ -168,6 +169,11 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
   const summary = useMemo(() => {
     if (!r || !r.available) return null;
     const last = r.events[r.events.length - 1];
+    if (r.flood_season && r.n_events > 0) {
+      const fs = r.flood_season;
+      return t(`${r.n_in} đợt nước TRONG mùa lũ (tháng ${fs.text}) · ${r.n_out} đợt ngoài mùa lũ${r.n_out ? ` (${r.out_note})` : ""} — từ ${r.first.slice(0, 4)}, ${r.n_scenes} cảnh radar.`,
+               `${r.n_in} water event(s) IN the flood season (months ${fs.text}) · ${r.n_out} outside${r.n_out ? ` (${r.out_note})` : ""} — since ${r.first.slice(0, 4)}, ${r.n_scenes} radar scenes.`);
+    }
     return r.n_events === 0
       ? t(`Không thấy đợt nước phủ nào trong ${r.n_scenes} cảnh radar từ ${r.first.slice(0, 4)}.`,
           `No water events in ${r.n_scenes} radar scenes since ${r.first.slice(0, 4)}.`)
@@ -218,13 +224,17 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
           <p className="wh-sum"><b>{summary}</b></p>
           <Chart r={r} />
           {onScene && <MapScrubber r={r} lat={lat} lon={lon} onScene={onScene} focus={focus} />}
-          <p className="eu-src">{t("Đường: trung vị tán xạ VV (dB); vạch đứt: ngưỡng nước −18 dB; khối xanh: đợt nước phủ.",
-                                   "Line: median VV backscatter (dB); dashed: −18 dB water threshold; blue blocks: water events.")}</p>
+          <p className="eu-src">{r.flood_season
+            ? t(`Đường: trung vị tán xạ VV (dB); vạch đứt: ngưỡng nước −18 dB; khối xanh lam: đợt trong mùa lũ; khối xanh rêu: đợt ngoài mùa lũ. Mùa lũ của điểm: tháng ${r.flood_season.text} — các tháng mưa nhiều nhất (ERA5 ${r.flood_season.window}) cộng tháng liền sau.`,
+                `Line: median VV backscatter (dB); dashed: −18 dB water threshold; blue blocks: flood-season events; olive blocks: out-of-season events. Flood season here: months ${r.flood_season.text} — the wettest months (ERA5 ${r.flood_season.window}) plus the following month.`)
+            : t("Đường: trung vị tán xạ VV (dB); vạch đứt: ngưỡng nước −18 dB; khối xanh: đợt nước phủ.",
+                "Line: median VV backscatter (dB); dashed: −18 dB water threshold; blue blocks: water events.")}</p>
           {r.events.length > 0 && (
             <ol className="wh-list">
               {r.events.slice().reverse().map((e) => (
                 <li key={e.start}>
                   <b>{e.start === e.end ? e.start : `${e.start} → ${e.end}`}</b>
+                  {e.season && <span className={`wh-season ${e.season}`}>{e.season === "in" ? t("trong mùa lũ", "flood season") : t("ngoài mùa lũ", "out of season")}</span>}
                   <span>{t(`phủ ${e.peak_cover} thửa`, `${e.peak_cover} of plot covered`)} · {t(`${e.n_scenes} cảnh`, `${e.n_scenes} scenes`)} · {e.min_flag_db != null && e.flag_pct != null
                     ? t(`VV phân vị ${e.flag_pct} thấp nhất ${e.min_flag_db} dB (ngưỡng −18; trung vị ${e.min_p50_db})`,
                         `lowest VV p${e.flag_pct} ${e.min_flag_db} dB (threshold −18; median ${e.min_p50_db})`)

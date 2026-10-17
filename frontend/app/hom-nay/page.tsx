@@ -91,7 +91,7 @@ export default function TodayPage() {
         )}
         {plots && plots.length === 0 && samples && samples.plots.length > 0 && (
           <section className="hn-plots" aria-label={t("Nhật ký sống 6 thửa mẫu", "Live journal of 6 sample plots")}>
-            <h2>{t(`6 thửa mẫu được canh mỗi ngày — ${samples.n_days} ngày nhật ký sống`, `6 sample plots watched daily — ${samples.n_days} days of live journal`)}</h2>
+            <h2>{t(`${samples.plots.length} thửa mẫu được canh mỗi ngày — ${samples.n_days} ngày nhật ký sống`, `${samples.plots.length} sample plots watched daily — ${samples.n_days} days of live journal`)}</h2>
             <div className="wh-samples">
               <ul>
                 {samples.plots.map((p) => (

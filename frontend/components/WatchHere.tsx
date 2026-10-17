@@ -77,7 +77,7 @@ export default function WatchHere({ user, coord, onOpen }: {
       )}
       {pub?.samples && pub.samples.plots.length > 0 && (
         <div className="wh-samples">
-          <h4>{t(`6 thửa mẫu đang được canh mỗi ngày — ${pub.samples.n_days} ngày nhật ký sống`, `6 sample plots watched daily — ${pub.samples.n_days} days of live journal`)}</h4>
+          <h4>{t(`${pub.samples.plots.length} thửa mẫu đang được canh mỗi ngày — ${pub.samples.n_days} ngày nhật ký sống`, `${pub.samples.plots.length} sample plots watched daily — ${pub.samples.n_days} days of live journal`)}</h4>
           <ul>
             {pub.samples.plots.map((p) => (
               <li key={p.name}>

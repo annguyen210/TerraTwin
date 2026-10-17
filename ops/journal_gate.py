@@ -22,7 +22,9 @@ from datetime import datetime, timedelta, timezone
 
 PLOTS = [("Quảng Điền, Huế (lúa)", 16.5751, 107.4952), ("Phong Điền, Cần Thơ", 10.0452, 105.7469),
          ("Đông Anh, Hà Nội", 21.1405, 105.8468), ("Lâm Hà, Lâm Đồng (cà phê)", 11.7536, 108.2190),
-         ("Trần Văn Thời, Cà Mau", 9.0820, 104.9690), ("Điện Bàn, Quảng Nam", 15.8890, 108.2500)]
+         ("Trần Văn Thời, Cà Mau", 9.0820, 104.9690), ("Điện Bàn, Quảng Nam", 15.8890, 108.2500),
+         # 17/10/2026: thêm 2 thửa RUỘNG không thuộc đô thị (Đông Anh, Điện Bàn nằm giữa phố — radar mù), giữ 6 thửa cũ
+         ("Ruộng lúa Bến Tre", 10.07, 106.57), ("Ruộng lúa ven đô Hà Nội", 21.12, 105.89)]
 LIVE_DAYS_MIN = 7
 
 
