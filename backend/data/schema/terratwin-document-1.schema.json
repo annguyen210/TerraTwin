@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/annguyen210/TerraTwin/main/backend/data/schema/terratwin-document-1.schema.json",
+  "title": "Tệp hồ sơ ký số TerraTwin — terratwin.dossier/1",
+  "description": "Định dạng tệp JSON tải về từ trang /h/<mã> (cũng là phần lõi của GET /api/dossier/<mã>). Một phong bì chung (id, seq, issued_at, facts, facts_canonical, proof) cho ba loại nội dung: Hồ sơ đất số (terratwin.dossier/1), Hồ sơ vườn EUDR (terratwin.eudr-plot/1) và Chứng thư lô hàng (terratwin.lot/1). Lược đồ chỉ kiểm ĐỊNH DẠNG. Tính toàn vẹn kiểm bằng ops/verify_dossier.py hoặc trang /kiem, vì JSON Schema không diễn đạt được các ràng buộc này: SHA-256(facts_canonical) = proof.facts_hash; JSON.parse(facts_canonical) = facts; SHA-256(proof.entry_message) = proof.entry_hash; chữ ký Ed25519 của proof.signature trên chuỗi ASCII entry_hash, bằng khoá key_id ở /api/dossiers/keys. Trường lạ ở phong bì được phép (API trả thêm url, qr, verification, transparency, anchor, narrative — kết quả sống, không phải nội dung đã ký).",
+  "type": "object",
+  "required": ["id", "seq", "issued_at", "facts", "facts_canonical", "proof"],
+  "properties": {
+    "id": {"description": "Mã hồ sơ: 12 ký tự ngẫu nhiên (~60 bit), bảng chữ không có l, o, 0, 1.", "type": "string", "pattern": "^[a-kmnp-z2-9]{12}$"},
+    "seq": {"description": "Số thứ tự trong sổ móc xích (bắt đầu từ 1).", "type": "integer", "minimum": 1},
+    "issued_at": {"description": "Thời điểm phát hành, UTC, tới giây.", "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"},
+    "facts_canonical": {"description": "ĐÚNG chuỗi đã băm: JSON chuẩn hoá của facts (khoá sắp xếp, không khoảng trắng, UTF-8). Kiểm lại bằng chuỗi này, đừng tự dựng lại JSON (Python và JavaScript viết số thực khác nhau).", "type": "string", "minLength": 2},
+    "facts": {
+      "description": "Nội dung đã ký. Phân loại theo trường schema.",
+      "oneOf": [{"$ref": "#/$defs/land"}, {"$ref": "#/$defs/eudr_plot"}, {"$ref": "#/$defs/lot_certificate"}]
+    },
+    "proof": {"$ref": "#/$defs/proof"}
+  },
+  "$defs": {
+    "hex64": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "lat": {"type": "number", "minimum": -90, "maximum": 90},
+    "lon": {"type": "number", "minimum": -180, "maximum": 180},
+    "no_predictions": {"description": "Bất biến: dự báo (rủi ro 7 ngày, cảnh báo) KHÔNG nằm trong nội dung ký.", "const": false},
+    "evidence_classes": {
+      "description": "Mỗi mục ghi rõ loại bằng chứng: measured = đo; derived = tính lại được từ số đo; declared = người khai; predicted = mô hình dự đoán.",
+      "type": "object",
+      "additionalProperties": {"enum": ["measured", "derived", "declared", "predicted"]}
+    },
+    "disclosure": {
+      "description": "Tiết lộ chọn lọc (terratwin.sd/1): nội dung ký chỉ giữ cam kết băm có muối của từng trường riêng; chủ hồ sơ đưa chuỗi tiết lộ thì mới đối chiếu được.",
+      "type": "object",
+      "required": ["scheme", "fields"],
+      "properties": {
+        "scheme": {"const": "terratwin.sd/1"},
+        "fields": {"type": "object", "additionalProperties": {"$ref": "#/$defs/hex64"}}
+      }
+    },
+    "geometry": {
+      "description": "GeoJSON (RFC 7946), toạ độ [kinh độ, vĩ độ] WGS84.",
+      "type": "object",
+      "required": ["type", "coordinates"],
+      "properties": {"type": {"enum": ["Point", "Polygon", "MultiPolygon"]}, "coordinates": {"type": "array"}}
+    },
+    "proof": {
+      "type": "object",
+      "required": ["schema", "facts_hash", "prev_hash", "entry_hash", "algorithm", "key_id", "signature", "entry_message"],
+      "properties": {
+        "schema": {"const": "terratwin.dossier/1"},
+        "facts_hash": {"$ref": "#/$defs/hex64"},
+        "prev_hash": {"description": "entry_hash của hồ sơ liền trước; hồ sơ số 1 dùng 64 số 0.", "$ref": "#/$defs/hex64"},
+        "entry_hash": {"$ref": "#/$defs/hex64"},
+        "algorithm": {"const": "Ed25519"},
+        "key_id": {"type": "string", "pattern": "^[0-9a-f]{16}$"},
+        "signature": {"description": "Chữ ký Ed25519 64 byte, base64.", "type": "string", "pattern": "^[A-Za-z0-9+/]{86}==$"},
+        "public_key_b64": {"description": "Khoá công khai 32 byte (base64) đi kèm để kiểm offline; so key_id với /api/dossiers/keys khi có mạng.", "type": ["string", "null"]},
+        "entry_message": {"description": "terratwin.dossier/1|seq|id|issued_at|facts_hash|prev_hash", "type": "string",
+                          "pattern": "^terratwin\\.dossier/1\\|[0-9]+\\|[a-kmnp-z2-9]{12}\\|\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z\\|[0-9a-f]{64}\\|[0-9a-f]{64}$"}
+      }
+    },
+    "land": {
+      "title": "Hồ sơ đất số (terratwin.dossier/1)",
+      "description": "Tổng hợp số ĐO và số tính lại được về một thửa: loại đất, địa hình, thời tiết 10 năm, lịch sử nước radar. Hồ sơ phát hành trước khi có trường predictions_included (trước 03/10/2026) có thể chứa current_risk / track_record — ảnh chụp dự báo lúc đó; hồ sơ mới không còn hai trường này. Mục không lấy được ghi trong missing, không điền số thay.",
+      "type": "object",
+      "required": ["schema", "location", "sources", "missing", "disclaimer"],
+      "properties": {
+        "schema": {"const": "terratwin.dossier/1"},
+        "kind": false,
+        "lang": {"enum": ["vi", "en"]},
+        "location": {
+          "type": "object", "required": ["lat", "lon"],
+          "properties": {"lat": {"$ref": "#/$defs/lat"}, "lon": {"$ref": "#/$defs/lon"}, "area_ha": {"type": ["number", "null"], "minimum": 0}}
+        },
+        "land_use": {"type": ["object", "null"]},
+        "terrain": {"type": ["object", "null"]},
+        "history_10y": {"type": ["object", "null"]},
+        "history_caveat": {"type": ["string", "null"]},
+        "water_history_radar": {
+          "description": "Đợt nước radar Sentinel-1 (đo); các trường n_in / n_out / flood_season chỉ có ở hồ sơ phát hành sau khi lớp mùa lũ v1 qua cổng (17/10/2026).",
+          "type": ["object", "null"],
+          "properties": {
+            "events": {"type": "array", "items": {"type": "object", "required": ["start", "end"],
+              "properties": {"start": {"type": "string", "format": "date"}, "end": {"type": "string", "format": "date"},
+                             "season": {"enum": ["in", "out"]}}}}
+          }
+        },
+        "listing_check": {"type": "object"},
+        "field_evidence": {"type": "array", "items": {"type": "object", "required": ["id", "sha256"],
+          "properties": {"sha256": {"$ref": "#/$defs/hex64"}, "thumb_sha256": {"anyOf": [{"$ref": "#/$defs/hex64"}, {"type": "null"}]}}}},
+        "disclosure": {"$ref": "#/$defs/disclosure"},
+        "evidence_classes": {"$ref": "#/$defs/evidence_classes"},
+        "predictions_included": {"$ref": "#/$defs/no_predictions"},
+        "predictions_note": {"type": "string"},
+        "sources": {"type": "array", "items": {"type": "string"}},
+        "missing": {"type": "array", "items": {"type": "string"}},
+        "disclaimer": {"type": "string", "minLength": 1}
+      }
+    },
+    "eudr_plot": {
+      "title": "Hồ sơ vườn EUDR (terratwin.eudr-plot/1)",
+      "description": "Sàng lọc theo Quy định (EU) 2023/1115 cho MỘT ranh vườn: định dạng ranh theo TRACES + tỉ lệ rừng 2020 / biến động trên đúng ranh. Không phải chứng nhận tuân thủ.",
+      "type": "object",
+      "required": ["schema", "kind", "plot", "eu_format", "screening", "evidence_classes", "predictions_included", "sources", "disclaimer"],
+      "properties": {
+        "schema": {"const": "terratwin.eudr-plot/1"},
+        "kind": {"const": "eudr_plot"},
+        "lang": {"enum": ["vi", "en"]},
+        "plot": {
+          "type": "object", "required": ["geometry", "centroid", "country"],
+          "properties": {
+            "ref": {"type": ["string", "null"]},
+            "producer": {"description": "Mặc định null (ẩn); tên thật nằm sau cam kết disclosure.fields.producer.", "type": ["string", "null"]},
+            "country": {"type": "string", "pattern": "^[A-Z]{2}$"},
+            "commodity": {"type": ["string", "null"]},
+            "geometry": {"$ref": "#/$defs/geometry"},
+            "area_ha": {"type": ["number", "null"], "minimum": 0},
+            "centroid": {"type": "object", "required": ["lat", "lon"], "properties": {"lat": {"$ref": "#/$defs/lat"}, "lon": {"$ref": "#/$defs/lon"}}}
+          }
+        },
+        "eu_format": {"type": "object", "required": ["valid", "issues"],
+          "properties": {"valid": {"type": "boolean"}, "issues": {"type": "array"}, "rules": {"type": "string"}}},
+        "screening": {"type": ["object", "null"]},
+        "land_document": {"type": "object"},
+        "disclosure": {"$ref": "#/$defs/disclosure"},
+        "evidence_classes": {"$ref": "#/$defs/evidence_classes"},
+        "predictions_included": {"$ref": "#/$defs/no_predictions"},
+        "sources": {"type": ["array", "object"]},
+        "reproduce": {"type": "string"},
+        "disclaimer": {"type": "string", "minLength": 1}
+      }
+    },
+    "lot_certificate": {
+      "title": "Chứng thư lô hàng (terratwin.lot/1)",
+      "description": "Các đợt nhập của một lô khớp các Hồ sơ vườn đã ký (gốc Merkle RFC 6962 trên {dossier_id, entry_hash, kg}) và qua kiểm cân bằng khối lượng. Khối lượng do doanh nghiệp khai.",
+      "type": "object",
+      "required": ["schema", "kind", "lot", "merkle", "mass_balance", "checks", "evidence_classes", "predictions_included", "disclaimer"],
+      "properties": {
+        "schema": {"const": "terratwin.lot/1"},
+        "kind": {"const": "lot_certificate"},
+        "lang": {"enum": ["vi", "en"]},
+        "lot": {"type": "object", "required": ["ref", "commodity", "hs_code", "quantity_kg", "n_plots", "country_of_production"],
+          "properties": {"quantity_kg": {"type": "number", "minimum": 0}, "n_plots": {"type": "integer", "minimum": 1},
+                         "hs_code": {"type": "string", "pattern": "^[0-9]{4,10}$"}, "country_of_production": {"type": "string", "pattern": "^[A-Z]{2}$"}}},
+        "merkle": {"type": "object", "required": ["algorithm", "root", "size"],
+          "properties": {"algorithm": {"const": "RFC 6962 SHA-256"}, "root": {"$ref": "#/$defs/hex64"}, "size": {"type": "integer", "minimum": 1}}},
+        "mass_balance": {"type": "object"},
+        "checks": {"type": "object"},
+        "evidence_classes": {"$ref": "#/$defs/evidence_classes"},
+        "predictions_included": {"$ref": "#/$defs/no_predictions"},
+        "disclaimer": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

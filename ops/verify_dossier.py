@@ -2,8 +2,12 @@
 """KIỂM ĐỘC LẬP MỘT HỒ SƠ TERRATWIN — không cần tin máy chủ, không import mã của TerraTwin.
 
 Một tệp duy nhất, chỉ cần Python 3.10+ và `pip install cryptography` (thêm `opentimestamps` nếu
-muốn tự kiểm luôn neo Bitcoin). Ngân hàng, công chứng viên, nhà báo tải tệp này về là kiểm được:
+muốn tự kiểm luôn neo Bitcoin, `jsonschema` nếu muốn kiểm định dạng). Ngân hàng, công chứng viên, nhà
+báo tải tệp này về là kiểm được:
 
+  0. ĐỊNH DẠNG (tuỳ chọn) — tệp khớp lược đồ JSON công khai terratwin-document-1 (lấy THẲNG từ kho mã
+                 trên GitHub, không qua máy chủ TerraTwin; hoặc --schema <tệp>). Lệch định dạng chỉ là
+                 CẢNH BÁO: bản gốc hay không là do các phép 1–5 quyết định.
   1. NỘI DUNG  — SHA-256 của chuỗi nội dung đã ký = facts_hash; nội dung hiển thị = nội dung đã ký.
   2. MỤC SỔ    — SHA-256("terratwin.dossier/1|seq|id|issued_at|facts_hash|prev_hash") = entry_hash.
   3. CHỮ KÝ    — Ed25519 trên entry_hash, bằng khoá công khai lấy từ /api/dossiers/keys.
@@ -31,6 +35,7 @@ import urllib.request
 
 API = os.environ.get("TERRATWIN_API", "https://terratwin-api.onrender.com")
 ANCHORS = "https://raw.githubusercontent.com/annguyen210/TerraTwin/transparency-log"
+SCHEMA_URL = "https://raw.githubusercontent.com/annguyen210/TerraTwin/main/backend/data/schema/terratwin-document-1.schema.json"
 EXPLORERS = ("https://blockstream.info/api", "https://mempool.space/api")
 
 
@@ -140,11 +145,34 @@ def verify_ots(ots_bytes: bytes, data: bytes) -> dict:
 class Report:
     def __init__(self) -> None:
         self.fail = 0
+        self.warn = 0          # lệch định dạng (bước 0) — cảnh báo, không phải hỏng
 
-    def line(self, ok: bool | None, msg: str) -> None:
-        mark = {True: "ĐẠT ", False: "HỎNG", None: "BỎ QUA"}[ok]
+    def line(self, ok: bool | None, msg: str, soft: bool = False) -> None:
+        mark = {True: "ĐẠT ", False: "LỆCH" if soft else "HỎNG", None: "BỎ QUA"}[ok]
         print(f"  [{mark}] {msg}")
-        self.fail += ok is False
+        self.fail += ok is False and not soft
+        self.warn += ok is False and soft
+
+
+def check_format(doc: dict, schema: dict | None, rep: Report) -> None:
+    """0. Định dạng theo lược đồ công khai. Thiếu thư viện / lược đồ → BỎ QUA; lệch → LỆCH (không tính là hỏng)."""
+    try:
+        import jsonschema
+    except ImportError:
+        rep.line(None, "0. Định dạng — cần `pip install jsonschema` để kiểm theo lược đồ công khai")
+        return
+    if schema is None:
+        rep.line(None, "0. Định dạng — không có lược đồ (offline: thêm --schema <tệp lược đồ>)")
+        return
+    v = jsonschema.Draft202012Validator(schema, format_checker=jsonschema.FormatChecker())
+    errs = sorted(v.iter_errors(doc), key=lambda e: list(e.absolute_path))
+    if not errs:
+        rep.line(True, f"0. Định dạng khớp lược đồ công khai ({doc.get('facts', {}).get('schema', '?')})")
+        return
+    rep.line(False, f"0. Định dạng LỆCH lược đồ công khai ở {len(errs)} chỗ — báo cho TerraTwin; chữ ký (1–3) vẫn là thứ "
+                    "quyết định bản gốc", soft=True)
+    for e in errs[:5]:
+        print(f"       · {'/'.join(str(x) for x in e.absolute_path) or '(gốc)'}: {e.message[:160]}")
 
 
 def check_document(doc: dict, keys: dict[str, str] | None, rep: Report) -> None:
@@ -225,6 +253,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--file", help="tệp JSON hồ sơ đã tải về")
     ap.add_argument("--api", default=API)
     ap.add_argument("--offline", action="store_true", help="chỉ kiểm 1–3 bằng khoá đi kèm tệp")
+    ap.add_argument("--schema", help="tệp lược đồ JSON (mặc định: tải từ kho mã trên GitHub khi có mạng)")
     a = ap.parse_args(argv)
     api = a.api.rstrip("/")
     if a.file:
@@ -236,12 +265,22 @@ def main(argv: list[str] | None = None) -> int:
         ap.error("cần mã hồ sơ hoặc --file")
     print(f"Hồ sơ {doc['id']} · số {doc['seq']} · phát hành {doc['issued_at']}")
     rep = Report()
+    schema = None
+    if a.schema:
+        schema = json.load(open(a.schema, encoding="utf-8"))
+    elif not a.offline:
+        try:
+            schema = get(SCHEMA_URL)
+        except Exception:
+            schema = None
+    check_format(doc, schema, rep)
     keys = None if a.offline else {k["key_id"]: k["public_key_b64"] for k in get(f"{api}/api/dossiers/keys")["keys"]}
     check_document(doc, keys, rep)
     if keys is not None:
         check_log(api, doc, keys, rep)
         check_anchor(api, doc, rep)
-    print("KẾT LUẬN:", "BẢN GỐC — mọi phép kiểm bắt buộc đạt." if not rep.fail
+    print("KẾT LUẬN:", ("BẢN GỐC — mọi phép kiểm bắt buộc đạt."
+                        + (" (Định dạng lệch lược đồ — xem dòng 0.)" if rep.warn else "")) if not rep.fail
           else f"KHÔNG QUA — {rep.fail} phép kiểm hỏng. Đừng tin nội dung hồ sơ này.")
     return 0 if not rep.fail else 1
 

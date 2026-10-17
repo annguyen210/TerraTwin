@@ -250,7 +250,7 @@ def test_so_minh_bach_dau_cay_on_dinh_va_bang_chung(env):
         assert translog.verify_head(s, h2)
 
 
-def test_lo_hang_can_bang_khoi_luong_va_chung_thu(env):
+def test_lo_hang_can_bang_khoi_luong_va_chung_thu(env, doc_schema):
     c = env
     h = _login(c)
     a = _issue(c, "VA", 12.80, h)                       # ~1,2 ha → trần cà phê 6 t/ha ≈ 7.200 kg
@@ -277,6 +277,7 @@ def test_lo_hang_can_bang_khoi_luong_va_chung_thu(env):
     assert f["kind"] == "lot_certificate" and f["lot"]["quantity_kg"] == 4500 and f["lot"]["hs_code"] == "0901"
     assert f["merkle"]["size"] == 2 and a["id"] not in json.dumps(f)          # không lộ danh sách nhà cung cấp
     assert cert["certificate"]["verification"]["valid"]
+    doc_schema(cert["certificate"])                            # khớp lược đồ công khai (terratwin.lot/1)
 
     pr = c.get(f"/api/lot-proof/{cert['lot']['certificate_id']}/{a['id']}").json()
     from app.services import lots

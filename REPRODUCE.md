@@ -279,10 +279,22 @@ người khác trả lời gì (`GET /api/water/confirmations`).
 Một tệp duy nhất, không import mã máy chủ: [`ops/verify_dossier.py`](ops/verify_dossier.py).
 
 ```bash
-pip install cryptography opentimestamps     # opentimestamps chỉ cần cho bước 5
+pip install cryptography opentimestamps jsonschema   # opentimestamps chỉ cần cho bước 5, jsonschema cho bước 0
 python ops/verify_dossier.py <mã hồ sơ>       # hoặc dán cả đường dẫn https://…/h/<mã>
 python ops/verify_dossier.py --file terratwin-ho-so-<mã>.json --offline   # tệp đã tải, không mạng
+python ops/verify_dossier.py --file terratwin-ho-so-<mã>.json --offline        --schema backend/data/schema/terratwin-document-1.schema.json        # thêm bước 0 khi không mạng
 ```
+
+**Định dạng tệp — lược đồ JSON công khai** (draft 2020-12):
+[`backend/data/schema/terratwin-document-1.schema.json`](backend/data/schema/terratwin-document-1.schema.json)
+(máy chủ phát lại đúng tệp đó ở `GET /api/dossiers/schema`). Một phong bì chung (`id`, `seq`, `issued_at`, `facts`,
+`facts_canonical`, `proof`) cho ba loại nội dung: Hồ sơ đất số `terratwin.dossier/1`, Hồ sơ vườn EUDR
+`terratwin.eudr-plot/1`, Chứng thư lô hàng `terratwin.lot/1`. Bất biến ghi trong lược đồ: `predictions_included`
+luôn là `false`; mỗi mục ghi loại bằng chứng (`measured` / `derived` / `declared` / `predicted`). Hồ sơ đất phát hành
+trước 03/10/2026 còn `current_risk` / `track_record` (ảnh chụp dự báo lúc đó) — vẫn đúng định dạng, lược đồ ghi rõ.
+Bước 0 của script (tuỳ chọn) lấy lược đồ THẲNG từ GitHub; lệch định dạng chỉ là cảnh báo — bản gốc hay không do các
+phép 1–5 quyết định. Đã kiểm 26/26 hồ sơ trong CSDL phát triển (8 hồ sơ đất, 11 hồ sơ vườn, 7 chứng thư) khớp lược đồ;
+test `backend/tests/test_doc_schema.py` (+ kiểm trong `test_eudr.py`, `test_trust_infra.py`) bắt tệp sai định dạng.
 
 Năm phép kiểm: (1) SHA-256 nội dung = `facts_hash` và nội dung hiển thị = nội dung đã ký; (2) mục sổ
 `terratwin.dossier/1|seq|id|issued_at|facts_hash|prev_hash` băm ra `entry_hash`; (3) chữ ký Ed25519 bằng

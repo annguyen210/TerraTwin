@@ -7,6 +7,7 @@ from __future__ import annotations
 import base64
 import binascii
 import json
+import os
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import Field
@@ -233,3 +234,16 @@ def dossier_keys(db: Session = Depends(get_session)) -> dict:
                 "bằng khoá công khai (32 byte, base64) có key_id tương ứng.",
                 "The Ed25519 signature covers the ASCII entry_hash (64 hex chars). "
                 "Verify it with the public key (32 bytes, base64) of the matching key_id.")}
+
+
+SCHEMA_FILE = os.path.join(os.path.dirname(__file__), "..", "data", "schema", "terratwin-document-1.schema.json")
+
+
+@router.get("/api/dossiers/schema")
+def dossier_schema() -> Response:
+    """Lược đồ JSON (draft 2020-12) của tệp hồ sơ tải về — ba loại nội dung chung một phong bì. Bản gốc nằm trong kho mã
+    (đường $id trên GitHub); máy chủ chỉ phát lại đúng tệp đó. Lược đồ kiểm ĐỊNH DẠNG; toàn vẹn kiểm bằng ops/verify_dossier.py."""
+    with open(SCHEMA_FILE, "rb") as f:
+        body = f.read()
+    return Response(body, media_type="application/schema+json",
+                    headers={"Cache-Control": "public, max-age=3600"})

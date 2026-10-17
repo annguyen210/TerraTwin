@@ -424,7 +424,8 @@ export default function DossierPage() {
                 {d.anchor && <AnchorLine a={d.anchor} t={t} />}
                 <p className="dos-src">{t("Tự kiểm mọi thứ trên trang này mà không cần tin máy chủ: ", "Check everything on this page without trusting the server: ")}
                   <code>python verify_dossier.py {d.id}</code>{" "}
-                  (<a href={`${REPO}/blob/main/ops/verify_dossier.py`} target="_blank" rel="noreferrer">{t("tải script độc lập", "get the standalone script")}</a>)</p>
+                  (<a href={`${REPO}/blob/main/ops/verify_dossier.py`} target="_blank" rel="noreferrer">{t("tải script độc lập", "get the standalone script")}</a>
+                  {" · "}<a href={`${REPO}/blob/main/backend/data/schema/terratwin-document-1.schema.json`} target="_blank" rel="noreferrer">{t("lược đồ JSON của tệp hồ sơ", "JSON Schema of the dossier file")}</a>)</p>
               </section>
             )}
 

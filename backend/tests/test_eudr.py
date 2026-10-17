@@ -359,7 +359,7 @@ def test_sang_loc_mot_thua_va_ranh_sai_thi_khong_goi_ve_tinh(env):
     assert r["screening"] is None and c.calls == ["V"]
 
 
-def test_phat_hanh_ho_so_vuon_ky_so_va_kiem_duoc(env):
+def test_phat_hanh_ho_so_vuon_ky_so_va_kiem_duoc(env, doc_schema):
     c = env
     d = c.post("/api/eudr/dossier", json={"geometry": sq(12.7, 108.05), "ref": "Vườn ông Ba",
                                           "producer": "Lê Văn Ba", "commodity": "coffee"}).json()
@@ -371,6 +371,7 @@ def test_phat_hanh_ho_so_vuon_ky_so_va_kiem_duoc(env):
     assert d["verification"]["valid"] and d["url"].endswith(f"/h/{d['id']}")
     again = c.get(f"/api/dossier/{d['id']}").json()
     assert again["facts"]["plot"]["ref"] == "Vườn ông Ba" and again["verification"]["valid"]
+    doc_schema(again)                                          # khớp lược đồ công khai (terratwin.eudr-plot/1)
     bad = c.post("/api/eudr/dossier", json={"geometry": {"type": "LineString", "coordinates": [[1, 2], [3, 4]]}})
     assert bad.status_code == 422
 

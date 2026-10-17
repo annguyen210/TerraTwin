@@ -138,3 +138,22 @@ def _khong_tra_mua_lu_that(monkeypatch, request):
         return
     from app.services import flood_season
     monkeypatch.setattr(flood_season, "season", lambda lat, lon: None)
+
+
+@pytest.fixture
+def doc_schema():
+    """Kiểm một tệp hồ sơ theo lược đồ CÔNG KHAI data/schema/terratwin-document-1.schema.json (17/10/2026).
+    Trả hàm check(doc) — ném AssertionError kèm danh sách lỗi định dạng."""
+    import json as _json
+    import os as _os
+
+    import jsonschema
+    path = _os.path.join(_os.path.dirname(__file__), "..", "data", "schema", "terratwin-document-1.schema.json")
+    schema = _json.load(open(path, encoding="utf-8"))
+    v = jsonschema.Draft202012Validator(schema, format_checker=jsonschema.FormatChecker())
+
+    def check(doc: dict) -> None:
+        errs = [f"{list(e.absolute_path)}: {e.message[:200]}" for e in v.iter_errors(doc)]
+        assert not errs, errs
+    check.validator = v
+    return check
