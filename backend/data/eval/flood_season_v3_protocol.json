@@ -20,14 +20,100 @@
   "positive_candidates": {
     "why": "Lũ đầu mùa do bão đổ bộ miền Trung có ngày công khai; mùa lũ v1 ở miền Trung là tháng 10–1 nên tháng 8–9 là 'ngoài mùa' (được kiểm lại ở từng điểm).",
     "events": [
-      {"id": "E1", "name": "Bão Soulik đổ bộ Quảng Trị – Huế", "date": "2024-09-19", "region": "Bắc Trung Bộ", "point": [16.52, 107.59]},
-      {"id": "E2", "name": "Bão Noul (bão số 5) đổ bộ Quảng Trị – Huế", "date": "2020-09-18", "region": "Bắc Trung Bộ", "box": [16.62, 16.74, 107.20, 107.40]},
-      {"id": "E3", "name": "Bão Podul (bão số 4) đổ bộ Quảng Bình – Quảng Trị", "date": "2019-08-30", "region": "Bắc Trung Bộ", "box": [17.10, 17.26, 106.72, 106.88]},
-      {"id": "E4", "name": "Bão Doksuri (bão số 10) đổ bộ Hà Tĩnh – Quảng Bình", "date": "2017-09-15", "region": "Bắc Trung Bộ", "box": [18.38, 18.50, 105.70, 105.90]},
-      {"id": "E5", "name": "Bão Conson (bão số 5) gây mưa lớn Quảng Nam – Đà Nẵng", "date": "2021-09-12", "region": "Nam Trung Bộ", "box": [15.80, 15.92, 108.12, 108.28]},
-      {"id": "E6", "name": "Bão Noru (bão số 4) đổ bộ Quảng Nam – Đà Nẵng", "date": "2022-09-28", "region": "Nam Trung Bộ", "box": [15.80, 15.92, 108.12, 108.28]},
-      {"id": "E7", "name": "Bão Kajiki (bão số 5) đổ bộ Nghệ An – Hà Tĩnh", "date": "2025-08-25", "region": "Bắc Trung Bộ", "box": [18.60, 18.72, 105.48, 105.68]},
-      {"id": "E8", "name": "Bão Bualoi (bão số 10) đổ bộ Hà Tĩnh – Quảng Trị", "date": "2025-09-29", "region": "Bắc Trung Bộ", "box": [18.38, 18.50, 105.70, 105.90]}
+      {
+        "id": "E1",
+        "name": "Bão Soulik đổ bộ Quảng Trị – Huế",
+        "date": "2024-09-19",
+        "region": "Bắc Trung Bộ",
+        "point": [
+          16.52,
+          107.59
+        ]
+      },
+      {
+        "id": "E2",
+        "name": "Bão Noul (bão số 5) đổ bộ Quảng Trị – Huế",
+        "date": "2020-09-18",
+        "region": "Bắc Trung Bộ",
+        "box": [
+          16.62,
+          16.74,
+          107.2,
+          107.4
+        ]
+      },
+      {
+        "id": "E3",
+        "name": "Bão Podul (bão số 4) đổ bộ Quảng Bình – Quảng Trị",
+        "date": "2019-08-30",
+        "region": "Bắc Trung Bộ",
+        "box": [
+          17.1,
+          17.26,
+          106.72,
+          106.88
+        ]
+      },
+      {
+        "id": "E4",
+        "name": "Bão Doksuri (bão số 10) đổ bộ Hà Tĩnh – Quảng Bình",
+        "date": "2017-09-15",
+        "region": "Bắc Trung Bộ",
+        "box": [
+          18.38,
+          18.5,
+          105.7,
+          105.9
+        ]
+      },
+      {
+        "id": "E5",
+        "name": "Bão Conson (bão số 5) gây mưa lớn Quảng Nam – Đà Nẵng",
+        "date": "2021-09-12",
+        "region": "Nam Trung Bộ",
+        "box": [
+          15.8,
+          15.92,
+          108.12,
+          108.28
+        ]
+      },
+      {
+        "id": "E6",
+        "name": "Bão Noru (bão số 4) đổ bộ Quảng Nam – Đà Nẵng",
+        "date": "2022-09-28",
+        "region": "Nam Trung Bộ",
+        "box": [
+          15.8,
+          15.92,
+          108.12,
+          108.28
+        ]
+      },
+      {
+        "id": "E7",
+        "name": "Bão Kajiki (bão số 5) đổ bộ Nghệ An – Hà Tĩnh",
+        "date": "2025-08-25",
+        "region": "Bắc Trung Bộ",
+        "box": [
+          18.6,
+          18.72,
+          105.48,
+          105.68
+        ]
+      },
+      {
+        "id": "E8",
+        "name": "Bão Bualoi (bão số 10) đổ bộ Hà Tĩnh – Quảng Trị",
+        "date": "2025-09-29",
+        "region": "Bắc Trung Bộ",
+        "box": [
+          18.38,
+          18.5,
+          105.7,
+          105.9
+        ]
+      }
     ],
     "point_selection": "Ô lưới 0,04° phủ hộp (cả hai đầu). Giữ điểm: (1) WorldCover 2021 trong khung radar 100 m: Trồng trọt ≥ 50%, Xây dựng < 10%, Mặt nước < 50%; (2) tháng của ngày lũ NGOÀI mùa lũ v1 tại điểm; (3) trong phạm vi v3 (ô sông ≥ 10 m³/s trong 5 km). Xếp theo % Trồng trọt giảm dần (bằng nhau thì theo thứ tự lưới), kiểm (4) quỹ đạo Sentinel-1 cố định của điểm có cảnh trong [ngày lũ, ngày lũ + 6]; điểm ĐẦU TIÊN đạt (4) là điểm của ca. E1 có điểm cố định, chỉ kiểm (1)–(4).",
     "allowed_checks_only": "Bước chọn ca KHÔNG đọc giá trị radar (ướt/khô) và KHÔNG đọc lưu lượng / mưa trong cửa sổ lũ; chỉ: WorldCover, mùa v1, lưu lượng TRUNG BÌNH 10 năm, danh sách NGÀY cảnh radar.",
@@ -35,20 +121,122 @@
   },
   "positive_evaluation": "Tại điểm của ca: đợt nước (bộ phát hiện GĐ2) có ngày bắt đầu trong [ngày lũ − 3, ngày lũ + 6]. Không có đợt nào → 'không bắt được (radar không thấy nước)'. Có → bắt được nếu nhãn là 'in' hoặc 'river'.",
   "negatives": [
-    {"id": "N1", "case": "Cà Mau — mọi đợt tháng 3–5", "lat": 9.18, "lon": 105.09, "start_months": [3, 4, 5]},
-    {"id": "N2", "case": "Hà Nội — mọi đợt tháng 2–3", "lat": 21.12, "lon": 105.89, "start_months": [2, 3]},
-    {"id": "N3", "case": "Mọi đợt v1 'ngoài mùa' của 8 điểm chọn nhanh trong phạm vi v3, trừ đợt trùng một trận dương tính", "points": "frontend/components/Start.tsx QUICK"}
+    {
+      "id": "N1",
+      "case": "Cà Mau — mọi đợt tháng 3–5",
+      "lat": 9.18,
+      "lon": 105.09,
+      "start_months": [
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "N2",
+      "case": "Hà Nội — mọi đợt tháng 2–3",
+      "lat": 21.12,
+      "lon": 105.89,
+      "start_months": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "N3",
+      "case": "Mọi đợt v1 'ngoài mùa' của 8 điểm chọn nhanh trong phạm vi v3, trừ đợt trùng một trận dương tính",
+      "points": "frontend/components/Start.tsx QUICK"
+    }
   ],
   "v1_unchanged": [
-    {"case": "Lũ Huế 10–11/2020 — Quảng Điền", "lat": 16.5751, "lon": 107.4952, "starts": ["2020-10-10", "2020-11-09"], "must": "in"},
-    {"case": "Lũ miền Trung 11/2025 — Quảng Điền", "lat": 16.5751, "lon": 107.4952, "starts": ["2025-11-01"], "must": "in"},
-    {"case": "Cà Mau tháng 3–5 vẫn 'ngoài mùa' theo v1", "see": "N1"},
-    {"case": "Hà Nội tháng 2–3 vẫn 'ngoài mùa' theo v1", "see": "N2"}
+    {
+      "case": "Lũ Huế 10–11/2020 — Quảng Điền",
+      "lat": 16.5751,
+      "lon": 107.4952,
+      "starts": [
+        "2020-10-10",
+        "2020-11-09"
+      ],
+      "must": "in"
+    },
+    {
+      "case": "Lũ miền Trung 11/2025 — Quảng Điền",
+      "lat": 16.5751,
+      "lon": 107.4952,
+      "starts": [
+        "2025-11-01"
+      ],
+      "must": "in"
+    },
+    {
+      "case": "Cà Mau tháng 3–5 vẫn 'ngoài mùa' theo v1",
+      "see": "N1"
+    },
+    {
+      "case": "Hà Nội tháng 2–3 vẫn 'ngoài mùa' theo v1",
+      "see": "N2"
+    }
   ],
   "gate": {
     "per_rule": "Một quy tắc chỉ được bật khi đạt CẢ BA: dương tính bắt ≥ 75% số ca đủ điều kiện (≥ 3/4); âm tính 0 đợt bị bắt nhầm; không ca v1 nào đổi kết quả.",
     "both_pass": "Chọn quy tắc có biên an toàn lớn hơn ở ca âm tính: min trên mọi đợt âm tính trong phạm vi của (ngưỡng − giá trị)/ngưỡng (R-b: lấy điều kiện xa ngưỡng hơn).",
     "none_pass": "Giữ v1, công bố như v2.",
     "margins": "Báo (giá trị − ngưỡng)/ngưỡng cho từng ca và từng quy tắc; |biên| ≤ 5% ghi 'biên mỏng' trên thẻ mô hình."
+  },
+  "amendment_A2": {
+    "registered_at": "2026-10-17",
+    "before_any_gate_result": true,
+    "why": "Bước chọn ca theo commit A (59837ec) cho 2/8 trận đủ điều kiện (Soulik, Conson): Hà Tĩnh – Nghệ An có mùa lũ v1 tháng 7–11 nên bão tháng 8–9 ở đó là TRONG mùa; Noul/Podul/Noru có ruộng hợp lệ nhưng quỹ đạo radar không có cảnh ≤ 6 ngày sau lũ. Bổ sung MỘT lần ứng viên ở nơi mùa lũ v1 bắt đầu từ tháng 10 (Quảng Trị, Quảng Bình). Không đổi quy tắc, ngưỡng, cách chọn điểm hay cách chấm; 8 ứng viên cũ giữ nguyên. Tránh các hộp ở Huế vì đã biết trước lịch sử nước của vài điểm ở đó.",
+    "events": [
+      {
+        "id": "E9",
+        "name": "Bão Sơn Ca (Sonca, bão số 4) đổ bộ Quảng Trị",
+        "date": "2017-07-25",
+        "region": "Bắc Trung Bộ",
+        "box": [
+          16.66,
+          16.82,
+          107.1,
+          107.3
+        ]
+      },
+      {
+        "id": "E10",
+        "name": "Bão Podul (bão số 4) — đồng bằng Quảng Trị",
+        "date": "2019-08-30",
+        "region": "Bắc Trung Bộ",
+        "box": [
+          16.66,
+          16.82,
+          107.1,
+          107.3
+        ]
+      },
+      {
+        "id": "E11",
+        "name": "Bão Bualoi (bão số 10) — đồng bằng Quảng Trị",
+        "date": "2025-09-29",
+        "region": "Bắc Trung Bộ",
+        "box": [
+          16.66,
+          16.82,
+          107.1,
+          107.3
+        ]
+      },
+      {
+        "id": "E12",
+        "name": "Bão Doksuri (bão số 10) — Lệ Thủy, Quảng Bình",
+        "date": "2017-09-15",
+        "region": "Bắc Trung Bộ",
+        "box": [
+          17.1,
+          17.26,
+          106.72,
+          106.88
+        ]
+      }
+    ],
+    "rule": "Danh sách dương tính = 8 ứng viên commit A + 4 ứng viên này, cùng một cách chọn điểm. Nếu vẫn < 4 trận đủ điều kiện thì chạy và công bố, cổng không thể đạt."
   }
 }

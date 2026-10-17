@@ -62,27 +62,28 @@ def check(pt, d: str):
         return {"pt": pt, "keep": False, "why": "không đọc được WorldCover"}
     if not (w["crop"] >= 50 and w["built"] < 10 and w["water"] < 50):
         return {"pt": pt, "keep": False, "why": f"không phải đất nông nghiệp ({w})", "wc": w}
-    s = fs.season(*pt)
-    if not s:
-        return {"pt": pt, "keep": False, "why": "không có khí hậu ERA5", "wc": w}
-    if int(d[5:7]) in s["months"]:
-        return {"pt": pt, "keep": False, "why": f"tháng {int(d[5:7])} TRONG mùa lũ v1 ({s['months']})", "wc": w}
+    # Thứ tự kiểm chỉ để đỡ gọi ERA5 (hạn mức Open-Meteo, 17/10/2026) — điều kiện giữ điểm không đổi: phải đạt CẢ (1)(2)(3).
     cell = fs.river_cell(*pt)
     if not cell:
         return {"pt": pt, "keep": False, "why": "không đọc được GloFAS", "wc": w}
     cinfo = {k: cell[k] for k in ("lat", "lon", "km", "mean_m3s")}
     if not cell["in_scope"]:
         return {"pt": pt, "keep": False, "why": f"ngoài phạm vi v3 (ô sông TB {cell['mean_m3s']} m³/s < 10)", "wc": w, "river": cinfo}
+    s = fs.season(*pt)
+    if not s:
+        return {"pt": pt, "keep": False, "why": "không có khí hậu ERA5", "wc": w, "river": cinfo}
+    if int(d[5:7]) in s["months"]:
+        return {"pt": pt, "keep": False, "why": f"tháng {int(d[5:7])} TRONG mùa lũ v1 ({s['months']})", "wc": w, "river": cinfo}
     return {"pt": pt, "keep": True, "wc": w, "season_months": s["months"], "river": cinfo}
 
 
 def main() -> int:
     proto = json.load(open(PROTO, encoding="utf-8"))
     events_out = []
-    for ev in proto["positive_candidates"]["events"]:
+    for ev in proto["positive_candidates"]["events"] + proto.get("amendment_A2", {}).get("events", []):
         d = ev["date"]
         pts = [tuple(ev["point"])] if "point" in ev else grid(ev["box"])
-        with ThreadPoolExecutor(max_workers=4) as ex:
+        with ThreadPoolExecutor(max_workers=2) as ex:      # 2 luồng: nhẹ tay với hạn mức Open-Meteo
             checks = list(ex.map(lambda p: check(p, d), pts))
         kept = sorted([c for c in checks if c["keep"]], key=lambda c: (-c["wc"]["crop"], pts.index(c["pt"])))
         chosen, tried = None, []
