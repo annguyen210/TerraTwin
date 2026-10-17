@@ -229,3 +229,149 @@ def gate_v2_passed() -> bool:
             return bool(json.load(f).get("passed"))
     except (OSError, ValueError):
         return False
+
+
+# ======================================================================================================================
+# v3 (17/10/2026) — bắt lũ sớm/muộn bằng LƯU LƯỢNG SÔNG GloFAS, tín hiệu độc lập với mưa. Bộ phát hiện + v1 GIỮ NGUYÊN,
+# v2 đã trượt (không bật). Đăng ký trước: backend/data/eval/flood_season_v3_protocol.json.
+#   · Ô sông: trong các ô lưới GloFAS 0,05° có tâm cách thửa ≤ 5 km, lấy ô có lưu lượng TRUNG BÌNH 2016–2025 lớn nhất.
+#   · Phạm vi: chỉ áp dụng khi lưu lượng trung bình của ô đó ≥ 10 m³/s. Ngoài phạm vi → giữ nhãn v1 ("không áp dụng v3").
+#   · Cửa sổ: như v2 (sau cảnh khô liền trước → ngày bắt đầu đợt, tối đa 12 ngày).
+#   · R-a: lưu lượng ngày LỚN NHẤT trong cửa sổ ≥ P97 (2016–2025) của chính ô sông.
+#   · R-b: lưu lượng lớn nhất ≥ P90 của ô sông VÀ tổng mưa 3 ngày ERA5 lớn nhất trong cửa sổ ≥ P97 của điểm (như v2).
+#   · Đợt NGOÀI mùa v1 thoả quy tắc → "river": ngoài mùa nhưng sông lên mức hiếm — có thể là lũ sớm/muộn.
+# ======================================================================================================================
+RULE_V3 = 3
+GLOFAS = "https://flood-api.open-meteo.com/v1/flood"
+GLOFAS_CELL = 0.05
+RIVER_KM = 5.0
+RIVER_MIN_MEAN = 10.0
+P_RIVER_A = 97.0
+P_RIVER_B = 90.0
+RESULT_V3 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "data", "eval", "flood_season_v3_result.json")
+
+
+def _km(a1: float, o1: float, a2: float, o2: float) -> float:
+    import math
+    p1, p2 = math.radians(a1), math.radians(a2)
+    h = math.sin((p2 - p1) / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(math.radians(o2 - o1) / 2) ** 2
+    return 2 * 6371.0 * math.asin(math.sqrt(h))
+
+
+def cells_within(lat: float, lon: float, km: float = RIVER_KM) -> list[tuple[float, float]]:
+    """Tâm các ô GloFAS 0,05° (tâm ở x,x25 / x,x75) cách điểm ≤ km."""
+    import math
+    la0 = math.floor(lat / GLOFAS_CELL) * GLOFAS_CELL + GLOFAS_CELL / 2
+    lo0 = math.floor(lon / GLOFAS_CELL) * GLOFAS_CELL + GLOFAS_CELL / 2
+    out = []
+    for i in range(-2, 3):
+        for j in range(-2, 3):
+            c = (round(la0 + i * GLOFAS_CELL, 3), round(lo0 + j * GLOFAS_CELL, 3))
+            if _km(lat, lon, *c) <= km:
+                out.append(c)
+    return out
+
+
+def _glofas_fetch(cells: list[tuple[float, float]], start: str, end: str) -> list[dict[str, float]] | None:
+    """Lưu lượng ngày (m³/s) của nhiều ô trong MỘT lần gọi Open-Meteo Flood API. None nếu lỗi."""
+    import urllib.parse
+    import urllib.request
+    q = urllib.parse.urlencode({"latitude": ",".join(f"{c[0]:.3f}" for c in cells),
+                                "longitude": ",".join(f"{c[1]:.3f}" for c in cells),
+                                "daily": "river_discharge", "start_date": start, "end_date": end})
+    try:
+        req = urllib.request.Request(f"{GLOFAS}?{q}", headers={"User-Agent": "TerraTwin/0.7 (Vietnam land digital twin)"})
+        with urllib.request.urlopen(req, timeout=60) as r:
+            d = json.loads(r.read().decode("utf-8"))
+    except Exception:  # noqa: BLE001
+        return None
+    d = d if isinstance(d, list) else [d]
+    out = []
+    for x in d:
+        t, v = x["daily"]["time"], x["daily"]["river_discharge"]
+        out.append({t[i]: float(v[i]) for i in range(len(t)) if v[i] is not None})
+    return out
+
+
+def river_cell(lat: float, lon: float) -> dict | None:
+    """Ô sông của thửa + ngưỡng P97/P90 (2016–2025), cache 1 năm. None nếu GloFAS lỗi. Có trường in_scope."""
+    key = cache_store.make_key("glofas-cell", RULE_V3, round(lat, 4), round(lon, 4))
+    hit = cache_store.get(key)
+    if hit is not None:
+        return hit or None
+    cells = cells_within(lat, lon)
+    if not cells:
+        return None
+    series = _glofas_fetch(cells, *WINDOW)
+    if not series:
+        return None
+    best = None
+    for c, s in zip(cells, series):
+        if len(s) < 365 * 8:
+            continue
+        mean = sum(s.values()) / len(s)
+        if best is None or mean > best["mean_m3s"]:
+            best = {"lat": c[0], "lon": c[1], "km": round(_km(lat, lon, *c), 2), "mean_m3s": round(mean, 2), "_s": s}
+    if best is None:
+        return None
+    vals = list(best.pop("_s").values())
+    best.update(p97_m3s=round(percentile(vals, P_RIVER_A), 2), p90_m3s=round(percentile(vals, P_RIVER_B), 2),
+                in_scope=best["mean_m3s"] >= RIVER_MIN_MEAN, window=f"{WINDOW[0][:4]}–{WINDOW[1][:4]}",
+                source="GloFAS v4 (Copernicus EMS) — Open-Meteo Flood API", rule_v=RULE_V3)
+    cache_store.put(key, best, ttl_seconds=_TTL)
+    return best
+
+
+def discharge(cell: dict, frm: str, to: str) -> dict[str, float] | None:
+    """Lưu lượng ngày của ô sông trong [frm, to] (cache 30 ngày theo cửa sổ)."""
+    key = cache_store.make_key("glofas-win", round(cell["lat"], 3), round(cell["lon"], 3), frm, to)
+    hit = cache_store.get(key)
+    if hit is not None:
+        return hit or None
+    s = _glofas_fetch([(cell["lat"], cell["lon"])], frm, to)
+    if not s:
+        return None
+    cache_store.put(key, s[0], ttl_seconds=30 * 86400)
+    return s[0]
+
+
+def label_v3(events: list[dict], scene_dates: list[str], s: dict, lat: float, lon: float, rule: str) -> list[dict]:
+    """Nhãn v3 theo quy tắc `rule` ('a' | 'b'): 'in' (như v1) | 'river' | 'out', kèm bằng chứng lưu lượng / mưa.
+
+    Ngoài phạm vi (không có ô sông ≥ 10 m³/s trong 5 km) → giữ nhãn v1 và ghi v3_scope = False."""
+    cell = river_cell(lat, lon)
+    scope = bool(cell and cell.get("in_scope"))
+    p97_rain = threshold_p97(lat, lon) if (scope and rule == "b") else None
+    sums = three_day_sums(_rain_rows(lat, lon) or []) if p97_rain is not None else {}
+    idx = {d: i for i, d in enumerate(scene_dates)}
+    out = []
+    for e in events:
+        rec = {**e, "season": label(e["start"], s), "v3_scope": scope}
+        if rec["season"] == "out" and scope:
+            i = idx.get(e["start"])
+            frm, to = window(e["start"], scene_dates[i - 1] if i else None)
+            q = discharge(cell, frm, to) or {}
+            if q:
+                day, qmax = max(q.items(), key=lambda kv: kv[1])
+                rec.update(q_max_m3s=round(qmax, 2), q_date=day, p97_m3s=cell["p97_m3s"], p90_m3s=cell["p90_m3s"],
+                           river_cell=[cell["lat"], cell["lon"]], river_km=cell["km"], rain_window=[frm, to])
+                if rule == "a":
+                    hit = qmax >= cell["p97_m3s"]
+                else:
+                    m = max3_in_window(sums, frm, to)
+                    if m is not None:
+                        rec.update(rain3d_mm=m[0], rain3d_end=m[1], p97_mm=p97_rain)
+                    hit = qmax >= cell["p90_m3s"] and m is not None and m[0] >= p97_rain
+                if hit:
+                    rec["season"] = "river"
+        out.append(rec)
+    return out
+
+
+def gate_v3() -> dict | None:
+    """Kết quả cổng v3: {'passed', 'enabled_rule': 'a'|'b'|None, ...} hoặc None nếu chưa chạy."""
+    try:
+        with open(RESULT_V3, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None

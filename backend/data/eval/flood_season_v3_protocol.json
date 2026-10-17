@@ -1,0 +1,54 @@
+{
+  "name": "Lớp diễn giải MÙA LŨ v3 — bắt lũ sớm/muộn bằng LƯU LƯỢNG SÔNG GloFAS — giao thức đăng ký trước (commit A: quy tắc + cách chọn ca)",
+  "registered_at": "2026-10-17",
+  "registered_before_run": true,
+  "lessons_from_v2": "v2 trượt: mưa ERA5 ~25 km quá thô (biên thắng/thua 0,5–0,8 mm), ca Noru chọn ở cửa sổ không có cảnh radar.",
+  "unchanged": "Bộ phát hiện đợt nước (cổng GĐ2) và quy tắc mùa lũ v1 giữ nguyên; v2 không bật. v3 chỉ xét lại đợt v1 'ngoài mùa'. Hồ sơ đã phát hành giữ câu cũ.",
+  "rule": {
+    "version": 3,
+    "code": "backend/app/services/flood_season.py (RULE_V3, cells_within, river_cell, discharge, label_v3)",
+    "source": "GloFAS v4 (Copernicus EMS) qua Open-Meteo Flood API — lưu lượng sông ngày (m³/s), lưới 0,05°.",
+    "river_cell": "Trong các ô GloFAS có TÂM cách thửa ≤ 5 km, chọn ô có lưu lượng TRUNG BÌNH 2016-01-01 → 2025-12-31 lớn nhất.",
+    "scope": "Chỉ áp dụng khi lưu lượng trung bình của ô sông đó ≥ 10 m³/s. Ngoài phạm vi → giữ nhãn v1, ghi 'không áp dụng v3'.",
+    "percentiles": "P97 và P90 (nội suy tuyến tính) trên toàn bộ lưu lượng ngày 2016–2025 của CHÍNH ô sông đó.",
+    "window": "Từ ngày sau cảnh radar khô liền trước đợt tới ngày cảnh ướt đầu tiên (= ngày bắt đầu đợt), tối đa 12 ngày (như v2).",
+    "R-a": "Lưu lượng ngày LỚN NHẤT trong cửa sổ ≥ P97 của ô sông.",
+    "R-b": "Lưu lượng ngày lớn nhất trong cửa sổ ≥ P90 của ô sông VÀ tổng mưa 3 ngày ERA5 lớn nhất trong cửa sổ ≥ P97 của điểm (định nghĩa mưa như v2).",
+    "label": "Đợt v1 'ngoài mùa' thoả quy tắc → 'river' (ngoài mùa nhưng sông lên mức hiếm — có thể là lũ sớm/muộn). Kiểm tin đăng tính 'river' như đợt trong mùa lũ.",
+    "frozen": "P97, P90, 5 km, 10 m³/s, 12 ngày CHỐT TRƯỚC, không chỉnh sau khi xem kết quả."
+  },
+  "positive_candidates": {
+    "why": "Lũ đầu mùa do bão đổ bộ miền Trung có ngày công khai; mùa lũ v1 ở miền Trung là tháng 10–1 nên tháng 8–9 là 'ngoài mùa' (được kiểm lại ở từng điểm).",
+    "events": [
+      {"id": "E1", "name": "Bão Soulik đổ bộ Quảng Trị – Huế", "date": "2024-09-19", "region": "Bắc Trung Bộ", "point": [16.52, 107.59]},
+      {"id": "E2", "name": "Bão Noul (bão số 5) đổ bộ Quảng Trị – Huế", "date": "2020-09-18", "region": "Bắc Trung Bộ", "box": [16.62, 16.74, 107.20, 107.40]},
+      {"id": "E3", "name": "Bão Podul (bão số 4) đổ bộ Quảng Bình – Quảng Trị", "date": "2019-08-30", "region": "Bắc Trung Bộ", "box": [17.10, 17.26, 106.72, 106.88]},
+      {"id": "E4", "name": "Bão Doksuri (bão số 10) đổ bộ Hà Tĩnh – Quảng Bình", "date": "2017-09-15", "region": "Bắc Trung Bộ", "box": [18.38, 18.50, 105.70, 105.90]},
+      {"id": "E5", "name": "Bão Conson (bão số 5) gây mưa lớn Quảng Nam – Đà Nẵng", "date": "2021-09-12", "region": "Nam Trung Bộ", "box": [15.80, 15.92, 108.12, 108.28]},
+      {"id": "E6", "name": "Bão Noru (bão số 4) đổ bộ Quảng Nam – Đà Nẵng", "date": "2022-09-28", "region": "Nam Trung Bộ", "box": [15.80, 15.92, 108.12, 108.28]},
+      {"id": "E7", "name": "Bão Kajiki (bão số 5) đổ bộ Nghệ An – Hà Tĩnh", "date": "2025-08-25", "region": "Bắc Trung Bộ", "box": [18.60, 18.72, 105.48, 105.68]},
+      {"id": "E8", "name": "Bão Bualoi (bão số 10) đổ bộ Hà Tĩnh – Quảng Trị", "date": "2025-09-29", "region": "Bắc Trung Bộ", "box": [18.38, 18.50, 105.70, 105.90]}
+    ],
+    "point_selection": "Ô lưới 0,04° phủ hộp (cả hai đầu). Giữ điểm: (1) WorldCover 2021 trong khung radar 100 m: Trồng trọt ≥ 50%, Xây dựng < 10%, Mặt nước < 50%; (2) tháng của ngày lũ NGOÀI mùa lũ v1 tại điểm; (3) trong phạm vi v3 (ô sông ≥ 10 m³/s trong 5 km). Xếp theo % Trồng trọt giảm dần (bằng nhau thì theo thứ tự lưới), kiểm (4) quỹ đạo Sentinel-1 cố định của điểm có cảnh trong [ngày lũ, ngày lũ + 6]; điểm ĐẦU TIÊN đạt (4) là điểm của ca. E1 có điểm cố định, chỉ kiểm (1)–(4).",
+    "allowed_checks_only": "Bước chọn ca KHÔNG đọc giá trị radar (ướt/khô) và KHÔNG đọc lưu lượng / mưa trong cửa sổ lũ; chỉ: WorldCover, mùa v1, lưu lượng TRUNG BÌNH 10 năm, danh sách NGÀY cảnh radar.",
+    "need": "≥ 4 trận đủ điều kiện ở ≥ 2 vùng; thiếu thì vẫn chạy và công bố, nhưng cổng không thể đạt."
+  },
+  "positive_evaluation": "Tại điểm của ca: đợt nước (bộ phát hiện GĐ2) có ngày bắt đầu trong [ngày lũ − 3, ngày lũ + 6]. Không có đợt nào → 'không bắt được (radar không thấy nước)'. Có → bắt được nếu nhãn là 'in' hoặc 'river'.",
+  "negatives": [
+    {"id": "N1", "case": "Cà Mau — mọi đợt tháng 3–5", "lat": 9.18, "lon": 105.09, "start_months": [3, 4, 5]},
+    {"id": "N2", "case": "Hà Nội — mọi đợt tháng 2–3", "lat": 21.12, "lon": 105.89, "start_months": [2, 3]},
+    {"id": "N3", "case": "Mọi đợt v1 'ngoài mùa' của 8 điểm chọn nhanh trong phạm vi v3, trừ đợt trùng một trận dương tính", "points": "frontend/components/Start.tsx QUICK"}
+  ],
+  "v1_unchanged": [
+    {"case": "Lũ Huế 10–11/2020 — Quảng Điền", "lat": 16.5751, "lon": 107.4952, "starts": ["2020-10-10", "2020-11-09"], "must": "in"},
+    {"case": "Lũ miền Trung 11/2025 — Quảng Điền", "lat": 16.5751, "lon": 107.4952, "starts": ["2025-11-01"], "must": "in"},
+    {"case": "Cà Mau tháng 3–5 vẫn 'ngoài mùa' theo v1", "see": "N1"},
+    {"case": "Hà Nội tháng 2–3 vẫn 'ngoài mùa' theo v1", "see": "N2"}
+  ],
+  "gate": {
+    "per_rule": "Một quy tắc chỉ được bật khi đạt CẢ BA: dương tính bắt ≥ 75% số ca đủ điều kiện (≥ 3/4); âm tính 0 đợt bị bắt nhầm; không ca v1 nào đổi kết quả.",
+    "both_pass": "Chọn quy tắc có biên an toàn lớn hơn ở ca âm tính: min trên mọi đợt âm tính trong phạm vi của (ngưỡng − giá trị)/ngưỡng (R-b: lấy điều kiện xa ngưỡng hơn).",
+    "none_pass": "Giữ v1, công bố như v2.",
+    "margins": "Báo (giá trị − ngưỡng)/ngưỡng cho từng ca và từng quy tắc; |biên| ≤ 5% ghi 'biên mỏng' trên thẻ mô hình."
+  }
+}

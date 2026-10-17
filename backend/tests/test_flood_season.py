@@ -57,3 +57,43 @@ def test_v2_chi_xet_lai_dot_ngoai_mua_v1(monkeypatch):
     assert got["2024-05-20"]["season"] == "out" and got["2024-05-20"]["rain3d_mm"] == 9.0
     assert got["2024-09-19"]["season"] == "extreme" and got["2024-09-19"]["rain3d_mm"] == 200.0 and got["2024-09-19"]["p97_mm"] == 120.0
     assert got["2024-10-13"]["season"] == "in" and "rain3d_mm" not in got["2024-10-13"]   # đợt trong mùa v1 giữ nguyên
+
+
+# ---- v3 (đăng ký trước: data/eval/flood_season_v3_protocol.json) — số giả lập, không mạng
+
+def test_v3_o_glofas_trong_5_km_tam_o_x25_x75():
+    cells = fs.cells_within(16.52, 107.59)
+    assert cells and all(fs._km(16.52, 107.59, *c) <= 5.0 for c in cells)
+    assert all(round(c[0] / 0.025) % 2 == 1 and round(c[1] / 0.025) % 2 == 1 for c in cells)   # tâm ô ở x,x25 / x,x75
+
+
+def _v3_setup(monkeypatch, in_scope=True):
+    cell = {"lat": 16.525, "lon": 107.625, "km": 3.9, "mean_m3s": 85.0 if in_scope else 3.0,
+            "p97_m3s": 900.0, "p90_m3s": 400.0, "in_scope": in_scope}
+    monkeypatch.setattr(fs, "river_cell", lambda la, lo: cell)
+    q = {"2024-09-08": 50.0, "2024-09-18": 950.0, "2024-09-19": 700.0, "2024-05-15": 450.0, "2024-05-20": 300.0}
+    monkeypatch.setattr(fs, "discharge", lambda c, frm, to: {d: v for d, v in q.items() if frm <= d <= to})
+    rows = [{"date": f"2024-09-{d:02d}", "precip": p} for d, p in zip(range(1, 21), [0] * 14 + [40, 90, 70, 5, 0, 0])]
+    rows += [{"date": f"2024-05-{d:02d}", "precip": 3} for d in range(1, 31)]
+    monkeypatch.setattr(fs, "threshold_p97", lambda la, lo: 120.0)
+    monkeypatch.setattr(fs, "_rain_rows", lambda la, lo: rows)
+
+
+def test_v3_R_a_va_R_b_chi_xet_lai_dot_ngoai_mua(monkeypatch):
+    _v3_setup(monkeypatch)
+    s = {"months": [10, 11, 12, 1]}
+    ev = [{"start": "2024-05-20"}, {"start": "2024-09-19"}, {"start": "2024-10-13"}]
+    scenes = ["2024-05-08", "2024-05-20", "2024-09-07", "2024-09-19", "2024-10-13"]
+    a = {e["start"]: e for e in fs.label_v3(ev, scenes, s, 16.52, 107.59, "a")}
+    assert a["2024-09-19"]["season"] == "river" and a["2024-09-19"]["q_max_m3s"] == 950.0 and a["2024-09-19"]["q_date"] == "2024-09-18"
+    assert a["2024-05-20"]["season"] == "out" and a["2024-05-20"]["q_max_m3s"] == 450.0      # 450 < P97 900
+    assert a["2024-10-13"]["season"] == "in" and "q_max_m3s" not in a["2024-10-13"]
+    b = {e["start"]: e for e in fs.label_v3(ev, scenes, s, 16.52, 107.59, "b")}
+    assert b["2024-09-19"]["season"] == "river" and b["2024-09-19"]["rain3d_mm"] == 200.0     # q ≥ P90 VÀ mưa ≥ P97
+    assert b["2024-05-20"]["season"] == "out"                                                  # q 450 ≥ P90 nhưng mưa 9 mm
+
+
+def test_v3_ngoai_pham_vi_giu_nhan_v1(monkeypatch):
+    _v3_setup(monkeypatch, in_scope=False)
+    out = fs.label_v3([{"start": "2024-09-19"}], ["2024-09-07", "2024-09-19"], {"months": [10, 11, 12, 1]}, 16.52, 107.59, "a")
+    assert out[0]["season"] == "out" and out[0]["v3_scope"] is False and "q_max_m3s" not in out[0]
