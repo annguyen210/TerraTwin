@@ -305,7 +305,17 @@ async def lifespan(_app: FastAPI):
                     pass
 
 
-app = FastAPI(title="TerraTwin API", version="0.5.0", lifespan=lifespan)
+_API_DESCRIPTION = """Dữ liệu ĐO về một thửa đất ở Việt Nam (radar Sentinel-1, ERA5, WorldCover, DEM) và hồ sơ ký số kiểm lại được.
+
+* **Tệp hồ sơ ký số** — lược đồ JSON công khai `GET /api/dossiers/schema`
+  ([bản gốc trong kho mã](https://github.com/annguyen210/TerraTwin/blob/main/backend/data/schema/terratwin-document-1.schema.json));
+  khoá công khai `GET /api/dossiers/keys`; sổ minh bạch RFC 6962 `GET /api/log/sth`.
+* **Kiểm không cần tin máy chủ** — [`ops/verify_dossier.py`](https://github.com/annguyen210/TerraTwin/blob/main/ops/verify_dossier.py).
+* **Mô hình / quy tắc** — chỉ bật sau cổng kiểm định đăng ký trước; kể cả cái trượt đều công bố ở `GET /api/models/cards` và
+  [REPRODUCE.md](https://github.com/annguyen210/TerraTwin/blob/main/REPRODUCE.md).
+* Dự báo (rủi ro 7 ngày, cảnh báo) KHÔNG nằm trong hồ sơ ký."""
+
+app = FastAPI(title="TerraTwin API", version="0.5.0", lifespan=lifespan, description=_API_DESCRIPTION)
 
 _HAZARD_ONLY = f"Chỉ áp dụng cho module hiểm họa thời tiết: {', '.join(hazard.IDS)}"
 
