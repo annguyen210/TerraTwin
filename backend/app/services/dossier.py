@@ -126,9 +126,14 @@ def build_facts(lat: float, lon: float, area_ha: float | None, db: Session) -> d
     """
     from app.services import jobs, landuse, passport, reqlang
 
+    from app import routes_water
+
     pp, lu = jobs.gather([lambda: passport.build(lat, lon), lambda: landuse.composition(lat, lon)])
     ok_pp = bool(pp and pp.get("available"))
     water = _water_section(lat, lon)
+    # Lịch sử nước radar là một mục của hồ sơ từ khi cổng GĐ2 đạt. Chưa đọc xong (thửa mới mất 1–3 phút) hoặc không đọc
+    # được thì GHI LÀ THIẾU — trước 18/10/2026 hồ sơ lặng lẽ không có mục này mà `missing` không nói gì.
+    water_missing = water is None and routes_water.gate()["passed"]
     return {
         "schema": SCHEMA,
         "lang": reqlang.cur_lang(),
@@ -146,7 +151,10 @@ def build_facts(lat: float, lon: float, area_ha: float | None, db: Session) -> d
             "Forecasts (7-day risk, alerts) are NOT part of the signed dossier: they change hourly and can "
             "always be wrong. See them live on the plot page, with TerraTwin's own measured hit rate."),
         "sources": SOURCES + ([S1_SOURCE] if water else []),
-        "missing": [name for name, v in (("land_use", lu), ("passport", ok_pp)) if not v],
+        "missing": [name for name, v in (("land_use", lu), ("passport", ok_pp)) if not v]
+                   # Hộ chiếu có nhưng TỪNG phần hỏng (vd ERA5 bị chặn 429) → ghi đúng phần đó (18/10/2026; trước im lặng).
+                   + [name for name, k in (("terrain", "terrain"), ("history_10y", "history")) if ok_pp and not pp.get(k)]
+                   + (["water_history_radar"] if water_missing else []),
         "disclaimer": tr(
             "Hồ sơ tổng hợp dữ liệu ĐO và số tính lại được từ dữ liệu mở tại thời điểm phát hành. KHÔNG thay "
             "thế giấy chứng nhận quyền sử dụng đất, quy hoạch hay khảo sát thực địa. Mọi mục ghi rõ nguồn; "

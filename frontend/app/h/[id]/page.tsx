@@ -409,7 +409,13 @@ export default function DossierPage() {
               <h2>{t("Nguồn dữ liệu", "Data sources")}</h2>
               <ul className="dos-bullets">{(f.sources ?? []).map((s) => <li key={s}>{s}</li>)}</ul>
               {(f.missing?.length ?? 0) > 0 && (
-                <p className="dos-miss">{t("Thiếu lúc phát hành:", "Missing at issuance:")} {f.missing.join(", ")}</p>
+                <p className="dos-miss">{t("Thiếu lúc phát hành:", "Missing at issuance:")} {f.missing.map((k: string) => ({
+                  land_use: t("loại đất", "land cover"),
+                  passport: t("địa hình + lịch sử thời tiết 10 năm", "terrain + 10-year weather history"),
+                  water_history_radar: t("lịch sử nước radar (chưa đọc xong lúc phát hành)", "radar water history (not read yet at issuance)"),
+                  terrain: t("địa hình", "terrain"),
+                  history_10y: t("mười năm hiểm hoạ (ERA5)", "ten-year hazard history (ERA5)"),
+                } as Record<string, string>)[k] ?? k).join(", ")}</p>
               )}
               <p className="dos-disclaimer">{f.disclaimer}</p>
             </section>}

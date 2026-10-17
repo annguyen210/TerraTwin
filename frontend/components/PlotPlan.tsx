@@ -32,6 +32,8 @@ import {
   runGenome,
   runGoalSeek,
   sendTapAnswer,
+  waterPoll,
+  waterStart,
   type AnomalyMl,
   type GenomeResult,
   type GoalSeekResult,
@@ -87,6 +89,24 @@ export default function PlotPlan({
   const router = useRouter();
   const [issuing, setIssuing] = useState<string | null>(null);   // null = rảnh; chuỗi = đang làm gì
   const [issueErr, setIssueErr] = useState<string | null>(null);
+  // Lịch sử nước radar chưa đọc xong lúc bấm phát hành → hỏi: chờ xong hay phát hành ngay (hồ sơ ghi mục đó là THIẾU).
+  const [waterPending, setWaterPending] = useState<string | null>(null);   // job_id đang chạy
+  async function issueNow() {
+    setIssueErr(null);
+    try {
+      const ids: string[] = [];
+      for (let i = 0; i < photos.length; i++) {
+        setIssuing(t(`Đang kiểm ảnh ${i + 1}/${photos.length}…`, `Checking photo ${i + 1}/${photos.length}…`));
+        ids.push((await uploadEvidence(lat, lon, area, photos[i])).id);
+      }
+      setIssuing(t("Đang phát hành…", "Issuing…"));
+      const d = await issueDossier(lat, lon, area, ids);
+      router.push(`/h/${d.id}?moi=1`);
+    } catch (e) {
+      setIssueErr((e as Error).message);
+      setIssuing(null);
+    }
+  }
   const [photos, setPhotos] = useState<File[]>([]);
   // null = để máy chủ tự chọn theo loại đất THẬT (ESA WorldCover); chỉ khi người
   // dùng bấm một loại cây thì mới gửi lên. Không còn mặc định "lúa" cho mọi nơi.
@@ -264,19 +284,12 @@ export default function PlotPlan({
             disabled={issuing !== null}
             onClick={async () => {
               setIssueErr(null);
+              // Nối vào việc đọc radar đang chạy (không trừ hạn mức lần hai). Lỗi / tính năng tắt → phát hành như cũ.
               try {
-                const ids: string[] = [];
-                for (let i = 0; i < photos.length; i++) {
-                  setIssuing(t(`Đang kiểm ảnh ${i + 1}/${photos.length}…`, `Checking photo ${i + 1}/${photos.length}…`));
-                  ids.push((await uploadEvidence(lat, lon, area, photos[i])).id);
-                }
-                setIssuing(t("Đang phát hành…", "Issuing…"));
-                const d = await issueDossier(lat, lon, area, ids);
-                router.push(`/h/${d.id}?moi=1`);
-              } catch (e) {
-                setIssueErr((e as Error).message);
-                setIssuing(null);
-              }
+                const w = await waterStart(lat, lon);
+                if (w.state !== "done" && w.job_id) { setWaterPending(w.job_id); return; }
+              } catch { /* không chặn phát hành */ }
+              await issueNow();
             }}
             title={t("Phát hành Hồ sơ đất số: ký số Ed25519, có QR để ngân hàng / người mua tự kiểm bản gốc",
                      "Issue a Digital Land Dossier: Ed25519-signed, with a QR so banks / buyers can verify the original")}
@@ -285,6 +298,32 @@ export default function PlotPlan({
           </button>
         </div>
       </div>
+      {waterPending && (
+        <div className="plan-assume plan-wait" role="alertdialog" aria-label={t("Lịch sử nước chưa đọc xong", "Water history not finished")}>
+          <p>{t("Lịch sử nước radar của thửa này đang được đọc (thửa mới thường 1–3 phút). Phát hành NGAY thì hồ sơ ký sẽ ghi mục này là THIẾU — không thể bổ sung sau, vì nội dung đã ký không sửa được.",
+                "This plot's radar water history is still being read (a new plot usually takes 1–3 minutes). Issuing NOW records that section as MISSING in the signed dossier — it can't be added later, since signed content can't change.")}</p>
+          <div className="plan-wait-btns">
+            <button className="bat-btn" disabled={issuing !== null} onClick={async () => {
+              const id = waterPending;
+              setIssueErr(null);
+              try {
+                for (;;) {
+                  const s = await waterPoll(id);
+                  if (s.state === "done") break;
+                  if (s.state === "error") throw new Error(s.message || t("Đọc radar lỗi — có thể phát hành không kèm mục này.", "Radar read failed — you can issue without this section."));
+                  setIssuing(s.progress ? t(`Chờ radar: ${s.progress.done}/${s.progress.total} cảnh…`, `Waiting for radar: ${s.progress.done}/${s.progress.total} scenes…`)
+                                        : t("Chờ radar…", "Waiting for radar…"));
+                  await new Promise((r) => setTimeout(r, 3000));
+                }
+                setWaterPending(null);
+                await issueNow();
+              } catch (e) { setIssueErr((e as Error).message); setIssuing(null); }
+            }}>{t("Chờ đọc xong rồi phát hành", "Wait, then issue")}</button>
+            <button className="bat-btn ghost" disabled={issuing !== null} onClick={async () => { setWaterPending(null); await issueNow(); }}>
+              {t("Phát hành ngay (thiếu lịch sử nước)", "Issue now (without water history)")}</button>
+          </div>
+        </div>
+      )}
       {issueErr && <p className="plan-assume">⚠️ {issueErr}</p>}
 
       {/* CÂU HỎI CHO BẠN — đóng vòng khép kín. Chỉ hiện khi đã đăng nhập và có

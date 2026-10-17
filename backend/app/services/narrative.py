@@ -187,9 +187,14 @@ def catalog(facts: dict, lang: str | None = None) -> dict[str, dict]:
         }
 
     if facts.get("missing"):
+        # Nhãn đọc được CHỈ cho khoá mới (18/10/2026) — khoá cũ giữ nguyên chữ để lời của hồ sơ đã phát hành không đổi.
+        new_labels = {"water_history_radar": _t("lịch sử nước radar (chưa đọc xong lúc phát hành)",
+                                                "radar water history (not read yet at issuance)", lang),
+                      "terrain": _t("địa hình", "terrain", lang),
+                      "history_10y": _t("mười năm hiểm hoạ (ERA5)", "ten-year hazard history (ERA5)", lang)}
         out["missing"] = {
             "label": _t("Mục không lấy được lúc phát hành", "Sections unavailable at issuance", lang),
-            "value": ", ".join(facts["missing"]),
+            "value": ", ".join(new_labels.get(k, k) for k in facts["missing"]),
             "source": "TerraTwin", "measured": "—",
             "reproduce": _t("Hồ sơ ghi là thiếu, không điền số thay.", "Marked missing, never filled in.", lang),
         }

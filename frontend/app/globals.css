@@ -5291,3 +5291,8 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .wh-cf:focus-visible { outline: 2px solid var(--terra); outline-offset: 2px; }
 .wh-cf-note { font-style: italic; font-size: .82rem; color: var(--dim); margin: 6px 0 4px; }
 .wh-thanks { font-size: .85rem; color: #7fd6a4; margin: 6px 0 0; }
+
+/* Phát hành khi radar chưa đọc xong — hỏi chờ hay phát hành ngay (18/10/2026) */
+.plan-wait { display: grid; gap: 8px; }
+.plan-wait p { margin: 0; }
+.plan-wait-btns { display: flex; flex-wrap: wrap; gap: 8px; }
