@@ -1,0 +1,2297 @@
+{
+ "selected_at": "2026-10-17T13:24:09+00:00",
+ "protocol": "flood_season_v3_protocol.json",
+ "positives": [
+  {
+   "id": "E1",
+   "name": "Bão Soulik đổ bộ Quảng Trị – Huế",
+   "date": "2024-09-19",
+   "region": "Bắc Trung Bộ",
+   "eligible": true,
+   "case_point": {
+    "pt": [
+     16.52,
+     107.59
+    ],
+    "keep": true,
+    "wc": {
+     "crop": 99.4,
+     "built": 0.0,
+     "water": 0.0
+    },
+    "season_months": [
+     1,
+     10,
+     11,
+     12
+    ],
+    "river": {
+     "lat": 16.525,
+     "lon": 107.625,
+     "km": 3.77,
+     "mean_m3s": 44.82
+    },
+    "scenes_in_window": [
+     "2024-09-19"
+    ]
+   },
+   "n_points": 1,
+   "n_kept_1_3": 1,
+   "scene_checks": [
+    {
+     "pt": [
+      16.52,
+      107.59
+     ],
+     "scenes_in_window": [
+      "2024-09-19"
+     ]
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "id": "E2",
+   "name": "Bão Noul (bão số 5) đổ bộ Quảng Trị – Huế",
+   "date": "2020-09-18",
+   "region": "Bắc Trung Bộ",
+   "eligible": false,
+   "case_point": null,
+   "n_points": 24,
+   "n_kept_1_3": 6,
+   "scene_checks": [
+    {
+     "pt": [
+      16.7,
+      107.36
+     ],
+     "scenes_in_window": []
+    },
+    {
+     "pt": [
+      16.74,
+      107.28
+     ],
+     "scenes_in_window": []
+    },
+    {
+     "pt": [
+      16.7,
+      107.28
+     ],
+     "scenes_in_window": []
+    },
+    {
+     "pt": [
+      16.7,
+      107.32
+     ],
+     "scenes_in_window": []
+    },
+    {
+     "pt": [
+      16.66,
+      107.4
+     ],
+     "scenes_in_window": []
+    },
+    {
+     "pt": [
+      16.7,
+      107.24
+     ],
+     "scenes_in_window": []
+    }
+   ],
+   "rejected": [
+    {
+     "pt": [
+      16.62,
+      107.2
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.62,
+      107.24
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.62,
+      107.28
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.8, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.62,
+      107.32
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 6.1, 'built': 3.2, 'water': 28.2})"
+    },
+    {
+     "pt": [
+      16.62,
+      107.36
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.2, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.62,
+      107.4
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 4.4, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.66,
+      107.2
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 3.0, 'built': 0.0, 'water': 2.8})"
+    },
+    {
+     "pt": [
+      16.66,
+      107.24
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.66,
+      107.28
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 40.5, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.66,
+      107.32
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 71.6, 'built': 11.4, 'water': 6.2})"
+    },
+    {
+     "pt": [
+      16.66,
+      107.36
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 25.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.7,
+      107.2
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.7,
+      107.4
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 20.3, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.74,
+      107.2
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 17.2, 'built': 31.4, 'water': 0.2})"
+    },
+    {
+     "pt": [
+      16.74,
+      107.24
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 1.1, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.74,
+      107.32
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 78.6, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.74,
+      107.36
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 1.5, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.74,
+      107.4
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 100.0})"
+    }
+   ]
+  },
+  {
+   "id": "E3",
+   "name": "Bão Podul (bão số 4) đổ bộ Quảng Bình – Quảng Trị",
+   "date": "2019-08-30",
+   "region": "Bắc Trung Bộ",
+   "eligible": false,
+   "case_point": null,
+   "n_points": 25,
+   "n_kept_1_3": 4,
+   "scene_checks": [
+    {
+     "pt": [
+      17.22,
+      106.72
+     ],
+     "scenes_in_window": []
+    },
+    {
+     "pt": [
+      17.26,
+      106.72
+     ],
+     "scenes_in_window": []
+    },
+    {
+     "pt": [
+      17.26,
+      106.76
+     ],
+     "scenes_in_window": []
+    },
+    {
+     "pt": [
+      17.22,
+      106.76
+     ],
+     "scenes_in_window": []
+    }
+   ],
+   "rejected": [
+    {
+     "pt": [
+      17.1,
+      106.72
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.1,
+      106.76
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.1,
+      106.8
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.1,
+      106.84
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 4.7, 'built': 0.0, 'water': 91.5})"
+    },
+    {
+     "pt": [
+      17.1,
+      106.88
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.14,
+      106.72
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.14,
+      106.76
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 9.3, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.14,
+      106.8
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 1.3})"
+    },
+    {
+     "pt": [
+      17.14,
+      106.84
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.14,
+      106.88
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.4, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.18,
+      106.72
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.18,
+      106.76
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 16.1, 'built': 3.2, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.18,
+      106.8
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 4.2, 'water': 33.0})"
+    },
+    {
+     "pt": [
+      17.18,
+      106.84
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 1.1, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.18,
+      106.88
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 12.3, 'built': 0.0, 'water': 26.5})"
+    },
+    {
+     "pt": [
+      17.22,
+      106.8
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 7.99 m³/s < 10)"
+    },
+    {
+     "pt": [
+      17.22,
+      106.84
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 6.1, 'built': 0.6, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.22,
+      106.88
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.26,
+      106.8
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 21.6, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.26,
+      106.84
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.26,
+      106.88
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 100.0})"
+    }
+   ]
+  },
+  {
+   "id": "E4",
+   "name": "Bão Doksuri (bão số 10) đổ bộ Hà Tĩnh – Quảng Bình",
+   "date": "2017-09-15",
+   "region": "Bắc Trung Bộ",
+   "eligible": false,
+   "case_point": null,
+   "n_points": 24,
+   "n_kept_1_3": 0,
+   "scene_checks": [],
+   "rejected": [
+    {
+     "pt": [
+      18.38,
+      105.7
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.38,
+      105.74
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.38,
+      105.78
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 20.5, 'built': 51.7, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.38,
+      105.82
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 7.16 m³/s < 10)"
+    },
+    {
+     "pt": [
+      18.38,
+      105.86
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 7.16 m³/s < 10)"
+    },
+    {
+     "pt": [
+      18.38,
+      105.9
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 6.4 m³/s < 10)"
+    },
+    {
+     "pt": [
+      18.42,
+      105.7
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 5.3, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.42,
+      105.74
+     ],
+     "why": "tháng 9 TRONG mùa lũ v1 ([7, 8, 9, 10, 11])"
+    },
+    {
+     "pt": [
+      18.42,
+      105.78
+     ],
+     "why": "tháng 9 TRONG mùa lũ v1 ([7, 8, 9, 10, 11])"
+    },
+    {
+     "pt": [
+      18.42,
+      105.82
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 44.1, 'built': 23.7, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.42,
+      105.86
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 24.1, 'built': 1.3, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.42,
+      105.9
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 3.2, 'built': 72.2, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.46,
+      105.7
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 16.5, 'built': 51.1, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.46,
+      105.74
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 9.07 m³/s < 10)"
+    },
+    {
+     "pt": [
+      18.46,
+      105.78
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.8, 'built': 1.9, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.46,
+      105.82
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 99.8, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.46,
+      105.86
+     ],
+     "why": "tháng 9 TRONG mùa lũ v1 ([7, 8, 9, 10, 11, 12])"
+    },
+    {
+     "pt": [
+      18.46,
+      105.9
+     ],
+     "why": "tháng 9 TRONG mùa lũ v1 ([7, 8, 9, 10, 11, 12])"
+    },
+    {
+     "pt": [
+      18.5,
+      105.7
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 57.8, 'built': 11.7, 'water': 2.3})"
+    },
+    {
+     "pt": [
+      18.5,
+      105.74
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 9.07 m³/s < 10)"
+    },
+    {
+     "pt": [
+      18.5,
+      105.78
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 2.36 m³/s < 10)"
+    },
+    {
+     "pt": [
+      18.5,
+      105.82
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.5,
+      105.86
+     ],
+     "why": "tháng 9 TRONG mùa lũ v1 ([9, 10, 11, 12])"
+    },
+    {
+     "pt": [
+      18.5,
+      105.9
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 100.0})"
+    }
+   ]
+  },
+  {
+   "id": "E5",
+   "name": "Bão Conson (bão số 5) gây mưa lớn Quảng Nam – Đà Nẵng",
+   "date": "2021-09-12",
+   "region": "Nam Trung Bộ",
+   "eligible": true,
+   "case_point": {
+    "pt": [
+     15.88,
+     108.2
+    ],
+    "keep": true,
+    "wc": {
+     "crop": 81.1,
+     "built": 6.2,
+     "water": 0.0
+    },
+    "season_months": [
+     1,
+     10,
+     11,
+     12
+    ],
+    "river": {
+     "lat": 15.875,
+     "lon": 108.225,
+     "km": 2.73,
+     "mean_m3s": 591.68
+    },
+    "scenes_in_window": [
+     "2021-09-18"
+    ]
+   },
+   "n_points": 20,
+   "n_kept_1_3": 2,
+   "scene_checks": [
+    {
+     "pt": [
+      15.88,
+      108.2
+     ],
+     "scenes_in_window": [
+      "2021-09-18"
+     ]
+    }
+   ],
+   "rejected": [
+    {
+     "pt": [
+      15.8,
+      108.12
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 7.2, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.8,
+      108.16
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 99.4})"
+    },
+    {
+     "pt": [
+      15.8,
+      108.2
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 43.9, 'built': 23.1, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.8,
+      108.24
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 17.2, 'built': 9.1, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.8,
+      108.28
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 5.9, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.84,
+      108.12
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 49.4, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.84,
+      108.2
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 6.1, 'built': 50.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.84,
+      108.24
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 33.7, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.84,
+      108.28
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 93.4, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.88,
+      108.12
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 1.7, 'built': 88.4, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.88,
+      108.16
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 32.2, 'built': 24.8, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.88,
+      108.24
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 24.6, 'built': 1.9, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.88,
+      108.28
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 37.5, 'built': 33.5, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.92,
+      108.12
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 19.5, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.92,
+      108.16
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.9, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.92,
+      108.2
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 65.3, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.92,
+      108.24
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 2.84 m³/s < 10)"
+    },
+    {
+     "pt": [
+      15.92,
+      108.28
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 35.6, 'built': 0.0, 'water': 0.0})"
+    }
+   ]
+  },
+  {
+   "id": "E6",
+   "name": "Bão Noru (bão số 4) đổ bộ Quảng Nam – Đà Nẵng",
+   "date": "2022-09-28",
+   "region": "Nam Trung Bộ",
+   "eligible": false,
+   "case_point": null,
+   "n_points": 20,
+   "n_kept_1_3": 2,
+   "scene_checks": [
+    {
+     "pt": [
+      15.88,
+      108.2
+     ],
+     "scenes_in_window": []
+    },
+    {
+     "pt": [
+      15.84,
+      108.16
+     ],
+     "scenes_in_window": []
+    }
+   ],
+   "rejected": [
+    {
+     "pt": [
+      15.8,
+      108.12
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 7.2, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.8,
+      108.16
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 99.4})"
+    },
+    {
+     "pt": [
+      15.8,
+      108.2
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 43.9, 'built': 23.1, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.8,
+      108.24
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 17.2, 'built': 9.1, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.8,
+      108.28
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 5.9, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.84,
+      108.12
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 49.4, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.84,
+      108.2
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 6.1, 'built': 50.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.84,
+      108.24
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 33.7, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.84,
+      108.28
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 93.4, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.88,
+      108.12
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 1.7, 'built': 88.4, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.88,
+      108.16
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 32.2, 'built': 24.8, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.88,
+      108.24
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 24.6, 'built': 1.9, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.88,
+      108.28
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 37.5, 'built': 33.5, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.92,
+      108.12
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 19.5, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.92,
+      108.16
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.9, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.92,
+      108.2
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 65.3, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      15.92,
+      108.24
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 2.84 m³/s < 10)"
+    },
+    {
+     "pt": [
+      15.92,
+      108.28
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 35.6, 'built': 0.0, 'water': 0.0})"
+    }
+   ]
+  },
+  {
+   "id": "E7",
+   "name": "Bão Kajiki (bão số 5) đổ bộ Nghệ An – Hà Tĩnh",
+   "date": "2025-08-25",
+   "region": "Bắc Trung Bộ",
+   "eligible": false,
+   "case_point": null,
+   "n_points": 24,
+   "n_kept_1_3": 0,
+   "scene_checks": [],
+   "rejected": [
+    {
+     "pt": [
+      18.6,
+      105.48
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 4.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.6,
+      105.52
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.6,
+      105.56
+     ],
+     "why": "tháng 8 TRONG mùa lũ v1 ([7, 8, 9, 10, 11])"
+    },
+    {
+     "pt": [
+      18.6,
+      105.6
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 39.6, 'built': 0.0, 'water': 60.2})"
+    },
+    {
+     "pt": [
+      18.6,
+      105.64
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.6,
+      105.68
+     ],
+     "why": "tháng 8 TRONG mùa lũ v1 ([7, 8, 9, 10, 11, 12])"
+    },
+    {
+     "pt": [
+      18.64,
+      105.48
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.4, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.64,
+      105.52
+     ],
+     "why": "tháng 8 TRONG mùa lũ v1 ([7, 8, 9, 10, 11])"
+    },
+    {
+     "pt": [
+      18.64,
+      105.56
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 58.7, 'built': 15.2, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.64,
+      105.6
+     ],
+     "why": "tháng 8 TRONG mùa lũ v1 ([7, 8, 9, 10, 11])"
+    },
+    {
+     "pt": [
+      18.64,
+      105.64
+     ],
+     "why": "tháng 8 TRONG mùa lũ v1 ([7, 8, 9, 10, 11])"
+    },
+    {
+     "pt": [
+      18.64,
+      105.68
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 7.4, 'built': 83.5, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.68,
+      105.48
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.68,
+      105.52
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 49.6, 'built': 34.5, 'water': 1.7})"
+    },
+    {
+     "pt": [
+      18.68,
+      105.56
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 5.76 m³/s < 10)"
+    },
+    {
+     "pt": [
+      18.68,
+      105.6
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 35.2, 'built': 0.0, 'water': 8.7})"
+    },
+    {
+     "pt": [
+      18.68,
+      105.64
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 3.2, 'built': 10.4, 'water': 0.8})"
+    },
+    {
+     "pt": [
+      18.68,
+      105.68
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 94.1, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.72,
+      105.48
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 3.2, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.72,
+      105.52
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 3.44 m³/s < 10)"
+    },
+    {
+     "pt": [
+      18.72,
+      105.56
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.72,
+      105.6
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.72,
+      105.64
+     ],
+     "why": "tháng 8 TRONG mùa lũ v1 ([7, 8, 9, 10, 11])"
+    },
+    {
+     "pt": [
+      18.72,
+      105.68
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 77.8, 'water': 0.0})"
+    }
+   ]
+  },
+  {
+   "id": "E8",
+   "name": "Bão Bualoi (bão số 10) đổ bộ Hà Tĩnh – Quảng Trị",
+   "date": "2025-09-29",
+   "region": "Bắc Trung Bộ",
+   "eligible": false,
+   "case_point": null,
+   "n_points": 24,
+   "n_kept_1_3": 0,
+   "scene_checks": [],
+   "rejected": [
+    {
+     "pt": [
+      18.38,
+      105.7
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.38,
+      105.74
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.38,
+      105.78
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 20.5, 'built': 51.7, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.38,
+      105.82
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 7.16 m³/s < 10)"
+    },
+    {
+     "pt": [
+      18.38,
+      105.86
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 7.16 m³/s < 10)"
+    },
+    {
+     "pt": [
+      18.38,
+      105.9
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 6.4 m³/s < 10)"
+    },
+    {
+     "pt": [
+      18.42,
+      105.7
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 5.3, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.42,
+      105.74
+     ],
+     "why": "tháng 9 TRONG mùa lũ v1 ([7, 8, 9, 10, 11])"
+    },
+    {
+     "pt": [
+      18.42,
+      105.78
+     ],
+     "why": "tháng 9 TRONG mùa lũ v1 ([7, 8, 9, 10, 11])"
+    },
+    {
+     "pt": [
+      18.42,
+      105.82
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 44.1, 'built': 23.7, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.42,
+      105.86
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 24.1, 'built': 1.3, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.42,
+      105.9
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 3.2, 'built': 72.2, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.46,
+      105.7
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 16.5, 'built': 51.1, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.46,
+      105.74
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 9.07 m³/s < 10)"
+    },
+    {
+     "pt": [
+      18.46,
+      105.78
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.8, 'built': 1.9, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.46,
+      105.82
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 99.8, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.46,
+      105.86
+     ],
+     "why": "tháng 9 TRONG mùa lũ v1 ([7, 8, 9, 10, 11, 12])"
+    },
+    {
+     "pt": [
+      18.46,
+      105.9
+     ],
+     "why": "tháng 9 TRONG mùa lũ v1 ([7, 8, 9, 10, 11, 12])"
+    },
+    {
+     "pt": [
+      18.5,
+      105.7
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 57.8, 'built': 11.7, 'water': 2.3})"
+    },
+    {
+     "pt": [
+      18.5,
+      105.74
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 9.07 m³/s < 10)"
+    },
+    {
+     "pt": [
+      18.5,
+      105.78
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 2.36 m³/s < 10)"
+    },
+    {
+     "pt": [
+      18.5,
+      105.82
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      18.5,
+      105.86
+     ],
+     "why": "tháng 9 TRONG mùa lũ v1 ([9, 10, 11, 12])"
+    },
+    {
+     "pt": [
+      18.5,
+      105.9
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 100.0})"
+    }
+   ]
+  },
+  {
+   "id": "E9",
+   "name": "Bão Sơn Ca (Sonca, bão số 4) đổ bộ Quảng Trị",
+   "date": "2017-07-25",
+   "region": "Bắc Trung Bộ",
+   "eligible": false,
+   "case_point": null,
+   "n_points": 30,
+   "n_kept_1_3": 5,
+   "scene_checks": [
+    {
+     "pt": [
+      16.66,
+      107.3
+     ],
+     "scenes_in_window": []
+    },
+    {
+     "pt": [
+      16.78,
+      107.22
+     ],
+     "scenes_in_window": []
+    },
+    {
+     "pt": [
+      16.74,
+      107.3
+     ],
+     "scenes_in_window": []
+    },
+    {
+     "pt": [
+      16.74,
+      107.22
+     ],
+     "scenes_in_window": []
+    },
+    {
+     "pt": [
+      16.7,
+      107.26
+     ],
+     "scenes_in_window": []
+    }
+   ],
+   "rejected": [
+    {
+     "pt": [
+      16.66,
+      107.1
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 16.3, 'built': 0.0, 'water': 78.4})"
+    },
+    {
+     "pt": [
+      16.66,
+      107.14
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.66,
+      107.18
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.66,
+      107.22
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.66,
+      107.26
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 20.8, 'built': 0.0, 'water': 0.2})"
+    },
+    {
+     "pt": [
+      16.7,
+      107.1
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.7,
+      107.14
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 36.0, 'built': 0.0, 'water': 11.0})"
+    },
+    {
+     "pt": [
+      16.7,
+      107.18
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.7,
+      107.22
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.2, 'built': 0.8, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.7,
+      107.3
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 81.2, 'built': 10.4, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.74,
+      107.1
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.74,
+      107.14
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 4.2, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.74,
+      107.18
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 44.9, 'built': 8.0, 'water': 42.2})"
+    },
+    {
+     "pt": [
+      16.74,
+      107.26
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 5.3, 'built': 0.9, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.78,
+      107.1
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 8.9, 'built': 0.0, 'water': 3.2})"
+    },
+    {
+     "pt": [
+      16.78,
+      107.14
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 2.5, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.78,
+      107.18
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 30.5, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.78,
+      107.26
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 1.84 m³/s < 10)"
+    },
+    {
+     "pt": [
+      16.78,
+      107.3
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.82,
+      107.1
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 95.8, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.82,
+      107.14
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 100.0})"
+    },
+    {
+     "pt": [
+      16.82,
+      107.18
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 72.9, 'built': 17.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.82,
+      107.22
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 43.6, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.82,
+      107.26
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.9, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.82,
+      107.3
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 100.0})"
+    }
+   ]
+  },
+  {
+   "id": "E10",
+   "name": "Bão Podul (bão số 4) — đồng bằng Quảng Trị",
+   "date": "2019-08-30",
+   "region": "Bắc Trung Bộ",
+   "eligible": false,
+   "case_point": null,
+   "n_points": 30,
+   "n_kept_1_3": 5,
+   "scene_checks": [
+    {
+     "pt": [
+      16.66,
+      107.3
+     ],
+     "scenes_in_window": []
+    },
+    {
+     "pt": [
+      16.78,
+      107.22
+     ],
+     "scenes_in_window": []
+    },
+    {
+     "pt": [
+      16.74,
+      107.3
+     ],
+     "scenes_in_window": []
+    },
+    {
+     "pt": [
+      16.74,
+      107.22
+     ],
+     "scenes_in_window": []
+    },
+    {
+     "pt": [
+      16.7,
+      107.26
+     ],
+     "scenes_in_window": []
+    }
+   ],
+   "rejected": [
+    {
+     "pt": [
+      16.66,
+      107.1
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 16.3, 'built': 0.0, 'water': 78.4})"
+    },
+    {
+     "pt": [
+      16.66,
+      107.14
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.66,
+      107.18
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.66,
+      107.22
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.66,
+      107.26
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 20.8, 'built': 0.0, 'water': 0.2})"
+    },
+    {
+     "pt": [
+      16.7,
+      107.1
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.7,
+      107.14
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 36.0, 'built': 0.0, 'water': 11.0})"
+    },
+    {
+     "pt": [
+      16.7,
+      107.18
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.7,
+      107.22
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.2, 'built': 0.8, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.7,
+      107.3
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 81.2, 'built': 10.4, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.74,
+      107.1
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.74,
+      107.14
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 4.2, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.74,
+      107.18
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 44.9, 'built': 8.0, 'water': 42.2})"
+    },
+    {
+     "pt": [
+      16.74,
+      107.26
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 5.3, 'built': 0.9, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.78,
+      107.1
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 8.9, 'built': 0.0, 'water': 3.2})"
+    },
+    {
+     "pt": [
+      16.78,
+      107.14
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 2.5, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.78,
+      107.18
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 30.5, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.78,
+      107.26
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 1.84 m³/s < 10)"
+    },
+    {
+     "pt": [
+      16.78,
+      107.3
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.82,
+      107.1
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 95.8, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.82,
+      107.14
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 100.0})"
+    },
+    {
+     "pt": [
+      16.82,
+      107.18
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 72.9, 'built': 17.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.82,
+      107.22
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 43.6, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.82,
+      107.26
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.9, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.82,
+      107.3
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 100.0})"
+    }
+   ]
+  },
+  {
+   "id": "E11",
+   "name": "Bão Bualoi (bão số 10) — đồng bằng Quảng Trị",
+   "date": "2025-09-29",
+   "region": "Bắc Trung Bộ",
+   "eligible": true,
+   "case_point": {
+    "pt": [
+     16.66,
+     107.3
+    ],
+    "keep": true,
+    "wc": {
+     "crop": 100.0,
+     "built": 0.0,
+     "water": 0.0
+    },
+    "season_months": [
+     1,
+     10,
+     11,
+     12
+    ],
+    "river": {
+     "lat": 16.675,
+     "lon": 107.325,
+     "km": 3.14,
+     "mean_m3s": 75.32
+    },
+    "scenes_in_window": [
+     "2025-10-02"
+    ]
+   },
+   "n_points": 30,
+   "n_kept_1_3": 5,
+   "scene_checks": [
+    {
+     "pt": [
+      16.66,
+      107.3
+     ],
+     "scenes_in_window": [
+      "2025-10-02"
+     ]
+    }
+   ],
+   "rejected": [
+    {
+     "pt": [
+      16.66,
+      107.1
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 16.3, 'built': 0.0, 'water': 78.4})"
+    },
+    {
+     "pt": [
+      16.66,
+      107.14
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.66,
+      107.18
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.66,
+      107.22
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.66,
+      107.26
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 20.8, 'built': 0.0, 'water': 0.2})"
+    },
+    {
+     "pt": [
+      16.7,
+      107.1
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.7,
+      107.14
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 36.0, 'built': 0.0, 'water': 11.0})"
+    },
+    {
+     "pt": [
+      16.7,
+      107.18
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.7,
+      107.22
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.2, 'built': 0.8, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.7,
+      107.3
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 81.2, 'built': 10.4, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.74,
+      107.1
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.74,
+      107.14
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 4.2, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.74,
+      107.18
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 44.9, 'built': 8.0, 'water': 42.2})"
+    },
+    {
+     "pt": [
+      16.74,
+      107.26
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 5.3, 'built': 0.9, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.78,
+      107.1
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 8.9, 'built': 0.0, 'water': 3.2})"
+    },
+    {
+     "pt": [
+      16.78,
+      107.14
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 2.5, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.78,
+      107.18
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 30.5, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.78,
+      107.26
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 1.84 m³/s < 10)"
+    },
+    {
+     "pt": [
+      16.78,
+      107.3
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.82,
+      107.1
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 95.8, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.82,
+      107.14
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 100.0})"
+    },
+    {
+     "pt": [
+      16.82,
+      107.18
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 72.9, 'built': 17.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.82,
+      107.22
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 43.6, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.82,
+      107.26
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.9, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      16.82,
+      107.3
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 100.0})"
+    }
+   ]
+  },
+  {
+   "id": "E12",
+   "name": "Bão Doksuri (bão số 10) — Lệ Thủy, Quảng Bình",
+   "date": "2017-09-15",
+   "region": "Bắc Trung Bộ",
+   "eligible": false,
+   "case_point": null,
+   "n_points": 25,
+   "n_kept_1_3": 0,
+   "scene_checks": [],
+   "rejected": [
+    {
+     "pt": [
+      17.1,
+      106.72
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.1,
+      106.76
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.1,
+      106.8
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.1,
+      106.84
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 4.7, 'built': 0.0, 'water': 91.5})"
+    },
+    {
+     "pt": [
+      17.1,
+      106.88
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.14,
+      106.72
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.14,
+      106.76
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 9.3, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.14,
+      106.8
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 1.3})"
+    },
+    {
+     "pt": [
+      17.14,
+      106.84
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.14,
+      106.88
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.4, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.18,
+      106.72
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.18,
+      106.76
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 16.1, 'built': 3.2, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.18,
+      106.8
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 4.2, 'water': 33.0})"
+    },
+    {
+     "pt": [
+      17.18,
+      106.84
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 1.1, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.18,
+      106.88
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 12.3, 'built': 0.0, 'water': 26.5})"
+    },
+    {
+     "pt": [
+      17.22,
+      106.72
+     ],
+     "why": "tháng 9 TRONG mùa lũ v1 ([9, 10, 11, 12])"
+    },
+    {
+     "pt": [
+      17.22,
+      106.76
+     ],
+     "why": "tháng 9 TRONG mùa lũ v1 ([9, 10, 11, 12])"
+    },
+    {
+     "pt": [
+      17.22,
+      106.8
+     ],
+     "why": "ngoài phạm vi v3 (ô sông TB 7.99 m³/s < 10)"
+    },
+    {
+     "pt": [
+      17.22,
+      106.84
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 6.1, 'built': 0.6, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.22,
+      106.88
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.26,
+      106.72
+     ],
+     "why": "tháng 9 TRONG mùa lũ v1 ([9, 10, 11, 12])"
+    },
+    {
+     "pt": [
+      17.26,
+      106.76
+     ],
+     "why": "tháng 9 TRONG mùa lũ v1 ([9, 10, 11, 12])"
+    },
+    {
+     "pt": [
+      17.26,
+      106.8
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 21.6, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.26,
+      106.84
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 0.0})"
+    },
+    {
+     "pt": [
+      17.26,
+      106.88
+     ],
+     "why": "không phải đất nông nghiệp ({'crop': 0.0, 'built': 0.0, 'water': 100.0})"
+    }
+   ]
+  }
+ ],
+ "n_eligible": 3,
+ "regions": [
+  "Bắc Trung Bộ",
+  "Nam Trung Bộ"
+ ],
+ "enough": false,
+ "negatives_scope": {
+  "N1": {
+   "pt": [
+    9.18,
+    105.09
+   ],
+   "in_scope": false,
+   "river": {
+    "lat": 9.175,
+    "lon": 105.075,
+    "km": 1.74,
+    "mean_m3s": 1.57
+   }
+  },
+  "N2": {
+   "pt": [
+    21.12,
+    105.89
+   ],
+   "in_scope": false,
+   "river": {
+    "lat": 21.125,
+    "lon": 105.875,
+    "km": 1.65,
+    "mean_m3s": 7.83
+   }
+  }
+ },
+ "quick_picks_scope": [
+  {
+   "pt": [
+    10.07,
+    106.57
+   ],
+   "in_scope": false,
+   "river": {
+    "lat": 10.075,
+    "lon": 106.525,
+    "km": 4.96,
+    "mean_m3s": 1.03
+   }
+  },
+  {
+   "pt": [
+    9.18,
+    105.09
+   ],
+   "in_scope": false,
+   "river": {
+    "lat": 9.175,
+    "lon": 105.075,
+    "km": 1.74,
+    "mean_m3s": 1.57
+   }
+  },
+  {
+   "pt": [
+    15.33,
+    108.05
+   ],
+   "in_scope": true,
+   "river": {
+    "lat": 15.325,
+    "lon": 108.075,
+    "km": 2.74,
+    "mean_m3s": 99.49
+   }
+  },
+  {
+   "pt": [
+    16.52,
+    107.59
+   ],
+   "in_scope": true,
+   "river": {
+    "lat": 16.525,
+    "lon": 107.625,
+    "km": 3.77,
+    "mean_m3s": 44.82
+   }
+  },
+  {
+   "pt": [
+    11.56,
+    108.93
+   ],
+   "in_scope": true,
+   "river": {
+    "lat": 11.575,
+    "lon": 108.925,
+    "km": 1.75,
+    "mean_m3s": 85.55
+   }
+  },
+  {
+   "pt": [
+    12.73,
+    108.05
+   ],
+   "in_scope": false,
+   "river": {
+    "lat": 12.725,
+    "lon": 108.075,
+    "km": 2.77,
+    "mean_m3s": 1.59
+   }
+  },
+  {
+   "pt": [
+    21.12,
+    105.89
+   ],
+   "in_scope": false,
+   "river": {
+    "lat": 21.125,
+    "lon": 105.875,
+    "km": 1.65,
+    "mean_m3s": 7.83
+   }
+  },
+  {
+   "pt": [
+    22.36,
+    103.59
+   ],
+   "in_scope": false,
+   "river": {
+    "lat": 22.325,
+    "lon": 103.575,
+    "km": 4.19,
+    "mean_m3s": 7.36
+   }
+  }
+ ]
+}
