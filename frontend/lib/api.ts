@@ -2702,6 +2702,7 @@ export type WaterHistoryResult = { available: boolean; message?: string; n_scene
   track: { orbit: string; relative_orbit: number; collection: string }; events: WaterEvent[]; n_events: number;
   baseline_db: Record<string, number>; series: [string, number, number][]; method: string; limits: string; computed: string;
   water_surface?: { share: string; pct: number; baseline_db: number; note: string } | null;
+  n_failed?: number; failed_dates?: string[]; failed_note?: string;
   urban?: { built_pct: number; note: string } | null;
   canopy?: { tree_pct: number; note: string } | null;
   cropland?: { crop_pct: number; note: string } | null;

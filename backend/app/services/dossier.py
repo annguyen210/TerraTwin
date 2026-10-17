@@ -92,6 +92,8 @@ def _water_section(lat: float, lon: float) -> dict | None:
             **({"n_in": sea["n_in"], "n_out": sea["n_out"], "flood_season": sea["flood_season"], "out_note": sea["out_note"]}
                if sea.get("flood_season") else {}),
             "rule": {"water_db": wh.WATER_DB, "drop_db": wh.DROP_DB, "merge_gap_days": wh.MERGE_GAP_DAYS},
+            # Cảnh lỗi mạng sau mọi lần thử (18/10/2026): ghi vào phần ĐÃ KÝ — đợt rơi vào các cảnh đó có thể bị lọt.
+            **({"n_failed": r["n_failed"], "failed_dates": r.get("failed_dates", [])} if r.get("n_failed") else {}),
             # Khung đo có mặt nước thường xuyên (16/10/2026): "0 đợt" ở phần đó không có nghĩa là không ngập — ghi vào
             # phần ĐÃ KÝ để người nhận hồ sơ thấy, không chỉ người xem trên web.
             **({"water_surface": {k: ws[k] for k in ("share", "pct", "baseline_db")}}

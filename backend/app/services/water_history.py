@@ -21,7 +21,9 @@ Sentinel-1A: 12 ngày) có thể lọt đợt ngập ngắn hơn chu kỳ.
 """
 from __future__ import annotations
 
+import os
 import statistics
+import time
 import urllib.parse
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime
@@ -38,6 +40,11 @@ RADIUS_M = 100.0
 PCTS = (10, 25, 50, 75)
 _SCENE_TTL = 400 * 24 * 3600          # cảnh cũ không đổi
 _RESULT_TTL = 6 * 24 * 3600           # có cảnh mới mỗi 6–12 ngày
+_PARTIAL_TTL = 6 * 3600                # còn cảnh lỗi mạng → đọc lại sớm (cảnh đã đọc nằm trong cache, chỉ đọc phần thiếu)
+# Số lượt đọc song song tới Planetary Computer. 4 → 8 (18/10/2026) sau khi có thử lại cảnh lỗi: thời gian chủ yếu là CHỜ
+# mạng (~1,3 s/cảnh), không phải CPU. Chỉnh bằng biến môi trường nếu nguồn bắt đầu từ chối.
+S1_WORKERS = max(1, int(os.environ.get("TERRATWIN_S1_WORKERS", "8")))
+RETRY_ROUNDS = 2
 JOB_KIND = "water_history"
 
 
@@ -72,11 +79,13 @@ def pick_track(items: list[dict]) -> tuple[str | None, int | None, list[dict]]:
     return orbit, rel, uniq
 
 
-def _scene(item_id: str, box: list[float]) -> dict | None:
+def _scene_status(item_id: str, box: list[float]) -> tuple[str, dict | None]:
+    """("ok", số đo) · ("empty", None) = cảnh không có điểm ảnh hợp lệ trong khung (đã cache) · ("error", None) = lỗi
+    mạng / máy chủ — KHÔNG cache, phải thử lại. Trước 18/10/2026 hai trường hợp sau lẫn nhau: cảnh lỗi mạng bị bỏ im lặng."""
     key = cache_store.make_key("s1vv", item_id, [round(v, 5) for v in box])
     hit = cache_store.get(key)
     if hit is not None:
-        return hit or None
+        return ("ok", hit) if hit else ("empty", None)
     q = urllib.parse.urlencode([("collection", COLLECTION), ("item", item_id), ("assets", "vv")] + [("p", p) for p in PCTS])
     r = mpc._call(f"{mpc.DATA}?{q}", mpc._poly(box))
     try:
@@ -86,9 +95,13 @@ def _scene(item_id: str, box: list[float]) -> dict | None:
         if any(v is None for v in out.values()):
             out = {}
     except (KeyError, IndexError, TypeError):
-        return None                             # lỗi mạng: không cache, lần sau thử lại
+        return ("error", None)                  # lỗi mạng: không cache, lần sau thử lại
     cache_store.put(key, out, ttl_seconds=_SCENE_TTL)
-    return out or None
+    return ("ok", out) if out else ("empty", None)
+
+
+def _scene(item_id: str, box: list[float]) -> dict | None:
+    return _scene_status(item_id, box)[1]
 
 
 def baseline(rows: list[dict]) -> dict:
@@ -290,17 +303,32 @@ def history(lat: float, lon: float, radius_m: float = RADIUS_M, today: date | No
     if not items:
         return {"available": False, "message": tr("Không tìm thấy cảnh Sentinel-1 nào trên thửa này.",
                                                   "No Sentinel-1 scenes found over this plot.")}
-    rows, done = [], 0
+    rows, done, failed = [], 0, []
 
     def one(f):
-        return f["properties"]["datetime"][:10], _scene(f["id"], box)
-    with ThreadPoolExecutor(max_workers=4) as ex:
-        for d, s in ex.map(one, items):
+        return f, _scene_status(f["id"], box)
+    with ThreadPoolExecutor(max_workers=S1_WORKERS) as ex:
+        for f, (st, s) in ex.map(one, items):
             done += 1
-            if s:
-                rows.append({"date": d, **s})
+            if st == "ok":
+                rows.append({"date": f["properties"]["datetime"][:10], **s})
+            elif st == "error":
+                failed.append(f)
             if progress and done % 20 == 0:
                 progress({"done": done, "total": len(items)})
+    # Cảnh lỗi mạng: thử lại chậm hơn (2 luồng, nghỉ giữa các vòng) — một cảnh bị bỏ có thể chính là cảnh chụp lúc ngập.
+    for rnd in range(RETRY_ROUNDS):
+        if not failed:
+            break
+        time.sleep(2 + 3 * rnd)
+        with ThreadPoolExecutor(max_workers=2) as ex:
+            again = list(ex.map(one, failed))
+        failed = []
+        for f, (st, s) in again:
+            if st == "ok":
+                rows.append({"date": f["properties"]["datetime"][:10], **s})
+            elif st == "error":
+                failed.append(f)
     rows.sort(key=lambda r: r["date"])
     if len(rows) < 10:
         return {"available": False, "message": tr("Quá ít cảnh radar đọc được để dựng nền của thửa.",
@@ -328,7 +356,15 @@ def history(lat: float, lon: float, radius_m: float = RADIUS_M, today: date | No
             "6–12 day revisit can miss short floods. These are radar measurements, not official flood records."),
         "computed": datetime.utcnow().isoformat(timespec="seconds") + "Z",
     }
-    cache_store.put(key, out, ttl_seconds=_RESULT_TTL)
+    if failed:
+        out["n_failed"] = len(failed)
+        out["failed_dates"] = sorted(f["properties"]["datetime"][:10] for f in failed)
+        out["failed_note"] = tr(
+            f"{len(failed)} cảnh radar không đọc được (lỗi mạng sau {RETRY_ROUNDS + 1} lần thử) — đợt nước rơi đúng vào các "
+            "cảnh đó có thể bị lọt. Mở lại thửa sau vài giờ để đọc lại phần thiếu.",
+            f"{len(failed)} radar scene(s) could not be read (network error after {RETRY_ROUNDS + 1} tries) — a water event "
+            "falling on those scenes may be missed. Reopen the plot in a few hours to re-read the missing part.")
+    cache_store.put(key, out, ttl_seconds=_PARTIAL_TTL if failed else _RESULT_TTL)
     return _annotate(out, lat, lon)
 
 
