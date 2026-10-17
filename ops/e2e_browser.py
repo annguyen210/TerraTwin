@@ -300,6 +300,9 @@ with sync_playwright() as p:
         pg.wait_for_timeout(1500)
         pg.screenshot(path=os.path.join(OUT, "18-xem-ngay-hue.png"), full_page=False)
         state_txt = "đã có kết quả" if pg.locator(".wh-sum").count() else "đang tự đọc (có thanh tiến độ)"
+        if pg.locator("section.wh .wh-list li").count():            # có đợt nước → có lời mời xác nhận từng đợt (17/10/2026)
+            assert pg.locator("section.wh p.wh-cf-note").count() == 1, "thiếu lời mời 'ruộng có ngập đợt này không'"
+            state_txt += " · có lời mời xác nhận từng đợt"
         ctx.close()
         return f"không lớp phủ che · lịch sử nước {state_txt}"
     try_hue()

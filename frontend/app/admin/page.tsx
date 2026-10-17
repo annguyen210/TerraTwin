@@ -16,15 +16,15 @@ import Link from "next/link";
 import {
   fetchMe, getHealth, getFunnel, getBackupStatus, getDrift, getCoopPlots, updateCoop,
   getPilotSummary, downloadPilotCsv, adminLabelers, adminAddLabeler, adminRemoveLabeler, adminLabelSummary,
-  adminLabelExport, adminUsers, adminUpdateUser, adminUpgradeRequests, adminDecideUpgrade,
-  type AdminUser, type UpgradeReq,
+  adminLabelExport, adminUsers, adminUpdateUser, adminUpgradeRequests, adminDecideUpgrade, adminWaterConfirms, adminSeasonCases,
+  type AdminUser, type UpgradeReq, type AdminWaterConfirms, type AdminSeasonCases,
   type AuthUser, type HealthStatus, type CoopPlot, type PilotSummary, type LabelSummary,
 } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 import AppShell from "@/components/AppShell";
 import { getToken } from "@/lib/api";
 
-type Tab = "users" | "upgrades" | "health" | "funnel" | "pilot" | "label" | "backup" | "drift" | "coop";
+type Tab = "users" | "upgrades" | "health" | "funnel" | "pilot" | "label" | "truth" | "backup" | "drift" | "coop";
 
 function when(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -333,6 +333,54 @@ function LabelTab() {
   );
 }
 
+/** Sự thật mặt đất người dùng gửi: xác nhận từng đợt nước + ca mùa lũ v4. Chỉ đọc — đưa vào cổng nào cũng phải đăng ký trước. */
+function TruthTab() {
+  const [w, setW] = useState<AdminWaterConfirms | null>(null);
+  const [s, setS] = useState<AdminSeasonCases | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  useEffect(() => {
+    adminWaterConfirms().then(setW).catch((e) => setErr(e.message));
+    adminSeasonCases().then(setS).catch((e) => setErr(e.message));
+  }, []);
+  return (
+    <div>
+      <p className="ws-hint">Người dùng trả lời &quot;ruộng có ngập đợt này không&quot; ngay trên lịch sử nước của thửa. Toạ độ làm tròn 0,01°;
+        không hiện ai trả lời gì. Dùng làm ca kiểm cho bộ phát hiện đợt nước và lớp mùa lũ v4 — chỉ sau khi đăng ký trước.</p>
+      {err && <p className="ws-err">⚠️ {err}</p>}
+      {w && (
+        <>
+          <h4>Xác nhận từng đợt nước</h4>
+          <p><b>{w.n_answers}</b> câu trả lời · <b>{w.n_events}</b> đợt · có ngập <b>{w.totals.yes}</b> · không <b>{w.totals.no}</b> · không rõ <b>{w.totals.unsure}</b></p>
+          {w.events.length > 0 && (
+            <table className="ws-table">
+              <thead><tr><th>Đợt</th><th>Toạ độ ~1 km</th><th>Mùa lũ v1</th><th>Có</th><th>Không</th><th>Không rõ</th></tr></thead>
+              <tbody>{w.events.slice(0, 200).map((e) => (
+                <tr key={`${e.lat},${e.lon},${e.event_start}`}><td>{e.event_start}</td><td>{e.lat}, {e.lon}</td>
+                  <td>{e.v1_label === "in" ? "trong mùa" : e.v1_label === "out" ? "ngoài mùa" : "—"}</td>
+                  <td>{e.yes}</td><td>{e.no}</td><td>{e.unsure}</td></tr>))}</tbody>
+            </table>
+          )}
+          <p className="ws-hint">{w.note}</p>
+        </>
+      )}
+      {s && (
+        <>
+          <h4 style={{ marginTop: 18 }}>Ca mùa lũ v4 (lũ ngoài mùa có người xác nhận): {s.n}</h4>
+          {s.cases.length > 0 && (
+            <table className="ws-table">
+              <thead><tr><th>Đợt radar</th><th>Ngày báo</th><th>Toạ độ ~1 km</th><th>Mùa lũ v1</th><th>Nguồn</th><th>Trạng thái</th></tr></thead>
+              <tbody>{s.cases.slice(0, 200).map((c) => (
+                <tr key={c.id}><td>{c.event[0]}{c.event[1] !== c.event[0] ? ` → ${c.event[1]}` : ""}</td><td>{c.observed_on}</td>
+                  <td>{c.lat}, {c.lon}</td><td>tháng {c.season_months}</td><td>{c.source}</td><td>{c.status}</td></tr>))}</tbody>
+            </table>
+          )}
+          <p className="ws-hint">{s.note}</p>
+        </>
+      )}
+    </div>
+  );
+}
+
 function BackupTab() {
   const [data, setData] = useState<Awaited<ReturnType<typeof getBackupStatus>> | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -464,6 +512,7 @@ export default function AdminPage() {
     { id: "funnel", label: "Phễu người dùng", show: isAdmin },
     { id: "pilot", label: "Góp ý thí điểm", show: isAdmin },
     { id: "label", label: "Gán nhãn v3", show: isAdmin },
+    { id: "truth", label: "Xác nhận thực địa", show: isAdmin },
     { id: "backup", label: "Sao lưu", show: isAdmin },
     { id: "drift", label: "Trôi mô hình", show: isAdmin },
     { id: "coop", label: "Hợp tác xã", show: isCoop },
@@ -507,6 +556,7 @@ export default function AdminPage() {
               <li><b>Phễu người dùng</b> — {t("mở app → quét → lưu thửa…; phễu bán hàng mở → chọn thửa → hồ sơ → trả tiền; tỉ lệ quay lại 7 ngày.", "open → scan → save…; sales funnel open → pick plot → dossier → pay; 7-day return rate.")}</li>
               <li><b>Góp ý thí điểm</b> — {t("phiếu góp ý từ hợp tác xã (trực tuyến + phiếu giấy nhập lại), tải CSV.", "pilot feedback from co-ops (online + paper), CSV download.")}</li>
               <li><b>Gán nhãn v3</b> — {t("thêm người gán nhãn (email), xem tiến độ, độ đồng thuận, xuất nhãn để chấm kiểm định v3.", "add labelers, progress, agreement, export labels to score validation v3.")}</li>
+              <li><b>Xác nhận thực địa</b> — {t("người dùng xác nhận từng đợt nước radar có ngập thật không; ca lũ ngoài mùa cho lớp mùa lũ v4.", "users confirm whether each radar water event really flooded; out-of-season flood cases for flood-season v4.")}</li>
               <li><b>Sao lưu</b> — {t("lần sao lưu CSDL mã hoá gần nhất.", "latest encrypted DB backup.")}</li>
               <li><b>Trôi mô hình</b> — {t("dữ liệu đầu vào có lệch khỏi lúc huấn luyện không.", "whether inputs drift from training data.")}</li>
               <li><b>Hợp tác xã</b> — {t("thửa của thành viên đã đồng ý chia sẻ.", "members' plots shared with consent.")}</li>
@@ -532,6 +582,7 @@ export default function AdminPage() {
               {tab === "funnel" && isAdmin && <FunnelTab />}
               {tab === "pilot" && isAdmin && <PilotTab />}
               {tab === "label" && isAdmin && <LabelTab />}
+              {tab === "truth" && isAdmin && <TruthTab />}
               {tab === "backup" && isAdmin && <BackupTab />}
               {tab === "drift" && isAdmin && <DriftTab />}
               {tab === "coop" && isCoop && <CoopTab user={user} />}

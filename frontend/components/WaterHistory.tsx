@@ -8,7 +8,8 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Waves } from "lucide-react";
-import { waterPoll, waterScene, waterStart, waterStatus, type WaterHistoryResult, type WaterScene } from "@/lib/api";
+import { getToken, waterConfirm, waterConfirmations, waterPoll, waterScene, waterStart, waterStatus,
+         type WaterAnswer, type WaterConfirmCount, type WaterHistoryResult, type WaterScene } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 const COVER_COLOR: Record<string, string> = { "≥50%": "#1d5e87", "25–50%": "#3d8fc4", "10–25%": "#8cc3e6" };
@@ -109,6 +110,42 @@ function MapScrubber({ r, lat, lon, onScene, focus }: { r: WaterHistoryResult; l
   );
 }
 
+/** "Ruộng bạn có ngập đợt này không?" — sự thật mặt đất cho TỪNG đợt radar. Chỉ người đăng nhập trả lời (một người một
+ *  câu mỗi đợt, bấm lại là sửa); ai cũng thấy SỐ ĐẾM. Câu "Có" ở đợt ngoài mùa lũ thành ca kiểm thật cho lớp mùa lũ sau. */
+function ConfirmEvent({ lat, lon, start, count, onSaved }: { lat: number; lon: number; start: string;
+  count?: WaterConfirmCount; onSaved: (start: string, a: WaterAnswer, msg: string) => void }) {
+  const { t } = useLang();
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const logged = typeof window !== "undefined" && !!getToken();
+  const n = count ? count.yes + count.no + count.unsure : 0;
+  const tally = n > 0 ? t(`${n} người đã trả lời: ${count!.yes} có ngập · ${count!.no} không`, `${n} answered: ${count!.yes} flooded · ${count!.no} not`)
+                      : null;
+  async function send(a: WaterAnswer) {
+    setBusy(true); setErr(null);
+    try { const r = await waterConfirm(lat, lon, start, a); onSaved(start, a, r.message); }
+    catch (e) { setErr((e as Error).message); }
+    finally { setBusy(false); }
+  }
+  const opts: [WaterAnswer, string][] = [["yes", t("Có ngập", "Flooded")], ["no", t("Không", "No")], ["unsure", t("Không rõ", "Not sure")]];
+  if (!logged && !tally) return null;              // chưa đăng nhập: lời mời nằm MỘT lần trên danh sách
+  return (
+    <div className="wh-confirm">
+      {logged && (
+        <>
+          <span>{t("Ruộng có ngập đợt này không?", "Was the field flooded this time?")}</span>
+          {opts.map(([a, label]) => (
+            <button key={a} type="button" disabled={busy} aria-pressed={count?.mine === a}
+                    className={`wh-cf${count?.mine === a ? " on" : ""}`} onClick={() => send(a)}>{label}</button>
+          ))}
+        </>
+      )}
+      {tally && <small>{tally}</small>}
+      {err && <small className="bat-err">{err}</small>}
+    </div>
+  );
+}
+
 export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: number; onScene?: (s: WaterScene | null) => void }) {
   const { t } = useLang();
   const [enabled, setEnabled] = useState<boolean | null>(null);
@@ -157,6 +194,21 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
       };
       timer.current = setTimeout(tick, 2500);
     } catch (e) { if (my === gen.current) { setErr((e as Error).message); setBusy(false); } }
+  }
+
+  const [counts, setCounts] = useState<Record<string, WaterConfirmCount>>({});
+  const [thanks, setThanks] = useState<string | null>(null);
+  useEffect(() => {                                            // có lịch sử (≥ 1 đợt) → đọc số xác nhận của thửa
+    setCounts({}); setThanks(null);
+    if (!r || !r.available || r.events.length === 0) return;
+    let live = true;
+    waterConfirmations(lat, lon).then((x) => live && setCounts(x.events)).catch(() => {});
+    return () => { live = false; };
+  }, [r, lat, lon]);
+  function saved(start: string, a: WaterAnswer, msg: string) {
+    setThanks(msg);
+    waterConfirmations(lat, lon).then((x) => setCounts(x.events))
+      .catch(() => setCounts((c) => ({ ...c, [start]: { ...(c[start] ?? { yes: 0, no: 0, unsure: 0 }), mine: a } })));
   }
 
   useEffect(() => {                                            // mở thửa (hoặc đổi thửa) → tự đọc
@@ -230,6 +282,13 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
             : t("Đường: trung vị tán xạ VV (dB); vạch đứt: ngưỡng nước −18 dB; khối xanh: đợt nước phủ.",
                 "Line: median VV backscatter (dB); dashed: −18 dB water threshold; blue blocks: water events.")}</p>
           {r.events.length > 0 && (
+            <p className="wh-cf-note">{getToken()
+              ? t("Bạn biết ruộng này? Bấm trả lời từng đợt bên dưới — mỗi câu là sự thật mặt đất để kiểm radar và lớp mùa lũ.",
+                  "Know this field? Answer each event below — every answer is ground truth for checking the radar and the flood-season layer.")
+              : t("Bạn biết ruộng này? Đăng nhập (góc trên) để xác nhận từng đợt có ngập thật không — mỗi câu là sự thật mặt đất để kiểm radar.",
+                  "Know this field? Log in (top corner) to confirm whether each event really flooded — every answer is ground truth for the radar.")}</p>
+          )}
+          {r.events.length > 0 && (
             <ol className="wh-list">
               {r.events.slice().reverse().map((e) => (
                 <li key={e.start}>
@@ -241,10 +300,12 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
                     : t(`VV trung vị thấp nhất ${e.min_p50_db} dB`, `lowest median VV ${e.min_p50_db} dB`)}</span>
                   {onScene && <button type="button" className="wh-off" onClick={() => setFocus({ date: wettestOfEvent(r, e.dates ?? [e.start]), n: Date.now() })}>
                     {t("Xem ảnh radar trên bản đồ", "Show radar image on the map")}</button>}
+                  <ConfirmEvent lat={lat} lon={lon} start={e.start} count={counts[e.start]} onSaved={saved} />
                 </li>
               ))}
             </ol>
           )}
+          {thanks && <p className="wh-thanks" role="status">{thanks}</p>}
           <p className="eu-src">{r.method}</p>
           <p className="doc-note">{r.limits}</p>
         </>

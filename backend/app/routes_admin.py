@@ -98,6 +98,23 @@ def admin_season_cases(admin: User = Depends(auth.require_admin), db: Session = 
             "note": "Mỗi ca là lũ ngoài mùa CÓ NGƯỜI XÁC NHẬN — dùng làm ca dương tính khi đăng ký cổng v4."}
 
 
+@router.get("/api/admin/water-confirms")
+def admin_water_confirms(admin: User = Depends(auth.require_admin), db: Session = Depends(get_session)) -> dict:
+    """Xác nhận từng đợt nước của người dùng, gom theo đợt (ô ~100 m làm tròn 0,01° khi xem). "Không" ở đợt radar =
+    ứng viên báo nhầm của bộ phát hiện; "Có" ở đợt ngoài mùa = ca v4. Chỉ số đếm, không lộ ai trả lời."""
+    from app.db import WaterConfirm
+    rows = db.execute(select(WaterConfirm).order_by(WaterConfirm.created_at.desc()).limit(2000)).scalars().all()
+    groups: dict[tuple, dict] = {}
+    for r in rows:
+        g = groups.setdefault((r.cell, r.event_start), {"lat": round(r.lat, 2), "lon": round(r.lon, 2), "event_start": r.event_start,
+                                                        "v1_label": r.v1_label, "yes": 0, "no": 0, "unsure": 0})
+        g[r.answer] += 1
+    items = sorted(groups.values(), key=lambda g: g["event_start"], reverse=True)
+    tot = {a: sum(g[a] for g in items) for a in ("yes", "no", "unsure")}
+    return {"n_answers": len(rows), "n_events": len(items), "totals": tot, "events": items,
+            "note": "Đợt có 'không' nhiều hơn 'có' là ứng viên báo nhầm — chỉ đưa vào cổng kiểm sau khi đăng ký trước."}
+
+
 @router.get("/api/admin/users")
 def admin_users(q: str = "", limit: int = 50, admin: User = Depends(auth.require_admin),
                 db: Session = Depends(get_session)) -> dict:

@@ -799,6 +799,27 @@ class UpgradeRequest(Base):
     admin_note: Mapped[str] = mapped_column(String(300), default="")
 
 
+class WaterConfirm(Base):
+    """Người dùng xác nhận MỘT đợt nước radar ở thửa: "ruộng tôi có ngập đợt này không" (17/10/2026).
+
+    Bảng RIÊNG, không ghi vào `observations`: bảng kia nuôi phần hiệu chuẩn ngưỡng theo vùng (federated.py) bằng câu trả
+    lời cho CẢNH BÁO; xác nhận một đợt radar là thứ khác — sự thật mặt đất cho bộ phát hiện đợt nước và ca kiểm cho lớp
+    mùa lũ v4. Mỗi người một câu trả lời cho mỗi đợt ở mỗi ô ~100 m (bấm lại = sửa)."""
+    __tablename__ = "water_confirms"
+    __table_args__ = (UniqueConstraint("user_id", "cell", "event_start", name="uq_water_confirm"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    lat: Mapped[float] = mapped_column(Float)
+    lon: Mapped[float] = mapped_column(Float)
+    cell: Mapped[str] = mapped_column(String(24), index=True)          # toạ độ làm tròn 0,001° (~100 m) — gom theo thửa
+    event_start: Mapped[str] = mapped_column(String(10), index=True)
+    answer: Mapped[str] = mapped_column(String(8))                      # yes | no | unsure
+    v1_label: Mapped[str | None] = mapped_column(String(12), nullable=True)   # in | out | None (không có khí hậu)
+
+
 class SeasonCase(Base):
     """Ca kiểm THẬT cho lớp mùa lũ v4 (17/10/2026): người dùng xác nhận "ruộng có ngập thật" đúng lúc radar có một đợt
     nước mà lớp mùa lũ v1 xếp "ngoài mùa". Xem services/season_cases.py."""

@@ -232,8 +232,10 @@ def cards() -> list[dict]:
                          "Âm tính mỏng: Cà Mau và Hà Nội không có ô sông ≥ 10 m³/s trong 5 km, chỉ 3 đợt ở Phan Rang được xét. Bão tháng 8–9 ở Hà Tĩnh – Nghệ An đã TRONG mùa v1.",
                          "Soulik: the river cell reached only 45 m³/s (P97 248) — the paddy flooded from local rain, the river did not run rare. Conson, Bualoi: radar saw no water on the paddies. "
                          "Thin negatives: Cà Mau and Hà Nội have no river cell ≥ 10 m³/s within 5 km; only 3 Phan Rang events were tested. Aug–Sep storms in Hà Tĩnh – Nghệ An are already IN the v1 season."),
-            "not_for": tr("Không bật. Ca thật cho v4: câu trả lời 'ruộng có ngập thật' rơi vào đợt ngoài mùa (bảng season_cases).",
-                          "Not enabled. Real cases for v4: 'my field really flooded' answers that fall on out-of-season events (season_cases table)."),
+            "not_for": tr("Không bật. Ca thật cho v4: câu trả lời 'ruộng có ngập thật' rơi vào đợt ngoài mùa (bảng season_cases) — "
+                          "từ trả lời một chạm, quan sát lũ, và nút 'Ruộng có ngập đợt này không?' dưới từng đợt nước.",
+                          "Not enabled. Real cases for v4: 'my field really flooded' answers that fall on out-of-season events (season_cases table) — "
+                          "from one-tap answers, flood observations and the 'Was the field flooded this time?' buttons under each water event."),
             "code": f"{REPO}/backend/app/services/flood_season.py",
         })
 

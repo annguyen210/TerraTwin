@@ -260,6 +260,20 @@ ruộng ngập do mưa tại chỗ, nên lưu lượng sông không phải tín 
 nước ở điểm ruộng. Ca thật cho phiên bản sau lấy từ người dùng: mỗi câu trả lời "ruộng có ngập thật" rơi vào đợt ngoài mùa
 được lưu vào bảng `season_cases` (xem `services/season_cases.py`, `GET /api/admin/season-cases`).
 
+### 7e. Xác nhận TỪNG đợt nước từ người dùng (17/10/2026) — nguồn ca thật, không phải mô hình
+
+Dưới mỗi đợt nước trong "Lịch sử nước nhìn xuyên mây", người đã đăng nhập trả lời **"Ruộng có ngập đợt này không?"**
+(Có ngập / Không / Không rõ; một người một câu mỗi đợt ở mỗi ô ~100 m, bấm lại là sửa). Ai cũng thấy số đếm, không ai thấy
+người khác trả lời gì (`GET /api/water/confirmations`).
+
+- Lưu ở bảng riêng `water_confirms`, **không** ghi vào bảng quan sát — bảng quan sát nuôi phần hiệu chuẩn ngưỡng cảnh báo
+  theo vùng (`services/federated.py`); trộn vào sẽ làm lệch phần đó.
+- "Có ngập" ở đợt mà lớp mùa lũ v1 xếp "ngoài mùa" → thêm một ca vào `season_cases` (nguồn `event`) — ca dương tính cho v4.
+- "Không" ở một đợt radar → ứng viên báo nhầm của bộ phát hiện đợt nước.
+- Chưa có cổng nào dùng các câu trả lời này. Muốn dùng phải đăng ký trước (quy tắc, ngưỡng, cách chọn ca) như 7b–7d, và
+  chấm một lần. Quản trị xem tổng hợp (toạ độ làm tròn 0,01°) ở `/admin` → "Xác nhận thực địa"
+  (`GET /api/admin/water-confirms`, `GET /api/admin/season-cases`).
+
 ## 8. Kiểm một hồ sơ mà không cần tin TerraTwin — CỔNG GĐ4
 
 Một tệp duy nhất, không import mã máy chủ: [`ops/verify_dossier.py`](ops/verify_dossier.py).

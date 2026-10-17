@@ -104,6 +104,67 @@ def water_warm_demo(authorization: str | None = Header(default=None), x_cron_key
     return {"plots": out, "n_cached": sum(1 for o in out if o["water"] == "cached"), "n_total": len(out)}
 
 
+class ConfirmIn(BaseModel):
+    lat: float = Field(ge=8.0, le=24.0)
+    lon: float = Field(ge=102.0, le=110.0)
+    event_start: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+    answer: str = Field(pattern=r"^(yes|no|unsure)$")
+
+
+def _cell(lat: float, lon: float) -> str:
+    return f"{lat:.3f},{lon:.3f}"
+
+
+@router.post("/api/water/confirm")
+def water_confirm(body: ConfirmIn, user: User = Depends(auth.current_user), db: Session = Depends(get_session)) -> dict:
+    """"Ruộng tôi có ngập đợt này không?" — sự thật mặt đất cho TỪNG đợt radar (17/10/2026). Cần đăng nhập: một người một
+    câu trả lời mỗi đợt, bấm lại là sửa. "Có" ở đợt v1 "ngoài mùa" → thêm ca kiểm thật cho lớp mùa lũ v4 (season_cases).
+    Không ghi vào bảng quan sát (bảng đó nuôi hiệu chuẩn ngưỡng cảnh báo theo vùng)."""
+    from datetime import datetime, timezone
+    from app.db import WaterConfirm
+    from app.services import flood_season as fs, season_cases
+    h = cache_store.get(water_history.cache_key(body.lat, body.lon))
+    if not h or not any(e["start"] == body.event_start for e in h.get("events") or []):
+        raise HTTPException(404, tr("Không có đợt nước này trong lịch sử radar của thửa.",
+                                    "No such water event in this plot's radar history."))
+    s = fs.season(body.lat, body.lon) if fs.gate_passed() else None
+    v1 = fs.label(body.event_start, s) if s else None
+    cell = _cell(body.lat, body.lon)
+    row = db.query(WaterConfirm).filter(WaterConfirm.user_id == user.id, WaterConfirm.cell == cell,
+                                        WaterConfirm.event_start == body.event_start).first()
+    if row is None:
+        db.add(WaterConfirm(user_id=user.id, lat=body.lat, lon=body.lon, cell=cell, event_start=body.event_start,
+                            answer=body.answer, v1_label=v1))
+    else:
+        row.answer, row.v1_label, row.updated_at = body.answer, v1, datetime.now(timezone.utc).replace(tzinfo=None)
+    case = None
+    if body.answer == "yes" and v1 == "out":
+        case = season_cases.capture_at(db, body.lat, body.lon, body.event_start, user.id, "event")
+    db.commit()
+    if case is not None:
+        msg = tr("Cảm ơn — đợt này nằm ngoài mùa lũ, câu trả lời của bạn được lưu làm ca kiểm thật cho phiên bản sau.",
+                 "Thanks — this event is outside the flood season; your answer is saved as a real test case for the next version.")
+    else:
+        msg = tr("Cảm ơn — đã ghi xác nhận của bạn cho đợt này.", "Thanks — your confirmation for this event is recorded.")
+    return {"ok": True, "answer": body.answer, "v1_label": v1, "season_case": case is not None, "message": msg}
+
+
+@router.get("/api/water/confirmations")
+def water_confirmations(lat: float, lon: float, user: User | None = Depends(auth.optional_user),
+                        db: Session = Depends(get_session)) -> dict:
+    """Đếm xác nhận theo từng đợt ở thửa (gom ô ~100 m). Chỉ trả SỐ ĐẾM — không lộ ai trả lời gì; câu của chính mình
+    trả riêng khi đã đăng nhập."""
+    from app.db import WaterConfirm
+    rows = db.query(WaterConfirm).filter(WaterConfirm.cell == _cell(lat, lon)).all()
+    out: dict[str, dict] = {}
+    for r in rows:
+        c = out.setdefault(r.event_start, {"yes": 0, "no": 0, "unsure": 0, "mine": None})
+        c[r.answer] += 1
+        if user is not None and r.user_id == user.id:
+            c["mine"] = r.answer
+    return {"events": out}
+
+
 @router.get("/api/water/scene")
 def water_scene(lat: float, lon: float, date: str, lang: str = "vi") -> dict:
     """Ô ảnh radar + mặt nạ nước của cảnh chụp thửa ngày `date` — để kéo thanh thời gian trên bản đồ."""

@@ -1483,6 +1483,17 @@ export function adminRemoveLabeler(email: string) {
   return authed<{ ok: boolean }>(`/api/admin/label/v3/labelers/${encodeURIComponent(email)}`,
     { method: "DELETE" }, "Không gỡ được người gán nhãn");
 }
+export type AdminWaterConfirms = { n_answers: number; n_events: number; totals: { yes: number; no: number; unsure: number };
+  events: { lat: number; lon: number; event_start: string; v1_label: string | null; yes: number; no: number; unsure: number }[];
+  note: string };
+export type AdminSeasonCases = { n: number; note: string; cases: { id: number; created_at: string | null; lat: number; lon: number;
+  observed_on: string; event: [string, string]; v1_label: string; season_months: string; source: string; status: string }[] };
+export function adminWaterConfirms() {
+  return authed<AdminWaterConfirms>("/api/admin/water-confirms", { method: "GET" }, "Không tải được xác nhận đợt nước");
+}
+export function adminSeasonCases() {
+  return authed<AdminSeasonCases>("/api/admin/season-cases", { method: "GET" }, "Không tải được ca mùa lũ v4");
+}
 export function adminLabelSummary() {
   return authed<LabelSummary>("/api/admin/label/v3/summary", { method: "GET" }, "Không tải được tiến độ gán nhãn");
 }
@@ -2853,6 +2864,19 @@ export type WaterScene = { item: string; date: string; orbit: string | null; rel
 export function waterScene(lat: number, lon: number, date: string) {
   return getJson<WaterScene>(`/api/water/scene?lat=${lat}&lon=${lon}&date=${date}&lang=${curLang()}`,
     "Không lấy được cảnh radar ngày này");
+}
+
+// ---- Xác nhận TỪNG đợt nước: "ruộng tôi có ngập đợt này không" (bảng riêng, không lẫn vào quan sát cảnh báo) ----
+export type WaterAnswer = "yes" | "no" | "unsure";
+export type WaterConfirmCount = { yes: number; no: number; unsure: number; mine: WaterAnswer | null };
+export function waterConfirmations(lat: number, lon: number) {
+  return getJson<{ events: Record<string, WaterConfirmCount> }>(`/api/water/confirmations?lat=${lat}&lon=${lon}`,
+    "Không đọc được xác nhận của người dùng");
+}
+export function waterConfirm(lat: number, lon: number, event_start: string, answer: WaterAnswer) {
+  return authed<{ ok: boolean; answer: WaterAnswer; v1_label: "in" | "out" | null; season_case: boolean; message: string }>(
+    `/api/water/confirm?lang=${curLang()}`, { method: "POST", body: JSON.stringify({ lat, lon, event_start, answer }) },
+    "Không ghi được xác nhận");
 }
 
 // ---- GĐ5: loại đất 2021 so với năm mới nhất (AlphaEarth + bộ phân loại đã qua kiểm định) ----

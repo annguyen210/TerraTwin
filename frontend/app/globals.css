@@ -5279,3 +5279,15 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .wh-season { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 99px; font-size: .72rem; font-weight: 600; }
 .wh-season.in { background: rgba(61, 143, 196, .18); color: #7fc0ea; }
 .wh-season.out { background: rgba(154, 168, 107, .2); color: #c3cf8f; }
+
+/* Xác nhận từng đợt nước — "ruộng có ngập đợt này không" (17/10/2026) */
+.wh-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 6px; font-size: .8rem; color: var(--dim); }
+.wh-list li .wh-confirm span { margin-left: 0; }
+.wh-cf { font: inherit; font-size: .78rem; padding: 2px 10px; border-radius: 99px; border: 1px solid var(--line-2);
+  background: transparent; color: var(--text); cursor: pointer; }
+.wh-cf:hover:not(:disabled) { border-color: var(--terra); }
+.wh-cf.on { background: rgba(61, 143, 196, .22); border-color: #7fc0ea; color: #cfe8f8; font-weight: 600; }
+.wh-cf:disabled { opacity: .6; cursor: progress; }
+.wh-cf:focus-visible { outline: 2px solid var(--terra); outline-offset: 2px; }
+.wh-cf-note { font-style: italic; font-size: .82rem; color: var(--dim); margin: 6px 0 4px; }
+.wh-thanks { font-size: .85rem; color: #7fd6a4; margin: 6px 0 0; }
