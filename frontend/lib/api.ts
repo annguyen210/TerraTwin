@@ -1485,6 +1485,8 @@ export function adminRemoveLabeler(email: string) {
 }
 export type AdminWaterConfirms = { n_answers: number; n_events: number; totals: { yes: number; no: number; unsure: number };
   events: { lat: number; lon: number; event_start: string; v1_label: string | null; yes: number; no: number; unsure: number }[];
+  field_check: { have: Record<string, number>; need: Record<string, number>; ready: boolean;
+                 result: { precision: number | null; wilson95: [number, number]; outcome: string | null; scored_at: string } | null };
   note: string };
 export type AdminSeasonCases = { n: number; note: string; cases: { id: number; created_at: string | null; lat: number; lon: number;
   observed_on: string; event: [string, string]; v1_label: string; season_months: string; source: string; status: string }[] };

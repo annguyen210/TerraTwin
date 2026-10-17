@@ -351,6 +351,11 @@ function TruthTab() {
         <>
           <h4>Xác nhận từng đợt nước</h4>
           <p><b>{w.n_answers}</b> câu trả lời · <b>{w.n_events}</b> đợt · có ngập <b>{w.totals.yes}</b> · không <b>{w.totals.no}</b> · không rõ <b>{w.totals.unsure}</b></p>
+          <p>Kiểm thực địa (giao thức đăng ký trước):{" "}
+            {w.field_check.result
+              ? <b>đã chấm {w.field_check.result.scored_at} — P = {w.field_check.result.precision} (95%: {w.field_check.result.wilson95.join("–")}) → {w.field_check.result.outcome}</b>
+              : <>đợt có nhãn <b>{w.field_check.have.labelled_events}/{w.field_check.need.labelled_events}</b> · người <b>{w.field_check.have.distinct_users}/{w.field_check.need.distinct_users}</b> · ô 1° <b>{w.field_check.have.distinct_1deg_cells}/{w.field_check.need.distinct_1deg_cells}</b>
+                  {w.field_check.ready ? " — ĐỦ cỡ mẫu: chạy ops/water_field_gate.py (một lần) rồi commit kết quả." : " — chưa đủ cỡ mẫu."}</>}</p>
           {w.events.length > 0 && (
             <table className="ws-table">
               <thead><tr><th>Đợt</th><th>Toạ độ ~1 km</th><th>Mùa lũ v1</th><th>Có</th><th>Không</th><th>Không rõ</th></tr></thead>

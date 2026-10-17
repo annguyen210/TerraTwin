@@ -270,9 +270,28 @@ người khác trả lời gì (`GET /api/water/confirmations`).
   theo vùng (`services/federated.py`); trộn vào sẽ làm lệch phần đó.
 - "Có ngập" ở đợt mà lớp mùa lũ v1 xếp "ngoài mùa" → thêm một ca vào `season_cases` (nguồn `event`) — ca dương tính cho v4.
 - "Không" ở một đợt radar → ứng viên báo nhầm của bộ phát hiện đợt nước.
-- Chưa có cổng nào dùng các câu trả lời này. Muốn dùng phải đăng ký trước (quy tắc, ngưỡng, cách chọn ca) như 7b–7d, và
-  chấm một lần. Quản trị xem tổng hợp (toạ độ làm tròn 0,01°) ở `/admin` → "Xác nhận thực địa"
+- Quản trị xem tổng hợp (toạ độ làm tròn 0,01°) ở `/admin` → "Xác nhận thực địa"
   (`GET /api/admin/water-confirms`, `GET /api/admin/season-cases`).
+
+**Kiểm thực địa bộ phát hiện — ĐĂNG KÝ TRƯỚC 17/10/2026, trước khi đọc câu trả lời nào**
+([`backend/data/eval/water_field_protocol.json`](backend/data/eval/water_field_protocol.json)):
+
+| Bước | Chốt trước |
+|---|---|
+| Đơn vị | một đợt radar ở một ô ~100 m |
+| Câu tính | "có" / "không" (bỏ "không rõ"); bỏ tài khoản quản trị và tài khoản thử; mỗi người tối đa 20 đợt đầu |
+| Nhãn đợt | đa số; hoà → loại |
+| Cỡ mẫu tối thiểu | ≥ 30 đợt có nhãn, ≥ 10 người, ≥ 3 ô 1° |
+| Thước đo | độ chính xác P = đợt "ngập thật" / đợt có nhãn, khoảng Wilson 95% |
+| Kết luận | cận dưới ≥ 0,60 → "đã kiểm thực địa"; P < 0,50 → công bố "nhiều báo nhầm", sửa phải đăng ký bản mới; còn lại → chưa kết luận |
+
+```bash
+cd backend && python ../ops/water_field_gate.py --status   # tiến độ (không bao giờ ghi)
+cd backend && python ../ops/water_field_gate.py            # đủ cỡ mẫu → chấm MỘT lần, ghi data/eval/water_field_result.json
+```
+
+Tiến độ công khai: `GET /api/water/field-check` và dòng cuối thẻ "Lịch sử nước" ở `/mo-hinh`. Test:
+`backend/tests/test_field_truth.py`.
 
 ## 8. Kiểm một hồ sơ mà không cần tin TerraTwin — CỔNG GĐ4
 

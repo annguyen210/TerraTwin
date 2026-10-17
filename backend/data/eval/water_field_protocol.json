@@ -1,0 +1,29 @@
+{
+  "name": "Kiểm THỰC ĐỊA bộ phát hiện đợt nước radar bằng xác nhận của người dùng — giao thức đăng ký trước",
+  "registered_at": "2026-10-17",
+  "registered_before_any_answer_was_read": true,
+  "context": "Bảng water_confirms được tạo cùng ngày (commit db6f479). Giao thức chốt cách chấm TRƯỚC khi đọc bất kỳ câu trả lời nào, để không chỉnh quy tắc theo kết quả. Bộ phát hiện (cổng GĐ2, water_gate.json) và lớp mùa lũ v1 giữ nguyên; giao thức này chỉ ĐO độ đúng của chúng ngoài thực địa.",
+  "unit": "Một đợt nước radar (ngày bắt đầu) tại một ô ~100 m (toạ độ làm tròn 0,001°), có trong bảng water_confirms.",
+  "answers": {
+    "counted": ["yes", "no"],
+    "ignored": ["unsure"],
+    "excluded_accounts": "Tài khoản quản trị (role = admin hoặc email trong TERRATWIN_ADMIN_EMAILS) và tài khoản thử của chính TerraTwin (email thuộc các miền vd.vn, example.com, example.org, test, localhost).",
+    "per_user_cap": "Mỗi người chỉ tính 20 đợt ĐẦU TIÊN họ trả lời (theo thời điểm tạo) — một người không thể áp đảo mẫu."
+  },
+  "event_label": "yes > no → 'ngập thật'; no > yes → 'không ngập'; bằng nhau → loại khỏi mẫu.",
+  "minimum_sample": {
+    "labelled_events": 30,
+    "distinct_users": 10,
+    "distinct_1deg_cells": 3,
+    "why": "Dưới mức này khoảng tin cậy quá rộng để kết luận; vùng địa lý đa dạng để không đo một cánh đồng."
+  },
+  "metric": "Độ chính xác P = số đợt 'ngập thật' / số đợt có nhãn; khoảng tin cậy Wilson 95% (z = 1,96).",
+  "outcomes": {
+    "confirmed": "Cận dưới Wilson ≥ 0,60 → thẻ mô hình ghi 'đã kiểm thực địa' kèm P và khoảng tin cậy.",
+    "too_many_false": "P < 0,50 → công bố trên thẻ mô hình và trên ô lịch sử nước ('người dùng báo nhiều đợt không ngập'); muốn sửa bộ phát hiện phải đăng ký phiên bản mới.",
+    "inconclusive": "Còn lại → công bố P và khoảng tin cậy; lần chấm sau chỉ theo một giao thức mới với cỡ mẫu tối thiểu gấp đôi."
+  },
+  "secondary_report_not_gated": "P tách theo nhãn mùa lũ v1 (trong / ngoài mùa) lưu kèm mỗi câu trả lời — chỉ báo cáo, không quyết định.",
+  "one_shot": "Chấm MỘT lần, ngay lần đầu đủ cỡ mẫu tối thiểu, bằng ops/water_field_gate.py; kết quả ghi vào data/eval/water_field_result.json và commit. Script từ chối chấm lại khi tệp kết quả đã có.",
+  "privacy": "Kết quả chỉ có số đếm và số đợt theo ô 1°; không toạ độ thửa, không danh tính người trả lời."
+}

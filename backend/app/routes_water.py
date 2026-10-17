@@ -165,6 +165,15 @@ def water_confirmations(lat: float, lon: float, user: User | None = Depends(auth
     return {"events": out}
 
 
+@router.get("/api/water/field-check")
+def water_field_check(db: Session = Depends(get_session)) -> dict:
+    """Kiểm thực địa bộ phát hiện đợt nước (giao thức đăng ký trước 17/10/2026): tiến độ so với cỡ mẫu tối thiểu, và
+    kết quả nếu đã chấm. Chỉ số đếm."""
+    from app.services import field_truth
+    st = field_truth.status(db)
+    return {**st, "protocol": "backend/data/eval/water_field_protocol.json"}
+
+
 @router.get("/api/water/scene")
 def water_scene(lat: float, lon: float, date: str, lang: str = "vi") -> dict:
     """Ô ảnh radar + mặt nạ nước của cảnh chụp thửa ngày `date` — để kéo thanh thời gian trên bản đồ."""

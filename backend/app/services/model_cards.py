@@ -28,6 +28,29 @@ def _r(v, n=3):
     return None if v is None else round(float(v), n)
 
 
+def _field_metric() -> dict:
+    """Kiểm thực địa bằng xác nhận người dùng (giao thức water_field_protocol.json): kết quả đã chấm, hoặc tiến độ."""
+    fr = _load("eval", "water_field_result.json")
+    label = tr("Kiểm thực địa: người dùng xác nhận đợt có ngập", "Field check: users confirm events really flooded")
+    if fr:
+        lo, hi = fr.get("wilson95") or [None, None]
+        return {"label": label, "value": tr(f"P = {fr.get('precision')} (95%: {lo}–{hi}) trên {fr['sample']['labelled_events']} đợt",
+                                            f"P = {fr.get('precision')} (95%: {lo}–{hi}) over {fr['sample']['labelled_events']} events"),
+                "threshold": tr("cận dưới ≥ 0,60", "lower bound ≥ 0.60"), "passed": fr.get("outcome") == "confirmed"}
+    have = None
+    try:
+        from app.db import SessionLocal
+        from app.services import field_truth
+        with SessionLocal() as db:
+            have = field_truth.status(db)["have"]
+    except Exception:
+        pass
+    n = have["labelled_events"] if have else "?"
+    return {"label": label, "value": tr(f"chờ dữ liệu — {n}/30 đợt có nhãn", f"awaiting data — {n}/30 labelled events"),
+            "threshold": tr("≥ 30 đợt, ≥ 10 người, ≥ 3 ô 1°; cận dưới Wilson ≥ 0,60", "≥ 30 events, ≥ 10 people, ≥ 3 1° cells; Wilson lower ≥ 0.60"),
+            "passed": None}
+
+
 def cards() -> list[dict]:
     out: list[dict] = []
 
@@ -134,7 +157,7 @@ def cards() -> list[dict]:
             "metrics": [{"label": c.get("case"), "value": tr(f"{c.get('n_events')} đợt", f"{c.get('n_events')} events"),
                          "threshold": ", ".join(x.get("label", "") for x in c.get("checks") or []) or tr("0 đợt", "0 events"),
                          "passed": all(x.get("pass") for x in c.get("checks") or []) if c.get("checks") else c.get("n_events") == 0}
-                        for c in g.get("cases", [])],
+                        for c in g.get("cases", [])] + [_field_metric()],
             "limits": tr("Đô thị, rừng rậm, sườn dốc, mặt rất phẳng có thể sai; chu kỳ 6–12 ngày lọt đợt ngập ngắn.",
                          "Urban areas, dense forest, steep slopes, very smooth surfaces mislead; the 6–12 day revisit misses short floods."),
             "not_for": tr("Không phải số liệu ngập chính thức.", "Not official flood records."),

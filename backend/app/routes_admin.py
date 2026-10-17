@@ -111,8 +111,11 @@ def admin_water_confirms(admin: User = Depends(auth.require_admin), db: Session 
         g[r.answer] += 1
     items = sorted(groups.values(), key=lambda g: g["event_start"], reverse=True)
     tot = {a: sum(g[a] for g in items) for a in ("yes", "no", "unsure")}
+    from app.services import field_truth
     return {"n_answers": len(rows), "n_events": len(items), "totals": tot, "events": items,
-            "note": "Đợt có 'không' nhiều hơn 'có' là ứng viên báo nhầm — chỉ đưa vào cổng kiểm sau khi đăng ký trước."}
+            "field_check": field_truth.status(db),
+            "note": "Chấm theo giao thức đăng ký trước data/eval/water_field_protocol.json (ops/water_field_gate.py, một lần, "
+                    "khi đủ cỡ mẫu). Tài khoản quản trị và tài khoản thử không được tính."}
 
 
 @router.get("/api/admin/users")
