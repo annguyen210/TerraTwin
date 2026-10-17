@@ -100,3 +100,13 @@ def test_v2_truot_nen_khong_bat_giu_nguyen_v1():
     assert r2["passed"] is False and fs.gate_v2_passed() is False and fs.gate_passed() is True
     bad = {c["id"]: c["pass"] for c in r2["cases"]}
     assert bad == {"pos_soulik": True, "pos_noru": False, "neg_camau": False, "neg_hanoi": True, "v1_hue_2020": True, "v1_mientrung_2025": True}
+
+
+def test_v3_truot_ca_R_a_va_R_b_nen_khong_bat():
+    """Cổng v3 (đăng ký 59837ec / A2 e80bd09 / ca 3a812f6) TRƯỢT 17/10/2026: dương tính 0/3, thiếu ca. Giữ v1."""
+    from app.services import flood_season as fs
+    r3 = fs.gate_v3()
+    assert r3 is not None and r3["passed"] is False and r3["enabled_rule"] is None
+    for k in ("a", "b"):
+        x = r3["rules"][k]
+        assert (x["caught"], x["n_pos"], x["false_positives"], x["v1_pass"]) == (0, 3, 0, True)

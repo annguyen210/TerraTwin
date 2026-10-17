@@ -231,6 +231,35 @@ v1**. Mưa ERA5 lưới ~25 km tách lũ sớm khỏi mưa đầu mùa rất ké
 Không chỉnh P97 / cửa sổ / ô lưới rồi chạy lại trên 6 ca này; muốn thử tiếp phải đăng ký phiên bản mới với tín hiệu độc lập
 và ca mới.
 
+### 7d. Lớp mùa lũ v3 — lưu lượng sông GloFAS (R-a, R-b) — CỔNG TRƯỢT 17/10/2026 (giữ v1, không bật)
+
+```bash
+cd backend && python ../ops/flood_season_v3_select.py   # chọn ca (chỉ phép kiểm được phép) → data/eval/flood_season_v3_cases.json
+cd backend && python ../ops/flood_season_v3_gate.py     # chấm R-a và R-b → data/eval/flood_season_v3_result.json
+```
+
+Đăng ký trước, theo thứ tự: quy tắc + cách chọn ca + cách chấm (59837ec) → bổ sung một lần 4 ứng viên (A2, e80bd09, trước
+mọi kết quả cổng) → danh sách ca chốt (3a812f6) → chạy cổng. Ô sông = ô GloFAS 0,05° có lưu lượng TB 2016–2025 lớn nhất
+trong 5 km, chỉ áp dụng khi TB ≥ 10 m³/s. R-a: lưu lượng lớn nhất trong cửa sổ ≥ P97 của ô. R-b: ≥ P90 VÀ mưa 3 ngày ERA5
+≥ P97 của điểm. Chọn ca chỉ dùng WorldCover, mùa v1, lưu lượng TB 10 năm và NGÀY cảnh radar (≤ 6 ngày sau lũ).
+
+Chọn ca: 12 trận bão có ngày công khai → **3 đủ điều kiện** (cần ≥ 4): Hà Tĩnh – Nghệ An có mùa lũ v1 tháng 7–11 nên bão
+tháng 8–9 ở đó đã TRONG mùa; Noul 2020, Podul 2019, Noru 2022, Sơn Ca 2017 có ruộng hợp lệ nhưng quỹ đạo radar không có cảnh
+≤ 6 ngày sau lũ. Âm tính: Cà Mau và Hà Nội NGOÀI phạm vi (không có ô sông ≥ 10 m³/s trong 5 km) nên giữ nhãn v1.
+
+| Ca | R-a (lưu lượng / P97) | R-b (lưu lượng / P90 · mưa 3 ngày / P97) | Kết quả |
+|---|---|---|---|
+| Soulik 19/09/2024 — ruộng Huế 16,52; 107,59 (ô sông TB 44,8 m³/s, cách 3,8 km) | 45,2 / 248,5 m³/s (−81,8%) | 45,2 / 103,9 (−56,5%) · 125,7 / 125,2 mm (+0,4%, **biên mỏng**) | trượt cả hai |
+| Conson 12/09/2021 — ruộng 15,88; 108,20 (ô sông TB 591,7 m³/s) | — | — | trượt: radar không thấy nước trong [ngày lũ − 3, + 6] |
+| Bualoi 29/09/2025 — ruộng Quảng Trị 16,66; 107,30 (ô sông TB 75,3 m³/s) | — | — | trượt: radar không thấy nước trong [ngày lũ − 3, + 6] |
+| Âm tính: 17 đợt (Cà Mau 10, Hà Nội 4 — ngoài phạm vi; Phan Rang 3 — trong phạm vi) | 0 bắt nhầm, biên an toàn nhỏ nhất 51% | 0 bắt nhầm, biên an toàn nhỏ nhất 78% | đạt |
+| Giữ v1: Huế 10–11/2020, 11/2025 | giữ "trong mùa" | giữ "trong mùa" | đạt |
+
+Kết luận: **trượt cả R-a và R-b** (dương tính 0/3, thiếu ca) → giữ v1. Ở ruộng Huế, sông không lên mức hiếm trong đợt Soulik —
+ruộng ngập do mưa tại chỗ, nên lưu lượng sông không phải tín hiệu đúng cho loại ngập này; hai trận còn lại radar không thấy
+nước ở điểm ruộng. Ca thật cho phiên bản sau lấy từ người dùng: mỗi câu trả lời "ruộng có ngập thật" rơi vào đợt ngoài mùa
+được lưu vào bảng `season_cases` (xem `services/season_cases.py`, `GET /api/admin/season-cases`).
+
 ## 8. Kiểm một hồ sơ mà không cần tin TerraTwin — CỔNG GĐ4
 
 Một tệp duy nhất, không import mã máy chủ: [`ops/verify_dossier.py`](ops/verify_dossier.py).

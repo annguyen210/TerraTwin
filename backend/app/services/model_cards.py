@@ -196,6 +196,47 @@ def cards() -> list[dict]:
             "code": f"{REPO}/backend/app/services/flood_season.py",
         })
 
+    # 4d — Lớp mùa lũ v3 (lưu lượng sông GloFAS, R-a / R-b) — 17/10/2026, công bố cả khi trượt
+    f3 = _load("eval", "flood_season_v3_result.json")
+    if f3:
+        def _pos3(p):
+            if not p.get("event"):
+                return tr("radar không thấy nước quanh ngày lũ", "radar saw no water around the flood date")
+            e, m = p["event"], p.get("margins") or {}
+            bits = [f"{k} {v:+.1%}" for k, v in m.items() if isinstance(v, float)]
+            return f"{e['start']}={e['season']} · q {e.get('q_max_m3s')} m³/s" + (f" · {', '.join(bits)}" if bits else "") + (" · biên mỏng" if m.get("thin") else "")
+        metrics = []
+        for rk in ("a", "b"):
+            x = f3["rules"][rk]
+            metrics += [{"label": f"R-{rk} · [dương tính] {p['id']} {p['name']} {p['date']}", "value": _pos3(p),
+                         "threshold": "≥ P97 lưu lượng" if rk == "a" else "≥ P90 lưu lượng VÀ ≥ P97 mưa 3 ngày", "passed": p["caught"]}
+                        for p in x["positives"]]
+            metrics.append({"label": f"R-{rk} · [âm tính] {x['n_neg']} đợt (Cà Mau, Hà Nội NGOÀI phạm vi — giữ v1; Phan Rang trong phạm vi)",
+                            "value": f"bắt nhầm {x['false_positives']} · biên an toàn nhỏ nhất {x['neg_min_safety']:.0%}" if x["neg_min_safety"] is not None else f"bắt nhầm {x['false_positives']}",
+                            "threshold": "0 bắt nhầm", "passed": x["neg_pass"]})
+            metrics.append({"label": f"R-{rk} · [giữ v1] Huế 10–11/2020, 11/2025", "value": "giữ nguyên" if x["v1_pass"] else "ĐỔI",
+                            "threshold": "không đổi", "passed": x["v1_pass"]})
+        out.append({
+            "id": "flood_season_v3", "kind": tr("quy tắc diễn giải", "interpretation rule"),
+            "name": tr("Mùa lũ v3 — lũ sớm/muộn theo lưu lượng sông GloFAS (R-a, R-b)", "Flood season v3 — early/late floods via GloFAS river discharge (R-a, R-b)"),
+            "status": "accepted" if f3.get("passed") else "rejected",
+            "status_label": (tr(f"cổng đạt · bật R-{f3['enabled_rule']}", f"gate passed · R-{f3['enabled_rule']} on") if f3.get("passed")
+                             else tr("trượt cả R-a và R-b · không bật (giữ v1)", "R-a and R-b both failed · off (v1 kept)")),
+            "task": tr("Đợt ngoài mùa v1 mà sông lên mức hiếm → 'có thể là lũ sớm/muộn'", "Out-of-season (v1) events while the river ran unusually high → 'possibly early/late flood'"),
+            "data": tr("ô GloFAS 0,05° có lưu lượng TB lớn nhất trong 5 km (chỉ khi TB ≥ 10 m³/s); P97/P90 2016–2025 của chính ô đó; cửa sổ ≤ 12 ngày trước cảnh ướt đầu tiên",
+                       "the 0.05° GloFAS cell with the largest mean discharge within 5 km (only if mean ≥ 10 m³/s); that cell's 2016–2025 P97/P90; window ≤ 12 days before the first wet scene"),
+            "split": tr("đăng ký trước (59837ec, sửa đổi A2 e80bd09, danh sách ca 3a812f6): 12 trận bão có ngày công khai → 3 đủ điều kiện ở 2 vùng (cần ≥ 4)",
+                        "pre-registered (59837ec, amendment A2 e80bd09, case list 3a812f6): 12 dated storms → 3 eligible in 2 regions (≥ 4 required)"),
+            "metrics": metrics,
+            "limits": tr("Soulik: ô sông chỉ 45 m³/s (P97 248) — ruộng ngập do mưa tại chỗ, sông không lên mức hiếm. Conson, Bualoi: radar không thấy nước ở điểm ruộng. "
+                         "Âm tính mỏng: Cà Mau và Hà Nội không có ô sông ≥ 10 m³/s trong 5 km, chỉ 3 đợt ở Phan Rang được xét. Bão tháng 8–9 ở Hà Tĩnh – Nghệ An đã TRONG mùa v1.",
+                         "Soulik: the river cell reached only 45 m³/s (P97 248) — the paddy flooded from local rain, the river did not run rare. Conson, Bualoi: radar saw no water on the paddies. "
+                         "Thin negatives: Cà Mau and Hà Nội have no river cell ≥ 10 m³/s within 5 km; only 3 Phan Rang events were tested. Aug–Sep storms in Hà Tĩnh – Nghệ An are already IN the v1 season."),
+            "not_for": tr("Không bật. Ca thật cho v4: câu trả lời 'ruộng có ngập thật' rơi vào đợt ngoài mùa (bảng season_cases).",
+                          "Not enabled. Real cases for v4: 'my field really flooded' answers that fall on out-of-season events (season_cases table)."),
+            "code": f"{REPO}/backend/app/services/flood_season.py",
+        })
+
     # 5 — Kiểm chứng tin đăng (luật từ khoá) và chạm-là-có-ranh (trượt)
     out.append({
         "id": "listing_rules", "kind": tr("quy tắc NLP", "NLP rules"),
