@@ -33,7 +33,8 @@ import { useEffect, useRef, useState } from "react";
 import { searchPlace, type PlaceHit } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 import { CirclePlay, MapPin } from "lucide-react";
-import { inVietnam, outsideMessage, parseCoord } from "@/lib/geo";
+import { findCoordInText, inVietnam, isListingSite, looksLikeUrl, outsideMessage, parseCoord, parseMapLink } from "@/lib/geo";
+import { saveListingDraft } from "@/lib/listingDraft";
 
 // 16 điểm đã kiểm chứng — cùng bộ dùng để huấn luyện mô hình khí hậu.
 // ĐẤT NÔNG NGHIỆP / ven đô, nơi radar đọc được (17/10/2026): trước đây 7/8 điểm là TRUNG TÂM thành phố (WorldCover xây
@@ -79,20 +80,43 @@ export default function Start({
     setCoordErr(null);
     const c = parseCoord(coordStr);
     if (!c) {
-      setCoordErr("Nhập dạng: vĩ độ, kinh độ — vd 21.0278, 105.8342 (hoặc 21°01'40\"N 105°50'03\"E)");
+      setCoordErr(linkProblem(coordStr) ?? t("Nhập dạng: vĩ độ, kinh độ — vd 21.0278, 105.8342 (hoặc 21°01'40\"N 105°50'03\"E), hoặc dán link Google Maps.",
+                                             "Use: latitude, longitude — e.g. 21.0278, 105.8342 (or 21°01'40\"N 105°50'03\"E), or paste a Google Maps link."));
       return;
     }
     if (!inVietnam(c.lat, c.lon)) {
       setCoordErr(Math.abs(c.lat) > 90 || Math.abs(c.lon) > 180
-        ? "Toạ độ không hợp lệ (vĩ độ ≤ 90, kinh độ ≤ 180)."
+        ? t("Toạ độ không hợp lệ (vĩ độ ≤ 90, kinh độ ≤ 180).", "Invalid coordinates (latitude ≤ 90, longitude ≤ 180).")
         : outsideMessage(c.lat, c.lon));
       return;
     }
-    onPick(c.lat, c.lon, `Toạ độ ${c.lat.toFixed(4)}, ${c.lon.toFixed(4)}${c.swapped ? " (đã tự sửa thứ tự)" : ""}`);
+    onPick(c.lat, c.lon, coordLabel(c));
+  }
+
+  function coordLabel(c: { lat: number; lon: number; swapped: boolean; source?: string }) {
+    const where = c.source ? t(` (${c.source})`, c.source === "trong nội dung" ? " (in the text)" : ` (${c.source})`) : "";
+    return t(`Toạ độ ${c.lat.toFixed(4)}, ${c.lon.toFixed(4)}`, `Coordinates ${c.lat.toFixed(4)}, ${c.lon.toFixed(4)}`) + where
+      + (c.swapped ? t(" (đã tự sửa thứ tự)", " (order fixed)") : "");
+  }
+
+  /** Link không dùng được → lời giải thích (null nếu không phải link). Không tải trang nào. */
+  function linkProblem(s: string): string | null {
+    if (!looksLikeUrl(s)) return null;
+    if (isListingSite(s)) return t("TerraTwin không tải nội dung trang rao bất động sản. Chép phần CHỮ của tin rồi dán vào ô tìm kiếm phía trên: nếu tin có toạ độ hoặc link bản đồ thì dùng luôn, nội dung được giữ sẵn để đối chiếu ở tab Kiểm chứng.",
+                                   "TerraTwin doesn't download real-estate listing pages. Copy the listing TEXT and paste it in the search box above: coordinates or a map link inside are used directly, and the text is kept ready for the Check tab.");
+    const m = parseMapLink(s);
+    if (m && "short" in m) return t("Link rút gọn (maps.app.goo.gl) không chứa toạ độ. Mở link, nhấn giữ vào ghim để hiện toạ độ rồi chép vào đây — hoặc dán link đầy đủ từ thanh địa chỉ trình duyệt.",
+                                    "Short links (maps.app.goo.gl) carry no coordinates. Open it, long-press the pin to show the coordinates and copy them here — or paste the full link from the browser address bar.");
+    return t("Link này không có toạ độ. Dán link Google Maps / OpenStreetMap có vị trí, hoặc toạ độ.",
+             "This link has no coordinates. Paste a Google Maps / OpenStreetMap link with a location, or coordinates.");
   }
 
   // Chờ người dùng ngừng gõ rồi mới hỏi. Nominatim giới hạn 1 lần/giây, gọi
   // theo từng phím là vừa vi phạm chính sách vừa chậm.
+  //
+  // KHÔNG gửi Nominatim những thứ không phải địa danh (17/10/2026): link bản đồ → đọc toạ độ trong link; toạ độ gõ
+  // vào ô này → dùng luôn; đoạn chữ dài (nội dung tin đăng dán vào) → tìm toạ độ trong tin + giữ nội dung cho tab
+  // Kiểm chứng. Không tải trang nào, không lưu tin lên máy chủ.
   useEffect(() => {
     if (timer.current) clearTimeout(timer.current);
     const s = q.trim();
@@ -100,6 +124,28 @@ export default function Start({
       setHits([]);
       setMsg(null);
       return;
+    }
+    const asHit = (c: { lat: number; lon: number; swapped: boolean; source?: string }) =>
+      ({ label: coordLabel(c), lat: c.lat, lon: c.lon, kind: "coord" });
+    if (looksLikeUrl(s)) {
+      const c = isListingSite(s) ? null : parseCoord(s);
+      if (c && inVietnam(c.lat, c.lon)) { setHits([asHit(c)]); setMsg(null); }
+      else { setHits([]); setMsg(c ? outsideMessage(c.lat, c.lon) : linkProblem(s)); }
+      return;
+    }
+    if (s.length >= 80) {
+      saveListingDraft(s);
+      const c = findCoordInText(s);
+      setHits(c ? [asHit(c)] : []);
+      setMsg(c ? t("Đã giữ nội dung tin — chọn toạ độ dưới đây rồi mở tab Kiểm chứng để đối chiếu từng câu với số đo.",
+                   "Listing text kept — pick the coordinates below, then open the Check tab to compare each claim with measurements.")
+               : t("Có vẻ đây là nội dung tin đăng: đã giữ sẵn để kiểm. Tin không ghi toạ độ — chọn thửa (bấm bản đồ, định vị, hoặc gõ tên xã) rồi mở tab Kiểm chứng.",
+                   "This looks like listing text: kept ready to check. It has no coordinates — pick the plot (tap the map, locate, or type the commune), then open the Check tab."));
+      return;
+    }
+    if (/^\s*-?\d/.test(s)) {
+      const c = parseCoord(s);
+      if (c && inVietnam(c.lat, c.lon)) { setHits([asHit(c)]); setMsg(null); return; }
     }
     timer.current = setTimeout(async () => {
       setBusy(true);
@@ -109,7 +155,7 @@ export default function Start({
         setMsg(r.results.length ? null : r.message ?? null);
       } catch {
         setHits([]);
-        setMsg("Chưa tìm được — bạn có thể bấm thẳng lên bản đồ.");
+        setMsg(t("Chưa tìm được — bạn có thể bấm thẳng lên bản đồ.", "Not found — you can tap the map directly."));
       } finally {
         setBusy(false);
       }
@@ -122,7 +168,7 @@ export default function Start({
   function locate() {
     setGeoErr(null);
     if (!navigator.geolocation) {
-      setGeoErr("Thiết bị này không hỗ trợ định vị. Bấm thẳng lên bản đồ nhé.");
+      setGeoErr(t("Thiết bị này không hỗ trợ định vị. Bấm thẳng lên bản đồ nhé.", "This device can't locate you. Tap the map instead."));
       return;
     }
     setLocating(true);
@@ -139,15 +185,16 @@ export default function Start({
         }
         const km = accuracy ? accuracy / 1000 : 0;
         onPick(la, lo, km > 1.5
-          ? `Vị trí ƯỚC LƯỢNG theo mạng (sai số ~${km.toFixed(0)} km) — kéo bản đồ cho đúng thửa rồi bấm phân tích ô ngắm`
-          : "Vị trí của bạn");
+          ? t(`Vị trí ƯỚC LƯỢNG theo mạng (sai số ~${km.toFixed(0)} km) — kéo bản đồ cho đúng thửa rồi bấm phân tích ô ngắm`,
+              `Network-ESTIMATED location (~${km.toFixed(0)} km error) — drag the map onto the plot, then analyse the crosshair`)
+          : t("Vị trí của bạn", "Your location"));
       },
       (e) => {
         setLocating(false);
         setGeoErr(
           e.code === e.PERMISSION_DENIED
-            ? "Bạn chưa cho phép truy cập vị trí. Gõ tên xã hoặc bấm bản đồ cũng được."
-            : "Chưa lấy được vị trí. Gõ tên xã hoặc bấm bản đồ cũng được.",
+            ? t("Bạn chưa cho phép truy cập vị trí. Gõ tên xã hoặc bấm bản đồ cũng được.", "Location permission was denied. Type a commune or tap the map instead.")
+            : t("Chưa lấy được vị trí. Gõ tên xã hoặc bấm bản đồ cũng được.", "Couldn't get your location. Type a commune or tap the map instead."),
         );
       },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 },
@@ -182,7 +229,8 @@ export default function Start({
 
       <input
         className="start-q"
-        placeholder={t("Gõ tên xã, huyện… vd. Ba Tri", "Type a commune/district… e.g. Ba Tri")}
+        placeholder={t("Gõ tên xã, huyện… vd. Ba Tri — hoặc dán link Google Maps, nội dung tin đăng",
+                       "Type a commune/district… e.g. Ba Tri — or paste a Google Maps link or listing text")}
         value={q}
         onChange={(e) => setQ(e.target.value)}
         autoComplete="off"
@@ -206,14 +254,13 @@ export default function Start({
       <div className="start-coord">
         <input
           className="start-q"
-          placeholder={t("vd. 21.0278, 105.8342 (copy từ Google Maps)",
-                          "e.g. 21.0278, 105.8342 (copy from Google Maps)")}
+          placeholder={t("vd. 21.0278, 105.8342 hoặc link Google Maps",
+                          "e.g. 21.0278, 105.8342 or a Google Maps link")}
           value={coordStr}
           onChange={(e) => setCoordStr(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") goCoord();
           }}
-          inputMode="decimal"
           autoComplete="off"
         />
         <button onClick={goCoord} disabled={!coordStr.trim()}>{t("Đi tới", "Go")}</button>

@@ -4,7 +4,8 @@
  * KIỂM CHỨNG TIN ĐĂNG (GĐ3 kế hoạch tổng) — dán nội dung tin đăng bán đất, từng câu khẳng định được đặt cạnh
  * số đo của thửa: Khớp / Mâu thuẫn / Không đủ dữ liệu. Chỉ nhận chữ người dùng tự dán; không lưu nội dung.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { clearListingDraft, takeListingDraft } from "@/lib/listingDraft";
 import { FileSearch } from "lucide-react";
 import { issueDossier, listingCheck, waterPoll, waterStart, type ListingCheckResult } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
@@ -23,6 +24,11 @@ export default function ListingCheck({ lat, lon }: { lat: number; lon: number })
   const [err, setErr] = useState<string | null>(null);
   const [issuing, setIssuing] = useState(false);
   const [water, setWater] = useState<string | null>(null);   // tiến độ đọc lịch sử nước radar
+  const [fromStart, setFromStart] = useState(false);
+  useEffect(() => {                                // tin đã dán ở trang đầu → điền sẵn (chỉ khi ô còn trống)
+    const d = takeListingDraft();
+    if (d) { setText((cur) => cur || d); setFromStart(true); }
+  }, []);
 
   async function readWaterThenRecheck() {
     // "Không ngập"/"cao ráo" cần lịch sử nước radar của thửa. Đọc (~2 phút lần đầu, chạy nền) rồi tự đối chiếu lại.
@@ -53,7 +59,8 @@ export default function ListingCheck({ lat, lon }: { lat: number; lon: number })
 
   async function run() {
     setBusy(true); setErr(null);
-    try { setR(await listingCheck(text, lat, lon)); } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
+    try { setR(await listingCheck(text, lat, lon)); clearListingDraft(); setFromStart(false); }
+    catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
   }
 
   return (
@@ -66,6 +73,8 @@ export default function ListingCheck({ lat, lon }: { lat: number; lon: number })
                                      "Paste the listing text (e.g. \"high ground, never floods, near the river\")")}
         <textarea rows={4} maxLength={5000} value={text} onChange={(e) => setText(e.target.value)} />
       </label>
+      {fromStart && <p className="doc-note">{t("Đã điền sẵn nội dung tin bạn dán ở trang đầu — kiểm lại rồi bấm đối chiếu.",
+                                               "Pre-filled with the listing text you pasted on the start page — review it, then run the check.")}</p>}
       <div className="gn-actions">
         <button className="bat-btn" onClick={run} disabled={busy || text.trim().length < 3}>
           {busy ? t("Đang đối chiếu…", "Checking…") : t("Đối chiếu với số đo", "Compare with measurements")}</button>
