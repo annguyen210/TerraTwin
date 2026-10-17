@@ -195,6 +195,15 @@ def _record_observation(a: Alert, obs_outcome: str, db: Session,
         model_index=(a.observed_peak if a.observed_peak is not None
                      else (75.0 if a.risk_level == "danger" else 50.0)),
         source="onetap", alert_id=a.id, created_at=now))
+    # Việc 5 (v3, 17/10/2026): "có ngập thật" rơi vào đợt radar v1 "ngoài mùa" → ca kiểm thật cho v4.
+    try:
+        from app.services import season_cases
+        db.flush()
+        obs = db.execute(select(Observation).where(Observation.alert_id == a.id)).scalars().first()
+        if obs is not None:
+            season_cases.capture(db, obs)
+    except Exception:  # noqa: BLE001 — lưu ca kiểm không được làm hỏng câu trả lời của người dùng
+        pass
     return plot
 
 

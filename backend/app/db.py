@@ -799,6 +799,26 @@ class UpgradeRequest(Base):
     admin_note: Mapped[str] = mapped_column(String(300), default="")
 
 
+class SeasonCase(Base):
+    """Ca kiểm THẬT cho lớp mùa lũ v4 (17/10/2026): người dùng xác nhận "ruộng có ngập thật" đúng lúc radar có một đợt
+    nước mà lớp mùa lũ v1 xếp "ngoài mùa". Xem services/season_cases.py."""
+    __tablename__ = "season_cases"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
+    observation_id: Mapped[int | None] = mapped_column(Integer, nullable=True, unique=True)
+    user_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    lat: Mapped[float] = mapped_column(Float)
+    lon: Mapped[float] = mapped_column(Float)
+    observed_on: Mapped[str] = mapped_column(String(10), index=True)
+    event_start: Mapped[str] = mapped_column(String(10))
+    event_end: Mapped[str] = mapped_column(String(10))
+    v1_label: Mapped[str] = mapped_column(String(12), default="out")
+    season_months: Mapped[str] = mapped_column(String(40), default="")
+    source: Mapped[str] = mapped_column(String(16), default="user")      # onetap | user
+    status: Mapped[str] = mapped_column(String(16), default="new", index=True)   # new | registered (đã đưa vào cổng) | rejected
+
+
 class LabelerGrant(Base):
     """Quản trị viên cấp quyền gán nhãn cho một email (người thứ hai không cần là admin)."""
     __tablename__ = "labeler_grants"

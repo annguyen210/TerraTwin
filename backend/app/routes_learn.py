@@ -112,6 +112,13 @@ def add_observation(body: ObservationIn, user: User = Depends(auth.current_user)
     db.add(o)
     db.commit()
     db.refresh(o)
+    # Việc 5 (v3, 17/10/2026): lũ có xảy ra rơi vào đợt radar v1 "ngoài mùa" → ca kiểm thật cho v4.
+    try:
+        from app.services import season_cases
+        if season_cases.capture(db, o) is not None:
+            db.commit()
+    except Exception:  # noqa: BLE001
+        db.rollback()
     return ObservationOut(
         id=o.id, lat=o.lat, lon=o.lon, module_id=o.module_id,
         observed_on=o.observed_on, outcome=o.outcome, severity=o.severity,

@@ -803,3 +803,33 @@ def test_so_diem_theo_thoi_gian_co_du_moc(env):
     r = c.get("/api/scorecard/timeline?days=90&buckets=6").json()
     assert len(r["buckets"]) == 6
     assert r["buckets"][0]["from"] < r["buckets"][-1]["from"], "phải theo thứ tự thời gian"
+
+
+@pytest.mark.mua_lu_that
+def test_tra_loi_co_ngap_roi_vao_dot_ngoai_mua_thi_luu_ca_v4(env, monkeypatch):
+    """Việc 5 (v3, 17/10/2026): một chạm "có ngập" + radar có đợt nước bị v1 xếp "ngoài mùa" → ca kiểm thật cho v4."""
+    c, Session = env
+    from app.db import Alert, SeasonCase
+    from app.services import cache_store, flood_season as fs, water_history as wh
+    uid, pid = _seed(Session, outcomes=(), age_days=20)
+    created = _now() - timedelta(days=20)
+    obs_day = (created + timedelta(days=3)).date()                 # observed_on = created_at + window/2
+    ev_start = (obs_day - timedelta(days=2)).isoformat()
+    key = wh.cache_key(*BEN_TRE)
+    real_get = cache_store.get
+    monkeypatch.setattr(cache_store, "get", lambda k: {"available": True, "events": [{"start": ev_start, "end": ev_start}]}
+                        if k == key else real_get(k))
+    far = (int(ev_start[5:7]) + 5) % 12 + 1                         # mùa lũ giả = một tháng cách đợt nửa năm → đợt "ngoài mùa"
+    monkeypatch.setattr(fs, "season", lambda la, lo: {"months": [far]})
+    s = Session()
+    a = Alert(user_id=uid, plot_id=pid, module_id="flood", risk_level="danger", headline="Sap ngap", created_at=created)
+    s.add(a)
+    s.commit()
+    aid = a.id
+    s.close()
+    r = c.post(f"/api/tap/{onetap.make_token(aid)}", json={"answer": "yes"})
+    assert r.status_code == 200
+    s = Session()
+    rows = s.execute(select(SeasonCase)).scalars().all()
+    s.close()
+    assert len(rows) == 1 and rows[0].event_start == ev_start and rows[0].source == "onetap" and rows[0].v1_label == "out"

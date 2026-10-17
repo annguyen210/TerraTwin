@@ -20,7 +20,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app import auth
-from app.db import AuditLog, Dossier, Plot, UpgradeRequest, User, get_session
+from app.db import AuditLog, Dossier, Plot, SeasonCase, UpgradeRequest, User, get_session
 from app.routes_account import log_audit
 from app.services import plans
 
@@ -85,6 +85,18 @@ def request_upgrade(body: UpgradeIn, user: User = Depends(auth.current_user), db
 
 
 # ------------------------------------------------------------------ phía quản trị
+
+@router.get("/api/admin/season-cases")
+def admin_season_cases(admin: User = Depends(auth.require_admin), db: Session = Depends(get_session)) -> dict:
+    """Ca kiểm thật cho lớp mùa lũ v4: người dùng xác nhận ngập đúng lúc radar có đợt v1 'ngoài mùa'.
+    Toạ độ làm tròn 0,01° (~1 km) khi xem — đủ để đăng ký cổng, không chỉ đúng nhà ai."""
+    rows = db.execute(select(SeasonCase).order_by(SeasonCase.created_at.desc()).limit(500)).scalars().all()
+    return {"n": len(rows), "cases": [{"id": r.id, "created_at": r.created_at.isoformat() + "Z" if r.created_at else None,
+                                       "lat": round(r.lat, 2), "lon": round(r.lon, 2), "observed_on": r.observed_on,
+                                       "event": [r.event_start, r.event_end], "v1_label": r.v1_label,
+                                       "season_months": r.season_months, "source": r.source, "status": r.status} for r in rows],
+            "note": "Mỗi ca là lũ ngoài mùa CÓ NGƯỜI XÁC NHẬN — dùng làm ca dương tính khi đăng ký cổng v4."}
+
 
 @router.get("/api/admin/users")
 def admin_users(q: str = "", limit: int = 50, admin: User = Depends(auth.require_admin),
