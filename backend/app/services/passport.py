@@ -168,7 +168,8 @@ def history(lat: float, lon: float, years: int = 10) -> dict | None:
     """
     end = date.today() - timedelta(days=cal._LAG_DAYS)
     start = end.replace(year=end.year - years)
-    rows = realdata.historical_weather(lat, lon, start.isoformat(), end.isoformat())
+    # Ghép 10 năm tròn (cache dùng chung) + đoạn đuôi — xem realdata.historical_weather_stitched (18/10/2026).
+    rows = realdata.historical_weather_stitched(lat, lon, start.isoformat(), end.isoformat())
     if not rows or len(rows) < 365 * 3:
         return None
 

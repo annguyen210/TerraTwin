@@ -779,6 +779,32 @@ def historical_weather(lat: float, lon: float, start: str, end: str):
         return None
 
 
+def historical_weather_stitched(lat: float, lon: float, start: str, end: str):
+    """Như historical_weather, nhưng phần nằm trong 10 NĂM TRÒN gần nhất lấy từ MỘT yêu cầu cố định (dùng chung cache
+    với lớp mùa lũ, hiệu chuẩn, phát hiện bất thường — cùng URL 2016-01-01 → 2025-12-31 ở năm 2026), phần sau đó lấy
+    bằng một đoạn ĐUÔI ngắn.
+
+    Vì sao (18/10/2026): hộ chiếu thửa xin "10 năm tính tới hôm nay" → khung ngày đổi MỖI NGÀY → cache trượt mỗi ngày,
+    mà Open-Meteo tính một yêu cầu dài hơn 2 tuần thành nhiều lượt (10 năm ≈ hàng trăm lượt) trên IP Render dùng chung
+    → 429. Đã kiểm 18/10/2026: hỏi mới tinh thì giá trị một ngày KHÔNG phụ thuộc khung hỏi (13/10/2016 tại 16,58; 107,5:
+    81,8 mm khi hỏi 1 ngày, 1 tháng hay tới 2026). Nhưng Open-Meteo có CẬP NHẬT LẠI ERA5: bản trong cache 30 ngày ghi
+    77,1 mm cho cùng ngày. Ghép = hộ chiếu dùng CÙNG bản với lớp mùa lũ / hiệu chuẩn / bất thường (nhất quán giữa các
+    mô-đun), đổi lại có thể cũ tới 30 ngày (TTL archive). Khung không chồng 10 năm tròn đó → gọi thẳng như cũ."""
+    from datetime import date as _d
+    last = _d.today().year - 1
+    b0, b1 = f"{last - 9}-01-01", f"{last}-12-31"
+    if not (b0 <= start <= b1 < end):
+        return historical_weather(lat, lon, start, end)
+    base = historical_weather(lat, lon, b0, b1)
+    if not base:
+        return historical_weather(lat, lon, start, end)
+    tail = historical_weather(lat, lon, f"{last + 1}-01-01", end)
+    if tail is None:
+        return historical_weather(lat, lon, start, end)
+    rows = [r for r in base if r["date"] >= start] + [r for r in tail if r["date"] <= end]
+    return [{**r, "day": i} for i, r in enumerate(rows)]
+
+
 def river_discharge_7d(lat: float, lon: float):
     """Lưu lượng sông THẬT 7 ngày (GloFAS qua Open-Meteo Flood API, không cần key).
 
