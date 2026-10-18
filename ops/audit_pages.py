@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import time
 import urllib.request
@@ -68,7 +69,8 @@ with sync_playwright() as p:
                     for h in page.evaluate("() => [...document.querySelectorAll('a[href]')].map(a => a.getAttribute('href'))"):
                         if h and (h.startswith("/") and not h.startswith("//")):
                             links.add(urlparse(h).path or "/")
-                name = (r.strip("/").replace("/", "_").replace("?", "_").replace("=", "-").replace(",", "_") or "home")
+                # Tên tệp chỉ giữ chữ/số/._- — ảnh tải lên artifact không được chứa | : ? * " < > (lỗi thật 18/10/2026).
+                name = re.sub(r"[^A-Za-z0-9._-]+", "_", r.strip("/")).strip("_")[:80] or "home"
                 page.screenshot(path=os.path.join(OUT, f"{tag}-{name}.png"), full_page=False)
                 report.append({"route": r, "view": tag, "overflow": w > vw["width"] + 2, "width": w, "shell": shell,
                                "title": title, "errors": errs, "bad": bad})
