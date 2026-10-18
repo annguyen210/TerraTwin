@@ -802,6 +802,19 @@ class UpgradeRequest(Base):
     admin_note: Mapped[str] = mapped_column(String(300), default="")
 
 
+class ListingGold(Base):
+    """Tập VÀNG cho cổng GĐ3 (kiểm tin đăng): tin đăng THẬT chủ dự án tự thu thập + tự gán nhãn loại câu khẳng định
+    (18/10/2026). Chỉ quản trị đọc/ghi. Số điện thoại, email, đường dẫn bị XOÁ trước khi lưu (services/listing_gold.py)."""
+    __tablename__ = "listing_gold"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
+    added_by: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    text: Mapped[str] = mapped_column(Text)
+    claims_json: Mapped[str] = mapped_column(Text, default="[]")
+    source_note: Mapped[str] = mapped_column(String(200), default="")      # vd "tin bạn bè gửi", "nhóm Zalo xã" — không URL
+
+
 class WaterConfirm(Base):
     """Người dùng xác nhận MỘT đợt nước radar ở thửa: "ruộng tôi có ngập đợt này không" (17/10/2026).
 

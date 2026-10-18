@@ -1490,6 +1490,20 @@ export type AdminWaterConfirms = { n_answers: number; n_events: number; totals: 
   note: string };
 export type AdminSeasonCases = { n: number; note: string; cases: { id: number; created_at: string | null; lat: number; lon: number;
   observed_on: string; event: [string, string]; v1_label: string; season_months: string; source: string; status: string }[] };
+export type ListingGoldItem = { id: number; text: string; claims: string[]; source_note: string };
+export type ListingGoldView = { items: ListingGoldItem[]; claim_types: { id: string; vi: string; en: string }[];
+  score: { n: number; enough: boolean; macro_f1: number | null;
+           per_type: { type: string; precision: number; recall: number; f1: number; tp: number; fp: number; fn: number }[] } };
+export function adminListingGold() {
+  return authed<ListingGoldView>("/api/admin/listing-gold", { method: "GET" }, "Không tải được tập vàng tin đăng");
+}
+export function adminListingGoldAdd(text: string, claims: string[], source_note: string) {
+  return authed<{ id: number; text: string }>("/api/admin/listing-gold", { method: "POST", body: JSON.stringify({ text, claims, source_note }) },
+    "Không thêm được tin");
+}
+export function adminListingGoldDelete(id: number) {
+  return authed<void>(`/api/admin/listing-gold/${id}`, { method: "DELETE" }, "Không xoá được tin");
+}
 export function adminWaterConfirms() {
   return authed<AdminWaterConfirms>("/api/admin/water-confirms", { method: "GET" }, "Không tải được xác nhận đợt nước");
 }

@@ -16,15 +16,15 @@ import Link from "next/link";
 import {
   fetchMe, getHealth, getFunnel, getBackupStatus, getDrift, getCoopPlots, updateCoop,
   getPilotSummary, downloadPilotCsv, adminLabelers, adminAddLabeler, adminRemoveLabeler, adminLabelSummary,
-  adminLabelExport, adminUsers, adminUpdateUser, adminUpgradeRequests, adminDecideUpgrade, adminWaterConfirms, adminSeasonCases,
-  type AdminUser, type UpgradeReq, type AdminWaterConfirms, type AdminSeasonCases,
+  adminLabelExport, adminUsers, adminUpdateUser, adminUpgradeRequests, adminDecideUpgrade, adminWaterConfirms, adminSeasonCases, adminListingGold, adminListingGoldAdd, adminListingGoldDelete,
+  type AdminUser, type UpgradeReq, type AdminWaterConfirms, type AdminSeasonCases, type ListingGoldView,
   type AuthUser, type HealthStatus, type CoopPlot, type PilotSummary, type LabelSummary,
 } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 import AppShell from "@/components/AppShell";
 import { getToken } from "@/lib/api";
 
-type Tab = "users" | "upgrades" | "health" | "funnel" | "pilot" | "label" | "truth" | "backup" | "drift" | "coop";
+type Tab = "users" | "upgrades" | "health" | "funnel" | "pilot" | "label" | "truth" | "gold" | "backup" | "drift" | "coop";
 
 function when(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -333,6 +333,62 @@ function LabelTab() {
   );
 }
 
+/** Tập vàng cổng GĐ3: dán tin đăng THẬT bạn tự thu thập + tích loại câu khẳng định CÓ trong tin. Không có ô nào
+ *  được tích sẵn — gợi ý của máy sẽ làm lệch nhãn (bộ tách câu là thứ đang được chấm). */
+function GoldTab() {
+  const [v, setV] = useState<ListingGoldView | null>(null);
+  const [text, setText] = useState("");
+  const [note, setNote] = useState("");
+  const [claims, setClaims] = useState<string[]>([]);
+  const [err, setErr] = useState<string | null>(null);
+  const load = () => { adminListingGold().then(setV).catch((e) => setErr(e.message)); };
+  useEffect(load, []);
+  const add = async () => {
+    setErr(null);
+    try { await adminListingGoldAdd(text, claims, note); setText(""); setNote(""); setClaims([]); load(); }
+    catch (e) { setErr((e as Error).message); }
+  };
+  const name = (id: string) => v?.claim_types.find((c) => c.id === id)?.vi ?? id;
+  return (
+    <div>
+      <p className="ws-hint">Cổng GĐ3 đo bộ tách câu khẳng định trên ≥ 20 tin đăng THẬT do bạn tự thu thập (tin bạn bè gửi, nhóm Zalo, tờ rơi —
+        KHÔNG cào trang bất động sản). Dán nguyên văn, rồi tích những loại câu tin đó KHẲNG ĐỊNH. Số điện thoại, email, đường dẫn tự bị xoá trước khi lưu.
+        Không ô nào tích sẵn: máy gợi ý sẽ làm lệch nhãn, vì bộ tách câu chính là thứ đang được chấm.</p>
+      {err && <p className="ws-err">⚠️ {err}</p>}
+      <textarea rows={4} style={{ width: "100%" }} placeholder="Dán nội dung tin đăng…" value={text} onChange={(e) => setText(e.target.value)} />
+      <div className="ws-row" style={{ flexWrap: "wrap", gap: 10 }}>
+        {v?.claim_types.map((c) => (
+          <label key={c.id} style={{ display: "inline-flex", gap: 4, alignItems: "center" }}>
+            <input type="checkbox" checked={claims.includes(c.id)}
+                   onChange={(e) => setClaims((cur) => e.target.checked ? [...cur, c.id] : cur.filter((x) => x !== c.id))} /> {c.vi}
+          </label>
+        ))}
+      </div>
+      <div className="ws-row">
+        <input placeholder="Nguồn (vd: tin bạn gửi, nhóm Zalo xã) — không dán đường dẫn" value={note} onChange={(e) => setNote(e.target.value)} />
+        <button className="doc-btn" disabled={text.trim().length < 10} onClick={add}>Thêm tin</button>
+      </div>
+      {v && (
+        <>
+          <h4 style={{ marginTop: 16 }}>Đã có {v.score.n}/20 tin {v.score.enough ? "— đủ để chấm cổng" : ""}</h4>
+          {v.score.per_type.length > 0 && (
+            <table className="ws-table">
+              <thead><tr><th>Loại câu</th><th>Chính xác</th><th>Độ phủ</th><th>F1</th><th>Đúng / thừa / sót</th></tr></thead>
+              <tbody>{v.score.per_type.map((r) => (
+                <tr key={r.type}><td>{name(r.type)}</td><td>{r.precision}</td><td>{r.recall}</td><td>{r.f1}</td><td>{r.tp} / {r.fp} / {r.fn}</td></tr>))}</tbody>
+            </table>
+          )}
+          {v.score.macro_f1 != null && <p>F1 trung bình: <b>{v.score.macro_f1}</b>{v.score.enough ? "" : " (chưa đủ 20 tin — chỉ để xem)"}</p>}
+          <ul>{v.items.slice().reverse().map((g) => (
+            <li key={g.id} style={{ marginBottom: 6 }}><small>{g.text.slice(0, 160)}{g.text.length > 160 ? "…" : ""}</small><br />
+              <b>{g.claims.length ? g.claims.map(name).join(", ") : "không câu khẳng định nào"}</b>{g.source_note ? ` · ${g.source_note}` : ""}{" "}
+              <button className="ws-link" onClick={() => adminListingGoldDelete(g.id).then(load).catch((e) => setErr(e.message))}>xoá</button></li>))}</ul>
+        </>
+      )}
+    </div>
+  );
+}
+
 /** Sự thật mặt đất người dùng gửi: xác nhận từng đợt nước + ca mùa lũ v4. Chỉ đọc — đưa vào cổng nào cũng phải đăng ký trước. */
 function TruthTab() {
   const [w, setW] = useState<AdminWaterConfirms | null>(null);
@@ -518,6 +574,7 @@ export default function AdminPage() {
     { id: "pilot", label: "Góp ý thí điểm", show: isAdmin },
     { id: "label", label: "Gán nhãn v3", show: isAdmin },
     { id: "truth", label: "Xác nhận thực địa", show: isAdmin },
+    { id: "gold", label: "Tin đăng GĐ3", show: isAdmin },
     { id: "backup", label: "Sao lưu", show: isAdmin },
     { id: "drift", label: "Trôi mô hình", show: isAdmin },
     { id: "coop", label: "Hợp tác xã", show: isCoop },
@@ -588,6 +645,7 @@ export default function AdminPage() {
               {tab === "pilot" && isAdmin && <PilotTab />}
               {tab === "label" && isAdmin && <LabelTab />}
               {tab === "truth" && isAdmin && <TruthTab />}
+              {tab === "gold" && isAdmin && <GoldTab />}
               {tab === "backup" && isAdmin && <BackupTab />}
               {tab === "drift" && isAdmin && <DriftTab />}
               {tab === "coop" && isCoop && <CoopTab user={user} />}

@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
@@ -101,6 +101,49 @@ def admin_season_cases(admin: User = Depends(auth.require_admin), db: Session = 
                                        "event": [r.event_start, r.event_end], "v1_label": r.v1_label,
                                        "season_months": r.season_months, "source": r.source, "status": r.status} for r in rows],
             "note": "Mỗi ca là lũ ngoài mùa CÓ NGƯỜI XÁC NHẬN — dùng làm ca dương tính khi đăng ký cổng v4."}
+
+
+class GoldIn(BaseModel):
+    text: str = Field(min_length=10, max_length=5000)
+    claims: list[str] = Field(default_factory=list)
+    source_note: str = Field(default="", max_length=200)
+
+
+@router.get("/api/admin/listing-gold")
+def admin_listing_gold(admin: User = Depends(auth.require_admin), db: Session = Depends(get_session)) -> dict:
+    """Tập vàng cổng GĐ3 + điểm hiện tại của bộ tách câu trên tập đó (đúng cách tính ops/listing_gate.py)."""
+    import json as _json
+    from app.db import ListingGold
+    from app.services import listing_check as lc, listing_gold
+    rows = db.execute(select(ListingGold).order_by(ListingGold.created_at)).scalars().all()
+    gold = [{"id": r.id, "text": r.text, "claims": _json.loads(r.claims_json or "[]"), "source_note": r.source_note} for r in rows]
+    return {"items": gold, "score": listing_gold.score(gold),
+            "claim_types": [{"id": t, "vi": vi, "en": en} for t, vi, en, _ in lc.CLAIMS]}
+
+
+@router.post("/api/admin/listing-gold", status_code=201)
+def admin_listing_gold_add(body: GoldIn, admin: User = Depends(auth.require_admin), db: Session = Depends(get_session)) -> dict:
+    import json as _json
+    from app.db import ListingGold
+    from app.services import listing_check as lc, listing_gold
+    known = {t for t, *_ in lc.CLAIMS}
+    bad = [c for c in body.claims if c not in known]
+    if bad:
+        raise HTTPException(422, f"Loại câu không có: {bad}")
+    r = ListingGold(added_by=getattr(admin, "id", None), text=listing_gold.anonymize(body.text),
+                    claims_json=_json.dumps(sorted(set(body.claims))), source_note=listing_gold.anonymize(body.source_note))
+    db.add(r)
+    db.commit()
+    return {"id": r.id, "text": r.text}
+
+
+@router.delete("/api/admin/listing-gold/{gid}", status_code=204, response_class=Response, response_model=None)
+def admin_listing_gold_delete(gid: int, admin: User = Depends(auth.require_admin), db: Session = Depends(get_session)):
+    from app.db import ListingGold
+    r = db.get(ListingGold, gid)
+    if r is not None:
+        db.delete(r)
+        db.commit()
 
 
 @router.get("/api/admin/water-confirms")
