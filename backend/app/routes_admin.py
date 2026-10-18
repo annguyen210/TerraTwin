@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Body, Depends, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
@@ -101,6 +101,50 @@ def admin_season_cases(admin: User = Depends(auth.require_admin), db: Session = 
                                        "event": [r.event_start, r.event_end], "v1_label": r.v1_label,
                                        "season_months": r.season_months, "source": r.source, "status": r.status} for r in rows],
             "note": "Mỗi ca là lũ ngoài mùa CÓ NGƯỜI XÁC NHẬN — dùng làm ca dương tính khi đăng ký cổng v4."}
+
+
+@router.post("/api/payments/sepay")
+def sepay_webhook(txn: dict = Body(...), authorization: str | None = Header(default=None),
+                  db: Session = Depends(get_session)) -> dict:
+    """Webhook SePay: tiền vào đúng mã TT<số> và đủ giá → tự kích hoạt gói 1 tháng. Xem services/sepay.py."""
+    from app.db import Payment
+    from app.services import sepay
+    if not sepay.configured():
+        raise HTTPException(503, "Chưa bật SePay (máy chủ chưa đặt TERRATWIN_SEPAY_API_KEY).")
+    if not sepay.authorized(authorization):
+        raise HTTPException(401, "Sai khoá SePay.")
+    txn_id = str(txn.get("id") or "").strip()[:64]
+    if not txn_id:
+        raise HTTPException(422, "Thiếu mã giao dịch (id).")
+    if db.scalar(select(Payment.id).where(Payment.provider == "sepay", Payment.provider_txn_id == txn_id)):
+        return {"success": True, "duplicate": True}
+    content = str(txn.get("content") or txn.get("description") or "")
+    rid = sepay.request_id(content)
+    req = db.get(UpgradeRequest, rid) if rid else None
+    price = int(plans.PLANS.get(req.plan_wanted, {}).get("price_vnd", 0)) if req else 0
+    status, note = sepay.decide(txn, req, price)
+    p = Payment(provider="sepay", provider_txn_id=txn_id, amount_vnd=int(txn.get("transferAmount") or 0),
+                content=content[:200], bank_ref=str(txn.get("referenceCode") or "")[:64],
+                request_id=req.id if req else None, status=status, note=note[:300])
+    db.add(p)
+    if status == "matched":
+        u = db.get(User, req.user_id)
+        req.status, req.decided_at, req.admin_note = "approved", _now(), "Tự kích hoạt: đã nhận chuyển khoản (SePay)"
+        if u is not None:
+            u.plan, u.plan_until, u.plan_note = req.plan_wanted, _now() + timedelta(days=30), f"SePay {txn_id}"
+            log_audit(db, u.id, "payment_received", f"{plans.PLANS[req.plan_wanted]['name']} 1 tháng · SePay {txn_id}")
+    db.commit()
+    return {"success": True, "status": status}
+
+
+@router.get("/api/admin/payments")
+def admin_payments(admin: User = Depends(auth.require_admin), db: Session = Depends(get_session)) -> dict:
+    from app.db import Payment
+    from app.services import sepay
+    rows = db.execute(select(Payment).order_by(Payment.created_at.desc()).limit(200)).scalars().all()
+    return {"sepay_configured": sepay.configured(),
+            "payments": [{"id": r.id, "created_at": _iso(r.created_at), "txn": r.provider_txn_id, "amount_vnd": r.amount_vnd,
+                          "content": r.content, "request_id": r.request_id, "status": r.status, "note": r.note} for r in rows]}
 
 
 class GoldIn(BaseModel):

@@ -802,6 +802,23 @@ class UpgradeRequest(Base):
     admin_note: Mapped[str] = mapped_column(String(300), default="")
 
 
+class Payment(Base):
+    """Giao dịch chuyển khoản SePay báo về (services/sepay.py, 18/10/2026). Mỗi mã giao dịch chỉ xử lý một lần.
+    KHÔNG lưu số tài khoản người chuyển; nội dung cắt 200 ký tự."""
+    __tablename__ = "payments"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
+    provider: Mapped[str] = mapped_column(String(16), default="sepay")
+    provider_txn_id: Mapped[str] = mapped_column(String(64), unique=True)
+    amount_vnd: Mapped[int] = mapped_column(Integer, default=0)
+    content: Mapped[str] = mapped_column(String(200), default="")
+    bank_ref: Mapped[str] = mapped_column(String(64), default="")
+    request_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    status: Mapped[str] = mapped_column(String(12), default="unmatched", index=True)  # matched | underpaid | unmatched | ignored
+    note: Mapped[str] = mapped_column(String(300), default="")
+
+
 class ListingGold(Base):
     """Tập VÀNG cho cổng GĐ3 (kiểm tin đăng): tin đăng THẬT chủ dự án tự thu thập + tự gán nhãn loại câu khẳng định
     (18/10/2026). Chỉ quản trị đọc/ghi. Số điện thoại, email, đường dẫn bị XOÁ trước khi lưu (services/listing_gold.py)."""

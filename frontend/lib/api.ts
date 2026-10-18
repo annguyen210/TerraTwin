@@ -2923,7 +2923,7 @@ export function getModelCards() {
 // ---- Gói = HẠN MỨC (mọi tài khoản đủ mọi tính năng), quản trị cấp; yêu cầu nâng cấp ----
 export type UpgradeReq = { id: number; user_id: number; email: string | null; created_at: string; plan_wanted: string;
   plan_wanted_name: string; reason: string; status: "pending" | "approved" | "rejected"; decided_at: string | null; admin_note: string;
-  payment?: { available: boolean; amount_vnd: number; memo: string; note: string; qr_svg?: string | null; bank_bin?: string;
+  payment?: { available: boolean; amount_vnd: number; memo: string; note: string; qr_svg?: string | null; bank_bin?: string; auto_confirm?: boolean;
               account_tail?: string; account_name?: string } };
 export type MyPlan = { plan: string; effective: string; name: string; until: string | null; note: string; mult: number; api_month: number;
   limits: { dossier_per_day: number; screen_per_hour: number; api_per_month: number }; principle: string;
@@ -2945,6 +2945,11 @@ export function adminUsers(q = "") {
 export function adminUpdateUser(id: number, body: { role?: "user" | "coop" | "admin"; plan?: "free" | "pro" | "enterprise"; months?: number; note?: string }) {
   return authed<{ ok: boolean; changed: string[] }>(`/api/admin/users/${id}`, { method: "POST", body: JSON.stringify(body) },
     "Không cập nhật được tài khoản");
+}
+export type AdminPayment = { id: number; created_at: string | null; txn: string; amount_vnd: number; content: string;
+  request_id: number | null; status: "matched" | "underpaid" | "unmatched" | "ignored"; note: string };
+export function adminPayments() {
+  return authed<{ sepay_configured: boolean; payments: AdminPayment[] }>("/api/admin/payments", { method: "GET" }, "Không tải được giao dịch");
 }
 export function adminUpgradeRequests(status = "pending") {
   return authed<{ requests: UpgradeReq[] }>(`/api/admin/upgrade-requests?status=${status}`, { method: "GET" }, "Không tải được yêu cầu");

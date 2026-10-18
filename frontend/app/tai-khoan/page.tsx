@@ -48,6 +48,14 @@ export default function MyAccountPage() {
   const [pwMsg, setPwMsg] = useState<string | null>(null);
   const [confirm, setConfirm] = useState("");
   const [plan, setPlan] = useState<MyPlan | null>(null);
+  // SePay báo tiền về → gói tự kích hoạt: còn yêu cầu chờ có QR tự xác nhận thì hỏi lại mỗi 15 giây (tối đa 20 phút)
+  const waitingPay = !!plan?.requests.some((r) => r.status === "pending" && r.payment?.available && r.payment?.auto_confirm);
+  useEffect(() => {
+    if (!waitingPay) return;
+    let n = 0;
+    const id = setInterval(() => { if (++n > 80) return clearInterval(id); getMyPlan().then(setPlan).catch(() => {}); }, 15000);
+    return () => clearInterval(id);
+  }, [waitingPay]);
   const [want, setWant] = useState<"pro" | "enterprise">("pro");
   const [reason, setReason] = useState("");
   const [reqMsg, setReqMsg] = useState<string | null>(null);
@@ -136,8 +144,11 @@ export default function MyAccountPage() {
                                 <div>
                                   <p><b>{r.payment.amount_vnd.toLocaleString("vi-VN")} đ</b> · {t("nội dung", "memo")}: <code>{r.payment.memo}</code></p>
                                   <p className="ws-mini">{t(`Tài khoản …${r.payment.account_tail}`, `Account …${r.payment.account_tail}`)}{r.payment.account_name ? ` · ${r.payment.account_name}` : ""}</p>
-                                  <p className="ws-mini">{t("Quét bằng app ngân hàng bất kỳ (VietQR, miễn phí). Giữ ĐÚNG nội dung — quản trị đối chiếu rồi kích hoạt gói.",
-                                                           "Scan with any banking app (VietQR, free). Keep the memo EXACTLY — an admin matches it and activates the plan.")}</p>
+                                  <p className="ws-mini">{r.payment.auto_confirm
+                                    ? t("Quét bằng app ngân hàng bất kỳ (VietQR, miễn phí). Giữ ĐÚNG nội dung — gói tự kích hoạt khoảng 1 phút sau khi tiền vào; trang tự cập nhật.",
+                                        "Scan with any banking app (VietQR, free). Keep the memo EXACTLY — the plan activates about a minute after the money arrives; this page refreshes itself.")
+                                    : t("Quét bằng app ngân hàng bất kỳ (VietQR, miễn phí). Giữ ĐÚNG nội dung — quản trị đối chiếu rồi kích hoạt gói.",
+                                        "Scan with any banking app (VietQR, free). Keep the memo EXACTLY — an admin matches it and activates the plan.")}</p>
                                 </div>
                               </>
                             ) : (

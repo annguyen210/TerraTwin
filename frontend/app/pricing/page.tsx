@@ -28,8 +28,8 @@ export default function PricingPage() {
       <main className="doc-body">
         <h1>{t("Bảng giá", "Pricing")}</h1>
         <p className="doc-lede">{t(
-          "Đang thử nghiệm: mọi tính năng MIỄN PHÍ cho mọi tài khoản. Nông hộ luôn miễn phí. Giá sẽ công bố trước khi thu — không thu tiền khi chưa báo trước và chưa có pháp nhân. Khi thu: chuyển khoản VietQR (quét bằng app ngân hàng bất kỳ, không qua cổng thanh toán).",
-          "In trial: every feature is FREE for every account. Farmers are always free. Prices will be published before any charge — nothing is charged without notice and a legal entity. When charging: VietQR bank transfer (scan with any banking app, no payment gateway).")}</p>
+          "Đang thử nghiệm: mọi tính năng MIỄN PHÍ cho mọi tài khoản. Nông hộ luôn miễn phí. Giá sẽ công bố trước khi thu — không thu tiền khi chưa báo trước và chưa có pháp nhân. Khi thu: chuyển khoản VietQR (quét bằng app ngân hàng bất kỳ, không qua cổng thanh toán), gói tự kích hoạt khi tiền vào.",
+          "In trial: every feature is FREE for every account. Farmers are always free. Prices will be published before any charge — nothing is charged without notice and a legal entity. When charging: VietQR bank transfer (scan with any banking app, no payment gateway); the plan activates itself when the money arrives.")}</p>
         {/* GĐ7 kế hoạch tổng — ba gói cho người mua đất, chủ đất, tổ chức. Giá DỰ KIẾN, đang kiểm chứng bằng
             phỏng vấn; chưa thu tiền khi chưa có pháp nhân và cổng thanh toán. */}
         <p className="tk-role" style={{ margin: "14px 0" }}>✓ {t("MỌI tài khoản có ĐỦ MỌI tính năng — không có tính năng nào bị khoá sau gói trả phí. Gói chỉ khác HẠN MỨC (số hồ sơ, lượt quét, lượt API) và mức hỗ trợ; quản trị cấp khi bạn gửi yêu cầu ở Tài khoản của tôi.",

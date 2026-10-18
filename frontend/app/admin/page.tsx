@@ -16,7 +16,7 @@ import Link from "next/link";
 import {
   fetchMe, getHealth, getFunnel, getBackupStatus, getDrift, getCoopPlots, updateCoop,
   getPilotSummary, downloadPilotCsv, adminLabelers, adminAddLabeler, adminRemoveLabeler, adminLabelSummary,
-  adminLabelExport, adminUsers, adminUpdateUser, adminUpgradeRequests, adminDecideUpgrade, adminWaterConfirms, adminSeasonCases, adminListingGold, adminListingGoldAdd, adminListingGoldDelete,
+  adminLabelExport, adminUsers, adminUpdateUser, adminUpgradeRequests, adminDecideUpgrade, adminPayments, type AdminPayment, adminWaterConfirms, adminSeasonCases, adminListingGold, adminListingGoldAdd, adminListingGoldDelete,
   type AdminUser, type UpgradeReq, type AdminWaterConfirms, type AdminSeasonCases, type ListingGoldView,
   type AuthUser, type HealthStatus, type CoopPlot, type PilotSummary, type LabelSummary,
 } from "@/lib/api";
@@ -257,8 +257,25 @@ function UpgradesTab() {
     try { await adminDecideUpgrade(r.id, { approve, months, note: note[r.id] ?? "" }); load(); } catch (e) { setErr((e as Error).message); }
   }
   const ST: Record<string, string> = { pending: "Đang chờ", approved: "Đã duyệt", rejected: "Đã từ chối" };
+  const [pay, setPay] = useState<{ sepay_configured: boolean; payments: AdminPayment[] } | null>(null);
+  useEffect(() => { adminPayments().then(setPay).catch(() => setPay(null)); }, [list]);
+  const PS: Record<string, string> = { matched: "đã cấp gói", underpaid: "thiếu tiền", unmatched: "chưa khớp", ignored: "bỏ qua" };
   return (
     <div>
+      {pay && (
+        <div className="adm-note">
+          <b>Chuyển khoản SePay</b> · {pay.sepay_configured ? "đang bật — tiền vào đúng mã + đủ giá thì gói tự kích hoạt"
+            : "chưa bật (máy chủ chưa đặt TERRATWIN_SEPAY_API_KEY) — đối chiếu sao kê tay"}
+          {pay.payments.length > 0 && (
+            <table className="ws-table" style={{ marginTop: 8 }}>
+              <thead><tr><th>Lúc</th><th>Số tiền</th><th>Nội dung</th><th>Yêu cầu</th><th>Kết quả</th></tr></thead>
+              <tbody>{pay.payments.map((p) => (
+                <tr key={p.id}><td>{when(p.created_at)}</td><td>{p.amount_vnd.toLocaleString("vi-VN")} đ</td><td><small>{p.content}</small></td>
+                  <td>{p.request_id ? `#${p.request_id}` : "—"}</td><td>{PS[p.status] ?? p.status}{p.note ? ` · ${p.note}` : ""}</td></tr>))}</tbody>
+            </table>
+          )}
+        </div>
+      )}
       <p className="ws-hint">Người dùng xin <b>nâng hạn mức</b> (không phải tính năng — tính năng đã mở hết). Duyệt là cấp gói ngay, có thời hạn; ghi chú hiện cho người dùng ở Tài khoản của tôi.</p>
       <div className="ws-row">
         {["pending", "approved", "rejected", "all"].map((s) => (

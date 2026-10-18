@@ -111,6 +111,21 @@ tại open-meteo.com rồi đặt `TERRATWIN_OPENMETEO_API_KEY` trên `terratwin
 tự đổi sang máy chủ `customer-*.open-meteo.com` kèm `&apikey=` (`services/openmeteo.py`); khoá chỉ chèn ở
 bước gửi đi, không vào khoá cache hay log. Kiểm: `GET /api/health` → `weather_data_plan.plan = "commercial"`.
 
+## Thu tiền MIỄN PHÍ — VietQR + SePay tự xác nhận (không cần cổng thanh toán)
+
+1. **VietQR** (mã QR chuyển khoản NAPAS, app ngân hàng nào cũng quét được, tiền vào thẳng tài khoản): đặt trên `terratwin-api`
+   `TERRATWIN_VIETQR_BIN` (6 số, vd 970436 Vietcombank · 970422 MB · 970407 Techcombank · 970418 BIDV · 970415 VietinBank),
+   `TERRATWIN_VIETQR_ACCOUNT` (số tài khoản nhận), `TERRATWIN_VIETQR_NAME` (tên chủ tài khoản, KHÔNG DẤU). Chưa đặt → trang
+   Tài khoản ghi "chưa bật thanh toán", không bao giờ hiện tài khoản bịa.
+2. **SePay tự xác nhận** (sepay.vn, có gói miễn phí): tự đăng ký tài khoản SePay, liên kết đúng tài khoản ngân hàng ở bước 1
+   (bước này cần đăng nhập ngân hàng + OTP của chính chủ tài khoản). Vào **Tích hợp WebHooks → Thêm webhook**:
+   - Sự kiện: *Có tiền vào* · URL: `https://terratwin-api.onrender.com/api/payments/sepay`
+   - Kiểu chứng thực: **API Key** → tự đặt một chuỗi dài ngẫu nhiên, rồi đặt CHÍNH chuỗi đó vào `TERRATWIN_SEPAY_API_KEY` trên Render.
+   - Bấm "Giả lập giao dịch" của SePay với nội dung `TT<số yêu cầu> PRO` để thử: /admin → Nâng hạn mức hiện giao dịch + kết quả.
+   Từ đó: tiền vào đúng mã + đủ giá → gói tự kích hoạt 1 tháng; thiếu tiền / sai mã / chuyển lần hai → ghi "chưa khớp" cho
+   quản trị, không cấp gói; SePay gửi lại cùng giao dịch → không cấp hai lần.
+3. Thu tiền thật của khách vẫn là hoạt động kinh doanh: xem `docs/PHAP_NHAN.md` (đăng ký hộ kinh doanh online, kê khai thuế).
+
 ## Bảo mật tài khoản quản trị — xác thực hai lớp (GĐ7)
 
 1. Đăng nhập bằng email quản trị → Khu làm việc → **Xác thực hai lớp** → quét QR bằng ứng dụng Authenticator,

@@ -4,8 +4,8 @@ VietQR là chuẩn QR chuyển khoản liên ngân hàng của NAPAS (dựa trê
 Nam quét được, tiền vào THẲNG tài khoản người nhận, không qua trung gian, không phí cổng. Mã chứa: mã ngân hàng (BIN),
 số tài khoản, số tiền, nội dung chuyển khoản. TerraTwin chỉ DỰNG chuỗi QR — không giữ tiền, không thấy số thẻ.
 
-Giới hạn trung thực: không có webhook ngân hàng → quản trị đối chiếu sao kê theo NỘI DUNG chuyển khoản (mã yêu cầu) rồi
-duyệt gói thủ công trong /admin. Bán dịch vụ có thu tiền vẫn cần hỏi thủ tục kinh doanh/thuế — phần mã đã sẵn sàng.
+Xác nhận: có TERRATWIN_SEPAY_API_KEY thì SePay báo từng giao dịch về webhook và gói tự kích hoạt (services/sepay.py); chưa có
+thì quản trị đối chiếu sao kê theo NỘI DUNG chuyển khoản (mã yêu cầu) rồi duyệt gói thủ công trong /admin. Bán dịch vụ có thu tiền vẫn cần hỏi thủ tục kinh doanh/thuế — phần mã đã sẵn sàng.
 
 Cấu hình (chủ dự án tự đặt trên Render, KHÔNG để trong mã):
   TERRATWIN_VIETQR_BIN      mã BIN ngân hàng 6 số (vd 970436 Vietcombank, 970415 VietinBank, 970418 BIDV)
@@ -83,4 +83,13 @@ def for_request(req_id: int, plan_id: str, amount_vnd: int) -> dict:
         pass
     return {"available": True, "amount_vnd": amount_vnd, "memo": memo, "qr_payload": data, "qr_svg": svg,
             "bank_bin": bin_code, "account_tail": acct[-4:], "account_name": os.environ.get("TERRATWIN_VIETQR_NAME", ""),
-            "note": "Quét bằng app ngân hàng bất kỳ. Giữ ĐÚNG nội dung chuyển khoản — quản trị đối chiếu theo nội dung rồi kích hoạt gói."}
+            "auto_confirm": _auto(),
+            "note": ("Quét bằng app ngân hàng bất kỳ. Giữ ĐÚNG nội dung chuyển khoản — gói tự kích hoạt khoảng 1 phút sau khi tiền vào."
+                     if _auto() else
+                     "Quét bằng app ngân hàng bất kỳ. Giữ ĐÚNG nội dung chuyển khoản — quản trị đối chiếu theo nội dung rồi kích hoạt gói.")}
+
+
+def _auto() -> bool:
+    """SePay báo về từng giao dịch (services/sepay.py) → không cần quản trị đối chiếu tay."""
+    from app.services import sepay
+    return sepay.configured()
