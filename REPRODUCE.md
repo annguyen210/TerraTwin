@@ -442,6 +442,31 @@ lũ Huế 10/2020, miền Trung 10/2025 thấy nước đúng tuần; đất cao
 38 phút và được huỷ khi CHƯA chạy dòng nào; Version 2 là lượt duy nhất được chấm. Xuất ONNX lỗi (thiếu `onnxscript` trên
 ảnh Kaggle) — không ảnh hưởng kết quả; trọng số `s1_water_unet.pt` nằm trong Output của notebook.
 
+## 12. Nước trong ẢNH THỰC ĐỊA (SegFormer-b0) — CỔNG ĐẠT 18/10/2026, CHƯA bật
+
+Giao thức đăng ký trước khi huấn luyện, cùng commit với script (2e44cb0):
+[`backend/data/ml/field_water_protocol.json`](backend/data/ml/field_water_protocol.json). Dữ liệu: Kaggle
+`faizalkarim/flood-area-segmentation` v1 (CC0), 290 ảnh lũ + mặt nạ nhãn tay; chia cố định 70/15/15 theo hạt giống 20261018
+(204 · 43 · 43, danh sách tên tệp từng tập nằm trong kết quả). Chạy đúng một lần trên GPU Kaggle (2× T4, 40 vòng, 520,8 s),
+script tải theo commit và kiểm SHA-256 `91813015…4a42d655`. Kết quả chép nguyên văn:
+[`backend/data/ml/field_water_result.json`](backend/data/ml/field_water_result.json) — danh sách chia tập đã được kiểm lại
+bằng cách chạy lại đúng phép chia của script.
+
+```bash
+# trên notebook Kaggle (GPU T4, Internet bật, gắn dataset flood-area-segmentation) — đúng ô lệnh đã chạy
+!wget -q -O field_water_seg.py https://raw.githubusercontent.com/annguyen210/TerraTwin/2e44cb094bd1bbad8c17e25a8f74eb594e72b16c/ml/kaggle/field_water_seg.py   && echo "918130157568b66e9385e5585b005df4c77d86134ffb17839ed4f1594a42d655  field_water_seg.py" | sha256sum -c   && pip -q install onnx onnxscript && nvidia-smi -L && python field_water_seg.py --out /kaggle/working/field_water_result.json
+```
+
+| IoU lớp nước trên TEST (43 ảnh, chấm một lần) | Giá trị | Cổng |
+|---|---|---|
+| SegFormer-b0 (chọn bằng valid: vòng 38, IoU valid 0,8437) | **0,816** | ≥ 0,70 |
+| Đường cơ sở màu HSV (không học) | 0,4285 | mô hình phải hơn |
+
+Cổng → **đạt**. Theo giao thức: nếu bật thì chỉ là tín hiệu THAM KHẢO (tỉ lệ điểm ảnh nước trong ảnh thực địa) trong đối chiếu
+ba chiều, không vào nội dung ký, không thay câu trả lời của người dùng. Giới hạn đã viết trước: ảnh lũ nhiều nước, nhiều ảnh
+chụp từ trên cao — đạt cổng không chứng minh đúng trên ruộng Việt Nam. Lượt Kaggle đầu (Version 1) kẹt hàng đợi GPU và được
+huỷ khi CHƯA chạy dòng nào; Version 2 là lượt duy nhất được chấm. Trọng số `.pt` và `.onnx` nằm trong Output của notebook.
+
 ## Nếu một bước không ra kết quả
 
 - **Gọi mạng hụt / rate-limit Open-Meteo**: các endpoint mục 1–3 gọi API thời

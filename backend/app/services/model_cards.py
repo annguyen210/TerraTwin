@@ -249,6 +249,47 @@ def cards() -> list[dict]:
             "code": f"{REPO}/ml/kaggle/s1_water_seg.py",
         })
 
+    # 4a' — Nước trong ẢNH THỰC ĐỊA (SegFormer-b0, Flood Area Segmentation CC0) — đăng ký trước 18/10/2026 (2e44cb0)
+    fw = _load("ml", "field_water_result.json")
+    fw_base = {
+        "id": "field_water_segformer", "kind": tr("học sâu", "deep learning"),
+        "name": tr("Nước trong ảnh thực địa — SegFormer-b0", "Water in field photos — SegFormer-b0"),
+        "task": tr("Tỉ lệ điểm ảnh là nước trong ảnh người dùng chụp tại thửa", "Share of water pixels in a photo the user takes at the plot"),
+        "data": tr("Kaggle Flood Area Segmentation (CC0), 290 ảnh lũ + mặt nạ nhãn tay; chia cố định 70/15/15 theo hạt giống 20261018",
+                   "Kaggle Flood Area Segmentation (CC0), 290 flood photos + hand-drawn masks; fixed 70/15/15 split, seed 20261018"),
+        "code": f"{REPO}/ml/kaggle/field_water_seg.py",
+    }
+    if fw and (fw.get("test") or {}).get("model_iou") is not None:
+        t = fw["test"]
+        out.append({**fw_base,
+            "status": "accepted" if fw.get("passed") else "rejected",
+            "status_label": (tr("cổng mô hình đạt · CHƯA bật (chỉ là tín hiệu tham khảo khi bật)",
+                                "model gate passed · NOT on (reference signal only once on)") if fw.get("passed")
+                             else tr("trượt · ảnh thực địa vẫn chỉ là bằng chứng người dùng", "failed · field photos stay user evidence only")),
+            "split": tr(f"đăng ký trước 18/10/2026 (2e44cb0); chọn mô hình chỉ bằng valid (IoU tốt nhất {fw.get('best_valid_iou')}); "
+                        f"chấm một lần; {fw.get('device', '?')}, {fw.get('epochs')} vòng; train {fw['n']['train']} · valid {fw['n']['valid']} · test {fw['n']['test']}",
+                        f"pre-registered 18/10/2026 (2e44cb0); model chosen on valid only (best IoU {fw.get('best_valid_iou')}); "
+                        f"scored once; {fw.get('device', '?')}, {fw.get('epochs')} epochs; train {fw['n']['train']} · valid {fw['n']['valid']} · test {fw['n']['test']}"),
+            "metrics": [{"label": tr("IoU nước trên test — mô hình", "Water IoU on test — model"), "value": t["model_iou"],
+                         "threshold": "≥ 0.70", "passed": t["model_iou"] >= 0.70},
+                        {"label": tr("IoU nước trên test — đường cơ sở màu HSV (không học)", "Water IoU on test — HSV colour baseline (no learning)"),
+                         "value": t.get("color_baseline_iou"), "threshold": tr("mô hình phải hơn", "model must beat it"),
+                         "passed": t.get("color_baseline_iou") is not None and t["model_iou"] > t["color_baseline_iou"]}],
+            "limits": tr("Ảnh lũ nhiều nước trên thế giới, nhiều ảnh chụp từ trên cao/drone; ruộng lúa ngập nông và mặt ruộng ướt ở Việt Nam có "
+                         "thể khác. Đạt cổng KHÔNG chứng minh đúng trên ruộng Việt Nam — muốn tin hơn cần ảnh thực địa có nhãn của người dùng.",
+                         "Flood photos from many countries, many taken from above/drones; shallow-flooded rice and wet fields in Viet Nam may "
+                         "differ. Passing does NOT prove it works on Vietnamese fields — that needs labelled field photos from users."),
+            "not_for": tr("Không vào nội dung ký của hồ sơ, không thay câu trả lời 'có nước / không' của người dùng.",
+                          "Not in signed dossier content; does not replace the user's own 'water / no water' answer."),
+        })
+    else:
+        out.append({**fw_base, "status": "pending",
+            "status_label": tr("đang huấn luyện trên GPU Kaggle · chấm một lần", "training on Kaggle GPU · scored once"),
+            "split": tr("đăng ký trước 18/10/2026 (2e44cb0): IoU nước trên test ≥ 0,70 và hơn đường cơ sở màu",
+                        "pre-registered 18/10/2026 (2e44cb0): test water IoU ≥ 0.70 and better than the colour baseline"),
+            "metrics": [], "limits": tr("Chưa có kết quả.", "No result yet."),
+            "not_for": tr("Chưa dùng ở đâu.", "Not used anywhere yet.")})
+
     # 4b — Lớp diễn giải mùa lũ (trong/ngoài mùa) — 17/10/2026
     fsr = _load("eval", "flood_season_result.json")
     if fsr:
