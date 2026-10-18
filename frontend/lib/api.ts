@@ -2032,9 +2032,15 @@ export type GroundTruth = {
   cells_covered: number;
   note: string;
 };
+export type ScorecardRegime = ScorecardRates & {
+  id: string; label: string; from: string; to: string | null;
+  counts: Record<string, number>; scored: number; enough: boolean;
+};
 export type Scorecard = ScorecardRates & {
   window_days: number;
   module_id: string | null;
+  regimes?: ScorecardRegime[];
+  forecast_sources?: Record<string, number>;
   counts: Record<string, number>;
   scored: number;
   pending: number;

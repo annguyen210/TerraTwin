@@ -243,6 +243,35 @@ export default function Scorecard({ data, onClose }: {
             </div>
           )}
 
+          {/* Giai đoạn nguồn mưa dự báo — đổi nguồn là đổi thứ đang được chấm, không trộn (18/10/2026) */}
+          {(sc.regimes?.length ?? 0) > 0 && (
+            <div className="sc-mods">
+              <h4>{t("Theo nguồn mưa dự báo", "By rain-forecast source")}</h4>
+              <table>
+                <thead>
+                  <tr>
+                    <th>{t("Giai đoạn", "Period")}</th>
+                    <th>{t("Đã chấm", "Scored")}</th>
+                    <th>{t("Bắt được", "Caught")}</th>
+                    <th>{t("Báo bừa", "False")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sc.regimes!.map((r) => (
+                    <tr key={r.id}>
+                      <td>{r.label} <small className="sc-gt-note">({r.from} → {r.to ?? t("nay", "now")})</small></td>
+                      <td className="sc-num">{r.scored}</td>
+                      <td className="sc-num">{r.enough ? fmtPct(r.pod_pct) : "—"}</td>
+                      <td className="sc-num">{r.enough ? fmtPct(r.far_pct) : "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="sc-gt-note">{t("Tách theo ngày đổi nguồn (tính được cả lần bỏ sót phát hiện về sau); dưới đủ mẫu thì không ghi tỉ lệ.",
+                                           "Split by the switch date (so retro-detected misses count too); no rates below the minimum sample.")}</p>
+            </div>
+          )}
+
           {/* Độ tin cậy theo vùng — nơi mô hình ĐÃ được kiểm chứng (lớn dần theo moat) */}
           {rel && (
             <div className="sc-rel">

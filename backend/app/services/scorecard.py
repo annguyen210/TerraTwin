@@ -52,6 +52,35 @@ DEDUP_DAYS = 7
 # Sổ điểm CÔNG KHAI chỉ tính cảnh báo prod; bản dev-phase bị loại NHƯNG đếm ra.
 DEFAULT_ENV = "prod"
 
+# GIAI ĐOẠN NGUỒN DỰ BÁO MƯA. Đổi nguồn là đổi "mô hình" đang được chấm: gộp chung thì tỉ lệ của hai nguồn trộn lẫn mà
+# không ai thấy. Tách THEO NGÀY (không theo cột trên từng cảnh báo) vì lần BỎ SÓT phát hiện hồi cứu không có nguồn dự báo
+# — chỉ có ngày — mà POD cần cả bỏ sót. Mốc = lượt quét đầu tiên sau khi bản bật tổ hợp lên production.
+REGIMES = [
+    {"id": "best_match", "since": "2000-01-01T00:00:00",
+     "vi": "Mưa dự báo Open-Meteo best_match", "en": "Open-Meteo best_match rain forecast"},
+    {"id": "aifs_blend", "since": "2026-10-18T05:15:00",
+     "vi": "Mưa dự báo = trung bình best_match + ECMWF AIFS (cổng đăng ký trước đạt, data/eval/aifs_blend_result.json)",
+     "en": "Rain forecast = mean of best_match + ECMWF AIFS (pre-registered gate passed, data/eval/aifs_blend_result.json)"},
+]
+
+
+def regimes(db: Session, since: datetime, module_id: str | None = None) -> list[dict]:
+    """Sổ điểm của từng giai đoạn nguồn dự báo giao với cửa sổ [since, nay)."""
+    out = []
+    now = _now()
+    for i, r in enumerate(REGIMES):
+        lo = datetime.fromisoformat(r["since"])
+        hi = datetime.fromisoformat(REGIMES[i + 1]["since"]) if i + 1 < len(REGIMES) else now
+        a, b = max(lo, since), min(hi, now)
+        if a >= b:
+            continue
+        c = _deduped_counts(db, a, until=b, module_id=module_id, env=DEFAULT_ENV)
+        scored = c["hit"] + c["miss"] + c["false_alarm"]
+        out.append({"id": r["id"], "label": tr(r["vi"], r["en"]), "from": a.strftime("%Y-%m-%d"),
+                    "to": b.strftime("%Y-%m-%d") if i + 1 < len(REGIMES) else None,
+                    "counts": c, "scored": scored, "enough": scored >= MIN_SAMPLE, **_rates(c["hit"], c["miss"], c["false_alarm"])})
+    return out
+
 
 def _now() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
@@ -140,9 +169,16 @@ def summary(db: Session, days: int = DEFAULT_WINDOW_DAYS,
             Alert.verify_source == "user", Alert.created_at >= since,
             Alert.env == DEFAULT_ENV)).scalar() or 0
 
+    src_rows = db.execute(
+        select(Alert.forecast_source, func.count(Alert.id)).where(
+            Alert.created_at >= since, Alert.env == DEFAULT_ENV, Alert.retro == 0)
+        .group_by(Alert.forecast_source)).all()
+
     out = {
         "window_days": days,
         "module_id": module_id,
+        "regimes": regimes(db, since, module_id),
+        "forecast_sources": {(k or "unknown"): int(n) for k, n in src_rows},
         "counts": counts,
         "scored": scored,
         "pending": int(pending),

@@ -416,6 +416,9 @@ class Alert(Base):
     # xoá lén. Giá trị khi tạo lấy từ TERRATWIN_ENV (mặc định "prod").
     env: Mapped[str] = mapped_column(String(8), default=_alert_env,
                                      server_default="prod", index=True)
+    # Nguồn MƯA DỰ BÁO lúc phát cảnh báo (18/10/2026): open-meteo | open-meteo-blend (best_match + ECMWF AIFS) | metno
+    # (dự phòng). Bằng chứng để sau này tách tỉ lệ đúng theo nguồn; bản ghi bỏ sót (retro) để trống.
+    forecast_source: Mapped[str | None] = mapped_column(String(24), nullable=True)
 
 
 Index("ix_alert_user_created", Alert.user_id, Alert.created_at.desc())
@@ -886,6 +889,7 @@ _ADDED_COLUMNS = [
     ("alerts", "observed_peak", "FLOAT"),
     ("alerts", "window_days", "INTEGER DEFAULT 7"),
     ("alerts", "retro", "INTEGER DEFAULT 0"),
+    ("alerts", "forecast_source", "VARCHAR(24)"),
     # Đường một chạm.
     ("observations", "source", "VARCHAR(16) DEFAULT 'user'"),
     ("observations", "alert_id", "INTEGER"),

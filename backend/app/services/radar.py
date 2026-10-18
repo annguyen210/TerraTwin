@@ -35,6 +35,17 @@ DEDUP_HOURS = 72
 _RISK_RANK = {"warning": 1, "danger": 2}
 
 
+def _forecast_source(lat: float, lon: float) -> str | None:
+    """Nguồn mưa dự báo của lượt quét vừa xong (open-meteo / open-meteo-blend / metno). Đọc lại weather_7d — kết quả
+    lượt quét còn nằm trong cache nên không tốn lượt gọi mạng. Lỗi → None (không chặn phát cảnh báo)."""
+    try:
+        from app.services import realdata
+        rows = realdata.weather_7d(lat, lon)
+        return (rows[0].get("source") if rows else None) or None
+    except Exception:
+        return None
+
+
 def sweep_user(user_id: int, db: Session, on_progress=None) -> dict:
     """Quét mọi thửa của MỘT người dùng. Trả về số liệu lượt quét.
 
@@ -67,6 +78,7 @@ def sweep_user(user_id: int, db: Session, on_progress=None) -> dict:
             # Một thửa hỏng (mất mạng, nguồn dữ liệu lỗi) không được làm hỏng
             # cả lượt quét của những thửa còn lại.
             continue
+        fsrc = _forecast_source(p.lat, p.lon) if result.alerts else None
         for m in result.alerts:            # scan.alerts đã lọc chỉ dữ liệu thật
             recent = db.execute(
                 select(Alert.risk_level).where(
@@ -81,7 +93,7 @@ def sweep_user(user_id: int, db: Session, on_progress=None) -> dict:
             a = Alert(user_id=user_id, plot_id=p.id, module_id=m.id,
                       risk_level=m.risk_level,
                       headline=f"{p.name}: {m.headline}",
-                      recommendation=m.recommendation)
+                      recommendation=m.recommendation, forecast_source=fsrc)
             db.add(a)
             created.append(a)
     db.commit()
