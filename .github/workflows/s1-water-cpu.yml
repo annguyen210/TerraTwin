@@ -1,0 +1,41 @@
+name: GĐ5 s1_water (dự phòng CPU)
+
+# DỰ PHÒNG cho lượt Kaggle GPU: chạy ĐÚNG script đã đăng ký trước (commit 6d9cfb4, kiểm SHA-256) theo giao thức
+# backend/data/ml/gd5_protocol.json mục s1_water. CHỈ chạy tay (workflow_dispatch) và CHỈ khi lượt Kaggle không chạy được —
+# giao thức cho chấm MỘT lần. Phần cứng không đổi dữ liệu, cách chia tập, mô hình hay ngưỡng; kết quả ghi "device": "cpu".
+on:
+  workflow_dispatch: {}
+
+jobs:
+  s1_water:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Thư viện (torch bản CPU)
+        run: |
+          pip install --index-url https://download.pytorch.org/whl/cpu torch
+          pip install numpy rasterio onnx
+      - name: Lấy đúng script đã đăng ký trước
+        run: |
+          wget -q -O s1_water_seg.py https://raw.githubusercontent.com/annguyen210/TerraTwin/6d9cfb45085dca995bdc027b7892f41be3ee7f2a/ml/kaggle/s1_water_seg.py
+          echo "c48956dcc673acf450e92762ccbba40e0444e7fec7076e45d80fa8b52731cf6f  s1_water_seg.py" | sha256sum -c
+      - name: Huấn luyện + chấm MỘT lần
+        run: |
+          mkdir -p out
+          python s1_water_seg.py --out out/s1_water_result.json
+          python - <<'PY'
+          import json
+          r = json.load(open("out/s1_water_result.json"))
+          res = r.get("results", {})
+          parts = [f"{k}: mô hình {v.get('model')} · ngưỡng −18 dB {v.get('threshold_-18dB')}" for k, v in res.items() if isinstance(v, dict)]
+          print(f"::notice::s1_water — passed={r.get('passed')} · device={r.get('device')} · " + " | ".join(parts))
+          PY
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: s1_water-result
+          path: out/
+          if-no-files-found: ignore
