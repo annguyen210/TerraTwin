@@ -45,7 +45,7 @@ const QUICK: { name: string; lat: number; lon: number; note: string; note_en: st
   { name: "Bến Tre", lat: 10.07, lon: 106.57, note: "ruộng lúa, đồng bằng sông Cửu Long", note_en: "rice fields, Mekong Delta" },
   { name: "Cà Mau", lat: 9.18, lon: 105.09, note: "ruộng lúa–tôm, cực Nam ngập mặn", note_en: "rice–shrimp fields, saline south" },
   { name: "Trà Leng, Quảng Nam", lat: 15.33, lon: 108.05, note: "rừng núi dốc, từng sạt lở", note_en: "steep forested hills, past landslide" },
-  { name: "Huế", lat: 16.52, lon: 107.59, note: "đồng lúa, lũ mùa mưa tháng 9–11", note_en: "rice fields, Sep–Nov floods" },
+  { name: "Huế", lat: 16.52, lon: 107.59, note: "đồng lúa, mùa lũ tháng 10–1 (ERA5)", note_en: "rice fields, Oct–Jan flood season (ERA5)" },
   { name: "Phan Rang", lat: 11.56, lon: 108.93, note: "ruộng ở vùng khô hạn nhất nước", note_en: "fields in the driest region" },
   { name: "Buôn Ma Thuột", lat: 12.73, lon: 108.05, note: "vườn cà phê, cao nguyên bazan", note_en: "coffee farms, basalt highlands" },
   { name: "Hà Nội", lat: 21.12, lon: 105.89, note: "ruộng ven đô, đồng bằng Bắc Bộ", note_en: "peri-urban rice, Red River Delta" },
