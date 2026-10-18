@@ -199,6 +199,56 @@ def cards() -> list[dict]:
             "code": f"{REPO}/backend/app/services/realdata.py",
         })
 
+    # 4a — Mô hình nước trên radar (U-Net, Sen1Floods11) — GĐ5 mục 2, giao thức đăng ký 09/10/2026 (6d9cfb4)
+    s1 = _load("ml", "s1_water_result.json")
+    names = {"test": tr("tập test (90 ô)", "test set (90 chips)"), "bolivia": tr("Bolivia (sự kiện giữ lại)", "Bolivia (held-out event)"),
+             "mekong": tr("Mekong (6 ô, gần Việt Nam nhất)", "Mekong (6 chips, closest to Viet Nam)")}
+    if s1 and not s1.get("limit"):
+        res = s1.get("results") or {}
+        out.append({
+            "id": "s1_water_unet", "kind": tr("học sâu", "deep learning"),
+            "name": tr("Nước trên ảnh radar Sentinel-1 — U-Net (Sen1Floods11)", "Water on Sentinel-1 radar — U-Net (Sen1Floods11)"),
+            "status": "accepted" if s1.get("passed") else "rejected",
+            "status_label": (tr("cổng mô hình đạt · CHƯA bật (phải qua lại cổng GĐ2 trên thửa Việt Nam)",
+                                "model gate passed · NOT on (must re-pass the GĐ2 gate on Vietnamese plots)") if s1.get("passed")
+                             else tr("trượt · lịch sử nước giữ phương pháp ngưỡng −18 dB", "failed · water history keeps the −18 dB threshold")),
+            "task": tr("Phân đoạn nước từng điểm ảnh trên ảnh radar VV/VH", "Per-pixel water segmentation on VV/VH radar"),
+            "data": tr("Sen1Floods11 v1.1, nhãn tay 446 ô 512×512; chia tập chính thức train 252 · valid 89 · test 90 · Bolivia 15",
+                       "Sen1Floods11 v1.1, 446 hand-labelled 512×512 chips; official split train 252 · valid 89 · test 90 · Bolivia 15"),
+            "split": tr(f"đăng ký trước 09/10/2026 (6d9cfb4); chọn mô hình chỉ bằng valid (IoU tốt nhất {s1.get('best_valid_iou')}); "
+                        f"chấm một lần; {s1.get('device', '?')}, {s1.get('epochs')} vòng",
+                        f"pre-registered 09/10/2026 (6d9cfb4); model chosen on valid only (best IoU {s1.get('best_valid_iou')}); "
+                        f"scored once; {s1.get('device', '?')}, {s1.get('epochs')} epochs"),
+            "metrics": [{"label": tr(f"IoU nước — {names.get(k, k)}: mô hình / ngưỡng −18 dB / Otsu",
+                                     f"Water IoU — {names.get(k, k)}: model / −18 dB threshold / Otsu"),
+                         "value": f"{v.get('model')} / {v.get('threshold_-18dB')} / {v.get('otsu_per_chip')}",
+                         "threshold": tr("mô hình > ngưỡng −18 dB", "model > −18 dB threshold"),
+                         "passed": (v.get("model") is not None and v.get("threshold_-18dB") is not None
+                                    and v["model"] > v["threshold_-18dB"])}
+                        for k, v in res.items() if isinstance(v, dict)],
+            "limits": tr("Học trên ô 512×512 điểm ảnh của 11 trận lũ ngoài Việt Nam (trừ Mekong). Lịch sử nước của TerraTwin hiện đọc "
+                         "THỐNG KÊ phân vị từng cảnh trên khung thửa, không đọc ảnh điểm ảnh — muốn dùng mô hình phải đổi cách đọc và qua lại "
+                         "cổng GĐ2 (lũ Huế 10/2020, miền Trung 10/2025, đất cao 0 đợt).",
+                         "Trained on 512×512-pixel chips of 11 floods outside Viet Nam (except Mekong). TerraTwin's water history reads "
+                         "per-scene PERCENTILE statistics over the plot window, not pixel images — using the model needs a different read "
+                         "and must re-pass the GĐ2 gate (Huế 10/2020, central floods 10/2025, high ground 0 events)."),
+            "not_for": tr("Không thay số đo radar trong hồ sơ ký.", "Does not replace radar measurements in signed dossiers."),
+            "code": f"{REPO}/ml/kaggle/s1_water_seg.py",
+        })
+    else:
+        out.append({
+            "id": "s1_water_unet", "kind": tr("học sâu", "deep learning"),
+            "name": tr("Nước trên ảnh radar Sentinel-1 — U-Net (Sen1Floods11)", "Water on Sentinel-1 radar — U-Net (Sen1Floods11)"),
+            "status": "pending", "status_label": tr("đang huấn luyện trên GPU Kaggle · chấm một lần", "training on Kaggle GPU · scored once"),
+            "task": tr("Phân đoạn nước từng điểm ảnh trên ảnh radar VV/VH", "Per-pixel water segmentation on VV/VH radar"),
+            "data": tr("Sen1Floods11 v1.1, nhãn tay", "Sen1Floods11 v1.1, hand-labelled"),
+            "split": tr("đăng ký trước 09/10/2026 (6d9cfb4): mô hình > ngưỡng −18 dB trên cả test, Bolivia, Mekong",
+                        "pre-registered 09/10/2026 (6d9cfb4): model > −18 dB threshold on test, Bolivia and Mekong"),
+            "metrics": [], "limits": tr("Chưa có kết quả.", "No result yet."),
+            "not_for": tr("Chưa dùng ở đâu.", "Not used anywhere yet."),
+            "code": f"{REPO}/ml/kaggle/s1_water_seg.py",
+        })
+
     # 4b — Lớp diễn giải mùa lũ (trong/ngoài mùa) — 17/10/2026
     fsr = _load("eval", "flood_season_result.json")
     if fsr:
