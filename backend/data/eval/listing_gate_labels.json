@@ -1,0 +1,258 @@
+{
+ "protocol": "terratwin.listing_gate/1",
+ "labeler": "Claude (claude-opus-5-5) theo uỷ quyền chủ dự án 18/10/2026 — KHÔNG phải nhãn người; chưa có người duyệt",
+ "labelled_before_scoring": true,
+ "labels": [
+  {
+   "row": 2869,
+   "sha256": "577d76a060457ce43e7d0d3d03e1a36a70197a355478e69937d215ce799e68db",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 9971,
+   "sha256": "c376fa005515ee0dd651294f1f5c2e0ef91f6d941fc510af8f029e806ef79dc1",
+   "claims": []
+  },
+  {
+   "row": 14051,
+   "sha256": "e263d6010d8e012b9c9e448b55aa85f5c7d50f955b3ee6671c6d28b880e8ef3b",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 39501,
+   "sha256": "69513b54b67082f4497197298b37cb194c3f88a858ae597cc3eda66a374d107a",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 40314,
+   "sha256": "66d5e34297b42e9e75b01e12563afb27366a3d4610bb9e273568c2ba891c884b",
+   "claims": [
+    "residential",
+    "near_sea"
+   ],
+   "note": "'cách bãi tắm Quất Lâm 2 phút' = gần biển; 'quảng trường Biển' là địa danh"
+  },
+  {
+   "row": 41150,
+   "sha256": "6c4d5bd62fceedf2ac95999c0cad893eef20745e780697d0e9849a0ed4df1be3",
+   "claims": []
+  },
+  {
+   "row": 50079,
+   "sha256": "dab9e2303cef0e01af04e476b27e3119ffa4a44aff3fdd9b72e6509f80fb14d2",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 61451,
+   "sha256": "c87859822d7684bcadb26165056a202ac5b1b2930673326f9c7e6a640fa5500b",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 70500,
+   "sha256": "3964a2aefa76f95de1d1474d5e934094339ce79155881bb21d82ce4f87765615",
+   "claims": [
+    "residential",
+    "high_ground"
+   ]
+  },
+  {
+   "row": 94895,
+   "sha256": "11f63e476477cd09094ee007dbdb1a5dc103e0fedf0c4d186d8e3b62bd6363d0",
+   "claims": [],
+   "note": "'sát hồ Đại Lải' — hồ không tính gần sông"
+  },
+  {
+   "row": 95915,
+   "sha256": "bd004ad2d927eee506bda93caee46e66142f0ce9fb305d44bee30e078d9dda90",
+   "claims": [
+    "residential"
+   ],
+   "note": "'đã lên thổ' = đã có thổ cư"
+  },
+  {
+   "row": 108882,
+   "sha256": "9e0d2a7915a3c4f6f8af223ea15bc5f2430690a5a6ddfa713ea71234511a421a",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 118085,
+   "sha256": "84b09947105eceb6eb972110175a867ec97fe27fe719238239d548f0c18cf37e",
+   "claims": [
+    "near_river"
+   ],
+   "note": "'bao quanh bởi sông Sài Gòn và sông Giồng Ông Tố' — khẳng định về khu đất"
+  },
+  {
+   "row": 130646,
+   "sha256": "8b532c24d7ad0b90482ec0c0af726be7fcb2b4bf0d4e56ebc92a15e855f2bfef",
+   "claims": []
+  },
+  {
+   "row": 137563,
+   "sha256": "4cd82878f5f571a9ecf832c03bbfd07bbbe91aa77ad6a02dc607f857d1db38c9",
+   "claims": []
+  },
+  {
+   "row": 138513,
+   "sha256": "468f39d5c75fbb7c238ccbfa60db61f77e2f8f4e4d16c9f03063a1a1ba4d8d2e",
+   "claims": []
+  },
+  {
+   "row": 139716,
+   "sha256": "bf3e2d7c1ab7659b64b9fca483ce3e0b7c47f4215e247aaa497232ac5cb15286",
+   "claims": []
+  },
+  {
+   "row": 150621,
+   "sha256": "0cca3fe75e113b2e92f5bdd15f629e586ac08c36406ff413acb4a9241ba623af",
+   "claims": []
+  },
+  {
+   "row": 151364,
+   "sha256": "2bada41db7a5c218048c8673b3081ebfd9c1ff9575b242329e0c34fd0d8f101c",
+   "claims": []
+  },
+  {
+   "row": 162430,
+   "sha256": "f9cef784fcc12873df56847a84940cf28bc476c3c3e93a0f253579d864692fd0",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 165900,
+   "sha256": "00e2f91e9d1c75a696bf23930c1fa7cf9dd4d73f2dba0690e463f59a85c4a4b0",
+   "claims": []
+  },
+  {
+   "row": 172596,
+   "sha256": "421c685cdb8362d630f32df0e5707e8700cb9f677efcd9414107c7a471a54404",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 174513,
+   "sha256": "bedc89d47616159b74422cb9a942f6567700a0f53aff5314cc34c2b3f687cbd4",
+   "claims": [],
+   "note": "'Đất ở khu dân cư đông đúc' đọc là 'đất NẰM Ở khu dân cư', không khẳng định loại đất ở"
+  },
+  {
+   "row": 179237,
+   "sha256": "a8c574b7406b3517eb0a4b975816a903eafcf3d8f16dcce1bdd0509ded255514",
+   "claims": [],
+   "note": "'cách cầu Cao 200m' — cầu, không nói sông"
+  },
+  {
+   "row": 188661,
+   "sha256": "7ef967747731614af0da0cd1f9d1ae9036bbdfa23be6bd4b91c74f15faecae04",
+   "claims": []
+  },
+  {
+   "row": 197342,
+   "sha256": "4c3c8975cd6219d0b971ee0a6cf70822886bac0859e358f18db167af21dfe541",
+   "claims": [
+    "residential"
+   ],
+   "note": "'đã lên thổ 200m' có; 'mặc sức lên thổ' là tương lai"
+  },
+  {
+   "row": 206517,
+   "sha256": "fae102a48967eb52f2b14d0ee189034567f5bcfc6d5421d18afad5dc20e405b4",
+   "claims": []
+  },
+  {
+   "row": 225265,
+   "sha256": "13ab1d1c441ad419106ed3c117628576ca2b7700aa99a8a51af7ba04ee0b5650",
+   "claims": []
+  },
+  {
+   "row": 231285,
+   "sha256": "db4769d021c96bc9852d86a2449c84cd41916fdba5919dea791a76a5d6891357",
+   "claims": [
+    "residential"
+   ],
+   "note": "'full tc' = full thổ cư"
+  },
+  {
+   "row": 241124,
+   "sha256": "ee6cf8709e69dbfbbcba258408e28a1f28ff1eff52ba5465e5073df2ad37a681",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 277338,
+   "sha256": "2e8c03c7d0a0c1dbcf1088c288cb22bc98047031e2b41b2ec9b5954f1006501e",
+   "claims": []
+  },
+  {
+   "row": 280505,
+   "sha256": "b08a9ced5434645b538be529b041759b1d82ab85e39d148ae7de06f74318886f",
+   "claims": [
+    "near_sea"
+   ],
+   "note": "'gần biển Nguyễn Tất Thành'"
+  },
+  {
+   "row": 285230,
+   "sha256": "2eaa7f5035b88813b8b657b0fb96f1f80e1d6e75c47cf9e4b6d4f422611929fc",
+   "claims": []
+  },
+  {
+   "row": 286688,
+   "sha256": "cca2205429ad7481b6fd099425d86c32bbd224464b1e2e07bf883b9c6d6bea78",
+   "claims": []
+  },
+  {
+   "row": 295795,
+   "sha256": "557657e9e52637bc19e8f16f22aeb1ec183d735dc8d6566b3ddf28058880666a",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 303981,
+   "sha256": "fc8c347cdf1b64dd7d1b4f23b1a8fd184effcd378ef53a408fc6723c0cedacd9",
+   "claims": [
+    "near_sea"
+   ]
+  },
+  {
+   "row": 320631,
+   "sha256": "01493b21d06afd123736a75fcb96c761d3b64fe05c730c42837d25a3fe2c8c02",
+   "claims": []
+  },
+  {
+   "row": 332270,
+   "sha256": "aa23ddbafd97acc0932ba094febedfdf2daac0e106357786bb361e45475acaaf",
+   "claims": []
+  },
+  {
+   "row": 332354,
+   "sha256": "2194efa476b4943ad89ee6e0d10dc245906ddfbee769d7632865a797fd7f6f16",
+   "claims": [
+    "near_sea",
+    "residential"
+   ],
+   "note": "'cách biển Trần Phú 1,6km' + '(odt)'"
+  },
+  {
+   "row": 343783,
+   "sha256": "e1c6ff84bac4297e6581ee3e9aa8685b256d6994b8eeb83200c0cff5aa8c6854",
+   "claims": []
+  }
+ ]
+}
