@@ -1,0 +1,29 @@
+{
+  "id": "terratwin.listing_gate/1",
+  "registered": "2026-10-18",
+  "registered_before_sampling": true,
+  "purpose": "Cổng GĐ3: đo bộ tách câu khẳng định (luật từ khoá, backend/app/services/listing_check.py) trên TIN ĐĂNG ĐẤT THẬT. Thay cho việc chờ chủ dự án tự thu 20 tin.",
+  "data": {
+    "source": "Hugging Face tinixai/vietnam-real-estates (TiniX AI), revision ca3fedcbb089bf65f7e4cfb03316cce4bd0d779f, tệp shard_0000.parquet (LFS sha256 e3fe7e7af9b4b4d01f6a93a3d9ba9dde49f7fc828eaa785a653d35d9d6a42e13)",
+    "license": "CC BY-NC 4.0 (thẻ dữ liệu, đọc 18/10/2026) — chỉ dùng phi thương mại để KIỂM ĐỊNH; không chép nguyên văn tin vào repo, chỉ lưu chỉ số hàng + SHA-256 nội dung + nhãn",
+    "privacy": "Thẻ dữ liệu ghi số điện thoại đã bị xoá; TerraTwin vẫn chạy listing_gold.anonymize trước khi hiển thị",
+    "population": "Các hàng của shard_0000 có property_type_name == 'Đất' và mô tả (description, bỏ khoảng trắng đầu/cuối) dài ≥ 50 ký tự",
+    "sample": "Chỉ số hàng (theo thứ tự trong tệp) của tổng thể, sắp tăng dần; random.Random(20261019).sample(danh_sách, 40); sắp kết quả tăng dần. Văn bản chấm = description (không gồm tiêu đề name)."
+  },
+  "labeler": "Claude (mô hình AI claude-opus-5-5), theo uỷ quyền của chủ dự án trong phiên 18/10/2026 ('gán nhãn bạn cũng làm được'). KHÔNG phải nhãn người; cùng 'tác giả' với bộ luật từ khoá nên không độc lập hoàn toàn — thẻ kết quả phải ghi rõ. Nhãn được commit TRƯỚC khi chạy bộ tách câu trên mẫu (thứ tự commit là bằng chứng).",
+  "label_rules": {
+    "general": "Gán một loại câu khi mô tả KHẲNG ĐỊNH điều đó về chính lô đất/khu đất đang bán (kể cả diễn đạt khác từ khoá). Không gán khi chỉ nhắc tới địa danh (vd tên đường có chữ 'Sông'), khi phủ định, hay khi nói về nơi khác.",
+    "no_flood": "không ngập / chưa từng ngập / không lo ngập / khô ráo quanh năm",
+    "high_ground": "đất cao, cao ráo, nền cao, không trũng, cao hơn mặt đường/khu vực",
+    "near_river": "gần / ven / giáp / sát / view / cách X m tới sông, kênh, rạch (hồ, suối, ao KHÔNG tính)",
+    "near_sea": "gần / ven / view / cách X km tới biển, bãi biển",
+    "flat": "đất bằng phẳng / không dốc; 'vuông vức', 'nở hậu' là HÌNH DÁNG, không tính",
+    "no_landslide": "không sạt lở",
+    "residential": "lô đất CÓ (toàn bộ hoặc một phần) đất ở / thổ cư / ODT / ONT; 'có thể lên thổ cư', 'hỗ trợ lên thổ cư' (chưa có) KHÔNG tính",
+    "fresh_water": "nước ngọt / không nhiễm mặn / giếng ngọt"
+  },
+  "metric": "Như ops/listing_gate.py và services/listing_gold.score: chính xác / độ phủ / F1 từng loại câu; F1 trung bình (macro) trên các loại có ít nhất một nhãn hoặc một dự đoán.",
+  "threshold": "ĐẠT khi F1 trung bình ≥ 0,80 trên ≥ 20 tin (cùng ngưỡng kế hoạch đặt cho PhoBERT). Trượt thì công bố từng loại sai ở đâu; luật từ khoá vẫn là bộ tách câu duy nhất đang chạy nên không tắt, nhưng thẻ mô hình ghi rõ độ chính xác thật.",
+  "one_shot": "Chấm đúng một lần bằng ops/listing_gate_hf.py sau commit nhãn; không sửa luật rồi chấm lại trên CÙNG mẫu này (sửa luật thì lần sau phải đăng ký mẫu mới).",
+  "script": "ops/listing_gate_hf.py"
+}
