@@ -203,6 +203,17 @@ def _db_events(db: Session, user_id: int, plot, since: datetime) -> list[dict]:
                        tr("Câu trả lời của bạn", "Your answer"), module_id=o.module_id, observed_on=o.observed_on,
                        occurred=occurred))
 
+    # Xác nhận TỪNG đợt nước radar của chính chủ thửa (18/10/2026) — sự thật mặt đất, cùng loại với câu trả lời một chạm.
+    from app.db import WaterConfirm
+    lab = {"yes": tr("có ngập", "flooded"), "no": tr("không ngập", "not flooded"), "unsure": tr("không rõ", "not sure")}
+    for w in db.execute(select(WaterConfirm).where(WaterConfirm.user_id == user_id, WaterConfirm.updated_at >= since)).scalars():
+        if _dist_m(w.lat, w.lon, plot.lat, plot.lon) > DEVICE_NEAR_M:
+            continue
+        out.append(_ev(_iso(w.updated_at or w.created_at), "water_confirm", w.answer != "unsure",
+                       tr(f"Bạn xác nhận đợt nước radar {w.event_start}: {lab.get(w.answer, w.answer)}",
+                          f"You confirmed the radar water event of {w.event_start}: {lab.get(w.answer, w.answer)}"),
+                       tr("Câu trả lời của bạn", "Your answer"), event_start=w.event_start, answer=w.answer))
+
     for ph in db.execute(select(FieldPhoto).where(FieldPhoto.user_id == user_id, FieldPhoto.created_at >= since)).scalars():
         if _dist_m(ph.plot_lat, ph.plot_lon, plot.lat, plot.lon) > DEVICE_NEAR_M:
             continue

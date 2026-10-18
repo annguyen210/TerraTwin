@@ -299,8 +299,8 @@ export default function PlotPlan({
         </div>
       </div>
       {waterPending && (
-        <div className="plan-assume plan-wait" role="alertdialog" aria-label={t("Lịch sử nước chưa đọc xong", "Water history not finished")}>
-          <p>{t("Lịch sử nước radar của thửa này đang được đọc (thửa mới thường 1–3 phút). Phát hành NGAY thì hồ sơ ký sẽ ghi mục này là THIẾU — không thể bổ sung sau, vì nội dung đã ký không sửa được.",
+        <div className="plan-assume plan-wait" role="group" aria-label={t("Lịch sử nước chưa đọc xong", "Water history not finished")}>
+          <p role="alert">{t("Lịch sử nước radar của thửa này đang được đọc (thửa mới thường 1–3 phút). Phát hành NGAY thì hồ sơ ký sẽ ghi mục này là THIẾU — không thể bổ sung sau, vì nội dung đã ký không sửa được.",
                 "This plot's radar water history is still being read (a new plot usually takes 1–3 minutes). Issuing NOW records that section as MISSING in the signed dossier — it can't be added later, since signed content can't change.")}</p>
           <div className="plan-wait-btns">
             <button className="bat-btn" disabled={issuing !== null} onClick={async () => {
