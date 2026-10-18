@@ -25,6 +25,7 @@ không phá rừng sau 31/12/2020. Đây là nhu cầu BẮT BUỘC có hạn ch
 | "Chạm là có ranh" (77 ranh OSM) | IoU 0,60 | 0,38 | trượt, không bật |
 | U-Net lớp phủ đất (2 lần) | mIoU 0,35 | 0,232 → 0,314 | trượt, không bật |
 | **Loại đất bằng AlphaEarth + softmax** — cùng nhãn WorldCover, cùng 4 tỉnh giữ lại với U-Net | mIoU 0,35 | **0,420** (trồng trọt 0,578; đúng 84% điểm ảnh) | **đạt, đã bật**: "Đất có đổi khác sau 2021?" (tham khảo, không vào hồ sơ ký); giao thức commit trước (0f1997d); yếu: cây bụi, đất ngập nước, rừng ngập mặn |
+| **Nước trên radar bằng học sâu (U-Net, Sen1Floods11)** — GPU Kaggle, đăng ký trước 6d9cfb4 | IoU > ngưỡng −18 dB trên test, Bolivia, Mekong | 0,668 / 0,681 / 0,851 so với 0,443 / 0,324 / 0,696 | **đạt cổng mô hình, CHƯA bật** — phải đọc ảnh điểm ảnh + qua lại cổng GĐ2 (`REPRODUCE.md` §11) |
 | Lịch sử nước radar (Sentinel-1, quy tắc) | lũ Huế 10/2020, miền Trung 10/2025 đúng tuần; đất cao 0 đợt | đạt cả 3 ca | **đạt, đã bật** (đo thật, vào hồ sơ ký) — `REPRODUCE.md` §7 |
 | Lớp diễn giải mùa lũ v1 (trong / ngoài mùa, ERA5) | 4 ca đăng ký trước | 4/4 | **đạt, đã bật** (6de80c3 → 5514f25) — §7b |
 | Mùa lũ v2 (mưa cực đoan P97) | dương tính ≥ 75%, 0 bắt nhầm | Noru không có cảnh; Cà Mau 05/04/2025 bắt nhầm | trượt, không bật — §7c |

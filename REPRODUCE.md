@@ -414,6 +414,34 @@ Kết quả (ghi trong `backend/data/landcover_runs.json`, lần 3): **mIoU 0,42
 chấm cuối trên bộ tỉnh này. Bật: `GET /api/landcover/change` (2021 so với năm mới nhất, nhóm đổi ≥ 25 điểm % mới
 gọi là đổi khác) — dự đoán, không vào hồ sơ ký.
 
+## 11. Nước trên ảnh radar bằng học sâu (U-Net, Sen1Floods11) — CỔNG GĐ5 (mục 2) ĐẠT 18/10/2026, CHƯA bật
+
+Giao thức đăng ký trước 09/10/2026 cùng commit với script (6d9cfb4): [`backend/data/ml/gd5_protocol.json`](backend/data/ml/gd5_protocol.json)
+mục `s1_water`. Chạy đúng một lần trên GPU Kaggle (2× Tesla T4, 40 vòng, 1.124,6 s), script tải theo đúng commit và kiểm
+SHA-256 `c48956dc…31cf6f` trước khi chạy. Kết quả chép nguyên văn: [`backend/data/ml/s1_water_result.json`](backend/data/ml/s1_water_result.json).
+
+```bash
+# trên notebook Kaggle (GPU T4, Internet bật) — đúng ô lệnh đã chạy
+!wget -q -O s1_water_seg.py https://raw.githubusercontent.com/annguyen210/TerraTwin/6d9cfb45085dca995bdc027b7892f41be3ee7f2a/ml/kaggle/s1_water_seg.py \
+  && echo "c48956dcc673acf450e92762ccbba40e0444e7fec7076e45d80fa8b52731cf6f  s1_water_seg.py" | sha256sum -c \
+  && pip -q install rasterio onnx && nvidia-smi -L && python s1_water_seg.py --out /kaggle/working/s1_water_result.json
+```
+
+Chọn mô hình CHỈ bằng tập valid (tốt nhất vòng 31, IoU 0,6457); test, Bolivia, Mekong chấm một lần ở cuối:
+
+| IoU lớp nước | U-Net | Ngưỡng −18 dB (đang dùng ở GĐ2) | Otsu theo ô |
+|---|---|---|---|
+| Test (90 ô) | **0,668** | 0,443 | 0,209 |
+| Bolivia (15 ô — sự kiện giữ lại hoàn toàn) | **0,681** | 0,324 | 0,307 |
+| Mekong (6 ô — gần Việt Nam nhất) | **0,851** | 0,696 | 0,299 |
+
+Cổng (mô hình > ngưỡng −18 dB trên CẢ BA) → **đạt**. Theo đúng giao thức, đạt mới là bước 1: **chưa bật**. Lịch sử nước của
+thửa hiện đọc THỐNG KÊ phân vị từng cảnh trên khung thửa (Planetary Computer `/item/statistics`), không đọc ảnh điểm ảnh;
+muốn dùng mô hình phải đọc ảnh VV/VH của khung thửa cho từng cảnh, chạy mô hình, rồi qua lại cổng GĐ2 (`ops/water_gate.py`:
+lũ Huế 10/2020, miền Trung 10/2025 thấy nước đúng tuần; đất cao 0 đợt). Lượt Kaggle đầu (Version 1) bị kẹt hàng đợi GPU
+38 phút và được huỷ khi CHƯA chạy dòng nào; Version 2 là lượt duy nhất được chấm. Xuất ONNX lỗi (thiếu `onnxscript` trên
+ảnh Kaggle) — không ảnh hưởng kết quả; trọng số `s1_water_unet.pt` nằm trong Output của notebook.
+
 ## Nếu một bước không ra kết quả
 
 - **Gọi mạng hụt / rate-limit Open-Meteo**: các endpoint mục 1–3 gọi API thời

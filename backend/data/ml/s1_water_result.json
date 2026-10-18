@@ -1,0 +1,255 @@
+{
+ "protocol": "terratwin.gd5.s1_water/1",
+ "protocol_sha256": null,
+ "script_sha256": "c48956dcc673acf450e92762ccbba40e0444e7fec7076e45d80fa8b52731cf6f",
+ "seed": 20261009,
+ "limit": null,
+ "started": "2026-10-18T14:33:18Z",
+ "width": 32,
+ "best_valid_iou": 0.6457,
+ "epochs": 40,
+ "log": [
+  {
+   "epoch": 1,
+   "loss": 38.1803,
+   "valid_iou": 0.5238
+  },
+  {
+   "epoch": 2,
+   "loss": 33.5421,
+   "valid_iou": 0.58
+  },
+  {
+   "epoch": 3,
+   "loss": 30.1739,
+   "valid_iou": 0.599
+  },
+  {
+   "epoch": 4,
+   "loss": 29.5141,
+   "valid_iou": 0.6008
+  },
+  {
+   "epoch": 5,
+   "loss": 26.3362,
+   "valid_iou": 0.5928
+  },
+  {
+   "epoch": 6,
+   "loss": 25.7589,
+   "valid_iou": 0.6111
+  },
+  {
+   "epoch": 7,
+   "loss": 24.2024,
+   "valid_iou": 0.5967
+  },
+  {
+   "epoch": 8,
+   "loss": 25.5769,
+   "valid_iou": 0.6296
+  },
+  {
+   "epoch": 9,
+   "loss": 23.3519,
+   "valid_iou": 0.5942
+  },
+  {
+   "epoch": 10,
+   "loss": 23.4896,
+   "valid_iou": 0.6203
+  },
+  {
+   "epoch": 11,
+   "loss": 24.9095,
+   "valid_iou": 0.5713
+  },
+  {
+   "epoch": 12,
+   "loss": 23.1898,
+   "valid_iou": 0.6257
+  },
+  {
+   "epoch": 13,
+   "loss": 25.0124,
+   "valid_iou": 0.6093
+  },
+  {
+   "epoch": 14,
+   "loss": 22.5071,
+   "valid_iou": 0.6262
+  },
+  {
+   "epoch": 15,
+   "loss": 24.9617,
+   "valid_iou": 0.6086
+  },
+  {
+   "epoch": 16,
+   "loss": 22.9203,
+   "valid_iou": 0.6234
+  },
+  {
+   "epoch": 17,
+   "loss": 21.9562,
+   "valid_iou": 0.5936
+  },
+  {
+   "epoch": 18,
+   "loss": 20.9346,
+   "valid_iou": 0.6241
+  },
+  {
+   "epoch": 19,
+   "loss": 22.4909,
+   "valid_iou": 0.6238
+  },
+  {
+   "epoch": 20,
+   "loss": 20.4391,
+   "valid_iou": 0.6365
+  },
+  {
+   "epoch": 21,
+   "loss": 20.8075,
+   "valid_iou": 0.6423
+  },
+  {
+   "epoch": 22,
+   "loss": 20.4294,
+   "valid_iou": 0.5836
+  },
+  {
+   "epoch": 23,
+   "loss": 21.802,
+   "valid_iou": 0.6257
+  },
+  {
+   "epoch": 24,
+   "loss": 21.1172,
+   "valid_iou": 0.6363
+  },
+  {
+   "epoch": 25,
+   "loss": 20.6456,
+   "valid_iou": 0.5631
+  },
+  {
+   "epoch": 26,
+   "loss": 22.2726,
+   "valid_iou": 0.6063
+  },
+  {
+   "epoch": 27,
+   "loss": 19.5329,
+   "valid_iou": 0.6235
+  },
+  {
+   "epoch": 28,
+   "loss": 20.2572,
+   "valid_iou": 0.6383
+  },
+  {
+   "epoch": 29,
+   "loss": 20.1839,
+   "valid_iou": 0.6271
+  },
+  {
+   "epoch": 30,
+   "loss": 21.2005,
+   "valid_iou": 0.6111
+  },
+  {
+   "epoch": 31,
+   "loss": 20.0877,
+   "valid_iou": 0.6457
+  },
+  {
+   "epoch": 32,
+   "loss": 21.9971,
+   "valid_iou": 0.6387
+  },
+  {
+   "epoch": 33,
+   "loss": 20.0778,
+   "valid_iou": 0.6387
+  },
+  {
+   "epoch": 34,
+   "loss": 19.4717,
+   "valid_iou": 0.6166
+  },
+  {
+   "epoch": 35,
+   "loss": 19.4074,
+   "valid_iou": 0.6402
+  },
+  {
+   "epoch": 36,
+   "loss": 19.3992,
+   "valid_iou": 0.6411
+  },
+  {
+   "epoch": 37,
+   "loss": 18.315,
+   "valid_iou": 0.6445
+  },
+  {
+   "epoch": 38,
+   "loss": 19.2476,
+   "valid_iou": 0.6425
+  },
+  {
+   "epoch": 39,
+   "loss": 18.923,
+   "valid_iou": 0.6409
+  },
+  {
+   "epoch": 40,
+   "loss": 18.8728,
+   "valid_iou": 0.6423
+  }
+ ],
+ "norm": {
+  "mean": [
+   -10.396844863891602,
+   -17.241209030151367
+  ],
+  "std": [
+   4.033189296722412,
+   4.753185749053955
+  ]
+ },
+ "results": {
+  "test": {
+   "model": 0.6682,
+   "threshold_-18dB": 0.4431,
+   "otsu_per_chip": 0.2091,
+   "n_chips": 90
+  },
+  "bolivia": {
+   "model": 0.681,
+   "threshold_-18dB": 0.3238,
+   "otsu_per_chip": 0.3068,
+   "n_chips": 15
+  },
+  "mekong": {
+   "model": 0.8505,
+   "threshold_-18dB": 0.6963,
+   "otsu_per_chip": 0.299,
+   "n_chips": 6
+  }
+ },
+ "passed": true,
+ "device": "cuda",
+ "seconds": 1124.6,
+ "provenance": {
+  "note": "Chép NGUYÊN VĂN từ /kaggle/working/s1_water_result.json (đọc trên trang Output của Kaggle, 18/10/2026) — không chạy lại, không chỉnh. 'protocol_sha256' null vì trên Kaggle chỉ có tệp script; script_sha256 khớp ml/kaggle/s1_water_seg.py ở commit 6d9cfb4 (giao thức backend/data/ml/gd5_protocol.json đăng ký cùng commit, 09/10/2026).",
+  "kaggle_notebook": "annguyen233t/notebookaddc9ee9dd",
+  "kaggle_version": 2,
+  "kaggle_version_1": "huỷ khi còn xếp hàng GPU 38 phút — chưa chạy dòng nào",
+  "hardware": "2× Tesla T4 (script dùng 1 GPU)",
+  "onnx_export": "lỗi (thiếu gói onnxscript trên ảnh Kaggle) — không ảnh hưởng kết quả; trọng số s1_water_unet.pt nằm trong Output của notebook",
+  "best_epoch": 31
+ }
+}
