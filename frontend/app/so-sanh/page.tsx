@@ -71,8 +71,8 @@ export default function ComparePage() {
     (async () => {
       try { if (!(await waterStatus()).enabled) return; } catch { return; }
       let done = 0;
-      setReading(t(`Đang tự đọc lịch sử nước radar cho ${todo.length} thửa (thửa mới thường 1–3 phút mỗi thửa)…`,
-                   `Reading radar water history for ${todo.length} plot(s) (a new plot usually 1–3 min each)…`));
+      setReading(t(`Đang tự đọc lịch sử nước radar cho ${todo.length} thửa (thửa mới thường khoảng 1 phút mỗi thửa)…`,
+                   `Reading radar water history for ${todo.length} plot(s) (a new plot usually about 1 min each)…`));
       await Promise.all(todo.map(async (c) => {
         try {
           const j = await waterStart(c.lat, c.lon);

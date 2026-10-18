@@ -31,7 +31,7 @@ export default function ListingCheck({ lat, lon }: { lat: number; lon: number })
   }, []);
 
   async function readWaterThenRecheck() {
-    // "Không ngập"/"cao ráo" cần lịch sử nước radar của thửa. Đọc (~2 phút lần đầu, chạy nền) rồi tự đối chiếu lại.
+    // "Không ngập"/"cao ráo" cần lịch sử nước radar của thửa. Đọc (~1 phút lần đầu, chạy nền) rồi tự đối chiếu lại.
     setErr(null); setWater(t("Đang bắt đầu đọc ảnh radar…", "Starting the radar read…"));
     try {
       const j = await waterStart(lat, lon);
@@ -99,7 +99,7 @@ export default function ListingCheck({ lat, lon }: { lat: number; lon: number })
             <div className="lc-water">
               <p>{t("Câu về ngập / cao ráo cần lịch sử nước radar Sentinel-1 của thửa này — chưa đọc.", "Flood / high-ground claims need this plot's Sentinel-1 radar water history — not read yet.")}</p>
               <button className="bat-btn" onClick={readWaterThenRecheck} disabled={!!water}>
-                {water ?? t("Đọc lịch sử nước radar (thường 1–3 phút) rồi đối chiếu lại", "Read the radar water history (usually 1–3 min) and re-check")}</button>
+                {water ?? t("Đọc lịch sử nước radar (thường khoảng 1 phút) rồi đối chiếu lại", "Read the radar water history (usually about 1 min) and re-check")}</button>
             </div>
           )}
           <p className="eu-src">{r.note}</p>
