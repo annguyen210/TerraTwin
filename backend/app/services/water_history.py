@@ -42,9 +42,10 @@ _SCENE_TTL = 400 * 24 * 3600          # cảnh cũ không đổi
 _RESULT_TTL = 6 * 24 * 3600           # có cảnh mới mỗi 6–12 ngày
 _PARTIAL_TTL = 6 * 3600                # còn cảnh lỗi mạng → đọc lại sớm (cảnh đã đọc nằm trong cache, chỉ đọc phần thiếu)
 # Số lượt đọc song song tới Planetary Computer. Thời gian chủ yếu là CHỜ mạng (~1,3 s/cảnh), không phải CPU.
-# Đo 18/10/2026 — local: 4 luồng 3,0 cảnh/s · 8 luồng 5,3 · 12 luồng 6,5; production 8 luồng 459 cảnh / 71,6 s; 0 cảnh lỗi.
-# 12 sau khi có thử lại + ghi số cảnh thiếu. Nguồn bắt đầu từ chối → giảm bằng biến môi trường.
-S1_WORKERS = max(1, int(os.environ.get("TERRATWIN_S1_WORKERS", "12")))
+# Đo 18/10/2026 — local: 4 luồng 3,0 cảnh/s · 8 luồng 5,3 · 12 luồng 6,5. Production (Render gói miễn phí, ít CPU):
+# 4 luồng ~181 s · 8 luồng 459 cảnh / 71,6 s · 12 luồng 459 cảnh / 77,7 s — quá 8 thì CPU là nút thắt, chỉ thêm tải lên
+# nguồn. Giữ 8. 0 cảnh lỗi ở mọi lượt đo; cảnh lỗi (nếu có) được thử lại và ghi số thiếu.
+S1_WORKERS = max(1, int(os.environ.get("TERRATWIN_S1_WORKERS", "8")))
 RETRY_ROUNDS = 2
 JOB_KIND = "water_history"
 
