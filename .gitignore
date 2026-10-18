@@ -64,3 +64,6 @@ iot_sim_key*.txt
 
 # GĐ5 — vectơ AlphaEarth cho 213 ô loại đất (~20 MB): dựng lại được bằng `python -m app.ml.aef_landcover extract`
 backend/data/ml/aef_lc_features.npz
+
+# Script headless tạm khi kiểm thử (browser-automation --script cần tệp nằm trong frontend/)
+frontend/.x.mjs
