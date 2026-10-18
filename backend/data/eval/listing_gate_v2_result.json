@@ -1,0 +1,287 @@
+{
+ "protocol": "terratwin.listing_gate/2",
+ "population": 88096,
+ "n": 40,
+ "enough": true,
+ "per_type": [
+  {
+   "type": "near_river",
+   "precision": 1.0,
+   "recall": 0.5,
+   "f1": 0.67,
+   "tp": 1,
+   "fp": 0,
+   "fn": 1
+  },
+  {
+   "type": "near_sea",
+   "precision": 1.0,
+   "recall": 0.33,
+   "f1": 0.5,
+   "tp": 1,
+   "fp": 0,
+   "fn": 2
+  },
+  {
+   "type": "residential",
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 8,
+   "fp": 0,
+   "fn": 0
+  }
+ ],
+ "macro_f1": 0.72,
+ "threshold_macro_f1": 0.8,
+ "passed": false,
+ "labeler": "Claude (claude-opus-5-5) theo uỷ quyền chủ dự án 18/10/2026 — KHÔNG phải nhãn người; chưa có người duyệt",
+ "per_listing": [
+  {
+   "row": 16870,
+   "gold": [
+    "near_river"
+   ],
+   "pred": []
+  },
+  {
+   "row": 20322,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 26329,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 32824,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 34575,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 43107,
+   "gold": [
+    "near_sea",
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 47530,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 47674,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 48996,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 60057,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 78340,
+   "gold": [
+    "near_sea"
+   ],
+   "pred": [
+    "near_sea"
+   ]
+  },
+  {
+   "row": 81490,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 83816,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 108040,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 108396,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 109344,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 112736,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 113350,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 118178,
+   "gold": [
+    "near_river"
+   ],
+   "pred": [
+    "near_river"
+   ]
+  },
+  {
+   "row": 130434,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 142538,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 145399,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 165557,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 168330,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 170118,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 214628,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 225052,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 234409,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 242508,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 245550,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 253665,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 261077,
+   "gold": [
+    "near_sea"
+   ],
+   "pred": []
+  },
+  {
+   "row": 267962,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 277819,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 292741,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 304680,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 328828,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 339286,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 339807,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 349332,
+   "gold": [],
+   "pred": []
+  }
+ ],
+ "rules_commit": "d751942 (luật từ khoá lúc chấm)"
+}

@@ -36,3 +36,17 @@ def test_chi_quan_tri_va_luu_da_an_danh():
             assert c.delete(f"/api/admin/listing-gold/{r.json()['id']}").status_code == 204
         finally:
             app.dependency_overrides.pop(auth.require_admin, None)
+
+
+def test_the_mo_hinh_doc_lan_cham_moi_nhat(monkeypatch):
+    """Cổng GĐ3: thẻ đọc lần chấm MỚI NHẤT, ghi rõ nhãn AI; trượt vẫn hiện độ chính xác từng loại."""
+    from app.services import model_cards
+    real = model_cards._load
+    r1 = {"n": 40, "population": 9, "macro_f1": 0.58, "passed": False, "per_type": []}
+    r2 = {"n": 40, "population": 9, "macro_f1": 0.85, "passed": True,
+          "per_type": [{"type": "residential", "precision": 1.0, "recall": 1.0, "f1": 1.0, "tp": 8, "fp": 0, "fn": 0}]}
+    files = {("eval", "listing_gate_result.json"): r1, ("eval", "listing_gate_v2_result.json"): r2}
+    monkeypatch.setattr(model_cards, "_load", lambda *p: files.get(p, real(*p)) if p in files else real(*p))
+    c = next(x for x in model_cards.cards() if x["id"] == "listing_rules")
+    assert c["status"] == "accepted" and "lần 2" in c["status_label"] and "KHÔNG phải nhãn người" in c["split"]
+    assert c["metrics"][-1]["value"] == 0.85 and c["metrics"][0]["passed"] is True
