@@ -5296,3 +5296,8 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .plan-wait { display: grid; gap: 8px; }
 .plan-wait p { margin: 0; }
 .plan-wait-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* VietQR — chuyển khoản theo yêu cầu nâng cấp (18/10/2026) */
+.tk-pay { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 8px 0 4px; padding: 10px; border: 1px solid var(--line-2); border-radius: 10px; }
+.tk-pay img { background: #fff; border-radius: 8px; padding: 4px; }
+.tk-pay p { margin: 2px 0; }

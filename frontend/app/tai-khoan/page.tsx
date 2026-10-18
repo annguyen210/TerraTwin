@@ -126,7 +126,25 @@ export default function MyAccountPage() {
                   <ul className="tk-list">
                     {plan.requests.map((r) => (
                       <li key={r.id}><span>{t("Yêu cầu", "Request")} {r.plan_wanted_name}: <b>{{ pending: t("đang chờ", "pending"), approved: t("đã duyệt", "approved"), rejected: t("từ chối", "rejected") }[r.status]}</b>
-                        {r.admin_note ? ` — ${r.admin_note}` : ""}</span><small>{when(r.created_at)}</small></li>
+                        {r.admin_note ? ` — ${r.admin_note}` : ""}</span><small>{when(r.created_at)}</small>
+                        {r.status === "pending" && r.payment && r.payment.amount_vnd > 0 && (
+                          <div className="tk-pay">
+                            {r.payment.available && r.payment.qr_svg ? (
+                              <>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={r.payment.qr_svg} alt={t("Mã VietQR chuyển khoản", "VietQR bank-transfer code")} width={180} height={180} />
+                                <div>
+                                  <p><b>{r.payment.amount_vnd.toLocaleString("vi-VN")} đ</b> · {t("nội dung", "memo")}: <code>{r.payment.memo}</code></p>
+                                  <p className="ws-mini">{t(`Tài khoản …${r.payment.account_tail}`, `Account …${r.payment.account_tail}`)}{r.payment.account_name ? ` · ${r.payment.account_name}` : ""}</p>
+                                  <p className="ws-mini">{t("Quét bằng app ngân hàng bất kỳ (VietQR, miễn phí). Giữ ĐÚNG nội dung — quản trị đối chiếu rồi kích hoạt gói.",
+                                                           "Scan with any banking app (VietQR, free). Keep the memo EXACTLY — an admin matches it and activates the plan.")}</p>
+                                </div>
+                              </>
+                            ) : (
+                              <p className="ws-mini">{t(`Phí gói: ${r.payment.amount_vnd.toLocaleString("vi-VN")} đ. `, `Plan fee: ${r.payment.amount_vnd.toLocaleString("vi-VN")} VND. `)}{r.payment.note}</p>
+                            )}
+                          </div>
+                        )}</li>
                     ))}
                   </ul>
                 )}

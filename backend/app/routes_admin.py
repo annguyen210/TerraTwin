@@ -43,9 +43,14 @@ def _plan_view(u: User) -> dict:
 
 
 def _req_view(r: UpgradeRequest, email: str | None = None) -> dict:
-    return {"id": r.id, "user_id": r.user_id, "email": email, "created_at": _iso(r.created_at),
-            "plan_wanted": r.plan_wanted, "plan_wanted_name": plans.PLANS.get(r.plan_wanted, {}).get("name", r.plan_wanted),
-            "reason": r.reason, "status": r.status, "decided_at": _iso(r.decided_at), "admin_note": r.admin_note}
+    out = {"id": r.id, "user_id": r.user_id, "email": email, "created_at": _iso(r.created_at),
+           "plan_wanted": r.plan_wanted, "plan_wanted_name": plans.PLANS.get(r.plan_wanted, {}).get("name", r.plan_wanted),
+           "reason": r.reason, "status": r.status, "decided_at": _iso(r.decided_at), "admin_note": r.admin_note}
+    if r.status == "pending":
+        # VietQR (18/10/2026): chuyển khoản liên ngân hàng miễn phí thay cho cổng thanh toán — services/vietqr.py
+        from app.services import vietqr
+        out["payment"] = vietqr.for_request(r.id, r.plan_wanted, int(plans.PLANS.get(r.plan_wanted, {}).get("price_vnd", 0)))
+    return out
 
 
 # ------------------------------------------------------------------ phía người dùng
