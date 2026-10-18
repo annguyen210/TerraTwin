@@ -48,7 +48,7 @@ OpenTimestamps) · chuỗi khối Bitcoin (qua máy chủ lịch OpenTimestamps)
 | I | Lộ bí mật khi xuất dữ liệu | Xuất tài khoản bỏ hash mật khẩu, hash khoá API, bí mật/mã khôi phục TOTP | — |
 | I | Lộ khoá/bí mật trong kho công khai | `.gitignore` các tệp khoá; secret chỉ ở Render/GitHub Secrets; sao lưu CSDL mã hoá | Sai sót của người — kiểm trước mỗi commit |
 | I | Tin đăng bán đất người dùng dán | Không lưu nội dung; chỉ nhận chữ người dùng tự dán, không cào trang bất động sản | — |
-| I | Header lộ phiên bản | CSP, HSTS, nosniff, X-Frame-Options/frame-ancestors trên web và API; tắt `X-Powered-By`; **OWASP ZAP baseline** hằng ngày (`.zap/rules.tsv`, job `zap` trong `e2e-prod.yml`) | CSP còn `unsafe-inline` cho script (Next.js) |
+| I | Header lộ phiên bản | CSP, HSTS, nosniff, X-Frame-Options/frame-ancestors trên web và API; tắt `X-Powered-By`; **OWASP ZAP baseline** hằng ngày (`.zap/rules.tsv`, job `zap` trong `e2e-prod.yml`). Header của API gắn bằng middleware ASGI **ngoài cùng** (`SecurityHeaders`, 18/10/2026) — bản trước nằm trong giới hạn tốc độ nên phản hồi 429/413 thiếu HSTS và ZAP đỏ ngắt quãng; `tests/test_security_headers.py` | CSP còn `unsafe-inline` cho script (Next.js) |
 | **D**enial of service | Đốt hạn mức nguồn mở | Cache theo URL/ô lưới, hạn mức theo IP/tài khoản cho thao tác nặng (`services/quota.py`), hàng đợi việc bền | Gói miễn phí Render ngủ sau 15 phút |
 | D | Dò mã 2FA | 5 lần/15 phút/tài khoản (không tắt được bằng biến môi trường) | — |
 | **E**levation of privilege | Người dùng thường vào mục quản trị | `require_admin` (403), vai trò nâng theo `TERRATWIN_ADMIN_EMAILS` khi đăng nhập, không tự hạ — `tests/test_roles.py` | — |
