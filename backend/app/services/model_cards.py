@@ -389,18 +389,50 @@ def cards() -> list[dict]:
         })
 
     # 5 — Kiểm chứng tin đăng (luật từ khoá) và chạm-là-có-ranh (trượt)
-    out.append({
+    # Cổng GĐ3 (18/10/2026): mỗi lần là một mẫu MỚI đăng ký trước — lần sau không chấm lại mẫu của lần trước.
+    runs = [(v, r) for v, r in (("1", _load("eval", "listing_gate_result.json")), ("2", _load("eval", "listing_gate_v2_result.json"))) if r]
+    base = {
         "id": "listing_rules", "kind": tr("quy tắc NLP", "NLP rules"),
         "name": tr("Tách câu khẳng định trong tin đăng bán đất", "Claim extraction from land listings"),
-        "status": "pending", "status_label": tr("đang chạy luật từ khoá · cổng chờ 20 tin thật", "keyword rules live · gate awaits 20 real listings"),
         "task": tr("8 loại câu: không ngập, cao ráo, gần sông/biển, bằng phẳng, không sạt lở, thổ cư, nước ngọt",
                    "8 claim types: no flooding, high ground, near river/sea, flat, no landslides, residential, fresh water"),
-        "data": tr("luật tiếng Việt có dấu và không dấu", "Vietnamese rules with and without diacritics"),
-        "split": tr("cổng: 20 tin thật gán nhãn tay; PhoBERT chỉ thay luật khi F1 ≥ 0,8", "gate: 20 hand-labelled real listings; PhoBERT replaces rules only at F1 ≥ 0.8"),
-        "metrics": [], "limits": tr("Chưa đo trên tin thật.", "Not yet measured on real listings."),
         "not_for": tr("Không phải kết luận pháp lý về người bán.", "Not a legal finding about the seller."),
         "code": f"{REPO}/backend/app/services/listing_check.py",
-    })
+    }
+    if runs:
+        v, last = runs[-1]
+        names = {t: vi for t, vi, *_ in __import__("app.services.listing_check", fromlist=["CLAIMS"]).CLAIMS}
+        out.append({**base,
+            "status": "accepted" if last.get("passed") else "rejected",
+            "status_label": (tr(f"cổng lần {v} đạt · luật từ khoá đang chạy", f"gate run {v} passed · keyword rules live") if last.get("passed")
+                             else tr(f"cổng lần {v} trượt · vẫn chạy luật từ khoá (không có bộ thay thế), độ chính xác công khai",
+                                     f"gate run {v} failed · keyword rules still live (no replacement), accuracy published")),
+            "data": tr(f"{last['n']} tin đăng ĐẤT thật, lấy ngẫu nhiên theo hạt giống đăng ký trước từ bộ công khai tinixai/vietnam-real-estates "
+                       f"(CC BY-NC 4.0, {last.get('population')} tin đất trong shard)",
+                       f"{last['n']} real LAND listings, seeded random sample registered in advance from the public tinixai/vietnam-real-estates "
+                       f"set (CC BY-NC 4.0, {last.get('population')} land listings in the shard)"),
+            "split": tr("nhãn do Claude (AI) gán theo uỷ quyền chủ dự án, commit TRƯỚC khi chấm — KHÔNG phải nhãn người; ngưỡng F1 trung bình ≥ 0,80; "
+                        + " · ".join(f"lần {k}: F1 {r.get('macro_f1')}" for k, r in runs),
+                        "labels by Claude (AI) on the owner's authority, committed BEFORE scoring — NOT human labels; threshold macro F1 ≥ 0.80; "
+                        + " · ".join(f"run {k}: F1 {r.get('macro_f1')}" for k, r in runs)),
+            "metrics": [{"label": tr(f"{names.get(r['type'], r['type'])} — chính xác / độ phủ (đúng · thừa · sót)",
+                                     f"{r['type']} — precision / recall (tp · fp · fn)"),
+                         "value": f"{r['precision']} / {r['recall']} ({r['tp']} · {r['fp']} · {r['fn']})",
+                         "threshold": f"F1 {r['f1']}", "passed": r["f1"] >= 0.8} for r in last.get("per_type", [])]
+                       + [{"label": tr("F1 trung bình", "Macro F1"), "value": last.get("macro_f1"), "threshold": "≥ 0.80",
+                           "passed": bool(last.get("passed"))}],
+            "limits": tr("Nhãn của AI cùng 'tác giả' với bộ luật nên không độc lập hoàn toàn; tin đăng phần lớn ở TP.HCM, Hà Nội, ít tin ruộng "
+                         "vườn ven sông/biển nên loại 'không ngập', 'gần sông' có rất ít mẫu. Muốn tin hơn: chủ dự án duyệt/gán lại ở /admin → Tin đăng GĐ3.",
+                         "AI labels share an 'author' with the rules, so they are not fully independent; listings are mostly HCMC/Hanoi with few "
+                         "riverside/coastal farm plots, so 'no flooding' and 'near river' have very few examples. For more trust: the owner reviews "
+                         "or relabels in /admin → GĐ3 listings."),
+        })
+    else:
+        out.append({**base, "status": "pending",
+            "status_label": tr("đang chạy luật từ khoá · cổng chờ 20 tin thật", "keyword rules live · gate awaits 20 real listings"),
+            "data": tr("luật tiếng Việt có dấu và không dấu", "Vietnamese rules with and without diacritics"),
+            "split": tr("cổng: 20 tin thật gán nhãn; PhoBERT chỉ thay luật khi F1 ≥ 0,8", "gate: 20 labelled real listings; PhoBERT replaces rules only at F1 ≥ 0.8"),
+            "metrics": [], "limits": tr("Chưa đo trên tin thật.", "Not yet measured on real listings.")})
     ab = _load("eval", "autoboundary_result.json")
     out.append({
         "id": "autoboundary", "kind": tr("thị giác máy tính", "computer vision"),

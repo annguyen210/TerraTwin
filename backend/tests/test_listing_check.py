@@ -30,7 +30,7 @@ def test_moi_khang_dinh_trich_dung_ve_cua_no():
     assert got["high_ground"] == "Đất cao ráo"
     assert got["no_flood"] == "không bao giờ ngập nước"
     assert got["near_river"] == "view sông thoáng mát"
-    assert got["flat"] == "Mặt bằng vuông vức" and got["fresh_water"] == "nuoc ngot quanh nam"
+    assert got["flat"] == "bằng phẳng" and got["fresh_water"] == "nuoc ngot quanh nam"   # "vuông vức" là hình dáng (cổng GĐ3 lần 1)
     got = {c["type"]: c["sentence"] for c in lc.extract("Bán đất thổ cư, gần sông mát mẻ, không lo ngập")}
     assert got == {"residential": "Bán đất thổ cư", "near_river": "gần sông mát mẻ", "no_flood": "không lo ngập"}
 

@@ -1,0 +1,326 @@
+{
+ "protocol": "terratwin.listing_gate/1",
+ "population": 88751,
+ "n": 40,
+ "enough": true,
+ "per_type": [
+  {
+   "type": "high_ground",
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 1,
+   "fp": 0,
+   "fn": 0
+  },
+  {
+   "type": "near_river",
+   "precision": 0.0,
+   "recall": 0.0,
+   "f1": 0.0,
+   "tp": 0,
+   "fp": 0,
+   "fn": 1
+  },
+  {
+   "type": "near_sea",
+   "precision": 1.0,
+   "recall": 0.25,
+   "f1": 0.4,
+   "tp": 1,
+   "fp": 0,
+   "fn": 3
+  },
+  {
+   "type": "residential",
+   "precision": 0.93,
+   "recall": 0.88,
+   "f1": 0.9,
+   "tp": 14,
+   "fp": 1,
+   "fn": 2
+  }
+ ],
+ "macro_f1": 0.58,
+ "threshold_macro_f1": 0.8,
+ "passed": false,
+ "labeler": "Claude (claude-opus-5-5) theo uỷ quyền chủ dự án 18/10/2026 — KHÔNG phải nhãn người; chưa có người duyệt",
+ "per_listing": [
+  {
+   "row": 2869,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 9971,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 14051,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 39501,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 40314,
+   "gold": [
+    "near_sea",
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 41150,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 50079,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 61451,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 70500,
+   "gold": [
+    "high_ground",
+    "residential"
+   ],
+   "pred": [
+    "high_ground",
+    "residential"
+   ]
+  },
+  {
+   "row": 94895,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 95915,
+   "gold": [
+    "residential"
+   ],
+   "pred": []
+  },
+  {
+   "row": 108882,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 118085,
+   "gold": [
+    "near_river"
+   ],
+   "pred": []
+  },
+  {
+   "row": 130646,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 137563,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 138513,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 139716,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 150621,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 151364,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 162430,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 165900,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 172596,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 174513,
+   "gold": [],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 179237,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 188661,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 197342,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 206517,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 225265,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 231285,
+   "gold": [
+    "residential"
+   ],
+   "pred": []
+  },
+  {
+   "row": 241124,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 277338,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 280505,
+   "gold": [
+    "near_sea"
+   ],
+   "pred": [
+    "near_sea"
+   ]
+  },
+  {
+   "row": 285230,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 286688,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 295795,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 303981,
+   "gold": [
+    "near_sea"
+   ],
+   "pred": []
+  },
+  {
+   "row": 320631,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 332270,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 332354,
+   "gold": [
+    "near_sea",
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 343783,
+   "gold": [],
+   "pred": []
+  }
+ ],
+ "rules_commit": "d1c8940 (luật từ khoá lúc chấm)",
+ "note": "Chấm một lần sau commit nhãn d1c8940. Tệp này từng bị ghi đè nhầm khi chạy thử luật lần 2 trên mẫu lần 1 (vô nghĩa vì luật sửa theo chính mẫu này) và được tạo lại bằng đúng luật d1c8940 — số liệu trùng lần chấm đầu."
+}
