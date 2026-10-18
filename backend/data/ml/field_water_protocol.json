@@ -1,0 +1,20 @@
+{
+  "id": "terratwin.field_water/1",
+  "registered": "2026-10-18",
+  "registered_before_training": true,
+  "purpose": "Nhận vùng NƯỚC trong ẢNH THỰC ĐỊA người dùng chụp (đối chiếu ba chiều GĐ6: ảnh ↔ radar cùng tuần ↔ mưa). Thay cho việc chờ ảnh có nhãn của chủ dự án: dùng bộ dữ liệu công khai có nhãn tay.",
+  "data": {
+    "source": "Kaggle faizalkarim/flood-area-segmentation, Version 1 — 290 ảnh lũ (Image/*.jpg) + mặt nạ nhãn tay (Mask/*.png, 255 = nước) làm bằng Label Studio",
+    "license": "CC0: Public Domain (đọc trên trang Kaggle 18/10/2026)",
+    "split": "Sắp tên tệp theo thứ tự chữ, xáo bằng random.Random(20261018), chia 70% train · 15% valid · 15% test (làm tròn xuống cho valid/test). Cố định trước khi huấn luyện; ghi danh sách tên tệp từng tập vào kết quả."
+  },
+  "model": "SegFormer-b0 (encoder nvidia/mit-b0 tiền huấn luyện ImageNet-1k, Hugging Face transformers), 2 lớp (nền / nước), ảnh 512×512, chuẩn hoá ImageNet, lật ngang ngẫu nhiên, AdamW lr 6e-5 weight decay 0,01, batch 8, 40 vòng, hạt giống 20261018",
+  "selection": "Chọn checkpoint có IoU lớp nước cao nhất trên tập VALID. Tập test không được nhìn cho tới khi chấm.",
+  "comparator": "Ngưỡng màu đơn giản theo từng ảnh: điểm ảnh có độ bão hoà HSV < 0,35 và độ sáng trong [0,25; 0,85] là nước (đường cơ sở không học)",
+  "threshold": "ĐẠT khi IoU lớp nước (gộp theo điểm ảnh) của mô hình trên tập TEST ≥ 0,70 VÀ lớn hơn đường cơ sở màu.",
+  "if_pass": "Được dùng làm tín hiệu THAM KHẢO trong nhật ký thửa / đối chiếu ba chiều (tỉ lệ điểm ảnh nước trong ảnh thực địa) — KHÔNG đưa vào nội dung ký của hồ sơ, KHÔNG thay câu trả lời của người dùng.",
+  "if_fail": "Công bố kết quả trượt trên thẻ mô hình; ảnh thực địa vẫn chỉ là bằng chứng người dùng, không chấm tự động.",
+  "limits_known_before": "Ảnh lũ từ nhiều nước (phần lớn ngoài Việt Nam), nhiều ảnh chụp từ trên cao/drone; ruộng lúa ngập nông và mặt ruộng ướt có thể khác. Đạt cổng KHÔNG chứng minh đúng trên ruộng Việt Nam.",
+  "one_shot": "Chạy đúng một lần trên GPU Kaggle bằng ml/kaggle/field_water_seg.py tải theo commit cố định + kiểm SHA-256; lượt hỏng TRƯỚC khi chấm test thì sửa và chạy lại, ghi rõ.",
+  "script": "ml/kaggle/field_water_seg.py"
+}
