@@ -1,0 +1,241 @@
+{
+ "protocol": "terratwin.listing_gate/2",
+ "labeler": "Claude (claude-opus-5-5) theo uỷ quyền chủ dự án 18/10/2026 — KHÔNG phải nhãn người; chưa có người duyệt",
+ "labelled_before_scoring": true,
+ "labels": [
+  {
+   "row": 16870,
+   "sha256": "1c2d27c0083675f8ecc09afb7c980274a7a5bf4b7a16ab299f86ad0bafe4d277",
+   "claims": [
+    "near_river"
+   ],
+   "note": "'gió sông rất mát' — diễn đạt khác của gần sông"
+  },
+  {
+   "row": 20322,
+   "sha256": "be4720acaa8ae1971d2d876fb18dfae295629aa26d63e6d077ccf80b20b85a36",
+   "claims": []
+  },
+  {
+   "row": 26329,
+   "sha256": "eb58e98e3f5a2ddbf97e5dc4faf67500cf486e71383a1b2cebc80adcfdb0dd0c",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 32824,
+   "sha256": "758cbd85e9d8b80b6b6540fd31709919fe51836e3cf49c42389cb795c90b339d",
+   "claims": []
+  },
+  {
+   "row": 34575,
+   "sha256": "78f785a85e2d33c8b0c3f529f13aeea76f8409c0ee161078ff8a8d529deb1c6f",
+   "claims": [],
+   "note": "'vuông vức' là hình dáng"
+  },
+  {
+   "row": 43107,
+   "sha256": "ad3ae4df6b734503ddbdab2f2a308efa3a1ce4bc7f1c25f0fce44a5f46887499",
+   "claims": [
+    "residential",
+    "near_sea"
+   ],
+   "note": "'thổ cư 124m2' + 'đi biển 10p đi xe'"
+  },
+  {
+   "row": 47530,
+   "sha256": "9d0ae9220d4c8db826872c179f019c5ed75952a9f9b281a7f39c4d6771f55353",
+   "claims": [],
+   "note": "'con đường ... ra biển Long Cung' nói về con đường, không phải lô đất"
+  },
+  {
+   "row": 47674,
+   "sha256": "7c1564631153cbf53a8debca6f6d380ae1def7727334581388bd87a2915cebaa",
+   "claims": []
+  },
+  {
+   "row": 48996,
+   "sha256": "4d375151a16656d32a971e4c52339b1fa28542a204ab8ac865c52376590cb6b5",
+   "claims": []
+  },
+  {
+   "row": 60057,
+   "sha256": "565ffadbd2083cdb9de2738fb79dcbe6cf8654b16ca157d8e360de1d09d9e40d",
+   "claims": []
+  },
+  {
+   "row": 78340,
+   "sha256": "46a4336d33db2f0adb5926067c18ebb2bd34ee6c2c207e79bd593663f000c836",
+   "claims": [
+    "near_sea"
+   ]
+  },
+  {
+   "row": 81490,
+   "sha256": "6b012480d8e153f34900ce5e5995e91307fb81a881517bcadefb7f9802598ecf",
+   "claims": []
+  },
+  {
+   "row": 83816,
+   "sha256": "6a1b35853ccbb86a3fbd75cba3d423e3390c225d9df06212ab81b70dcb06d9c6",
+   "claims": [],
+   "note": "'view đối diện hồ' — hồ không tính"
+  },
+  {
+   "row": 108040,
+   "sha256": "dc14cab3431e77d77defb4e936fe0a3652277a7de4b2b789505f6af5c3759bf0",
+   "claims": []
+  },
+  {
+   "row": 108396,
+   "sha256": "9b038dd71614605eb4e8e54433e48d21a452af1458da07d6f5a3cfcf08fe31fb",
+   "claims": []
+  },
+  {
+   "row": 109344,
+   "sha256": "ecef150015a05a6ea44320f0737f0c99e4f7720923926f886c9ebeab1f0b5226",
+   "claims": []
+  },
+  {
+   "row": 112736,
+   "sha256": "093be3506617be19f00c1139192400501c50dc84958623166c498252e6501a18",
+   "claims": []
+  },
+  {
+   "row": 113350,
+   "sha256": "5f671e71b79845c49dd612bb74da8661fd812bfd8fa69b85e5c1c72661c7f60f",
+   "claims": []
+  },
+  {
+   "row": 118178,
+   "sha256": "9839ef40bd0c29ecc1d114d38cf9e520ecbd702a2e38855f153b6e2bee26eeca",
+   "claims": [
+    "near_river"
+   ]
+  },
+  {
+   "row": 130434,
+   "sha256": "d44a543a5978201923c3d1c057e1accf0cd29b98fbae98c6da2b4f22a4d0a0e2",
+   "claims": []
+  },
+  {
+   "row": 142538,
+   "sha256": "fd5282a015fafc4cecf045bf432ac1090240672b4d9812965d2189d5c0518e8c",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 145399,
+   "sha256": "8645a0ba350330d4c5927e3004a0499cb75f4491d4c8edb3589f5870a4059cc9",
+   "claims": []
+  },
+  {
+   "row": 165557,
+   "sha256": "ee1f7d84e5b0e60a1a352374a9a10850cbc0098ffbb344d06497162f32a8255e",
+   "claims": []
+  },
+  {
+   "row": 168330,
+   "sha256": "fb8c58801bc806e0770cebc9b5f26a9996a45edcf82e5472caddbb9391b4b589",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 170118,
+   "sha256": "7d718abbef42c12026d3a1fd89412d2b77b02bc32e38a9b09214237b68579247",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 214628,
+   "sha256": "1cc028bfe482d1f47c844b0e9c94a171f42a6490e15c4bd49e5af31bf734049f",
+   "claims": []
+  },
+  {
+   "row": 225052,
+   "sha256": "2e91f159d8b865bae2fa51e7540195288cfea52b7d4ad9010eca5da63ae3b240",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 234409,
+   "sha256": "6ccba73a73154859a4b217c0adddc911a7f72f57ae0d3fbaf5a1e92d35803776",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 242508,
+   "sha256": "0d9d99cc8ba4275d34f52e5837a26e25f1dc8b1ac4e780e47cc302ad3cbc94fd",
+   "claims": [],
+   "note": "'tương lai có cầu qua sông' — không khẳng định lô đất gần sông"
+  },
+  {
+   "row": 245550,
+   "sha256": "371a655cae62fb7e48a0fb5faf90e80bb2b0498ab19740fb2bce9b6cba6b6744",
+   "claims": []
+  },
+  {
+   "row": 253665,
+   "sha256": "0453df3dca71faabc66b49b5e336bc18ec19373982580621c2d860c3869d9ee3",
+   "claims": [],
+   "note": "'30m ra hồ điều hoà' — hồ không tính"
+  },
+  {
+   "row": 261077,
+   "sha256": "1cc8fe4be5af37801eed864077c6e0b06b1ab11e8411d9d199f9f394061b6d38",
+   "claims": [
+    "near_sea"
+   ],
+   "note": "dự án 'bên bờ vịnh', 'tiếp giáp đường bao biển', 'bãi tắm ngay tại dự án'"
+  },
+  {
+   "row": 267962,
+   "sha256": "d67cd7ad943f5f4c4907d34d2b1bbc7a8330db7492479be4bd80637bdc9e1d98",
+   "claims": []
+  },
+  {
+   "row": 277819,
+   "sha256": "3b43e670a36185d81f7eaf0e02d6bc0b0a8ceee7845bf595847ba81a9e2d5e3b",
+   "claims": []
+  },
+  {
+   "row": 292741,
+   "sha256": "9ca8a3c152e479325d4a0d67ddaafa532d2a7890920b08a94824214e419cf4cf",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 304680,
+   "sha256": "c37db42197f773d77f5cfc7b8152f6e9d5960331491117161d062cdbc4427273",
+   "claims": [],
+   "note": "'đất trồng cây lâu năm (CLN)' — không phải đất ở"
+  },
+  {
+   "row": 328828,
+   "sha256": "dde2f4da5be08969a611cbcc4f3d3cffe063863ba98bae179e371e2383c54b43",
+   "claims": []
+  },
+  {
+   "row": 339286,
+   "sha256": "c4448989cd76520bd611ff0582f50387531620bd92bfa437acaaa39c125a64df",
+   "claims": []
+  },
+  {
+   "row": 339807,
+   "sha256": "f1e84dab3039795517145620f0b63465443ee8f1ce434b053364d06fe9970a23",
+   "claims": []
+  },
+  {
+   "row": 349332,
+   "sha256": "0addf79320292214a551d876cbce9ecfc0716a1317651cde5d8316b4fca4011e",
+   "claims": []
+  }
+ ]
+}
