@@ -43,6 +43,10 @@ def test_du_bao_7_ngay_goi_hai_mo_hinh_trong_mot_luot(monkeypatch):
     rows = realdata.weather_7d(16.52, 107.59)
     assert len(seen) == 1 and "models=best_match,ecmwf_aifs025_single" in seen[0]
     assert [r["precip"] for r in rows[:3]] == [0.0, 20.0, 30.0] and rows[0]["et0"] == 3
+    assert rows[0]["source"] == "open-meteo-blend"
+    from app.services import hazard
+    assert "ECMWF AIFS" in hazard.source_label("open-meteo-blend", "lượng mưa", "rain")
+    assert hazard.source_label("open-meteo", "lượng mưa", "rain").startswith("Open-Meteo: lượng mưa (thật)")
 
 
 def test_the_mo_hinh_ghi_gioi_han_dot_rieng_biet():

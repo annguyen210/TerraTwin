@@ -340,7 +340,8 @@ def weather_7d(lat: float, lon: float):
                     "precip": precip[i] if i < len(precip) and precip[i] is not None else 0.0,
                     "et0": et0[i] if i < len(et0) and et0[i] is not None else 0.0,
                     "tmax": tmax[i] if i < len(tmax) and tmax[i] is not None else 0.0,
-                    "source": "open-meteo",
+                    # Ghi ĐÚNG nguồn mưa đã dùng: có cột theo từng mô hình → mưa là tổ hợp best_match + AIFS.
+                    "source": "open-meteo" if "precipitation_sum" in dd else "open-meteo-blend",
                 }
                 for i in range(len(times))
             ]

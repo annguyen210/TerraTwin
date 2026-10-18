@@ -45,6 +45,9 @@ def source_label(source: str | None, vi_desc: str, en_desc: str) -> str:
     nguồn dự phòng (MET Norway) lúc Open-Meteo bị chặn, module phải nói đúng
     nguồn thật đang dùng, không phải nguồn thường dùng."""
     from app.services.reqlang import tr
+    if source == "open-meteo-blend":       # cổng tổ hợp mưa đạt 18/10/2026 (data/eval/aifs_blend_result.json)
+        return tr(f"Open-Meteo: {vi_desc} (thật; mưa = trung bình best_match + ECMWF AIFS)",
+                  f"Open-Meteo: {en_desc} (real; rain = mean of best_match + ECMWF AIFS)")
     name = "MET Norway" if source == "metno" else "Open-Meteo"
     return tr(f"{name}: {vi_desc} (thật)", f"{name}: {en_desc} (real)")
 
