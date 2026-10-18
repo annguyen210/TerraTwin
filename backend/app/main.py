@@ -450,21 +450,37 @@ class BodyLimit:
         await send({"type": "http.response.body", "body": body})
 
 
-@app.middleware("http")
-async def security_headers(request: Request, call_next):
-    """Header bảo mật cho MỌI phản hồi API (phía web đã có qua next.config). API trả
-    JSON nên không cần CSP đầy đủ, nhưng nosniff/HSTS/không cho nhúng khung thì cần."""
-    resp = await call_next(request)
-    h = resp.headers
-    h.setdefault("X-Content-Type-Options", "nosniff")
-    h.setdefault("X-Frame-Options", "DENY")
-    h.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
-    # /docs, /redoc (tài liệu API cho đối tác) tải giao diện Swagger từ CDN — miễn CSP.
-    if not request.url.path.startswith(("/docs", "/redoc")):
-        h.setdefault("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
-    if request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https":
-        h.setdefault("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
-    return resp
+class SecurityHeaders:
+    """Header bảo mật cho MỌI phản hồi API (phía web đã có qua next.config). API trả JSON nên không cần CSP đầy đủ,
+    nhưng nosniff/HSTS/không cho nhúng khung thì cần.
+
+    Middleware ASGI NGOÀI CÙNG (đăng ký sau cùng, sau BodyLimit) — lỗi thật 18/10/2026: bản cũ là @app.middleware nằm
+    BÊN TRONG giới hạn tốc độ và BodyLimit, nên phản hồi 429/413 (và CORS preflight) thiếu HSTS → OWASP ZAP baseline
+    đỏ ngắt quãng ("Strict-Transport-Security Header Not Set" ×2 trên /api/health) khi trình dò chạm giới hạn tốc độ."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+        path = scope.get("path", "")
+        hdrs = dict(scope.get("headers") or [])
+        https = scope.get("scheme") == "https" or b"https" in hdrs.get(b"x-forwarded-proto", b"").lower()
+        add = [(b"x-content-type-options", b"nosniff"), (b"x-frame-options", b"DENY"),
+               (b"referrer-policy", b"strict-origin-when-cross-origin")]
+        # /docs, /redoc (tài liệu API cho đối tác) tải giao diện Swagger từ CDN — miễn CSP.
+        if not path.startswith(("/docs", "/redoc")):
+            add.append((b"content-security-policy", b"default-src 'none'; frame-ancestors 'none'"))
+        if https:
+            add.append((b"strict-transport-security", b"max-age=63072000; includeSubDomains"))
+
+        async def send_with_headers(msg):
+            if msg["type"] == "http.response.start":
+                have = {k.lower() for k, _ in msg.get("headers") or []}
+                msg = {**msg, "headers": list(msg.get("headers") or []) + [(k, v) for k, v in add if k not in have]}
+            await send(msg)
+        await self.app(scope, receive, send_with_headers)
 
 
 @app.middleware("http")
@@ -494,7 +510,8 @@ async def rate_limit(request: Request, call_next):
     return await call_next(request)
 
 
-app.add_middleware(BodyLimit)      # đăng ký SAU CÙNG = lớp NGOÀI CÙNG, chặn trước mọi thứ
+app.add_middleware(BodyLimit)      # chặn body quá lớn trước mọi thứ (chỉ trong SecurityHeaders)
+app.add_middleware(SecurityHeaders)  # đăng ký SAU CÙNG = lớp NGOÀI CÙNG: mọi phản hồi, kể cả 413/429, đều có header bảo mật
 app.include_router(account_router)
 app.include_router(data_router)
 app.include_router(dossier_router)
