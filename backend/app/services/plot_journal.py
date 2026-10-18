@@ -217,9 +217,12 @@ def _db_events(db: Session, user_id: int, plot, since: datetime) -> list[dict]:
     for ph in db.execute(select(FieldPhoto).where(FieldPhoto.user_id == user_id, FieldPhoto.created_at >= since)).scalars():
         if _dist_m(ph.plot_lat, ph.plot_lon, plot.lat, plot.lon) > DEVICE_NEAR_M:
             continue
+        wr = getattr(ph, "water_ratio", None)
+        seen = (tr(f" · máy thấy ~{wr * 100:.0f}% ảnh là nước (SegFormer, tham khảo)", f" · model sees ~{wr * 100:.0f}% water in the photo (SegFormer, reference)")
+                if wr is not None else "")
         out.append(_ev(_iso(ph.created_at), "photo", True,
-                       tr(f"Ảnh thực địa mới (kiểm GPS/thời điểm: {ph.verdict})", f"New field photo (GPS/time check: {ph.verdict})"),
-                       tr("Ảnh của bạn", "Your photo"), photo_id=ph.id))
+                       tr(f"Ảnh thực địa mới (kiểm GPS/thời điểm: {ph.verdict})", f"New field photo (GPS/time check: {ph.verdict})") + seen,
+                       tr("Ảnh của bạn", "Your photo"), photo_id=ph.id, water_ratio=wr))
 
     devs = [d for d in db.execute(select(Device).where(Device.user_id == user_id, Device.revoked == 0)).scalars()
             if d.lat is not None and d.lon is not None and _dist_m(d.lat, d.lon, plot.lat, plot.lon) <= DEVICE_NEAR_M]

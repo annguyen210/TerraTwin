@@ -263,8 +263,12 @@ def cards() -> list[dict]:
         t = fw["test"]
         out.append({**fw_base,
             "status": "accepted" if fw.get("passed") else "rejected",
-            "status_label": (tr("cổng mô hình đạt · CHƯA bật (chỉ là tín hiệu tham khảo khi bật)",
-                                "model gate passed · NOT on (reference signal only once on)") if fw.get("passed")
+            "status_label": ((tr("cổng mô hình đạt · đang chạy — chỉ tham khảo ở nhật ký thửa, không vào hồ sơ ký",
+                                 "model gate passed · live — reference only in the plot journal, not in signed dossiers")
+                              if __import__("app.services.field_water", fromlist=["available"]).available() else
+                              tr("cổng mô hình đạt · CHƯA bật (máy chủ chưa có tệp .onnx; khi bật chỉ là tín hiệu tham khảo)",
+                                 "model gate passed · NOT on (server lacks the .onnx file; reference signal only once on)"))
+                             if fw.get("passed")
                              else tr("trượt · ảnh thực địa vẫn chỉ là bằng chứng người dùng", "failed · field photos stay user evidence only")),
             "split": tr(f"đăng ký trước 18/10/2026 (2e44cb0); chọn mô hình chỉ bằng valid (IoU tốt nhất {fw.get('best_valid_iou')}); "
                         f"chấm một lần; {fw.get('device', '?')}, {fw.get('epochs')} vòng; train {fw['n']['train']} · valid {fw['n']['valid']} · test {fw['n']['test']}",

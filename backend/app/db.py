@@ -628,6 +628,8 @@ class FieldPhoto(Base):
     thumb: Mapped[bytes] = mapped_column(LargeBinary)
     thumb_sha256: Mapped[str] = mapped_column(String(64))
     dossier_id: Mapped[str | None] = mapped_column(String(16), nullable=True, index=True)
+    # Tỉ lệ điểm ảnh là nước theo SegFormer (services/field_water.py) — THAM KHẢO, chỉ hiện ở nhật ký thửa, không vào hồ sơ ký
+    water_ratio: Mapped[float | None] = mapped_column(Float, nullable=True)
 
 
 class LogHead(Base):
@@ -920,6 +922,7 @@ _ADDED_COLUMNS = [
     ("alerts", "window_days", "INTEGER DEFAULT 7"),
     ("alerts", "retro", "INTEGER DEFAULT 0"),
     ("alerts", "forecast_source", "VARCHAR(24)"),
+    ("field_photos", "water_ratio", "FLOAT"),
     # Đường một chạm.
     ("observations", "source", "VARCHAR(16) DEFAULT 'user'"),
     ("observations", "alert_id", "INTEGER"),

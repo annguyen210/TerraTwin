@@ -243,7 +243,14 @@ def analyze(db: Session, data: bytes, plot_lat: float, plot_lon: float,
 
     return {"sha256": sha, "phash": ph, "gps": (ex["lat"], ex["lon"]) if has_gps else None,
             "taken_at": taken, "distance_m": round(dist, 1) if dist is not None else None,
-            "verdict": verdict, "checks": checks, "thumb": _thumb(img)}
+            "verdict": verdict, "checks": checks, "thumb": _thumb(img),
+            # tín hiệu THAM KHẢO (SegFormer, services/field_water.py): không đổi verdict, không vào public()/hồ sơ ký
+            "water_ratio": _water_ratio(img)}
+
+
+def _water_ratio(img) -> float | None:
+    from app.services import field_water
+    return field_water.water_ratio(img)
 
 
 def _find_duplicate(db: Session, sha: str, ph: str, lat: float, lon: float) -> dict | None:
@@ -273,7 +280,7 @@ def store(db: Session, result: dict, plot_lat: float, plot_lon: float,
         gps_lon=result["gps"][1] if result["gps"] else None,
         taken_at=result["taken_at"], distance_m=result["distance_m"],
         verdict=result["verdict"], checks_json=json.dumps(result["checks"], ensure_ascii=False),
-        thumb=thumb, thumb_sha256=hashlib.sha256(thumb).hexdigest())
+        thumb=thumb, thumb_sha256=hashlib.sha256(thumb).hexdigest(), water_ratio=result.get("water_ratio"))
     db.add(row)
     db.commit()
     return row
