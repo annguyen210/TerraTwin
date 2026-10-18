@@ -88,13 +88,14 @@ jobs:
             name=$(echo "$target" | sed 's#https://##; s#[/.]#-#g')
             docker run --rm -v "$PWD:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable zap-baseline.py               -t "$target" -m 2 -I -c .zap/rules.tsv -r "zap-$name.html" -J "zap-$name.json" || ec=$?
             ec=${ec:-0}
-            echo "::notice::ZAP $target — mã thoát $ec (0 đạt, 1 có quy tắc FAIL, 3 lỗi chạy)"
+            case "$ec" in 0) kq="ĐẠT — không quy tắc FAIL nào";; 1) kq="CÓ quy tắc FAIL";; 3) kq="LỖI CHẠY (không quét trọn)";; *) kq="mã lạ";; esac
+            echo "::notice::ZAP $target — $kq (mã thoát $ec; báo cáo đầy đủ trong zap-reports)"
             [ "$ec" = "1" ] && fail=1
             [ "$ec" = "3" ] && echo "::warning::ZAP không chạy trọn được với $target"
             unset ec
           done
           [ "$fail" = "0" ]
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: zap-reports

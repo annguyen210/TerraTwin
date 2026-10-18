@@ -307,6 +307,31 @@ with sync_playwright() as p:
         return f"không lớp phủ che · lịch sử nước {state_txt}"
     try_hue()
 
+    @step("Thửa Quảng Điền: lịch sử nước có đợt + lời mời xác nhận (khách không thấy nút); ô tìm kiếm đọc link Google Maps")
+    def confirm_and_maplink():
+        # 17–18/10/2026: xác nhận từng đợt nước (chỉ người đăng nhập bấm được) + đọc link "địa điểm" Google Maps (lỗi cũ ra
+        # toạ độ (1, 1)). CHỈ ĐỌC: không bấm xác nhận, không chọn thửa.
+        ctx = browser.new_context(viewport={"width": 1366, "height": 860})
+        pg = ctx.new_page()
+        pg.goto(WEB + "/plot/16.57510,107.49520", wait_until="domcontentloaded", timeout=120_000)
+        pg.locator("section.wh .wh-list li").first.wait_for(timeout=180_000)      # thửa mẫu đã hâm nóng (warm-demo)
+        n = pg.locator("section.wh .wh-list li").count()
+        assert pg.locator("section.wh p.wh-cf-note").count() == 1, "thiếu lời mời xác nhận từng đợt"
+        assert pg.locator("section.wh .wh-cf").count() == 0, "khách chưa đăng nhập không được thấy nút xác nhận"
+        pg.goto(WEB + "/", wait_until="domcontentloaded", timeout=120_000)
+        q = pg.locator("input.start-q").first
+        q.wait_for(timeout=60_000)
+        pg.wait_for_timeout(2500)                                                  # chờ React gắn sự kiện
+        q.click()
+        q.fill("https://www.google.com/maps/place/Hu%E1%BA%BF/@16.4637,107.5909,15z/data=!3m1!4b1!8m2!3d16.4498!4d107.5623")
+        hit = pg.locator(".start-hits button").first
+        hit.wait_for(timeout=10_000)
+        label = hit.inner_text()
+        assert "16.4498" in label and "107.5623" in label, f"đọc sai link Google Maps: {label}"
+        ctx.close()
+        return f"{n} đợt nước · lời mời có, nút ẩn với khách · link Google Maps → {label}"
+    confirm_and_maplink()
+
     @step("Khu làm việc thửa đất: bản đồ lớn + chương")
     def workspace():
         page.goto(WEB + "/", wait_until="networkidle", timeout=120_000)
