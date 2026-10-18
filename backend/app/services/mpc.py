@@ -28,8 +28,10 @@ Lần thử đầu ra 0,015 và tôi suýt kết luận API hỏng — hoá ra t
 """
 from __future__ import annotations
 
+import http.client
 import json
 import math
+import threading
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -79,13 +81,57 @@ def available() -> bool:
     return True
 
 
+_PC_HOST = "planetarycomputer.microsoft.com"
+_tls = threading.local()
+
+
+def _pc_conn(timeout: float) -> http.client.HTTPSConnection:
+    """Kết nối HTTPS GIỮ MỞ (keep-alive) tới Planetary Computer, một kết nối mỗi luồng. Đọc ~460 cảnh radar trước đây
+    mở ~460 kết nối TLS mới — mỗi lần bắt tay mã hoá tốn CPU và vài vòng mạng (18/10/2026)."""
+    c = getattr(_tls, "conn", None)
+    if c is None:
+        c = http.client.HTTPSConnection(_PC_HOST, timeout=timeout)
+        _tls.conn = c
+    else:
+        c.timeout = timeout
+    return c
+
+
+def _pc_request(url: str, payload: dict | None, timeout: float):
+    """Gọi Planetary Computer qua kết nối giữ mở; kết nối hỏng (máy chủ đóng, hết hạn) → mở lại MỘT lần."""
+    u = urllib.parse.urlsplit(url)
+    path = u.path + (f"?{u.query}" if u.query else "")
+    body = json.dumps(payload).encode("utf-8") if payload else None
+    headers = {"User-Agent": USER_AGENT, "Content-Type": "application/json", "Connection": "keep-alive"}
+    for attempt in (0, 1):
+        c = _pc_conn(timeout)
+        try:
+            c.request("POST" if body is not None else "GET", path, body=body, headers=headers)
+            r = c.getresponse()
+            data = r.read()
+            if r.status >= 400:
+                return None
+            return json.loads(data.decode("utf-8"))
+        except (http.client.HTTPException, OSError):
+            try:
+                c.close()
+            finally:
+                _tls.conn = None
+            if attempt:
+                return None
+    return None
+
+
 def _call(url: str, payload: dict | None = None, timeout: float = TIMEOUT):
     from app.services import jobs
 
-    with jobs.upstream() as allowed:
+    pc = urllib.parse.urlsplit(url).hostname == _PC_HOST
+    with jobs.upstream("pc" if pc else "default") as allowed:
         if not allowed:
             return None
         try:
+            if pc:
+                return _pc_request(url, payload, timeout)
             req = urllib.request.Request(
                 url,
                 data=json.dumps(payload).encode("utf-8") if payload else None,

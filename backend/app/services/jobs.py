@@ -42,6 +42,10 @@ _POOL_SIZE = int(os.environ.get("TERRATWIN_WORKERS", "4"))
 # Trần số lượt gọi RA NGOÀI cùng lúc, tính trên toàn tiến trình. Đây là thứ
 # đứng giữa phần mềm và việc bị Open-Meteo chặn IP.
 _UPSTREAM_LIMIT = int(os.environ.get("TERRATWIN_UPSTREAM_CONCURRENCY", "6"))
+# Planetary Computer (radar Sentinel-1, Sentinel-2, WorldCover) là nguồn KHÁC Open-Meteo, hạn mức khác — có trần riêng.
+# Lỗi thật 18/10/2026: radar dùng chung trần 6 ở trên nên 8 hay 12 luồng đọc cảnh đều chỉ chạy 6 lượt cùng lúc
+# (production: 8 luồng 71,6 s, 12 luồng 77,7 s) — tưởng là CPU Render, thực ra là trần này.
+_PC_LIMIT = int(os.environ.get("TERRATWIN_PC_CONCURRENCY", "16"))
 
 JOB_TTL = 1800.0          # giữ kết quả 30 phút rồi dọn
 MAX_JOBS = 200            # trần bộ nhớ; quá thì dọn cái cũ nhất
@@ -49,6 +53,7 @@ MAX_JOBS = 200            # trần bộ nhớ; quá thì dọn cái cũ nhất
 _pool = ThreadPoolExecutor(max_workers=_POOL_SIZE,
                            thread_name_prefix="terratwin-job")
 _upstream = threading.BoundedSemaphore(_UPSTREAM_LIMIT)
+_upstream_pc = threading.BoundedSemaphore(_PC_LIMIT)
 
 _jobs: dict[str, dict] = {}
 _jobs_lock = threading.Lock()
@@ -68,18 +73,19 @@ class upstream:
     trả None (người gọi đã xử lý được None) còn hơn treo cả tiến trình.
     """
 
-    __slots__ = ("_got",)
+    __slots__ = ("_got", "_sem")
 
-    def __init__(self):
+    def __init__(self, pool: str = "default"):
         self._got = False
+        self._sem = _upstream_pc if pool == "pc" else _upstream
 
     def __enter__(self):
-        self._got = _upstream.acquire(timeout=30.0)
+        self._got = self._sem.acquire(timeout=30.0)
         return self._got
 
     def __exit__(self, *exc):
         if self._got:
-            _upstream.release()
+            self._sem.release()
         return False
 
 
@@ -262,6 +268,7 @@ def stats() -> dict:
     return {
         "workers": _POOL_SIZE,
         "upstream_concurrency_limit": _UPSTREAM_LIMIT,
+        "planetary_computer_concurrency_limit": _PC_LIMIT,
         "jobs_tracked": sum(by.values()),
         "by_state": by,
         "coalesced_in_flight": in_flight,
