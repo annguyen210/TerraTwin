@@ -62,6 +62,26 @@ def sweep_user(user_id: int, db: Session, on_progress=None) -> dict:
 
     since = (datetime.now(timezone.utc).replace(tzinfo=None)
              - timedelta(hours=DEDUP_HOURS))
+
+    # U01 — đưa cảnh báo ra khỏi phần mềm. Gửi hỏng không được làm hỏng lượt quét.
+    #
+    # N1 — email CHƯA XÁC THỰC thì KHÔNG gửi ra kênh ngoài nào (email/Zalo/
+    # Telegram/webhook/ntfy): một địa chỉ gõ sai lúc đăng ký hoặc một tài khoản tạo
+    # hàng loạt không được phép biến TerraTwin thành máy gửi thư rác hộ tới
+    # một hộp thư không phải của người đăng ký.
+    #
+    # N8 — VÀ phải đồng ý "nhận cảnh báo" (consent_alerts, mặc định BẬT — tắt
+    # là lựa chọn chủ động). Cảnh báo vẫn được TẠO VÀ LƯU — người dùng vẫn thấy
+    # trong app/sổ điểm dù thiếu MỘT trong hai điều kiện, chỉ không phát ra kênh ngoài.
+    user_row = db.get(User, user_id)
+    can_dispatch = bool(user_row and getattr(user_row, "email_verified", 0)
+                        and getattr(user_row, "consent_alerts", 1))
+    channels = (db.execute(
+        select(NotifyChannel).where(NotifyChannel.user_id == user_id,
+                                    NotifyChannel.enabled == 1)).scalars().all()
+               if can_dispatch else [])
+    delivery = {"sent": 0, "failed": 0, "results": []}
+
     created: list[Alert] = []
     for i, p in enumerate(plots):
         if on_progress:
@@ -79,6 +99,7 @@ def sweep_user(user_id: int, db: Session, on_progress=None) -> dict:
             # cả lượt quét của những thửa còn lại.
             continue
         fsrc = _forecast_source(p.lat, p.lon) if result.alerts else None
+        plot_new: list[Alert] = []
         for m in result.alerts:            # scan.alerts đã lọc chỉ dữ liệu thật
             recent = db.execute(
                 select(Alert.risk_level).where(
@@ -96,47 +117,18 @@ def sweep_user(user_id: int, db: Session, on_progress=None) -> dict:
                       recommendation=m.recommendation, forecast_source=fsrc)
             db.add(a)
             created.append(a)
-    db.commit()
+            plot_new.append(a)
+        db.commit()
+        # GỬI NGAY khi quét xong TỪNG thửa (18/10/2026) — trước đây gom tới cuối lượt quét mọi thửa: người có 5 thửa
+        # chờ ~3–4 phút cho cảnh báo của thửa đầu. Đo local: 1 thửa, quét 42,3 s → tin ntfy tới ngay sau đó.
+        if plot_new:
+            _deliver(db, user_id, channels, plot_new, delivery)
     if on_progress:
         on_progress(len(plots), len(plots), "")
 
     payload = [{"plot_id": a.plot_id, "module_id": a.module_id,
                 "risk_level": a.risk_level, "headline": a.headline,
                 "recommendation": a.recommendation} for a in created]
-
-    # U01 — đưa cảnh báo ra khỏi phần mềm. Gửi hỏng không được làm hỏng lượt quét.
-    #
-    # N1 — email CHƯA XÁC THỰC thì KHÔNG gửi ra kênh ngoài nào (email/Zalo/
-    # Telegram/webhook): một địa chỉ gõ sai lúc đăng ký hoặc một tài khoản tạo
-    # hàng loạt không được phép biến TerraTwin thành máy gửi thư rác hộ tới
-    # một hộp thư không phải của người đăng ký.
-    #
-    # N8 — VÀ phải đồng ý "nhận cảnh báo" (consent_alerts, mặc định BẬT — tắt
-    # là lựa chọn chủ động). Cảnh báo vẫn được TẠO VÀ LƯU (đã add() ở trên) —
-    # người dùng vẫn thấy trong app/sổ điểm dù thiếu MỘT trong hai điều kiện,
-    # chỉ không phát ra kênh ngoài.
-    user_row = db.get(User, user_id)
-    can_dispatch = bool(user_row and getattr(user_row, "email_verified", 0)
-                        and getattr(user_row, "consent_alerts", 1))
-    channels = (db.execute(
-        select(NotifyChannel).where(NotifyChannel.user_id == user_id,
-                                    NotifyChannel.enabled == 1)).scalars().all()
-               if can_dispatch else [])
-    delivery = notify.dispatch(channels, payload)
-    db.commit()
-
-    # M1 — đẩy Web Push cho cảnh báo mới. Kênh cảnh báo sống-được-ngay: không cần
-    # người dùng nối Zalo/Telegram, chỉ cần đã bật thông báo trên trình duyệt.
-    # Best-effort: chưa cấu hình VAPID / chưa đăng ký thiết bị thì bỏ qua êm.
-    if created:
-        try:
-            from app.services import push
-            worst = max(created, key=lambda a: {"danger": 2, "warning": 1}.get(a.risk_level, 0))
-            n = len(created)
-            title = "⚠️ TerraTwin — cảnh báo mới" if n == 1 else f"⚠️ TerraTwin — {n} cảnh báo mới"
-            push.send_to_user(db, user_id, title, worst.headline, "/")
-        except Exception:      # noqa: BLE001 — push hỏng không làm hỏng lượt quét
-            pass
 
     # ĐÓNG VÒNG LẶP — hỏi lại về một cảnh báo cũ đã tới lúc biết kết quả.
     #
@@ -162,6 +154,28 @@ def sweep_user(user_id: int, db: Session, on_progress=None) -> dict:
         "delivery": delivery,
         "asked": asking,
     }
+
+
+def _deliver(db: Session, user_id: int, channels: list, alerts: list, acc: dict) -> None:
+    """Gửi cảnh báo của MỘT thửa ra mọi kênh + Web Push; cộng dồn kết quả vào `acc`. Không bao giờ ném lỗi."""
+    payload = [{"plot_id": a.plot_id, "module_id": a.module_id, "risk_level": a.risk_level,
+                "headline": a.headline, "recommendation": a.recommendation} for a in alerts]
+    d = notify.dispatch(channels, payload)
+    acc["sent"] += d.get("sent", 0)
+    acc["failed"] += d.get("failed", 0)
+    acc["results"].extend(d.get("results", []))
+    db.commit()
+    # M1 — đẩy Web Push cho cảnh báo mới. Kênh cảnh báo sống-được-ngay: không cần
+    # người dùng nối Zalo/Telegram, chỉ cần đã bật thông báo trên trình duyệt.
+    # Best-effort: chưa cấu hình VAPID / chưa đăng ký thiết bị thì bỏ qua êm.
+    try:
+        from app.services import push
+        worst = max(alerts, key=lambda a: {"danger": 2, "warning": 1}.get(a.risk_level, 0))
+        n = len(alerts)
+        title = "⚠️ TerraTwin — cảnh báo mới" if n == 1 else f"⚠️ TerraTwin — {n} cảnh báo mới"
+        push.send_to_user(db, user_id, title, worst.headline, "/")
+    except Exception:      # noqa: BLE001 — push hỏng không làm hỏng lượt quét
+        pass
 
 
 def _ask_one(user_id: int, channels: list, db: Session) -> dict:

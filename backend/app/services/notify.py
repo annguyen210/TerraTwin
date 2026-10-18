@@ -262,6 +262,53 @@ def send_telegram(chat_id: str, text: str) -> str | None:
     return None
 
 
+# ---------- ntfy (18/10/2026) — đẩy thông báo về điện thoại MIỄN PHÍ, không cần tài khoản, không cần duyệt ----------
+# Zalo ZNS đòi giấy phép kinh doanh; Telegram cần chủ máy chủ tạo bot. ntfy (mã nguồn mở, ntfy.sh) chỉ cần người dùng cài
+# app ntfy và đăng ký một CHỦ ĐỀ. Chủ đề ntfy.sh là CÔNG KHAI — ai biết tên là đọc được — nên bắt tên dài, khó đoán.
+NTFY_TOPIC_RE = r"^[A-Za-z0-9_-]{16,64}$"
+
+
+def ntfy_url(target: str) -> tuple[str | None, str | None]:
+    """(url, lỗi). Nhận tên chủ đề (gửi qua TERRATWIN_NTFY_SERVER, mặc định https://ntfy.sh) hoặc URL https đầy đủ tới
+    chủ đề trên máy chủ ntfy tự dựng (kiểm như webhook để không gọi vào mạng nội bộ)."""
+    import re
+    t = (target or "").strip()
+    if t.startswith("https://"):
+        err = validate_webhook(t)
+        if err:
+            return None, err
+        topic = t.rstrip("/").rsplit("/", 1)[-1]
+        if not re.match(NTFY_TOPIC_RE, topic):
+            return None, "Tên chủ đề ntfy phải dài 16–64 ký tự (chữ, số, - hoặc _) — chủ đề là công khai, tên ngắn dễ bị đoán."
+        return t, None
+    if not re.match(NTFY_TOPIC_RE, t):
+        return None, "Tên chủ đề ntfy phải dài 16–64 ký tự (chữ, số, - hoặc _) — chủ đề là công khai, tên ngắn dễ bị đoán."
+    server = os.environ.get("TERRATWIN_NTFY_SERVER", "https://ntfy.sh").rstrip("/")
+    return f"{server}/{t}", None
+
+
+def send_ntfy(target: str, title: str, text: str, click: str | None = None, priority: int = 4) -> str | None:
+    """POST nội dung tới chủ đề ntfy. Tiêu đề và đường dẫn bấm-vào gửi qua tham số URL (header HTTP không mang được
+    tiếng Việt có dấu)."""
+    import urllib.parse
+    url, err = ntfy_url(target)
+    if err:
+        return err
+    q = urllib.parse.urlencode({"title": title[:200], "priority": str(priority), "tags": "warning",
+                                **({"click": click} if click else {})})
+    try:
+        req = urllib.request.Request(f"{url}?{q}", data=text[:4000].encode("utf-8"), method="POST",
+                                     headers={"Content-Type": "text/plain; charset=utf-8"})
+        with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+            if r.status >= 300:
+                return f"ntfy trả mã {r.status}."
+    except urllib.error.HTTPError as e:
+        return f"ntfy trả mã {e.code}."
+    except Exception as e:
+        return f"Không gửi được tới ntfy: {type(e).__name__}."
+    return None
+
+
 def channel_status() -> dict:
     """Kênh nào đã sẵn sàng gửi thật — để giao diện nói thẳng thay vì để người
     dùng tạo một kênh rồi mới phát hiện nó chưa bao giờ gửi được."""
@@ -270,6 +317,7 @@ def channel_status() -> dict:
         "telegram": telegram_configured(),
         "email": smtp_configured(),
         "webhook": True,          # không cần cấu hình phía máy chủ
+        "ntfy": True,             # dịch vụ công khai miễn phí, không cần cấu hình
     }
 
 
@@ -358,6 +406,11 @@ def dispatch(channels: list, alerts: list[dict]) -> dict:
             err = send_zalo(ch.target, _format_text(picked))
         elif ch.kind == "telegram":
             err = send_telegram(ch.target, _format_text(picked))
+        elif ch.kind == "ntfy":
+            top = max(picked, key=lambda a: 1 if a["risk_level"] == "danger" else 0)
+            err = send_ntfy(ch.target, f"TerraTwin: {len(picked)} cảnh báo — {top['headline'][:80]}",
+                            _format_text(picked), click=_scorecard_url(),
+                            priority=5 if top["risk_level"] == "danger" else 4)
         else:
             err = f"Kênh không hỗ trợ: {ch.kind}"
 
@@ -423,6 +476,8 @@ def ask(channels: list, questions: list[dict]) -> dict:
             err = send_zalo(ch.target, text)
         elif ch.kind == "telegram":
             err = send_telegram(ch.target, text)
+        elif ch.kind == "ntfy":
+            err = send_ntfy(ch.target, "TerraTwin hỏi lại: ruộng có ngập không?", text, priority=3)
         else:
             err = f"Kênh không hỗ trợ: {ch.kind}"
 

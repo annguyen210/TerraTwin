@@ -429,7 +429,7 @@ def delete_twin(twin_id: int, user: User = Depends(auth.current_user),
 # ---------- U01 Kênh gửi cảnh báo ----------
 
 class ChannelIn(BaseModel):
-    kind: str = Field(pattern="^(webhook|email|zalo|telegram)$")
+    kind: str = Field(pattern="^(webhook|email|zalo|telegram|ntfy)$")
     target: str = Field(min_length=3, max_length=500)
     min_level: str = Field(default="warning", pattern="^(warning|danger)$")
 
@@ -478,6 +478,10 @@ def create_channel(body: ChannelIn, user: User = Depends(auth.current_user),
                 422, "Số điện thoại không hợp lệ. Nhập số di động Việt Nam, "
                      "ví dụ 0912345678.")
         target = num          # lưu dạng chuẩn 84xxxxxxxxx mà ZNS đòi hỏi
+    elif body.kind == "ntfy":
+        _u, err = notify.ntfy_url(target)
+        if err:
+            raise HTTPException(422, err)
     elif body.kind == "telegram":
         if not target.lstrip("-").isdigit():
             raise HTTPException(
@@ -821,6 +825,8 @@ def channels_status() -> dict:
                          "mất khoảng một phút, không phải xét duyệt gì."),
             "email": "Cần TERRATWIN_SMTP_HOST và các biến SMTP kèm theo.",
             "webhook": "Không cần cấu hình phía máy chủ.",
+            "ntfy": ("Miễn phí, không cần tài khoản: cài app ntfy trên điện thoại, đăng ký đúng tên chủ đề (16–64 ký tự, "
+                     "khó đoán — chủ đề ntfy.sh là công khai)."),
         },
     }
 

@@ -235,7 +235,9 @@ function DataPanel({ user }: { user: AuthUser | null }) {
 function ChannelsPanel({ user }: { user: AuthUser | null }) {
   const { t, lang } = useLang();
   const [rows, setRows] = useState<ChannelRow[]>([]);
-  const [kind, setKind] = useState<"webhook" | "email">("email");
+  const [kind, setKind] = useState<"webhook" | "email" | "ntfy">("email");
+  // ntfy: chủ đề công khai → tên ngẫu nhiên khó đoán (máy chủ bắt 16–64 ký tự).
+  const randomTopic = () => "tt-" + Array.from(crypto.getRandomValues(new Uint8Array(10)), (b) => b.toString(16).padStart(2, "0")).join("");
   const [target, setTarget] = useState("");
   const [level, setLevel] = useState<"warning" | "danger">("warning");
   const [err, setErr] = useState<string | null>(null);
@@ -268,6 +270,7 @@ function ChannelsPanel({ user }: { user: AuthUser | null }) {
           thay vì hứa "1 chạm cắm là chạy". */}
       <div className="ws-recipes">
         {[
+          ["ntfy", "🔔 ntfy — điện thoại, miễn phí", "🔔 ntfy — phone, free", "ntfy"],
           ["email", "📧 Email", "📧 Email", "email"],
           ["zalo", "📱 Zalo OA", "📱 Zalo OA", "webhook"],
           ["telegram", "✈️ Telegram", "✈️ Telegram", "webhook"],
@@ -279,7 +282,10 @@ function ChannelsPanel({ user }: { user: AuthUser | null }) {
             <button
               key={id}
               className={recipe === id || (id === "email" && kind === "email" && !recipe) ? "on" : ""}
-              onClick={() => { setRecipe(id === "email" ? null : id); setKind(k as "webhook" | "email"); }}
+              onClick={() => {
+                setRecipe(id === "email" ? null : id); setKind(k as "webhook" | "email" | "ntfy");
+                if (id === "ntfy") setTarget((cur) => (/^[A-Za-z0-9_-]{16,64}$/.test(cur) ? cur : randomTopic()));
+              }}
             >
               {t(labelVi, labelEn)}
               {status && (
@@ -303,6 +309,19 @@ function ChannelsPanel({ user }: { user: AuthUser | null }) {
                 "The server hasn't configured this channel, so messages will NOT send even if you add it.")}
           {status.note?.[recipe] ? ` ${status.note[recipe]}` : ""}
         </p>
+      )}
+      {recipe === "ntfy" && (
+        <div className="ws-recipe">
+          <b>{t("Nhận cảnh báo trên điện thoại qua ntfy (miễn phí, không cần tài khoản):", "Get alerts on your phone via ntfy (free, no account):")}</b>
+          <ol>
+            <li>{t("Cài app ", "Install the ")}<b>ntfy</b>{t(" (Google Play / App Store, mã nguồn mở).", " app (Google Play / App Store, open source).")}</li>
+            <li>{t("Trong app bấm + → nhập ĐÚNG tên chủ đề ở ô bên dưới (đã tạo sẵn ngẫu nhiên) → Subscribe.",
+                    "In the app tap + → enter EXACTLY the topic name in the box below (pre-filled at random) → Subscribe.")}</li>
+            <li>{t("Bấm Thêm → Gửi thử. Đo 18/10/2026: tin tới trong khoảng 1 giây.", "Tap Add → Send test. Measured 18/10/2026: the message arrives in about 1 second.")}</li>
+          </ol>
+          <p className="ws-mini">{t("Chủ đề ntfy.sh là CÔNG KHAI — ai biết tên là đọc được. Giữ kín tên, đừng đổi thành chữ dễ đoán.",
+                                     "ntfy.sh topics are PUBLIC — anyone who knows the name can read them. Keep the name private; don't change it to something guessable.")}</p>
+        </div>
       )}
       {recipe === "zalo" && (
         <div className="ws-recipe">
@@ -347,12 +366,13 @@ function ChannelsPanel({ user }: { user: AuthUser | null }) {
       {msg && <p className="ws-ok">✓ {msg}</p>}
 
       <div className="ws-row">
-        <select value={kind} onChange={(e) => setKind(e.target.value as any)}>
+        <select value={kind} onChange={(e) => { const k = e.target.value as "webhook" | "email" | "ntfy"; setKind(k); if (k === "ntfy" && !target) setTarget(randomTopic()); }}>
           <option value="email">Email</option>
+          <option value="ntfy">ntfy</option>
           <option value="webhook">Webhook</option>
         </select>
         <input
-          placeholder={kind === "email" ? "dia-chi@email.com" : "https://…"}
+          placeholder={kind === "email" ? "dia-chi@email.com" : kind === "ntfy" ? "tt-…" : "https://…"}
           value={target}
           onChange={(e) => setTarget(e.target.value)}
         />

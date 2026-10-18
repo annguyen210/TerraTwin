@@ -1624,7 +1624,7 @@ export function listChannels() {
 }
 
 export function createChannel(
-  kind: "webhook" | "email", target: string, minLevel: "warning" | "danger",
+  kind: "webhook" | "email" | "ntfy", target: string, minLevel: "warning" | "danger",
 ) {
   return authed<ChannelRow>("/api/channels", {
     method: "POST",
@@ -1645,7 +1645,7 @@ export function deleteChannel(id: number) {
 // H5 — kênh nào đã cấu hình xong PHÍA MÁY CHỦ. Công khai, không lộ token: giao
 // diện cần biết trước khi người dùng gõ số vào một kênh chưa bao giờ gửi được.
 export type ChannelStatus = {
-  ready: { zalo: boolean; telegram: boolean; email: boolean; webhook: boolean };
+  ready: { zalo: boolean; telegram: boolean; email: boolean; webhook: boolean; ntfy?: boolean };
   note: Record<string, string>;
 };
 export function getChannelStatus() {
