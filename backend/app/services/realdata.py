@@ -317,16 +317,13 @@ def weather_7d(lat: float, lon: float):
         "https://api.open-meteo.com/v1/forecast"
         f"?latitude={_snap(lat)}&longitude={_snap(lon)}"
         "&daily=precipitation_sum,et0_fao_evapotranspiration,temperature_2m_max"
-        "&forecast_days=7&timezone=auto"
+        "&forecast_days=7&timezone=auto" + _models_q()
     )
     d = _get(url)
     if d and "daily" in d:
         dd = d["daily"]
         try:
-            times = dd["time"]
-            precip = [_num(v) for v in dd.get("precipitation_sum", [])]
-            et0 = [_num(v) for v in dd.get("et0_fao_evapotranspiration", [])]
-            tmax = [_num(v) for v in dd.get("temperature_2m_max", [])]
+            times, precip, et0, tmax = _daily_cols(dd)
         except (KeyError, TypeError):
             times = None
         else:
@@ -571,7 +568,7 @@ def weather_multi(points: list[tuple[float, float]]):
             "https://api.open-meteo.com/v1/forecast"
             f"?latitude={lat_q}&longitude={lon_q}"
             "&daily=precipitation_sum,et0_fao_evapotranspiration,temperature_2m_max"
-            "&forecast_days=7&timezone=auto"
+            "&forecast_days=7&timezone=auto" + _models_q()
         )
 
     out = _parallel_chunks(points, _url, 25.0)
@@ -592,16 +589,51 @@ def weather_multi(points: list[tuple[float, float]]):
 _METNO_MAX_POINTS = 25          # lưới vùng nguyên liệu 5×5
 
 
+# TỔ HỢP DỰ BÁO MƯA (kế hoạch tổng GĐ5 mục 3): trung bình mưa best_match + ECMWF AIFS — chỉ bật khi cổng đăng ký trước
+# data/eval/aifs_blend_protocol.json ĐẠT (kết quả aifs_blend_result.json, 18/10/2026: POD 0,289 → 0,477, FAR 0,439 → 0,322
+# trên 128 ngày mưa cực đoan, 9 điểm). Chỉ trộn MƯA (thứ đã qua cổng); ET0 và nhiệt độ giữ best_match.
+BLEND_MODELS = ("best_match", "ecmwf_aifs025_single")
+_BLEND_RESULT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "data", "eval", "aifs_blend_result.json")
+
+
+def blend_on() -> bool:
+    try:
+        with open(_BLEND_RESULT, encoding="utf-8") as f:
+            return bool(json.load(f).get("passed"))
+    except (OSError, ValueError):
+        return False
+
+
+def _models_q() -> str:
+    return "&models=" + ",".join(BLEND_MODELS) if blend_on() else ""
+
+
+def _daily_cols(dd: dict):
+    """(times, precip, et0, tmax) từ khối "daily" — một mô hình (tên trần) hoặc hai mô hình (tên có hậu tố).
+    Hai mô hình: mưa = trung bình; ngày AIFS thiếu → giữ best_match; best_match thiếu → thiếu (như trước)."""
+    times = dd["time"]
+
+    def col(name):
+        if name in dd:
+            return [_num(v) for v in dd[name]]
+        return [_num(v) for v in dd.get(f"{name}_{BLEND_MODELS[0]}", [])]
+    if "precipitation_sum" in dd:
+        precip = col("precipitation_sum")
+    else:
+        a = [_num(v) for v in dd.get(f"precipitation_sum_{BLEND_MODELS[0]}", [])]
+        b = [_num(v) for v in dd.get(f"precipitation_sum_{BLEND_MODELS[1]}", [])]
+        precip = [None if x is None else (round((x + b[i]) / 2, 2) if i < len(b) and b[i] is not None else x)
+                  for i, x in enumerate(a)]
+    return times, precip, col("et0_fao_evapotranspiration"), col("temperature_2m_max")
+
+
 def _rows_from_daily(item):
     """Chuyển một phần tử phản hồi Open-Meteo thành list dict, hoặc None."""
     if not item or "daily" not in item:
         return None
     dd = item["daily"]
     try:
-        times = dd["time"]
-        precip = [_num(v) for v in dd.get("precipitation_sum", [])]
-        et0 = [_num(v) for v in dd.get("et0_fao_evapotranspiration", [])]
-        tmax = [_num(v) for v in dd.get("temperature_2m_max", [])]
+        times, precip, et0, tmax = _daily_cols(dd)
     except (KeyError, TypeError):
         return None
     if not times or len([p for p in precip if p is not None]) < max(1, len(times) // 2):

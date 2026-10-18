@@ -293,6 +293,33 @@ cd backend && python ../ops/water_field_gate.py            # đủ cỡ mẫu �
 Tiến độ công khai: `GET /api/water/field-check` và dòng cuối thẻ "Lịch sử nước" ở `/mo-hinh`. Test:
 `backend/tests/test_field_truth.py`.
 
+## 7f. Tổ hợp dự báo mưa best_match + ECMWF AIFS — CỔNG ĐẠT 18/10/2026 (đã bật)
+
+Kế hoạch tổng GĐ5 mục 3. Đăng ký trước [`backend/data/eval/aifs_blend_protocol.json`](backend/data/eval/aifs_blend_protocol.json)
+(commit a6950c1, trước khi đọc giá trị mưa nào), script [`ops/aifs_blend_gate.py`](ops/aifs_blend_gate.py) commit trước khi
+chạy (ff0aa9e), chấm một lần → `backend/data/eval/aifs_blend_result.json` (kèm từng dòng điểm × ngày để tự tính lại).
+
+```bash
+cd backend && python ../ops/aifs_blend_gate.py     # từ chối chạy lại khi tệp kết quả đã có
+```
+
+Mưa 3 ngày D+1..D+3 do dự báo phát hành ngày D (Open-Meteo Previous Runs, `precipitation_previous_day1..3`) so với ERA5;
+sự kiện = ERA5 ≥ P97 của chính điểm (2016–2025). 9 điểm, ngày phát hành 01/03–28/12/2025, 303 ngày mỗi điểm.
+
+| Mưa 3 ngày ≥ P97 (128 ngày-sự kiện) | POD | FAR | CSI | Sai số TB |
+|---|---|---|---|---|
+| best_match (trước đây) | 0,289 | 0,439 | 0,236 | 12,7 mm |
+| **Tổ hợp (đã bật)** | **0,477** | **0,322** | **0,389** | **9,3 mm** |
+| AIFS một mình (tham khảo) | 0,539 | 0,425 | 0,385 | 10,7 mm |
+
+Cổng: FAR giảm VÀ POD không giảm, ≥ 30 ngày-sự kiện trên ≥ 3 điểm → **đạt**. Bật trong `services/realdata.py`
+(`weather_7d`, `weather_multi`): một lượt gọi `models=best_match,ecmwf_aifs025_single`, mưa = trung bình (ngày AIFS thiếu →
+best_match); ET0, nhiệt độ giữ best_match.
+
+Giới hạn (ghi cả trên thẻ mô hình): sự thật là ERA5, không phải trạm đo; chấm ở mức mưa, chưa ở mức cảnh báo. Ngày-sự kiện
+liền nhau không độc lập — gộp thành **50 đợt riêng biệt** (chỉ để mô tả, không quyết định cổng) thì best_match bắt được 17,
+tổ hợp 22: **cả hai vẫn bắt chưa tới một nửa** số đợt mưa cực đoan trước 1–3 ngày. Một năm dữ liệu.
+
 ## 8. Kiểm một hồ sơ mà không cần tin TerraTwin — CỔNG GĐ4
 
 Một tệp duy nhất, không import mã máy chủ: [`ops/verify_dossier.py`](ops/verify_dossier.py).

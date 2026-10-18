@@ -164,6 +164,41 @@ def cards() -> list[dict]:
             "code": f"{REPO}/backend/app/services/water_history.py",
         })
 
+    # 3c — Tổ hợp dự báo mưa best_match + ECMWF AIFS (GĐ5 mục 3) — 18/10/2026
+    ab = _load("eval", "aifs_blend_result.json")
+    if ab:
+        sc, mg = ab["scores"], ab.get("margins") or {}
+
+        def _m(key, label, better_low):
+            b, c = sc["best"][key], sc["blend"][key]
+            return {"label": label, "value": f"{b} → {c}", "threshold": tr("giảm", "lower") if better_low else tr("không giảm", "not lower"),
+                    "passed": (c < b) if better_low else (c >= b)}
+        out.append({
+            "id": "aifs_blend", "kind": tr("tổ hợp dự báo", "forecast blend"),
+            "name": tr("Mưa dự báo 7 ngày: trung bình best_match + ECMWF AIFS", "7-day rain forecast: mean of best_match + ECMWF AIFS"),
+            "status": "accepted" if ab.get("passed") else "rejected",
+            "status_label": tr("cổng đạt · đã bật", "gate passed · on") if ab.get("passed") else tr("trượt · giữ best_match", "failed · best_match kept"),
+            "task": tr("Bắt mưa 3 ngày cực đoan (≥ P97 của điểm) trước 1–3 ngày", "Catch extreme 3-day rain (≥ the point's P97) 1–3 days ahead"),
+            "data": tr("Open-Meteo Previous Runs (dự báo đã phát hành) so với ERA5; 9 điểm, ngày phát hành 01/03–28/12/2025",
+                       "Open-Meteo Previous Runs (issued forecasts) vs ERA5; 9 points, issue days 1 Mar – 28 Dec 2025"),
+            "split": tr(f"đăng ký trước (a6950c1), script trước khi chạy (ff0aa9e), chấm một lần: {sc['best']['events']} ngày-sự kiện",
+                        f"pre-registered (a6950c1), script before running (ff0aa9e), scored once: {sc['best']['events']} event-days"),
+            "metrics": [_m("POD", tr("Bắt trúng (POD) best_match → tổ hợp", "Hit rate (POD) best_match → blend"), False),
+                        _m("FAR", tr("Báo bừa (FAR) best_match → tổ hợp", "False alarms (FAR) best_match → blend"), True),
+                        _m("CSI", "CSI", False),
+                        {"label": tr("AIFS một mình (tham khảo, không phải ứng viên)", "AIFS alone (reference, not a candidate)"),
+                         "value": f"POD {sc['aifs']['POD']} · FAR {sc['aifs']['FAR']}", "threshold": "—", "passed": None}],
+            "limits": tr("Sự thật là ERA5 (tái phân tích ~25 km), không phải trạm đo mưa; chấm ở mức mưa, chưa chấm mức cảnh báo vì chưa có "
+                         "sự thật mặt đất. Ngày-sự kiện liền nhau không độc lập: gộp thành 50 đợt riêng biệt thì best_match bắt được 17, tổ hợp 22 "
+                         "— cả hai vẫn bắt chưa tới một nửa số đợt mưa cực đoan. Chỉ một năm (2025).",
+                         "Truth is ERA5 (~25 km reanalysis), not rain gauges; scored at rain level, not alert level, since there is no ground "
+                         "truth yet. Consecutive event-days are not independent: merged into 50 distinct episodes, best_match caught 17 and the "
+                         "blend 22 — both still catch fewer than half of the extreme-rain episodes. One year only (2025)."),
+            "not_for": tr("Không phải dự báo chính thức của cơ quan khí tượng; ET0 và nhiệt độ vẫn theo best_match.",
+                          "Not an official met-service forecast; ET0 and temperature still follow best_match."),
+            "code": f"{REPO}/backend/app/services/realdata.py",
+        })
+
     # 4b — Lớp diễn giải mùa lũ (trong/ngoài mùa) — 17/10/2026
     fsr = _load("eval", "flood_season_result.json")
     if fsr:
