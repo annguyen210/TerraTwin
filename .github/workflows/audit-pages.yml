@@ -1,0 +1,42 @@
+name: Rà soát mọi trang production
+
+# Chỉ ĐỌC production: mở từng trang ở máy tính + điện thoại, ghi lỗi console, HTTP ≥ 400, tràn ngang, thiếu khung điều
+# hướng, link nội bộ hỏng (ops/audit_pages.py). Chạy trên máy GitHub — máy dev chỉ ~8 GB RAM, không đủ cho 52 lượt trang.
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "30 2 * * 1"      # sáng thứ Hai giờ VN
+  push:
+    branches: [main]
+    paths: [ops/audit_pages.py, .github/workflows/audit-pages.yml]
+
+concurrency:
+  group: audit-pages
+  cancel-in-progress: true
+
+env:
+  WEB: https://terratwin-web.onrender.com
+  API: https://terratwin-api.onrender.com
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install "playwright>=1.48,<2" && python -m playwright install --with-deps chromium
+      - name: Đánh thức web + api (gói miễn phí ngủ sau 15 phút)
+        run: |
+          bash ops/wake-api.sh || true
+          for i in 1 2 3 4 5 6; do curl -fsS -o /dev/null --max-time 60 "$WEB/help" && break; sleep 20; done
+      - name: Rà mọi trang (máy tính + điện thoại)
+        run: python ops/audit_pages.py "$WEB"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: audit-pages
+          path: ${{ runner.temp }}/terratwin-audit
+          if-no-files-found: ignore

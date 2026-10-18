@@ -5,6 +5,10 @@
 Với MỖI trang, ở máy tính (1360 px) và điện thoại (390 px): lỗi console / lỗi trang,
 phản hồi HTTP ≥ 400, tràn ngang, có khung điều hướng chung không, tiêu đề trang; gom
 mọi đường link nội bộ rồi kiểm từng link trả 200. Chụp ảnh từng trang để soi bằng mắt.
+
+Chạy trên GitHub Actions (.github/workflows/audit-pages.yml, 18/10/2026): mỗi trang có vấn đề thành một chú thích
+::warning, tổng kết thành ::notice; thoát mã 1 khi có trang lỗi / link hỏng. Chờ `domcontentloaded` + vài giây
+(KHÔNG chờ networkidle — trang mở kênh sự kiện /api/events thì không bao giờ "im" mạng).
 """
 from __future__ import annotations
 
@@ -19,7 +23,8 @@ from playwright.sync_api import sync_playwright
 
 WEB = sys.argv[1].rstrip("/")
 DID = sys.argv[2] if len(sys.argv) > 2 else ""
-OUT = os.path.join(os.environ.get("TEMP", "."), "terratwin-audit")
+OUT = os.path.join(os.environ.get("TEMP") or os.environ.get("RUNNER_TEMP") or ".", "terratwin-audit")
+CI = bool(os.environ.get("GITHUB_ACTIONS"))
 os.makedirs(OUT, exist_ok=True)
 ROUTES = ["/", "/hom-nay", "/eudr", "/eudr?tab=lo", "/eudr?tab=tong-quan", "/eudr?tab=hoi-dap", "/eudr?tab=phuong-phap",
           "/lo", "/kiem", "/about", "/pricing", "/help", "/thi-diem", "/gan-nhan", "/mo-hinh", "/so-sanh?p=16.4637,107.5909,Hue|10.0452,105.7469,Can%20Tho", "/privacy", "/terms", "/status", "/buyer", "/batch",
@@ -30,7 +35,10 @@ if DID:
 report = []
 links: set[str] = set()
 with sync_playwright() as p:
-    br = p.chromium.launch(channel="chrome", headless=True)
+    try:
+        br = p.chromium.launch(channel="chrome", headless=True)
+    except Exception:                                # noqa: BLE001 — máy không có Chrome: dùng Chromium của Playwright
+        br = p.chromium.launch(headless=True)
     for vw, tag in (({"width": 1360, "height": 900}, "pc"), ({"width": 390, "height": 844}, "dt")):
         ctx = br.new_context(viewport=vw, is_mobile=(tag == "dt"), device_scale_factor=1)
         ctx.add_init_script("try{localStorage.setItem('terratwin_onboarded','1')}catch(e){}")
@@ -50,7 +58,8 @@ with sync_playwright() as p:
                                            timeout=180_000)
                     print(f"     embed có thẻ sau {time.time() - t0:.0f}s")
                 else:
-                    page.goto(WEB + r, wait_until="networkidle", timeout=120_000)
+                    page.goto(WEB + r, wait_until="domcontentloaded", timeout=120_000)
+                    page.wait_for_timeout(4000)              # cho React gắn + gọi API đầu trang
                 page.wait_for_timeout(1500)
                 w = page.evaluate("() => document.documentElement.scrollWidth")
                 shell = page.locator(".tt-top").count() > 0
@@ -82,9 +91,13 @@ for l in sorted(links):
         broken.append((l, code))
 
 print("==== RÀ SOÁT ====")
+n_bad = 0
 for x in report:
     if "fatal" in x:
+        n_bad += 1
         print(f"FATAL {x['view']} {x['route']}: {x['fatal']}")
+        if CI:
+            print(f"::warning::Rà trang {x['view']} {x['route']} — không mở được: {x['fatal'][:180]}")
         continue
     flags = []
     # Có chủ đích: widget nhúng (iframe trên trang khác) không có khung điều hướng; trang
@@ -101,6 +114,11 @@ for x in report:
     if bad:
         flags.append(f"{len(bad)} HTTP≥400")
     print(f"{'OK  ' if not flags else 'LỖI '} {x['view']} {x['route']:28} [{x['title'][:40]}] {' · '.join(flags)}")
+    if flags:
+        n_bad += 1
+        if CI:
+            detail = "; ".join([f"console: {e[:120]}" for e in errs[:2]] + [f"http: {b[:120]}" for b in bad[:2]])
+            print(f"::warning::Rà trang {x['view']} {x['route']} — {' · '.join(flags)}" + (f" — {detail}" if detail else ""))
     for e in errs[:3]:
         print("        console:", e)
     for b in bad[:3]:
@@ -110,3 +128,9 @@ for l, c in broken:
     print("   ", c, l)
 json.dump({"report": report, "broken": broken}, open(os.path.join(OUT, "audit.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 print("Ảnh:", OUT)
+if CI:
+    for l, c in broken:
+        print(f"::warning::Link nội bộ hỏng: {l} → {c}")
+    print(f"::notice::Rà {len(report)} lượt trang (2 cỡ màn hình × {len(ROUTES)} trang): {len(report) - n_bad} ổn, {n_bad} có vấn đề; "
+          f"link nội bộ {len(links)}, hỏng {len(broken)}")
+sys.exit(1 if (n_bad or broken) else 0)
