@@ -178,6 +178,17 @@ phân vị VV < −18 dB **và** thấp hơn nền của chính thửa ≥ 3 dB;
 Giới hạn: đô thị (phản xạ kép), rừng rậm, sườn dốc, mặt rất phẳng; chu kỳ 6–12 ngày có thể lọt đợt ngập ngắn
 (lũ đỉnh 27–30/10/2025 được thấy ở cảnh 01/11 khi nước còn đọng). Đây là số đo radar, không phải số liệu ngập chính thức.
 
+**Thời gian đọc một thửa MỚI trên production (Render gói miễn phí), 18/10/2026** — cổng kế hoạch tổng "hồ sơ đầy đủ < 60 giây":
+
+| Bản | 459 cảnh | Ghi chú |
+|---|---|---|
+| 4 luồng, mỗi cảnh một kết nối TLS mới | ~181 s | |
+| 8 luồng | 71,6 s | 12 luồng 77,7 s — không nhanh hơn: MỌI lượt gọi ra ngoài chung trần 6 (`jobs._UPSTREAM_LIMIT`, đặt cho Open-Meteo) |
+| **Trần riêng Planetary Computer 16 + kết nối giữ mở + 12 luồng** (2bb66bb) | **35,0 s** (người dùng chờ 39 s) | 0 cảnh lỗi; 5/5 cảnh so với đường cũ khớp tuyệt đối |
+
+Hộ chiếu thửa (địa hình + ERA5 10 năm) cho toạ độ mới: 10,3 s, chạy song song khi mở thửa → hồ sơ đầy đủ ≈ 40–50 s,
+**đạt cổng < 60 s** khi Open-Meteo không chặn IP dùng chung của Render. Bị chặn thì hồ sơ vẫn phát hành và ghi mục thiếu.
+
 ### 7b. Lớp diễn giải MÙA LŨ (trong / ngoài mùa) — CỔNG ĐẠT 17/10/2026
 
 Vì sao: bộ phát hiện ở trên (không đổi) đếm cả nước cho vào ruộng/ao theo vụ. Đo production: Cà Mau 9,18; 105,09 có
