@@ -25,6 +25,12 @@ không phá rừng sau 31/12/2020. Đây là nhu cầu BẮT BUỘC có hạn ch
 | "Chạm là có ranh" (77 ranh OSM) | IoU 0,60 | 0,38 | trượt, không bật |
 | U-Net lớp phủ đất (2 lần) | mIoU 0,35 | 0,232 → 0,314 | trượt, không bật |
 | **Loại đất bằng AlphaEarth + softmax** — cùng nhãn WorldCover, cùng 4 tỉnh giữ lại với U-Net | mIoU 0,35 | **0,420** (trồng trọt 0,578; đúng 84% điểm ảnh) | **đạt, đã bật**: "Đất có đổi khác sau 2021?" (tham khảo, không vào hồ sơ ký); giao thức commit trước (0f1997d); yếu: cây bụi, đất ngập nước, rừng ngập mặn |
+| Lịch sử nước radar (Sentinel-1, quy tắc) | lũ Huế 10/2020, miền Trung 10/2025 đúng tuần; đất cao 0 đợt | đạt cả 3 ca | **đạt, đã bật** (đo thật, vào hồ sơ ký) — `REPRODUCE.md` §7 |
+| Lớp diễn giải mùa lũ v1 (trong / ngoài mùa, ERA5) | 4 ca đăng ký trước | 4/4 | **đạt, đã bật** (6de80c3 → 5514f25) — §7b |
+| Mùa lũ v2 (mưa cực đoan P97) | dương tính ≥ 75%, 0 bắt nhầm | Noru không có cảnh; Cà Mau 05/04/2025 bắt nhầm | trượt, không bật — §7c |
+| Mùa lũ v3 (lưu lượng sông GloFAS, R-a/R-b) | ≥ 4 trận ở ≥ 2 vùng, ≥ 75%, 0 bắt nhầm | 0/3 (chỉ 3/12 trận đủ điều kiện) | trượt, không bật — §7d |
+| **Tổ hợp dự báo mưa best_match + ECMWF AIFS** | FAR giảm VÀ POD không giảm (128 ngày-sự kiện, 9 điểm, 2025) | POD 0,289 → **0,477**; FAR 0,439 → **0,322** | **đạt, đã bật** (a6950c1 → c85de86); gộp 50 đợt riêng: 17 → 22, cả hai < nửa — §7f |
+| Kiểm thực địa bộ phát hiện đợt nước (xác nhận người dùng) | ≥ 30 đợt, ≥ 10 người, ≥ 3 ô 1°; cận dưới Wilson ≥ 0,60 | **chờ dữ liệu** (0/30) | đăng ký trước khi có câu trả lời nào (2c307bd) — §7e |
 | **Sàng lọc v3** (v2 + mô hình rừng/vườn cho ca tán dày) | như v1, mỗi nhóm ≥25 ô | **đang gán nhãn** | 240 ô mới (seed 20261007), sự thật = 2 người giải đoán ảnh 2020 độc lập ở `/gan-nhan`; giao thức + mẫu commit trước nhãn (0fdd138) |
 
 ## Hồ sơ đất cho người mua đất — kế hoạch tổng (cập nhật 9/10/2026)
@@ -43,6 +49,8 @@ mật mã, ai cũng kiểm lại được.** Không điểm rủi ro hộp đen;
 | So sánh 2–4 thửa | `/so-sanh`: nước phủ, độ cao, sông/biển, vùng mặn, lũ/sạt lở 10 năm, loại đất | Đánh dấu giá trị thuận lợi theo RIÊNG từng tiêu chí, không điểm tổng | `services/plot_compare.py` |
 | Cảm biến ký số | Đầu đo EC/độ mặn vào nhật ký thửa trong ≤ 10 giây (giả lập `ops/iot_simulator.py --salinity 35`) | Ed25519 từng số đo, chống phát lại | `services/iot.py` |
 | Bảo mật | Xác thực hai lớp TOTP (bắt buộc với quản trị khi bật cờ), OWASP ZAP hằng ngày | [`THREAT_MODEL.md`](THREAT_MODEL.md) | `services/totp.py` |
+| Xác nhận từng đợt nước | Dưới mỗi đợt: "Ruộng có ngập đợt này không?" (đăng nhập; ai cũng thấy số đếm) | Bảng riêng, không lẫn vào hiệu chuẩn cảnh báo; "Có" ở đợt ngoài mùa → ca thật cho mùa lũ v4 (`REPRODUCE.md` §7e) | `routes_water.py`, `services/field_truth.py` |
+| Định dạng hồ sơ công khai | Lược đồ JSON (draft 2020-12) cho 3 loại tài liệu ký; bước 0 của script kiểm độc lập | 26/26 hồ sơ thật khớp; `tests/test_doc_schema.py` | `backend/data/schema/terratwin-document-1.schema.json` |
 | Thẻ mô hình | `/mo-hinh`: mọi mô hình/quy tắc AI kể cả cái trượt — dữ liệu, chia tập, điểm giữ lại so với ngưỡng, giới hạn, không nên dùng cho | Số đọc thẳng từ tệp kiểm định đã commit | `services/model_cards.py` |
 | Nhật ký chạy sống | Mỗi ngày nhật ký 6 thửa mẫu trên dữ liệu thật, ghi công khai nhánh `journal-log` | Cổng GĐ6: 7 ngày sống, 0 rác (bắt đầu 10/10/2026) | `.github/workflows/journal-live.yml` |
 
@@ -263,8 +271,8 @@ terratwin/
 │       │                         #   goalseek, timemachine, anomaly,
 │       │                         #   backtest, copilot, twin
 │       └── modules/              # base + util + 18 mũi nhọn (nhóm A–D) + registry
-│   └── tests/                    # pytest (509 test, offline & tất định)
-├── frontend/                     # Next.js 14 + MapLibre
+│   └── tests/                    # pytest (1.067 test ở 18/10/2026, offline & tất định)
+├── frontend/                     # Next.js 16 + MapLibre
 │   └── components/               # MapView, ResultsPanel, Overview, WhatIf,
 │                                 #   Backtest, Portfolio, Copilot
 ├── .github/workflows/ci.yml      # CI: pytest + tsc + next build
@@ -300,7 +308,7 @@ npm run dev -- -p 1825      # http://localhost:1825
 ```bash
 cd backend
 pip install -r requirements-dev.txt
-pytest                      # 509 test, chạy offline & tất định
+pytest                      # 1.067 test (18/10/2026), chạy offline & tất định
 ```
 
 ---
