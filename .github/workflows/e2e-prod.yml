@@ -60,7 +60,8 @@ jobs:
             perf=$(node -e "const r=require('./lh.json');console.log(Math.round(r.categories.performance.score*100))")
             a11y=$(node -e "const r=require('./lh.json');console.log(Math.round(r.categories.accessibility.score*100))")
             m=$(node -e "const a=require('./lh.json').audits;console.log(['first-contentful-paint','largest-contentful-paint','total-blocking-time','cumulative-layout-shift'].map(k=>k.split('-').map(w=>w[0]).join('').toUpperCase()+' '+a[k].displayValue).join(' · '))")
-            echo "::notice::Lighthouse $path — hiệu năng $perf · truy cập $a11y (cổng: ≥85 · ≥95) · $m"
+            echo "::notice::Lighthouse $path — hiệu năng $perf (mục tiêu ≥85, chỉ báo cáo) · truy cập $a11y (cổng cứng ≥95) · $m"
+            [ "$perf" -ge 85 ] || echo "::warning::Lighthouse $path — hiệu năng $perf dưới mục tiêu 85 (gói miễn phí dao động; xem lại nếu lặp lại nhiều ngày)"
             [ "$a11y" -ge 95 ] || fail=1
           done
           # Hiệu năng trên gói miễn phí dao động theo máy chủ ngủ/dậy → chỉ báo cáo; truy cập là cổng cứng.
