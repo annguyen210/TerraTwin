@@ -1,0 +1,88 @@
+name: E2E cục bộ đầy đủ (ghi dữ liệu, có tài khoản)
+
+# Dựng TOÀN BỘ TerraTwin trên máy CI (máy chủ SQLite + web bản build) rồi bấm như người dùng thật — kể cả các bước
+# GHI mà E2E production không được làm (phát hành hồ sơ, lô hàng, đăng ký, nâng gói + SePay giả lập, quản trị).
+# Máy của chủ dự án chỉ ~7,8 GB RAM, thường còn < 1 GB — không dựng nổi web + trình duyệt, nên chạy ở đây.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-local
+  cancel-in-progress: true
+
+env:
+  WEB: http://127.0.0.1:3000
+  API: http://127.0.0.1:8000
+  E2E_ADMIN: e2e-admin@terratwin.vn
+  E2E_SEPAY_KEY: e2e-sepay-khoa-thu-chi-dung-trong-ci
+
+jobs:
+  e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: pip install -r backend/requirements.txt "playwright>=1.48,<2"
+      - name: Máy chủ (SQLite mới tinh, khoá/tài khoản ngân hàng chỉ là giá trị THỬ)
+        working-directory: backend
+        env:
+          TERRATWIN_ENV: dev
+          TERRATWIN_CORS: http://127.0.0.1:3000
+          TERRATWIN_SECRET: e2e-local-secret-chi-dung-trong-ci-0123456789
+          TERRATWIN_ADMIN_EMAILS: ${{ env.E2E_ADMIN }}
+          TERRATWIN_SEPAY_API_KEY: ${{ env.E2E_SEPAY_KEY }}
+          TERRATWIN_VIETQR_BIN: "970436"
+          TERRATWIN_VIETQR_ACCOUNT: "0000000000"
+          TERRATWIN_VIETQR_NAME: TAI KHOAN THU CI
+          TERRATWIN_STARTUP_WARMUP: "0"
+          TERRATWIN_RADAR_INTERVAL_H: "0"
+          TERRATWIN_RADAR_RETRY_INTERVAL_MIN: "0"
+        run: |
+          nohup python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > /tmp/api.log 2>&1 &
+          for i in $(seq 1 60); do curl -fsS -o /dev/null "$API/api/health" && break; sleep 2; done
+          curl -fsS "$API/api/health" | head -c 300; echo
+      - name: Web (bản build thật, trỏ vào máy chủ cục bộ)
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API: http://127.0.0.1:8000
+        run: |
+          npm ci
+          npm run build
+          nohup npx next start -H 127.0.0.1 -p 3000 > /tmp/web.log 2>&1 &
+          for i in $(seq 1 60); do curl -fsS -o /dev/null "$WEB/help" && break; sleep 2; done
+      - name: Luồng chính, GHI đầy đủ (hồ sơ, lô hàng, kiểm offline, điện thoại)
+        env:
+          TEMP: ${{ runner.temp }}
+        run: python ops/e2e_browser.py "$WEB" "$API"
+      - name: Tài khoản người dùng + quản trị (nâng gói, SePay, tin đăng vàng, phân quyền)
+        if: always()
+        env:
+          TEMP: ${{ runner.temp }}
+        run: python ops/e2e_accounts.py "$WEB" "$API"
+      - name: Nhật ký máy chủ khi trượt
+        if: failure()
+        run: tail -n 200 /tmp/api.log; tail -n 60 /tmp/web.log
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: e2e-local-screenshots
+          path: |
+            ${{ runner.temp }}/terratwin-e2e
+            ${{ runner.temp }}/terratwin-e2e-accounts
+          if-no-files-found: ignore
