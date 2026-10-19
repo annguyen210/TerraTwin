@@ -81,9 +81,22 @@ def color_baseline(rgb: np.ndarray) -> np.ndarray:
 # ------------------------------------------------------------------ ảnh đồng ruộng khô SUN397 (đọc HTTP Range)
 
 def _get(url, start, end):
-    req = urllib.request.Request(url, headers={"User-Agent": "terratwin", "Range": f"bytes={start}-{end}"})
-    with urllib.request.urlopen(req, timeout=300) as r:
-        return r.read(), int((r.headers.get("Content-Range") or "/0").split("/")[-1] or 0)
+    """Yêu cầu theo dải byte. 19/10/2026: lượt commit đầu treo > 90 phút ở đây (không giới hạn tổng thời gian, không thử
+    lại) → giới hạn 60 giây mỗi lần, thử lại 5 lần có giãn cách, báo lỗi rõ thay vì treo."""
+    last = None
+    for attempt in range(5):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "terratwin", "Range": f"bytes={start}-{end}"})
+            with urllib.request.urlopen(req, timeout=60) as r:
+                data = r.read()
+                if r.status != 206 and end - start + 1 < len(data):
+                    raise IOError(f"máy chủ không trả theo dải byte (HTTP {r.status})")
+                return data, int((r.headers.get("Content-Range") or "/0").split("/")[-1] or 0)
+        except Exception as e:  # noqa: BLE001
+            last = e
+            print(f"  thử lại {attempt + 1}/5 ({type(e).__name__}: {str(e)[:80]})", flush=True)
+            time.sleep(5 * (attempt + 1))
+    raise SystemExit(f"không tải được {url} [{start}-{end}]: {last}")
 
 
 def _fill(path, url, start, length):
@@ -132,6 +145,8 @@ def sun_images(split_name: str, per_class: int | None, tmp: str):
                     if per_class is not None and got[labels[i]] >= per_class:
                         continue
                     got[labels[i]] += 1
+                    if sum(got.values()) % 30 == 0:
+                        print(f"  SUN397 {split_name}: {sum(got.values())} ảnh (tệp {k + 1}/18)", flush=True)
                     yield DRY[labels[i]], base + i, Image.open(io.BytesIO(col[i].as_py()["bytes"]))
             base += rg.num_rows
         os.remove(path)

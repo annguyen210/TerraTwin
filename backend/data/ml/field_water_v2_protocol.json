@@ -15,5 +15,6 @@
   "if_pass": "Đưa .onnx + .onnx.data bản 2 lên repo; field_water.available() chỉ bật khi kết quả bản 2 đạt cả (a) và (b). Vẫn chỉ là tín hiệu THAM KHẢO ở nhật ký thửa, không vào hồ sơ ký.",
   "if_fail": "Công bố trượt; tính năng giữ TẮT.",
   "one_shot": "Chạy một lần trên GPU Kaggle bằng ml/kaggle/field_water_seg_v2.py tải theo commit cố định + kiểm SHA-256; lượt hỏng TRƯỚC khi chấm test thì sửa và chạy lại, ghi rõ.",
-  "script": "ml/kaggle/field_water_seg_v2.py"
+  "script": "ml/kaggle/field_water_seg_v2.py",
+  "run_log": "19/10/2026: lượt commit đầu (Kaggle phiên bản 3, script c62362d) chạy > 90 phút không ra kết quả — đo trong phiên tương tác: tải ảnh khô ~4,5 phút, 1 vòng huấn luyện ~17 giây, nên lượt đó TREO (nghi ở phần tải dải byte không giới hạn tổng thời gian). Đã dừng khi CHƯA đọc được kết quả nào. Sửa: giới hạn 60 giây + thử lại 5 lần + in tiến độ (không đổi dữ liệu, cách chọn mô hình hay ngưỡng). Lượt sau là lượt được chấm."
 }
