@@ -1,0 +1,309 @@
+{
+ "protocol": "terratwin.field_water_negctrl/1",
+ "n": 50,
+ "median": 0.061,
+ "share_over_0_5": 0.08,
+ "passed": true,
+ "images": [
+  {
+   "file": "sun397_test0.parquet",
+   "row": 750,
+   "class": "corn field",
+   "water_ratio": 0.268
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 751,
+   "class": "corn field",
+   "water_ratio": 0.108
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 752,
+   "class": "corn field",
+   "water_ratio": 0.194
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 753,
+   "class": "corn field",
+   "water_ratio": 0.065
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 754,
+   "class": "corn field",
+   "water_ratio": 0.042
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 755,
+   "class": "corn field",
+   "water_ratio": 0.238
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 756,
+   "class": "corn field",
+   "water_ratio": 0.027
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 757,
+   "class": "corn field",
+   "water_ratio": 0.563
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 758,
+   "class": "corn field",
+   "water_ratio": 0.036
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 759,
+   "class": "corn field",
+   "water_ratio": 0.117
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 760,
+   "class": "corn field",
+   "water_ratio": 0.148
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 761,
+   "class": "corn field",
+   "water_ratio": 0.603
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 762,
+   "class": "corn field",
+   "water_ratio": 0.035
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 763,
+   "class": "corn field",
+   "water_ratio": 0.028
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 764,
+   "class": "corn field",
+   "water_ratio": 0.121
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 765,
+   "class": "corn field",
+   "water_ratio": 0.009
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 766,
+   "class": "corn field",
+   "water_ratio": 0.002
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 767,
+   "class": "corn field",
+   "water_ratio": 0.034
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 768,
+   "class": "corn field",
+   "water_ratio": 0.006
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 769,
+   "class": "corn field",
+   "water_ratio": 0.064
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 770,
+   "class": "corn field",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 771,
+   "class": "corn field",
+   "water_ratio": 0.01
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 772,
+   "class": "corn field",
+   "water_ratio": 0.063
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 773,
+   "class": "corn field",
+   "water_ratio": 0.021
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 774,
+   "class": "corn field",
+   "water_ratio": 0.057
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 775,
+   "class": "corn field",
+   "water_ratio": 0.238
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 776,
+   "class": "corn field",
+   "water_ratio": 0.115
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 777,
+   "class": "corn field",
+   "water_ratio": 0.015
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 778,
+   "class": "corn field",
+   "water_ratio": 0.09
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 779,
+   "class": "corn field",
+   "water_ratio": 0.045
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 780,
+   "class": "corn field",
+   "water_ratio": 0.07
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 781,
+   "class": "corn field",
+   "water_ratio": 0.06
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 782,
+   "class": "corn field",
+   "water_ratio": 0.271
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 783,
+   "class": "corn field",
+   "water_ratio": 0.354
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 784,
+   "class": "corn field",
+   "water_ratio": 0.048
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 785,
+   "class": "corn field",
+   "water_ratio": 0.564
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 786,
+   "class": "corn field",
+   "water_ratio": 0.466
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 787,
+   "class": "corn field",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 788,
+   "class": "corn field",
+   "water_ratio": 0.473
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 789,
+   "class": "corn field",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 790,
+   "class": "corn field",
+   "water_ratio": 0.005
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 791,
+   "class": "corn field",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 792,
+   "class": "corn field",
+   "water_ratio": 0.189
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 793,
+   "class": "corn field",
+   "water_ratio": 0.126
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 794,
+   "class": "corn field",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 795,
+   "class": "corn field",
+   "water_ratio": 0.118
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 796,
+   "class": "corn field",
+   "water_ratio": 0.045
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 797,
+   "class": "corn field",
+   "water_ratio": 0.527
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 798,
+   "class": "corn field",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "sun397_test0.parquet",
+   "row": 799,
+   "class": "corn field",
+   "water_ratio": 0.003
+  }
+ ]
+}

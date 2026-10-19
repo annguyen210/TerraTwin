@@ -29,17 +29,19 @@ def main() -> None:
     rows = []
     for path in sys.argv[1:]:
         f = pq.ParquetFile(path)
-        labels = f.read(columns=["label"]).column("label").to_pylist()
-        want = [i for i, lab in enumerate(labels) if lab in CLASSES]
-        if not want:
-            continue
-        tab = f.read(columns=["image"])
-        col = tab.column("image")
-        for i in want:
-            img = Image.open(io.BytesIO(col[i].as_py()["bytes"]))
-            r = field_water.water_ratio(img)
-            rows.append({"file": os.path.basename(path), "row": i, "class": CLASSES[labels[i]], "water_ratio": r})
-            print(rows[-1], flush=True)
+        base = 0
+        for g in range(f.num_row_groups):          # đọc TỪNG nhóm hàng — máy chủ dự án chỉ còn < 1 GB RAM trống
+            labels = f.read_row_group(g, columns=["label"]).column("label").to_pylist()
+            want = [k for k, lab in enumerate(labels) if lab in CLASSES]
+            if want:
+                col = f.read_row_group(g, columns=["image"]).column("image")
+                for k in want:
+                    img = Image.open(io.BytesIO(col[k].as_py()["bytes"]))
+                    r = field_water.water_ratio(img)
+                    rows.append({"file": os.path.basename(path), "row": base + k, "class": CLASSES[labels[k]], "water_ratio": r})
+                    print(rows[-1], flush=True)
+                del col
+            base += len(labels)
         if len(rows) >= 20:
             break
     vals = [r["water_ratio"] for r in rows if r["water_ratio"] is not None]
