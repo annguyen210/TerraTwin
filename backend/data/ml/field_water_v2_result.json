@@ -1,0 +1,3487 @@
+{
+ "protocol": "terratwin.field_water/2",
+ "script_sha256": "2f20a9b35a341a58d7ebaf611f355d5eb82371c6f3b7dc97585ddbdaf792aaf2",
+ "seed": 20261018,
+ "size": 512,
+ "epochs": 40,
+ "device": "cuda",
+ "n": {
+  "flood_train": 204,
+  "dry_train": 225,
+  "flood_valid": 43,
+  "dry_valid": 45,
+  "flood_test": 43,
+  "dry_test": 450
+ },
+ "selected": {
+  "dry_ok_on_valid": true,
+  "valid_iou": 0.8502
+ },
+ "log": [
+  {
+   "epoch": 1,
+   "loss": 17.4172,
+   "valid_iou": 0.7475,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 2,
+   "loss": 17.4768,
+   "valid_iou": 0.7579,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 3,
+   "loss": 11.1213,
+   "valid_iou": 0.8189,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 4,
+   "loss": 9.8323,
+   "valid_iou": 0.8064,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 5,
+   "loss": 8.0957,
+   "valid_iou": 0.8206,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 6,
+   "loss": 7.7159,
+   "valid_iou": 0.8124,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 7,
+   "loss": 7.9073,
+   "valid_iou": 0.8346,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 8,
+   "loss": 6.475,
+   "valid_iou": 0.8296,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 9,
+   "loss": 6.2197,
+   "valid_iou": 0.8362,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 10,
+   "loss": 6.3126,
+   "valid_iou": 0.8401,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 11,
+   "loss": 5.8482,
+   "valid_iou": 0.8437,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 12,
+   "loss": 5.5704,
+   "valid_iou": 0.8355,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 13,
+   "loss": 5.22,
+   "valid_iou": 0.8316,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 14,
+   "loss": 5.22,
+   "valid_iou": 0.8342,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 15,
+   "loss": 4.9483,
+   "valid_iou": 0.8376,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 16,
+   "loss": 5.0702,
+   "valid_iou": 0.8372,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 17,
+   "loss": 4.9471,
+   "valid_iou": 0.8209,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 18,
+   "loss": 4.632,
+   "valid_iou": 0.8327,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 19,
+   "loss": 4.7694,
+   "valid_iou": 0.8291,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 20,
+   "loss": 6.4698,
+   "valid_iou": 0.8243,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 21,
+   "loss": 5.0157,
+   "valid_iou": 0.8313,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 22,
+   "loss": 4.4909,
+   "valid_iou": 0.839,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 23,
+   "loss": 4.2967,
+   "valid_iou": 0.8294,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 24,
+   "loss": 4.4235,
+   "valid_iou": 0.8317,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 25,
+   "loss": 4.4194,
+   "valid_iou": 0.8338,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 26,
+   "loss": 4.4781,
+   "valid_iou": 0.8411,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 27,
+   "loss": 4.5199,
+   "valid_iou": 0.8465,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 28,
+   "loss": 4.8405,
+   "valid_iou": 0.8326,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 29,
+   "loss": 4.2691,
+   "valid_iou": 0.8361,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 30,
+   "loss": 4.0711,
+   "valid_iou": 0.8406,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 31,
+   "loss": 3.9865,
+   "valid_iou": 0.8418,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 32,
+   "loss": 3.9993,
+   "valid_iou": 0.8459,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 33,
+   "loss": 3.9965,
+   "valid_iou": 0.8396,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 34,
+   "loss": 3.8043,
+   "valid_iou": 0.8389,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 35,
+   "loss": 3.7251,
+   "valid_iou": 0.8379,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 36,
+   "loss": 3.8923,
+   "valid_iou": 0.8427,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 37,
+   "loss": 3.7981,
+   "valid_iou": 0.8502,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 38,
+   "loss": 3.6642,
+   "valid_iou": 0.849,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 39,
+   "loss": 3.6066,
+   "valid_iou": 0.8384,
+   "valid_dry_median": 0.0
+  },
+  {
+   "epoch": 40,
+   "loss": 3.4913,
+   "valid_iou": 0.8454,
+   "valid_dry_median": 0.0
+  }
+ ],
+ "test": {
+  "model_iou": 0.8078,
+  "color_baseline_iou": 0.4285
+ },
+ "dry_test": {
+  "median": 0.0,
+  "share_over_0_5": 0.0,
+  "per_class": {
+   "corn field": {
+    "n": 50,
+    "median": 0.0,
+    "share_over_0_5": 0.0
+   },
+   "field cultivated": {
+    "n": 50,
+    "median": 0.0,
+    "share_over_0_5": 0.0
+   },
+   "hayfield": {
+    "n": 50,
+    "median": 0.0,
+    "share_over_0_5": 0.0
+   },
+   "orchard": {
+    "n": 50,
+    "median": 0.0,
+    "share_over_0_5": 0.0
+   },
+   "pasture": {
+    "n": 50,
+    "median": 0.0,
+    "share_over_0_5": 0.0
+   },
+   "tree farm": {
+    "n": 50,
+    "median": 0.0,
+    "share_over_0_5": 0.0
+   },
+   "vegetable garden": {
+    "n": 50,
+    "median": 0.0,
+    "share_over_0_5": 0.0
+   },
+   "vineyard": {
+    "n": 50,
+    "median": 0.0,
+    "share_over_0_5": 0.0
+   },
+   "wheat field": {
+    "n": 50,
+    "median": 0.0,
+    "share_over_0_5": 0.0
+   }
+  }
+ },
+ "neg_train_valid_ids": [
+  {
+   "class": "corn field",
+   "row": 750,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 751,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 752,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 753,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 754,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 755,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 756,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 757,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 758,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 759,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 760,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 761,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 762,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 763,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 764,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 765,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 766,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 767,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 768,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 769,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 770,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 771,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 772,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 773,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 774,
+   "use": "train"
+  },
+  {
+   "class": "corn field",
+   "row": 775,
+   "use": "valid"
+  },
+  {
+   "class": "corn field",
+   "row": 776,
+   "use": "valid"
+  },
+  {
+   "class": "corn field",
+   "row": 777,
+   "use": "valid"
+  },
+  {
+   "class": "corn field",
+   "row": 778,
+   "use": "valid"
+  },
+  {
+   "class": "corn field",
+   "row": 779,
+   "use": "valid"
+  },
+  {
+   "class": "field cultivated",
+   "row": 744,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 745,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 746,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 747,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 748,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 749,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 750,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 751,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 752,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 753,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 754,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 755,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 756,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 757,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 758,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 759,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 760,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 761,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 762,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 763,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 764,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 765,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 766,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 767,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 768,
+   "use": "train"
+  },
+  {
+   "class": "field cultivated",
+   "row": 769,
+   "use": "valid"
+  },
+  {
+   "class": "field cultivated",
+   "row": 770,
+   "use": "valid"
+  },
+  {
+   "class": "field cultivated",
+   "row": 771,
+   "use": "valid"
+  },
+  {
+   "class": "field cultivated",
+   "row": 772,
+   "use": "valid"
+  },
+  {
+   "class": "field cultivated",
+   "row": 773,
+   "use": "valid"
+  },
+  {
+   "class": "hayfield",
+   "row": 188,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 189,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 190,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 191,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 192,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 193,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 194,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 195,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 196,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 197,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 198,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 199,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 200,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 201,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 202,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 203,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 204,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 205,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 206,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 207,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 208,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 209,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 210,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 211,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 212,
+   "use": "train"
+  },
+  {
+   "class": "hayfield",
+   "row": 213,
+   "use": "valid"
+  },
+  {
+   "class": "hayfield",
+   "row": 214,
+   "use": "valid"
+  },
+  {
+   "class": "hayfield",
+   "row": 215,
+   "use": "valid"
+  },
+  {
+   "class": "hayfield",
+   "row": 216,
+   "use": "valid"
+  },
+  {
+   "class": "hayfield",
+   "row": 217,
+   "use": "valid"
+  },
+  {
+   "class": "orchard",
+   "row": 176,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 177,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 178,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 179,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 180,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 181,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 182,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 183,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 184,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 185,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 186,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 187,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 188,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 189,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 190,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 191,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 192,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 193,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 194,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 195,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 196,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 197,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 198,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 199,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 200,
+   "use": "train"
+  },
+  {
+   "class": "orchard",
+   "row": 201,
+   "use": "valid"
+  },
+  {
+   "class": "orchard",
+   "row": 202,
+   "use": "valid"
+  },
+  {
+   "class": "orchard",
+   "row": 203,
+   "use": "valid"
+  },
+  {
+   "class": "orchard",
+   "row": 204,
+   "use": "valid"
+  },
+  {
+   "class": "orchard",
+   "row": 205,
+   "use": "valid"
+  },
+  {
+   "class": "pasture",
+   "row": 726,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 727,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 728,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 729,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 730,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 731,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 732,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 733,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 734,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 735,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 736,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 737,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 738,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 739,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 740,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 741,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 742,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 743,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 744,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 745,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 746,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 747,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 748,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 749,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 750,
+   "use": "train"
+  },
+  {
+   "class": "pasture",
+   "row": 751,
+   "use": "valid"
+  },
+  {
+   "class": "pasture",
+   "row": 752,
+   "use": "valid"
+  },
+  {
+   "class": "pasture",
+   "row": 753,
+   "use": "valid"
+  },
+  {
+   "class": "pasture",
+   "row": 754,
+   "use": "valid"
+  },
+  {
+   "class": "pasture",
+   "row": 755,
+   "use": "valid"
+  },
+  {
+   "class": "tree farm",
+   "row": 361,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 362,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 363,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 364,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 365,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 366,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 367,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 368,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 369,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 370,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 371,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 372,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 373,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 374,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 375,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 376,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 377,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 378,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 379,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 380,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 381,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 382,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 383,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 384,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 385,
+   "use": "train"
+  },
+  {
+   "class": "tree farm",
+   "row": 386,
+   "use": "valid"
+  },
+  {
+   "class": "tree farm",
+   "row": 387,
+   "use": "valid"
+  },
+  {
+   "class": "tree farm",
+   "row": 388,
+   "use": "valid"
+  },
+  {
+   "class": "tree farm",
+   "row": 389,
+   "use": "valid"
+  },
+  {
+   "class": "tree farm",
+   "row": 390,
+   "use": "valid"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 761,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 762,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 763,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 764,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 765,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 766,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 767,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 768,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 769,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 770,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 771,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 772,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 773,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 774,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 775,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 776,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 777,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 778,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 779,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 780,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 781,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 782,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 783,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 784,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 785,
+   "use": "train"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 786,
+   "use": "valid"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 787,
+   "use": "valid"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 788,
+   "use": "valid"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 789,
+   "use": "valid"
+  },
+  {
+   "class": "vegetable garden",
+   "row": 790,
+   "use": "valid"
+  },
+  {
+   "class": "vineyard",
+   "row": 1061,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1062,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1063,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1064,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1065,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1066,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1067,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1068,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1069,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1070,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1071,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1072,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1073,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1074,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1075,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1076,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1077,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1078,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1079,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1080,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1081,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1082,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1083,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1084,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1085,
+   "use": "train"
+  },
+  {
+   "class": "vineyard",
+   "row": 1086,
+   "use": "valid"
+  },
+  {
+   "class": "vineyard",
+   "row": 1087,
+   "use": "valid"
+  },
+  {
+   "class": "vineyard",
+   "row": 1088,
+   "use": "valid"
+  },
+  {
+   "class": "vineyard",
+   "row": 1089,
+   "use": "valid"
+  },
+  {
+   "class": "vineyard",
+   "row": 1090,
+   "use": "valid"
+  },
+  {
+   "class": "wheat field",
+   "row": 658,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 659,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 660,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 661,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 662,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 663,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 664,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 665,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 666,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 667,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 668,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 669,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 670,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 671,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 672,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 673,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 674,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 675,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 676,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 677,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 678,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 679,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 680,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 681,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 682,
+   "use": "train"
+  },
+  {
+   "class": "wheat field",
+   "row": 683,
+   "use": "valid"
+  },
+  {
+   "class": "wheat field",
+   "row": 684,
+   "use": "valid"
+  },
+  {
+   "class": "wheat field",
+   "row": 685,
+   "use": "valid"
+  },
+  {
+   "class": "wheat field",
+   "row": 686,
+   "use": "valid"
+  },
+  {
+   "class": "wheat field",
+   "row": 687,
+   "use": "valid"
+  }
+ ],
+ "neg_test_ids": [
+  {
+   "class": "corn field",
+   "row": 750
+  },
+  {
+   "class": "corn field",
+   "row": 751
+  },
+  {
+   "class": "corn field",
+   "row": 752
+  },
+  {
+   "class": "corn field",
+   "row": 753
+  },
+  {
+   "class": "corn field",
+   "row": 754
+  },
+  {
+   "class": "corn field",
+   "row": 755
+  },
+  {
+   "class": "corn field",
+   "row": 756
+  },
+  {
+   "class": "corn field",
+   "row": 757
+  },
+  {
+   "class": "corn field",
+   "row": 758
+  },
+  {
+   "class": "corn field",
+   "row": 759
+  },
+  {
+   "class": "corn field",
+   "row": 760
+  },
+  {
+   "class": "corn field",
+   "row": 761
+  },
+  {
+   "class": "corn field",
+   "row": 762
+  },
+  {
+   "class": "corn field",
+   "row": 763
+  },
+  {
+   "class": "corn field",
+   "row": 764
+  },
+  {
+   "class": "corn field",
+   "row": 765
+  },
+  {
+   "class": "corn field",
+   "row": 766
+  },
+  {
+   "class": "corn field",
+   "row": 767
+  },
+  {
+   "class": "corn field",
+   "row": 768
+  },
+  {
+   "class": "corn field",
+   "row": 769
+  },
+  {
+   "class": "corn field",
+   "row": 770
+  },
+  {
+   "class": "corn field",
+   "row": 771
+  },
+  {
+   "class": "corn field",
+   "row": 772
+  },
+  {
+   "class": "corn field",
+   "row": 773
+  },
+  {
+   "class": "corn field",
+   "row": 774
+  },
+  {
+   "class": "corn field",
+   "row": 775
+  },
+  {
+   "class": "corn field",
+   "row": 776
+  },
+  {
+   "class": "corn field",
+   "row": 777
+  },
+  {
+   "class": "corn field",
+   "row": 778
+  },
+  {
+   "class": "corn field",
+   "row": 779
+  },
+  {
+   "class": "corn field",
+   "row": 780
+  },
+  {
+   "class": "corn field",
+   "row": 781
+  },
+  {
+   "class": "corn field",
+   "row": 782
+  },
+  {
+   "class": "corn field",
+   "row": 783
+  },
+  {
+   "class": "corn field",
+   "row": 784
+  },
+  {
+   "class": "corn field",
+   "row": 785
+  },
+  {
+   "class": "corn field",
+   "row": 786
+  },
+  {
+   "class": "corn field",
+   "row": 787
+  },
+  {
+   "class": "corn field",
+   "row": 788
+  },
+  {
+   "class": "corn field",
+   "row": 789
+  },
+  {
+   "class": "corn field",
+   "row": 790
+  },
+  {
+   "class": "corn field",
+   "row": 791
+  },
+  {
+   "class": "corn field",
+   "row": 792
+  },
+  {
+   "class": "corn field",
+   "row": 793
+  },
+  {
+   "class": "corn field",
+   "row": 794
+  },
+  {
+   "class": "corn field",
+   "row": 795
+  },
+  {
+   "class": "corn field",
+   "row": 796
+  },
+  {
+   "class": "corn field",
+   "row": 797
+  },
+  {
+   "class": "corn field",
+   "row": 798
+  },
+  {
+   "class": "corn field",
+   "row": 799
+  },
+  {
+   "class": "field cultivated",
+   "row": 744
+  },
+  {
+   "class": "field cultivated",
+   "row": 745
+  },
+  {
+   "class": "field cultivated",
+   "row": 746
+  },
+  {
+   "class": "field cultivated",
+   "row": 747
+  },
+  {
+   "class": "field cultivated",
+   "row": 748
+  },
+  {
+   "class": "field cultivated",
+   "row": 749
+  },
+  {
+   "class": "field cultivated",
+   "row": 750
+  },
+  {
+   "class": "field cultivated",
+   "row": 751
+  },
+  {
+   "class": "field cultivated",
+   "row": 752
+  },
+  {
+   "class": "field cultivated",
+   "row": 753
+  },
+  {
+   "class": "field cultivated",
+   "row": 754
+  },
+  {
+   "class": "field cultivated",
+   "row": 755
+  },
+  {
+   "class": "field cultivated",
+   "row": 756
+  },
+  {
+   "class": "field cultivated",
+   "row": 757
+  },
+  {
+   "class": "field cultivated",
+   "row": 758
+  },
+  {
+   "class": "field cultivated",
+   "row": 759
+  },
+  {
+   "class": "field cultivated",
+   "row": 760
+  },
+  {
+   "class": "field cultivated",
+   "row": 761
+  },
+  {
+   "class": "field cultivated",
+   "row": 762
+  },
+  {
+   "class": "field cultivated",
+   "row": 763
+  },
+  {
+   "class": "field cultivated",
+   "row": 764
+  },
+  {
+   "class": "field cultivated",
+   "row": 765
+  },
+  {
+   "class": "field cultivated",
+   "row": 766
+  },
+  {
+   "class": "field cultivated",
+   "row": 767
+  },
+  {
+   "class": "field cultivated",
+   "row": 768
+  },
+  {
+   "class": "field cultivated",
+   "row": 769
+  },
+  {
+   "class": "field cultivated",
+   "row": 770
+  },
+  {
+   "class": "field cultivated",
+   "row": 771
+  },
+  {
+   "class": "field cultivated",
+   "row": 772
+  },
+  {
+   "class": "field cultivated",
+   "row": 773
+  },
+  {
+   "class": "field cultivated",
+   "row": 774
+  },
+  {
+   "class": "field cultivated",
+   "row": 775
+  },
+  {
+   "class": "field cultivated",
+   "row": 776
+  },
+  {
+   "class": "field cultivated",
+   "row": 777
+  },
+  {
+   "class": "field cultivated",
+   "row": 778
+  },
+  {
+   "class": "field cultivated",
+   "row": 779
+  },
+  {
+   "class": "field cultivated",
+   "row": 780
+  },
+  {
+   "class": "field cultivated",
+   "row": 781
+  },
+  {
+   "class": "field cultivated",
+   "row": 782
+  },
+  {
+   "class": "field cultivated",
+   "row": 783
+  },
+  {
+   "class": "field cultivated",
+   "row": 784
+  },
+  {
+   "class": "field cultivated",
+   "row": 785
+  },
+  {
+   "class": "field cultivated",
+   "row": 786
+  },
+  {
+   "class": "field cultivated",
+   "row": 787
+  },
+  {
+   "class": "field cultivated",
+   "row": 788
+  },
+  {
+   "class": "field cultivated",
+   "row": 789
+  },
+  {
+   "class": "field cultivated",
+   "row": 790
+  },
+  {
+   "class": "field cultivated",
+   "row": 791
+  },
+  {
+   "class": "field cultivated",
+   "row": 792
+  },
+  {
+   "class": "field cultivated",
+   "row": 793
+  },
+  {
+   "class": "hayfield",
+   "row": 188
+  },
+  {
+   "class": "hayfield",
+   "row": 189
+  },
+  {
+   "class": "hayfield",
+   "row": 190
+  },
+  {
+   "class": "hayfield",
+   "row": 191
+  },
+  {
+   "class": "hayfield",
+   "row": 192
+  },
+  {
+   "class": "hayfield",
+   "row": 193
+  },
+  {
+   "class": "hayfield",
+   "row": 194
+  },
+  {
+   "class": "hayfield",
+   "row": 195
+  },
+  {
+   "class": "hayfield",
+   "row": 196
+  },
+  {
+   "class": "hayfield",
+   "row": 197
+  },
+  {
+   "class": "hayfield",
+   "row": 198
+  },
+  {
+   "class": "hayfield",
+   "row": 199
+  },
+  {
+   "class": "hayfield",
+   "row": 200
+  },
+  {
+   "class": "hayfield",
+   "row": 201
+  },
+  {
+   "class": "hayfield",
+   "row": 202
+  },
+  {
+   "class": "hayfield",
+   "row": 203
+  },
+  {
+   "class": "hayfield",
+   "row": 204
+  },
+  {
+   "class": "hayfield",
+   "row": 205
+  },
+  {
+   "class": "hayfield",
+   "row": 206
+  },
+  {
+   "class": "hayfield",
+   "row": 207
+  },
+  {
+   "class": "hayfield",
+   "row": 208
+  },
+  {
+   "class": "hayfield",
+   "row": 209
+  },
+  {
+   "class": "hayfield",
+   "row": 210
+  },
+  {
+   "class": "hayfield",
+   "row": 211
+  },
+  {
+   "class": "hayfield",
+   "row": 212
+  },
+  {
+   "class": "hayfield",
+   "row": 213
+  },
+  {
+   "class": "hayfield",
+   "row": 214
+  },
+  {
+   "class": "hayfield",
+   "row": 215
+  },
+  {
+   "class": "hayfield",
+   "row": 216
+  },
+  {
+   "class": "hayfield",
+   "row": 217
+  },
+  {
+   "class": "hayfield",
+   "row": 218
+  },
+  {
+   "class": "hayfield",
+   "row": 219
+  },
+  {
+   "class": "hayfield",
+   "row": 220
+  },
+  {
+   "class": "hayfield",
+   "row": 221
+  },
+  {
+   "class": "hayfield",
+   "row": 222
+  },
+  {
+   "class": "hayfield",
+   "row": 223
+  },
+  {
+   "class": "hayfield",
+   "row": 224
+  },
+  {
+   "class": "hayfield",
+   "row": 225
+  },
+  {
+   "class": "hayfield",
+   "row": 226
+  },
+  {
+   "class": "hayfield",
+   "row": 227
+  },
+  {
+   "class": "hayfield",
+   "row": 228
+  },
+  {
+   "class": "hayfield",
+   "row": 229
+  },
+  {
+   "class": "hayfield",
+   "row": 230
+  },
+  {
+   "class": "hayfield",
+   "row": 231
+  },
+  {
+   "class": "hayfield",
+   "row": 232
+  },
+  {
+   "class": "hayfield",
+   "row": 233
+  },
+  {
+   "class": "hayfield",
+   "row": 234
+  },
+  {
+   "class": "hayfield",
+   "row": 235
+  },
+  {
+   "class": "hayfield",
+   "row": 236
+  },
+  {
+   "class": "hayfield",
+   "row": 237
+  },
+  {
+   "class": "orchard",
+   "row": 176
+  },
+  {
+   "class": "orchard",
+   "row": 177
+  },
+  {
+   "class": "orchard",
+   "row": 178
+  },
+  {
+   "class": "orchard",
+   "row": 179
+  },
+  {
+   "class": "orchard",
+   "row": 180
+  },
+  {
+   "class": "orchard",
+   "row": 181
+  },
+  {
+   "class": "orchard",
+   "row": 182
+  },
+  {
+   "class": "orchard",
+   "row": 183
+  },
+  {
+   "class": "orchard",
+   "row": 184
+  },
+  {
+   "class": "orchard",
+   "row": 185
+  },
+  {
+   "class": "orchard",
+   "row": 186
+  },
+  {
+   "class": "orchard",
+   "row": 187
+  },
+  {
+   "class": "orchard",
+   "row": 188
+  },
+  {
+   "class": "orchard",
+   "row": 189
+  },
+  {
+   "class": "orchard",
+   "row": 190
+  },
+  {
+   "class": "orchard",
+   "row": 191
+  },
+  {
+   "class": "orchard",
+   "row": 192
+  },
+  {
+   "class": "orchard",
+   "row": 193
+  },
+  {
+   "class": "orchard",
+   "row": 194
+  },
+  {
+   "class": "orchard",
+   "row": 195
+  },
+  {
+   "class": "orchard",
+   "row": 196
+  },
+  {
+   "class": "orchard",
+   "row": 197
+  },
+  {
+   "class": "orchard",
+   "row": 198
+  },
+  {
+   "class": "orchard",
+   "row": 199
+  },
+  {
+   "class": "orchard",
+   "row": 200
+  },
+  {
+   "class": "orchard",
+   "row": 201
+  },
+  {
+   "class": "orchard",
+   "row": 202
+  },
+  {
+   "class": "orchard",
+   "row": 203
+  },
+  {
+   "class": "orchard",
+   "row": 204
+  },
+  {
+   "class": "orchard",
+   "row": 205
+  },
+  {
+   "class": "orchard",
+   "row": 206
+  },
+  {
+   "class": "orchard",
+   "row": 207
+  },
+  {
+   "class": "orchard",
+   "row": 208
+  },
+  {
+   "class": "orchard",
+   "row": 209
+  },
+  {
+   "class": "orchard",
+   "row": 210
+  },
+  {
+   "class": "orchard",
+   "row": 211
+  },
+  {
+   "class": "orchard",
+   "row": 212
+  },
+  {
+   "class": "orchard",
+   "row": 213
+  },
+  {
+   "class": "orchard",
+   "row": 214
+  },
+  {
+   "class": "orchard",
+   "row": 215
+  },
+  {
+   "class": "orchard",
+   "row": 216
+  },
+  {
+   "class": "orchard",
+   "row": 217
+  },
+  {
+   "class": "orchard",
+   "row": 218
+  },
+  {
+   "class": "orchard",
+   "row": 219
+  },
+  {
+   "class": "orchard",
+   "row": 220
+  },
+  {
+   "class": "orchard",
+   "row": 221
+  },
+  {
+   "class": "orchard",
+   "row": 222
+  },
+  {
+   "class": "orchard",
+   "row": 223
+  },
+  {
+   "class": "orchard",
+   "row": 224
+  },
+  {
+   "class": "orchard",
+   "row": 225
+  },
+  {
+   "class": "pasture",
+   "row": 726
+  },
+  {
+   "class": "pasture",
+   "row": 727
+  },
+  {
+   "class": "pasture",
+   "row": 728
+  },
+  {
+   "class": "pasture",
+   "row": 729
+  },
+  {
+   "class": "pasture",
+   "row": 730
+  },
+  {
+   "class": "pasture",
+   "row": 731
+  },
+  {
+   "class": "pasture",
+   "row": 732
+  },
+  {
+   "class": "pasture",
+   "row": 733
+  },
+  {
+   "class": "pasture",
+   "row": 734
+  },
+  {
+   "class": "pasture",
+   "row": 735
+  },
+  {
+   "class": "pasture",
+   "row": 736
+  },
+  {
+   "class": "pasture",
+   "row": 737
+  },
+  {
+   "class": "pasture",
+   "row": 738
+  },
+  {
+   "class": "pasture",
+   "row": 739
+  },
+  {
+   "class": "pasture",
+   "row": 740
+  },
+  {
+   "class": "pasture",
+   "row": 741
+  },
+  {
+   "class": "pasture",
+   "row": 742
+  },
+  {
+   "class": "pasture",
+   "row": 743
+  },
+  {
+   "class": "pasture",
+   "row": 744
+  },
+  {
+   "class": "pasture",
+   "row": 745
+  },
+  {
+   "class": "pasture",
+   "row": 746
+  },
+  {
+   "class": "pasture",
+   "row": 747
+  },
+  {
+   "class": "pasture",
+   "row": 748
+  },
+  {
+   "class": "pasture",
+   "row": 749
+  },
+  {
+   "class": "pasture",
+   "row": 750
+  },
+  {
+   "class": "pasture",
+   "row": 751
+  },
+  {
+   "class": "pasture",
+   "row": 752
+  },
+  {
+   "class": "pasture",
+   "row": 753
+  },
+  {
+   "class": "pasture",
+   "row": 754
+  },
+  {
+   "class": "pasture",
+   "row": 755
+  },
+  {
+   "class": "pasture",
+   "row": 756
+  },
+  {
+   "class": "pasture",
+   "row": 757
+  },
+  {
+   "class": "pasture",
+   "row": 758
+  },
+  {
+   "class": "pasture",
+   "row": 759
+  },
+  {
+   "class": "pasture",
+   "row": 760
+  },
+  {
+   "class": "pasture",
+   "row": 761
+  },
+  {
+   "class": "pasture",
+   "row": 762
+  },
+  {
+   "class": "pasture",
+   "row": 763
+  },
+  {
+   "class": "pasture",
+   "row": 764
+  },
+  {
+   "class": "pasture",
+   "row": 765
+  },
+  {
+   "class": "pasture",
+   "row": 766
+  },
+  {
+   "class": "pasture",
+   "row": 767
+  },
+  {
+   "class": "pasture",
+   "row": 768
+  },
+  {
+   "class": "pasture",
+   "row": 769
+  },
+  {
+   "class": "pasture",
+   "row": 770
+  },
+  {
+   "class": "pasture",
+   "row": 771
+  },
+  {
+   "class": "pasture",
+   "row": 772
+  },
+  {
+   "class": "pasture",
+   "row": 773
+  },
+  {
+   "class": "pasture",
+   "row": 774
+  },
+  {
+   "class": "pasture",
+   "row": 775
+  },
+  {
+   "class": "tree farm",
+   "row": 361
+  },
+  {
+   "class": "tree farm",
+   "row": 362
+  },
+  {
+   "class": "tree farm",
+   "row": 363
+  },
+  {
+   "class": "tree farm",
+   "row": 364
+  },
+  {
+   "class": "tree farm",
+   "row": 365
+  },
+  {
+   "class": "tree farm",
+   "row": 366
+  },
+  {
+   "class": "tree farm",
+   "row": 367
+  },
+  {
+   "class": "tree farm",
+   "row": 368
+  },
+  {
+   "class": "tree farm",
+   "row": 369
+  },
+  {
+   "class": "tree farm",
+   "row": 370
+  },
+  {
+   "class": "tree farm",
+   "row": 371
+  },
+  {
+   "class": "tree farm",
+   "row": 372
+  },
+  {
+   "class": "tree farm",
+   "row": 373
+  },
+  {
+   "class": "tree farm",
+   "row": 374
+  },
+  {
+   "class": "tree farm",
+   "row": 375
+  },
+  {
+   "class": "tree farm",
+   "row": 376
+  },
+  {
+   "class": "tree farm",
+   "row": 377
+  },
+  {
+   "class": "tree farm",
+   "row": 378
+  },
+  {
+   "class": "tree farm",
+   "row": 379
+  },
+  {
+   "class": "tree farm",
+   "row": 380
+  },
+  {
+   "class": "tree farm",
+   "row": 381
+  },
+  {
+   "class": "tree farm",
+   "row": 382
+  },
+  {
+   "class": "tree farm",
+   "row": 383
+  },
+  {
+   "class": "tree farm",
+   "row": 384
+  },
+  {
+   "class": "tree farm",
+   "row": 385
+  },
+  {
+   "class": "tree farm",
+   "row": 386
+  },
+  {
+   "class": "tree farm",
+   "row": 387
+  },
+  {
+   "class": "tree farm",
+   "row": 388
+  },
+  {
+   "class": "tree farm",
+   "row": 389
+  },
+  {
+   "class": "tree farm",
+   "row": 390
+  },
+  {
+   "class": "tree farm",
+   "row": 391
+  },
+  {
+   "class": "tree farm",
+   "row": 392
+  },
+  {
+   "class": "tree farm",
+   "row": 393
+  },
+  {
+   "class": "tree farm",
+   "row": 394
+  },
+  {
+   "class": "tree farm",
+   "row": 395
+  },
+  {
+   "class": "tree farm",
+   "row": 396
+  },
+  {
+   "class": "tree farm",
+   "row": 397
+  },
+  {
+   "class": "tree farm",
+   "row": 398
+  },
+  {
+   "class": "tree farm",
+   "row": 399
+  },
+  {
+   "class": "tree farm",
+   "row": 400
+  },
+  {
+   "class": "tree farm",
+   "row": 401
+  },
+  {
+   "class": "tree farm",
+   "row": 402
+  },
+  {
+   "class": "tree farm",
+   "row": 403
+  },
+  {
+   "class": "tree farm",
+   "row": 404
+  },
+  {
+   "class": "tree farm",
+   "row": 405
+  },
+  {
+   "class": "tree farm",
+   "row": 406
+  },
+  {
+   "class": "tree farm",
+   "row": 407
+  },
+  {
+   "class": "tree farm",
+   "row": 408
+  },
+  {
+   "class": "tree farm",
+   "row": 409
+  },
+  {
+   "class": "tree farm",
+   "row": 410
+  },
+  {
+   "class": "vegetable garden",
+   "row": 761
+  },
+  {
+   "class": "vegetable garden",
+   "row": 762
+  },
+  {
+   "class": "vegetable garden",
+   "row": 763
+  },
+  {
+   "class": "vegetable garden",
+   "row": 764
+  },
+  {
+   "class": "vegetable garden",
+   "row": 765
+  },
+  {
+   "class": "vegetable garden",
+   "row": 766
+  },
+  {
+   "class": "vegetable garden",
+   "row": 767
+  },
+  {
+   "class": "vegetable garden",
+   "row": 768
+  },
+  {
+   "class": "vegetable garden",
+   "row": 769
+  },
+  {
+   "class": "vegetable garden",
+   "row": 770
+  },
+  {
+   "class": "vegetable garden",
+   "row": 771
+  },
+  {
+   "class": "vegetable garden",
+   "row": 772
+  },
+  {
+   "class": "vegetable garden",
+   "row": 773
+  },
+  {
+   "class": "vegetable garden",
+   "row": 774
+  },
+  {
+   "class": "vegetable garden",
+   "row": 775
+  },
+  {
+   "class": "vegetable garden",
+   "row": 776
+  },
+  {
+   "class": "vegetable garden",
+   "row": 777
+  },
+  {
+   "class": "vegetable garden",
+   "row": 778
+  },
+  {
+   "class": "vegetable garden",
+   "row": 779
+  },
+  {
+   "class": "vegetable garden",
+   "row": 780
+  },
+  {
+   "class": "vegetable garden",
+   "row": 781
+  },
+  {
+   "class": "vegetable garden",
+   "row": 782
+  },
+  {
+   "class": "vegetable garden",
+   "row": 783
+  },
+  {
+   "class": "vegetable garden",
+   "row": 784
+  },
+  {
+   "class": "vegetable garden",
+   "row": 785
+  },
+  {
+   "class": "vegetable garden",
+   "row": 786
+  },
+  {
+   "class": "vegetable garden",
+   "row": 787
+  },
+  {
+   "class": "vegetable garden",
+   "row": 788
+  },
+  {
+   "class": "vegetable garden",
+   "row": 789
+  },
+  {
+   "class": "vegetable garden",
+   "row": 790
+  },
+  {
+   "class": "vegetable garden",
+   "row": 791
+  },
+  {
+   "class": "vegetable garden",
+   "row": 792
+  },
+  {
+   "class": "vegetable garden",
+   "row": 793
+  },
+  {
+   "class": "vegetable garden",
+   "row": 794
+  },
+  {
+   "class": "vegetable garden",
+   "row": 795
+  },
+  {
+   "class": "vegetable garden",
+   "row": 796
+  },
+  {
+   "class": "vegetable garden",
+   "row": 797
+  },
+  {
+   "class": "vegetable garden",
+   "row": 798
+  },
+  {
+   "class": "vegetable garden",
+   "row": 799
+  },
+  {
+   "class": "vegetable garden",
+   "row": 800
+  },
+  {
+   "class": "vegetable garden",
+   "row": 801
+  },
+  {
+   "class": "vegetable garden",
+   "row": 802
+  },
+  {
+   "class": "vegetable garden",
+   "row": 803
+  },
+  {
+   "class": "vegetable garden",
+   "row": 804
+  },
+  {
+   "class": "vegetable garden",
+   "row": 805
+  },
+  {
+   "class": "vegetable garden",
+   "row": 806
+  },
+  {
+   "class": "vegetable garden",
+   "row": 807
+  },
+  {
+   "class": "vegetable garden",
+   "row": 808
+  },
+  {
+   "class": "vegetable garden",
+   "row": 809
+  },
+  {
+   "class": "vegetable garden",
+   "row": 810
+  },
+  {
+   "class": "vineyard",
+   "row": 1061
+  },
+  {
+   "class": "vineyard",
+   "row": 1062
+  },
+  {
+   "class": "vineyard",
+   "row": 1063
+  },
+  {
+   "class": "vineyard",
+   "row": 1064
+  },
+  {
+   "class": "vineyard",
+   "row": 1065
+  },
+  {
+   "class": "vineyard",
+   "row": 1066
+  },
+  {
+   "class": "vineyard",
+   "row": 1067
+  },
+  {
+   "class": "vineyard",
+   "row": 1068
+  },
+  {
+   "class": "vineyard",
+   "row": 1069
+  },
+  {
+   "class": "vineyard",
+   "row": 1070
+  },
+  {
+   "class": "vineyard",
+   "row": 1071
+  },
+  {
+   "class": "vineyard",
+   "row": 1072
+  },
+  {
+   "class": "vineyard",
+   "row": 1073
+  },
+  {
+   "class": "vineyard",
+   "row": 1074
+  },
+  {
+   "class": "vineyard",
+   "row": 1075
+  },
+  {
+   "class": "vineyard",
+   "row": 1076
+  },
+  {
+   "class": "vineyard",
+   "row": 1077
+  },
+  {
+   "class": "vineyard",
+   "row": 1078
+  },
+  {
+   "class": "vineyard",
+   "row": 1079
+  },
+  {
+   "class": "vineyard",
+   "row": 1080
+  },
+  {
+   "class": "vineyard",
+   "row": 1081
+  },
+  {
+   "class": "vineyard",
+   "row": 1082
+  },
+  {
+   "class": "vineyard",
+   "row": 1083
+  },
+  {
+   "class": "vineyard",
+   "row": 1084
+  },
+  {
+   "class": "vineyard",
+   "row": 1085
+  },
+  {
+   "class": "vineyard",
+   "row": 1086
+  },
+  {
+   "class": "vineyard",
+   "row": 1087
+  },
+  {
+   "class": "vineyard",
+   "row": 1088
+  },
+  {
+   "class": "vineyard",
+   "row": 1089
+  },
+  {
+   "class": "vineyard",
+   "row": 1090
+  },
+  {
+   "class": "vineyard",
+   "row": 1091
+  },
+  {
+   "class": "vineyard",
+   "row": 1092
+  },
+  {
+   "class": "vineyard",
+   "row": 1093
+  },
+  {
+   "class": "vineyard",
+   "row": 1094
+  },
+  {
+   "class": "vineyard",
+   "row": 1095
+  },
+  {
+   "class": "vineyard",
+   "row": 1096
+  },
+  {
+   "class": "vineyard",
+   "row": 1097
+  },
+  {
+   "class": "vineyard",
+   "row": 1098
+  },
+  {
+   "class": "vineyard",
+   "row": 1099
+  },
+  {
+   "class": "vineyard",
+   "row": 1100
+  },
+  {
+   "class": "vineyard",
+   "row": 1101
+  },
+  {
+   "class": "vineyard",
+   "row": 1102
+  },
+  {
+   "class": "vineyard",
+   "row": 0
+  },
+  {
+   "class": "vineyard",
+   "row": 1
+  },
+  {
+   "class": "vineyard",
+   "row": 2
+  },
+  {
+   "class": "vineyard",
+   "row": 3
+  },
+  {
+   "class": "vineyard",
+   "row": 4
+  },
+  {
+   "class": "vineyard",
+   "row": 5
+  },
+  {
+   "class": "vineyard",
+   "row": 6
+  },
+  {
+   "class": "vineyard",
+   "row": 7
+  },
+  {
+   "class": "wheat field",
+   "row": 658
+  },
+  {
+   "class": "wheat field",
+   "row": 659
+  },
+  {
+   "class": "wheat field",
+   "row": 660
+  },
+  {
+   "class": "wheat field",
+   "row": 661
+  },
+  {
+   "class": "wheat field",
+   "row": 662
+  },
+  {
+   "class": "wheat field",
+   "row": 663
+  },
+  {
+   "class": "wheat field",
+   "row": 664
+  },
+  {
+   "class": "wheat field",
+   "row": 665
+  },
+  {
+   "class": "wheat field",
+   "row": 666
+  },
+  {
+   "class": "wheat field",
+   "row": 667
+  },
+  {
+   "class": "wheat field",
+   "row": 668
+  },
+  {
+   "class": "wheat field",
+   "row": 669
+  },
+  {
+   "class": "wheat field",
+   "row": 670
+  },
+  {
+   "class": "wheat field",
+   "row": 671
+  },
+  {
+   "class": "wheat field",
+   "row": 672
+  },
+  {
+   "class": "wheat field",
+   "row": 673
+  },
+  {
+   "class": "wheat field",
+   "row": 674
+  },
+  {
+   "class": "wheat field",
+   "row": 675
+  },
+  {
+   "class": "wheat field",
+   "row": 676
+  },
+  {
+   "class": "wheat field",
+   "row": 677
+  },
+  {
+   "class": "wheat field",
+   "row": 678
+  },
+  {
+   "class": "wheat field",
+   "row": 679
+  },
+  {
+   "class": "wheat field",
+   "row": 680
+  },
+  {
+   "class": "wheat field",
+   "row": 681
+  },
+  {
+   "class": "wheat field",
+   "row": 682
+  },
+  {
+   "class": "wheat field",
+   "row": 683
+  },
+  {
+   "class": "wheat field",
+   "row": 684
+  },
+  {
+   "class": "wheat field",
+   "row": 685
+  },
+  {
+   "class": "wheat field",
+   "row": 686
+  },
+  {
+   "class": "wheat field",
+   "row": 687
+  },
+  {
+   "class": "wheat field",
+   "row": 688
+  },
+  {
+   "class": "wheat field",
+   "row": 689
+  },
+  {
+   "class": "wheat field",
+   "row": 690
+  },
+  {
+   "class": "wheat field",
+   "row": 691
+  },
+  {
+   "class": "wheat field",
+   "row": 692
+  },
+  {
+   "class": "wheat field",
+   "row": 693
+  },
+  {
+   "class": "wheat field",
+   "row": 694
+  },
+  {
+   "class": "wheat field",
+   "row": 695
+  },
+  {
+   "class": "wheat field",
+   "row": 696
+  },
+  {
+   "class": "wheat field",
+   "row": 697
+  },
+  {
+   "class": "wheat field",
+   "row": 698
+  },
+  {
+   "class": "wheat field",
+   "row": 699
+  },
+  {
+   "class": "wheat field",
+   "row": 700
+  },
+  {
+   "class": "wheat field",
+   "row": 701
+  },
+  {
+   "class": "wheat field",
+   "row": 702
+  },
+  {
+   "class": "wheat field",
+   "row": 703
+  },
+  {
+   "class": "wheat field",
+   "row": 704
+  },
+  {
+   "class": "wheat field",
+   "row": 705
+  },
+  {
+   "class": "wheat field",
+   "row": 706
+  },
+  {
+   "class": "wheat field",
+   "row": 707
+  }
+ ],
+ "passed_flood": true,
+ "passed_dry": true,
+ "passed": true,
+ "onnx_exported": true,
+ "seconds": 1578.4,
+ "provenance": {
+  "original_sha256": "f63924849e7a08d95cbc6b1c8e67b19650803852f4f96618345a18f6749f879b",
+  "note": "Chép nguyên văn từ /kaggle/working của phiên Kaggle TƯƠNG TÁC (GPU T4 x2) ngày 19/10/2026 — tải bản nén .gz rồi giải nén, mã băm khớp bản gốc trên Kaggle",
+  "kaggle_notebook": "annguyen233t/notebooka009acaa97",
+  "script_commit": "c1195a183546be0c84a7cecc5d61e3604cebfcad",
+  "run_note": "Lượt commit đầu (phiên bản 3, script c62362d) treo > 90 phút, dừng khi CHƯA đọc được kết quả nào; lượt tương tác này là lượt duy nhất được chấm",
+  "onnx_sha256": {
+   "field_water_segformer.onnx": "3d3e49526c9c88777eae8f4b5413a1becd152bcbb6472c91b99d334ea73d059d",
+   "field_water_segformer.onnx.data": "c15174cca23eb4562b4bfb3c926c6232d6704f636dbcc14dad93ea03a286fcd2"
+  }
+ }
+}

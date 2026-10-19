@@ -442,7 +442,7 @@ lũ Huế 10/2020, miền Trung 10/2025 thấy nước đúng tuần; đất cao
 38 phút và được huỷ khi CHƯA chạy dòng nào; Version 2 là lượt duy nhất được chấm. Xuất ONNX lỗi (thiếu `onnxscript` trên
 ảnh Kaggle) — không ảnh hưởng kết quả; trọng số `s1_water_unet.pt` nằm trong Output của notebook.
 
-## 12. Nước trong ẢNH THỰC ĐỊA (SegFormer-b0) — cổng ảnh lũ ĐẠT 18/10, TRƯỢT đối chứng ảnh khô 19/10/2026 → KHÔNG bật
+## 12. Nước trong ẢNH THỰC ĐỊA (SegFormer-b0) — bản 1 trượt đối chứng ảnh khô; BẢN 2 ĐẠT cả hai 19/10/2026 → đã bật (tham khảo)
 
 Giao thức đăng ký trước khi huấn luyện, cùng commit với script (2e44cb0):
 [`backend/data/ml/field_water_protocol.json`](backend/data/ml/field_water_protocol.json). Dữ liệu: Kaggle
@@ -487,6 +487,28 @@ luyện MỚI, đăng ký mới.
 pip install pyarrow onnxruntime
 python ml/field_water_negctrl.py test-00000-of-00018.parquet      # cần 2 tệp .onnx/.onnx.data từ Output Kaggle cạnh field_water.py
 python ml/field_water_negctrl_1b.py <thư_mục_tạm>                  # tự tải đúng đoạn byte cần từ Hugging Face
+```
+
+**Bản 2 — học thêm ảnh đồng ruộng khô (19/10/2026).** Giao thức đăng ký trước khi huấn luyện:
+[`field_water_v2_protocol.json`](backend/data/ml/field_water_v2_protocol.json) (c62362d). Giữ nguyên ảnh lũ và phép chia của
+bản 1; thêm 225 ảnh khô SUN397 phần **train** (mặt nạ rỗng) để học, 45 ảnh khô train để chọn mô hình; chấm một lần trên 43 ảnh
+lũ test + **450 ảnh khô phần test** (cùng ảnh của đối chứng âm). Phải đạt CẢ hai.
+
+| Bản 2 (chấm một lần) | Kết quả | Ngưỡng |
+|---|---|---|
+| IoU nước ảnh lũ (test) | **0,8078** (màu 0,4285) | ≥ 0,70 và hơn màu |
+| Ảnh đồng ruộng khô (test, 450 ảnh, 9 lớp): trung vị / ảnh > 0,5 | **0,0 / 0%** (lúa mì 0,0 — bản 1 là 0,325; cỏ khô 0,0 — bản 1 0,378) | ≤ 0,10 / ≤ 10% |
+
+Kết quả chép nguyên văn: [`field_water_v2_result.json`](backend/data/ml/field_water_v2_result.json) (mã băm bản gốc trong
+`provenance`). Lượt commit đầu trên Kaggle (phiên bản 3, script c62362d) treo > 90 phút ở phần tải dải byte và bị dừng khi CHƯA
+đọc được kết quả nào; script được vá (giới hạn 60 giây, thử lại 5 lần, in tiến độ — c1195a1, không đổi dữ liệu/ngưỡng) và chạy
+MỘT lần trong phiên Kaggle tương tác (GPU T4 ×2, 1.578 s) — đó là lượt duy nhất được chấm. Kiểm bản ONNX trên máy: 50 ảnh ruộng
+ngô khô → trung vị 0,0 (khớp PyTorch); 1 ảnh ruộng ngập công khai → 0,69. `field_water.available()` chỉ bật khi kết quả bản 2 đạt
+cả hai; khi bật chỉ hiện "máy thấy ~X% ảnh là nước (tham khảo)" ở nhật ký thửa, không vào hồ sơ ký.
+
+```bash
+# trên Kaggle (GPU T4, Internet bật, gắn dataset flood-area-segmentation)
+!wget -q -O field_water_seg_v2.py https://raw.githubusercontent.com/annguyen210/TerraTwin/c1195a183546be0c84a7cecc5d61e3604cebfcad/ml/kaggle/field_water_seg_v2.py   && echo "2f20a9b35a341a58d7ebaf611f355d5eb82371c6f3b7dc97585ddbdaf792aaf2  field_water_seg_v2.py" | sha256sum -c   && pip -q install onnx onnxscript pyarrow && python field_water_seg_v2.py --out /kaggle/working/field_water_v2_result.json
 ```
 
 ## 13. Kiểm tin đăng (cổng GĐ3) trên tin đất THẬT — trượt 2 lần (18/10), ĐẠT lần 3 (19/10/2026)
