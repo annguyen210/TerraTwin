@@ -1,0 +1,262 @@
+{
+ "protocol": "terratwin.listing_gate/3",
+ "labeler": "Claude (claude-opus-5-5) theo uỷ quyền chủ dự án 18/10/2026 — KHÔNG phải nhãn người; chưa có người duyệt",
+ "labelled_before_scoring": true,
+ "labels": [
+  {
+   "row": 82,
+   "sha256": "8c8637e71b9190354e6bff9ef224abbf56d9a132b088d453b83e6f1888453e12",
+   "claims": []
+  },
+  {
+   "row": 5471,
+   "sha256": "24316baa693dc61978c8ef9c9faf4b5f00970509339b8d238808ecc08fcd1efc",
+   "claims": [
+    "residential"
+   ],
+   "note": "'gần cảng biển' là cơ sở cảng, không khẳng định gần biển"
+  },
+  {
+   "row": 9147,
+   "sha256": "3f4182de4de94eef1e449dbbc87faef7ba2f1b641a702c856998fb24e55280df",
+   "claims": [
+    "residential"
+   ],
+   "note": "'gần cảng' không tính"
+  },
+  {
+   "row": 25850,
+   "sha256": "828b4fc28dfe1bcca65f4ed5818e787e39cbd1be2175733b28417fd1b4410d40",
+   "claims": []
+  },
+  {
+   "row": 27690,
+   "sha256": "c311049ab113557338148aae0854fb35ce7a775b93972349c0e8b66230afaa8a",
+   "claims": [
+    "near_sea"
+   ]
+  },
+  {
+   "row": 28270,
+   "sha256": "6df6e10cc652e9e54d7856ffedbee7cc347ca80ae547cbb48739b437d7058fca",
+   "claims": [
+    "residential",
+    "near_sea"
+   ]
+  },
+  {
+   "row": 31608,
+   "sha256": "93e3671d2eaf67458326958ea370be63c047f3e405eb6e8b0d55c203f4687759",
+   "claims": []
+  },
+  {
+   "row": 45800,
+   "sha256": "7ffd9afccc23da1cf6613fc0cc835449d5014d10eb8a5e548442fe9f4a0a7a5f",
+   "claims": []
+  },
+  {
+   "row": 54911,
+   "sha256": "af31312bb411ebf56cf0d5a433828407f890497d7a0004a09b3968f996e93967",
+   "claims": [],
+   "note": "'gần hồ', 'hồ điều hoà' — hồ không tính"
+  },
+  {
+   "row": 57499,
+   "sha256": "6e160c080f9a15162878db73812fcf36d8dd5eacc1685dfc88cda19244b145b8",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 59657,
+   "sha256": "62546c7d4c55227a62ca90f2fbe3e5d0f4af14c8a4d52fbc6f6508486b6019a8",
+   "claims": []
+  },
+  {
+   "row": 60534,
+   "sha256": "378c1784c2c142abac4ea24f7cdf34b58360f7593f53de1bff960aa9b68f6926",
+   "claims": []
+  },
+  {
+   "row": 71028,
+   "sha256": "0520a3d5b87d928e79581e5ff1cbd9d1172ce7633b4420acaf18a6fc0dd64131",
+   "claims": [],
+   "note": "'lựa chọn đất ở' nói chung, không khẳng định loại đất của lô"
+  },
+  {
+   "row": 77051,
+   "sha256": "1c6c76706431bd597facc862326ae7cc24198151d8f6855501014fabf67d8606",
+   "claims": []
+  },
+  {
+   "row": 85797,
+   "sha256": "5e1f3e03afda268733fb18db2bbc46ed361aababc6d0bb4ce5c61d4a7648a6f7",
+   "claims": []
+  },
+  {
+   "row": 90068,
+   "sha256": "15b9edac0cce87e134906b8f48c762905049f9d5c4e196f107273398b7d94616",
+   "claims": [
+    "near_sea"
+   ]
+  },
+  {
+   "row": 110175,
+   "sha256": "48ca2c10b8f2e1e3b2c53db9ea57c3a26eb83fc1dfa9ca3f7548f0e94be29c2d",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 117139,
+   "sha256": "a3b87aacb06f00befec50860a93aa0baa534b91d26416fe89921a0a3059ddf7f",
+   "claims": []
+  },
+  {
+   "row": 127015,
+   "sha256": "686b672ac31c8ec62187288a550cc33cada2e2d120957eebdcac03159ab6da61",
+   "claims": [],
+   "note": "'đê bao' không phải khẳng định gần sông"
+  },
+  {
+   "row": 129924,
+   "sha256": "8ff152580ac7ab8588dbe291ad59881e5a1dc6ee848e0222fe3d3e634cc0c078",
+   "claims": [
+    "residential",
+    "flat"
+   ],
+   "note": "'full đất ở' + 'thế đất bằng phẳng'; 'vuông vắn' là hình dáng"
+  },
+  {
+   "row": 154636,
+   "sha256": "10930e73c568e906c3575bb65ffcdea5513d1664e15a85700d6e095d3c5080bb",
+   "claims": []
+  },
+  {
+   "row": 157741,
+   "sha256": "455f235fb5ee1c1d46c5ac4bd39b4b82fa594ed29cdb40522b60eaf4cfa6fd52",
+   "claims": [
+    "near_sea"
+   ]
+  },
+  {
+   "row": 191491,
+   "sha256": "b2413ba630df0a0e610fd612b9d4ec6c4dca3e6eef914476d904bf3b6ab2deba",
+   "claims": [
+    "residential",
+    "high_ground"
+   ]
+  },
+  {
+   "row": 193381,
+   "sha256": "aef97b15de7b7e91009b94747915fefdf7ce5008f4512dc03b4edfa1a622c8a2",
+   "claims": []
+  },
+  {
+   "row": 200416,
+   "sha256": "6f1f4a59da53f49d6545868ae1e1fd8cb94ce623cc847161425f783521c8ce99",
+   "claims": [
+    "near_sea"
+   ]
+  },
+  {
+   "row": 203078,
+   "sha256": "78843558941008301ef7e15ac16d5c96bdb2c65e53f278578164533d06c6cdb5",
+   "claims": [
+    "near_sea",
+    "residential"
+   ]
+  },
+  {
+   "row": 203646,
+   "sha256": "dcad5926b121f3f8a14a8b040c56192b4ecb03888cb48ce6d342f68e09cc1d52",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 205181,
+   "sha256": "4ed20cec994fd831cfd46f18d4c721884c2784e930a7f823b535b541e7b2d67b",
+   "claims": []
+  },
+  {
+   "row": 231740,
+   "sha256": "839b4310d685498ad59ac9af927d9f2737368de42ff052e04e6dfb6954e559d2",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 241913,
+   "sha256": "61f70c2a99947de59ac8173b4ff332309422553cb5e84b9185fcd6df108ed323",
+   "claims": [
+    "near_river"
+   ],
+   "note": "'KĐT Ven Sông', 'view sông', 'nằm cạnh sông'"
+  },
+  {
+   "row": 274246,
+   "sha256": "ab1106c9862a4eac8bf21330ffb87e99dc3ba497c99d32155b30dc9d7e1e870d",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 291840,
+   "sha256": "3656c8ea5889ec8b673548dfb3299da1bdb093efc2eb37d48175d396eec186f2",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 295390,
+   "sha256": "253ebf2f76e3a4018762d316a3302d5775bc158dd23370589ba948000dd9afb3",
+   "claims": [],
+   "note": "'gần Hồ điều hoà' — hồ không tính"
+  },
+  {
+   "row": 315284,
+   "sha256": "689e7a4da4ffe493ed7a072138298cfabb62f18161ef60048ad7105c1f38ec3f",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "row": 317630,
+   "sha256": "8cb0ef655cdc9ed5df527bffcfbc1a57246af5b47a9a113d5cb8cab94088402b",
+   "claims": []
+  },
+  {
+   "row": 322248,
+   "sha256": "0157d0874986aa803824d53c5a36b9dae29dd8d86aed515dceb81eb4755267b2",
+   "claims": []
+  },
+  {
+   "row": 324845,
+   "sha256": "ee553cc52202ad48961d70090c24d7bcf8f9e15ffe456ee071afc57bfe168a5a",
+   "claims": [
+    "residential"
+   ],
+   "note": "'gần hồ tự nhiên' — hồ không tính"
+  },
+  {
+   "row": 329505,
+   "sha256": "c0f6ef7496770b975a2aba1e56d0f4f3f2093fac514f5f498dfdbb0b54b5a021",
+   "claims": []
+  },
+  {
+   "row": 340479,
+   "sha256": "c8906e9ab4ce455c6ebb8e217b701b9458340b179f18cd4267c8bb9b31d6baa7",
+   "claims": [],
+   "note": "'view lúa' không phải loại câu nào"
+  },
+  {
+   "row": 344560,
+   "sha256": "a5e32258f69768c4d4510e3fc291e37a88e5472e6cb08f066642f4d7d5178faf",
+   "claims": [
+    "residential",
+    "near_sea"
+   ]
+  }
+ ]
+}
