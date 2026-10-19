@@ -1,0 +1,20 @@
+{
+  "id": "terratwin.field_water_negctrl/1",
+  "registered": "2026-10-19",
+  "registered_before_scoring": true,
+  "purpose": "Đối chứng ÂM trước khi bật SegFormer nhận nước ảnh thực địa (đã đạt cổng IoU trên ảnh lũ, field_water_result.json). Thử với ảnh ruộng xanh tổng hợp bị chấm 99,5% là nước → phải kiểm trên ảnh đồng ruộng KHÔ thật: nếu mô hình gọi ruộng khô là nước thì tín hiệu tham khảo sẽ đánh lừa người dùng.",
+  "data": {
+    "source": "Hugging Face tanganke/sun397, revision 9c4afd6174afa3974f209a0ef099dbbe244dfd27, tệp data/test-00000-of-00018.parquet (thêm test-00001 nếu chưa đủ 20 ảnh)",
+    "license": "SUN397 (ảnh sưu tầm trên mạng, dùng cho nghiên cứu) — chỉ dùng để KIỂM ĐỊNH, không chép ảnh vào repo",
+    "classes": {"111": "corn field", "151": "field cultivated", "181": "hayfield", "260": "orchard", "270": "pasture",
+                "363": "tree farm", "370": "vegetable garden", "376": "vineyard", "389": "wheat field"},
+    "excluded": "303 rice paddy — ruộng lúa nước vốn có nước, không phải đối chứng âm",
+    "selection": "MỌI ảnh thuộc 9 lớp trên trong tệp, theo thứ tự trong tệp; không chọn tay"
+  },
+  "metric": "Tỉ lệ điểm ảnh mô hình xếp là nước (services/field_water.water_ratio, đúng như production) cho từng ảnh",
+  "threshold": "ĐẠT khi trung vị ≤ 0,10 VÀ tỉ lệ ảnh có giá trị > 0,5 không quá 10%, trên ≥ 20 ảnh",
+  "if_pass": "Đưa tệp .onnx + .onnx.data lên repo → production bật tín hiệu tham khảo ở nhật ký thửa (không vào hồ sơ ký)",
+  "if_fail": "KHÔNG đưa mô hình lên production; thẻ mô hình ghi 'đạt cổng ảnh lũ nhưng trượt đối chứng ảnh khô — không bật'; cần tinh chỉnh thêm với ảnh khô (phiên bản mới, đăng ký mới)",
+  "one_shot": "Chạy một lần bằng ml/field_water_negctrl.py sau commit giao thức này",
+  "script": "ml/field_water_negctrl.py"
+}
