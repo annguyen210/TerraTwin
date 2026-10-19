@@ -1,0 +1,353 @@
+{
+ "protocol": "terratwin.listing_gate/3",
+ "population": 90703,
+ "n": 40,
+ "enough": true,
+ "per_type": [
+  {
+   "type": "high_ground",
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 1,
+   "fp": 0,
+   "fn": 0
+  },
+  {
+   "type": "near_river",
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 1,
+   "fp": 0,
+   "fn": 0
+  },
+  {
+   "type": "near_sea",
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 7,
+   "fp": 0,
+   "fn": 0
+  },
+  {
+   "type": "flat",
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 1,
+   "fp": 0,
+   "fn": 0
+  },
+  {
+   "type": "residential",
+   "precision": 0.94,
+   "recall": 1.0,
+   "f1": 0.97,
+   "tp": 15,
+   "fp": 1,
+   "fn": 0
+  }
+ ],
+ "macro_f1": 0.99,
+ "threshold_macro_f1": 0.8,
+ "passed": true,
+ "labeler": "Claude (claude-opus-5-5) theo uỷ quyền chủ dự án 18/10/2026 — KHÔNG phải nhãn người; chưa có người duyệt",
+ "per_listing": [
+  {
+   "row": 82,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 5471,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 9147,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 25850,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 27690,
+   "gold": [
+    "near_sea"
+   ],
+   "pred": [
+    "near_sea"
+   ]
+  },
+  {
+   "row": 28270,
+   "gold": [
+    "near_sea",
+    "residential"
+   ],
+   "pred": [
+    "near_sea",
+    "residential"
+   ]
+  },
+  {
+   "row": 31608,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 45800,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 54911,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 57499,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 59657,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 60534,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 71028,
+   "gold": [],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 77051,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 85797,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 90068,
+   "gold": [
+    "near_sea"
+   ],
+   "pred": [
+    "near_sea"
+   ]
+  },
+  {
+   "row": 110175,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 117139,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 127015,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 129924,
+   "gold": [
+    "flat",
+    "residential"
+   ],
+   "pred": [
+    "flat",
+    "residential"
+   ]
+  },
+  {
+   "row": 154636,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 157741,
+   "gold": [
+    "near_sea"
+   ],
+   "pred": [
+    "near_sea"
+   ]
+  },
+  {
+   "row": 191491,
+   "gold": [
+    "high_ground",
+    "residential"
+   ],
+   "pred": [
+    "high_ground",
+    "residential"
+   ]
+  },
+  {
+   "row": 193381,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 200416,
+   "gold": [
+    "near_sea"
+   ],
+   "pred": [
+    "near_sea"
+   ]
+  },
+  {
+   "row": 203078,
+   "gold": [
+    "near_sea",
+    "residential"
+   ],
+   "pred": [
+    "near_sea",
+    "residential"
+   ]
+  },
+  {
+   "row": 203646,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 205181,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 231740,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 241913,
+   "gold": [
+    "near_river"
+   ],
+   "pred": [
+    "near_river"
+   ]
+  },
+  {
+   "row": 274246,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 291840,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 295390,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 315284,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 317630,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 322248,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 324845,
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "row": 329505,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 340479,
+   "gold": [],
+   "pred": []
+  },
+  {
+   "row": 344560,
+   "gold": [
+    "near_sea",
+    "residential"
+   ],
+   "pred": [
+    "near_sea",
+    "residential"
+   ]
+  }
+ ],
+ "rules_commit": "dbd1c85 (luật từ khoá lúc chấm)",
+ "note": "Lần thử THỨ BA (lần 1: 0,58, lần 2: 0,72 — đều trượt, công bố). Gần sông / cao ráo / bằng phẳng mỗi loại chỉ 1 câu trong mẫu: F1 1,0 ở các loại này là bằng chứng yếu."
+}

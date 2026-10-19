@@ -467,7 +467,7 @@ ba chiều, không vào nội dung ký, không thay câu trả lời của ngư�
 chụp từ trên cao — đạt cổng không chứng minh đúng trên ruộng Việt Nam. Lượt Kaggle đầu (Version 1) kẹt hàng đợi GPU và được
 huỷ khi CHƯA chạy dòng nào; Version 2 là lượt duy nhất được chấm. Trọng số `.pt` và `.onnx` nằm trong Output của notebook.
 
-## 13. Kiểm tin đăng (cổng GĐ3) trên tin đất THẬT — 2 lần, đều TRƯỢT 18/10/2026 (luật từ khoá vẫn chạy, độ chính xác công khai)
+## 13. Kiểm tin đăng (cổng GĐ3) trên tin đất THẬT — trượt 2 lần (18/10), ĐẠT lần 3 (19/10/2026)
 
 Nguồn: bộ công khai Hugging Face `tinixai/vietnam-real-estates` (CC BY-NC 4.0, số điện thoại đã bị xoá sẵn), revision
 `ca3fedcb…`. Mỗi lần: đăng ký trước một shard + hạt giống + quy tắc gán nhãn + ngưỡng (F1 trung bình ≥ 0,80), lấy 40 tin
@@ -479,17 +479,19 @@ pip install pyarrow
 # tải shard_0000.parquet / shard_0001.parquet tại revision ca3fedcbb089bf65f7e4cfb03316cce4bd0d779f
 python ops/listing_gate_hf.py score shard_0000.parquet 1    # cần luật của commit d1c8940
 python ops/listing_gate_hf.py score shard_0001.parquet 2    # luật của commit d751942
+python ops/listing_gate_hf.py score shard_0002.parquet 3    # luật của commit dbd1c85
 ```
 
 | Lần | Giao thức → nhãn → chấm | F1 trung bình | Từng loại (F1) |
 |---|---|---|---|
 | 1 — shard_0000, hạt giống 20261019 | c974060 → d1c8940 | **0,58** (trượt) | thổ cư 0,90 · gần biển 0,40 · gần sông 0 · cao ráo 1,0 |
 | 2 — shard_0001, hạt giống 20261020, luật sửa theo lỗi lần 1 | d751942 → c810876 | **0,72** (trượt) | thổ cư 1,0 (8/8, 0 bắt nhầm) · gần sông 0,67 · gần biển 0,50 |
+| 3 — shard_0002, hạt giống 20261021, thêm cách nói vòng theo lỗi lần 2 | dbd1c85 → 02ba524 | **0,99** (ĐẠT) | gần biển 1,0 (7/7) · thổ cư 0,97 (15/15, 1 bắt nhầm) · gần sông, cao ráo, bằng phẳng 1,0 nhưng mỗi loại chỉ 1 câu |
 
 Đọc kết quả: luật từ khoá gần như **không bắt nhầm** (độ chính xác 1,0 mọi loại ở lần 2) nhưng **sót cách nói vòng** ("gió
 sông rất mát", "đi biển 10 phút", "bên bờ vịnh"). Mẫu ngẫu nhiên rất ít câu "không ngập / gần sông" nên F1 các loại hiếm dao
-động mạnh. Bước đúng tiếp theo là mô hình hiểu ngữ cảnh (PhoBERT) — cần tập huấn luyện lớn và một cổng mới đăng ký trước;
-không sửa luật rồi chấm lại hai mẫu đã dùng. Lần chạy thử luật lần 2 trên mẫu lần 1 từng ghi đè nhầm tệp kết quả lần 1;
+động mạnh. Lần 3 thêm cách nói vòng theo lỗi lần 2 và đạt trên mẫu mới. Cần đọc đúng mức: đây là lần thử THỨ BA (nguy cơ "thử tới khi đạt"),
+nhãn do AI gán, và các loại hiếm mỗi loại chỉ 1 câu — muốn chắc hơn phải có nhãn người ở /admin → Tin đăng GĐ3 hoặc mẫu lớn hơn. Lần chạy thử luật lần 2 trên mẫu lần 1 từng ghi đè nhầm tệp kết quả lần 1;
 tệp đã được tạo lại bằng đúng luật d1c8940 (số liệu trùng lần chấm đầu) và ghi chú trong tệp.
 
 ## Nếu một bước không ra kết quả
