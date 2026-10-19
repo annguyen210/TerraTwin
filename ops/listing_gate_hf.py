@@ -2,7 +2,8 @@
 
     python ops/listing_gate_hf.py sample <shard.parquet> <thư_mục_ra> [lần]   # in mẫu 40 tin ra thư mục NGOÀI repo để gán nhãn
     python ops/listing_gate_hf.py score  <shard.parquet> [lần]                # chấm MỘT lần, ghi backend/data/eval/listing_gate[_v2]_result.json
-Lần 1 = shard_0000, hạt giống 20261019 (listing_gate_protocol.json); lần 2 = shard_0001, hạt giống 20261020 (listing_gate_v2_protocol.json).
+Lần 1 = shard_0000, hạt giống 20261019 (listing_gate_protocol.json); lần 2 = shard_0001, hạt giống 20261020 (listing_gate_v2_protocol.json);
+lần 3 = shard_0002, hạt giống 20261021 (listing_gate_v3_protocol.json).
 
 Không chép nguyên văn tin vào repo (giấy phép CC BY-NC 4.0): tệp nhãn chỉ có chỉ số hàng + SHA-256 mô tả + loại câu.
 Cần pyarrow (pip install pyarrow). Tải shard: https://huggingface.co/datasets/tinixai/vietnam-real-estates/resolve/
@@ -24,6 +25,8 @@ RUNS = {   # lần → (sha256 shard, hạt giống, tệp nhãn, tệp kết qu
           "listing_gate_labels.json", "listing_gate_result.json", "terratwin.listing_gate/1"),
     "2": ("5c5600cde592f6d13d81898204d67c1bed54523c147e8a65666f436fdaf9c33e", 20261020,
           "listing_gate_v2_labels.json", "listing_gate_v2_result.json", "terratwin.listing_gate/2"),
+    "3": ("d731d5785f9d46316c280e1353814f2477e35cef97092ae926e493c29447b2c9", 20261021,
+          "listing_gate_v3_labels.json", "listing_gate_v3_result.json", "terratwin.listing_gate/3"),
 }
 N = 40
 

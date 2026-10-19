@@ -27,11 +27,16 @@ CLAIMS: list[tuple[str, str, str, list[str]]] = [
     # Lần 2 (18/10/2026) sửa theo lỗi cổng GĐ3 lần 1 — chấm lại trên mẫu MỚI (listing_gate_v2_protocol.json):
     # "dòng sông", "bao quanh bởi sông", "cách biển <tên> 100m", "bãi tắm"; "đất ở khu dân cư" là NẰM Ở, không phải
     # loại đất ở; "lên/làm thổ cư" là chuyển đổi tương lai (chỉ tính "đã lên thổ"); "mặt bằng vuông/đẹp" là hình dáng.
+    # Lần 3 (19/10/2026) theo lỗi lần 2 — cách nói VÒNG: "gió sông", "bờ sông", "nhìn ra sông"; "đi/ra biển 10 phút",
+    # "bên bờ vịnh", "đường bao biển". Không thêm "phố biển" (bỏ dấu trùng "phổ biến").
     ("near_river", "Gần sông", "Near a river", [
-        r"(gan|ven|giap|sat|view|mat tien|canh) (dong |con )?song", r"(gan|ven|giap|sat|view|mat tien|canh) (kenh|rach)",
-        r"(bao quanh|bao boc|om tron) (boi )?(\d |hai |cac )?(dong |con )?song", r"cach (dong )?(song|kenh|rach)\b[^.,;]{0,25}?\d"]),
+        r"(gan|ven|giap|sat|view|mat tien|canh|ke) (bo |dong |con )?song", r"(gan|ven|giap|sat|view|mat tien|canh|ke) (kenh|rach)",
+        r"(bao quanh|bao boc|om tron) (boi )?(\d |hai |cac )?(dong |con )?song", r"cach (dong )?(song|kenh|rach)\b[^.,;]{0,25}?\d",
+        r"\bgio song\b", r"\bbo song\b", r"(nhin|huong|mat) ra (dong |con )?song"]),
     ("near_sea", "Gần biển", "Near the sea", [
-        r"(gan|ven|giap|sat|view|mat tien|canh) (bai )?(bien|bai tam)\b", r"cach (bai )?(bien|bai tam)\b[^.,;]{0,25}?\d"]),
+        r"(gan|ven|giap|sat|view|mat tien|canh|ke) (bai )?(bien|bai tam)\b", r"cach (bai )?(bien|bai tam)\b[^.,;]{0,25}?\d",
+        r"\b(di|ra|xuong|toi|den) (bai )?(bien|bai tam)\b[^.,;]{0,15}?\d+ ?(p|ph|phut|km|m|met)\b", r"(ben bo|bo|ven|sat|giap|view|nhin ra) vinh\b",
+        r"duong bao bien", r"(nhin|huong|mat) ra (bai )?bien\b", r"\bgio bien\b"]),
     ("flat", "Bằng phẳng", "Flat", [r"bang phang", r"dat phang", r"khong (bi )?doc", r"mat bang phang"]),
     ("no_landslide", "Không sạt lở", "No landslides", [r"khong (bi |lo )?sat lo", r"chua (tung )?sat lo"]),
     ("residential", "Đất ở / thổ cư", "Residential land", [

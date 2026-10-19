@@ -394,7 +394,8 @@ def cards() -> list[dict]:
 
     # 5 — Kiểm chứng tin đăng (luật từ khoá) và chạm-là-có-ranh (trượt)
     # Cổng GĐ3 (18/10/2026): mỗi lần là một mẫu MỚI đăng ký trước — lần sau không chấm lại mẫu của lần trước.
-    runs = [(v, r) for v, r in (("1", _load("eval", "listing_gate_result.json")), ("2", _load("eval", "listing_gate_v2_result.json"))) if r]
+    runs = [(v, r) for v, r in (("1", _load("eval", "listing_gate_result.json")), ("2", _load("eval", "listing_gate_v2_result.json")),
+                                     ("3", _load("eval", "listing_gate_v3_result.json"))) if r]
     base = {
         "id": "listing_rules", "kind": tr("quy tắc NLP", "NLP rules"),
         "name": tr("Tách câu khẳng định trong tin đăng bán đất", "Claim extraction from land listings"),
