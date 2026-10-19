@@ -78,16 +78,22 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v5
-      - name: Đánh thức web + api
+      - name: Đánh thức web + api (chờ tới khi trả 200 THẬT)
+        # 19/10/2026: lượt 8:45 quét lúc API còn ngủ → Render trả trang chờ 503 (của Render, không có HSTS) →
+        # ZAP báo "thiếu HSTS" giả. Trước đây chỉ thử ~2 phút rồi lặng lẽ đi tiếp; giờ chờ tối đa ~8 phút.
         run: |
           for u in "$API/api/health" "$WEB/help"; do
-            for i in 1 2 3 4 5 6; do curl -fsS -o /dev/null --max-time 60 "$u" && break; sleep 20; done
+            ok=0
+            for i in $(seq 1 24); do curl -fsS -o /dev/null --max-time 60 "$u" && { ok=1; break; }; sleep 20; done
+            [ "$ok" = "1" ] || echo "::warning::$u chưa thức sau ~8 phút"
           done
       - name: ZAP baseline — web + api
         run: |
           chmod a+w .
           fail=0
           for target in "$WEB" "$API/api/health"; do
+            # quét web mất vài phút — kiểm lại API còn thức ngay trước khi quét, để không chấm trang chờ của Render
+            for i in $(seq 1 12); do curl -fsS -o /dev/null --max-time 60 "$target" && break; sleep 15; done
             name=$(echo "$target" | sed 's#https://##; s#[/.]#-#g')
             docker run --rm -v "$PWD:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable zap-baseline.py               -t "$target" -m 2 -I -c .zap/rules.tsv -r "zap-$name.html" -J "zap-$name.json" || ec=$?
             ec=${ec:-0}

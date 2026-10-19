@@ -244,6 +244,16 @@ with sync_playwright() as p:
     @step("Trang Hôm nay: đất trước — nhật ký sống 6 thửa mẫu (khách), EUDR chỉ là lối tắt Doanh nghiệp")
     def today():
         # Báo cáo 12/10/2026, mục 9: vòng đếm ngược EUDR (.hn-ring) chỉ hiện cho doanh nghiệp đã có bộ vườn / lô hàng.
+        # Chế độ GHI (19/10/2026): bước lô hàng đã đăng nhập một doanh nghiệp CÓ lô → token còn trong trình duyệt. Kiểm
+        # cả hai phía: doanh nghiệp có lô THẤY vòng đếm ngược; xoá token rồi kiểm phía khách như cũ.
+        page.goto(WEB + "/")
+        biz_tok = page.evaluate("localStorage.getItem('terratwin_token')")
+        biz = ""
+        if biz_tok:
+            page.goto(WEB + "/hom-nay", wait_until="networkidle", timeout=120_000)
+            page.locator(".hn-ring").first.wait_for(timeout=60_000)
+            biz = " · doanh nghiệp có lô thấy vòng đếm ngược"
+            page.evaluate("localStorage.removeItem('terratwin_token')")
         page.goto(WEB + "/hom-nay", wait_until="networkidle", timeout=120_000)
         page.locator(".hn-quick").first.wait_for(timeout=60_000)
         page.locator(".wh-samples li").first.wait_for(timeout=60_000)
@@ -253,7 +263,7 @@ with sync_playwright() as p:
         shot(page, "13-today")
         assert n >= 6, f"{n} thửa mẫu"
         assert rings == 0, "khách thấy vòng đếm ngược EUDR"
-        return f"{n} thửa mẫu sống · {page.locator('.hn-biz .hn-tile').count()} lối tắt Doanh nghiệp"
+        return f"{n} thửa mẫu sống · {page.locator('.hn-biz .hn-tile').count()} lối tắt Doanh nghiệp{biz}"
     today()
 
     @step("Trang đầu → 'Kiểm một tin đăng' mở thửa mẫu đúng tab Kiểm chứng, tab không bị ép")
