@@ -261,15 +261,19 @@ def cards() -> list[dict]:
     }
     if fw and (fw.get("test") or {}).get("model_iou") is not None:
         t = fw["test"]
+        nc1, nc2 = _load("ml", "field_water_negctrl_result.json"), _load("ml", "field_water_negctrl_1b_result.json")
+        ctrl_fail = any(c is not None and c.get("passed") is False for c in (nc1, nc2))
+        live = __import__("app.services.field_water", fromlist=["available"]).available()
         out.append({**fw_base,
-            "status": "accepted" if fw.get("passed") else "rejected",
-            "status_label": ((tr("cổng mô hình đạt · đang chạy — chỉ tham khảo ở nhật ký thửa, không vào hồ sơ ký",
-                                 "model gate passed · live — reference only in the plot journal, not in signed dossiers")
-                              if __import__("app.services.field_water", fromlist=["available"]).available() else
-                              tr("cổng mô hình đạt · CHƯA bật (máy chủ chưa có tệp .onnx; khi bật chỉ là tín hiệu tham khảo)",
-                                 "model gate passed · NOT on (server lacks the .onnx file; reference signal only once on)"))
-                             if fw.get("passed")
-                             else tr("trượt · ảnh thực địa vẫn chỉ là bằng chứng người dùng", "failed · field photos stay user evidence only")),
+            "status": "accepted" if (fw.get("passed") and not ctrl_fail) else "rejected",
+            "status_label": (tr("cổng ảnh lũ đạt · TRƯỢT đối chứng ảnh đồng ruộng KHÔ (lúa mì vàng, cỏ khô bị nhìn thành nước) · KHÔNG bật",
+                                "flood-photo gate passed · FAILED the DRY-field control (golden wheat, dry hay seen as water) · NOT on")
+                             if fw.get("passed") and ctrl_fail else
+                             tr("cổng mô hình đạt · đang chạy — chỉ tham khảo ở nhật ký thửa, không vào hồ sơ ký",
+                                "model gate passed · live — reference only in the plot journal, not in signed dossiers") if fw.get("passed") and live else
+                             tr("cổng mô hình đạt · CHƯA bật (máy chủ chưa có tệp .onnx; khi bật chỉ là tín hiệu tham khảo)",
+                                "model gate passed · NOT on (server lacks the .onnx file; reference signal only once on)") if fw.get("passed") else
+                             tr("trượt · ảnh thực địa vẫn chỉ là bằng chứng người dùng", "failed · field photos stay user evidence only")),
             "split": tr(f"đăng ký trước 18/10/2026 (2e44cb0); chọn mô hình chỉ bằng valid (IoU tốt nhất {fw.get('best_valid_iou')}); "
                         f"chấm một lần; {fw.get('device', '?')}, {fw.get('epochs')} vòng; train {fw['n']['train']} · valid {fw['n']['valid']} · test {fw['n']['test']}",
                         f"pre-registered 18/10/2026 (2e44cb0); model chosen on valid only (best IoU {fw.get('best_valid_iou')}); "
@@ -278,7 +282,16 @@ def cards() -> list[dict]:
                          "threshold": "≥ 0.70", "passed": t["model_iou"] >= 0.70},
                         {"label": tr("IoU nước trên test — đường cơ sở màu HSV (không học)", "Water IoU on test — HSV colour baseline (no learning)"),
                          "value": t.get("color_baseline_iou"), "threshold": tr("mô hình phải hơn", "model must beat it"),
-                         "passed": t.get("color_baseline_iou") is not None and t["model_iou"] > t["color_baseline_iou"]}],
+                         "passed": t.get("color_baseline_iou") is not None and t["model_iou"] > t["color_baseline_iou"]}]
+                       + [{"label": tr(f"Đối chứng ảnh đồng ruộng KHÔ — {nm}: trung vị tỉ lệ 'nước' / ảnh > 0,5",
+                                       f"DRY-field control — {nm}: median 'water' share / images > 0.5"),
+                           "value": f"{c.get('median')} / {c.get('share_over_0_5')} ({c.get('n')} ảnh)",
+                           "threshold": "≤ 0.10 / ≤ 0.10", "passed": c.get("passed")}
+                          for nm, c in ((tr("ruộng ngô (SUN397)", "corn field (SUN397)"), nc1),
+                                        (tr("8 lớp khác (SUN397)", "8 other classes (SUN397)"), nc2)) if c]
+                       + [{"label": tr(f"  · {k}", f"  · {k}"), "value": f"{v['median']} / {v['share_over_0_5']}", "threshold": "≤ 0.10 / ≤ 0.10",
+                           "passed": v["median"] <= 0.10 and v["share_over_0_5"] <= 0.10}
+                          for k, v in ((nc2 or {}).get("per_class") or {}).items()],
             "limits": tr("Ảnh lũ nhiều nước trên thế giới, nhiều ảnh chụp từ trên cao/drone; ruộng lúa ngập nông và mặt ruộng ướt ở Việt Nam có "
                          "thể khác. Đạt cổng KHÔNG chứng minh đúng trên ruộng Việt Nam — muốn tin hơn cần ảnh thực địa có nhãn của người dùng.",
                          "Flood photos from many countries, many taken from above/drones; shallow-flooded rice and wet fields in Viet Nam may "

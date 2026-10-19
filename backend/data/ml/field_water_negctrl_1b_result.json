@@ -1,0 +1,2451 @@
+{
+ "protocol": "terratwin.field_water_negctrl/1b",
+ "n": 400,
+ "median": 0.127,
+ "share_over_0_5": 0.087,
+ "per_class": {
+  "field cultivated": {
+   "n": 50,
+   "median": 0.098,
+   "share_over_0_5": 0.14
+  },
+  "hayfield": {
+   "n": 50,
+   "median": 0.378,
+   "share_over_0_5": 0.2
+  },
+  "orchard": {
+   "n": 50,
+   "median": 0.116,
+   "share_over_0_5": 0.04
+  },
+  "pasture": {
+   "n": 50,
+   "median": 0.107,
+   "share_over_0_5": 0.04
+  },
+  "tree farm": {
+   "n": 50,
+   "median": 0.107,
+   "share_over_0_5": 0.04
+  },
+  "vegetable garden": {
+   "n": 50,
+   "median": 0.058,
+   "share_over_0_5": 0.02
+  },
+  "vineyard": {
+   "n": 50,
+   "median": 0.057,
+   "share_over_0_5": 0.0
+  },
+  "wheat field": {
+   "n": 50,
+   "median": 0.325,
+   "share_over_0_5": 0.22
+  }
+ },
+ "passed": false,
+ "images": [
+  {
+   "file": "test-00002",
+   "row": 744,
+   "class": "field cultivated",
+   "water_ratio": 0.421
+  },
+  {
+   "file": "test-00002",
+   "row": 745,
+   "class": "field cultivated",
+   "water_ratio": 0.102
+  },
+  {
+   "file": "test-00002",
+   "row": 746,
+   "class": "field cultivated",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "test-00002",
+   "row": 747,
+   "class": "field cultivated",
+   "water_ratio": 0.197
+  },
+  {
+   "file": "test-00002",
+   "row": 748,
+   "class": "field cultivated",
+   "water_ratio": 0.36
+  },
+  {
+   "file": "test-00002",
+   "row": 749,
+   "class": "field cultivated",
+   "water_ratio": 0.01
+  },
+  {
+   "file": "test-00002",
+   "row": 750,
+   "class": "field cultivated",
+   "water_ratio": 0.583
+  },
+  {
+   "file": "test-00002",
+   "row": 751,
+   "class": "field cultivated",
+   "water_ratio": 0.07
+  },
+  {
+   "file": "test-00002",
+   "row": 752,
+   "class": "field cultivated",
+   "water_ratio": 0.44
+  },
+  {
+   "file": "test-00002",
+   "row": 753,
+   "class": "field cultivated",
+   "water_ratio": 0.017
+  },
+  {
+   "file": "test-00002",
+   "row": 754,
+   "class": "field cultivated",
+   "water_ratio": 0.075
+  },
+  {
+   "file": "test-00002",
+   "row": 755,
+   "class": "field cultivated",
+   "water_ratio": 0.017
+  },
+  {
+   "file": "test-00002",
+   "row": 756,
+   "class": "field cultivated",
+   "water_ratio": 0.153
+  },
+  {
+   "file": "test-00002",
+   "row": 757,
+   "class": "field cultivated",
+   "water_ratio": 0.904
+  },
+  {
+   "file": "test-00002",
+   "row": 758,
+   "class": "field cultivated",
+   "water_ratio": 0.202
+  },
+  {
+   "file": "test-00002",
+   "row": 759,
+   "class": "field cultivated",
+   "water_ratio": 0.381
+  },
+  {
+   "file": "test-00002",
+   "row": 760,
+   "class": "field cultivated",
+   "water_ratio": 0.474
+  },
+  {
+   "file": "test-00002",
+   "row": 761,
+   "class": "field cultivated",
+   "water_ratio": 0.008
+  },
+  {
+   "file": "test-00002",
+   "row": 762,
+   "class": "field cultivated",
+   "water_ratio": 0.025
+  },
+  {
+   "file": "test-00002",
+   "row": 763,
+   "class": "field cultivated",
+   "water_ratio": 0.265
+  },
+  {
+   "file": "test-00002",
+   "row": 764,
+   "class": "field cultivated",
+   "water_ratio": 0.028
+  },
+  {
+   "file": "test-00002",
+   "row": 765,
+   "class": "field cultivated",
+   "water_ratio": 0.005
+  },
+  {
+   "file": "test-00002",
+   "row": 766,
+   "class": "field cultivated",
+   "water_ratio": 0.035
+  },
+  {
+   "file": "test-00002",
+   "row": 767,
+   "class": "field cultivated",
+   "water_ratio": 0.061
+  },
+  {
+   "file": "test-00002",
+   "row": 768,
+   "class": "field cultivated",
+   "water_ratio": 0.063
+  },
+  {
+   "file": "test-00002",
+   "row": 769,
+   "class": "field cultivated",
+   "water_ratio": 0.779
+  },
+  {
+   "file": "test-00002",
+   "row": 770,
+   "class": "field cultivated",
+   "water_ratio": 0.439
+  },
+  {
+   "file": "test-00002",
+   "row": 771,
+   "class": "field cultivated",
+   "water_ratio": 0.132
+  },
+  {
+   "file": "test-00002",
+   "row": 772,
+   "class": "field cultivated",
+   "water_ratio": 0.415
+  },
+  {
+   "file": "test-00002",
+   "row": 773,
+   "class": "field cultivated",
+   "water_ratio": 0.35
+  },
+  {
+   "file": "test-00002",
+   "row": 774,
+   "class": "field cultivated",
+   "water_ratio": 0.387
+  },
+  {
+   "file": "test-00002",
+   "row": 775,
+   "class": "field cultivated",
+   "water_ratio": 0.545
+  },
+  {
+   "file": "test-00002",
+   "row": 776,
+   "class": "field cultivated",
+   "water_ratio": 0.372
+  },
+  {
+   "file": "test-00002",
+   "row": 777,
+   "class": "field cultivated",
+   "water_ratio": 0.078
+  },
+  {
+   "file": "test-00002",
+   "row": 778,
+   "class": "field cultivated",
+   "water_ratio": 0.547
+  },
+  {
+   "file": "test-00002",
+   "row": 779,
+   "class": "field cultivated",
+   "water_ratio": 0.286
+  },
+  {
+   "file": "test-00002",
+   "row": 780,
+   "class": "field cultivated",
+   "water_ratio": 0.485
+  },
+  {
+   "file": "test-00002",
+   "row": 781,
+   "class": "field cultivated",
+   "water_ratio": 0.004
+  },
+  {
+   "file": "test-00002",
+   "row": 782,
+   "class": "field cultivated",
+   "water_ratio": 0.632
+  },
+  {
+   "file": "test-00002",
+   "row": 783,
+   "class": "field cultivated",
+   "water_ratio": 0.006
+  },
+  {
+   "file": "test-00002",
+   "row": 784,
+   "class": "field cultivated",
+   "water_ratio": 0.01
+  },
+  {
+   "file": "test-00002",
+   "row": 785,
+   "class": "field cultivated",
+   "water_ratio": 0.094
+  },
+  {
+   "file": "test-00002",
+   "row": 786,
+   "class": "field cultivated",
+   "water_ratio": 0.011
+  },
+  {
+   "file": "test-00002",
+   "row": 787,
+   "class": "field cultivated",
+   "water_ratio": 0.037
+  },
+  {
+   "file": "test-00002",
+   "row": 788,
+   "class": "field cultivated",
+   "water_ratio": 0.014
+  },
+  {
+   "file": "test-00002",
+   "row": 789,
+   "class": "field cultivated",
+   "water_ratio": 0.001
+  },
+  {
+   "file": "test-00002",
+   "row": 790,
+   "class": "field cultivated",
+   "water_ratio": 0.029
+  },
+  {
+   "file": "test-00002",
+   "row": 791,
+   "class": "field cultivated",
+   "water_ratio": 0.001
+  },
+  {
+   "file": "test-00002",
+   "row": 792,
+   "class": "field cultivated",
+   "water_ratio": 0.561
+  },
+  {
+   "file": "test-00002",
+   "row": 793,
+   "class": "field cultivated",
+   "water_ratio": 0.032
+  },
+  {
+   "file": "test-00004",
+   "row": 188,
+   "class": "hayfield",
+   "water_ratio": 0.275
+  },
+  {
+   "file": "test-00004",
+   "row": 189,
+   "class": "hayfield",
+   "water_ratio": 0.622
+  },
+  {
+   "file": "test-00004",
+   "row": 190,
+   "class": "hayfield",
+   "water_ratio": 0.452
+  },
+  {
+   "file": "test-00004",
+   "row": 191,
+   "class": "hayfield",
+   "water_ratio": 0.13
+  },
+  {
+   "file": "test-00004",
+   "row": 192,
+   "class": "hayfield",
+   "water_ratio": 0.377
+  },
+  {
+   "file": "test-00004",
+   "row": 193,
+   "class": "hayfield",
+   "water_ratio": 0.388
+  },
+  {
+   "file": "test-00004",
+   "row": 194,
+   "class": "hayfield",
+   "water_ratio": 0.453
+  },
+  {
+   "file": "test-00004",
+   "row": 195,
+   "class": "hayfield",
+   "water_ratio": 0.482
+  },
+  {
+   "file": "test-00004",
+   "row": 196,
+   "class": "hayfield",
+   "water_ratio": 0.529
+  },
+  {
+   "file": "test-00004",
+   "row": 197,
+   "class": "hayfield",
+   "water_ratio": 0.568
+  },
+  {
+   "file": "test-00004",
+   "row": 198,
+   "class": "hayfield",
+   "water_ratio": 0.394
+  },
+  {
+   "file": "test-00004",
+   "row": 199,
+   "class": "hayfield",
+   "water_ratio": 0.494
+  },
+  {
+   "file": "test-00004",
+   "row": 200,
+   "class": "hayfield",
+   "water_ratio": 0.455
+  },
+  {
+   "file": "test-00004",
+   "row": 201,
+   "class": "hayfield",
+   "water_ratio": 0.356
+  },
+  {
+   "file": "test-00004",
+   "row": 202,
+   "class": "hayfield",
+   "water_ratio": 0.128
+  },
+  {
+   "file": "test-00004",
+   "row": 203,
+   "class": "hayfield",
+   "water_ratio": 0.055
+  },
+  {
+   "file": "test-00004",
+   "row": 204,
+   "class": "hayfield",
+   "water_ratio": 0.096
+  },
+  {
+   "file": "test-00004",
+   "row": 205,
+   "class": "hayfield",
+   "water_ratio": 0.485
+  },
+  {
+   "file": "test-00004",
+   "row": 206,
+   "class": "hayfield",
+   "water_ratio": 0.384
+  },
+  {
+   "file": "test-00004",
+   "row": 207,
+   "class": "hayfield",
+   "water_ratio": 0.543
+  },
+  {
+   "file": "test-00004",
+   "row": 208,
+   "class": "hayfield",
+   "water_ratio": 0.125
+  },
+  {
+   "file": "test-00004",
+   "row": 209,
+   "class": "hayfield",
+   "water_ratio": 0.378
+  },
+  {
+   "file": "test-00004",
+   "row": 210,
+   "class": "hayfield",
+   "water_ratio": 0.44
+  },
+  {
+   "file": "test-00004",
+   "row": 211,
+   "class": "hayfield",
+   "water_ratio": 0.668
+  },
+  {
+   "file": "test-00004",
+   "row": 212,
+   "class": "hayfield",
+   "water_ratio": 0.675
+  },
+  {
+   "file": "test-00004",
+   "row": 213,
+   "class": "hayfield",
+   "water_ratio": 0.479
+  },
+  {
+   "file": "test-00004",
+   "row": 214,
+   "class": "hayfield",
+   "water_ratio": 0.313
+  },
+  {
+   "file": "test-00004",
+   "row": 215,
+   "class": "hayfield",
+   "water_ratio": 0.625
+  },
+  {
+   "file": "test-00004",
+   "row": 216,
+   "class": "hayfield",
+   "water_ratio": 0.244
+  },
+  {
+   "file": "test-00004",
+   "row": 217,
+   "class": "hayfield",
+   "water_ratio": 0.326
+  },
+  {
+   "file": "test-00004",
+   "row": 218,
+   "class": "hayfield",
+   "water_ratio": 0.428
+  },
+  {
+   "file": "test-00004",
+   "row": 219,
+   "class": "hayfield",
+   "water_ratio": 0.381
+  },
+  {
+   "file": "test-00004",
+   "row": 220,
+   "class": "hayfield",
+   "water_ratio": 0.705
+  },
+  {
+   "file": "test-00004",
+   "row": 221,
+   "class": "hayfield",
+   "water_ratio": 0.038
+  },
+  {
+   "file": "test-00004",
+   "row": 222,
+   "class": "hayfield",
+   "water_ratio": 0.039
+  },
+  {
+   "file": "test-00004",
+   "row": 223,
+   "class": "hayfield",
+   "water_ratio": 0.015
+  },
+  {
+   "file": "test-00004",
+   "row": 224,
+   "class": "hayfield",
+   "water_ratio": 0.764
+  },
+  {
+   "file": "test-00004",
+   "row": 225,
+   "class": "hayfield",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "test-00004",
+   "row": 226,
+   "class": "hayfield",
+   "water_ratio": 0.008
+  },
+  {
+   "file": "test-00004",
+   "row": 227,
+   "class": "hayfield",
+   "water_ratio": 0.674
+  },
+  {
+   "file": "test-00004",
+   "row": 228,
+   "class": "hayfield",
+   "water_ratio": 0.066
+  },
+  {
+   "file": "test-00004",
+   "row": 229,
+   "class": "hayfield",
+   "water_ratio": 0.225
+  },
+  {
+   "file": "test-00004",
+   "row": 230,
+   "class": "hayfield",
+   "water_ratio": 0.481
+  },
+  {
+   "file": "test-00004",
+   "row": 231,
+   "class": "hayfield",
+   "water_ratio": 0.004
+  },
+  {
+   "file": "test-00004",
+   "row": 232,
+   "class": "hayfield",
+   "water_ratio": 0.002
+  },
+  {
+   "file": "test-00004",
+   "row": 233,
+   "class": "hayfield",
+   "water_ratio": 0.002
+  },
+  {
+   "file": "test-00004",
+   "row": 234,
+   "class": "hayfield",
+   "water_ratio": 0.254
+  },
+  {
+   "file": "test-00004",
+   "row": 235,
+   "class": "hayfield",
+   "water_ratio": 0.214
+  },
+  {
+   "file": "test-00004",
+   "row": 236,
+   "class": "hayfield",
+   "water_ratio": 0.037
+  },
+  {
+   "file": "test-00004",
+   "row": 237,
+   "class": "hayfield",
+   "water_ratio": 0.094
+  },
+  {
+   "file": "test-00008",
+   "row": 176,
+   "class": "orchard",
+   "water_ratio": 0.36
+  },
+  {
+   "file": "test-00008",
+   "row": 177,
+   "class": "orchard",
+   "water_ratio": 0.15
+  },
+  {
+   "file": "test-00008",
+   "row": 178,
+   "class": "orchard",
+   "water_ratio": 0.296
+  },
+  {
+   "file": "test-00008",
+   "row": 179,
+   "class": "orchard",
+   "water_ratio": 0.385
+  },
+  {
+   "file": "test-00008",
+   "row": 180,
+   "class": "orchard",
+   "water_ratio": 0.101
+  },
+  {
+   "file": "test-00008",
+   "row": 181,
+   "class": "orchard",
+   "water_ratio": 0.205
+  },
+  {
+   "file": "test-00008",
+   "row": 182,
+   "class": "orchard",
+   "water_ratio": 0.253
+  },
+  {
+   "file": "test-00008",
+   "row": 183,
+   "class": "orchard",
+   "water_ratio": 0.103
+  },
+  {
+   "file": "test-00008",
+   "row": 184,
+   "class": "orchard",
+   "water_ratio": 0.279
+  },
+  {
+   "file": "test-00008",
+   "row": 185,
+   "class": "orchard",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "test-00008",
+   "row": 186,
+   "class": "orchard",
+   "water_ratio": 0.204
+  },
+  {
+   "file": "test-00008",
+   "row": 187,
+   "class": "orchard",
+   "water_ratio": 0.519
+  },
+  {
+   "file": "test-00008",
+   "row": 188,
+   "class": "orchard",
+   "water_ratio": 0.005
+  },
+  {
+   "file": "test-00008",
+   "row": 189,
+   "class": "orchard",
+   "water_ratio": 0.078
+  },
+  {
+   "file": "test-00008",
+   "row": 190,
+   "class": "orchard",
+   "water_ratio": 0.093
+  },
+  {
+   "file": "test-00008",
+   "row": 191,
+   "class": "orchard",
+   "water_ratio": 0.108
+  },
+  {
+   "file": "test-00008",
+   "row": 192,
+   "class": "orchard",
+   "water_ratio": 0.155
+  },
+  {
+   "file": "test-00008",
+   "row": 193,
+   "class": "orchard",
+   "water_ratio": 0.651
+  },
+  {
+   "file": "test-00008",
+   "row": 194,
+   "class": "orchard",
+   "water_ratio": 0.059
+  },
+  {
+   "file": "test-00008",
+   "row": 195,
+   "class": "orchard",
+   "water_ratio": 0.128
+  },
+  {
+   "file": "test-00008",
+   "row": 196,
+   "class": "orchard",
+   "water_ratio": 0.099
+  },
+  {
+   "file": "test-00008",
+   "row": 197,
+   "class": "orchard",
+   "water_ratio": 0.489
+  },
+  {
+   "file": "test-00008",
+   "row": 198,
+   "class": "orchard",
+   "water_ratio": 0.115
+  },
+  {
+   "file": "test-00008",
+   "row": 199,
+   "class": "orchard",
+   "water_ratio": 0.291
+  },
+  {
+   "file": "test-00008",
+   "row": 200,
+   "class": "orchard",
+   "water_ratio": 0.063
+  },
+  {
+   "file": "test-00008",
+   "row": 201,
+   "class": "orchard",
+   "water_ratio": 0.096
+  },
+  {
+   "file": "test-00008",
+   "row": 202,
+   "class": "orchard",
+   "water_ratio": 0.141
+  },
+  {
+   "file": "test-00008",
+   "row": 203,
+   "class": "orchard",
+   "water_ratio": 0.014
+  },
+  {
+   "file": "test-00008",
+   "row": 204,
+   "class": "orchard",
+   "water_ratio": 0.198
+  },
+  {
+   "file": "test-00008",
+   "row": 205,
+   "class": "orchard",
+   "water_ratio": 0.385
+  },
+  {
+   "file": "test-00008",
+   "row": 206,
+   "class": "orchard",
+   "water_ratio": 0.118
+  },
+  {
+   "file": "test-00008",
+   "row": 207,
+   "class": "orchard",
+   "water_ratio": 0.019
+  },
+  {
+   "file": "test-00008",
+   "row": 208,
+   "class": "orchard",
+   "water_ratio": 0.207
+  },
+  {
+   "file": "test-00008",
+   "row": 209,
+   "class": "orchard",
+   "water_ratio": 0.015
+  },
+  {
+   "file": "test-00008",
+   "row": 210,
+   "class": "orchard",
+   "water_ratio": 0.125
+  },
+  {
+   "file": "test-00008",
+   "row": 211,
+   "class": "orchard",
+   "water_ratio": 0.003
+  },
+  {
+   "file": "test-00008",
+   "row": 212,
+   "class": "orchard",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "test-00008",
+   "row": 213,
+   "class": "orchard",
+   "water_ratio": 0.09
+  },
+  {
+   "file": "test-00008",
+   "row": 214,
+   "class": "orchard",
+   "water_ratio": 0.058
+  },
+  {
+   "file": "test-00008",
+   "row": 215,
+   "class": "orchard",
+   "water_ratio": 0.215
+  },
+  {
+   "file": "test-00008",
+   "row": 216,
+   "class": "orchard",
+   "water_ratio": 0.257
+  },
+  {
+   "file": "test-00008",
+   "row": 217,
+   "class": "orchard",
+   "water_ratio": 0.1
+  },
+  {
+   "file": "test-00008",
+   "row": 218,
+   "class": "orchard",
+   "water_ratio": 0.016
+  },
+  {
+   "file": "test-00008",
+   "row": 219,
+   "class": "orchard",
+   "water_ratio": 0.193
+  },
+  {
+   "file": "test-00008",
+   "row": 220,
+   "class": "orchard",
+   "water_ratio": 0.236
+  },
+  {
+   "file": "test-00008",
+   "row": 221,
+   "class": "orchard",
+   "water_ratio": 0.178
+  },
+  {
+   "file": "test-00008",
+   "row": 222,
+   "class": "orchard",
+   "water_ratio": 0.028
+  },
+  {
+   "file": "test-00008",
+   "row": 223,
+   "class": "orchard",
+   "water_ratio": 0.029
+  },
+  {
+   "file": "test-00008",
+   "row": 224,
+   "class": "orchard",
+   "water_ratio": 0.01
+  },
+  {
+   "file": "test-00008",
+   "row": 225,
+   "class": "orchard",
+   "water_ratio": 0.005
+  },
+  {
+   "file": "test-00008",
+   "row": 726,
+   "class": "pasture",
+   "water_ratio": 0.572
+  },
+  {
+   "file": "test-00008",
+   "row": 727,
+   "class": "pasture",
+   "water_ratio": 0.34
+  },
+  {
+   "file": "test-00008",
+   "row": 728,
+   "class": "pasture",
+   "water_ratio": 0.025
+  },
+  {
+   "file": "test-00008",
+   "row": 729,
+   "class": "pasture",
+   "water_ratio": 0.278
+  },
+  {
+   "file": "test-00008",
+   "row": 730,
+   "class": "pasture",
+   "water_ratio": 0.131
+  },
+  {
+   "file": "test-00008",
+   "row": 731,
+   "class": "pasture",
+   "water_ratio": 0.396
+  },
+  {
+   "file": "test-00008",
+   "row": 732,
+   "class": "pasture",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "test-00008",
+   "row": 733,
+   "class": "pasture",
+   "water_ratio": 0.039
+  },
+  {
+   "file": "test-00008",
+   "row": 734,
+   "class": "pasture",
+   "water_ratio": 0.066
+  },
+  {
+   "file": "test-00008",
+   "row": 735,
+   "class": "pasture",
+   "water_ratio": 0.008
+  },
+  {
+   "file": "test-00008",
+   "row": 736,
+   "class": "pasture",
+   "water_ratio": 0.439
+  },
+  {
+   "file": "test-00008",
+   "row": 737,
+   "class": "pasture",
+   "water_ratio": 0.141
+  },
+  {
+   "file": "test-00008",
+   "row": 738,
+   "class": "pasture",
+   "water_ratio": 0.049
+  },
+  {
+   "file": "test-00008",
+   "row": 739,
+   "class": "pasture",
+   "water_ratio": 0.002
+  },
+  {
+   "file": "test-00008",
+   "row": 740,
+   "class": "pasture",
+   "water_ratio": 0.021
+  },
+  {
+   "file": "test-00008",
+   "row": 741,
+   "class": "pasture",
+   "water_ratio": 0.053
+  },
+  {
+   "file": "test-00008",
+   "row": 742,
+   "class": "pasture",
+   "water_ratio": 0.226
+  },
+  {
+   "file": "test-00008",
+   "row": 743,
+   "class": "pasture",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "test-00008",
+   "row": 744,
+   "class": "pasture",
+   "water_ratio": 0.133
+  },
+  {
+   "file": "test-00008",
+   "row": 745,
+   "class": "pasture",
+   "water_ratio": 0.15
+  },
+  {
+   "file": "test-00008",
+   "row": 746,
+   "class": "pasture",
+   "water_ratio": 0.236
+  },
+  {
+   "file": "test-00008",
+   "row": 747,
+   "class": "pasture",
+   "water_ratio": 0.003
+  },
+  {
+   "file": "test-00008",
+   "row": 748,
+   "class": "pasture",
+   "water_ratio": 0.638
+  },
+  {
+   "file": "test-00008",
+   "row": 749,
+   "class": "pasture",
+   "water_ratio": 0.142
+  },
+  {
+   "file": "test-00008",
+   "row": 750,
+   "class": "pasture",
+   "water_ratio": 0.352
+  },
+  {
+   "file": "test-00008",
+   "row": 751,
+   "class": "pasture",
+   "water_ratio": 0.004
+  },
+  {
+   "file": "test-00008",
+   "row": 752,
+   "class": "pasture",
+   "water_ratio": 0.114
+  },
+  {
+   "file": "test-00008",
+   "row": 753,
+   "class": "pasture",
+   "water_ratio": 0.003
+  },
+  {
+   "file": "test-00008",
+   "row": 754,
+   "class": "pasture",
+   "water_ratio": 0.24
+  },
+  {
+   "file": "test-00008",
+   "row": 755,
+   "class": "pasture",
+   "water_ratio": 0.049
+  },
+  {
+   "file": "test-00008",
+   "row": 756,
+   "class": "pasture",
+   "water_ratio": 0.242
+  },
+  {
+   "file": "test-00008",
+   "row": 757,
+   "class": "pasture",
+   "water_ratio": 0.104
+  },
+  {
+   "file": "test-00008",
+   "row": 758,
+   "class": "pasture",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "test-00008",
+   "row": 759,
+   "class": "pasture",
+   "water_ratio": 0.176
+  },
+  {
+   "file": "test-00008",
+   "row": 760,
+   "class": "pasture",
+   "water_ratio": 0.287
+  },
+  {
+   "file": "test-00008",
+   "row": 761,
+   "class": "pasture",
+   "water_ratio": 0.153
+  },
+  {
+   "file": "test-00008",
+   "row": 762,
+   "class": "pasture",
+   "water_ratio": 0.365
+  },
+  {
+   "file": "test-00008",
+   "row": 763,
+   "class": "pasture",
+   "water_ratio": 0.088
+  },
+  {
+   "file": "test-00008",
+   "row": 764,
+   "class": "pasture",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "test-00008",
+   "row": 765,
+   "class": "pasture",
+   "water_ratio": 0.292
+  },
+  {
+   "file": "test-00008",
+   "row": 766,
+   "class": "pasture",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "test-00008",
+   "row": 767,
+   "class": "pasture",
+   "water_ratio": 0.084
+  },
+  {
+   "file": "test-00008",
+   "row": 768,
+   "class": "pasture",
+   "water_ratio": 0.052
+  },
+  {
+   "file": "test-00008",
+   "row": 769,
+   "class": "pasture",
+   "water_ratio": 0.009
+  },
+  {
+   "file": "test-00008",
+   "row": 770,
+   "class": "pasture",
+   "water_ratio": 0.016
+  },
+  {
+   "file": "test-00008",
+   "row": 771,
+   "class": "pasture",
+   "water_ratio": 0.213
+  },
+  {
+   "file": "test-00008",
+   "row": 772,
+   "class": "pasture",
+   "water_ratio": 0.01
+  },
+  {
+   "file": "test-00008",
+   "row": 773,
+   "class": "pasture",
+   "water_ratio": 0.007
+  },
+  {
+   "file": "test-00008",
+   "row": 774,
+   "class": "pasture",
+   "water_ratio": 0.111
+  },
+  {
+   "file": "test-00008",
+   "row": 775,
+   "class": "pasture",
+   "water_ratio": 0.208
+  },
+  {
+   "file": "test-00013",
+   "row": 361,
+   "class": "tree farm",
+   "water_ratio": 0.273
+  },
+  {
+   "file": "test-00013",
+   "row": 362,
+   "class": "tree farm",
+   "water_ratio": 0.352
+  },
+  {
+   "file": "test-00013",
+   "row": 363,
+   "class": "tree farm",
+   "water_ratio": 0.008
+  },
+  {
+   "file": "test-00013",
+   "row": 364,
+   "class": "tree farm",
+   "water_ratio": 0.006
+  },
+  {
+   "file": "test-00013",
+   "row": 365,
+   "class": "tree farm",
+   "water_ratio": 0.061
+  },
+  {
+   "file": "test-00013",
+   "row": 366,
+   "class": "tree farm",
+   "water_ratio": 0.325
+  },
+  {
+   "file": "test-00013",
+   "row": 367,
+   "class": "tree farm",
+   "water_ratio": 0.119
+  },
+  {
+   "file": "test-00013",
+   "row": 368,
+   "class": "tree farm",
+   "water_ratio": 0.027
+  },
+  {
+   "file": "test-00013",
+   "row": 369,
+   "class": "tree farm",
+   "water_ratio": 0.063
+  },
+  {
+   "file": "test-00013",
+   "row": 370,
+   "class": "tree farm",
+   "water_ratio": 0.557
+  },
+  {
+   "file": "test-00013",
+   "row": 371,
+   "class": "tree farm",
+   "water_ratio": 0.526
+  },
+  {
+   "file": "test-00013",
+   "row": 372,
+   "class": "tree farm",
+   "water_ratio": 0.174
+  },
+  {
+   "file": "test-00013",
+   "row": 373,
+   "class": "tree farm",
+   "water_ratio": 0.001
+  },
+  {
+   "file": "test-00013",
+   "row": 374,
+   "class": "tree farm",
+   "water_ratio": 0.094
+  },
+  {
+   "file": "test-00013",
+   "row": 375,
+   "class": "tree farm",
+   "water_ratio": 0.029
+  },
+  {
+   "file": "test-00013",
+   "row": 376,
+   "class": "tree farm",
+   "water_ratio": 0.365
+  },
+  {
+   "file": "test-00013",
+   "row": 377,
+   "class": "tree farm",
+   "water_ratio": 0.09
+  },
+  {
+   "file": "test-00013",
+   "row": 378,
+   "class": "tree farm",
+   "water_ratio": 0.41
+  },
+  {
+   "file": "test-00013",
+   "row": 379,
+   "class": "tree farm",
+   "water_ratio": 0.054
+  },
+  {
+   "file": "test-00013",
+   "row": 380,
+   "class": "tree farm",
+   "water_ratio": 0.307
+  },
+  {
+   "file": "test-00013",
+   "row": 381,
+   "class": "tree farm",
+   "water_ratio": 0.092
+  },
+  {
+   "file": "test-00013",
+   "row": 382,
+   "class": "tree farm",
+   "water_ratio": 0.047
+  },
+  {
+   "file": "test-00013",
+   "row": 383,
+   "class": "tree farm",
+   "water_ratio": 0.183
+  },
+  {
+   "file": "test-00013",
+   "row": 384,
+   "class": "tree farm",
+   "water_ratio": 0.096
+  },
+  {
+   "file": "test-00013",
+   "row": 385,
+   "class": "tree farm",
+   "water_ratio": 0.001
+  },
+  {
+   "file": "test-00013",
+   "row": 386,
+   "class": "tree farm",
+   "water_ratio": 0.17
+  },
+  {
+   "file": "test-00013",
+   "row": 387,
+   "class": "tree farm",
+   "water_ratio": 0.006
+  },
+  {
+   "file": "test-00013",
+   "row": 388,
+   "class": "tree farm",
+   "water_ratio": 0.355
+  },
+  {
+   "file": "test-00013",
+   "row": 389,
+   "class": "tree farm",
+   "water_ratio": 0.056
+  },
+  {
+   "file": "test-00013",
+   "row": 390,
+   "class": "tree farm",
+   "water_ratio": 0.243
+  },
+  {
+   "file": "test-00013",
+   "row": 391,
+   "class": "tree farm",
+   "water_ratio": 0.089
+  },
+  {
+   "file": "test-00013",
+   "row": 392,
+   "class": "tree farm",
+   "water_ratio": 0.126
+  },
+  {
+   "file": "test-00013",
+   "row": 393,
+   "class": "tree farm",
+   "water_ratio": 0.064
+  },
+  {
+   "file": "test-00013",
+   "row": 394,
+   "class": "tree farm",
+   "water_ratio": 0.307
+  },
+  {
+   "file": "test-00013",
+   "row": 395,
+   "class": "tree farm",
+   "water_ratio": 0.189
+  },
+  {
+   "file": "test-00013",
+   "row": 396,
+   "class": "tree farm",
+   "water_ratio": 0.165
+  },
+  {
+   "file": "test-00013",
+   "row": 397,
+   "class": "tree farm",
+   "water_ratio": 0.353
+  },
+  {
+   "file": "test-00013",
+   "row": 398,
+   "class": "tree farm",
+   "water_ratio": 0.002
+  },
+  {
+   "file": "test-00013",
+   "row": 399,
+   "class": "tree farm",
+   "water_ratio": 0.017
+  },
+  {
+   "file": "test-00013",
+   "row": 400,
+   "class": "tree farm",
+   "water_ratio": 0.143
+  },
+  {
+   "file": "test-00013",
+   "row": 401,
+   "class": "tree farm",
+   "water_ratio": 0.005
+  },
+  {
+   "file": "test-00013",
+   "row": 402,
+   "class": "tree farm",
+   "water_ratio": 0.057
+  },
+  {
+   "file": "test-00013",
+   "row": 403,
+   "class": "tree farm",
+   "water_ratio": 0.189
+  },
+  {
+   "file": "test-00013",
+   "row": 404,
+   "class": "tree farm",
+   "water_ratio": 0.167
+  },
+  {
+   "file": "test-00013",
+   "row": 405,
+   "class": "tree farm",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "test-00013",
+   "row": 406,
+   "class": "tree farm",
+   "water_ratio": 0.086
+  },
+  {
+   "file": "test-00013",
+   "row": 407,
+   "class": "tree farm",
+   "water_ratio": 0.15
+  },
+  {
+   "file": "test-00013",
+   "row": 408,
+   "class": "tree farm",
+   "water_ratio": 0.186
+  },
+  {
+   "file": "test-00013",
+   "row": 409,
+   "class": "tree farm",
+   "water_ratio": 0.013
+  },
+  {
+   "file": "test-00013",
+   "row": 410,
+   "class": "tree farm",
+   "water_ratio": 0.42
+  },
+  {
+   "file": "test-00013",
+   "row": 761,
+   "class": "vegetable garden",
+   "water_ratio": 0.16
+  },
+  {
+   "file": "test-00013",
+   "row": 762,
+   "class": "vegetable garden",
+   "water_ratio": 0.047
+  },
+  {
+   "file": "test-00013",
+   "row": 763,
+   "class": "vegetable garden",
+   "water_ratio": 0.037
+  },
+  {
+   "file": "test-00013",
+   "row": 764,
+   "class": "vegetable garden",
+   "water_ratio": 0.004
+  },
+  {
+   "file": "test-00013",
+   "row": 765,
+   "class": "vegetable garden",
+   "water_ratio": 0.093
+  },
+  {
+   "file": "test-00013",
+   "row": 766,
+   "class": "vegetable garden",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "test-00013",
+   "row": 767,
+   "class": "vegetable garden",
+   "water_ratio": 0.055
+  },
+  {
+   "file": "test-00013",
+   "row": 768,
+   "class": "vegetable garden",
+   "water_ratio": 0.078
+  },
+  {
+   "file": "test-00013",
+   "row": 769,
+   "class": "vegetable garden",
+   "water_ratio": 0.233
+  },
+  {
+   "file": "test-00013",
+   "row": 770,
+   "class": "vegetable garden",
+   "water_ratio": 0.11
+  },
+  {
+   "file": "test-00013",
+   "row": 771,
+   "class": "vegetable garden",
+   "water_ratio": 0.002
+  },
+  {
+   "file": "test-00013",
+   "row": 772,
+   "class": "vegetable garden",
+   "water_ratio": 0.151
+  },
+  {
+   "file": "test-00013",
+   "row": 773,
+   "class": "vegetable garden",
+   "water_ratio": 0.026
+  },
+  {
+   "file": "test-00013",
+   "row": 774,
+   "class": "vegetable garden",
+   "water_ratio": 0.048
+  },
+  {
+   "file": "test-00013",
+   "row": 775,
+   "class": "vegetable garden",
+   "water_ratio": 0.085
+  },
+  {
+   "file": "test-00013",
+   "row": 776,
+   "class": "vegetable garden",
+   "water_ratio": 0.218
+  },
+  {
+   "file": "test-00013",
+   "row": 777,
+   "class": "vegetable garden",
+   "water_ratio": 0.219
+  },
+  {
+   "file": "test-00013",
+   "row": 778,
+   "class": "vegetable garden",
+   "water_ratio": 0.47
+  },
+  {
+   "file": "test-00013",
+   "row": 779,
+   "class": "vegetable garden",
+   "water_ratio": 0.208
+  },
+  {
+   "file": "test-00013",
+   "row": 780,
+   "class": "vegetable garden",
+   "water_ratio": 0.074
+  },
+  {
+   "file": "test-00013",
+   "row": 781,
+   "class": "vegetable garden",
+   "water_ratio": 0.001
+  },
+  {
+   "file": "test-00013",
+   "row": 782,
+   "class": "vegetable garden",
+   "water_ratio": 0.037
+  },
+  {
+   "file": "test-00013",
+   "row": 783,
+   "class": "vegetable garden",
+   "water_ratio": 0.068
+  },
+  {
+   "file": "test-00013",
+   "row": 784,
+   "class": "vegetable garden",
+   "water_ratio": 0.317
+  },
+  {
+   "file": "test-00013",
+   "row": 785,
+   "class": "vegetable garden",
+   "water_ratio": 0.053
+  },
+  {
+   "file": "test-00013",
+   "row": 786,
+   "class": "vegetable garden",
+   "water_ratio": 0.058
+  },
+  {
+   "file": "test-00013",
+   "row": 787,
+   "class": "vegetable garden",
+   "water_ratio": 0.104
+  },
+  {
+   "file": "test-00013",
+   "row": 788,
+   "class": "vegetable garden",
+   "water_ratio": 0.031
+  },
+  {
+   "file": "test-00013",
+   "row": 789,
+   "class": "vegetable garden",
+   "water_ratio": 0.091
+  },
+  {
+   "file": "test-00013",
+   "row": 790,
+   "class": "vegetable garden",
+   "water_ratio": 0.051
+  },
+  {
+   "file": "test-00013",
+   "row": 791,
+   "class": "vegetable garden",
+   "water_ratio": 0.008
+  },
+  {
+   "file": "test-00013",
+   "row": 792,
+   "class": "vegetable garden",
+   "water_ratio": 0.285
+  },
+  {
+   "file": "test-00013",
+   "row": 793,
+   "class": "vegetable garden",
+   "water_ratio": 0.003
+  },
+  {
+   "file": "test-00013",
+   "row": 794,
+   "class": "vegetable garden",
+   "water_ratio": 0.316
+  },
+  {
+   "file": "test-00013",
+   "row": 795,
+   "class": "vegetable garden",
+   "water_ratio": 0.007
+  },
+  {
+   "file": "test-00013",
+   "row": 796,
+   "class": "vegetable garden",
+   "water_ratio": 0.051
+  },
+  {
+   "file": "test-00013",
+   "row": 797,
+   "class": "vegetable garden",
+   "water_ratio": 0.222
+  },
+  {
+   "file": "test-00013",
+   "row": 798,
+   "class": "vegetable garden",
+   "water_ratio": 0.675
+  },
+  {
+   "file": "test-00013",
+   "row": 799,
+   "class": "vegetable garden",
+   "water_ratio": 0.012
+  },
+  {
+   "file": "test-00013",
+   "row": 800,
+   "class": "vegetable garden",
+   "water_ratio": 0.008
+  },
+  {
+   "file": "test-00013",
+   "row": 801,
+   "class": "vegetable garden",
+   "water_ratio": 0.492
+  },
+  {
+   "file": "test-00013",
+   "row": 802,
+   "class": "vegetable garden",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "test-00013",
+   "row": 803,
+   "class": "vegetable garden",
+   "water_ratio": 0.152
+  },
+  {
+   "file": "test-00013",
+   "row": 804,
+   "class": "vegetable garden",
+   "water_ratio": 0.028
+  },
+  {
+   "file": "test-00013",
+   "row": 805,
+   "class": "vegetable garden",
+   "water_ratio": 0.059
+  },
+  {
+   "file": "test-00013",
+   "row": 806,
+   "class": "vegetable garden",
+   "water_ratio": 0.475
+  },
+  {
+   "file": "test-00013",
+   "row": 807,
+   "class": "vegetable garden",
+   "water_ratio": 0.04
+  },
+  {
+   "file": "test-00013",
+   "row": 808,
+   "class": "vegetable garden",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "test-00013",
+   "row": 809,
+   "class": "vegetable garden",
+   "water_ratio": 0.059
+  },
+  {
+   "file": "test-00013",
+   "row": 810,
+   "class": "vegetable garden",
+   "water_ratio": 0.011
+  },
+  {
+   "file": "test-00013",
+   "row": 1061,
+   "class": "vineyard",
+   "water_ratio": 0.005
+  },
+  {
+   "file": "test-00013",
+   "row": 1062,
+   "class": "vineyard",
+   "water_ratio": 0.001
+  },
+  {
+   "file": "test-00013",
+   "row": 1063,
+   "class": "vineyard",
+   "water_ratio": 0.063
+  },
+  {
+   "file": "test-00013",
+   "row": 1064,
+   "class": "vineyard",
+   "water_ratio": 0.02
+  },
+  {
+   "file": "test-00013",
+   "row": 1065,
+   "class": "vineyard",
+   "water_ratio": 0.167
+  },
+  {
+   "file": "test-00013",
+   "row": 1066,
+   "class": "vineyard",
+   "water_ratio": 0.069
+  },
+  {
+   "file": "test-00013",
+   "row": 1067,
+   "class": "vineyard",
+   "water_ratio": 0.037
+  },
+  {
+   "file": "test-00013",
+   "row": 1068,
+   "class": "vineyard",
+   "water_ratio": 0.155
+  },
+  {
+   "file": "test-00013",
+   "row": 1069,
+   "class": "vineyard",
+   "water_ratio": 0.024
+  },
+  {
+   "file": "test-00013",
+   "row": 1070,
+   "class": "vineyard",
+   "water_ratio": 0.36
+  },
+  {
+   "file": "test-00013",
+   "row": 1071,
+   "class": "vineyard",
+   "water_ratio": 0.225
+  },
+  {
+   "file": "test-00013",
+   "row": 1072,
+   "class": "vineyard",
+   "water_ratio": 0.06
+  },
+  {
+   "file": "test-00013",
+   "row": 1073,
+   "class": "vineyard",
+   "water_ratio": 0.001
+  },
+  {
+   "file": "test-00013",
+   "row": 1074,
+   "class": "vineyard",
+   "water_ratio": 0.076
+  },
+  {
+   "file": "test-00013",
+   "row": 1075,
+   "class": "vineyard",
+   "water_ratio": 0.079
+  },
+  {
+   "file": "test-00013",
+   "row": 1076,
+   "class": "vineyard",
+   "water_ratio": 0.184
+  },
+  {
+   "file": "test-00013",
+   "row": 1077,
+   "class": "vineyard",
+   "water_ratio": 0.003
+  },
+  {
+   "file": "test-00013",
+   "row": 1078,
+   "class": "vineyard",
+   "water_ratio": 0.125
+  },
+  {
+   "file": "test-00013",
+   "row": 1079,
+   "class": "vineyard",
+   "water_ratio": 0.291
+  },
+  {
+   "file": "test-00013",
+   "row": 1080,
+   "class": "vineyard",
+   "water_ratio": 0.372
+  },
+  {
+   "file": "test-00013",
+   "row": 1081,
+   "class": "vineyard",
+   "water_ratio": 0.403
+  },
+  {
+   "file": "test-00013",
+   "row": 1082,
+   "class": "vineyard",
+   "water_ratio": 0.001
+  },
+  {
+   "file": "test-00013",
+   "row": 1083,
+   "class": "vineyard",
+   "water_ratio": 0.078
+  },
+  {
+   "file": "test-00013",
+   "row": 1084,
+   "class": "vineyard",
+   "water_ratio": 0.002
+  },
+  {
+   "file": "test-00013",
+   "row": 1085,
+   "class": "vineyard",
+   "water_ratio": 0.026
+  },
+  {
+   "file": "test-00013",
+   "row": 1086,
+   "class": "vineyard",
+   "water_ratio": 0.02
+  },
+  {
+   "file": "test-00013",
+   "row": 1087,
+   "class": "vineyard",
+   "water_ratio": 0.081
+  },
+  {
+   "file": "test-00013",
+   "row": 1088,
+   "class": "vineyard",
+   "water_ratio": 0.02
+  },
+  {
+   "file": "test-00013",
+   "row": 1089,
+   "class": "vineyard",
+   "water_ratio": 0.229
+  },
+  {
+   "file": "test-00013",
+   "row": 1090,
+   "class": "vineyard",
+   "water_ratio": 0.015
+  },
+  {
+   "file": "test-00013",
+   "row": 1091,
+   "class": "vineyard",
+   "water_ratio": 0.004
+  },
+  {
+   "file": "test-00013",
+   "row": 1092,
+   "class": "vineyard",
+   "water_ratio": 0.002
+  },
+  {
+   "file": "test-00013",
+   "row": 1093,
+   "class": "vineyard",
+   "water_ratio": 0.112
+  },
+  {
+   "file": "test-00013",
+   "row": 1094,
+   "class": "vineyard",
+   "water_ratio": 0.011
+  },
+  {
+   "file": "test-00013",
+   "row": 1095,
+   "class": "vineyard",
+   "water_ratio": 0.055
+  },
+  {
+   "file": "test-00013",
+   "row": 1096,
+   "class": "vineyard",
+   "water_ratio": 0.034
+  },
+  {
+   "file": "test-00013",
+   "row": 1097,
+   "class": "vineyard",
+   "water_ratio": 0.198
+  },
+  {
+   "file": "test-00013",
+   "row": 1098,
+   "class": "vineyard",
+   "water_ratio": 0.009
+  },
+  {
+   "file": "test-00013",
+   "row": 1099,
+   "class": "vineyard",
+   "water_ratio": 0.007
+  },
+  {
+   "file": "test-00013",
+   "row": 1100,
+   "class": "vineyard",
+   "water_ratio": 0.073
+  },
+  {
+   "file": "test-00013",
+   "row": 1101,
+   "class": "vineyard",
+   "water_ratio": 0.264
+  },
+  {
+   "file": "test-00013",
+   "row": 1102,
+   "class": "vineyard",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "test-00014",
+   "row": 0,
+   "class": "vineyard",
+   "water_ratio": 0.295
+  },
+  {
+   "file": "test-00014",
+   "row": 1,
+   "class": "vineyard",
+   "water_ratio": 0.474
+  },
+  {
+   "file": "test-00014",
+   "row": 2,
+   "class": "vineyard",
+   "water_ratio": 0.194
+  },
+  {
+   "file": "test-00014",
+   "row": 3,
+   "class": "vineyard",
+   "water_ratio": 0.004
+  },
+  {
+   "file": "test-00014",
+   "row": 4,
+   "class": "vineyard",
+   "water_ratio": 0.068
+  },
+  {
+   "file": "test-00014",
+   "row": 5,
+   "class": "vineyard",
+   "water_ratio": 0.0
+  },
+  {
+   "file": "test-00014",
+   "row": 6,
+   "class": "vineyard",
+   "water_ratio": 0.003
+  },
+  {
+   "file": "test-00014",
+   "row": 7,
+   "class": "vineyard",
+   "water_ratio": 0.02
+  },
+  {
+   "file": "test-00014",
+   "row": 658,
+   "class": "wheat field",
+   "water_ratio": 0.317
+  },
+  {
+   "file": "test-00014",
+   "row": 659,
+   "class": "wheat field",
+   "water_ratio": 0.834
+  },
+  {
+   "file": "test-00014",
+   "row": 660,
+   "class": "wheat field",
+   "water_ratio": 0.099
+  },
+  {
+   "file": "test-00014",
+   "row": 661,
+   "class": "wheat field",
+   "water_ratio": 0.334
+  },
+  {
+   "file": "test-00014",
+   "row": 662,
+   "class": "wheat field",
+   "water_ratio": 0.446
+  },
+  {
+   "file": "test-00014",
+   "row": 663,
+   "class": "wheat field",
+   "water_ratio": 0.333
+  },
+  {
+   "file": "test-00014",
+   "row": 664,
+   "class": "wheat field",
+   "water_ratio": 0.309
+  },
+  {
+   "file": "test-00014",
+   "row": 665,
+   "class": "wheat field",
+   "water_ratio": 0.154
+  },
+  {
+   "file": "test-00014",
+   "row": 666,
+   "class": "wheat field",
+   "water_ratio": 0.139
+  },
+  {
+   "file": "test-00014",
+   "row": 667,
+   "class": "wheat field",
+   "water_ratio": 0.14
+  },
+  {
+   "file": "test-00014",
+   "row": 668,
+   "class": "wheat field",
+   "water_ratio": 0.522
+  },
+  {
+   "file": "test-00014",
+   "row": 669,
+   "class": "wheat field",
+   "water_ratio": 0.321
+  },
+  {
+   "file": "test-00014",
+   "row": 670,
+   "class": "wheat field",
+   "water_ratio": 0.452
+  },
+  {
+   "file": "test-00014",
+   "row": 671,
+   "class": "wheat field",
+   "water_ratio": 0.254
+  },
+  {
+   "file": "test-00014",
+   "row": 672,
+   "class": "wheat field",
+   "water_ratio": 0.265
+  },
+  {
+   "file": "test-00014",
+   "row": 673,
+   "class": "wheat field",
+   "water_ratio": 0.298
+  },
+  {
+   "file": "test-00014",
+   "row": 674,
+   "class": "wheat field",
+   "water_ratio": 0.584
+  },
+  {
+   "file": "test-00014",
+   "row": 675,
+   "class": "wheat field",
+   "water_ratio": 0.238
+  },
+  {
+   "file": "test-00014",
+   "row": 676,
+   "class": "wheat field",
+   "water_ratio": 0.468
+  },
+  {
+   "file": "test-00014",
+   "row": 677,
+   "class": "wheat field",
+   "water_ratio": 0.515
+  },
+  {
+   "file": "test-00014",
+   "row": 678,
+   "class": "wheat field",
+   "water_ratio": 0.35
+  },
+  {
+   "file": "test-00014",
+   "row": 679,
+   "class": "wheat field",
+   "water_ratio": 0.542
+  },
+  {
+   "file": "test-00014",
+   "row": 680,
+   "class": "wheat field",
+   "water_ratio": 0.42
+  },
+  {
+   "file": "test-00014",
+   "row": 681,
+   "class": "wheat field",
+   "water_ratio": 0.057
+  },
+  {
+   "file": "test-00014",
+   "row": 682,
+   "class": "wheat field",
+   "water_ratio": 0.305
+  },
+  {
+   "file": "test-00014",
+   "row": 683,
+   "class": "wheat field",
+   "water_ratio": 0.456
+  },
+  {
+   "file": "test-00014",
+   "row": 684,
+   "class": "wheat field",
+   "water_ratio": 0.302
+  },
+  {
+   "file": "test-00014",
+   "row": 685,
+   "class": "wheat field",
+   "water_ratio": 0.343
+  },
+  {
+   "file": "test-00014",
+   "row": 686,
+   "class": "wheat field",
+   "water_ratio": 0.225
+  },
+  {
+   "file": "test-00014",
+   "row": 687,
+   "class": "wheat field",
+   "water_ratio": 0.045
+  },
+  {
+   "file": "test-00014",
+   "row": 688,
+   "class": "wheat field",
+   "water_ratio": 0.45
+  },
+  {
+   "file": "test-00014",
+   "row": 689,
+   "class": "wheat field",
+   "water_ratio": 0.086
+  },
+  {
+   "file": "test-00014",
+   "row": 690,
+   "class": "wheat field",
+   "water_ratio": 0.213
+  },
+  {
+   "file": "test-00014",
+   "row": 691,
+   "class": "wheat field",
+   "water_ratio": 0.329
+  },
+  {
+   "file": "test-00014",
+   "row": 692,
+   "class": "wheat field",
+   "water_ratio": 0.648
+  },
+  {
+   "file": "test-00014",
+   "row": 693,
+   "class": "wheat field",
+   "water_ratio": 0.494
+  },
+  {
+   "file": "test-00014",
+   "row": 694,
+   "class": "wheat field",
+   "water_ratio": 0.033
+  },
+  {
+   "file": "test-00014",
+   "row": 695,
+   "class": "wheat field",
+   "water_ratio": 0.389
+  },
+  {
+   "file": "test-00014",
+   "row": 696,
+   "class": "wheat field",
+   "water_ratio": 0.74
+  },
+  {
+   "file": "test-00014",
+   "row": 697,
+   "class": "wheat field",
+   "water_ratio": 0.542
+  },
+  {
+   "file": "test-00014",
+   "row": 698,
+   "class": "wheat field",
+   "water_ratio": 0.233
+  },
+  {
+   "file": "test-00014",
+   "row": 699,
+   "class": "wheat field",
+   "water_ratio": 0.711
+  },
+  {
+   "file": "test-00014",
+   "row": 700,
+   "class": "wheat field",
+   "water_ratio": 0.155
+  },
+  {
+   "file": "test-00014",
+   "row": 701,
+   "class": "wheat field",
+   "water_ratio": 0.071
+  },
+  {
+   "file": "test-00014",
+   "row": 702,
+   "class": "wheat field",
+   "water_ratio": 0.568
+  },
+  {
+   "file": "test-00014",
+   "row": 703,
+   "class": "wheat field",
+   "water_ratio": 0.451
+  },
+  {
+   "file": "test-00014",
+   "row": 704,
+   "class": "wheat field",
+   "water_ratio": 0.014
+  },
+  {
+   "file": "test-00014",
+   "row": 705,
+   "class": "wheat field",
+   "water_ratio": 0.786
+  },
+  {
+   "file": "test-00014",
+   "row": 706,
+   "class": "wheat field",
+   "water_ratio": 0.271
+  },
+  {
+   "file": "test-00014",
+   "row": 707,
+   "class": "wheat field",
+   "water_ratio": 0.0
+  }
+ ]
+}

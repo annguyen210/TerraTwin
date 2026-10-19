@@ -53,3 +53,16 @@ def test_khong_doi_ket_luan_va_khong_vao_ho_so(monkeypatch):
         assert row.water_ratio == 0.4 and "water_ratio" not in evidence.public(row)
     finally:
         db.close()
+
+
+def test_co_tep_mo_hinh_nhung_truot_doi_chung_thi_khong_chay(monkeypatch, tmp_path):
+    """19/10/2026: đối chứng ảnh đồng ruộng khô trượt → chép tệp .onnx vào máy chủ cũng KHÔNG bật được."""
+    import json
+    from app.services import field_water
+    (tmp_path / "m.onnx").write_bytes(b"x")
+    monkeypatch.setattr(field_water, "MODEL_PATH", str(tmp_path / "m.onnx"))
+    (tmp_path / "field_water_negctrl_result.json").write_text(json.dumps({"passed": True}))
+    (tmp_path / "field_water_negctrl_1b_result.json").write_text(json.dumps({"passed": False}))
+    assert field_water.controls_passed() is False and field_water.available() is False
+    (tmp_path / "field_water_negctrl_1b_result.json").write_text(json.dumps({"passed": True}))
+    assert field_water.controls_passed() is True

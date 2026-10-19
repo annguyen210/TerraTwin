@@ -442,7 +442,7 @@ lũ Huế 10/2020, miền Trung 10/2025 thấy nước đúng tuần; đất cao
 38 phút và được huỷ khi CHƯA chạy dòng nào; Version 2 là lượt duy nhất được chấm. Xuất ONNX lỗi (thiếu `onnxscript` trên
 ảnh Kaggle) — không ảnh hưởng kết quả; trọng số `s1_water_unet.pt` nằm trong Output của notebook.
 
-## 12. Nước trong ẢNH THỰC ĐỊA (SegFormer-b0) — CỔNG ĐẠT 18/10/2026, CHƯA bật
+## 12. Nước trong ẢNH THỰC ĐỊA (SegFormer-b0) — cổng ảnh lũ ĐẠT 18/10, TRƯỢT đối chứng ảnh khô 19/10/2026 → KHÔNG bật
 
 Giao thức đăng ký trước khi huấn luyện, cùng commit với script (2e44cb0):
 [`backend/data/ml/field_water_protocol.json`](backend/data/ml/field_water_protocol.json). Dữ liệu: Kaggle
@@ -466,6 +466,28 @@ Cổng → **đạt**. Theo giao thức: nếu bật thì chỉ là tín hiệu 
 ba chiều, không vào nội dung ký, không thay câu trả lời của người dùng. Giới hạn đã viết trước: ảnh lũ nhiều nước, nhiều ảnh
 chụp từ trên cao — đạt cổng không chứng minh đúng trên ruộng Việt Nam. Lượt Kaggle đầu (Version 1) kẹt hàng đợi GPU và được
 huỷ khi CHƯA chạy dòng nào; Version 2 là lượt duy nhất được chấm. Trọng số `.pt` và `.onnx` nằm trong Output của notebook.
+
+**Đối chứng ÂM trước khi bật (19/10/2026).** Thử nhanh với ảnh ruộng xanh tổng hợp bị chấm 99,5% là nước, nên đăng ký trước
+([`field_water_negctrl_protocol.json`](backend/data/ml/field_water_negctrl_protocol.json)) phép thử trên ảnh đồng ruộng KHÔ
+thật (SUN397, 9 lớp; bỏ "ruộng lúa nước" vì vốn có nước), cùng hàm production `field_water.water_ratio`. Đạt khi trung vị
+tỉ lệ "nước" ≤ 0,10 và ≤ 10% ảnh bị chấm > 0,5:
+
+| Đối chứng ảnh khô | Ảnh | Trung vị | Ảnh > 0,5 | Kết quả |
+|---|---|---|---|---|
+| Lần 1 — ruộng ngô (tệp test-00000 xếp theo lớp nên chỉ có lớp này) | 50 | 0,061 | 8% | đạt |
+| Lần 1b — 8 lớp còn lại (đọc HTTP Range cả 18 tệp) | 400 | **0,127** | 8,7% | **TRƯỢT** |
+| · ruộng lúa mì · đồng cỏ khô | 50 · 50 | **0,325 · 0,378** | 22% · 20% | lá vàng / cỏ khô bị nhìn thành nước đục |
+| · vườn rau · vườn nho | 50 · 50 | 0,058 · 0,057 | 2% · 0% | tốt |
+
+Theo giao thức: **không đưa mô hình lên production**. `field_water.available()` đòi CẢ hai đối chứng đạt, nên chép tệp
+`.onnx` vào máy chủ cũng không bật được. Muốn bật: tinh chỉnh lại với ảnh đồng ruộng khô (lúa chín, rơm, cỏ úa) — lần huấn
+luyện MỚI, đăng ký mới.
+
+```bash
+pip install pyarrow onnxruntime
+python ml/field_water_negctrl.py test-00000-of-00018.parquet      # cần 2 tệp .onnx/.onnx.data từ Output Kaggle cạnh field_water.py
+python ml/field_water_negctrl_1b.py <thư_mục_tạm>                  # tự tải đúng đoạn byte cần từ Hugging Face
+```
 
 ## 13. Kiểm tin đăng (cổng GĐ3) trên tin đất THẬT — trượt 2 lần (18/10), ĐẠT lần 3 (19/10/2026)
 

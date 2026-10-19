@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 
-def _card(monkeypatch, result):
+def _card(monkeypatch, result, controls=(None, None)):
     from app.services import model_cards
     real = model_cards._load
-    monkeypatch.setattr(model_cards, "_load", lambda *p: result if p == ("ml", "field_water_result.json") else real(*p))
+    files = {("ml", "field_water_result.json"): result, ("ml", "field_water_negctrl_result.json"): controls[0],
+             ("ml", "field_water_negctrl_1b_result.json"): controls[1]}
+    monkeypatch.setattr(model_cards, "_load", lambda *p: files[p] if p in files else real(*p))
     return next(c for c in model_cards.cards() if c["id"] == "field_water_segformer")
 
 
@@ -27,3 +29,12 @@ def test_dat_van_chua_bat(monkeypatch):
 def test_truot_khi_duoi_070(monkeypatch):
     c = _card(monkeypatch, _res(0.65, 0.31, False))
     assert c["status"] == "rejected" and [m["passed"] for m in c["metrics"]] == [False, True]
+
+
+def test_dat_iou_nhung_truot_doi_chung_kho_thi_khong_bat(monkeypatch):
+    ok = {"passed": True, "n": 50, "median": 0.06, "share_over_0_5": 0.08}
+    bad = {"passed": False, "n": 400, "median": 0.127, "share_over_0_5": 0.087,
+           "per_class": {"wheat field": {"n": 50, "median": 0.325, "share_over_0_5": 0.22}}}
+    c = _card(monkeypatch, _res(0.816, 0.4285, True), (ok, bad))
+    assert c["status"] == "rejected" and "KHÔNG bật" in c["status_label"]
+    assert [m["passed"] for m in c["metrics"]] == [True, True, True, False, False]

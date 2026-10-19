@@ -22,8 +22,23 @@ _lock = threading.Lock()
 _sess = None
 
 
+CONTROLS = ("field_water_negctrl_result.json", "field_water_negctrl_1b_result.json")
+
+
+def controls_passed() -> bool:
+    """Đối chứng ÂM trên ảnh đồng ruộng KHÔ (field_water_negctrl_protocol.json) phải đạt CẢ hai lần mới được chạy.
+    19/10/2026: lần 1 (ruộng ngô) đạt, lần 1b TRƯỢT (lúa mì vàng, cỏ khô bị nhìn thành nước) → mô hình KHÔNG chạy,
+    kể cả khi có ai chép tệp .onnx vào máy chủ."""
+    import json
+    d = os.path.dirname(MODEL_PATH)
+    try:
+        return all(json.load(open(os.path.join(d, f), encoding="utf-8")).get("passed") is True for f in CONTROLS)
+    except (OSError, ValueError):
+        return False
+
+
 def available() -> bool:
-    if os.environ.get("TERRATWIN_FIELD_WATER", "1") == "0" or not os.path.exists(MODEL_PATH):
+    if os.environ.get("TERRATWIN_FIELD_WATER", "1") == "0" or not os.path.exists(MODEL_PATH) or not controls_passed():
         return False
     try:
         import onnxruntime  # noqa: F401
