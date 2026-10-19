@@ -1,0 +1,19 @@
+{
+  "id": "terratwin.field_water/2",
+  "registered": "2026-10-19",
+  "registered_before_training": true,
+  "why": "Bản 1 (terratwin.field_water/1) đạt IoU ảnh lũ 0,816 nhưng TRƯỢT đối chứng âm ảnh đồng ruộng khô (field_water_negctrl_1b_result.json: lúa mì vàng 0,325, cỏ khô 0,378 bị nhìn thành nước) → không bật. Bản 2 học thêm ảnh khô với mặt nạ rỗng.",
+  "data": {
+    "flood": "Giữ NGUYÊN bộ + phép chia của bản 1: Kaggle faizalkarim/flood-area-segmentation v1 (CC0), 290 ảnh, 70/15/15 hạt giống 20261018 (204/43/43)",
+    "dry_train_valid": "SUN397 (Hugging Face tanganke/sun397 revision 9c4afd6174afa3974f209a0ef099dbbe244dfd27), phần TRAIN, 9 lớp đồng ruộng khô (corn field, field cultivated, hayfield, orchard, pasture, tree farm, vegetable garden, vineyard, wheat field); mỗi lớp lấy 30 ảnh ĐẦU TIÊN theo thứ tự tệp: 25 để huấn luyện (mặt nạ toàn nền), 5 để chọn mô hình",
+    "dry_test": "SUN397 phần TEST, MỌI ảnh của 9 lớp trên (≈ 450 — cùng ảnh của đối chứng âm 1 + 1b); không ảnh nào của phần test dùng để huấn luyện hay chọn mô hình",
+    "license": "SUN397: ảnh sưu tầm cho nghiên cứu — chỉ dùng huấn luyện/kiểm định, không chép ảnh vào repo"
+  },
+  "model": "Như bản 1: SegFormer-b0 (nvidia/mit-b0), 512×512, chuẩn hoá ImageNet, lật ngang, AdamW lr 6e-5 wd 0,01, batch 8, 40 vòng, hạt giống 20261018",
+  "selection": "Mỗi vòng đo IoU lũ (valid) và trung vị tỉ lệ 'nước' trên 45 ảnh khô (valid). Chọn vòng có trung vị khô ≤ 0,10 mà IoU lũ cao nhất; không vòng nào đạt điều kiện khô thì lấy IoU lũ cao nhất (ghi rõ).",
+  "threshold": "ĐẠT khi CẢ HAI: (a) IoU lũ trên test ≥ 0,70 và hơn đường cơ sở màu (như bản 1); (b) trên ≥ 400 ảnh khô phần test: trung vị tỉ lệ 'nước' ≤ 0,10 VÀ ≤ 10% ảnh > 0,5 (như đối chứng âm). Tỉ lệ 'nước' tính đúng như production: argmax trên logits 128×128 của ảnh resize 512.",
+  "if_pass": "Đưa .onnx + .onnx.data bản 2 lên repo; field_water.available() chỉ bật khi kết quả bản 2 đạt cả (a) và (b). Vẫn chỉ là tín hiệu THAM KHẢO ở nhật ký thửa, không vào hồ sơ ký.",
+  "if_fail": "Công bố trượt; tính năng giữ TẮT.",
+  "one_shot": "Chạy một lần trên GPU Kaggle bằng ml/kaggle/field_water_seg_v2.py tải theo commit cố định + kiểm SHA-256; lượt hỏng TRƯỚC khi chấm test thì sửa và chạy lại, ghi rõ.",
+  "script": "ml/kaggle/field_water_seg_v2.py"
+}
