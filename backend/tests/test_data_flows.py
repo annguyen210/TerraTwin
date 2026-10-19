@@ -323,14 +323,34 @@ def test_do_doc_gom_lo_khop_voi_ban_tung_diem():
     Nếu lệch thì bản đồ nhiệt và thẻ mô-đun nói hai chuyện khác nhau về cùng
     một chỗ — đúng loại mâu thuẫn dự án này đã mất công dẹp một lần.
     """
+    # 19/10/2026: trước gọi Open-Meteo THẬT — lượt này bị chặn (rơi sang nguồn dự phòng) còn lượt kia không, nên
+    # CI đỏ chập chờn vì NGUỒN khác chứ không phải vì thuật toán khác. Giờ cả hai đường đọc CÙNG một địa hình giả lập
+    # (mặt nghiêng + gợn sóng) qua đúng URL Open-Meteo — kiểm đúng điều cần kiểm: cùng cao độ → cùng độ dốc.
+    import math
+    import urllib.parse
+
     from app.services import heatmap, realdata
 
-    pts = [(15.36, 107.90), (22.34, 103.84), (10.24, 106.38)]
-    gom = heatmap._grid_slopes(pts)
-    if gom is None:
-        pytest.skip("không lấy được cao độ")
-    for (la, lo), v in zip(pts, gom):
-        rieng = realdata.slope_deg(la, lo)
-        if rieng is None or v is None:
-            continue
-        assert abs(v - rieng) < 0.15, f"{la},{lo}: gom {v} vs riêng {rieng}"
+    def z(la, lo):
+        return 300 + 900 * (la - 15) + 400 * (lo - 107) + 30 * math.sin(la * 40) * math.cos(lo * 35)
+
+    def fake_get(url, *a, **k):
+        if "api.open-meteo.com/v1/elevation" not in url:
+            return None
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
+        las = [float(v) for v in q["latitude"][0].split(",")]
+        los = [float(v) for v in q["longitude"][0].split(",")]
+        return {"elevation": [round(z(la, lo), 1) for la, lo in zip(las, los)]}
+
+    import pytest as _pt
+    mp = _pt.MonkeyPatch()
+    mp.setattr(realdata, "_get", fake_get)
+    try:
+        pts = [(15.36, 107.90), (22.34, 103.84), (10.24, 106.38)]
+        gom = heatmap._grid_slopes(pts)
+        assert gom is not None and all(v is not None for v in gom), gom
+        for (la, lo), v in zip(pts, gom):
+            rieng = realdata.slope_deg(la, lo)
+            assert rieng is not None and abs(v - rieng) < 0.15, f"{la},{lo}: gom {v} vs riêng {rieng}"
+    finally:
+        mp.undo()

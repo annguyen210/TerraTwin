@@ -689,17 +689,19 @@ _COP_DEM_MAX_POINTS = 48
 
 
 def _cop_dem(lat: float, lon: float) -> float | None:
-    """Cao độ từ Copernicus DEM GLO-30 trên Planetary Computer (miễn phí, không khoá).
+    """Cao độ từ Copernicus DEM GLO-90 trên Planetary Computer (miễn phí, không khoá).
 
-    NGUỒN DỰ PHÒNG khi Open-Meteo chặn IP dùng chung của Render. Open-Meteo vốn cũng
-    lấy cao độ từ Copernicus DEM (GLO-90), nên hai nguồn nhất quán. Tên ô 1° tính
-    thẳng từ toạ độ — không cần lượt tìm STAC; điểm ở mép ô vẫn đúng ô của nó.
+    NGUỒN DỰ PHÒNG khi Open-Meteo chặn IP dùng chung của Render. Open-Meteo lấy cao độ từ
+    CHÍNH Copernicus GLO-90, nên dự phòng phải là GLO-90 (19/10/2026: trước dùng GLO-30 →
+    khi Open-Meteo chặn một lượt mà không chặn lượt kia, độ dốc bản đồ nhiệt và thẻ mô-đun
+    lệch nhau ~0,4°, CI đỏ chập chờn). Tên ô 1° tính thẳng từ toạ độ — không cần lượt tìm
+    STAC; điểm ở mép ô vẫn đúng ô của nó.
     """
     ns, ew = ("N" if lat >= 0 else "S"), ("E" if lon >= 0 else "W")
-    item = (f"Copernicus_DSM_COG_10_{ns}{abs(math.floor(lat)):02d}_00_"
+    item = (f"Copernicus_DSM_COG_30_{ns}{abs(math.floor(lat)):02d}_00_"
             f"{ew}{abs(math.floor(lon)):03d}_00_DEM")
     d = _get("https://planetarycomputer.microsoft.com/api/data/v1/item/point/"
-             f"{lon:.5f},{lat:.5f}?collection=cop-dem-glo-30&item={item}&assets=data",
+             f"{lon:.5f},{lat:.5f}?collection=cop-dem-glo-90&item={item}&assets=data",
              timeout=15.0)
     try:
         v = float(d["values"][0])

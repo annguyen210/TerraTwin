@@ -378,7 +378,7 @@ def test_cao_do_du_phong_copernicus_khi_open_meteo_hong(monkeypatch):
     def fake_get(url, timeout=8.0, headers=None):
         if "open-meteo" in url:
             return None                                   # bị chặn
-        assert "cop-dem-glo-30" in url and "Copernicus_DSM_COG_10_N10_00_E105_00_DEM" in url
+        assert "cop-dem-glo-90" in url and "Copernicus_DSM_COG_30_N10_00_E105_00_DEM" in url   # cùng GLO-90 với Open-Meteo
         return {"values": [4.02]}
 
     monkeypatch.setattr(realdata, "_get", fake_get)

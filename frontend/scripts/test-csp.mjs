@@ -3,11 +3,14 @@
 // bên production là lỗ hổng, thiếu bên dev là Fast Refresh gãy im lặng.
 import assert from "node:assert/strict";
 
+// Khoá nạp lại theo MÔI TRƯỜNG + bộ đếm (19/10/2026): trước dùng `?t=${Date.now()}`, hai lần nạp rơi vào cùng một
+// mili-giây trên máy CI nhanh → lần sau lấy lại bản dev đã nạp → CI đỏ chập chờn "production có unsafe-eval".
+let loads = 0;
 async function cspFor(nodeEnv) {
   const prev = process.env.NODE_ENV;
   process.env.NODE_ENV = nodeEnv;
   try {
-    const mod = await import(`../next.config.mjs?t=${Date.now()}`);
+    const mod = await import(`../next.config.mjs?env=${nodeEnv}&n=${++loads}`);
     const headerGroups = await mod.default.headers();
     const main = headerGroups.find((g) => g.source === "/:path*");
     return main.headers.find((h) => h.key === "Content-Security-Policy").value;
