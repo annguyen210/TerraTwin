@@ -66,3 +66,18 @@ def test_co_tep_mo_hinh_nhung_truot_doi_chung_thi_khong_chay(monkeypatch, tmp_pa
     assert field_water.controls_passed() is False and field_water.available() is False
     (tmp_path / "field_water_negctrl_1b_result.json").write_text(json.dumps({"passed": True}))
     assert field_water.controls_passed() is True
+
+
+def test_ban_2_quyet_dinh_khi_co_ket_qua(monkeypatch, tmp_path):
+    """Có field_water_v2_result.json thì chỉ bản 2 quyết định — phải đạt CẢ ảnh lũ lẫn đối chứng khô."""
+    import json
+    from app.services import field_water
+    (tmp_path / "m.onnx").write_bytes(b"x")
+    monkeypatch.setattr(field_water, "MODEL_PATH", str(tmp_path / "m.onnx"))
+    (tmp_path / "field_water_negctrl_result.json").write_text(json.dumps({"passed": True}))
+    (tmp_path / "field_water_negctrl_1b_result.json").write_text(json.dumps({"passed": False}))
+    v2 = tmp_path / "field_water_v2_result.json"
+    v2.write_text(json.dumps({"passed": False, "passed_flood": True, "passed_dry": False}))
+    assert field_water.controls_passed() is False
+    v2.write_text(json.dumps({"passed": True, "passed_flood": True, "passed_dry": True}))
+    assert field_water.controls_passed() is True

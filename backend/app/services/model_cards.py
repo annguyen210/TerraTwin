@@ -259,7 +259,46 @@ def cards() -> list[dict]:
                    "Kaggle Flood Area Segmentation (CC0), 290 flood photos + hand-drawn masks; fixed 70/15/15 split, seed 20261018"),
         "code": f"{REPO}/ml/kaggle/field_water_seg.py",
     }
-    if fw and (fw.get("test") or {}).get("model_iou") is not None:
+    # Bản 2 (19/10/2026): học thêm ảnh đồng ruộng khô SUN397 — có kết quả thì thẻ là của bản 2 (bản 1 vẫn ghi trong "split")
+    fw2 = _load("ml", "field_water_v2_result.json")
+    if fw2 and (fw2.get("test") or {}).get("model_iou") is not None:
+        t2, d2 = fw2["test"], fw2.get("dry_test") or {}
+        live2 = __import__("app.services.field_water", fromlist=["available"]).available()
+        out.append({**fw_base,
+            "name": tr("Nước trong ảnh thực địa — SegFormer-b0 bản 2 (học thêm ảnh ruộng khô)",
+                       "Water in field photos — SegFormer-b0 v2 (also trained on dry fields)"),
+            "status": "accepted" if fw2.get("passed") else "rejected",
+            "status_label": (tr("đạt cả ảnh lũ lẫn đối chứng ảnh khô · đang chạy — chỉ tham khảo ở nhật ký thửa",
+                                "passed flood photos AND dry-field control · live — reference only in the plot journal") if fw2.get("passed") and live2 else
+                             tr("đạt cả ảnh lũ lẫn đối chứng ảnh khô · máy chủ chưa có tệp .onnx bản 2",
+                                "passed flood photos AND dry-field control · server lacks the v2 .onnx") if fw2.get("passed") else
+                             tr("bản 2 TRƯỢT · không bật — ảnh thực địa vẫn chỉ là bằng chứng người dùng",
+                                "v2 FAILED · not on — field photos stay user evidence only")),
+            "data": tr(f"ảnh lũ như bản 1 (204/43/43) + ảnh đồng ruộng KHÔ SUN397 phần train ({fw2['n']['dry_train']} học, "
+                       f"{fw2['n']['dry_valid']} chọn mô hình) với mặt nạ rỗng; đối chứng trên {fw2['n']['dry_test']} ảnh khô phần test",
+                       f"flood photos as v1 (204/43/43) + DRY SUN397 field photos from the train split ({fw2['n']['dry_train']} train, "
+                       f"{fw2['n']['dry_valid']} selection) with empty masks; control on {fw2['n']['dry_test']} dry test-split photos"),
+            "split": tr(f"đăng ký trước 19/10/2026 (c62362d) sau khi bản 1 (IoU 0,816) trượt đối chứng ảnh khô; chọn vòng theo valid; chấm test một lần",
+                        f"pre-registered 19/10/2026 (c62362d) after v1 (IoU 0.816) failed the dry-field control; epoch chosen on valid; test scored once"),
+            "metrics": [{"label": tr("IoU nước trên test ảnh lũ — mô hình / đường cơ sở màu", "Water IoU on flood test — model / colour baseline"),
+                         "value": f"{t2['model_iou']} / {t2.get('color_baseline_iou')}", "threshold": "≥ 0.70, > màu",
+                         "passed": fw2.get("passed_flood")},
+                        {"label": tr("Đối chứng ảnh đồng ruộng KHÔ (test): trung vị tỉ lệ 'nước' / ảnh > 0,5",
+                                     "DRY-field control (test): median 'water' share / images > 0.5"),
+                         "value": f"{d2.get('median')} / {d2.get('share_over_0_5')}", "threshold": "≤ 0.10 / ≤ 0.10",
+                         "passed": fw2.get("passed_dry")}]
+                       + [{"label": f"  · {k}", "value": f"{v['median']} / {v['share_over_0_5']}", "threshold": "≤ 0.10 / ≤ 0.10",
+                           "passed": v["median"] <= 0.10 and v["share_over_0_5"] <= 0.10}
+                          for k, v in (d2.get("per_class") or {}).items()],
+            "limits": tr("Ảnh lũ nhiều nước trên thế giới, ảnh khô SUN397 chủ yếu ngoài Việt Nam; ruộng lúa nước (vốn có nước) không nằm trong "
+                         "đối chứng. Đạt KHÔNG chứng minh đúng trên ruộng Việt Nam — cần ảnh thực địa có nhãn của người dùng.",
+                         "Flood photos from many countries, dry SUN397 photos mostly outside Viet Nam; paddy (normally watered) is not in "
+                         "the control. Passing does NOT prove it works on Vietnamese fields — that needs labelled user field photos."),
+            "not_for": tr("Không vào nội dung ký của hồ sơ, không thay câu trả lời 'có nước / không' của người dùng.",
+                          "Not in signed dossier content; does not replace the user's own 'water / no water' answer."),
+            "code": f"{REPO}/ml/kaggle/field_water_seg_v2.py",
+        })
+    elif fw and (fw.get("test") or {}).get("model_iou") is not None:
         t = fw["test"]
         nc1, nc2 = _load("ml", "field_water_negctrl_result.json"), _load("ml", "field_water_negctrl_1b_result.json")
         ctrl_fail = any(c is not None and c.get("passed") is False for c in (nc1, nc2))

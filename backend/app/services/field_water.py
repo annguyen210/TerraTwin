@@ -32,6 +32,12 @@ def controls_passed() -> bool:
     import json
     d = os.path.dirname(MODEL_PATH)
     try:
+        # Bản 2 (field_water_v2_protocol.json) tự mang đối chứng khô trên phần TEST của SUN397: có kết quả bản 2 thì CHỈ
+        # bản 2 quyết định (tệp .onnx khi đó là của bản 2) — phải đạt cả cổng ảnh lũ lẫn đối chứng khô.
+        v2 = os.path.join(d, "field_water_v2_result.json")
+        if os.path.exists(v2):
+            r = json.load(open(v2, encoding="utf-8"))
+            return r.get("passed") is True and r.get("passed_flood") is True and r.get("passed_dry") is True
         return all(json.load(open(os.path.join(d, f), encoding="utf-8")).get("passed") is True for f in CONTROLS)
     except (OSError, ValueError):
         return False

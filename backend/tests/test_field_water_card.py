@@ -38,3 +38,14 @@ def test_dat_iou_nhung_truot_doi_chung_kho_thi_khong_bat(monkeypatch):
     c = _card(monkeypatch, _res(0.816, 0.4285, True), (ok, bad))
     assert c["status"] == "rejected" and "KHÔNG bật" in c["status_label"]
     assert [m["passed"] for m in c["metrics"]] == [True, True, True, False, False]
+
+
+def test_ban_2_dat_ca_hai_thi_the_la_ban_2(monkeypatch):
+    from app.services import model_cards
+    real = model_cards._load
+    v2 = {"passed": True, "passed_flood": True, "passed_dry": True, "n": {"dry_train": 225, "dry_valid": 45, "dry_test": 450},
+          "test": {"model_iou": 0.80, "color_baseline_iou": 0.43},
+          "dry_test": {"median": 0.03, "share_over_0_5": 0.02, "per_class": {"wheat field": {"n": 50, "median": 0.05, "share_over_0_5": 0.04}}}}
+    monkeypatch.setattr(model_cards, "_load", lambda *p: v2 if p == ("ml", "field_water_v2_result.json") else real(*p))
+    c = next(x for x in model_cards.cards() if x["id"] == "field_water_segformer")
+    assert c["status"] == "accepted" and "bản 2" in c["name"] and all(m["passed"] for m in c["metrics"])
