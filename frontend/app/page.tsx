@@ -64,6 +64,7 @@ const Mrv = dynamic(() => import("@/components/Mrv"));
 const Provenance = dynamic(() => import("@/components/Provenance"));
 const Timeline = dynamic(() => import("@/components/Timeline"));
 const Workspace = dynamic(() => import("@/components/Workspace"));
+const MoistureMap = dynamic(() => import("@/components/MoistureMap"));
 
 // Sáu luồng "xem sâu" gắn với một thửa cụ thể. Gom vào một dãy nút thay vì đổ
 // hết ra: mỗi cái tốn từ vài giây tới hai phút để chạy, mở tất cả cùng lúc vừa
@@ -75,6 +76,7 @@ const DEEP = [
   { id: "design", icon: "🎨", label: "Trồng gì", flow: "U03 Design Studio" },
   { id: "knowledge", icon: "🤝", label: "Kinh nghiệm", flow: "U02 Marketplace" },
   { id: "mrv", icon: "🌲", label: "Carbon", flow: "C07 MRV" },
+  { id: "moisture", icon: "💧", label: "Độ ẩm 10 m", flow: "S10 ① làm sắc 20 m → 10 m" },
   { id: "provenance", icon: "📜", label: "Truy xuất", flow: "SUP-12 Chuỗi cung ứng" },
   { id: "model", icon: "🧠", label: "Mô hình", flow: "S09 Model đã huấn luyện" },
 ] as const;
@@ -195,7 +197,7 @@ export default function Home() {
   const [radar, setRadar] = useState<WaterScene | null>(null);   // GĐ2 — lớp radar theo thanh thời gian
   const [deep, setDeep] = useState<
     | "none" | "playback" | "timelapse" | "genome" | "design" | "knowledge"
-    | "mrv" | "provenance" | "model"
+    | "mrv" | "moisture" | "provenance" | "model"
   >("none");
 
   useEffect(() => {
@@ -474,6 +476,7 @@ export default function Home() {
                   {deep === "design" && <DesignStudio lat={coord.lat} lon={coord.lon} />}
                   {deep === "knowledge" && <Knowledge lat={coord.lat} lon={coord.lon} user={user} />}
                   {deep === "mrv" && <Mrv lat={coord.lat} lon={coord.lon} />}
+                  {deep === "moisture" && <MoistureMap lat={coord.lat} lon={coord.lon} />}
                   {deep === "model" && <ModelCard />}
                   {deep === "provenance" && <Provenance lat={coord.lat} lon={coord.lon} />}
                   <Copilot lat={coord.lat} lon={coord.lon} />

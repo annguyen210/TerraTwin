@@ -106,6 +106,28 @@ def landcover_change(lat: float, lon: float, request: Request, lang: str = "vi",
     return aef_landuse.change(lat, lon)
 
 
+@router.get("/api/optical/ndmi10")
+def ndmi10(lat: float, lon: float, request: Request, lang: str = "vi",
+           user: User | None = Depends(auth.optional_user)) -> dict:
+    """S10 ① — NDMI 10 m trong thửa: B11 20 m làm sắc bằng các băng 10 m đã đo (s2_sharpen_protocol.json). Chỉ có khi
+    phép kiểm Wald đăng ký trước ĐẠT. Tham khảo — không vào hồ sơ ký."""
+    from app.services import cache_store, s2_sharpen
+    reqlang.set_lang(lang)
+    if not (8.0 <= lat <= 24.0 and 102.0 <= lon <= 110.5):
+        raise HTTPException(422, reqlang.tr("Ngoài phạm vi Việt Nam.", "Outside Vietnam."))
+    if not s2_sharpen.available():
+        return {"available": False, "reason": reqlang.tr("NDMI 10 m chưa bật (chưa qua phép kiểm đăng ký trước).",
+                                                         "10 m NDMI not enabled (pre-registered check not passed).")}
+    if cache_store.get(s2_sharpen.cache_key(lat, lon)) is None:
+        from app.routes_eudr import enforce_quota
+        enforce_quota("screen", request, user)
+    r = s2_sharpen.ndmi_map(lat, lon)
+    if r is None:
+        raise HTTPException(503, reqlang.tr("Chưa đọc được ảnh Sentinel-2 — thử lại sau.",
+                                            "Could not read Sentinel-2 imagery — try again later."))
+    return r
+
+
 @router.get("/api/models/cards")
 def model_cards(lang: str = "vi") -> dict:
     """GĐ5 — thẻ mô hình cho mọi mô hình/quy tắc AI, kể cả cái đã trượt. Số đọc thẳng từ tệp kiểm định đã commit."""

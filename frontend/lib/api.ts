@@ -2895,6 +2895,15 @@ export function waterUnet(lat: number, lon: number, date: string) {
   return getJson<WaterUnet>(`/api/water/unet?lat=${lat}&lon=${lon}&date=${date}&lang=${curLang()}`, "Không chạy được U-Net");
 }
 
+// ---- S10 ①: NDMI 10 m trong thửa (B11 20 m làm sắc bằng băng 10 m đã đo; chỉ có khi phép kiểm Wald đạt) ----
+export type Ndmi10 = { available: boolean; reason?: string; found?: boolean; message?: string; date?: string; item?: string;
+  clear_pct?: number; method?: string; ndmi_10m?: (number | null)[][]; ndmi_20m?: (number | null)[][];
+  center_ndmi_10m?: number | null; center_spread_10m?: number | null; note?: string;
+  gate?: Record<string, [number, boolean] | null> };
+export function ndmi10(lat: number, lon: number) {
+  return getJson<Ndmi10>(`/api/optical/ndmi10?lat=${lat}&lon=${lon}&lang=${curLang()}`, "Không tải được bản đồ độ ẩm tán lá");
+}
+
 // ---- Xác nhận TỪNG đợt nước: "ruộng tôi có ngập đợt này không" (bảng riêng, không lẫn vào quan sát cảnh báo) ----
 export type WaterAnswer = "yes" | "no" | "unsure";
 export type WaterConfirmCount = { yes: number; no: number; unsure: number; mine: WaterAnswer | null };

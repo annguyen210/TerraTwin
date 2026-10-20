@@ -409,16 +409,21 @@ curl <api>/api/health
 Gộp hai cái đó thành một câu "chưa lấy được dữ liệu" là để người vận hành đi
 sửa nhầm chỗ cả ngày, và để người dùng tưởng phần mềm hỏng khi nó chỉ đang chờ.
 
-## Lộ trình — 25/26 luồng đã viết xong
+## Lộ trình — 26/26 luồng đã viết xong
 
 `GET /api/roadmap` trả trạng thái sinh **từ mã nguồn**, nên không thể lệch với
 phần mềm. Trang trạng thái cũng mở cho người dùng xem: **Khu làm việc → 26 luồng**.
 
 | | Số luồng | |
 |---|---|---|
-| ✅ **Đã viết xong** | **25** | Signature 9/10 · Cốt lõi 12/12 · Nâng cấp 4/4 |
-| ⏳ Chờ khóa Copernicus | **1** | C07 Carbon MRV — mã xong, có test, thiếu khóa |
-| ⛔ Bị chặn | **1** | S10 Generative Vision |
+| ✅ **Đã viết xong** | **26** | Signature 10/10 · Cốt lõi 12/12 · Nâng cấp 4/4 |
+| ⏳ Chờ khóa | **0** | C07 Carbon MRV chạy bằng Sentinel-2 qua Planetary Computer, không cần khoá |
+| ⛔ Từ chối vì nguyên tắc | phần dưới 10 m của S10 | "siêu phân giải" bằng diffusion — chi tiết do model tưởng tượng |
+
+S10 Generative Vision đạt 26/26 từ 20/10/2026, khi phần ① (làm sắc B11 20 m → 10 m để
+vẽ NDMI 10 m trong thửa) qua phép kiểm Wald đăng ký trước trên 16 tỉnh giữ riêng
+(`backend/data/ml/s2_sharpen_protocol.json` → `s2_sharpen_result.json`). Trạng thái S10
+đọc thẳng tệp kết quả đó: phép kiểm trượt hay tệp mất thì bảng tự quay về "một phần".
 
 Bảng phân biệt rạch ròi hai thứ hay bị trộn: `done` là **mã đã viết, có test,
 không bịa số**; `awaiting_config` là **mã xong nhưng deployment này thiếu khóa

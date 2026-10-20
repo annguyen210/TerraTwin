@@ -296,5 +296,11 @@
   "service": "backend/app/services/s2_sharpen.py",
   "gate": "ops/s2_sharpen_gate.py"
  },
- "run_log": []
+ "run_log": [
+  {
+   "at": "2026-10-20T15:26:29+00:00",
+   "what": "fetch 49/49 tỉnh (không bỏ tỉnh nào), kiểm khớp lưới trên 25 cảnh TRAIN (độ lệch tốt nhất 0 ở cả 25), rồi chạy `run` MỘT lần",
+   "result": "ĐẠT — chọn ml; g1 0,3594 · g2 1,0 · g3 0,3555 · g4 < 5e-7 · 16 cảnh TEST"
+  }
+ ]
 }

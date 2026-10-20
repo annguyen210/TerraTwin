@@ -212,3 +212,80 @@ def method() -> tuple[str, np.ndarray | None]:
 def apply(fine: np.ndarray, c: np.ndarray) -> np.ndarray:
     m, w = method()
     return sharpen_ml(fine, c, w) if m == "ml" and w is not None else sharpen_rg(fine, c)
+
+
+MAP_N20 = 32                  # khung 640 m: 32 × 32 ô 20 m → 64 × 64 ô 10 m
+MAP_DAYS = 120
+MAP_CLEAR_MIN = 0.80
+MAP_PROBE = 8
+DARK_MIN = 0.05               # B08 + B11 dưới mức này: NDMI không xác định (xem diagnosis_after_scoring)
+
+
+def cache_key(lat: float, lon: float) -> str:
+    from app.services import cache_store
+    r = _result() or {}
+    return cache_store.make_key("ndmi10", round(lat, 4), round(lon, 4), r.get("selected"), r.get("scored_at"))
+
+
+def _grid(a: np.ndarray, ok: np.ndarray) -> list[list[float | None]]:
+    return [[round(float(v), 3) if k else None for v, k in zip(row, okr)] for row, okr in zip(a, ok)]
+
+
+def ndmi_map(lat: float, lon: float) -> dict | None:
+    """NDMI 20 m gốc + NDMI 10 m đã làm sắc của cảnh quang mây gần nhất (≤ 120 ngày) quanh thửa. None nếu nguồn hỏng."""
+    from datetime import date, timedelta
+
+    from app.services import cache_store, mpc
+    from app.services.reqlang import tr
+    key = cache_key(lat, lon)
+    hit = cache_store.get(key)
+    if hit is not None:
+        return hit
+    end = date.today()
+    items = mpc.search(mpc.bbox_around(lat, lon, MAP_N20 * 10.0), end - timedelta(days=MAP_DAYS), end, limit=80)
+    if items is None:
+        return None
+    got = None
+    for it in mpc._one_per_date(items)[:MAP_PROBE]:
+        d = fetch(it, lat, lon, MAP_N20)
+        if d is None:
+            continue
+        ok20 = clear_mask(d["scl"], d["valid"])
+        if ok20.mean() >= MAP_CLEAR_MIN:
+            got, d["ok20"] = it, ok20
+            break
+    if got is None:
+        out = {"available": True, "found": False,
+               "message": tr(f"Không có cảnh Sentinel-2 nào quang mây ≥ {int(MAP_CLEAR_MIN * 100)}% quanh thửa trong "
+                             f"{MAP_DAYS} ngày qua (mùa mưa thường vậy). Thử lại sau vài ngày.",
+                             f"No Sentinel-2 scene ≥ {int(MAP_CLEAR_MIN * 100)}% cloud-free around this plot in the last "
+                             f"{MAP_DAYS} days (common in the rainy season). Try again in a few days.")}
+        cache_store.put(key, out, ttl_seconds=6 * 3600)
+        return out
+    p10 = np.clip(apply(d["fine"], d["b11"]), 0.0, 1.0)
+    b08_20 = down(d["fine"][3])
+    # Mặt nước / bề mặt rất tối: B08 + B11 ≈ 0 → NDMI không xác định (chẩn đoán sau chấm, ô Quảng Nam) → che.
+    clear_pct = round(100 * float(d["ok20"].mean()), 1)
+    d["ok20"] = d["ok20"] & (b08_20 + d["b11"] >= DARK_MIN)
+    ok10 = np.kron(d["ok20"], np.ones((2, 2), bool)) & (d["fine"][3] + p10 >= DARK_MIN)
+    n10, n20 = ndmi(d["fine"][3], p10), ndmi(b08_20, d["b11"])
+    c = n10.shape[0] // 2
+    core = n10[c - 5:c + 5, c - 5:c + 5][ok10[c - 5:c + 5, c - 5:c + 5]]          # 100 × 100 m giữa khung
+    m, w = method()
+    r = _result() or {}
+    out = {
+        "available": True, "found": True, "date": d["date"], "item": d["item"], "epsg": d["epsg"],
+        "box_utm": [round(v, 1) for v in d["box"]], "clear_pct": clear_pct,
+        "method": m, "ndmi_10m": _grid(n10, ok10), "ndmi_20m": _grid(n20, d["ok20"]),
+        "center_ndmi_10m": round(float(core.mean()), 3) if core.size else None,
+        "center_spread_10m": round(float(np.percentile(core, 90) - np.percentile(core, 10)), 3) if core.size else None,
+        "gate": {k: r.get("checks", {}).get(k) for k in ("g1_median_rel_gain", "g2_share_beats_bicubic", "g3_median_ndmi_rel_gain",
+                                                          "n_test_scenes")},
+        "note": tr("Chi tiết 10 m chuyển từ các băng 10 m ĐÃ ĐO (lam, lục, đỏ, cận hồng ngoại); trung bình mỗi ô 20 m vẫn "
+                   "đúng bằng ảnh đo gốc. NDMI là lượng nước trong tán lá — không phải độ ẩm đất. Tham khảo, không vào hồ sơ ký.",
+                   "10 m detail is transferred from the MEASURED 10 m bands (blue, green, red, near-infrared); each 20 m cell "
+                   "still averages to the original measurement. NDMI is canopy water content — not soil moisture. "
+                   "Reference only, not part of the signed dossier."),
+    }
+    cache_store.put(key, out, ttl_seconds=12 * 3600)
+    return out

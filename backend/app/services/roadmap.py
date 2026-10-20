@@ -183,6 +183,28 @@ def _principle(name: str, status: str, note: str) -> dict:
     }
 
 
+def _s10(status: str, note: str) -> tuple[str, str]:
+    """S10 tự đọc kết quả phép kiểm làm sắc (s2_sharpen_result.json) — không ghi cứng, cùng lý do với _principle()."""
+    from app.services import s2_sharpen
+    if not s2_sharpen.available():
+        return status, note
+    r = s2_sharpen._result() or {}
+    ck, n = r.get("checks") or {}, r.get("n") or {}
+    g1, g3 = (ck.get("g1_median_rel_gain") or [None])[0], (ck.get("g3_median_ndmi_rel_gain") or [None])[0]
+    return "done", (
+        "ĐỦ BA PHẦN, phần dưới 10 m vẫn TỪ CHỐI vì nguyên tắc. "
+        f"① SẮC NÉT 20m→10m — ĐÃ LÀM, qua phép kiểm Wald đăng ký trước trên {n.get('test')} tỉnh giữ riêng: sai số B11 "
+        f"giảm trung vị {round(100 * g1) if g1 is not None else '?'}% so với phóng bậc ba, NDMI giảm "
+        f"{round(100 * g3) if g3 is not None else '?'}%; chiếu ngược giữ đúng giá trị đo của từng ô 20 m. Bản đồ NDMI 10 m "
+        "trong thửa ở tab Chuyên sâu (/api/optical/ndmi10). "
+        "② DỮ LIỆU TỔNG HỢP để huấn luyện — ĐÃ LÀM: phương pháp được chọn học trên cặp ảnh thật thu nhỏ một bậc "
+        f"({r.get('ml_train_pixels')} ô, {n.get('train')} tỉnh), không bao giờ hiện cho người dùng. "
+        "③ ẢNH 'TƯƠNG LAI' theo kịch bản — ĐÃ LÀM (/api/future/{id}): nền là ảnh thật có ngày chụp, lớp phủ dự phóng "
+        "vẽ tách khỏi ảnh kèm nhãn 'DỰ PHÓNG'. "
+        "TỪ CHỐI riêng phần sinh chi tiết DƯỚI 10 m bằng diffusion: không cảm biến nào quan sát được mức đó, nên từng "
+        "điểm ảnh là do model tưởng tượng.")
+
+
 def status() -> dict:
     """Trạng thái 26 luồng, phản ánh ĐÚNG bản đang chạy.
 
@@ -207,6 +229,8 @@ def status() -> dict:
     flows = []
     for row in FLOWS:
         i, n, t, st, note = row[:5]
+        if i == "S10":
+            st, note = _s10(st, note)
         requires = row[5] if len(row) > 5 else None
         waiting = requires == "satellite" and not sat
         flows.append({
@@ -274,12 +298,17 @@ def status() -> dict:
             "awaiting_satellite": sum(1 for m in mods if m.status == "preview"),
         },
         "headline": head,
-        "honesty_note": (
+        "honesty_note": ((
+            "Bảng này sinh từ mã nguồn, không viết tay, nên không thể lệch với phần mềm. Đủ 26/26 kể từ khi S10 ① qua "
+            "phép kiểm đăng ký trước (20/10/2026) — trước đó bảng tự khai 25/26 thay vì dựng endpoint rỗng để đếm cho đủ. "
+            "Phần DƯỚI 10 m của S10 (diffusion 'siêu phân giải') vẫn bị TỪ CHỐI VÌ NGUYÊN TẮC: chi tiết do model tưởng "
+            "tượng trông như ảnh thật nhưng là bịa, dùng nó kết luận về đất đai còn nguy hiểm hơn không có ảnh.")
+            if counts["done"] == len(flows) else (
             "Bảng này sinh từ mã nguồn, không viết tay, nên không thể lệch với "
             "phần mềm. Luồng duy nhất không đạt 26/26 là S10 Generative Vision — "
             "và nó bị TỪ CHỐI VÌ NGUYÊN TẮC, không phải chưa làm được: một tấm "
             "ảnh 'siêu phân giải' do model tưởng tượng ra trông y hệt ảnh thật "
             "nhưng chi tiết là bịa, dùng nó kết luận về đất đai còn nguy hiểm hơn "
             "không có ảnh. Chúng tôi cũng không dựng endpoint rỗng để đếm cho đủ "
-            "26. Trần thật 25/26 mạnh hơn con số 26/26 khoe cho đẹp."),
+            "26. Trần thật 25/26 mạnh hơn con số 26/26 khoe cho đẹp.")),
     }

@@ -1,0 +1,1128 @@
+{
+ "protocol": "s2_sharpen_v1",
+ "scored_at": "2026-10-20T15:26:29+00:00",
+ "passed": true,
+ "selected": "ml",
+ "checks": {
+  "g1_median_rel_gain": [
+   0.3594,
+   true
+  ],
+  "g2_share_beats_bicubic": [
+   1.0,
+   true
+  ],
+  "g3_median_ndmi_rel_gain": [
+   0.3555,
+   true
+  ],
+  "g4_max_consistency": [
+   0.0,
+   true
+  ],
+  "n_test_scenes": [
+   16,
+   true
+  ]
+ },
+ "val_median_rmse_b11": {
+  "rg": 0.011745,
+  "ml": 0.008813
+ },
+ "test_median": {
+  "bicubic": {
+   "rmse_b11": 0.016264,
+   "ndmi_rmse": 0.04535
+  },
+  "rg": {
+   "rmse_b11": 0.013792,
+   "ndmi_rmse": 0.035439
+  },
+  "ml": {
+   "rmse_b11": 0.008827,
+   "ndmi_rmse": 0.025618
+  }
+ },
+ "other_method_median_rel_gain": 0.0359,
+ "ml_weights": [
+  0.7638346871124273,
+  -0.9868790245228275,
+  0.21063710945414382,
+  0.4056906987492568,
+  -0.17401441013957367,
+  0.1523829474656185,
+  0.3675285563709046,
+  -0.11947290100490061
+ ],
+ "ml_lambda": 5.239134470504225e-05,
+ "ml_train_pixels": 89886,
+ "n": {
+  "train": 25,
+  "val": 8,
+  "test": 16
+ },
+ "skipped": [],
+ "scenes": {
+  "train": [
+   {
+    "split": "train",
+    "province": "Thái Bình",
+    "tries": [
+     [
+      20.52742,
+      106.37452
+     ]
+    ],
+    "ok": true,
+    "item": "S2B_MSIL2A_20260929T032539_R018_T48QXH_20260929T071432",
+    "date": "2026-09-29",
+    "epsg": 32648,
+    "box": [
+     642660.0,
+     2269820.0,
+     643940.0,
+     2271100.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.557633,
+    "baseline": "05.13"
+   },
+   {
+    "split": "train",
+    "province": "Tiền Giang",
+    "tries": [
+     [
+      10.40462,
+      106.18849
+     ]
+    ],
+    "ok": true,
+    "item": "S2A_MSIL2A_20240125T032021_R118_T48PXS_20240125T070620",
+    "date": "2024-01-25",
+    "epsg": 32648,
+    "box": [
+     629440.0,
+     1149760.0,
+     630720.0,
+     1151040.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.737459,
+    "baseline": "05.10"
+   },
+   {
+    "split": "train",
+    "province": "Hà Nội",
+    "tries": [
+     [
+      21.01797,
+      105.60793
+     ]
+    ],
+    "ok": true,
+    "item": "S2B_MSIL2A_20251123T032949_R018_T48QWJ_20251123T052821",
+    "date": "2025-11-23",
+    "epsg": 32648,
+    "box": [
+     562520.0,
+     2323620.0,
+     563800.0,
+     2324900.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.992581,
+    "baseline": "05.11"
+   },
+   {
+    "split": "train",
+    "province": "Ninh Thuận",
+    "tries": [
+     [
+      11.57529,
+      108.97789
+     ]
+    ],
+    "ok": true,
+    "item": "S2B_MSIL2A_20260406T030519_R075_T49PBN_20260406T082830",
+    "date": "2026-04-06",
+    "epsg": 32649,
+    "box": [
+     278840.0,
+     1279740.0,
+     280120.0,
+     1281020.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.106137,
+    "baseline": "05.12"
+   },
+   {
+    "split": "train",
+    "province": "Bình Thuận",
+    "tries": [
+     [
+      11.15887,
+      108.22261
+     ]
+    ],
+    "ok": true,
+    "item": "S2B_MSIL2A_20260406T030519_R075_T48PZT_20260406T082830",
+    "date": "2026-04-06",
+    "epsg": 32648,
+    "box": [
+     851380.0,
+     1234840.0,
+     852660.0,
+     1236120.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.076343,
+    "baseline": "05.12"
+   },
+   {
+    "split": "train",
+    "province": "Thanh Hoá",
+    "tries": [
+     [
+      19.84242,
+      105.77804
+     ]
+    ],
+    "ok": true,
+    "item": "S2C_MSIL2A_20260407T032531_R018_T48QWH_20260407T085008",
+    "date": "2026-04-07",
+    "epsg": 32648,
+    "box": [
+     580820.0,
+     2193600.0,
+     582100.0,
+     2194880.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.145311,
+    "baseline": "05.12"
+   },
+   {
+    "split": "train",
+    "province": "An Giang",
+    "tries": [
+     [
+      10.41135,
+      105.17276
+     ]
+    ],
+    "ok": true,
+    "item": "S2B_MSIL2A_20240320T031519_R118_T48PWS_20240320T081255",
+    "date": "2024-03-20",
+    "epsg": 32648,
+    "box": [
+     518260.0,
+     1150260.0,
+     519540.0,
+     1151540.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.427991,
+    "baseline": "05.10"
+   },
+   {
+    "split": "train",
+    "province": "Khánh Hoà",
+    "tries": [
+     [
+      12.2653,
+      109.08082
+     ]
+    ],
+    "ok": true,
+    "item": "S2B_MSIL2A_20260406T030519_R075_T49PBP_20260406T082830",
+    "date": "2026-04-06",
+    "epsg": 32649,
+    "box": [
+     290600.0,
+     1356000.0,
+     291880.0,
+     1357280.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 1.115992,
+    "baseline": "05.12"
+   },
+   {
+    "split": "train",
+    "province": "Hưng Yên",
+    "tries": [
+     [
+      20.84725,
+      106.05585
+     ]
+    ],
+    "ok": true,
+    "item": "S2C_MSIL2A_20260407T032531_R018_T48QXJ_20260407T085008",
+    "date": "2026-04-07",
+    "epsg": 32648,
+    "box": [
+     609200.0,
+     2304980.0,
+     610480.0,
+     2306260.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.130598,
+    "baseline": "05.12"
+   },
+   {
+    "split": "train",
+    "province": "Phú Yên",
+    "tries": [
+     [
+      13.05337,
+      109.12256
+     ]
+    ],
+    "ok": true,
+    "item": "S2B_MSIL2A_20260406T030519_R075_T49PBQ_20260406T082830",
+    "date": "2026-04-06",
+    "epsg": 32649,
+    "box": [
+     295760.0,
+     1443160.0,
+     297040.0,
+     1444440.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.22347,
+    "baseline": "05.12"
+   },
+   {
+    "split": "train",
+    "province": "Quảng Ngãi",
+    "tries": [
+     [
+      15.05453,
+      108.80602
+     ]
+    ],
+    "ok": true,
+    "item": "S2C_MSIL2A_20250327T030541_R075_T49PBS_20250327T081013",
+    "date": "2025-03-27",
+    "epsg": 32649,
+    "box": [
+     263500.0,
+     1664900.0,
+     264780.0,
+     1666180.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.951201,
+    "baseline": "05.11"
+   },
+   {
+    "split": "train",
+    "province": "Bến Tre",
+    "tries": [
+     [
+      10.13058,
+      106.47638
+     ]
+    ],
+    "ok": true,
+    "item": "S2B_MSIL2A_20260317T030539_R075_T48PXS_20260317T065133",
+    "date": "2026-03-17",
+    "epsg": 32648,
+    "box": [
+     661100.0,
+     1119580.0,
+     662380.0,
+     1120860.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.51587,
+    "baseline": "05.12"
+   },
+   {
+    "split": "train",
+    "province": "Đắk Nông",
+    "tries": [
+     [
+      12.11813,
+      107.65824
+     ]
+    ],
+    "ok": true,
+    "item": "S2C_MSIL2A_20250126T031041_R075_T48PYU_20250126T071312",
+    "date": "2025-01-26",
+    "epsg": 32648,
+    "box": [
+     788700.0,
+     1340400.0,
+     789980.0,
+     1341680.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.946336,
+    "baseline": "05.11"
+   },
+   {
+    "split": "train",
+    "province": "Thái Nguyên",
+    "tries": [
+     [
+      21.57356,
+      105.8564
+     ]
+    ],
+    "ok": true,
+    "item": "S2B_MSIL2A_20251123T032949_R018_T48QWJ_20251123T052821",
+    "date": "2025-11-23",
+    "epsg": 32648,
+    "box": [
+     588020.0,
+     2385240.0,
+     589300.0,
+     2386520.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.992581,
+    "baseline": "05.11"
+   },
+   {
+    "split": "train",
+    "province": "Long An",
+    "tries": [
+     [
+      10.60907,
+      106.17884
+     ]
+    ],
+    "ok": true,
+    "item": "S2A_MSIL2A_20240125T032021_R118_T48PXS_20240125T070620",
+    "date": "2024-01-25",
+    "epsg": 32648,
+    "box": [
+     628300.0,
+     1172360.0,
+     629580.0,
+     1173640.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.737459,
+    "baseline": "05.10"
+   },
+   {
+    "split": "train",
+    "province": "Lâm Đồng",
+    "tries": [
+     [
+      11.73679,
+      108.28946
+     ]
+    ],
+    "ok": true,
+    "item": "S2B_MSIL2A_20260406T030519_R075_T49PBN_20260406T082830",
+    "date": "2026-04-06",
+    "epsg": 32649,
+    "box": [
+     203900.0,
+     1298240.0,
+     205180.0,
+     1299520.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.106137,
+    "baseline": "05.12"
+   },
+   {
+    "split": "train",
+    "province": "Nghệ An",
+    "tries": [
+     [
+      18.86657,
+      105.55343
+     ]
+    ],
+    "ok": true,
+    "item": "S2C_MSIL2A_20260407T032531_R018_T48QWF_20260407T085008",
+    "date": "2026-04-07",
+    "epsg": 32648,
+    "box": [
+     557640.0,
+     2085520.0,
+     558920.0,
+     2086800.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.059063,
+    "baseline": "05.12"
+   },
+   {
+    "split": "train",
+    "province": "Bình Phước",
+    "tries": [
+     [
+      11.6995,
+      106.78703
+     ]
+    ],
+    "ok": true,
+    "item": "S2C_MSIL2A_20260401T030541_R075_T48PXT_20260401T083115",
+    "date": "2026-04-01",
+    "epsg": 32648,
+    "box": [
+     694120.0,
+     1293320.0,
+     695400.0,
+     1294600.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.113402,
+    "baseline": "05.12"
+   },
+   {
+    "split": "train",
+    "province": "Vĩnh Long",
+    "tries": [
+     [
+      10.19804,
+      105.96571
+     ]
+    ],
+    "ok": true,
+    "item": "S2B_MSIL2A_20240320T031519_R118_T48PWS_20240320T081255",
+    "date": "2024-03-20",
+    "epsg": 32648,
+    "box": [
+     605120.0,
+     1126840.0,
+     606400.0,
+     1128120.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.427991,
+    "baseline": "05.10"
+   },
+   {
+    "split": "train",
+    "province": "Bắc Ninh",
+    "tries": [
+     [
+      21.10945,
+      106.14942
+     ]
+    ],
+    "ok": true,
+    "item": "S2C_MSIL2A_20260407T032531_R018_T48QXJ_20260407T085008",
+    "date": "2026-04-07",
+    "epsg": 32648,
+    "box": [
+     618720.0,
+     2334060.0,
+     620000.0,
+     2335340.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.130598,
+    "baseline": "05.12"
+   },
+   {
+    "split": "train",
+    "province": "Hà Nam",
+    "tries": [
+     [
+      20.58148,
+      105.90698
+     ]
+    ],
+    "ok": true,
+    "item": "S2C_MSIL2A_20260407T032531_R018_T48QWH_20260407T085008",
+    "date": "2026-04-07",
+    "epsg": 32648,
+    "box": [
+     593880.0,
+     2275460.0,
+     595160.0,
+     2276740.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.145311,
+    "baseline": "05.12"
+   },
+   {
+    "split": "train",
+    "province": "Kon Tum",
+    "tries": [
+     [
+      14.48537,
+      108.04573
+     ]
+    ],
+    "ok": true,
+    "item": "S2B_MSIL2A_20260327T030539_R075_T48PZB_20260327T065032",
+    "date": "2026-03-27",
+    "epsg": 32648,
+    "box": [
+     827700.0,
+     1602960.0,
+     828980.0,
+     1604240.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.065099,
+    "baseline": "05.12"
+   },
+   {
+    "split": "train",
+    "province": "Kiên Giang",
+    "tries": [
+     [
+      10.01202,
+      105.2278
+     ]
+    ],
+    "ok": true,
+    "item": "S2B_MSIL2A_20240320T031519_R118_T48PWS_20240320T081255",
+    "date": "2024-03-20",
+    "epsg": 32648,
+    "box": [
+     524320.0,
+     1106120.0,
+     525600.0,
+     1107400.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.427991,
+    "baseline": "05.10"
+   },
+   {
+    "split": "train",
+    "province": "Hà Tĩnh",
+    "tries": [
+     [
+      18.30936,
+      105.82529
+     ]
+    ],
+    "ok": true,
+    "item": "S2C_MSIL2A_20260812T031541_R118_T48QWF_20260812T082613",
+    "date": "2026-08-12",
+    "epsg": 32648,
+    "box": [
+     586560.0,
+     2023980.0,
+     587840.0,
+     2025260.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.621997,
+    "baseline": "05.12"
+   },
+   {
+    "split": "train",
+    "province": "Bạc Liêu",
+    "tries": [
+     [
+      9.36407,
+      105.50206
+     ]
+    ],
+    "ok": true,
+    "item": "S2C_MSIL2A_20250228T031721_R118_T48PWR_20250228T085312",
+    "date": "2025-02-28",
+    "epsg": 32648,
+    "box": [
+     554480.0,
+     1034520.0,
+     555760.0,
+     1035800.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 3.070059,
+    "baseline": "05.11"
+   }
+  ],
+  "val": [
+   {
+    "split": "val",
+    "province": "Đồng Nai",
+    "tries": [
+     [
+      10.99434,
+      107.20191
+     ]
+    ],
+    "ok": true,
+    "item": "S2B_MSIL2A_20240416T030529_R075_T48PYT_20240416T072340",
+    "date": "2024-04-16",
+    "epsg": 32648,
+    "box": [
+     739960.0,
+     1215600.0,
+     741240.0,
+     1216880.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.457232,
+    "baseline": "05.10"
+   },
+   {
+    "split": "val",
+    "province": "Gia Lai",
+    "tries": [
+     [
+      13.99386,
+      108.06747
+     ]
+    ],
+    "ok": true,
+    "item": "S2B_MSIL2A_20260327T030539_R075_T48PZA_20260327T065032",
+    "date": "2026-03-27",
+    "epsg": 32648,
+    "box": [
+     830760.0,
+     1548560.0,
+     832040.0,
+     1549840.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.000683,
+    "baseline": "05.12"
+   },
+   {
+    "split": "val",
+    "province": "Ninh Bình",
+    "tries": [
+     [
+      20.19754,
+      106.05049
+     ]
+    ],
+    "ok": true,
+    "item": "S2B_MSIL2A_20260929T032539_R018_T48QXH_20260929T071432",
+    "date": "2026-09-29",
+    "epsg": 32648,
+    "box": [
+     609100.0,
+     2233060.0,
+     610380.0,
+     2234340.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.557633,
+    "baseline": "05.13"
+   },
+   {
+    "split": "val",
+    "province": "Cà Mau",
+    "tries": [
+     [
+      9.17548,
+      105.13975
+     ]
+    ],
+    "ok": true,
+    "item": "S2C_MSIL2A_20250228T031721_R118_T48PWR_20250228T085312",
+    "date": "2025-02-28",
+    "epsg": 32648,
+    "box": [
+     514700.0,
+     1013620.0,
+     515980.0,
+     1014900.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 3.070059,
+    "baseline": "05.11"
+   },
+   {
+    "split": "val",
+    "province": "Bà Rịa - Vũng Tàu",
+    "tries": [
+     [
+      10.63239,
+      107.26753
+     ]
+    ],
+    "ok": true,
+    "item": "S2C_MSIL2A_20260322T030521_R075_T48PYS_20260322T081410",
+    "date": "2026-03-22",
+    "epsg": 32648,
+    "box": [
+     747420.0,
+     1175600.0,
+     748700.0,
+     1176880.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.302229,
+    "baseline": "05.12"
+   },
+   {
+    "split": "val",
+    "province": "Nam Định",
+    "tries": [
+     [
+      20.33446,
+      106.20095
+     ]
+    ],
+    "ok": true,
+    "item": "S2B_MSIL2A_20260929T032539_R018_T48QXH_20260929T071432",
+    "date": "2026-09-29",
+    "epsg": 32648,
+    "box": [
+     624720.0,
+     2248320.0,
+     626000.0,
+     2249600.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.557633,
+    "baseline": "05.13"
+   },
+   {
+    "split": "val",
+    "province": "Bình Định",
+    "tries": [
+     [
+      13.94747,
+      108.95317
+     ]
+    ],
+    "ok": true,
+    "item": "S2B_MSIL2A_20260406T030519_R075_T49PBR_20260406T082830",
+    "date": "2026-04-06",
+    "epsg": 32649,
+    "box": [
+     278220.0,
+     1542240.0,
+     279500.0,
+     1543520.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.326747,
+    "baseline": "05.12"
+   },
+   {
+    "split": "val",
+    "province": "Bình Dương",
+    "tries": [
+     [
+      11.10369,
+      106.57616
+     ]
+    ],
+    "ok": true,
+    "item": "S2C_MSIL2A_20260325T031541_R118_T48PXT_20260325T082919",
+    "date": "2026-03-25",
+    "epsg": 32648,
+    "box": [
+     671500.0,
+     1227280.0,
+     672780.0,
+     1228560.0
+    ],
+    "offset": 1000,
+    "cloud_scene_pct": 0.622284,
+    "baseline": "05.12"
+   }
+  ]
+ },
+ "test": [
+  {
+   "province": "Hậu Giang",
+   "item": "S2C_MSIL2A_20250228T031721_R118_T48PWR_20250228T085312",
+   "date": "2025-02-28",
+   "pixels": 3549,
+   "bicubic_rmse_b11": 0.007703,
+   "bicubic_ndmi_rmse": 0.021115,
+   "bicubic_consistency": 0.028206,
+   "rg_rmse_b11": 0.006486,
+   "rg_ndmi_rmse": 0.015929,
+   "rg_consistency": 0.0,
+   "ml_rmse_b11": 0.004949,
+   "ml_ndmi_rmse": 0.014101,
+   "ml_consistency": 0.0,
+   "rel_gain": 0.3575,
+   "ndmi_rel_gain": 0.3322,
+   "beats_bicubic": true
+  },
+  {
+   "province": "Vĩnh Phúc",
+   "item": "S2B_MSIL2A_20251123T032949_R018_T48QWJ_20251123T052821",
+   "date": "2025-11-23",
+   "pixels": 3600,
+   "bicubic_rmse_b11": 0.012218,
+   "bicubic_ndmi_rmse": 0.049807,
+   "bicubic_consistency": 0.020484,
+   "rg_rmse_b11": 0.015793,
+   "rg_ndmi_rmse": 0.064551,
+   "rg_consistency": 0.0,
+   "ml_rmse_b11": 0.008368,
+   "ml_ndmi_rmse": 0.030442,
+   "ml_consistency": 0.0,
+   "rel_gain": 0.3152,
+   "ndmi_rel_gain": 0.3888,
+   "beats_bicubic": true
+  },
+  {
+   "province": "Quảng Bình",
+   "item": "S2C_MSIL2A_20260414T031541_R118_T48QXE_20260416T112415",
+   "date": "2026-04-14",
+   "pixels": 3600,
+   "bicubic_rmse_b11": 0.005995,
+   "bicubic_ndmi_rmse": 0.013768,
+   "bicubic_consistency": 0.008352,
+   "rg_rmse_b11": 0.005909,
+   "rg_ndmi_rmse": 0.01397,
+   "rg_consistency": 0.0,
+   "ml_rmse_b11": 0.003754,
+   "ml_ndmi_rmse": 0.008735,
+   "ml_consistency": 0.0,
+   "rel_gain": 0.3738,
+   "ndmi_rel_gain": 0.3656,
+   "beats_bicubic": true
+  },
+  {
+   "province": "Hải Phòng",
+   "item": "S2C_MSIL2A_20260407T032531_R018_T48QXJ_20260407T085008",
+   "date": "2026-04-07",
+   "pixels": 3600,
+   "bicubic_rmse_b11": 0.019919,
+   "bicubic_ndmi_rmse": 0.05072,
+   "bicubic_consistency": 0.034956,
+   "rg_rmse_b11": 0.022096,
+   "rg_ndmi_rmse": 0.051358,
+   "rg_consistency": 0.0,
+   "ml_rmse_b11": 0.014408,
+   "ml_ndmi_rmse": 0.033299,
+   "ml_consistency": 0.0,
+   "rel_gain": 0.2767,
+   "ndmi_rel_gain": 0.3435,
+   "beats_bicubic": true
+  },
+  {
+   "province": "Đồng Tháp",
+   "item": "S2B_MSIL2A_20240320T031519_R118_T48PWS_20240320T081255",
+   "date": "2024-03-20",
+   "pixels": 3600,
+   "bicubic_rmse_b11": 0.017335,
+   "bicubic_ndmi_rmse": 0.039856,
+   "bicubic_consistency": 0.036606,
+   "rg_rmse_b11": 0.013756,
+   "rg_ndmi_rmse": 0.032702,
+   "rg_consistency": 0.0,
+   "ml_rmse_b11": 0.009286,
+   "ml_ndmi_rmse": 0.022383,
+   "ml_consistency": 0.0,
+   "rel_gain": 0.4643,
+   "ndmi_rel_gain": 0.4384,
+   "beats_bicubic": true
+  },
+  {
+   "province": "Trà Vinh",
+   "item": "S2B_MSIL2A_20240130T031959_R118_T48PXR_20240130T074127",
+   "date": "2024-01-30",
+   "pixels": 3600,
+   "bicubic_rmse_b11": 0.008354,
+   "bicubic_ndmi_rmse": 0.022899,
+   "bicubic_consistency": 0.027343,
+   "rg_rmse_b11": 0.006715,
+   "rg_ndmi_rmse": 0.018678,
+   "rg_consistency": 0.0,
+   "ml_rmse_b11": 0.005583,
+   "ml_ndmi_rmse": 0.015088,
+   "ml_consistency": 0.0,
+   "rel_gain": 0.3317,
+   "ndmi_rel_gain": 0.3411,
+   "beats_bicubic": true
+  },
+  {
+   "province": "Sóc Trăng",
+   "item": "S2C_MSIL2A_20250228T031721_R118_T48PWR_20250228T085312",
+   "date": "2025-02-28",
+   "pixels": 3600,
+   "bicubic_rmse_b11": 0.021505,
+   "bicubic_ndmi_rmse": 0.044701,
+   "bicubic_consistency": 0.040957,
+   "rg_rmse_b11": 0.012861,
+   "rg_ndmi_rmse": 0.024754,
+   "rg_consistency": 0.0,
+   "ml_rmse_b11": 0.009661,
+   "ml_ndmi_rmse": 0.021712,
+   "ml_consistency": 0.0,
+   "rel_gain": 0.5507,
+   "ndmi_rel_gain": 0.5143,
+   "beats_bicubic": true
+  },
+  {
+   "province": "Quảng Trị",
+   "item": "S2C_MSIL2A_20260414T031541_R118_T48QYD_20260416T112415",
+   "date": "2026-04-14",
+   "pixels": 3600,
+   "bicubic_rmse_b11": 0.010493,
+   "bicubic_ndmi_rmse": 0.028097,
+   "bicubic_consistency": 0.023554,
+   "rg_rmse_b11": 0.011518,
+   "rg_ndmi_rmse": 0.028637,
+   "rg_consistency": 0.0,
+   "ml_rmse_b11": 0.006491,
+   "ml_ndmi_rmse": 0.017494,
+   "ml_consistency": 0.0,
+   "rel_gain": 0.3814,
+   "ndmi_rel_gain": 0.3774,
+   "beats_bicubic": true
+  },
+  {
+   "province": "Bắc Giang",
+   "item": "S2C_MSIL2A_20260407T032531_R018_T48QXJ_20260407T085008",
+   "date": "2026-04-07",
+   "pixels": 3600,
+   "bicubic_rmse_b11": 0.024415,
+   "bicubic_ndmi_rmse": 0.073984,
+   "bicubic_consistency": 0.044085,
+   "rg_rmse_b11": 0.024666,
+   "rg_ndmi_rmse": 0.072477,
+   "rg_consistency": 0.0,
+   "ml_rmse_b11": 0.015944,
+   "ml_ndmi_rmse": 0.044967,
+   "ml_consistency": 0.0,
+   "rel_gain": 0.3469,
+   "ndmi_rel_gain": 0.3922,
+   "beats_bicubic": true
+  },
+  {
+   "province": "Cần Thơ",
+   "item": "S2B_MSIL2A_20240320T031519_R118_T48PWS_20240320T081255",
+   "date": "2024-03-20",
+   "pixels": 3600,
+   "bicubic_rmse_b11": 0.02882,
+   "bicubic_ndmi_rmse": 0.055613,
+   "bicubic_consistency": 0.04318,
+   "rg_rmse_b11": 0.027927,
+   "rg_ndmi_rmse": 0.052597,
+   "rg_consistency": 0.0,
+   "ml_rmse_b11": 0.013762,
+   "ml_ndmi_rmse": 0.028852,
+   "ml_consistency": 0.0,
+   "rel_gain": 0.5225,
+   "ndmi_rel_gain": 0.4812,
+   "beats_bicubic": true
+  },
+  {
+   "province": "Thừa Thiên Huế",
+   "item": "S2C_MSIL2A_20260404T031541_R118_T48QYD_20260404T085609",
+   "date": "2026-04-04",
+   "pixels": 3600,
+   "bicubic_rmse_b11": 0.022757,
+   "bicubic_ndmi_rmse": 0.045999,
+   "bicubic_consistency": 0.062992,
+   "rg_rmse_b11": 0.019405,
+   "rg_ndmi_rmse": 0.038177,
+   "rg_consistency": 0.0,
+   "ml_rmse_b11": 0.014537,
+   "ml_ndmi_rmse": 0.030112,
+   "ml_consistency": 0.0,
+   "rel_gain": 0.3612,
+   "ndmi_rel_gain": 0.3454,
+   "beats_bicubic": true
+  },
+  {
+   "province": "Tây Ninh",
+   "item": "S2C_MSIL2A_20260325T031541_R118_T48PXT_20260325T082919",
+   "date": "2026-03-25",
+   "pixels": 3600,
+   "bicubic_rmse_b11": 0.015192,
+   "bicubic_ndmi_rmse": 0.028901,
+   "bicubic_consistency": 0.029319,
+   "rg_rmse_b11": 0.009721,
+   "rg_ndmi_rmse": 0.01874,
+   "rg_consistency": 0.0,
+   "ml_rmse_b11": 0.008162,
+   "ml_ndmi_rmse": 0.01655,
+   "ml_consistency": 0.0,
+   "rel_gain": 0.4627,
+   "ndmi_rel_gain": 0.4273,
+   "beats_bicubic": true
+  },
+  {
+   "province": "Đắk Lắk",
+   "item": "S2B_MSIL2A_20260406T030519_R075_T48PZV_20260406T082830",
+   "date": "2026-04-06",
+   "pixels": 3600,
+   "bicubic_rmse_b11": 0.006775,
+   "bicubic_ndmi_rmse": 0.015556,
+   "bicubic_consistency": 0.020639,
+   "rg_rmse_b11": 0.008523,
+   "rg_ndmi_rmse": 0.020214,
+   "rg_consistency": 0.0,
+   "ml_rmse_b11": 0.005663,
+   "ml_ndmi_rmse": 0.013331,
+   "ml_consistency": 0.0,
+   "rel_gain": 0.1641,
+   "ndmi_rel_gain": 0.1431,
+   "beats_bicubic": true
+  },
+  {
+   "province": "Hải Dương",
+   "item": "S2C_MSIL2A_20260407T032531_R018_T48QXJ_20260407T085008",
+   "date": "2026-04-07",
+   "pixels": 3600,
+   "bicubic_rmse_b11": 0.032762,
+   "bicubic_ndmi_rmse": 0.055236,
+   "bicubic_consistency": 0.109067,
+   "rg_rmse_b11": 0.026372,
+   "rg_ndmi_rmse": 0.0594,
+   "rg_consistency": 0.0,
+   "ml_rmse_b11": 0.021428,
+   "ml_ndmi_rmse": 0.038589,
+   "ml_consistency": 0.0,
+   "rel_gain": 0.3459,
+   "ndmi_rel_gain": 0.3014,
+   "beats_bicubic": true
+  },
+  {
+   "province": "Phú Thọ",
+   "item": "S2B_MSIL2A_20251123T032949_R018_T48QWJ_20251123T052821",
+   "date": "2025-11-23",
+   "pixels": 3590,
+   "bicubic_rmse_b11": 0.01814,
+   "bicubic_ndmi_rmse": 0.047574,
+   "bicubic_consistency": 0.034522,
+   "rg_rmse_b11": 0.017997,
+   "rg_ndmi_rmse": 0.040267,
+   "rg_consistency": 0.0,
+   "ml_rmse_b11": 0.014071,
+   "ml_ndmi_rmse": 0.03234,
+   "ml_consistency": 0.0,
+   "rel_gain": 0.2243,
+   "ndmi_rel_gain": 0.3202,
+   "beats_bicubic": true
+  },
+  {
+   "province": "Quảng Nam",
+   "item": "S2C_MSIL2A_20260620T030521_R075_T49PBT_20260620T081517",
+   "date": "2026-06-20",
+   "pixels": 3600,
+   "bicubic_rmse_b11": 0.014416,
+   "bicubic_ndmi_rmse": 3.447711,
+   "bicubic_consistency": 0.026672,
+   "rg_rmse_b11": 0.013828,
+   "rg_ndmi_rmse": 7.96234,
+   "rg_consistency": 0.0,
+   "ml_rmse_b11": 0.007698,
+   "ml_ndmi_rmse": 26.210657,
+   "ml_consistency": 0.0,
+   "rel_gain": 0.466,
+   "ndmi_rel_gain": -6.6023,
+   "beats_bicubic": true
+  }
+ ],
+ "seconds": 1.1,
+ "consistency_note": "Giá trị làm tròn 6 chữ số: 0,0 nghĩa là < 5e-7 phản xạ (20 vòng chiếu ngược).",
+ "diagnosis_after_scoring": {
+  "written": "2026-10-20, SAU khi chấm — không đổi kết quả cổng",
+  "quang_nam_ndmi_outlier": "Quảng Nam: RMSE B11 tốt hơn bậc ba 46,6% nhưng ndmi_rel_gain −6,60. Nguyên nhân: ~5% ô là mặt nước tối có B08 sau trừ lệch ≤ 0 (−0,027…−0,005) → mẫu số B08 + B11 ≈ 0, NDMI không xác định (sai số tới hàng trăm, một ô 1.551). Bỏ ô B08 + B11 < 0,05: ml 0,0248 so với bicubic 0,0357 (lợi 30%). Trung vị g3 không bị ảnh hưởng.",
+  "product_rule_added_after": "Sản phẩm (ndmi_map) che ô B08 + B11 < 0,05 (mặt nước / bề mặt rất tối — NDMI không xác định) và kẹp B11 làm sắc vào [0, 1]. Quy tắc hiển thị thêm SAU khi chấm; phương pháp, hệ số và cổng giữ nguyên.",
+  "rg_vs_ml": "Trên TEST, rg chỉ lợi trung vị 3,6% (thua bicubic ở 5/16 cảnh); ml lợi 35,9% và thắng 16/16 — chọn ml trên VAL (0,00881 so với 0,01175) trước khi chấm TEST."
+ }
+}

@@ -516,4 +516,47 @@ def cards() -> list[dict]:
                      "10 m is too coarse for small plots; needs ≤ 3 m imagery or a pretrained field-boundary model."),
         "not_for": "—", "code": f"{REPO}/backend/app/services/autoboundary.py",
     })
+
+    # S10 ① / ② — làm sắc B11 20 m → 10 m (đăng ký trước 20/10/2026, ce4dd08; phép kiểm Wald)
+    sh = _load("ml", "s2_sharpen_result.json")
+    if sh:
+        ck, tm, n = sh.get("checks") or {}, sh.get("test_median") or {}, sh.get("n") or {}
+        sel = sh.get("selected")
+        live = __import__("app.services.s2_sharpen", fromlist=["available"]).available()
+        mk = lambda k, lab, thr: {"label": lab, "value": str((ck.get(k) or [None])[0]), "threshold": thr,  # noqa: E731
+                                  "passed": (ck.get(k) or [None, None])[1]}
+        out.append({
+            "id": "s2_sharpen", "kind": tr("làm sắc ảnh (không mô hình sinh)", "image sharpening (no generative model)"),
+            "name": tr("NDMI 10 m — làm sắc B11 Sentinel-2 20 m → 10 m", "10 m NDMI — Sentinel-2 B11 sharpened 20 m → 10 m"),
+            "status": "accepted" if sh.get("passed") else "rejected",
+            "status_label": (tr("đạt phép kiểm Wald · đang chạy — tham khảo ở tab Chuyên sâu", "passed the Wald test · live — reference in the In-depth tab")
+                             if sh.get("passed") and live else
+                             tr("đạt phép kiểm Wald · đang tắt", "passed the Wald test · switched off") if sh.get("passed") else
+                             tr("trượt · không bật", "failed · off")),
+            "task": tr("Bản đồ nước trong tán lá (NDMI) 10 m trong thửa, từ băng hồng ngoại sóng ngắn 20 m",
+                       "10 m canopy-water (NDMI) map inside the plot, from the 20 m shortwave-infrared band"),
+            "data": tr(f"Sentinel-2 L2A thật ở {n.get('train', 0) + n.get('val', 0) + n.get('test', 0)} tỉnh (lưới UTM gốc). Phương pháp "
+                       f"'ml' học {sh.get('ml_train_pixels')} ô trên cặp TỔNG HỢP (ảnh thật thu nhỏ 40 → 20 m) — S10 ②, không hiện cho người dùng",
+                       f"Real Sentinel-2 L2A in {n.get('train', 0) + n.get('val', 0) + n.get('test', 0)} provinces (native UTM grid). The 'ml' method "
+                       f"learns {sh.get('ml_train_pixels')} pixels from SYNTHETIC pairs (real images degraded 40 → 20 m) — S10 ②, never shown to users"),
+            "split": tr(f"chia theo TỈNH, hạt giống 20261020: {n.get('train')} học · {n.get('val')} chọn phương pháp (chọn '{sel}') · "
+                        f"{n.get('test')} chấm một lần", f"split by PROVINCE, seed 20261020: {n.get('train')} train · {n.get('val')} "
+                        f"method selection (chose '{sel}') · {n.get('test')} scored once"),
+            "metrics": [mk("g1_median_rel_gain", tr("Trung vị giảm sai số B11 so với phóng bậc ba", "Median B11 error reduction vs bicubic"), "≥ 0,15"),
+                        mk("g2_share_beats_bicubic", tr("Tỉ lệ cảnh thắng phóng bậc ba", "Share of scenes beating bicubic"), "≥ 0,80"),
+                        mk("g3_median_ndmi_rel_gain", tr("Trung vị giảm sai số NDMI", "Median NDMI error reduction"), "≥ 0,15"),
+                        mk("g4_max_consistency", tr("Lệch tối đa khi thu nhỏ lại so với ảnh 20 m đo", "Max deviation when re-degraded vs measured 20 m"), "≤ 0,002"),
+                        {"label": tr("RMSE B11 trung vị (test) — bậc ba / rg / ml", "Median B11 RMSE (test) — bicubic / rg / ml"),
+                         "value": " / ".join(str((tm.get(k) or {}).get("rmse_b11")) for k in ("bicubic", "rg", "ml")),
+                         "threshold": "—", "passed": None}],
+            "limits": tr("Kiểm ở thang thu nhỏ (40 → 20 m, phép kiểm Wald) vì không có B11 10 m thật; giả định quan hệ giữa các thang giữ nguyên "
+                         "khi lên 10 m. Mặt nước / bề mặt rất tối (B08 + B11 < 0,05) bị che vì NDMI không xác định (chẩn đoán sau chấm: một cảnh "
+                         "Quảng Nam). Không kiểm ở mùa mưa nhiều mây — cảnh kiểm đều ≥ 95% quang mây.",
+                         "Tested at reduced scale (40 → 20 m, Wald protocol) because there is no true 10 m B11; assumes the cross-scale relation "
+                         "holds at 10 m. Water / very dark surfaces (B08 + B11 < 0.05) are masked because NDMI is undefined there (post-scoring "
+                         "diagnosis: one Quảng Nam scene). Not tested on cloudy rainy-season scenes — all test scenes were ≥ 95% clear."),
+            "not_for": tr("Không phải độ ẩm đất; không vào nội dung ký của hồ sơ; không thay đo thực địa. Không sinh chi tiết dưới 10 m.",
+                          "Not soil moisture; not in signed dossier content; does not replace field measurement. No detail below 10 m."),
+            "code": f"{REPO}/backend/app/services/s2_sharpen.py",
+        })
     return out
