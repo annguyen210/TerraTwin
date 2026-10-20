@@ -46,7 +46,7 @@ def _req_view(r: UpgradeRequest, email: str | None = None) -> dict:
     out = {"id": r.id, "user_id": r.user_id, "email": email, "created_at": _iso(r.created_at),
            "plan_wanted": r.plan_wanted, "plan_wanted_name": plans.PLANS.get(r.plan_wanted, {}).get("name", r.plan_wanted),
            "reason": r.reason, "status": r.status, "decided_at": _iso(r.decided_at), "admin_note": r.admin_note}
-    if r.status == "pending":
+    if r.status == "pending" and plans.billing_on():
         # VietQR (18/10/2026): chuyển khoản liên ngân hàng miễn phí thay cho cổng thanh toán — services/vietqr.py
         from app.services import vietqr
         out["payment"] = vietqr.for_request(r.id, r.plan_wanted, int(plans.PLANS.get(r.plan_wanted, {}).get("price_vnd", 0)))
@@ -67,7 +67,7 @@ def my_plan(user: User = Depends(auth.current_user), db: Session = Depends(get_s
                       .order_by(UpgradeRequest.created_at.desc()).limit(20)).scalars().all()
     from app.services import quota
     m = plans.mult_for(user)
-    return {**_plan_view(user),
+    return {**_plan_view(user), "billing": plans.billing_on(),
             "limits": {"dossier_per_day": quota.LIMITS["dossier"][1] * m, "screen_per_hour": quota.LIMITS["screen"][1] * m,
                        "api_per_month": plans.quota_for(plans.effective(user))},
             "principle": "Mọi tài khoản có đủ mọi tính năng. Gói chỉ đổi hạn mức và do quản trị cấp.",
@@ -78,6 +78,8 @@ def my_plan(user: User = Depends(auth.current_user), db: Session = Depends(get_s
 
 @router.post("/api/account/upgrade-request", status_code=201)
 def request_upgrade(body: UpgradeIn, user: User = Depends(auth.current_user), db: Session = Depends(get_session)) -> dict:
+    if not plans.billing_on():
+        raise HTTPException(409, "Giai đoạn thử nghiệm: mọi tài khoản đã dùng đủ mọi tính năng, chưa có gói trả phí.")
     if db.scalar(select(func.count()).select_from(UpgradeRequest)
                  .where(UpgradeRequest.user_id == user.id, UpgradeRequest.status == "pending")):
         raise HTTPException(409, "Bạn đã có một yêu cầu đang chờ quản trị xem — chờ kết quả trước khi gửi yêu cầu mới.")

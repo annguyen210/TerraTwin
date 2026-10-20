@@ -139,7 +139,8 @@ def test_thong_bao_vuot_han_muc_chi_duong_di_tiep(monkeypatch):
         r = client.get("/api/plots", headers=hk)
         if r.status_code == 429:
             d = r.json()["detail"]
-            assert "/api/plans" in d, "báo lỗi phải chỉ chỗ xem mức cao hơn"
+            # giai đoạn thử nghiệm (thu tiền tắt): chỉ đường nhờ quản trị nâng miễn phí, không đẩy sang gói trả phí
+            assert "quản trị" in d and "/api/plans" not in d, "báo lỗi phải chỉ đường đi tiếp"
             return
     pytest.fail("không chặn được")
 

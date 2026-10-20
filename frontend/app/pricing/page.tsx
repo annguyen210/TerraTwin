@@ -30,6 +30,17 @@ export default function PricingPage() {
         <p className="doc-lede">{t(
           "Đang thử nghiệm: mọi tính năng MIỄN PHÍ cho mọi tài khoản. Nông hộ luôn miễn phí. Giá sẽ công bố trước khi thu — không thu tiền khi chưa báo trước và chưa có pháp nhân. Khi thu: chuyển khoản VietQR (quét bằng app ngân hàng bất kỳ, không qua cổng thanh toán), gói tự kích hoạt khi tiền vào.",
           "In trial: every feature is FREE for every account. Farmers are always free. Prices will be published before any charge — nothing is charged without notice and a legal entity. When charging: VietQR bank transfer (scan with any banking app, no payment gateway); the plan activates itself when the money arrives.")}</p>
+        {!cat?.billing && (
+          <section style={{ margin: "14px 0" }}>
+            <h2>{t("Hiện tại: miễn phí toàn bộ", "Right now: everything is free")}</h2>
+            <p className="tk-role">✓ {t("MỌI tài khoản — kể cả tài khoản người dùng thường — dùng ĐỦ MỌI tính năng: hồ sơ đất ký số, lịch sử nước radar, kiểm tin đăng, canh đất, so sánh thửa, ảnh thực địa, EUDR, IoT, API. Không có gói trả phí, không cần nâng cấp.",
+                                       "EVERY account — including regular user accounts — gets EVERY feature: signed land dossiers, radar water history, listing checks, plot watch, comparison, field photos, EUDR, IoT, API. No paid plans, no upgrade needed.")}</p>
+            <p className="doc-note">{t("TerraTwin đang trong giai đoạn thử nghiệm. Nếu sau này có gói trả phí, giá sẽ được công bố trước; nông hộ luôn miễn phí.",
+                                       "TerraTwin is in its trial phase. If paid plans come later, prices will be announced first; farmers stay free.")}</p>
+          </section>
+        )}
+        {cat?.billing && (
+          <>
         {/* GĐ7 kế hoạch tổng — ba gói cho người mua đất, chủ đất, tổ chức. Giá DỰ KIẾN, đang kiểm chứng bằng
             phỏng vấn; chưa thu tiền khi chưa có pháp nhân và cổng thanh toán. */}
         <p className="tk-role" style={{ margin: "14px 0" }}>✓ {t("MỌI tài khoản có ĐỦ MỌI tính năng — không có tính năng nào bị khoá sau gói trả phí. Gói chỉ khác HẠN MỨC (số hồ sơ, lượt quét, lượt API) và mức hỗ trợ; quản trị cấp khi bạn gửi yêu cầu ở Tài khoản của tôi.",
@@ -129,6 +140,9 @@ export default function PricingPage() {
               ))}
             </div>
             <p className="doc-note">{cat.disclaimer}</p>
+          </>
+        )}
+
           </>
         )}
 

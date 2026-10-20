@@ -47,6 +47,7 @@ jobs:
           TERRATWIN_SECRET: e2e-local-secret-chi-dung-trong-ci-0123456789
           TERRATWIN_ADMIN_EMAILS: ${{ env.E2E_ADMIN }}
           TERRATWIN_SEPAY_API_KEY: ${{ env.E2E_SEPAY_KEY }}
+          TERRATWIN_BILLING: "1"          # bật thu tiền CHỈ trong CI để vẫn kiểm luồng nâng gói/SePay (production đang tắt)
           TERRATWIN_VIETQR_BIN: "970436"
           TERRATWIN_VIETQR_ACCOUNT: "0000000000"
           TERRATWIN_VIETQR_NAME: TAI KHOAN THU CI

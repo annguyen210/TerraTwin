@@ -146,7 +146,8 @@ def current_user(
                 detail=(f"Khóa này đã dùng {row.calls_period} lượt trong tháng "
                         f"{period}, vượt hạn mức {limit} của gói "
                         f"{tier['name']}. Hạn mức đặt lại vào đầu tháng sau. "
-                        "Xem GET /api/plans để biết các mức cao hơn."))
+                        + ("Xem GET /api/plans để biết các mức cao hơn." if plans.billing_on() else
+                           "Cần nhiều hơn trong giai đoạn thử nghiệm thì nhờ quản trị nâng hạn mức (miễn phí).")))
 
         user = db.get(User, row.user_id)
         if user is None:

@@ -1421,7 +1421,7 @@ export type Plan = {
   for: string; features: string[];
 };
 
-export type PlanCatalogue = {
+export type PlanCatalogue = { billing?: boolean;
   plans: Plan[]; currency: string; billing_period: string;
   status: string; disclaimer: string;
 };
@@ -2931,7 +2931,7 @@ export type UpgradeReq = { id: number; user_id: number; email: string | null; cr
   plan_wanted_name: string; reason: string; status: "pending" | "approved" | "rejected"; decided_at: string | null; admin_note: string;
   payment?: { available: boolean; amount_vnd: number; memo: string; note: string; qr_svg?: string | null; bank_bin?: string; auto_confirm?: boolean;
               account_tail?: string; account_name?: string } };
-export type MyPlan = { plan: string; effective: string; name: string; until: string | null; note: string; mult: number; api_month: number;
+export type MyPlan = { billing?: boolean; plan: string; effective: string; name: string; until: string | null; note: string; mult: number; api_month: number;
   limits: { dossier_per_day: number; screen_per_hour: number; api_per_month: number }; principle: string;
   catalogue: { id: string; name: string; mult: number; api_month: number; for: string }[]; requests: UpgradeReq[] };
 export function getMyPlan() {

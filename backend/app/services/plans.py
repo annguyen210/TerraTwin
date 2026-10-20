@@ -67,6 +67,13 @@ PLANS: dict[str, dict] = {
 DEFAULT_PLAN = "free"
 
 
+def billing_on() -> bool:
+    """Công tắc thu tiền (20/10/2026, theo chủ dự án): giai đoạn thử nghiệm CHƯA chia gói, chưa thu tiền — mọi tài khoản dùng
+    đủ mọi tính năng, người dùng không thấy gói / nâng cấp / chuyển khoản. TERRATWIN_BILLING=1 mới bật lại (mã thanh toán
+    VietQR + SePay vẫn giữ nguyên)."""
+    return os.environ.get("TERRATWIN_BILLING", "0").strip() == "1"
+
+
 def effective(user) -> str:
     """Gói đang có hiệu lực của một người dùng: gói quản trị đã cấp, trừ khi đã hết hạn."""
     if user is None:
@@ -95,7 +102,7 @@ def quota_for(plan: str | None) -> int:
 
 def catalogue() -> dict:
     """Bảng giá. Luôn kèm cảnh báo là chưa ai trả tiền."""
-    return {
+    return {"billing": billing_on(),
         "plans": [{"id": k, **v} for k, v in PLANS.items()],
         "currency": "VND",
         "billing_period": "tháng",

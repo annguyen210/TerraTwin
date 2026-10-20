@@ -187,6 +187,7 @@ def test_trang_tai_khoan_cua_toi(c):
 def test_quan_tri_cap_goi_han_muc_va_duyet_yeu_cau(c, monkeypatch):
     """Mọi tài khoản đủ tính năng; nâng cấp = HẠN MỨC, do quản trị cấp. Người dùng xin → quản trị duyệt → hạn mức
     nhân lên thật; cấp vai trò hợp tác xã được, cấp quyền quản trị thì không (chỉ qua biến môi trường)."""
+    monkeypatch.setenv("TERRATWIN_BILLING", "1")                         # luồng gói chỉ chạy khi bật thu tiền
     from app.services import quota
     ha = _reg(c, "quantri@vd.vn")
     hu = _reg(c, "nong@vd.vn")

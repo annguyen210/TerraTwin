@@ -123,14 +123,20 @@ export default function MyAccountPage() {
 
             {plan && (
               <section className="tk-card">
-                <h2>{t("Gói & hạn mức", "Plan & quotas")}: {plan.name}{plan.until ? ` · ${t("đến", "until")} ${when(plan.until)}` : ""}</h2>
-                <p className="tk-role">✓ {plan.principle}</p>
+                {plan.billing ? (
+                  <h2>{t("Gói & hạn mức", "Plan & quotas")}: {plan.name}{plan.until ? ` · ${t("đến", "until")} ${when(plan.until)}` : ""}</h2>
+                ) : (
+                  <h2>{t("Tính năng & hạn mức", "Features & limits")}</h2>
+                )}
+                <p className="tk-role">✓ {plan.billing ? plan.principle : t(
+                  "Giai đoạn thử nghiệm: mọi tài khoản dùng ĐỦ mọi tính năng, miễn phí — chưa chia gói, không cần nâng cấp. Hạn mức dưới đây chỉ để chống lạm dụng máy chủ, chung cho mọi tài khoản.",
+                  "Trial phase: every account gets EVERY feature, free — no plans, no upgrade needed. The limits below only protect the server from abuse and are the same for everyone.")}</p>
                 <dl className="tk-dl">
                   <dt>{t("Hồ sơ ký số / ngày", "Signed dossiers / day")}</dt><dd>{plan.limits.dossier_per_day.toLocaleString("vi-VN")}</dd>
                   <dt>{t("Lượt quét nặng / giờ", "Heavy scans / hour")}</dt><dd>{plan.limits.screen_per_hour.toLocaleString("vi-VN")}</dd>
                   <dt>{t("Lượt API / tháng", "API calls / month")}</dt><dd>{plan.limits.api_per_month.toLocaleString("vi-VN")}</dd>
                 </dl>
-                {plan.requests.length > 0 && (
+                {plan.billing && plan.requests.length > 0 && (
                   <ul className="tk-list">
                     {plan.requests.map((r) => (
                       <li key={r.id}><span>{t("Yêu cầu", "Request")} {r.plan_wanted_name}: <b>{{ pending: t("đang chờ", "pending"), approved: t("đã duyệt", "approved"), rejected: t("từ chối", "rejected") }[r.status]}</b>
@@ -159,7 +165,7 @@ export default function MyAccountPage() {
                     ))}
                   </ul>
                 )}
-                {!plan.requests.some((r) => r.status === "pending") && (
+                {plan.billing && !plan.requests.some((r) => r.status === "pending") && (
                   <div className="ws-row">
                     <select value={want} onChange={(e) => setWant(e.target.value as "pro" | "enterprise")} aria-label={t("Gói muốn xin", "Plan wanted")}>
                       {plan.catalogue.filter((c) => c.id !== "free").map((c) => <option key={c.id} value={c.id}>{c.name} — {t("hạn mức", "quota")} ×{c.mult}</option>)}
