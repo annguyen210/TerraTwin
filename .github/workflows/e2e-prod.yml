@@ -75,7 +75,11 @@ jobs:
     # sai, cookie thiếu cờ). Cảnh báo còn lại vào báo cáo tải về được.
     name: OWASP ZAP baseline (thụ động)
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 35
+    # 20/10/2026: chạy SAU e2e — quét song song với e2e làm lớp mạng phía trước của Render trả 429 (cả cho "/" và
+    # "/robots.txt", nơi bộ giới hạn của TerraTwin không áp) → phản hồi không có HSTS → ZAP báo FAIL giả.
+    needs: e2e
+    if: always()
     steps:
       - uses: actions/checkout@v5
       - name: Đánh thức web + api (chờ tới khi trả 200 THẬT)
@@ -95,11 +99,27 @@ jobs:
             # quét web mất vài phút — kiểm lại API còn thức ngay trước khi quét, để không chấm trang chờ của Render
             for i in $(seq 1 12); do curl -fsS -o /dev/null --max-time 60 "$target" && break; sleep 15; done
             name=$(echo "$target" | sed 's#https://##; s#[/.]#-#g')
-            docker run --rm -v "$PWD:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable zap-baseline.py               -t "$target" -m 2 -I -c .zap/rules.tsv -r "zap-$name.html" -J "zap-$name.json" || ec=$?
-            ec=${ec:-0}
+            for attempt in 1 2; do
+              unset ec
+              docker run --rm -v "$PWD:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable zap-baseline.py               -t "$target" -m 2 -I -c .zap/rules.tsv -r "zap-$name.html" -J "zap-$name.json" > "zap-$name.log" 2>&1 || ec=$?
+              ec=${ec:-0}
+              cat "zap-$name.log"
+              # FAIL mà MỌI địa chỉ bị chấm đều là 429/503 (lớp mạng của Render chặn / đang đánh thức, không phải phản hồi
+              # của TerraTwin) → chờ rồi quét lại MỘT lần; vẫn vậy thì là "không quét được", không phải lỗi bảo mật.
+              edge_only=0
+              if [ "$ec" = "1" ]; then
+                fails=$(awk '/^FAIL-NEW: [A-Za-z]/{f=1;next} /^(WARN|PASS|IGNORE|INFO|FAIL-NEW: [0-9])/{f=0} f' "zap-$name.log" | grep -c 'https://' || true)
+                edge=$(awk '/^FAIL-NEW: [A-Za-z]/{f=1;next} /^(WARN|PASS|IGNORE|INFO|FAIL-NEW: [0-9])/{f=0} f' "zap-$name.log" | grep -cE '\((429|503) ' || true)
+                [ "$fails" -gt 0 ] && [ "$fails" = "$edge" ] && edge_only=1
+              fi
+              [ "$edge_only" = "1" ] && [ "$attempt" = "1" ] && { echo "::warning::ZAP $target: Render chặn/đang thức (429/503) — chờ 90 s quét lại"; sleep 90; continue; }
+              break
+            done
             case "$ec" in 0) kq="ĐẠT — không quy tắc FAIL nào";; 1) kq="CÓ quy tắc FAIL";; 3) kq="LỖI CHẠY (không quét trọn)";; *) kq="mã lạ";; esac
+            [ "$edge_only" = "1" ] && kq="KHÔNG QUÉT ĐƯỢC — Render trả 429/503 cho mọi địa chỉ (không phải phản hồi của TerraTwin)"
             echo "::notice::ZAP $target — $kq (mã thoát $ec; báo cáo đầy đủ trong zap-reports)"
-            [ "$ec" = "1" ] && fail=1
+            [ "$ec" = "1" ] && [ "$edge_only" = "0" ] && fail=1
+            [ "$edge_only" = "1" ] && echo "::warning::ZAP $target: không quét được vì lớp mạng Render chặn — xem lại lượt sau"
             [ "$ec" = "3" ] && echo "::warning::ZAP không chạy trọn được với $target"
             unset ec
           done
