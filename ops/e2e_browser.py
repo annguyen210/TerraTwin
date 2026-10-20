@@ -373,6 +373,11 @@ with sync_playwright() as p:
         pg.get_by_role("tab", name=re.compile("Canh đất")).click()
         pg.get_by_role("button", name=re.compile("Xem độ ẩm tán lá 10 m")).click()
         pg.locator("section.mm .mm-pair, section.mm .doc-note, section.mm .bat-err").first.wait_for(timeout=180_000)
+        if pg.locator("section.mm .bat-err").count() and "request/phút" in pg.locator("section.mm .bat-err").inner_text():
+            # Bộ giới hạn 120 lượt/phút/IP: cả bộ E2E chạy từ MỘT IP. Làm như người dùng — chờ hết phút rồi bấm Thử lại.
+            pg.wait_for_timeout(65_000)
+            pg.locator("section.mm").get_by_role("button", name="Thử lại").click()
+            pg.locator("section.mm .mm-pair, section.mm .doc-note, section.mm .bat-err").first.wait_for(timeout=180_000)
         pg.wait_for_timeout(800)
         pg.screenshot(path=os.path.join(OUT, "19-do-am-10m.png"), full_page=False)
         if pg.locator("section.mm .mm-pair").count():
