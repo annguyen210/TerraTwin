@@ -48,6 +48,14 @@ _TRUE_COLOR = ("assets=visual&asset_bidx=visual%7C1%2C2%2C3&nodata=0")
 _NDVI = ("expression=(B08-B04)%2F(B08%2BB04)&asset_as_band=true"
          "&rescale=-0.2%2C0.9&colormap_name=rdylgn")
 
+
+def _ndvi_layer(offset: bool) -> str:
+    """Lớp NDVI đọc đúng phản xạ: cảnh từ 2022 trừ lệch 1000 (xem mpc.BOA_OFFSET) — không thì cây trông yếu hơn thật."""
+    if not offset:
+        return _NDVI
+    return urllib.parse.urlencode({"expression": mpc.index_expr("NDVI", True), "asset_as_band": "true",
+                                   "rescale": "-0.2,0.9", "colormap_name": "rdylgn"})
+
 SIZE = 512
 
 # KHUNG NHÌN MẶC ĐỊNH 2,4 km, KHÔNG PHẢI 1 km — và đây là phép tính chứ không
@@ -96,6 +104,7 @@ def _pick(box: list[float], start: date, end: date) -> dict | None:
         "item": it["id"],
         "date": it["properties"]["datetime"][:10],
         "cloud_scene_pct": round(float(it["properties"].get("eo:cloud_cover") or 0.0), 1),
+        "boa_offset": mpc.has_offset(it),
     }
 
 
@@ -103,7 +112,7 @@ def plot_view(lat: float, lon: float, buffer_m: float = DEFAULT_BUFFER_M) -> dic
     """Ba lớp ảnh cho một thửa. Luôn trả dict — không bao giờ ném lỗi lên API."""
     from app.services import cache_store
     from app.services import reqlang
-    key = cache_store.make_key("imagery", reqlang.cur_lang(), round(lat, 4), round(lon, 4), int(buffer_m))
+    key = cache_store.make_key("imagery2", reqlang.cur_lang(), round(lat, 4), round(lon, 4), int(buffer_m))
     hit = cache_store.get(key)
     if hit is not None:
         return hit
@@ -146,7 +155,7 @@ def plot_view(lat: float, lon: float, buffer_m: float = DEFAULT_BUFFER_M) -> dic
         "now": {
             **now,
             "true_color": _url(now["item"], box, _TRUE_COLOR),
-            "ndvi": _url(now["item"], box, _NDVI),
+            "ndvi": _url(now["item"], box, _ndvi_layer(now.get("boa_offset", False))),
         },
         "source": tr("Sentinel-2 L2A · Microsoft Planetary Computer (không cần khoá)",
                      "Sentinel-2 L2A · Microsoft Planetary Computer (no key needed)"),
@@ -165,7 +174,7 @@ def plot_view(lat: float, lon: float, buffer_m: float = DEFAULT_BUFFER_M) -> dic
         out["then"] = {
             **then,
             "true_color": _url(then["item"], box, _TRUE_COLOR),
-            "ndvi": _url(then["item"], box, _NDVI),
+            "ndvi": _url(then["item"], box, _ndvi_layer(then.get("boa_offset", False))),
         }
         out["compare_note"] = tr(
             f"Hai ảnh cách nhau khoảng một năm và CÙNG MÙA "

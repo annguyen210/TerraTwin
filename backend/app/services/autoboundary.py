@@ -111,7 +111,10 @@ def _scenes(box: list[float]) -> tuple[list[np.ndarray], list[str]] | None:
 
 
 def _features(scenes) -> np.ndarray:
-    """(F, H, W) đã chuẩn hoá z-score theo cửa sổ. Điểm mây lấp bằng trung vị cảnh."""
+    """(F, H, W) đã chuẩn hoá z-score theo cửa sổ. Điểm mây lấp bằng trung vị cảnh.
+
+    CHƯA trừ lệch 1000 của L2A từ 2022 (mpc.BOA_OFFSET) — cố ý giữ nguyên như lúc kiểm định 4/10/2026
+    để kết quả đã công bố còn tái lập được; lần thử sau (bộ ranh mới, đăng ký mới) phải trừ."""
     ndvi, nir, swir = [], [], []
     for a, clear in scenes:
         red, b08, b11 = (a[0].astype(np.float64), a[1].astype(np.float64), a[2].astype(np.float64))

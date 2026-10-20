@@ -210,17 +210,19 @@ def build_patch(lat: float, lon: float, year: int = 2021, seasons: int = 1):
     tok_s2 = sas(S2)
     if not tok_s2:
         return None
+    from app.services.mpc import BOA_OFFSET, has_offset
     chans = []
     for start, end in SEASON_WINDOWS[seasons]:
         s2 = search(S2, box, f"{year}-{start}", f"{year}-{end}", cloud=MAX_CLOUD, limit=1)
         if not s2:
             return None                      # thiếu một mùa → bỏ cả ô, không ghép lệch
+        off = BOA_OFFSET if has_offset(s2[0]) else 0
         for b in BANDS:
-            chans.append(read_window(s2[0]["assets"][b]["href"], box, tok_s2))
+            chans.append(read_window(s2[0]["assets"][b]["href"], box, tok_s2).astype(np.float32) - off)
     img = np.stack(chans).astype(np.float32)
 
-    # Phản xạ Sentinel-2 L2A ở thang 0–10000. Chia 10000 đưa về 0–1; cắt trần ở
-    # 1.0 vì mây và mặt nước sáng có thể vượt thang.
+    # Phản xạ Sentinel-2 L2A ở thang 0–10000 (cảnh từ 2022 đã trừ lệch 1000 ở trên). Chia 10000
+    # đưa về 0–1; cắt trần ở 1.0 vì mây và mặt nước sáng có thể vượt thang.
     img = np.clip(img / 10000.0, 0.0, 1.0)
     if not np.isfinite(img).all():
         return None

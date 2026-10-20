@@ -31,6 +31,7 @@ from __future__ import annotations
 import http.client
 import json
 import math
+import re
 import threading
 import urllib.error
 import urllib.parse
@@ -74,6 +75,36 @@ EXPR = {
     "NDMI": "(B08-B11)/(B08+B11)",
     "NDBI": "(B11-B08)/(B11+B08)",
 }
+
+# LỆCH 1000 CỦA L2A TỪ 25/01/2022. Từ phiên bản xử lý 04.00, ESA lưu DN = 10000·ρ + 1000
+# (BOA_ADD_OFFSET) và Planetary Computer KHÔNG trừ hộ. Chỉ số chuẩn hoá tính thẳng trên DN
+# thì mẫu số dư 2000 → NDVI thấp đi rất nhiều: đo 20/10/2026 cùng một cảnh An Giang
+# (04/2024, PB 05.10) 0,232 thay vì 0,392; Lâm Đồng 0,222 thay vì 0,359 — các ngưỡng
+# tuyệt đối (trơ 0,20 / thưa 0,40 / khoẻ 0,60, tán 0,55 của carbon) đọc sai, và chuỗi
+# nhiều năm có một bậc tụt giả đúng tháng 1/2022. Trước 04.00 không có lệch.
+# DN ≤ 1000 (phản xạ ≤ 0, mặt nước tối) chặn về 1 để mẫu số không về 0 hay đổi dấu.
+BOA_OFFSET = 1000
+_BAND = re.compile(r"\bB(?:0[1-9]|1[0-2]|8A)\b")
+
+
+def has_offset(item: dict | None) -> bool:
+    """Cảnh có lệch 1000 không — theo s2:processing_baseline; thiếu thuộc tính thì theo ngày (≥ 25/01/2022)."""
+    p = (item or {}).get("properties") or {}
+    pb = p.get("s2:processing_baseline")
+    try:
+        if pb:
+            return float(pb) >= 4.0
+    except ValueError:
+        pass
+    return str(p.get("datetime", ""))[:10] >= "2022-01-25"
+
+
+def index_expr(index: str, offset: bool) -> str:
+    """Biểu thức chỉ số đọc đúng phản xạ: cảnh có lệch thì mỗi băng thành (Bxx − 1000), chặn dưới ở 1."""
+    e = EXPR[index]
+    if not offset:
+        return e
+    return _BAND.sub(lambda m: f"where({m.group(0)}>{BOA_OFFSET},{m.group(0)}-{BOA_OFFSET},1)", e)
 
 
 def available() -> bool:
@@ -203,10 +234,10 @@ def clear_fraction(item_id: str, box: list[float]) -> float | None:
     return 100.0 * clear / total
 
 
-def _stats_one(item_id: str, box: list[float], index: str) -> dict | None:
+def _stats_one(item_id: str, box: list[float], index: str, offset: bool = False) -> dict | None:
     q = urllib.parse.urlencode({
         "collection": COLLECTION, "item": item_id,
-        "expression": EXPR[index], "asset_as_band": "true",
+        "expression": index_expr(index, offset), "asset_as_band": "true",
     })
     r = _call(f"{DATA}?{q}", _poly(box))
     if not r:
@@ -220,7 +251,7 @@ def _stats_one(item_id: str, box: list[float], index: str) -> dict | None:
     return st
 
 
-def masked_stats(item_id: str, box: list[float], index: str) -> dict | None:
+def masked_stats(item_id: str, box: list[float], index: str, offset: bool = False) -> dict | None:
     """Thống kê chỉ số CHỈ trên điểm ảnh quang mây (lớp SCL), một lượt gọi.
 
     Bản cũ lấy trung bình MỌI điểm ảnh của cảnh đã qua ngưỡng 70% quang: tới 30%
@@ -232,7 +263,7 @@ def masked_stats(item_id: str, box: list[float], index: str) -> dict | None:
     lượt gọi rồi tính đúng: tổng có che, số điểm quang, tổng bình phương có che, min
     và max có che. Lượt gọi này cũng cho luôn % quang — thay cho lượt dò SCL riêng.
     """
-    v, m = EXPR[index], _SCL_MASK
+    v, m = index_expr(index, offset), _SCL_MASK
     expr = ";".join([f"where({m},{v},0)", f"where({m},1,0)", f"where({m},({v})*({v}),0)",
                      f"where({m},{v},2)", f"where({m},{v},-2)"])
     q = urllib.parse.urlencode({"collection": COLLECTION, "item": item_id,
@@ -300,7 +331,7 @@ def index_series(lat: float, lon: float, index: str = "NDVI",
     box = bbox_around(lat, lon, buffer_m)
 
     from app.services import cache_store, jobs
-    key = cache_store.make_key("mpc-series-m3", index, round(lat, 4), round(lon, 4),
+    key = cache_store.make_key("mpc-series-m4", index, round(lat, 4), round(lon, 4),
                                int(days), int(buffer_m), end.isoformat(),
                                int(buffer_m), max_scenes)
     hit = cache_store.get(key)
@@ -317,7 +348,7 @@ def index_series(lat: float, lon: float, index: str = "NDVI",
 
     # MỘT lượt gọi mỗi cảnh: thống kê đã che mây từng điểm ảnh, kèm luôn % quang.
     probe = _spread(_one_per_date(items), min(MAX_PROBE, len(items)))
-    got = [g for g in jobs.gather([lambda it=it: (it, masked_stats(it["id"], box, index))
+    got = [g for g in jobs.gather([lambda it=it: (it, masked_stats(it["id"], box, index, has_offset(it)))
                                    for it in probe]) if g is not None]
     if not any(st is not None for _, st in got):
         return None                      # mọi lượt gọi đều hỏng — KHÁC với "toàn mây"
@@ -396,7 +427,7 @@ def monthly_index_series(lat: float, lon: float, index: str = "NDVI",
 
     from app.services import cache_store, jobs
 
-    key = cache_store.make_key("mpc-monthly-m2", index, round(lat, 4), round(lon, 4),
+    key = cache_store.make_key("mpc-monthly-m3", index, round(lat, 4), round(lon, 4),
                                months, int(buffer_m), end.isoformat())
     hit = cache_store.get(key)
     if hit is not None:
@@ -422,7 +453,7 @@ def monthly_index_series(lat: float, lon: float, index: str = "NDVI",
                                min(max_per_month, len(its)))
         probe_pairs.extend((mk, it) for it in chosen_probe)
 
-    got = jobs.gather([lambda p=p: (p[0], masked_stats(p[1]["id"], box, index))
+    got = jobs.gather([lambda p=p: (p[0], masked_stats(p[1]["id"], box, index, has_offset(p[1])))
                        for p in probe_pairs])
     vals_by_month: dict[tuple[int, int], list[float]] = {}
     for res in got:
@@ -467,7 +498,7 @@ def index_distribution(lat: float, lon: float, index: str = "NDVI",
     box = bbox_around(lat, lon, buffer_m)
 
     from app.services import cache_store
-    key = cache_store.make_key("mpc-hist-m2", index, round(lat, 4), round(lon, 4),
+    key = cache_store.make_key("mpc-hist-m3", index, round(lat, 4), round(lon, 4),
                                int(days), int(buffer_m), bins, end.isoformat())
     hit = cache_store.get(key)
     if hit is not None:
@@ -483,7 +514,7 @@ def index_distribution(lat: float, lon: float, index: str = "NDVI",
     # đạt thì mây (NDVI ≈ 0) vẫn nằm trong phân bố, kéo lệch tỉ lệ che phủ.
     probe = _spread(_one_per_date(items), min(12, len(items)))
     from app.services import jobs as _j
-    fr = [g for g in _j.gather([lambda it=it: (it, masked_stats(it["id"], box, index))
+    fr = [g for g in _j.gather([lambda it=it: (it, masked_stats(it["id"], box, index, has_offset(it)))
                                 for it in probe]) if g is not None]
     ok = [(it, st_) for it, st_ in fr
           if st_ is not None and st_.get("clear_pct", 0.0) >= CLEAR_MIN_MASKED and "mean" in st_]
@@ -496,7 +527,7 @@ def index_distribution(lat: float, lon: float, index: str = "NDVI",
     # phân bố; trung bình/độ lệch lấy từ masked_stats (chỉ điểm ảnh quang).
     q = urllib.parse.urlencode({
         "collection": COLLECTION, "item": it["id"],
-        "expression": f"where({_SCL_MASK},{EXPR[index]},-2)", "asset_as_band": "true",
+        "expression": f"where({_SCL_MASK},{index_expr(index, has_offset(it))},-2)", "asset_as_band": "true",
         "histogram_bins": str(int(bins)), "histogram_range": "-1,1",
     })
     r = _call(f"{DATA}?{q}", _poly(box))

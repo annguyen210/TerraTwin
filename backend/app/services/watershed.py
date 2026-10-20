@@ -294,7 +294,7 @@ def _fetch_ndvi_crop(lat: float, lon: float, buffer_m: float, size_px: int):
     rescale_lo, rescale_hi = -0.2, 0.9
     q = urllib.parse.urlencode({
         "collection": mpc.COLLECTION, "item": item["id"],
-        "expression": mpc.EXPR["NDVI"], "asset_as_band": "true",
+        "expression": mpc.index_expr("NDVI", mpc.has_offset(item)), "asset_as_band": "true",
         "width": size_px, "height": size_px,
         "rescale": f"{rescale_lo},{rescale_hi}",
         # CỐ Ý không có colormap_name — PNG xám tuyến tính, đọc lại được đúng
