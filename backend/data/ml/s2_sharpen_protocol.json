@@ -1,0 +1,300 @@
+{
+ "id": "s2_sharpen_v1",
+ "registered": "2026-10-20",
+ "question": "Làm sắc băng SWIR B11 Sentinel-2 từ 20 m xuống 10 m bằng các băng 10 m đã đo (B02/B03/B04/B08) có tốt hơn phóng bậc ba hay không, để vẽ NDMI 10 m trong thửa (roadmap S10 ①; ② là dữ liệu tổng hợp để huấn luyện phương pháp ml).",
+ "honesty": "Không mô hình sinh. Mỗi ô 20 m giữ nguyên giá trị đo: chiếu ngược ép trung bình 2×2 của kết quả bằng B11 20 m gốc. Không kiểm được trực tiếp ở 10 m (không có B11 10 m thật) — dùng phép kiểm Wald chuẩn (thu nhỏ một bậc rồi phục hồi), giả định quan hệ giữa các thang giữ nguyên khi lên 10 m; ghi rõ giả định này trên thẻ mô hình.",
+ "data": {
+  "source": "Sentinel-2 L2A, Microsoft Planetary Computer (data API /item/bbox .npy), lưới UTM gốc của cảnh (coord_crs = dst_crs = EPSG cảnh, khung bám đúng lưới 20 m, resampling nearest)",
+  "reflectance": "(DN − 1000)/10000 nếu s2:processing_baseline ≥ 04.00, ngược lại DN/10000",
+  "window": "64 × 64 ô 20 m (1.280 m); băng 10 m 128 × 128",
+  "dates": "2024-01-01 → 2026-09-30",
+  "scene_rule": "tìm STAC eo:cloud_cover < 20, xếp tăng dần theo độ mây cảnh; dò tối đa 8 cảnh đầu (khung tìm: ±680 m quanh điểm); nhận cảnh ĐẦU TIÊN có ≥ 95% ô 20 m trong khung thuộc SCL {4,5,6,7} và ≤ 40% là nước (SCL 6). Không cảnh nào đạt → thử vị trí kế tiếp (xem location_rule).",
+  "location_rule": "tâm tỉnh trong danh sách + độ lệch ngẫu nhiên đều ±0,05° cho cả vĩ và kinh độ, random.Random(20261020 + i + {train: 0, val: 100, test: 200}[nhóm]) với i là thứ tự tỉnh trong nhóm, tối đa 4 lần thử; hết 4 lần thì bỏ tỉnh đó và ghi vào kết quả",
+  "split_seed": 20261020,
+  "split": {
+   "train": [
+    {
+     "province": "Thái Bình",
+     "lat": 20.5,
+     "lon": 106.35
+    },
+    {
+     "province": "Tiền Giang",
+     "lat": 10.4,
+     "lon": 106.2
+    },
+    {
+     "province": "Hà Nội",
+     "lat": 21.0,
+     "lon": 105.6
+    },
+    {
+     "province": "Ninh Thuận",
+     "lat": 11.6,
+     "lon": 108.95
+    },
+    {
+     "province": "Bình Thuận",
+     "lat": 11.15,
+     "lon": 108.2
+    },
+    {
+     "province": "Thanh Hoá",
+     "lat": 19.85,
+     "lon": 105.75
+    },
+    {
+     "province": "An Giang",
+     "lat": 10.45,
+     "lon": 105.2
+    },
+    {
+     "province": "Khánh Hoà",
+     "lat": 12.3,
+     "lon": 109.05
+    },
+    {
+     "province": "Hưng Yên",
+     "lat": 20.8,
+     "lon": 106.05
+    },
+    {
+     "province": "Phú Yên",
+     "lat": 13.05,
+     "lon": 109.15
+    },
+    {
+     "province": "Quảng Ngãi",
+     "lat": 15.05,
+     "lon": 108.8
+    },
+    {
+     "province": "Bến Tre",
+     "lat": 10.15,
+     "lon": 106.45
+    },
+    {
+     "province": "Đắk Nông",
+     "lat": 12.1,
+     "lon": 107.7
+    },
+    {
+     "province": "Thái Nguyên",
+     "lat": 21.55,
+     "lon": 105.85
+    },
+    {
+     "province": "Long An",
+     "lat": 10.65,
+     "lon": 106.2
+    },
+    {
+     "province": "Lâm Đồng",
+     "lat": 11.75,
+     "lon": 108.25
+    },
+    {
+     "province": "Nghệ An",
+     "lat": 18.9,
+     "lon": 105.55
+    },
+    {
+     "province": "Bình Phước",
+     "lat": 11.7,
+     "lon": 106.8
+    },
+    {
+     "province": "Vĩnh Long",
+     "lat": 10.15,
+     "lon": 106.0
+    },
+    {
+     "province": "Bắc Ninh",
+     "lat": 21.1,
+     "lon": 106.1
+    },
+    {
+     "province": "Hà Nam",
+     "lat": 20.55,
+     "lon": 105.95
+    },
+    {
+     "province": "Kon Tum",
+     "lat": 14.45,
+     "lon": 108.0
+    },
+    {
+     "province": "Kiên Giang",
+     "lat": 10.0,
+     "lon": 105.2
+    },
+    {
+     "province": "Hà Tĩnh",
+     "lat": 18.3,
+     "lon": 105.85
+    },
+    {
+     "province": "Bạc Liêu",
+     "lat": 9.35,
+     "lon": 105.55
+    }
+   ],
+   "val": [
+    {
+     "province": "Đồng Nai",
+     "lat": 11.0,
+     "lon": 107.2
+    },
+    {
+     "province": "Gia Lai",
+     "lat": 13.95,
+     "lon": 108.1
+    },
+    {
+     "province": "Ninh Bình",
+     "lat": 20.15,
+     "lon": 106.05
+    },
+    {
+     "province": "Cà Mau",
+     "lat": 9.15,
+     "lon": 105.1
+    },
+    {
+     "province": "Bà Rịa - Vũng Tàu",
+     "lat": 10.6,
+     "lon": 107.25
+    },
+    {
+     "province": "Nam Định",
+     "lat": 20.3,
+     "lon": 106.25
+    },
+    {
+     "province": "Bình Định",
+     "lat": 13.95,
+     "lon": 109.0
+    },
+    {
+     "province": "Bình Dương",
+     "lat": 11.15,
+     "lon": 106.6
+    }
+   ],
+   "test": [
+    {
+     "province": "Hậu Giang",
+     "lat": 9.8,
+     "lon": 105.55
+    },
+    {
+     "province": "Vĩnh Phúc",
+     "lat": 21.3,
+     "lon": 105.55
+    },
+    {
+     "province": "Quảng Bình",
+     "lat": 17.4,
+     "lon": 106.55
+    },
+    {
+     "province": "Hải Phòng",
+     "lat": 20.8,
+     "lon": 106.55
+    },
+    {
+     "province": "Đồng Tháp",
+     "lat": 10.55,
+     "lon": 105.65
+    },
+    {
+     "province": "Trà Vinh",
+     "lat": 9.85,
+     "lon": 106.25
+    },
+    {
+     "province": "Sóc Trăng",
+     "lat": 9.6,
+     "lon": 105.85
+    },
+    {
+     "province": "Quảng Trị",
+     "lat": 16.8,
+     "lon": 107.1
+    },
+    {
+     "province": "Bắc Giang",
+     "lat": 21.3,
+     "lon": 106.3
+    },
+    {
+     "province": "Cần Thơ",
+     "lat": 10.1,
+     "lon": 105.6
+    },
+    {
+     "province": "Thừa Thiên Huế",
+     "lat": 16.55,
+     "lon": 107.5
+    },
+    {
+     "province": "Tây Ninh",
+     "lat": 11.25,
+     "lon": 106.2
+    },
+    {
+     "province": "Đắk Lắk",
+     "lat": 12.75,
+     "lon": 108.1
+    },
+    {
+     "province": "Hải Dương",
+     "lat": 20.9,
+     "lon": 106.35
+    },
+    {
+     "province": "Phú Thọ",
+     "lat": 21.3,
+     "lon": 105.3
+    },
+    {
+     "province": "Quảng Nam",
+     "lat": 15.75,
+     "lon": 108.3
+    }
+   ]
+  }
+ },
+ "wald_protocol": {
+  "degrade": "trung bình 2×2 (ô thô = trung bình 4 ô mịn)",
+  "inputs": "băng mịn = thu_nhỏ(băng 10 m) → 64 × 64 ở 20 m; B11 thô = thu_nhỏ(B11 20 m) → 32 × 32 ở 40 m",
+  "target": "B11 20 m THẬT (64 × 64)",
+  "pixels_scored": "ô 20 m thuộc SCL {4,5,6,7} và có dữ liệu, bỏ 2 ô viền mỗi cạnh"
+ },
+ "methods": {
+  "bicubic": "MỐC: phóng bậc ba Keys a = −0,5 của B11 thô",
+  "rg": "hồi quy tuyến tính theo từng khung: thô ≈ a + Σ bᵢ·thu_nhỏ(mịn ᵢ) (bình phương tối thiểu trên cả khung), áp ở thang mịn, rồi chiếu ngược 20 vòng",
+  "ml": "S10 ②: hồi quy ridge (λ = 1e-6 · tổng bình phương đặc trưng / số đặc trưng) học trên MỌI ô của các cảnh TRAIN ở thang tổng hợp 40 → 20 m; đặc trưng = chi tiết cao tần hᵢ = mịnᵢ − phóng(thu_nhỏ(mịnᵢ)) của 4 băng + hᵢ·phóng(thô)/(phóng(thu_nhỏ(mịnᵢ)) + 0,01); đích = B11 thật − phóng(thô); rồi chiếu ngược 20 vòng. Dữ liệu tổng hợp này không bao giờ hiện cho người dùng."
+ },
+ "selection": "Trên 8 tỉnh VAL: chọn phương pháp (rg hoặc ml) có TRUNG VỊ RMSE B11 thấp hơn; bằng nhau (chênh < 1e-6) → rg (đơn giản hơn). Chọn xong mới chấm TEST, chấm MỘT lần.",
+ "metrics": {
+  "rmse_b11": "căn trung bình bình phương sai số B11 (phản xạ) trên ô được chấm",
+  "rel_gain": "1 − RMSE(phương pháp)/RMSE(bicubic) cho từng cảnh",
+  "ndmi_rmse": "RMSE của NDMI = (B08 − B11)/(B08 + B11) với B08 = thu_nhỏ(B08 10 m) và B11 dự đoán, so với NDMI dùng B11 thật",
+  "consistency": "max |thu_nhỏ(kết quả) − B11 thô| trên cả khung"
+ },
+ "gate": {
+  "g1": "trung vị rel_gain (B11) trên các cảnh TEST ≥ 0,15",
+  "g2": "phương pháp chọn có RMSE B11 < bicubic ở ≥ 80% số cảnh TEST",
+  "g3": "trung vị (1 − ndmi_rmse(phương pháp)/ndmi_rmse(bicubic)) trên TEST ≥ 0,15",
+  "g4": "consistency ≤ 0,002 phản xạ ở MỌI cảnh TEST",
+  "min_test_scenes": 12,
+  "pass": "đạt cả g1–g4 và có ≥ 12 cảnh TEST → bật NDMI 10 m (tham khảo, không vào nội dung ký của hồ sơ); trượt → công bố, không bật, không chỉnh trên chính bộ TEST"
+ },
+ "not_claimed": "Không khẳng định độ chính xác ở 10 m; không thay phép đo thực địa độ ẩm; NDMI là chỉ số nước trong tán lá, không phải độ ẩm đất.",
+ "code": {
+  "service": "backend/app/services/s2_sharpen.py",
+  "gate": "ops/s2_sharpen_gate.py"
+ },
+ "run_log": []
+}
