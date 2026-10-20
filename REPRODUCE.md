@@ -414,7 +414,7 @@ Kết quả (ghi trong `backend/data/landcover_runs.json`, lần 3): **mIoU 0,42
 chấm cuối trên bộ tỉnh này. Bật: `GET /api/landcover/change` (2021 so với năm mới nhất, nhóm đổi ≥ 25 điểm % mới
 gọi là đổi khác) — dự đoán, không vào hồ sơ ký.
 
-## 11. Nước trên ảnh radar bằng học sâu (U-Net, Sen1Floods11) — CỔNG GĐ5 (mục 2) ĐẠT 18/10/2026, CHƯA bật
+## 11. Nước trên ảnh radar bằng học sâu (U-Net, Sen1Floods11) — cổng mô hình ĐẠT 18/10; TRƯỢT phép kiểm trên thửa GĐ2 20/10/2026 → không bật
 
 Giao thức đăng ký trước 09/10/2026 cùng commit với script (6d9cfb4): [`backend/data/ml/gd5_protocol.json`](backend/data/ml/gd5_protocol.json)
 mục `s1_water`. Chạy đúng một lần trên GPU Kaggle (2× Tesla T4, 40 vòng, 1.124,6 s), script tải theo đúng commit và kiểm
@@ -441,6 +441,22 @@ muốn dùng mô hình phải đọc ảnh VV/VH của khung thửa cho từng c
 lũ Huế 10/2020, miền Trung 10/2025 thấy nước đúng tuần; đất cao 0 đợt). Lượt Kaggle đầu (Version 1) bị kẹt hàng đợi GPU
 38 phút và được huỷ khi CHƯA chạy dòng nào; Version 2 là lượt duy nhất được chấm. Xuất ONNX lỗi (thiếu `onnxscript` trên
 ảnh Kaggle) — không ảnh hưởng kết quả; trọng số `s1_water_unet.pt` nằm trong Output của notebook.
+
+**Nối vào lịch sử nước dưới dạng "ý kiến thứ hai" cho từng đợt — TRƯỢT (20/10/2026).** Giao thức đăng ký trước
+[`s1_unet_confirm_protocol.json`](backend/data/ml/s1_unet_confirm_protocol.json) (8071df1): khung 1.280 m quanh thửa, VV/VH dB,
+U-Net (chuyển ONNX bằng `ml/s1_unet_export.py`, lệch PyTorch 2e-6), xác nhận đợt khi ≥ 10% khung thửa 20 × 20 điểm ảnh ở giữa
+là nước. Chấm một lần (`ops/s1_unet_gate.py`, 235 s) → [`s1_unet_confirm_result.json`](backend/data/ml/s1_unet_confirm_result.json):
+
+| Thửa GĐ2 | Điều kiện | Kết quả |
+|---|---|---|
+| Quảng Điền — lũ 10/2020 và 10/2025 | U-Net ≥ 10% khung thửa | **0% cả hai** (cả 7 đợt của phương pháp ngưỡng: 0%) — trượt |
+| Đất cao Đà Lạt — 24 cảnh | 0 xác nhận nhầm | 0/24 — đạt |
+| Đồi thông Thiên An — 24 cảnh | 0 xác nhận nhầm | **14/24** (tới 28% khung) — trượt |
+
+Chẩn đoán SAU khi chấm (không đổi kết quả): ảnh đọc đúng khung (khớp thống kê lịch sử nước); ruộng ngập Quảng Điền chỉ tối hơn nền
+~3 dB (trung vị ≈ −17 dB) — U-Net học mặt nước MỞ của Sen1Floods11 nên không gọi là nước; đồi dốc bị bóng radar đánh lừa.
+U-Net **giữ tắt**; lịch sử nước giữ phương pháp ngưỡng so với nền của chính thửa. Muốn dùng: tinh chỉnh trên nhãn ruộng ngập nông
+Việt Nam + mặt nạ bóng địa hình — lần huấn luyện mới, đăng ký mới.
 
 ## 12. Nước trong ẢNH THỰC ĐỊA (SegFormer-b0) — bản 1 trượt đối chứng ảnh khô; BẢN 2 ĐẠT cả hai 19/10/2026 → đã bật (tham khảo)
 

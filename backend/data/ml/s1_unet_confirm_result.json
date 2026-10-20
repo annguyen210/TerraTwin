@@ -1,0 +1,315 @@
+{
+ "protocol": "terratwin.s1_unet_confirm/1",
+ "confirm_share": 0.1,
+ "context_m": 1280.0,
+ "px": 128,
+ "center_px": 20,
+ "positive": [
+  {
+   "label": "lũ Huế 10/2020",
+   "events": [
+    {
+     "start": "2020-10-10",
+     "end": "2020-10-10",
+     "flag_date": "2020-10-10",
+     "threshold_cover": "25–50%",
+     "unet_share": 0.0,
+     "unet_item": "S1A_IW_GRDH_1SDV_20201010T224410_20201010T224435_034740_040C29_rtc"
+    }
+   ],
+   "pass": false
+  },
+  {
+   "label": "lũ miền Trung 10/2025",
+   "events": [
+    {
+     "start": "2025-11-01",
+     "end": "2025-11-19",
+     "flag_date": "2025-11-01",
+     "threshold_cover": "25–50%",
+     "unet_share": 0.0,
+     "unet_item": "S1A_IW_GRDH_1SDV_20251101T224414_20251101T224439_061690_07B563_rtc"
+    }
+   ],
+   "pass": false
+  }
+ ],
+ "negative": [
+  {
+   "case": "Đất cao Đà Lạt",
+   "n": 24,
+   "n_confirmed_wrongly_or_unread": 0,
+   "scenes": [
+    {
+     "date": "2017-07-17",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2017-08-22",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2017-11-14",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2018-02-06",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2018-03-02",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2018-06-18",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2018-08-17",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2019-07-31",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2019-09-05",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2019-10-11",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2020-03-09",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2020-04-02",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2020-04-08",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2020-05-02",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2020-08-06",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2021-02-26",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2021-03-28",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2022-09-01",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2023-03-24",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2025-04-12",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2025-07-05",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2025-09-27",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2026-05-14",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2026-08-24",
+     "unet_share": 0.0
+    }
+   ],
+   "pass": true
+  },
+  {
+   "case": "Đồi thông Thiên An, Huế",
+   "n": 24,
+   "n_confirmed_wrongly_or_unread": 14,
+   "scenes": [
+    {
+     "date": "2017-08-15",
+     "unet_share": 0.253
+    },
+    {
+     "date": "2017-09-20",
+     "unet_share": 0.23
+    },
+    {
+     "date": "2017-12-01",
+     "unet_share": 0.05
+    },
+    {
+     "date": "2018-02-11",
+     "unet_share": 0.253
+    },
+    {
+     "date": "2018-03-07",
+     "unet_share": 0.247
+    },
+    {
+     "date": "2018-06-23",
+     "unet_share": 0.223
+    },
+    {
+     "date": "2018-08-22",
+     "unet_share": 0.247
+    },
+    {
+     "date": "2019-08-17",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2019-09-22",
+     "unet_share": 0.037
+    },
+    {
+     "date": "2020-08-23",
+     "unet_share": 0.172
+    },
+    {
+     "date": "2020-10-10",
+     "unet_share": 0.003
+    },
+    {
+     "date": "2020-10-22",
+     "unet_share": 0.152
+    },
+    {
+     "date": "2020-11-15",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2021-04-20",
+     "unet_share": 0.083
+    },
+    {
+     "date": "2022-06-02",
+     "unet_share": 0.135
+    },
+    {
+     "date": "2022-08-01",
+     "unet_share": 0.062
+    },
+    {
+     "date": "2024-06-15",
+     "unet_share": 0.155
+    },
+    {
+     "date": "2025-02-10",
+     "unet_share": 0.033
+    },
+    {
+     "date": "2025-05-11",
+     "unet_share": 0.28
+    },
+    {
+     "date": "2025-06-28",
+     "unet_share": 0.268
+    },
+    {
+     "date": "2025-08-09",
+     "unet_share": 0.125
+    },
+    {
+     "date": "2025-10-08",
+     "unet_share": 0.0
+    },
+    {
+     "date": "2026-01-12",
+     "unet_share": 0.01
+    },
+    {
+     "date": "2026-09-10",
+     "unet_share": 0.115
+    }
+   ],
+   "pass": false
+  }
+ ],
+ "all_events_quang_dien": [
+  {
+   "start": "2017-11-07",
+   "end": "2017-11-07",
+   "flag_date": "2017-11-07",
+   "threshold_cover": "10–25%",
+   "unet_share": 0.0,
+   "unet_item": "S1A_IW_GRDH_1SDV_20171107T224351_20171107T224416_019165_0206FC_rtc"
+  },
+  {
+   "start": "2020-10-10",
+   "end": "2020-10-10",
+   "flag_date": "2020-10-10",
+   "threshold_cover": "25–50%",
+   "unet_share": 0.0,
+   "unet_item": "S1A_IW_GRDH_1SDV_20201010T224410_20201010T224435_034740_040C29_rtc"
+  },
+  {
+   "start": "2020-11-09",
+   "end": "2020-11-15",
+   "flag_date": "2020-11-15",
+   "threshold_cover": "10–25%",
+   "unet_share": 0.0,
+   "unet_item": "S1A_IW_GRDH_1SDV_20201115T224410_20201115T224435_035265_041E5F_rtc"
+  },
+  {
+   "start": "2021-10-17",
+   "end": "2021-10-17",
+   "flag_date": "2021-10-17",
+   "threshold_cover": "25–50%",
+   "unet_share": 0.0,
+   "unet_item": "S1A_IW_GRDH_1SDV_20211017T224416_20211017T224441_040165_04C1D1_rtc"
+  },
+  {
+   "start": "2023-10-19",
+   "end": "2023-10-19",
+   "flag_date": "2023-10-19",
+   "threshold_cover": "25–50%",
+   "unet_share": 0.0,
+   "unet_item": "S1A_IW_GRDH_1SDV_20231019T224427_20231019T224452_050840_0620B7_rtc"
+  },
+  {
+   "start": "2025-11-01",
+   "end": "2025-11-19",
+   "flag_date": "2025-11-01",
+   "threshold_cover": "25–50%",
+   "unet_share": 0.0,
+   "unet_item": "S1A_IW_GRDH_1SDV_20251101T224414_20251101T224439_061690_07B563_rtc"
+  },
+  {
+   "start": "2026-01-30",
+   "end": "2026-01-30",
+   "flag_date": "2026-01-30",
+   "threshold_cover": "10–25%",
+   "unet_share": 0.0,
+   "unet_item": "S1C_IW_GRDH_1SDV_20260130T224243_20260130T224313_006139_00C527_rtc"
+  }
+ ],
+ "passed": false,
+ "seconds": 235.3,
+ "diagnosis_after_scoring": {
+  "note": "Chẩn đoán làm SAU khi chấm (không đổi kết quả): khung ảnh đọc khớp đúng thống kê lịch sử nước (2020-10-10 trung vị −17,2 dB, p25 −18,4 dB = series −17,06 / −18,39) → không phải lỗi đọc ảnh.",
+  "why_positive_failed": "Đợt nước ruộng lúa Quảng Điền chỉ tối hơn nền ~3 dB (p50 ≈ −17 dB, p25 sát −18 dB): phương pháp ngưỡng bắt được nhờ so với nền của chính thửa; U-Net học nhãn MẶT NƯỚC MỞ của Sen1Floods11 (thường < −20 dB) nên xác suất lớn nhất trong khung thửa chỉ 0,07–0,15.",
+  "why_negative_failed": "Đồi thông dốc Thiên An: bóng/che khuất radar của địa hình làm U-Net gọi nhầm tới 28% khung thửa là nước (14/24 cảnh ≥ 10%); Đà Lạt 0/24.",
+  "onnx_sha256": "d3018009ae21da4613e64f42dbd4b9f953191ca61f91d17a175b7dd21a91a42b",
+  "pt_sha256": "4721215b66527ac17f37dfcc4f51f42745ad6d27d958a53cb05c0abb11fdfc06",
+  "next": "Muốn dùng U-Net cho ruộng Việt Nam phải tinh chỉnh trên nhãn ruộng ngập nông Việt Nam + mặt nạ bóng địa hình — lần huấn luyện MỚI, đăng ký mới."
+ }
+}
