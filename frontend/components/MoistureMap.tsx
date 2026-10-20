@@ -4,6 +4,7 @@
  * S10 ① — ĐỘ ẨM TÁN LÁ (NDMI) 10 m TRONG THỬA. B11 (20 m) làm sắc bằng các băng 10 m đã đo; mỗi ô 20 m vẫn trung bình
  * đúng bằng ảnh đo gốc (backend/app/services/s2_sharpen.py). Chỉ hiện khi phép kiểm Wald đăng ký trước ĐẠT.
  * Ảnh 20 m gốc đặt CẠNH ảnh 10 m để người xem tự thấy phần nào là đo, phần nào là làm sắc. Tham khảo, không vào hồ sơ ký.
+ * Nằm ở tab Canh đất, CHỈ chạy khi bấm (mỗi lượt đọc ảnh tính một lượt quét của hạn mức).
  */
 import { useEffect, useRef, useState } from "react";
 import { Droplets } from "lucide-react";
@@ -59,23 +60,25 @@ export default function MoistureMap({ lat, lon }: { lat: number; lon: number }) 
   const { t } = useLang();
   const [r, setR] = useState<Ndmi10 | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const gen = useRef(0);
 
   async function run() {
     const my = ++gen.current;
-    setR(null); setErr(null);
+    setR(null); setErr(null); setBusy(true);
     try {
       const x = await ndmi10(lat, lon);
       if (my === gen.current) setR(x);
     } catch (e) {
       if (my === gen.current) setErr((e as Error).message);
+    } finally {
+      if (my === gen.current) setBusy(false);
     }
   }
 
-  useEffect(() => {
-    run();
-    return () => { gen.current++; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {                                            // đổi thửa → bỏ kết quả cũ, chờ bấm lại
+    gen.current++;
+    setR(null); setErr(null); setBusy(false);
   }, [lat, lon]);
 
   const g1 = r?.gate?.g1_median_rel_gain?.[0];
@@ -87,7 +90,14 @@ export default function MoistureMap({ lat, lon }: { lat: number; lon: number }) 
         <h3>{t("Độ ẩm tán lá trong thửa (NDMI 10 m)", "Canopy moisture inside the plot (10 m NDMI)")}</h3>
         <span className="wh-badge">{t("làm sắc từ 20 m · tham khảo", "sharpened from 20 m · reference")}</span>
       </div>
-      {!r && !err && (
+      {!r && !err && !busy && (
+        <div className="wh-start">
+          <p>{t("Bản đồ lượng nước trong tán lá (NDMI) 10 m quanh thửa, từ ảnh Sentinel-2 quang mây gần nhất — chỗ nào khô hơn phần còn lại của ruộng/vườn.",
+                "A 10 m canopy-water (NDMI) map around the plot from the latest cloud-free Sentinel-2 image — which patches are drier than the rest of the field.")}</p>
+          <button className="bat-btn ghost" onClick={run}>{t("Xem độ ẩm tán lá 10 m", "Show 10 m canopy moisture")}</button>
+        </div>
+      )}
+      {!r && !err && busy && (
         <div className="wh-start" aria-live="polite">
           <p>{t("Đang tìm cảnh Sentinel-2 quang mây gần nhất và làm sắc băng hồng ngoại sóng ngắn 20 m → 10 m…",
                 "Finding the latest cloud-free Sentinel-2 scene and sharpening the 20 m shortwave-infrared band to 10 m…")}</p>

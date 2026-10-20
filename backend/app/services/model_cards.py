@@ -529,7 +529,7 @@ def cards() -> list[dict]:
             "id": "s2_sharpen", "kind": tr("làm sắc ảnh (không mô hình sinh)", "image sharpening (no generative model)"),
             "name": tr("NDMI 10 m — làm sắc B11 Sentinel-2 20 m → 10 m", "10 m NDMI — Sentinel-2 B11 sharpened 20 m → 10 m"),
             "status": "accepted" if sh.get("passed") else "rejected",
-            "status_label": (tr("đạt phép kiểm Wald · đang chạy — tham khảo ở tab Chuyên sâu", "passed the Wald test · live — reference in the In-depth tab")
+            "status_label": (tr("đạt phép kiểm Wald · đang chạy — tham khảo ở tab Canh đất", "passed the Wald test · live — reference in the Watch tab")
                              if sh.get("passed") and live else
                              tr("đạt phép kiểm Wald · đang tắt", "passed the Wald test · switched off") if sh.get("passed") else
                              tr("trượt · không bật", "failed · off")),

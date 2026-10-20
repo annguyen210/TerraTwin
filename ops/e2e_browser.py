@@ -359,7 +359,7 @@ with sync_playwright() as p:
         return f"{page.locator('.pw-mod').count()} công cụ"
     workspace()
 
-    @step("Chuyên sâu → 'Độ ẩm 10 m' (S10 ①): ảnh 20 m đo gốc cạnh ảnh 10 m làm sắc, hoặc nói rõ vì sao chưa có")
+    @step("Canh đất → 'Xem độ ẩm tán lá 10 m' (S10 ①): ảnh 20 m đo gốc cạnh ảnh 10 m làm sắc, hoặc nói rõ vì sao chưa có")
     def moisture():
         # 20/10/2026: NDMI 10 m bật sau phép kiểm Wald đăng ký trước (s2_sharpen_result.json). CHỈ ĐỌC (GET).
         ctx = browser.new_context(viewport={"width": 1366, "height": 860})
@@ -370,10 +370,8 @@ with sync_playwright() as p:
         skip = pg.get_by_role("button", name="Bỏ qua")
         if skip.count():
             skip.first.click()
-        pg.get_by_role("tab", name=re.compile("Chuyên sâu")).click()
-        pg.locator(".pw-mod").first.click()
-        pg.locator(".deep-tabs").wait_for(timeout=180_000)
-        pg.get_by_role("button", name=re.compile("Độ ẩm 10 m")).click()
+        pg.get_by_role("tab", name=re.compile("Canh đất")).click()
+        pg.get_by_role("button", name=re.compile("Xem độ ẩm tán lá 10 m")).click()
         pg.locator("section.mm .mm-pair, section.mm .doc-note, section.mm .bat-err").first.wait_for(timeout=180_000)
         pg.wait_for_timeout(800)
         pg.screenshot(path=os.path.join(OUT, "19-do-am-10m.png"), full_page=False)

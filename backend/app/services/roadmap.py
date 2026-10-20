@@ -226,7 +226,7 @@ def _s10(status: str, note: str) -> tuple[str, str]:
         f"① SẮC NÉT 20m→10m — ĐÃ LÀM, qua phép kiểm Wald đăng ký trước trên {n.get('test')} tỉnh giữ riêng: sai số B11 "
         f"giảm trung vị {round(100 * g1) if g1 is not None else '?'}% so với phóng bậc ba, NDMI giảm "
         f"{round(100 * g3) if g3 is not None else '?'}%; chiếu ngược giữ đúng giá trị đo của từng ô 20 m. Bản đồ NDMI 10 m "
-        "trong thửa ở tab Chuyên sâu (/api/optical/ndmi10). "
+        "trong thửa ở tab Canh đất (/api/optical/ndmi10). "
         "② DỮ LIỆU TỔNG HỢP để huấn luyện — ĐÃ LÀM: phương pháp được chọn học trên cặp ảnh thật thu nhỏ một bậc "
         f"({r.get('ml_train_pixels')} ô, {n.get('train')} tỉnh), không bao giờ hiện cho người dùng. "
         "③ ẢNH 'TƯƠNG LAI' theo kịch bản — ĐÃ LÀM (/api/future/{id}): nền là ảnh thật có ngày chụp, lớp phủ dự phóng "
