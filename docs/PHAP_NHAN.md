@@ -32,11 +32,30 @@ tiên hoặc khi cuộc thi yêu cầu pháp nhân.
   - **Hoạt động tư vấn kỹ thuật có liên quan khác** (thẩm định thửa cho ngân hàng / bảo hiểm)
 - Email, số điện thoại liên hệ; tài khoản ngân hàng (dùng đúng tài khoản sẽ đặt cho VietQR + SePay).
 
+## 2b. Kết quả tra nhãn hiệu "TerraTwin" (20/10/2026)
+
+Tra trên **WIPO Global Brand Database** (branddb.wipo.int — có dữ liệu Cục SHTT Việt Nam: đã thử "Vinamilk" thấy bản ghi
+"Country of filing: Viet Nam"). Trang tra cứu của Cục SHTT (wipopublish.ipvietnam.gov.vn) hôm đó báo lỗi, không mở được.
+
+| Nhãn | Nơi nộp | Nhóm Nice | Tình trạng | Số đơn/số bằng |
+|---|---|---|---|---|
+| TERRATWIN | Anh (Midland Shires Farmers Ltd) | 5 | Đã chấm dứt | UK00001111637 |
+| Terratwin | Đức (cá nhân) | **9, 42** | Đã đăng ký 06/08/2025 | 302025213976 |
+| terratwin | Hàn Quốc (cá nhân) | 19 | Đã đăng ký 03/11/2025 | 4024524540000 |
+| Terratwin | **EU** (Terratwin GmbH, Đức) | **9, 42** | Đang chờ (nộp 05/08/2026) | 019405205 |
+
+Đọc kết quả:
+- **Việt Nam: chưa thấy ai đăng ký hay nộp đơn "TerraTwin"** → nộp đơn nhãn hiệu tại Cục SHTT (nhóm 9 phần mềm, 42 dịch vụ
+  phần mềm/SaaS) là khả thi. Đơn mới nộp có thể chưa lên cơ sở dữ liệu vài tháng — tra lại trên trang của Cục trước khi nộp.
+- **Đức và EU đã có "Terratwin" ở ĐÚNG nhóm 9 và 42** (một cá nhân + Terratwin GmbH). TerraTwin nhắm khách mua EUDR ở châu Âu
+  (chương 2) → dùng tên này để bán phần mềm tại EU có rủi ro xung đột nhãn hiệu. Nên hỏi luật sư sở hữu trí tuệ; phương án an
+  toàn là tên/nhãn khác cho thị trường EU (vd kèm hình logo riêng, hoặc tên thương mại khác).
+
 ## 3. Các bước
 
 1. Tra trùng tên doanh nghiệp/hộ trên `dangkykinhdoanh.gov.vn`.
-2. Tra nhãn hiệu "TerraTwin" trên `wipopublish.ipvietnam.gov.vn` (mục Nhãn hiệu, tìm theo tên) — nếu chưa ai đăng ký thì
-   nộp đơn nhãn hiệu (nhóm 9 phần mềm, nhóm 42 dịch vụ phần mềm/SaaS) tại Cục Sở hữu trí tuệ, online được.
+2. Nhãn hiệu: ĐÃ TRA (mục 2b) — Việt Nam chưa có; nộp đơn nhãn hiệu (nhóm 9, 42) tại Cục Sở hữu trí tuệ, online được.
+   Lưu ý EU đã có "Terratwin" cùng nhóm 9/42.
 3. Nộp hồ sơ đăng ký hộ kinh doanh / doanh nghiệp online (mục 1), ký xác thực bằng VNeID; theo dõi kết quả qua email.
 4. Nhận giấy chứng nhận → đăng ký thuế (mã số thuế hộ/doanh nghiệp đi kèm), đăng ký hoá đơn điện tử với cơ quan thuế.
 5. Mở / gắn tài khoản ngân hàng đứng tên hộ hoặc công ty → đặt `TERRATWIN_VIETQR_*` và nối SePay (`DEPLOY.md`).
