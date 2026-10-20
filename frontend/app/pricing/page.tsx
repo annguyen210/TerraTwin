@@ -27,9 +27,11 @@ export default function PricingPage() {
 
       <main className="doc-body">
         <h1>{t("Bảng giá", "Pricing")}</h1>
-        <p className="doc-lede">{t(
+        <p className="doc-lede">{cat?.billing ? t(
           "Đang thử nghiệm: mọi tính năng MIỄN PHÍ cho mọi tài khoản. Nông hộ luôn miễn phí. Giá sẽ công bố trước khi thu — không thu tiền khi chưa báo trước và chưa có pháp nhân. Khi thu: chuyển khoản VietQR (quét bằng app ngân hàng bất kỳ, không qua cổng thanh toán), gói tự kích hoạt khi tiền vào.",
-          "In trial: every feature is FREE for every account. Farmers are always free. Prices will be published before any charge — nothing is charged without notice and a legal entity. When charging: VietQR bank transfer (scan with any banking app, no payment gateway); the plan activates itself when the money arrives.")}</p>
+          "In trial: every feature is FREE for every account. Farmers are always free. Prices will be published before any charge — nothing is charged without notice and a legal entity. When charging: VietQR bank transfer (scan with any banking app, no payment gateway); the plan activates itself when the money arrives.") : t(
+          "Giai đoạn thử nghiệm: mọi tính năng MIỄN PHÍ cho mọi tài khoản, không cần đăng ký gói hay thanh toán gì.",
+          "Trial phase: every feature is FREE for every account — no plan to pick, nothing to pay.")}</p>
         {!cat?.billing && (
           <section style={{ margin: "14px 0" }}>
             <h2>{t("Hiện tại: miễn phí toàn bộ", "Right now: everything is free")}</h2>
