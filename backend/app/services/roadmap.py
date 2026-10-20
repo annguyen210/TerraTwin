@@ -43,8 +43,11 @@ FLOWS = [
      "người dùng và đối chiếu kết quả. Chạy định kỳ bằng cron gọi /api/radar/run."),
     ("S09", "AI Data & Model Engine", "signature", "done",
      "Kho quan sát thực địa làm dataset + chấm mô hình bằng POD/FAR/CSI, chỉ ra "
-     "vùng nào đang lệch. Phần HUẤN LUYỆN lại cần GPU và dataset gán nhãn lớn — "
-     "chưa có, nhưng không đo được thì huấn luyện chỉ là tiêu tiền trong bóng tối."),
+     "vùng nào đang lệch. HUẤN LUYỆN trên GPU đã chạy thật (Kaggle, mỗi lần có "
+     "giao thức đăng ký trước, trượt thì công bố): SegFormer ảnh thực địa ĐẠT và "
+     "bật, U-Net Sen1Floods11 đạt cổng mô hình nhưng trượt trên thửa Việt Nam nên "
+     "tắt. Còn thiếu: nhãn thực địa VIỆT NAM từ người dùng để huấn luyện lại tại "
+     "chỗ — không đo được thì huấn luyện chỉ là tiêu tiền trong bóng tối."),
     ("S10", "Generative Vision", "signature", "partial",
      "BA PHẦN, và chỉ MỘT phần bị từ chối. Bản trước gộp cả cụm thành "
      "'declined' — che mất việc hai phần ba của nó là hoàn toàn chính đáng. "
@@ -154,6 +157,16 @@ PRINCIPLES = [
 ]
 
 
+def _load_ml(name: str) -> dict | None:
+    import json
+    import os
+    try:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "data", "ml", name), encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
 def _principle(name: str, status: str, note: str) -> dict:
     """Nguyên lý 04 tự cập nhật khi mô hình học sâu có mặt.
 
@@ -166,7 +179,24 @@ def _principle(name: str, status: str, note: str) -> dict:
     if name != "Hội tụ công nghệ":
         return {"name": name, "status": status, "note": note}
 
-    from app.services import landcover
+    from app.services import field_water, landcover
+    if field_water.available():
+        # Học sâu ĐANG CHẠY thật từ 19/10/2026: SegFormer-b0 huấn luyện trên GPU, qua cổng đăng ký trước. Trước bản này
+        # hàm chỉ hỏi landcover (U-Net loại đất — đã thua AlphaEarth nên không bật) và báo "CHƯA có HỌC SÂU" sai.
+        fw = _load_ml("field_water_v2_result.json") or {}
+        t, dry = fw.get("test") or {}, fw.get("dry_test") or {}
+        from app.services import aef_landuse
+        aef = aef_landuse.model() or {}
+        return {
+            "name": name, "status": "done",
+            "note": ("Đủ cả bốn tầng: thuật toán cổ điển (tối ưu hoá, phân vị, Monte Carlo analog, chỉ số phổ, thuỷ văn SCS), "
+                     "học máy (mô hình bất thường đa biến trên 28.256 ngày ERA5), HỌC SÂU đang chạy — SegFormer-b0 tự huấn luyện "
+                     f"trên GPU đọc nước trong ảnh thực địa (IoU test {t.get('model_iou')} so với {t.get('color_baseline_iou')} "
+                     f"của đường cơ sở màu; ảnh ruộng khô trung vị {dry.get('median')}), mô hình nền AlphaEarth của Google "
+                     f"DeepMind + bộ phân loại cho loại đất (mIoU {aef.get('miou_test')} trên tỉnh chưa thấy) — và NLP/LLM. "
+                     "Mô hình học sâu nào trượt cổng thì công bố và TẮT: U-Net loại đất (thua AlphaEarth), U-Net radar "
+                     "(đạt cổng Sen1Floods11 nhưng trượt phép kiểm trên thửa Việt Nam)."),
+        }
     if not landcover.available():
         return {"name": name, "status": status, "note": note}
 

@@ -102,11 +102,12 @@ def test_nguyen_ly_hoi_tu_tu_cap_nhat_khi_co_mo_hinh(monkeypatch):
     ra và sửa tay. Đúng kiểu lỗi đã bắt được hai lần trước — mũi nhọn quang học
     tự khai "preview", C07 tự khai "chờ khoá".
     """
-    from app.services import landcover as lc, roadmap
+    from app.services import field_water, landcover as lc, roadmap
 
     def _lay(d):
         return next(p for p in d["principles"] if p["name"] == "Hội tụ công nghệ")
 
+    monkeypatch.setattr(field_water, "available", lambda: False)
     monkeypatch.setattr(lc, "available", lambda: False)
     assert _lay(roadmap.status())["status"] == "partial"
 
@@ -130,3 +131,13 @@ def test_lan_huan_luyen_khong_dat_duoc_noi_ra(tmp_path, monkeypatch):
     assert st["available"] is False and st["last_run"]["miou_test"] == 0.232
     assert "KHÔNG bật" in st["message"] and "Đất trồng trọt hỏng." in st["message"]
     assert st["how_to"], "vẫn phải chỉ các lệnh tự chạy"
+
+
+def test_hoc_sau_dang_chay_thi_nguyen_ly_04_xong(monkeypatch):
+    """SegFormer ảnh thực địa đã qua cổng và bật (19/10/2026) → không được tự khai 'CHƯA có HỌC SÂU' nữa."""
+    from app.services import field_water, landcover as lc, roadmap
+    monkeypatch.setattr(lc, "available", lambda: False)
+    monkeypatch.setattr(field_water, "available", lambda: True)
+    p = next(p for p in roadmap.status()["principles"] if p["name"] == "Hội tụ công nghệ")
+    assert p["status"] == "done" and "SegFormer" in p["note"] and "CHƯA có" not in p["note"]
+    assert "TẮT" in p["note"]                                   # mô hình trượt vẫn được kể ra
