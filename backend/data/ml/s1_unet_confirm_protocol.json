@@ -1,0 +1,24 @@
+{
+  "id": "terratwin.s1_unet_confirm/1",
+  "registered": "2026-10-20",
+  "registered_before_scoring": true,
+  "purpose": "Nối U-Net radar (s1_water_unet — đạt cổng mô hình GĐ5: IoU test 0,668 / Bolivia 0,681 / Mekong 0,851, hơn ngưỡng −18 dB) vào lịch sử nước của thửa dưới dạng Ý KIẾN THỨ HAI cho từng đợt nước mà phương pháp ngưỡng đã tìm ra. Không thay danh sách đợt (cổng GĐ2 của phương pháp ngưỡng giữ nguyên). Lý do không thay hẳn: máy chủ miễn phí không đủ sức chạy U-Net trên ~460 cảnh mỗi thửa.",
+  "method": {
+    "scene": "Cảnh Sentinel-1 RTC của đúng ngày (water_history.scene — ưu tiên đúng quỹ đạo của lịch sử nước)",
+    "input": "Khung 1.280 × 1.280 m quanh tâm thửa, 128 × 128 điểm ảnh (~10 m), hai kênh VV và VH đọc qua Planetary Computer /item/bbox/...npy; tuyến tính → dB = 10·log10(max(v, 1e-6)); điểm 0/NaN (ngoài dải quét) thay bằng trung bình huấn luyện; chuẩn hoá bằng đúng mean/std trong s1_water_result.json",
+    "model": "s1_water_unet.pt (Kaggle annguyen233t/notebookaddc9ee9dd v2) chuyển sang ONNX trên máy, không huấn luyện lại; logit → sigmoid > 0,5 là nước",
+    "plot_share": "Tỉ lệ điểm ảnh nước trong khung thửa ở GIỮA ảnh (bán kính 100 m = water_history.RADIUS_M → 20 × 20 điểm ảnh trung tâm)",
+    "confirm_rule": "Xác nhận đợt khi tỉ lệ nước trong khung thửa ≥ 10% (bằng mức phủ thấp nhất '10–25%' của phương pháp ngưỡng)"
+  },
+  "gate": {
+    "cases": "Đúng ba thửa của cổng GĐ2 (ops/water_gate.py)",
+    "positive": "Đồng lúa Quảng Điền, Huế (16.575, 107.495): đợt của phương pháp ngưỡng chồng lên 06–20/10/2020 VÀ đợt chồng lên 25/10–10/11/2025 — U-Net trên cảnh flag_date của mỗi đợt phải cho tỉ lệ nước ≥ 10% (CẢ HAI)",
+    "negative": "Đất cao Đà Lạt (11.9404, 108.4583) và đồi thông Thiên An, Huế (16.4283, 107.5628): lấy 24 ngày cảnh mỗi thửa từ chuỗi lịch sử nước, random.Random(20261020).sample(các ngày đã sắp tăng dần, 24) — U-Net phải cho tỉ lệ nước < 10% trên CẢ 48 cảnh (0 xác nhận nhầm)",
+    "report_only": "Mọi đợt của Quảng Điền: tỉ lệ nước U-Net từng đợt (không phải điều kiện đạt)",
+    "pass": "ĐẠT khi cả điều kiện dương tính lẫn âm tính đều đạt"
+  },
+  "if_pass": "Lịch sử nước hiện 'U-Net (học sâu): ~X% thửa là nước — xác nhận / không xác nhận' khi mở từng đợt (tính khi được hỏi, không chạy cho mọi cảnh); chỉ tham khảo, không vào nội dung ký của hồ sơ, không đổi danh sách đợt",
+  "if_fail": "Công bố trượt trên thẻ mô hình; U-Net giữ CHƯA bật",
+  "one_shot": "Chạy một lần bằng ops/s1_unet_gate.py sau commit giao thức + script; lượt hỏng vì lỗi mạng TRƯỚC khi có kết quả thì chạy lại, ghi rõ",
+  "script": "ops/s1_unet_gate.py"
+}
