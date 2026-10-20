@@ -8,7 +8,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Waves } from "lucide-react";
-import { getToken, waterConfirm, waterConfirmations, waterPoll, waterScene, waterStart, waterStatus,
+import { getToken, waterConfirm, waterConfirmations, waterPoll, waterScene, waterStart, waterStatus, waterUnet, type WaterUnet,
          type WaterAnswer, type WaterConfirmCount, type WaterHistoryResult, type WaterScene } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
@@ -67,6 +67,7 @@ function MapScrubber({ r, lat, lon, onScene, focus }: { r: WaterHistoryResult; l
   const [i, setI] = useState<number | null>(null);
   const [day, setDay] = useState<string | null>(null);        // ngày đang hiện: theo năm (thanh kéo) hoặc theo đợt (bấm)
   const [scene, setScene] = useState<WaterScene | null>(null);
+  const [unet, setUnet] = useState<WaterUnet | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const wet = new Set(r.events.flatMap((e) => (e.dates ?? [e.start])));
@@ -88,6 +89,13 @@ function MapScrubber({ r, lat, lon, onScene, focus }: { r: WaterHistoryResult; l
       .finally(() => live && setBusy(false));
     return () => { live = false; };
   }, [day, lat, lon, onScene]);
+  useEffect(() => {                                            // U-Net chỉ hỏi cho ngày nằm trong một đợt nước
+    setUnet(null);
+    if (day == null || !wet.has(day)) return;
+    let live = true;
+    waterUnet(lat, lon, day).then((u) => live && setUnet(u)).catch(() => live && setUnet(null));
+    return () => { live = false; };
+  }, [day, lat, lon]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!years.length) return null;
   const cur = day == null ? null : { date: day };
@@ -104,6 +112,11 @@ function MapScrubber({ r, lat, lon, onScene, focus }: { r: WaterHistoryResult; l
         : scene ? <>{t(`Ảnh radar ngày ${scene.date}`, `Radar image of ${scene.date}`)}{wet.has(cur.date) ? t(" — nằm trong một đợt nước phủ của thửa", " — inside one of the plot's water events") : ""}.{" "}
           <button type="button" className="wh-off" onClick={() => { setI(null); setDay(null); setScene(null); onScene(null); }}>{t("Tắt lớp radar", "Hide radar layer")}</button></> : null}</p>}
       {day == null && <button type="button" className="bat-btn ghost" onClick={() => setI(years.length - 1)}>{t("Hiện lớp radar", "Show radar layer")}</button>}
+      {unet?.available && unet.share != null && (
+        <p className="wh-scene">{t(`Học sâu (U-Net radar, tham khảo): ~${Math.round(unet.share * 100)}% khung thửa là nước — `,
+          `Deep learning (radar U-Net, reference): ~${Math.round(unet.share * 100)}% of the plot window is water — `)}
+          <b>{unet.confirmed ? t("xác nhận đợt này", "confirms this event") : t("không xác nhận", "does not confirm")}</b>.</p>
+      )}
       {scene && <p className="eu-src">{scene.legend} {scene.attribution}.</p>}
       {err && <p className="bat-err">{err}</p>}
     </div>

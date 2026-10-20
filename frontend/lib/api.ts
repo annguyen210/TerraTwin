@@ -2889,6 +2889,12 @@ export function waterScene(lat: number, lon: number, date: string) {
     "Không lấy được cảnh radar ngày này");
 }
 
+// ---- U-Net radar: ý kiến thứ hai cho cảnh của một đợt nước (chỉ có khi phép kiểm đăng ký trước đạt) ----
+export type WaterUnet = { available: boolean; reason?: string; date?: string; share?: number; confirmed?: boolean; rule?: string };
+export function waterUnet(lat: number, lon: number, date: string) {
+  return getJson<WaterUnet>(`/api/water/unet?lat=${lat}&lon=${lon}&date=${date}&lang=${curLang()}`, "Không chạy được U-Net");
+}
+
 // ---- Xác nhận TỪNG đợt nước: "ruộng tôi có ngập đợt này không" (bảng riêng, không lẫn vào quan sát cảnh báo) ----
 export type WaterAnswer = "yes" | "no" | "unsure";
 export type WaterConfirmCount = { yes: number; no: number; unsure: number; mine: WaterAnswer | null };

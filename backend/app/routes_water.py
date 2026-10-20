@@ -189,6 +189,26 @@ def water_scene(lat: float, lon: float, date: str, lang: str = "vi") -> dict:
     return s
 
 
+@router.get("/api/water/unet")
+def water_unet(lat: float, lon: float, date: str, lang: str = "vi") -> dict:
+    """Ý kiến thứ hai của U-Net radar cho cảnh ngày `date` (services/s1_unet.py). Chỉ có khi phép kiểm đăng ký trước
+    (s1_unet_confirm_protocol.json) ĐẠT; không đổi danh sách đợt, không vào hồ sơ ký."""
+    import re
+
+    from app.services import s1_unet
+    reqlang.set_lang(lang)
+    if not (8.0 <= lat <= 24.0 and 102.0 <= lon <= 110.0) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date):
+        raise HTTPException(422, tr("Toạ độ hoặc ngày không hợp lệ.", "Invalid coordinates or date."))
+    if not s1_unet.available():
+        return {"available": False, "reason": tr("U-Net radar chưa bật (chưa qua phép kiểm đăng ký trước).",
+                                                 "Radar U-Net not enabled (pre-registered check not passed).")}
+    r = s1_unet.water_share(lat, lon, date)
+    if r is None:
+        raise HTTPException(503, tr("Chưa đọc được ảnh radar để chạy U-Net — thử lại sau.",
+                                    "Could not read the radar image for the U-Net — try again later."))
+    return {"available": True, **r}
+
+
 @router.get("/api/water/history/{job_id}")
 def water_history_poll(job_id: str, db: Session = Depends(get_session)) -> dict:
     st = jobs_db.status(db, job_id)

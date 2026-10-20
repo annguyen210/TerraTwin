@@ -201,6 +201,7 @@ def cards() -> list[dict]:
 
     # 4a — Mô hình nước trên radar (U-Net, Sen1Floods11) — GĐ5 mục 2, giao thức đăng ký 09/10/2026 (6d9cfb4)
     s1 = _load("ml", "s1_water_result.json")
+    s1c = _load("ml", "s1_unet_confirm_result.json")     # phép kiểm "ý kiến thứ hai" trên thửa GĐ2 (s1_unet_confirm_protocol.json)
     names = {"test": tr("tập test (90 ô)", "test set (90 chips)"), "bolivia": tr("Bolivia (sự kiện giữ lại)", "Bolivia (held-out event)"),
              "mekong": tr("Mekong (6 ô, gần Việt Nam nhất)", "Mekong (6 chips, closest to Viet Nam)")}
     if s1 and not s1.get("limit"):
@@ -208,9 +209,14 @@ def cards() -> list[dict]:
         out.append({
             "id": "s1_water_unet", "kind": tr("học sâu", "deep learning"),
             "name": tr("Nước trên ảnh radar Sentinel-1 — U-Net (Sen1Floods11)", "Water on Sentinel-1 radar — U-Net (Sen1Floods11)"),
-            "status": "accepted" if s1.get("passed") else "rejected",
-            "status_label": (tr("cổng mô hình đạt · CHƯA bật (phải qua lại cổng GĐ2 trên thửa Việt Nam)",
-                                "model gate passed · NOT on (must re-pass the GĐ2 gate on Vietnamese plots)") if s1.get("passed")
+            "status": "accepted" if (s1.get("passed") and (s1c or {}).get("passed") is not False) else "rejected",
+            "status_label": ((tr("cổng mô hình đạt · đạt phép kiểm trên thửa GĐ2 · đang chạy như Ý KIẾN THỨ HAI cho từng đợt (tham khảo)",
+                                 "model gate passed · passed the GĐ2-plot check · live as a SECOND OPINION per event (reference)")
+                              if (s1c or {}).get("passed") else
+                              tr("cổng mô hình đạt · TRƯỢT phép kiểm trên thửa GĐ2 · không bật", "model gate passed · FAILED the GĐ2-plot check · not on")
+                              if s1c else
+                              tr("cổng mô hình đạt · CHƯA bật (phải qua phép kiểm trên thửa GĐ2)",
+                                 "model gate passed · NOT on (must pass the check on GĐ2 plots)")) if s1.get("passed")
                              else tr("trượt · lịch sử nước giữ phương pháp ngưỡng −18 dB", "failed · water history keeps the −18 dB threshold")),
             "task": tr("Phân đoạn nước từng điểm ảnh trên ảnh radar VV/VH", "Per-pixel water segmentation on VV/VH radar"),
             "data": tr("Sen1Floods11 v1.1, nhãn tay 446 ô 512×512; chia tập chính thức train 252 · valid 89 · test 90 · Bolivia 15",
@@ -225,7 +231,14 @@ def cards() -> list[dict]:
                          "threshold": tr("mô hình > ngưỡng −18 dB", "model > −18 dB threshold"),
                          "passed": (v.get("model") is not None and v.get("threshold_-18dB") is not None
                                     and v["model"] > v["threshold_-18dB"])}
-                        for k, v in res.items() if isinstance(v, dict)],
+                        for k, v in res.items() if isinstance(v, dict)]
+                       + ([{"label": tr(f"Thửa GĐ2 — {c['label']}: U-Net xác nhận đợt (≥ 10% khung thửa)",
+                                        f"GĐ2 plot — {c['label']}: U-Net confirms the event (≥ 10% of plot window)"),
+                            "value": ", ".join(f"{e['flag_date']}: {e['unet_share']}" for e in c["events"]) or "—",
+                            "threshold": "≥ 0.10", "passed": c["pass"]} for c in s1c.get("positive", [])]
+                          + [{"label": tr(f"Thửa GĐ2 — {c['case']}: cảnh bị xác nhận nhầm", f"GĐ2 plot — {c['case']}: scenes wrongly confirmed"),
+                              "value": f"{c['n_confirmed_wrongly_or_unread']}/{c['n']}", "threshold": "0", "passed": c["pass"]}
+                             for c in s1c.get("negative", [])] if s1c else []),
             "limits": tr("Học trên ô 512×512 điểm ảnh của 11 trận lũ ngoài Việt Nam (trừ Mekong). Lịch sử nước của TerraTwin hiện đọc "
                          "THỐNG KÊ phân vị từng cảnh trên khung thửa, không đọc ảnh điểm ảnh — muốn dùng mô hình phải đổi cách đọc và qua lại "
                          "cổng GĐ2 (lũ Huế 10/2020, miền Trung 10/2025, đất cao 0 đợt).",
