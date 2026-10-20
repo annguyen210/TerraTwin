@@ -364,7 +364,8 @@ with sync_playwright() as p:
         # 20/10/2026: NDMI 10 m bật sau phép kiểm Wald đăng ký trước (s2_sharpen_result.json). CHỈ ĐỌC (GET).
         ctx = browser.new_context(viewport={"width": 1366, "height": 860})
         pg = ctx.new_page()
-        pg.goto(WEB + "/plot/10.45000,105.25000", wait_until="domcontentloaded", timeout=120_000)
+        pg.goto(WEB + "/", wait_until="networkidle", timeout=120_000)     # /plot/… là Sổ tay thửa, không có khu làm việc
+        pg.get_by_role("button", name=re.compile("Xem ngay")).first.click()
         pg.locator(".pw-tabs").wait_for(timeout=120_000)
         skip = pg.get_by_role("button", name="Bỏ qua")
         if skip.count():

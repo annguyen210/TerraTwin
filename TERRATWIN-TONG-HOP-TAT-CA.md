@@ -336,13 +336,17 @@ POD một mình thì cảnh báo mỗi ngày cũng đạt 100%
 ## TỔNG SỐ LIỆU
 Tầm nhìn: 12 ngành · 14 mũi nhọn · 26 luồng · 8 bậc năng lực · 7 trụ cột · 19 mảng AI · 6 dòng doanh thu.
 
-Thực tế đã code:
-- **18 mũi nhọn phủ 12/12 ngành** — 13 chạy dữ liệu thật ngay, 5 mở bằng khóa
-  Copernicus miễn phí
-- **25/26 luồng** đã viết xong và có test; 24 chạy được ngay không cần khóa nào
-- **4/4 nguyên lý** có bản thật (nguyên lý "hội tụ" còn thiếu deep learning)
-- **69 route API** · frontend Next.js + PWA cài được lên điện thoại
+Thực tế đã code (cập nhật 20/10/2026 — số sinh từ mã: `GET /api/roadmap`, `GET /api/models/cards`):
+- **18 mũi nhọn phủ 12/12 ngành** — cả 18 chạy dữ liệu thật, không cần khóa (Sentinel-2 qua
+  Microsoft Planetary Computer; Copernicus chỉ là tuỳ chọn)
+- **26/26 luồng** đã viết xong và có test (S10 đủ từ 20/10/2026 sau phép kiểm Wald làm sắc
+  20 m → 10 m; phần "siêu phân giải" dưới 10 m vẫn từ chối vì nguyên tắc)
+- **4/4 nguyên lý** — có HỌC SÂU đang chạy: SegFormer-b0 đọc nước trong ảnh thực địa (qua cổng
+  đăng ký trước) + mô hình nền AlphaEarth cho loại đất; U-Net radar đạt cổng mô hình nhưng
+  trượt trên thửa Việt Nam nên tắt
+- **214 đường dẫn API (236 thao tác)** · frontend Next.js + PWA cài được lên điện thoại
 - Nguồn thật miễn phí: Open-Meteo (dự báo · ERA5 · elevation · GloFAS · Marine) ·
-  NASA POWER · **OpenStreetMap** · Sentinel-2 qua Copernicus (tuỳ chọn)
+  NASA POWER · **OpenStreetMap** · Sentinel-1/2 qua Planetary Computer · AlphaEarth
 - Chạy song song: quét toàn cảnh 13,1 s → 2,5 s, gộp lời gọi trùng, hàng đợi việc dài
-- Chưa có: S10 Generative Vision · deep learning · thu tiền · người dùng thật
+- Chưa có: thu tiền (tắt có chủ ý — giai đoạn thử nghiệm, mọi tài khoản dùng đủ mọi tính năng)
+  · nhãn thực địa của người dùng thật (cổng hiệu chỉnh chờ ≥ 30 đợt có nhãn)
