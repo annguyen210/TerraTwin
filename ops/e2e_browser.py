@@ -359,6 +359,34 @@ with sync_playwright() as p:
         return f"{page.locator('.pw-mod').count()} công cụ"
     workspace()
 
+    @step("Chuyên sâu → 'Độ ẩm 10 m' (S10 ①): ảnh 20 m đo gốc cạnh ảnh 10 m làm sắc, hoặc nói rõ vì sao chưa có")
+    def moisture():
+        # 20/10/2026: NDMI 10 m bật sau phép kiểm Wald đăng ký trước (s2_sharpen_result.json). CHỈ ĐỌC (GET).
+        ctx = browser.new_context(viewport={"width": 1366, "height": 860})
+        pg = ctx.new_page()
+        pg.goto(WEB + "/plot/10.45000,105.25000", wait_until="domcontentloaded", timeout=120_000)
+        pg.locator(".pw-tabs").wait_for(timeout=120_000)
+        skip = pg.get_by_role("button", name="Bỏ qua")
+        if skip.count():
+            skip.first.click()
+        pg.get_by_role("tab", name=re.compile("Chuyên sâu")).click()
+        pg.locator(".pw-mod").first.click()
+        pg.locator(".deep-tabs").wait_for(timeout=180_000)
+        pg.get_by_role("button", name=re.compile("Độ ẩm 10 m")).click()
+        pg.locator("section.mm .mm-pair, section.mm .doc-note, section.mm .bat-err").first.wait_for(timeout=180_000)
+        pg.wait_for_timeout(800)
+        pg.screenshot(path=os.path.join(OUT, "19-do-am-10m.png"), full_page=False)
+        if pg.locator("section.mm .mm-pair").count():
+            sizes = pg.evaluate("Array.from(document.querySelectorAll('section.mm canvas')).map((c) => c.width)")
+            assert sizes == [32, 64], f"lưới sai: {sizes}"
+            ctx.close()
+            return "ảnh 20 m (32 ô) cạnh ảnh 10 m (64 ô)"
+        assert not pg.locator("section.mm .bat-err").count(), pg.locator("section.mm .bat-err").inner_text()
+        msg = pg.locator("section.mm .doc-note").first.inner_text()
+        ctx.close()
+        return f"không có ảnh quang mây — nói rõ: {msg[:80]}"
+    moisture()
+
     @step("Khu làm việc trên điện thoại: tấm trượt 3 nấc, không tràn ngang")
     def phone_workspace():
         m = browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True, has_touch=True)
