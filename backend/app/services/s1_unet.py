@@ -143,3 +143,133 @@ def water_share(lat: float, lon: float, day: str, radius_m: float = 100.0, force
     cache_store.put(key, out, 400 * 24 * 3600)
     return out
 
+
+
+# ───────────── Bản 2 (s1_unet_vn_protocol.json): tinh chỉnh trên ruộng Việt Nam + mặt nạ địa hình ─────────────
+# Dùng CHUNG cho bộ dữ liệu (ops/s1_unet_v2_data.py), phép kiểm (ops/s1_unet_v2_gate.py) và sản phẩm, để thứ được
+# chấm đúng là thứ chạy thật: khung bám lưới UTM 10 m GỐC của cảnh S1 RTC (không lấy mẫu lại radar), độ dốc từ
+# Copernicus DEM GLO-30 trên cùng lưới, ô dốc > 5° không bao giờ là nước (nước không đọng trên sườn dốc — chữa lỗi
+# bóng radar ở đồi thông Thiên An của bản 1).
+
+V2_MODEL_PATH = os.path.join(DATA, "s1_water_unet_vn.onnx")
+V2_RESULT_PATH = os.path.join(DATA, "s1_unet_vn_result.json")
+SLOPE_MAX_DEG = 5.0
+STAC_ITEM = "https://planetarycomputer.microsoft.com/api/stac/v1/collections/{c}/items/{i}"
+_sess2 = None
+
+
+def s1_grid_box(item: dict, lat: float, lon: float, px: int = PX) -> tuple[int, list[float]]:
+    """(epsg, [x0, y0, x1, y1]) — khung px × px ô quanh điểm, bám đúng lưới của cảnh S1 RTC (proj:transform, 10 m)."""
+    import math
+
+    from app.services import s2_sharpen
+    p = item.get("properties") or {}
+    epsg = int(p["proj:epsg"])
+    tr = p["proj:transform"]
+    res, gx, gy = float(tr[0]), float(tr[2]), float(tr[5])
+    e, n = s2_sharpen.to_utm(lat, lon, epsg)
+    half = px * res / 2.0
+    x0 = gx + res * math.floor((e - half - gx) / res)
+    y1 = gy - res * math.floor((gy - (n + half)) / res)
+    return epsg, [x0, y1 - px * res, x0 + px * res, y1]
+
+
+def _npy(collection: str, item_id: str, assets: list[str], epsg: int, box: list[float], size: int,
+         resampling: str = "nearest", timeout: float = 90.0):
+    import numpy as np
+
+    from app.services import jobs, mpc
+    q = [("collection", collection), ("item", item_id), ("coord_crs", f"EPSG:{epsg}"), ("dst_crs", f"EPSG:{epsg}"),
+         ("resampling", resampling)] + [("assets", a) for a in assets]
+    url = f"{BBOX_URL}/{','.join(f'{v:.1f}' for v in box)}/{size}x{size}.npy?{urllib.parse.urlencode(q)}"
+    with jobs.upstream("pc") as allowed:
+        if not allowed:
+            return None
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": mpc.USER_AGENT})
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return np.load(io.BytesIO(r.read()), allow_pickle=False)
+        except Exception:  # noqa: BLE001
+            return None
+
+
+def fetch_grid(item: dict, epsg: int, box: list[float]):
+    """(2, PX, PX) VV/VH tuyến tính đúng điểm ảnh gốc của cảnh, hoặc None."""
+    a = _npy("sentinel-1-rtc", item["id"], ["vv", "vh"], epsg, box, PX)
+    if a is None or a.ndim != 3 or a.shape[0] < 2:
+        return None
+    return a[:2].astype("float32")
+
+
+def slope_deg(epsg: int, box: list[float], lat: float, lon: float):
+    """(PX, PX) độ dốc (độ) từ Copernicus DEM GLO-30 trên cùng lưới, hoặc None."""
+    import numpy as np
+
+    from app.services import mpc
+    r = mpc._call(mpc.STAC, {"collections": ["cop-dem-glo-30"], "bbox": mpc.bbox_around(lat, lon, PX * 10.0), "limit": 4})
+    feats = (r or {}).get("features") or []
+    if not feats:
+        return None
+    z = _npy("cop-dem-glo-30", feats[0]["id"], ["data"], epsg, box, PX, "bilinear")
+    if z is None:
+        return None
+    gy, gx = np.gradient(z[0].astype(np.float64), 10.0)
+    return np.degrees(np.arctan(np.hypot(gx, gy)))
+
+
+def s2_label(item: dict, epsg: int, box: list[float]):
+    """(PX, PX) uint8: 1 nước (MNDWI > 0), 0 không, 255 bỏ qua (mây/bóng/không dữ liệu) — nhãn TỰ ĐỘNG, không phải người."""
+    import numpy as np
+
+    from app.services import mpc
+    a = _npy("sentinel-2-l2a", item["id"], ["B03", "B11", "SCL"], epsg, box, PX)
+    if a is None or a.shape[0] < 3:
+        return None
+    off = mpc.BOA_OFFSET if mpc.has_offset(item) else 0
+    b03, b11 = [(a[i].astype(np.float64) - off) / 10000.0 for i in (0, 1)]
+    ok = np.isin(a[2], (4, 5, 6, 7))
+    if a.shape[0] > 3:
+        ok &= a[-1] > 0
+    lab = ((b03 - b11) / np.maximum(b03 + b11, 1e-4) > 0).astype(np.uint8)
+    lab[~ok] = 255
+    return lab
+
+
+def predict_mask(logit, slope):
+    """Mặt nạ nước của bản 2: sigmoid > 0,5 VÀ không dốc quá 5°."""
+    import numpy as np
+    m = logit > 0.0
+    if slope is not None:
+        m &= ~(slope > SLOPE_MAX_DEG)
+    return m
+
+
+def v2_gate_passed() -> bool:
+    try:
+        return json.load(open(V2_RESULT_PATH, encoding="utf-8")).get("passed") is True
+    except (OSError, ValueError):
+        return False
+
+
+def v2_available() -> bool:
+    if os.environ.get("TERRATWIN_S1_UNET", "1") == "0" or not os.path.exists(V2_MODEL_PATH) or not v2_gate_passed():
+        return False
+    try:
+        import onnxruntime  # noqa: F401
+    except Exception:  # noqa: BLE001
+        return False
+    return True
+
+
+def v2_session(path: str | None = None):
+    global _sess2
+    if path is not None or _sess2 is None:
+        import onnxruntime as ort
+        o = ort.SessionOptions()
+        o.intra_op_num_threads = 1
+        o.inter_op_num_threads = 1
+        s = ort.InferenceSession(path or V2_MODEL_PATH, sess_options=o, providers=["CPUExecutionProvider"])
+        if path is not None:
+            return s
+        _sess2 = s
+    return _sess2

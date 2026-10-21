@@ -1,0 +1,210 @@
+{
+ "id": "terratwin.s1_unet_vn/2",
+ "registered": "2026-10-21",
+ "registered_before_scoring": true,
+ "why": "Bản 1 (s1_unet_confirm_protocol.json) TRƯỢT: ruộng ngập nông ở Quảng Điền U-Net Sen1Floods11 cho 0% (VV ruộng ngập chỉ ~−14 đến −17 dB, mô hình học mặt nước MỞ ~−20 dB trở xuống); đồi thông Thiên An 14/24 báo nhầm (bóng radar). Bản 2 tinh chỉnh trên ruộng Việt Nam bằng NHÃN TỰ ĐỘNG CHÉO CẢM BIẾN và thêm mặt nạ địa hình — KHÔNG phải nhãn người.",
+ "dev_probe_disclosed": "Trước khi đăng ký đã dò một điểm phát triển An Giang (10.40, 105.35): 8 cặp ≤ 48 giờ, U-Net bản 1 và ngưỡng −18 dB so với nhãn MNDWI (vd 07/12/2025: nhãn 74,6% nước, U-Net 1,2%). An Giang vì thế CỐ ĐỊNH vào nhóm TRAIN. Đã đếm số cặp (không xem nhãn hay mô hình) ở Đồng Tháp, Cần Thơ, Sóc Trăng, Thái Bình, Long An. Đã xem tâm 5 điểm đồi bằng S2 + DEM để CHỌN bộ âm tính mới (không chạy mô hình ở đó).",
+ "labels": {
+  "source": "Sentinel-2 L2A cùng khung, cách ảnh Sentinel-1 RTC ≤ 48 giờ (Planetary Computer)",
+  "rule": "nước = MNDWI = (B03 − B11)/(B03 + B11) > 0 trên phản xạ đã trừ lệch 1000 (PB ≥ 04.00); bỏ qua (nhãn 255) ô SCL ∉ {4,5,6,7}, ô S1 không có dữ liệu",
+  "honesty": "Nhãn TỰ ĐỘNG từ ảnh quang học — có sai (ẩm đất, lệch tới 48 giờ, ô hỗn hợp). Không phải nhãn người; dùng cho cả học lẫn chấm G1 nên G1 đo mức KHỚP với quang học, không phải độ đúng tuyệt đối."
+ },
+ "data": {
+  "grid": "khung 128 × 128 ô 10 m (1.280 m) quanh điểm, BÁM ĐÚNG lưới UTM 10 m của cảnh S1 RTC (proj:transform của cảnh); S1 đọc đúng điểm ảnh gốc, S2 lấy mẫu gần nhất lên cùng lưới",
+  "period": "2023-10-01 → 2026-09-30",
+  "pairs": "mọi cảnh S2 eo:cloud_cover < 20 tại khung; cảnh S1 RTC gần nhất ≤ 48 giờ; nhận khi ≥ 90% ô của khung quang mây (SCL) và có dữ liệu S1; tối đa 6 cặp mỗi vị trí, rải đều theo thời gian (mpc._spread)",
+  "locations": "3 vị trí mỗi tỉnh: tâm tỉnh + 2 độ lệch đều ±0,06° (random.Random(20261021 + 1000·nhóm + 10·i + k), nhóm train 0 / val 1 / test 2)",
+  "provinces": "33 tỉnh trồng lúa đồng bằng; Thừa Thiên Huế LOẠI khỏi dữ liệu (thửa kiểm GĐ2 nằm ở đó)",
+  "split_seed": 20261021,
+  "split": {
+   "train": [
+    {
+     "province": "An Giang",
+     "lat": 10.45,
+     "lon": 105.2
+    },
+    {
+     "province": "Bắc Ninh",
+     "lat": 21.1,
+     "lon": 106.1
+    },
+    {
+     "province": "Hậu Giang",
+     "lat": 9.8,
+     "lon": 105.55
+    },
+    {
+     "province": "Bạc Liêu",
+     "lat": 9.35,
+     "lon": 105.55
+    },
+    {
+     "province": "Sóc Trăng",
+     "lat": 9.6,
+     "lon": 105.85
+    },
+    {
+     "province": "Cần Thơ",
+     "lat": 10.1,
+     "lon": 105.6
+    },
+    {
+     "province": "Trà Vinh",
+     "lat": 9.85,
+     "lon": 106.25
+    },
+    {
+     "province": "Long An",
+     "lat": 10.65,
+     "lon": 106.2
+    },
+    {
+     "province": "Cà Mau",
+     "lat": 9.15,
+     "lon": 105.1
+    },
+    {
+     "province": "Hưng Yên",
+     "lat": 20.8,
+     "lon": 106.05
+    },
+    {
+     "province": "Vĩnh Phúc",
+     "lat": 21.3,
+     "lon": 105.55
+    },
+    {
+     "province": "Hà Nam",
+     "lat": 20.55,
+     "lon": 105.95
+    },
+    {
+     "province": "Nam Định",
+     "lat": 20.3,
+     "lon": 106.25
+    },
+    {
+     "province": "Ninh Bình",
+     "lat": 20.15,
+     "lon": 106.05
+    },
+    {
+     "province": "Bến Tre",
+     "lat": 10.15,
+     "lon": 106.45
+    },
+    {
+     "province": "Hà Tĩnh",
+     "lat": 18.3,
+     "lon": 105.85
+    },
+    {
+     "province": "Đồng Tháp",
+     "lat": 10.55,
+     "lon": 105.65
+    },
+    {
+     "province": "Bình Định",
+     "lat": 13.95,
+     "lon": 109.0
+    },
+    {
+     "province": "Hải Phòng",
+     "lat": 20.8,
+     "lon": 106.55
+    },
+    {
+     "province": "Quảng Nam",
+     "lat": 15.75,
+     "lon": 108.3
+    }
+   ],
+   "val": [
+    {
+     "province": "Thanh Hoá",
+     "lat": 19.85,
+     "lon": 105.75
+    },
+    {
+     "province": "Quảng Bình",
+     "lat": 17.4,
+     "lon": 106.55
+    },
+    {
+     "province": "Thái Bình",
+     "lat": 20.5,
+     "lon": 106.35
+    },
+    {
+     "province": "Vĩnh Long",
+     "lat": 10.15,
+     "lon": 106.0
+    },
+    {
+     "province": "Phú Yên",
+     "lat": 13.05,
+     "lon": 109.15
+    }
+   ],
+   "test": [
+    {
+     "province": "Hà Nội",
+     "lat": 21.0,
+     "lon": 105.6
+    },
+    {
+     "province": "Tiền Giang",
+     "lat": 10.4,
+     "lon": 106.2
+    },
+    {
+     "province": "Quảng Ngãi",
+     "lat": 15.05,
+     "lon": 108.8
+    },
+    {
+     "province": "Tây Ninh",
+     "lat": 11.25,
+     "lon": 106.2
+    },
+    {
+     "province": "Kiên Giang",
+     "lat": 10.0,
+     "lon": 105.2
+    },
+    {
+     "province": "Quảng Trị",
+     "lat": 16.8,
+     "lon": 107.1
+    },
+    {
+     "province": "Hải Dương",
+     "lat": 20.9,
+     "lon": 106.35
+    },
+    {
+     "province": "Nghệ An",
+     "lat": 18.9,
+     "lon": 105.55
+    }
+   ]
+  }
+ },
+ "training": {
+  "init": "s1_water_unet.pt (bản 1, Sen1Floods11) — sha256 ghi trong kết quả",
+  "recipe": "AdamW lr 1e-4, weight_decay 1e-4; 10 vòng; mỗi vòng 2 mảnh cắt ngẫu nhiên 64 × 64 mỗi cặp TRAIN, lật/xoay 90° ngẫu nhiên; lô 16; BCE có bỏ qua ô 255, pos_weight = min(5, (1 − p)/p) với p = tỉ lệ nước của TRAIN; torch.manual_seed(20261021); CPU",
+  "selection": "sau mỗi vòng chấm IoU gộp trên VAL (khung 128 × 128 đủ, có mặt nạ địa hình); giữ vòng có IoU VAL cao nhất",
+  "terrain_mask": "độ dốc từ Copernicus DEM GLO-30 (cop-dem-glo-30) lấy mẫu song tuyến lên cùng lưới 10 m, np.gradient bước 10 m; ô dốc > 5° coi là KHÔNG nước — áp như nhau cho mọi phương pháp ở G1, cho bản 2 ở G2–G3 và trong sản phẩm",
+  "threshold": "sigmoid(logit) > 0,5"
+ },
+ "gate": {
+  "G1_independent": "IoU GỘP (tổng giao / tổng hợp trên mọi cặp TEST, ô có nhãn) của bản 2 ≥ 0,45 VÀ hơn U-Net bản 1 ≥ 0,10 VÀ hơn ngưỡng VV < −18 dB ≥ 0,10; cần ≥ 40 cặp TEST",
+  "G2_known_not_independent": "chạy lại đúng phép kiểm bản 1 (ops/s1_unet_gate.py: Quảng Điền 10/2020 + 10/2025 phải ≥ 10%; Đà Lạt + Thiên An 48 cảnh phải 0 xác nhận nhầm) với bản 2 + mặt nạ địa hình. KHÔNG độc lập — chẩn đoán bản 1 rút ra từ chính các thửa này; vẫn bắt buộc đạt",
+  "G3_new_negatives": "3 điểm đồi MỚI, tâm không có nước trên S2 quang mây: đồi chè Bảo Lộc (11.555, 107.795; dốc tâm ~7,8°), đồi cà phê Đắk Mil (12.450, 107.620; ~6,9°), rừng thông Măng Đen (14.605, 108.285; ~19,9°). Mỗi điểm 24 cảnh S1 RTC 2017-01-01 → 2026-09-30 chọn random.Random(20261021).sample(các cảnh sắp theo ngày, 24); xác nhận = tỉ lệ nước khung tâm 20 × 20 ≥ 10%. Đạt khi ≤ 1 xác nhận nhầm trên 72 cảnh",
+  "pass": "đạt cả G1, G2, G3"
+ },
+ "if_pass": "thay ONNX bản 1 bằng bản 2 (kèm mặt nạ địa hình) trong /api/water/unet — vẫn chỉ là Ý KIẾN THỨ HAI tham khảo, không đổi danh sách đợt của phương pháp ngưỡng, không vào nội dung ký",
+ "if_fail": "công bố trượt trên thẻ mô hình, U-Net giữ TẮT; không tinh chỉnh lại trên chính bộ TEST",
+ "one_shot": "dữ liệu: ops/s1_unet_v2_data.py; học: ml/s1_unet_v2_train.py; chấm: ops/s1_unet_v2_gate.py — chấm MỘT lần, từ chối chạy lại khi đã có kết quả (lỗi mạng trước khi có số được chạy lại, ghi run_log)",
+ "run_log": []
+}
