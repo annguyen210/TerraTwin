@@ -206,5 +206,11 @@
  "if_pass": "thay ONNX bản 1 bằng bản 2 (kèm mặt nạ địa hình) trong /api/water/unet — vẫn chỉ là Ý KIẾN THỨ HAI tham khảo, không đổi danh sách đợt của phương pháp ngưỡng, không vào nội dung ký",
  "if_fail": "công bố trượt trên thẻ mô hình, U-Net giữ TẮT; không tinh chỉnh lại trên chính bộ TEST",
  "one_shot": "dữ liệu: ops/s1_unet_v2_data.py; học: ml/s1_unet_v2_train.py; chấm: ops/s1_unet_v2_gate.py — chấm MỘT lần, từ chối chạy lại khi đã có kết quả (lỗi mạng trước khi có số được chạy lại, ghi run_log)",
- "run_log": []
+ "run_log": [
+  {
+   "at": "2026-10-21T14:02:22Z",
+   "what": "dữ liệu: lượt đầu dừng sau 2 vị trí (quá chậm, ~3 phút/vị trí) → chạy lại 6 luồng song song, giữ nguyên quy tắc chọn và tệp đã có (374ede5); 99/99 vị trí, 563 cặp (335/89/139), 0 thiếu độ dốc. Học: 10 vòng CPU, chọn vòng 2 (IoU VAL 0,3842). Chấm MỘT lần.",
+   "result": "TRƯỢT — G1 0,4329 < 0,45 (hơn bản 1 +0,185, hơn ngưỡng +0,207); G2 dương tính ĐẠT (Quảng Điền 100%), âm tính Thiên An 23/24 (mặt nước cố định trong khung, xem diagnosis_after_scoring); G3 ĐẠT 0/72. Không bật."
+  }
+ ]
 }

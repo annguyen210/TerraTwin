@@ -262,6 +262,49 @@ def cards() -> list[dict]:
             "code": f"{REPO}/ml/kaggle/s1_water_seg.py",
         })
 
+    # 4' — U-Net radar BẢN 2: tinh chỉnh trên ruộng Việt Nam (nhãn tự động S2) + mặt nạ địa hình — s1_unet_vn_protocol.json
+    s2v = _load("ml", "s1_unet_vn_result.json")
+    if s2v:
+        g1, g2, g3 = s2v.get("G1") or {}, s2v.get("G2") or {}, s2v.get("G3") or {}
+        iou = g1.get("pooled_iou") or {}
+        tl = _load("ml", "s1_unet_vn_train.json") or {}
+        on = s2v.get("passed") and __import__("app.services.s1_unet", fromlist=["v2_available"]).v2_available()
+        out.append({
+            "id": "s1_water_unet_vn", "kind": tr("học sâu", "deep learning"),
+            "name": tr("Nước trên radar — U-Net bản 2 (tinh chỉnh ruộng Việt Nam)", "Radar water — U-Net v2 (fine-tuned on Vietnamese paddies)"),
+            "status": "accepted" if s2v.get("passed") else "rejected",
+            "status_label": (tr("đạt · đang chạy — ý kiến thứ hai ở lịch sử nước", "passed · live — second opinion in water history") if on else
+                             tr("đạt · chưa bật", "passed · not on") if s2v.get("passed") else
+                             tr("TRƯỢT phép kiểm đăng ký trước · không bật", "FAILED the pre-registered check · not on")),
+            "task": tr("Tỉ lệ nước trong khung thửa trên ảnh radar VV/VH — ý kiến thứ hai cho từng đợt nước",
+                       "Water share of the plot window on VV/VH radar — a second opinion for each water event"),
+            "data": tr(f"Khởi tạo từ bản 1 (Sen1Floods11); tinh chỉnh trên {(tl.get('n') or {}).get('train')} cặp radar–quang học ở ruộng lúa "
+                       "Việt Nam, nhãn TỰ ĐỘNG từ Sentinel-2 (MNDWI > 0) cách ≤ 48 giờ — không phải nhãn người",
+                       f"Initialised from v1 (Sen1Floods11); fine-tuned on {(tl.get('n') or {}).get('train')} radar–optical pairs over Vietnamese "
+                       "rice fields, AUTOMATIC labels from Sentinel-2 (MNDWI > 0) within 48 h — not human labels"),
+            "split": tr("đăng ký trước 21/10/2026 (cde8081); chia theo TỈNH 20/5/8, chọn vòng theo VAL, chấm TEST một lần",
+                        "pre-registered 21/10/2026 (cde8081); split by PROVINCE 20/5/8, epoch chosen on VAL, TEST scored once"),
+            "metrics": [
+                {"label": tr("G1 IoU gộp trên 139 cặp TEST — bản 2 / bản 1 / ngưỡng −18 dB", "G1 pooled IoU on TEST pairs — v2 / v1 / −18 dB threshold"),
+                 "value": f"{iou.get('v2')} / {iou.get('v1')} / {iou.get('thr')}", "threshold": "≥ 0.45, +0.10 / +0.10", "passed": g1.get("pass")},
+                {"label": tr("G2 Quảng Điền lũ 10/2020 + 10/2025 (đã biết trước)", "G2 Quảng Điền floods 10/2020 + 10/2025 (known beforehand)"),
+                 "value": ", ".join(f"{e['flag_date']}: {e['share']}" for p in g2.get("positive", []) for e in p["events"]) or "—",
+                 "threshold": "≥ 0.10", "passed": all(p["pass"] for p in g2.get("positive", [])) if g2 else None},
+                *[{"label": tr(f"G2 {n['case']}: cảnh bị xác nhận", f"G2 {n['case']}: scenes confirmed"), "value": f"{n['bad']}/{n['n']}",
+                   "threshold": "0", "passed": n["pass"]} for n in g2.get("negative", [])],
+                {"label": tr("G3 ba điểm đồi MỚI: cảnh xác nhận nhầm", "G3 three NEW hill sites: scenes wrongly confirmed"),
+                 "value": f"{g3.get('bad_total')}/{g3.get('n_total')}", "threshold": "≤ 1", "passed": g3.get("pass")}],
+            "limits": tr("Thiếu 0,017 so với ngưỡng IoU 0,45. Ở Thiên An, khung thửa chứa một MẶT NƯỚC CỐ ĐỊNH (Sentinel-2 thấy 22–28% nước mọi mùa) "
+                         "nên quy tắc 'xác nhận khi ≥ 10% là nước' báo cả nước thường trực — bản sau phải đo mức VƯỢT nền mùa khô của chính "
+                         "thửa và kiểm trên bộ MỚI. Nhãn quang học cách tới 48 giờ là nhiễu.",
+                         "0.017 short of the 0.45 IoU bar. At Thiên An the plot window holds a PERMANENT water body (Sentinel-2 sees 22–28% water in "
+                         "every season), so the 'confirm when ≥ 10% water' rule also fires on standing water — the next version must measure the "
+                         "EXCESS over the plot's own dry-season baseline and be tested on a NEW set. Optical labels up to 48 h apart are noisy."),
+            "not_for": tr("Không bật; không đổi danh sách đợt của lịch sử nước, không vào hồ sơ ký.",
+                          "Not switched on; does not change water-history events or signed dossiers."),
+            "code": f"{REPO}/ml/s1_unet_v2_train.py",
+        })
+
     # 4a' — Nước trong ẢNH THỰC ĐỊA (SegFormer-b0, Flood Area Segmentation CC0) — đăng ký trước 18/10/2026 (2e44cb0)
     fw = _load("ml", "field_water_result.json")
     fw_base = {
