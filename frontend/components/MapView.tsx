@@ -129,7 +129,7 @@ export default function MapView({
             // để MapLibre PHÓNG TO tile thật z18 (hơi mờ nhưng là ảnh thật) thay
             // vì báo lỗi.
             maxzoom: 18,
-            attribution: "Esri, Maxar, Earthstar Geographics",
+            attribution: "Esri, Vantor (Maxar), Earthstar Geographics — ngày chụp ghi dưới thửa",
           },
           labels: {
             type: "raster",
