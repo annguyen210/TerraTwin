@@ -370,6 +370,13 @@ with sync_playwright() as p:
         skip = pg.get_by_role("button", name="Bỏ qua")
         if skip.count():
             skip.first.click()
+        # Ảnh nền độ phân giải cao thật phải nói ngày chụp (21/10/2026). Mềm: dịch vụ Esri hỏng thì dòng này không hiện.
+        try:
+            pg.locator(".pw-basemap").first.wait_for(timeout=30_000)
+            basemap = pg.locator(".pw-basemap").first.inner_text()
+            assert "Ảnh nền" in basemap, basemap
+        except Exception:  # noqa: BLE001
+            basemap = "(không đọc được dòng ảnh nền)"
         pg.get_by_role("tab", name=re.compile("Canh đất")).click()
         pg.get_by_role("button", name=re.compile("Xem độ ẩm tán lá 10 m")).click()
         pg.locator("section.mm .mm-pair, section.mm .doc-note, section.mm .bat-err").first.wait_for(timeout=180_000)
@@ -384,7 +391,7 @@ with sync_playwright() as p:
             sizes = pg.evaluate("Array.from(document.querySelectorAll('section.mm canvas')).map((c) => c.width)")
             assert sizes == [32, 64], f"lưới sai: {sizes}"
             ctx.close()
-            return "ảnh 20 m (32 ô) cạnh ảnh 10 m (64 ô)"
+            return f"ảnh 20 m (32 ô) cạnh ảnh 10 m (64 ô) · {basemap[:90]}"
         assert not pg.locator("section.mm .bat-err").count(), pg.locator("section.mm .bat-err").inner_text()
         msg = pg.locator("section.mm .doc-note").first.inner_text()
         ctx.close()
