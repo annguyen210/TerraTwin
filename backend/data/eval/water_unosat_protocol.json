@@ -1,0 +1,131 @@
+{
+ "id": "terratwin.water_unosat/1",
+ "registered": "2026-10-21",
+ "registered_before_scoring": true,
+ "purpose": "Kiểm ĐỘC LẬP lịch sử nước (phương pháp ngưỡng radar, cổng GĐ2) bằng bản đồ vùng ngập CHÍNH THỨC của UNOSAT (UNITAR) — dữ liệu thật do tổ chức khác lập, chuyên gia duyệt, thay cho việc tự bịa xác nhận người dùng. Không thay phép kiểm thực địa bằng xác nhận người dùng (vẫn chờ dữ liệu thật).",
+ "source": {
+  "publisher": "UNOSAT / UNITAR, liệt kê trên HDX",
+  "license": "CC BY-SA",
+  "files": {
+   "TC20240910VNM_SHP.zip": 23414844,
+   "TC20250825VNM_SHP.zip": 8489580,
+   "TC20201028VNM_SHP.zip": 89716560
+  },
+  "redistribution": "KHÔNG đưa đa giác vào repo; chỉ lưu toạ độ điểm lấy mẫu + kết quả (dữ liệu dẫn xuất, ghi nguồn)",
+  "independence": "E4 (SAOCOM, băng L) và E5 (RADARSAT) là CẢM BIẾN KHÁC Sentinel-1. E1–E3, E6–E10 cũng từ Sentinel-1 như TerraTwin → độc lập về PHƯƠNG PHÁP và người làm, không độc lập về cảm biến. Thừa Thiên Huế LOẠI (đã dùng ở cổng GĐ2), Đà Nẵng loại (đô thị nhỏ)."
+ },
+ "events": [
+  {
+   "id": "E1",
+   "dir": "TC20240910VNM_SHP/TC20240910VNM_SHP",
+   "flood": "ST1_20240912_FloodExtent_RedRiverDelta",
+   "analysis": "ST1_20240912_AnalysisExtent_RedRiverDelta",
+   "water": null,
+   "sensor": "Sentinel-1",
+   "label": "bão Yagi — đồng bằng sông Hồng"
+  },
+  {
+   "id": "E2",
+   "dir": "TC20240910VNM_SHP/TC20240910VNM_SHP",
+   "flood": "ST1_20240910_FloodExtent_BacGiang",
+   "analysis": "ST1_20240910_AnalysisExtent_BacGiang",
+   "water": null,
+   "sensor": "Sentinel-1",
+   "label": "bão Yagi — Bắc Giang"
+  },
+  {
+   "id": "E3",
+   "dir": "TC20250825VNM_SHP/TC20250825VNM_SHP",
+   "flood": "ST1_20250826_FloodWater_VNM",
+   "analysis": "ST1_20250826_AnalysisExtent_VNM",
+   "water": null,
+   "sensor": "Sentinel-1",
+   "label": "bão 8/2025 — miền Bắc"
+  },
+  {
+   "id": "E4",
+   "dir": "TC20201028VNM_SHP/TC20201028VNM_SHP",
+   "flood": "SAOCOM1A_20201103_FloodExtent_HaTinh",
+   "analysis": "SAOCOM1A_20201103_AnalysisExtent_HaTinh",
+   "water": "SAOCOM1A_20201103_WaterExtent_HaTinh",
+   "sensor": "SAOCOM-1A (băng L)",
+   "label": "lũ miền Trung — Hà Tĩnh"
+  },
+  {
+   "id": "E5",
+   "dir": "TC20201028VNM_SHP/TC20201028VNM_SHP",
+   "flood": "RCM1_20201031_FloodExtent_NgheAN",
+   "analysis": "RCM1_20201031_AnalysisExtent_NgheAN",
+   "water": "RCM1_20201031_WaterExtent_NgheAN",
+   "sensor": "RADARSAT Constellation",
+   "label": "lũ miền Trung — Nghệ An"
+  },
+  {
+   "id": "E6",
+   "dir": "TC20201028VNM_SHP/TC20201028VNM_SHP",
+   "flood": "ST1_20201029_FloodExtent_QuangBinh",
+   "analysis": "ST1_20201029_AnalysisExtent_QuangBinh",
+   "water": "ST1_20201029_WaterExtent_QuangBinh",
+   "sensor": "Sentinel-1",
+   "label": "lũ miền Trung — Quảng Bình"
+  },
+  {
+   "id": "E7",
+   "dir": "TC20201028VNM_SHP/TC20201028VNM_SHP",
+   "flood": "ST1_20201029_FloodExtent_QuangTri",
+   "analysis": "ST1_20201029_AnalysisExtent_QuangTri",
+   "water": "ST1_20201029_WaterExtent_QuangTri",
+   "sensor": "Sentinel-1",
+   "label": "lũ miền Trung — Quảng Trị"
+  },
+  {
+   "id": "E8",
+   "dir": "TC20201028VNM_SHP/TC20201028VNM_SHP",
+   "flood": "ST1_20201030_FloodExtent_QuangNam",
+   "analysis": "ST1_20201030_AnalysisExtent_QuangNam",
+   "water": "ST1_20201030_WaterExtent_QuangNam",
+   "sensor": "Sentinel-1",
+   "label": "lũ miền Trung — Quảng Nam"
+  },
+  {
+   "id": "E9",
+   "dir": "TC20201028VNM_SHP/TC20201028VNM_SHP",
+   "flood": "ST1_20201030_FloodExtent_QuangNgai",
+   "analysis": "ST1_20201030_AnalysisExtent_QuangNgai",
+   "water": "ST1_20201030_WaterExtent_QuangNgai",
+   "sensor": "Sentinel-1",
+   "label": "lũ miền Trung — Quảng Ngãi"
+  },
+  {
+   "id": "E10",
+   "dir": "TC20201028VNM_SHP/TC20201028VNM_SHP",
+   "flood": "ST1_20201030_FloodExtent_BinhDinh",
+   "analysis": "ST1_20201030_AnalysisExtent_BinhDinh",
+   "water": "ST1_20201030_WaterExtent_BinhDinh",
+   "sensor": "Sentinel-1",
+   "label": "lũ miền Trung — Bình Định"
+  }
+ ],
+ "sampling": {
+  "positive": "8 điểm mỗi sự kiện: điểm ngẫu nhiên đều trong khung bao của FloodExtent, nhận khi nằm trong vùng ngập VÀ ≥ 50% diện tích vòng tròn bán kính 100 m (= khung thửa của lịch sử nước) nằm trong vùng ngập",
+  "negative": "8 điểm mỗi sự kiện: điểm ngẫu nhiên trong AnalysisExtent, nhận khi cách FloodExtent (và WaterExtent nếu có) ≥ 500 m",
+  "seed": "random.Random(20261022 + chỉ số sự kiện (0–9)); dương tính lấy trước rồi âm tính, cùng một bộ sinh",
+  "max_tries": "200.000 lần thử mỗi loại"
+ },
+ "scoring": {
+  "product": "water_history.history(lat, lon) đúng như sản phẩm (bán kính 100 m, một quỹ đạo, ngưỡng VV < −18 dB và thấp hơn nền thửa ≥ 3 dB)",
+  "window": "ngày cảm biến D của lớp tham chiếu (Sensor_Dat); 'bắt được' = có ĐỢT của lịch sử nước chồng lên [D − 6 ngày, D + 6 ngày]",
+  "unread": "lịch sử nước không có (available ≠ true) → không tính vào tỉ lệ, báo riêng"
+ },
+ "gate": {
+  "sensitivity": "tổng điểm dương tính bắt được / dương tính đọc được ≥ 0,60",
+  "false_alarm": "tổng điểm âm tính có đợt trong cửa sổ / âm tính đọc được ≤ 0,20",
+  "read_rate": "≥ 80% số điểm lấy mẫu đọc được",
+  "report": "từng sự kiện; nhóm cảm biến khác (E4, E5) báo riêng; khoảng tin cậy Wilson 95%",
+  "pass": "đạt cả ba"
+ },
+ "if_pass": "thẻ mô hình 'Lịch sử nước' thêm dòng đối chiếu UNOSAT (độ nhạy, báo nhầm, khoảng tin cậy); giới hạn ghi rõ phần không độc lập cảm biến",
+ "if_fail": "công bố trượt trên thẻ, ghi vào giới hạn của lịch sử nước; KHÔNG chỉnh ngưỡng lịch sử nước trên chính bộ này",
+ "one_shot": "ops/water_unosat_gate.py — chấm MỘT lần, từ chối chạy lại khi đã có kết quả",
+ "run_log": []
+}
