@@ -63,6 +63,10 @@ Tra trên **WIPO Global Brand Database** (branddb.wipo.int — có dữ liệu C
    đánh giá tác động xử lý dữ liệu cá nhân theo hướng dẫn của cơ quan chuyên trách (Bộ Công an); `/privacy` hiện ghi "bản
    nháp, chờ luật sư duyệt" — đổi thành bản chính thức khi xong.
 7. Cập nhật `/pricing` và `/terms`: tên pháp nhân, mã số thuế, địa chỉ, đầu mối liên hệ.
+8. Giấy phép dữ liệu TRƯỚC KHI THU TIỀN: (a) Open-Meteo gói miễn phí chỉ cho phi thương mại → đặt
+   `TERRATWIN_OPENMETEO_API_KEY` gói trả phí; (b) ảnh nền độ phân giải cao là **Esri World Imagery** (ảnh Vantor/Maxar,
+   dòng "Ảnh nền: … chụp ngày …" dưới thửa) → đọc điều khoản dùng thương mại của Esri (thường cần tài khoản/khoá ArcGIS
+   Location Platform) hoặc đổi nhà cung cấp; (c) bản đồ vùng ngập UNOSAT dùng để KIỂM (CC BY-SA) — không phân phối lại đa giác.
 
 ## 4. Phần mã đã sẵn sàng (không cần làm thêm)
 

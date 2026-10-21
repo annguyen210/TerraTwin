@@ -5315,3 +5315,8 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .mm-legend { display: flex; align-items: center; gap: 8px; font-size: .75rem; color: var(--muted, #6b7a86); max-width: 460px; }
 .mm-legend i { flex: 1; height: 8px; border-radius: 4px;
   background: linear-gradient(90deg, rgb(140,90,40), rgb(214,178,92) 25%, rgb(190,214,120) 50%, rgb(70,160,190) 75%, rgb(30,80,160)); }
+
+/* Ảnh nền thật dưới thửa: ngày chụp · độ phân giải · nguồn (BasemapInfo) */
+.pw-basemap { margin: 2px 0 6px; font-size: .78rem; color: var(--muted, #6b7a86); }
+.pw-basemap.old { color: var(--warn, #B07A2E); }
+.pw-basemap-src { opacity: .8; }

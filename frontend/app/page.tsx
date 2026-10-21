@@ -65,6 +65,7 @@ const Provenance = dynamic(() => import("@/components/Provenance"));
 const Timeline = dynamic(() => import("@/components/Timeline"));
 const Workspace = dynamic(() => import("@/components/Workspace"));
 const MoistureMap = dynamic(() => import("@/components/MoistureMap"));
+const BasemapInfo = dynamic(() => import("@/components/BasemapInfo"));
 
 // Sáu luồng "xem sâu" gắn với một thửa cụ thể. Gom vào một dãy nút thay vì đổ
 // hết ra: mỗi cái tốn từ vài giây tới hai phút để chạy, mở tất cả cùng lúc vừa
@@ -370,6 +371,7 @@ export default function Home() {
             <p className="eu-eyebrow">{t("Thửa đang xem", "Current plot")}</p>
             <h1>{placeLabel ?? t("Thửa đã chọn", "Selected plot")}</h1>
             <p className="pw-coord">{coord.lat.toFixed(5)}, {coord.lon.toFixed(5)}{area != null ? ` · ${area} ha` : ""}</p>
+            <BasemapInfo lat={coord.lat} lon={coord.lon} />
             {terra && serviceable && terra.grade !== "—" && <TerraBadge t={terra} />}
             <div className="pw-card-actions">
               {/* Trục chính là HỒ SƠ ĐẤT (báo cáo 12/10/2026, mục 9) — EUDR nằm trong mục Doanh nghiệp. */}

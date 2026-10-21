@@ -106,6 +106,20 @@ def landcover_change(lat: float, lon: float, request: Request, lang: str = "vi",
     return aef_landuse.change(lat, lon)
 
 
+@router.get("/api/basemap/meta")
+def basemap_meta(lat: float, lon: float, lang: str = "vi") -> dict:
+    """Ngày chụp, độ phân giải, nguồn của ẢNH NỀN độ phân giải cao (Esri World Imagery) dưới thửa — ảnh nền không phải
+    ảnh hôm nay, nên phải nói nó cũ bao nhiêu (services/basemap.py)."""
+    from app.services import basemap
+    reqlang.set_lang(lang)
+    if not (8.0 <= lat <= 24.0 and 102.0 <= lon <= 110.5):
+        raise HTTPException(422, reqlang.tr("Ngoài phạm vi Việt Nam.", "Outside Vietnam."))
+    r = basemap.meta(lat, lon)
+    if r is None:
+        raise HTTPException(503, reqlang.tr("Chưa đọc được thông tin ảnh nền — thử lại sau.", "Could not read basemap info — try later."))
+    return r
+
+
 @router.get("/api/optical/ndmi10")
 def ndmi10(lat: float, lon: float, request: Request, lang: str = "vi",
            user: User | None = Depends(auth.optional_user)) -> dict:

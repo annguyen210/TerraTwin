@@ -2896,6 +2896,13 @@ export function waterUnet(lat: number, lon: number, date: string) {
   return getJson<WaterUnet>(`/api/water/unet?lat=${lat}&lon=${lon}&date=${date}&lang=${curLang()}`, "Không chạy được U-Net");
 }
 
+// ---- Ảnh nền độ phân giải cao THẬT dưới thửa: ngày chụp, độ phân giải, nguồn (Esri World Imagery) ----
+export type BasemapMeta = { available: boolean; date?: string | null; resolution_m?: number | null; source?: string | null;
+  product?: string | null; service?: string; age_years?: number };
+export function basemapMeta(lat: number, lon: number) {
+  return getJson<BasemapMeta>(`/api/basemap/meta?lat=${lat}&lon=${lon}&lang=${curLang()}`, "Không đọc được thông tin ảnh nền");
+}
+
 // ---- S10 ①: NDMI 10 m trong thửa (B11 20 m làm sắc bằng băng 10 m đã đo; chỉ có khi phép kiểm Wald đạt) ----
 export type Ndmi10 = { available: boolean; reason?: string; found?: boolean; message?: string; date?: string; item?: string;
   clear_pct?: number; method?: string; ndmi_10m?: (number | null)[][]; ndmi_20m?: (number | null)[][];
