@@ -199,11 +199,14 @@ export default function Home() {
     | "mrv" | "provenance" | "model"
   >("none");
 
-  useEffect(() => {
+  const [modErr, setModErr] = useState<string | null>(null);
+  const loadModules = useCallback(() => {
+    setModErr(null);
     getModules()
       .then(setModules)
-      .catch((e) => setErr(e.message));
-  }, [lang]);
+      .catch((e) => setModErr(e.message));
+  }, []);
+  useEffect(() => { loadModules(); }, [lang, loadModules]);
 
   // Khôi phục phiên đăng nhập nếu token còn hiệu lực.
   useEffect(() => {
@@ -423,6 +426,13 @@ export default function Home() {
 
           {chapter === "tools" && (
             <>
+              {/* 21/10/2026: API khởi động lại → danh sách công cụ hỏng → tab trống trơn, không lời giải thích. */}
+              {!modules.length && modErr && (
+                <div className="wh-start">
+                  <p className="bat-err">{modErr}</p>
+                  <button className="bat-btn ghost" onClick={loadModules}>{t("Tải lại danh sách công cụ", "Reload the tool list")}</button>
+                </div>
+              )}
               <div className="pw-mods">
                 {Object.keys(grouped).sort().map((g) => (
                   <div key={g} className="pw-mod-group">
