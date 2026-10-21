@@ -96,8 +96,10 @@ class PestModule(TwinModule):
     # màn hình đầu từ 2,5 giây thành hơn một phút, và người dùng đóng app trước
     # khi thấy bất cứ thứ gì. Chạy riêng khi được yêu cầu, kết quả có cache.
     heavy = True
-    data_sources = ["Sentinel-2 NDVI (Copernicus)", "Ảnh lá người dùng (lộ trình)"]
-    data_sources_en = ["Sentinel-2 NDVI (Copernicus)", "User leaf photos (roadmap)"]
+    # Ảnh lá người dùng gửi qua Field Mode được LƯU làm bằng chứng; chưa có mô hình tự chẩn đoán bệnh từ ảnh lá
+    # (bộ ảnh lá công khai chụp trong phòng thí nghiệm, không đúng ruộng Việt Nam) — nói đúng như vậy, không ghi "lộ trình".
+    data_sources = ["Sentinel-2 NDVI (Planetary Computer / Copernicus)", "Ảnh lá người dùng gửi qua Field Mode — lưu làm bằng chứng, chưa tự chẩn đoán"]
+    data_sources_en = ["Sentinel-2 NDVI (Planetary Computer / Copernicus)", "User leaf photos via Field Mode — kept as evidence, not auto-diagnosed"]
     users = ["Nông dân", "DN nông nghiệp"]
     description = "Khoanh vùng cây stress bất thường + phân biệt đều hay loang lổ."
     users_en = ["Farmers", "Agribusinesses"]
