@@ -176,4 +176,6 @@ chỉ là người dùng không nhận được gì:
 - [ ] Đăng ký + lưu thửa → deploy lại → **thửa vẫn còn**
 - [ ] Đã chạy `python -m app.warm --provinces`
 - [ ] Bốn phép thử "Kiểm tra sau deploy" đều xanh
-- [ ] (tùy chọn) Kênh cảnh báo đã nối · sao lưu tự động (N2) đã diễn tập khôi phục
+- [ ] (tùy chọn) Kênh cảnh báo đã nối
+- [x] Sao lưu tự động (N2) đã diễn tập khôi phục — từ 21/10/2026 TỰ CHẠY mỗi ngày trong backup.yml
+      (lần đầu trên dữ liệu thật: 34 bảng, 14.702 hàng khớp); test thật trong CI: `ops/ci-test-backup.sh`
