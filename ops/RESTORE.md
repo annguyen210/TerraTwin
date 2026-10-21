@@ -6,6 +6,13 @@ Nếu một bước báo lỗi, dừng lại và đọc đúng dòng lỗi trư�
 > Nguyên tắc: **diễn tập trước khi cần thật.** Một bản sao lưu chưa từng khôi
 > phục thử là một bản sao lưu chưa được tin. Làm phần "1. Diễn tập" ít nhất một
 > lần trước khi có sự cố thật — đừng để lần đầu khôi phục là lúc đang hoảng.
+>
+> **Từ 21/10/2026 diễn tập TỰ CHẠY mỗi ngày** ngay sau khi sao lưu (workflow
+> "Database backup", bước "Diễn tập khôi phục"): bản vừa sao lưu được giải mã và
+> khôi phục vào một Postgres tạm trên máy chạy CI, rồi so số hàng của MỌI bảng với
+> CSDL thật. Bước đó đỏ nghĩa là bản sao lưu hôm nay chưa được tin — xem nhật ký
+> bước đó (chỉ có tên bảng và số hàng, không có nội dung). Phần dưới đây vẫn cần
+> khi khôi phục THẬT hoặc muốn tự kiểm trên máy mình.
 
 ## 0. Cần chuẩn bị trước
 

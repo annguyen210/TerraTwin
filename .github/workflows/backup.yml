@@ -62,6 +62,17 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       PG_CLIENT_MAJOR: "18"     # = bản chính CSDL Render; Neon cùng bản hoặc cũ hơn
+    # Postgres TẠM cho diễn tập khôi phục (21/10/2026): sống đúng trong lượt chạy này trên máy CI,
+    # mất cùng máy — dữ liệu khôi phục không đi đâu khác. Không cần chủ dự án tạo CSDL nháp.
+    services:
+      drill:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: drill
+          POSTGRES_DB: drill
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
     steps:
       - uses: actions/checkout@v5
 
@@ -181,6 +192,11 @@ jobs:
             exit 1
           fi
 
+      - name: Đếm số hàng từng bảng TRƯỚC khi sao lưu (cho diễn tập)
+        env:
+          TERRATWIN_DATABASE_URL: ${{ steps.src.outputs.src == 'neon' && secrets.TERRATWIN_NEON_URL || secrets.TERRATWIN_DB_EXTERNAL_URL }}
+        run: bash ops/restore-drill.sh count "$TERRATWIN_DATABASE_URL" > "$RUNNER_TEMP/before.tsv"
+
       - name: Sao lưu + mã hoá (ops/backup.sh)
         env:
           TERRATWIN_DATABASE_URL: ${{ steps.src.outputs.src == 'neon' && secrets.TERRATWIN_NEON_URL || secrets.TERRATWIN_DB_EXTERNAL_URL }}
@@ -201,3 +217,14 @@ jobs:
               exit 1
             fi
           fi
+
+      # N2: một bản sao lưu chưa từng khôi phục thử thì chưa phải bản sao lưu. Chạy SAU khi đã đẩy —
+      # diễn tập trượt không được làm mất bản sao lưu hôm nay, nhưng làm cả lượt chạy ĐỎ.
+      - name: Diễn tập khôi phục vào Postgres tạm — so số hàng MỌI bảng (ops/restore-drill.sh)
+        env:
+          TERRATWIN_DATABASE_URL: ${{ steps.src.outputs.src == 'neon' && secrets.TERRATWIN_NEON_URL || secrets.TERRATWIN_DB_EXTERNAL_URL }}
+          TERRATWIN_SCRATCH_URL: postgresql://postgres:drill@localhost:5432/drill
+          TERRATWIN_BACKUP_PASSPHRASE: ${{ secrets.TERRATWIN_BACKUP_PASSPHRASE }}
+          TERRATWIN_BACKUP_DIR: ${{ github.workspace }}/../backups-wt
+          TERRATWIN_DRILL_BEFORE: ${{ runner.temp }}/before.tsv
+        run: bash ops/restore-drill.sh
