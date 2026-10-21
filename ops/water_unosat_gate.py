@@ -24,6 +24,7 @@ from shapely import make_valid  # noqa: E402
 from shapely.affinity import scale  # noqa: E402
 from shapely.geometry import Point, shape  # noqa: E402
 from shapely.prepared import prep  # noqa: E402
+from shapely.strtree import STRtree  # noqa: E402
 
 from app.services import water_history as wh  # noqa: E402
 
@@ -65,6 +66,17 @@ def sample(i: int, ev: dict) -> dict:
     water, _ = load(ev["dir"], ev["water"])
     wet = flood if water is None else flood.union(water)
     pf, pa, pw = prep(flood), prep(analysis), prep(wet)
+    # Diện tích giao bằng chỉ mục không gian trên từng mảnh đa giác — CÙNG kết quả với flood.intersection(c).area
+    # (các mảnh của một vùng hợp lệ không chồng nhau) nhưng không cắt cả vùng ngập khổng lồ cho mỗi lần thử.
+    def flat(g):
+        if g.geom_type == "Polygon":
+            return [g]
+        return [p for h in getattr(g, "geoms", []) for p in flat(h)]
+    parts = flat(flood)
+    tree = STRtree(parts)
+
+    def area_in(c):
+        return sum(parts[k].intersection(c).area for k in tree.query(c))
     rng = random.Random(20261022 + i)
     pos, neg = [], []
     x0, y0, x1, y1 = flood.bounds
@@ -75,7 +87,7 @@ def sample(i: int, ev: dict) -> dict:
         if not pf.contains(Point(lon, lat)):
             continue
         c = circle(lat, lon)
-        if c.intersection(flood).area / c.area >= 0.5:
+        if area_in(c) / c.area >= 0.5:
             pos.append((round(lat, 6), round(lon, 6)))
     x0, y0, x1, y1 = analysis.bounds
     for _ in range(200_000):

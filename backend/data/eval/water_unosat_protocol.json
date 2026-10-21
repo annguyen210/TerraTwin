@@ -127,5 +127,10 @@
  "if_pass": "thẻ mô hình 'Lịch sử nước' thêm dòng đối chiếu UNOSAT (độ nhạy, báo nhầm, khoảng tin cậy); giới hạn ghi rõ phần không độc lập cảm biến",
  "if_fail": "công bố trượt trên thẻ, ghi vào giới hạn của lịch sử nước; KHÔNG chỉnh ngưỡng lịch sử nước trên chính bộ này",
  "one_shot": "ops/water_unosat_gate.py — chấm MỘT lần, từ chối chạy lại khi đã có kết quả",
- "run_log": []
+ "run_log": [
+  {
+   "at": "2026-10-21",
+   "what": "Lượt đầu DỪNG trước khi chấm điểm nào (vẫn đang lấy mẫu sau ~70 phút: cắt vòng tròn 100 m với cả vùng ngập khổng lồ mỗi lần thử). Tăng tốc bằng STRtree trên từng mảnh đa giác — cùng diện tích (lệch tương đối tối đa 4,7e-16 trên 30 vòng thử ở E2), cùng chuỗi số ngẫu nhiên → cùng bộ điểm. Không đổi quy tắc lấy mẫu, ngưỡng hay cách chấm."
+  }
+ ]
 }
