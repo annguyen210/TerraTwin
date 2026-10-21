@@ -69,24 +69,30 @@ def location(la: float, lo: float, split: str, i: int, k: int) -> list[dict]:
     return mpc._spread(got, MAX_PAIRS)
 
 
+def one(split: str, i: int, p: dict, k: int) -> None:
+    path = os.path.join(OUT, f"{split}_{i:02d}_{k}.json")
+    if os.path.exists(path):
+        return
+    rng = random.Random(20261021 + 1000 * GROUP[split] + 10 * i + k)
+    la, lo = (p["lat"], p["lon"]) if k == 0 else (p["lat"] + rng.uniform(-0.06, 0.06), p["lon"] + rng.uniform(-0.06, 0.06))
+    pairs = location(la, lo, split, i, k)
+    for j, g in enumerate(pairs):
+        np.savez_compressed(os.path.join(OUT, f"{split}_{i:02d}_{k}_{j}.npz"), s1=g["s1"], label=g["label"],
+                            slope=(g["slope"] if g["slope"] is not None else np.zeros_like(g["s1"][0])).astype(np.float16))
+    json.dump({"province": p["province"], "lat": round(la, 5), "lon": round(lo, 5), "n": len(pairs),
+               "slope_missing": any(g["slope"] is None for g in pairs),
+               "pairs": [g["meta"] for g in pairs]}, open(path, "w", encoding="utf-8"), ensure_ascii=False)
+    print(split, p["province"], k, "cặp:", len(pairs), flush=True)
+
+
 def main() -> None:
+    # 6 vị trí song song (đọc mạng là chính) — thứ tự không đổi kết quả: mỗi vị trí có hạt giống riêng.
+    from concurrent.futures import ThreadPoolExecutor
     os.makedirs(OUT, exist_ok=True)
-    for split, rows in PROTO["data"]["split"].items():
-        for i, p in enumerate(rows):
-            for k in range(3):
-                path = os.path.join(OUT, f"{split}_{i:02d}_{k}.json")
-                if os.path.exists(path):
-                    continue
-                rng = random.Random(20261021 + 1000 * GROUP[split] + 10 * i + k)
-                la, lo = (p["lat"], p["lon"]) if k == 0 else (p["lat"] + rng.uniform(-0.06, 0.06), p["lon"] + rng.uniform(-0.06, 0.06))
-                pairs = location(la, lo, split, i, k)
-                for j, g in enumerate(pairs):
-                    np.savez_compressed(os.path.join(OUT, f"{split}_{i:02d}_{k}_{j}.npz"), s1=g["s1"], label=g["label"],
-                                        slope=(g["slope"] if g["slope"] is not None else np.zeros_like(g["s1"][0])).astype(np.float16))
-                json.dump({"province": p["province"], "lat": round(la, 5), "lon": round(lo, 5), "n": len(pairs),
-                           "slope_missing": any(g["slope"] is None for g in pairs),
-                           "pairs": [g["meta"] for g in pairs]}, open(path, "w", encoding="utf-8"), ensure_ascii=False)
-                print(split, p["province"], k, "cặp:", len(pairs), flush=True)
+    jobs = [(s, i, p, k) for s, rows in PROTO["data"]["split"].items() for i, p in enumerate(rows) for k in range(3)]
+    with ThreadPoolExecutor(6) as ex:
+        for f in [ex.submit(one, *j) for j in jobs]:
+            f.result()
 
 
 if __name__ == "__main__":
