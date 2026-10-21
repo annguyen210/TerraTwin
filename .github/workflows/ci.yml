@@ -85,6 +85,8 @@ jobs:
       - run: pip install -r backend/requirements.txt "psycopg[binary]"
       - run: bash ops/install-pg-client.sh 18 "$PG_ADMIN_URL"
       - run: bash ops/ci-test-migrate.sh
+      # Sao lưu mã hoá + diễn tập khôi phục (ops/backup.sh, ops/restore-drill.sh) — lỗi lộ ở CI, không đợi lượt sao lưu đêm.
+      - run: bash ops/ci-test-backup.sh
       # Script cron của radar.yml/brief.yml: đánh thức api ngủ, nhận ra bị
       # đình chỉ, quét nền + hỏi tiến độ trên backend thật.
       - run: bash ops/ci-test-cron.sh
