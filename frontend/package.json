@@ -9,7 +9,7 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "test": "node scripts/test-csp.mjs && node --no-warnings --experimental-strip-types scripts/test-geo.mjs",
+    "test": "node scripts/test-csp.mjs && node --no-warnings --experimental-strip-types scripts/test-geo.mjs && node --no-warnings --experimental-strip-types scripts/test-retry.mjs",
     "postinstall": "node scripts/copy-maplibre-worker.mjs"
   },
   "dependencies": {

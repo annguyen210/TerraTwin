@@ -1,3 +1,4 @@
+import { getRetry } from "./retry";
 const BASE = process.env.NEXT_PUBLIC_API ?? "http://localhost:8000";
 
 // Ngôn ngữ hiện tại để gửi cho máy chủ (nội dung động: tên mô-đun, headline,
@@ -157,7 +158,7 @@ export type CopilotAnswer = {
 };
 
 export async function getModules(): Promise<ModuleInfo[]> {
-  const r = await fetch(`${BASE}/api/modules${_lp()}`);
+  const r = await getRetry(`${BASE}/api/modules${_lp()}`, undefined, { lang: curLang() });
   if (!r.ok) throw new Error("Không tải được danh sách mô-đun");
   return r.json();
 }
@@ -808,7 +809,7 @@ export function ackAlert(id: number) {
 }
 
 async function getJson<T>(path: string, err: string): Promise<T> {
-  const r = await fetch(`${BASE}${path}`, { headers: authHeaders() });
+  const r = await getRetry(`${BASE}${path}`, { headers: authHeaders() }, { lang: curLang() });
   if (!r.ok) throw new Error(await errMessage(r, err));
   return r.json();
 }
