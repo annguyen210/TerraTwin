@@ -96,10 +96,11 @@ class PestModule(TwinModule):
     # màn hình đầu từ 2,5 giây thành hơn một phút, và người dùng đóng app trước
     # khi thấy bất cứ thứ gì. Chạy riêng khi được yêu cầu, kết quả có cache.
     heavy = True
-    # Ảnh lá người dùng gửi qua Field Mode được LƯU làm bằng chứng; chưa có mô hình tự chẩn đoán bệnh từ ảnh lá
-    # (bộ ảnh lá công khai chụp trong phòng thí nghiệm, không đúng ruộng Việt Nam) — nói đúng như vậy, không ghi "lộ trình".
-    data_sources = ["Sentinel-2 NDVI (Planetary Computer / Copernicus)", "Ảnh lá người dùng gửi qua Field Mode — lưu làm bằng chứng, chưa tự chẩn đoán"]
-    data_sources_en = ["Sentinel-2 NDVI (Planetary Computer / Copernicus)", "User leaf photos via Field Mode — kept as evidence, not auto-diagnosed"]
+    # Ảnh người dùng kèm vào hồ sơ (nút "Kèm ảnh thực địa", tab Hồ sơ) được LƯU làm bằng chứng (EXIF vị trí/thời điểm đã
+    # kiểm); TerraTwin KHÔNG chẩn đoán bệnh từ ảnh lá — ngoài trục "sự thật về mảnh đất" (21/10/2026). Field Mode là hỏi
+    # bằng giọng nói, không nhận ảnh — bản cũ chỉ nhầm chỗ.
+    data_sources = ["Sentinel-2 NDVI (Planetary Computer / Copernicus)", "Ảnh thực địa người dùng kèm vào hồ sơ — bằng chứng, không tự chẩn đoán bệnh"]
+    data_sources_en = ["Sentinel-2 NDVI (Planetary Computer / Copernicus)", "User field photos attached to the dossier — evidence, no automatic disease diagnosis"]
     users = ["Nông dân", "DN nông nghiệp"]
     description = "Khoanh vùng cây stress bất thường + phân biệt đều hay loang lổ."
     users_en = ["Farmers", "Agribusinesses"]
@@ -151,8 +152,8 @@ class PestModule(TwinModule):
         head = (f"{r['verdict'].capitalize()} — NDVI {r['ndvi_now']} "
                 + tr(f"({r['change_pct']:+.1f}% so nền thửa), ảnh ngày {r['observed_on']}",
                      f"({r['change_pct']:+.1f}% vs plot baseline), image {r['observed_on']}"))
-        rec = (r["cause_hint"] + tr(" Ra thăm đúng chỗ và chụp lá gửi lại qua Field Mode.",
-                                    " Visit the exact spot and send a leaf photo via Field Mode.")
+        rec = (r["cause_hint"] + tr(" Ra thăm đúng chỗ; chụp ảnh và kèm vào hồ sơ bằng nút \"Kèm ảnh thực địa\" (tab Hồ sơ) để lưu bằng chứng.",
+                                    " Visit the exact spot; take photos and attach them via \"Add field photos\" (Dossier tab) to keep the evidence.")
                if r["cause_hint"] else
                tr("Chưa cần hành động. Phần mềm tiếp tục theo dõi mỗi lần vệ tinh bay qua.",
                   "No action needed. The app keeps watching on each satellite pass."))

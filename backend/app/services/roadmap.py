@@ -94,10 +94,12 @@ FLOWS = [
      "liệt kê đúng các bước còn thiếu để lên chuẩn đó.", "satellite"),
     ("C08", "Multi-Twin Portfolio", "core", "done",
      "Danh mục thửa đất trong database, đồng bộ đa thiết bị."),
-    ("C09", "Field Mode (giọng nói + ảnh)", "core", "done",
+    ("C09", "Field Mode (giọng nói) + ảnh thực địa", "core", "done",
      "Hỏi bằng giọng nói qua Web Speech API — miễn phí, không cần key, âm thanh "
-     "không rời trình duyệt. Phân tích ảnh lá cần model có thị giác: hạ tầng đã "
-     "sẵn, bật ngay khi cắm key hỗ trợ vision."),
+     "không rời trình duyệt. Ảnh thực địa kèm vào hồ sơ (nút 'Kèm ảnh thực địa'): "
+     "kiểm EXIF vị trí/thời điểm, SegFormer đọc nước trong ảnh (đã qua cổng). KHÔNG "
+     "chẩn đoán bệnh từ ảnh lá — ngoài trục 'sự thật về mảnh đất' (quyết định 21/10/2026); "
+     "bản cũ ghi 'hạ tầng đã sẵn' là khai quá."),
     ("C10", "Anomaly & Compliance", "core", "done",
      "z-score so khí hậu nền 10 năm tại chính toạ độ đó."),
     ("C11", "Bring-Your-Own-Data", "core", "done",
