@@ -51,6 +51,29 @@ def _field_metric() -> dict:
             "passed": None}
 
 
+def _unosat_metrics() -> list[dict]:
+    """Kiểm ĐỘC LẬP bằng bản đồ vùng ngập UNOSAT (water_unosat_protocol.json) — kể cả phần yếu (cảm biến khác Sentinel-1)."""
+    u = _load("eval", "water_unosat_result.json")
+    if not u:
+        return []
+    s = u.get("summary") or {}
+    se, fa, so, s1 = (s.get(k) or {} for k in ("sensitivity", "false_alarm", "sensitivity_other_sensor", "sensitivity_sentinel1"))
+    ci = lambda x: f"{(x.get('wilson95') or [None, None])[0]}–{(x.get('wilson95') or [None, None])[1]}"  # noqa: E731
+    return [
+        {"label": tr("Đối chiếu bản đồ ngập UNOSAT (10 trận 2020–2025): điểm ngập bắt được", "Check vs UNOSAT flood maps (10 floods 2020–2025): flooded points caught"),
+         "value": f"{se.get('with_event')}/{se.get('read')} = {se.get('rate')} (95%: {ci(se)})", "threshold": "≥ 0.60",
+         "passed": (u.get("checks") or {}).get("sensitivity_ge_0_60", [None, None])[1]},
+        {"label": tr("  · chỉ bản đồ từ cảm biến KHÁC Sentinel-1 (SAOCOM, RADARSAT) — phần thật sự độc lập",
+                     "  · only maps from sensors OTHER than Sentinel-1 (SAOCOM, RADARSAT) — the truly independent part"),
+         "value": f"{so.get('with_event')}/{so.get('read')} = {so.get('rate')} (95%: {ci(so)})", "threshold": tr("báo riêng", "reported"), "passed": None},
+        {"label": tr("  · bản đồ cũng từ Sentinel-1 (cùng cảm biến, khác phương pháp)", "  · maps also from Sentinel-1 (same sensor, different method)"),
+         "value": f"{s1.get('with_event')}/{s1.get('read')} = {s1.get('rate')}", "threshold": tr("báo riêng", "reported"), "passed": None},
+        {"label": tr("Đối chiếu UNOSAT: điểm khô (≥ 500 m cách vùng nước) bị báo có đợt", "UNOSAT check: dry points (≥ 500 m from water) flagged"),
+         "value": f"{fa.get('with_event')}/{fa.get('read')} = {fa.get('rate')} (95%: {ci(fa)})", "threshold": "≤ 0.20",
+         "passed": (u.get("checks") or {}).get("false_alarm_le_0_20", [None, None])[1]},
+    ]
+
+
 def cards() -> list[dict]:
     out: list[dict] = []
 
@@ -157,9 +180,15 @@ def cards() -> list[dict]:
             "metrics": [{"label": c.get("case"), "value": tr(f"{c.get('n_events')} đợt", f"{c.get('n_events')} events"),
                          "threshold": ", ".join(x.get("label", "") for x in c.get("checks") or []) or tr("0 đợt", "0 events"),
                          "passed": all(x.get("pass") for x in c.get("checks") or []) if c.get("checks") else c.get("n_events") == 0}
-                        for c in g.get("cases", [])] + [_field_metric()],
-            "limits": tr("Đô thị, rừng rậm, sườn dốc, mặt rất phẳng có thể sai; chu kỳ 6–12 ngày lọt đợt ngập ngắn.",
-                         "Urban areas, dense forest, steep slopes, very smooth surfaces mislead; the 6–12 day revisit misses short floods."),
+                        for c in g.get("cases", [])] + _unosat_metrics() + [_field_metric()],
+            "limits": tr("Đô thị, rừng rậm, sườn dốc, mặt rất phẳng có thể sai; chu kỳ 6–12 ngày lọt đợt ngập ngắn. Đối chiếu UNOSAT: "
+                         "khớp cao với bản đồ cũng làm từ Sentinel-1, nhưng chỉ bắt 6/16 điểm ngập trên bản đồ từ cảm biến khác (SAOCOM băng L "
+                         "thấy cả nước dưới tán cây; RADARSAT chụp ngày khác) — lịch sử nước dễ BỎ SÓT ngập ngắn hoặc dưới tán, hiếm khi báo bừa "
+                         "(0/73 điểm khô).",
+                         "Urban areas, dense forest, steep slopes, very smooth surfaces mislead; the 6–12 day revisit misses short floods. UNOSAT "
+                         "check: high agreement with maps also made from Sentinel-1, but only 6/16 flooded points on maps from other sensors "
+                         "(L-band SAOCOM sees water under canopy; RADARSAT imaged on other days) — water history tends to MISS short or "
+                         "under-canopy flooding, and rarely raises false alarms (0/73 dry points)."),
             "not_for": tr("Không phải số liệu ngập chính thức.", "Not official flood records."),
             "code": f"{REPO}/backend/app/services/water_history.py",
         })

@@ -131,6 +131,11 @@
   {
    "at": "2026-10-21",
    "what": "Lượt đầu DỪNG trước khi chấm điểm nào (vẫn đang lấy mẫu sau ~70 phút: cắt vòng tròn 100 m với cả vùng ngập khổng lồ mỗi lần thử). Tăng tốc bằng STRtree trên từng mảnh đa giác — cùng diện tích (lệch tương đối tối đa 4,7e-16 trên 30 vòng thử ở E2), cùng chuỗi số ngẫu nhiên → cùng bộ điểm. Không đổi quy tắc lấy mẫu, ngưỡng hay cách chấm."
+  },
+  {
+   "at": "2026-10-22",
+   "what": "Chấm MỘT lần (sau khi tăng tốc lấy mẫu). 160 điểm, đọc được 153.",
+   "result": "ĐẠT — độ nhạy 60/80 = 0,75 (95%: 0,645–0,832), báo nhầm 0/73 (95%: 0–0,05), đọc được 95,6%. Phần cảm biến khác Sentinel-1 (E4 SAOCOM, E5 RADARSAT) chỉ 6/16 = 0,375 — ghi rõ trên thẻ và giới hạn. Lỗi BÁO CÁO (khoá 'event' bị ghi đè) sửa sau chấm, tổng không đổi — xem reporting_fix_after_scoring."
   }
  ]
 }

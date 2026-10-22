@@ -113,7 +113,7 @@ def check(lat: float, lon: float, d: date) -> dict:
         return {"read": False, "reason": h.get("reason") or h.get("message")}
     a, b = d - timedelta(days=WINDOW), d + timedelta(days=WINDOW)
     hit = [e for e in h.get("events", []) if date.fromisoformat(e["start"]) <= b and date.fromisoformat(e["end"]) >= a]
-    return {"read": True, "event": bool(hit), "events": [{"start": e["start"], "end": e["end"], "cover": e.get("peak_cover")} for e in hit],
+    return {"read": True, "has_event": bool(hit), "events": [{"start": e["start"], "end": e["end"], "cover": e.get("peak_cover")} for e in hit],
             "n_scenes": h.get("n_scenes")}
 
 
@@ -141,7 +141,7 @@ def main() -> None:
         rows.append({"event": e["id"], "kind": kind, "lat": lat, "lon": lon, **r})
     def rate(sel):
         rd = [r for r in sel if r["read"]]
-        k = sum(r["event"] for r in rd)
+        k = sum(r["has_event"] for r in rd)
         return {"n": len(sel), "read": len(rd), "with_event": k, "rate": round(k / len(rd), 3) if rd else None, "wilson95": wilson(k, len(rd))}
     pos, neg = [r for r in rows if r["kind"] == "pos"], [r for r in rows if r["kind"] == "neg"]
     other = {"E4", "E5"}

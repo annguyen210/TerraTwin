@@ -1,0 +1,2295 @@
+{
+ "protocol": "terratwin.water_unosat/1",
+ "scored_at": "2026-10-22T15:04:04Z",
+ "attribution": "Vùng ngập tham chiếu: UNOSAT/UNITAR (CC BY-SA), qua HDX",
+ "checks": {
+  "sensitivity_ge_0_60": [
+   0.75,
+   true
+  ],
+  "false_alarm_le_0_20": [
+   0.0,
+   true
+  ],
+  "read_rate_ge_0_80": [
+   0.956,
+   true
+  ]
+ },
+ "passed": true,
+ "summary": {
+  "sensitivity": {
+   "n": 80,
+   "read": 80,
+   "with_event": 60,
+   "rate": 0.75,
+   "wilson95": [
+    0.645,
+    0.832
+   ]
+  },
+  "false_alarm": {
+   "n": 80,
+   "read": 73,
+   "with_event": 0,
+   "rate": 0.0,
+   "wilson95": [
+    0,
+    0.05
+   ]
+  },
+  "sensitivity_other_sensor": {
+   "n": 16,
+   "read": 16,
+   "with_event": 6,
+   "rate": 0.375,
+   "wilson95": [
+    0.185,
+    0.614
+   ]
+  },
+  "false_alarm_other_sensor": {
+   "n": 16,
+   "read": 16,
+   "with_event": 0,
+   "rate": 0.0,
+   "wilson95": [
+    0,
+    0.194
+   ]
+  },
+  "sensitivity_sentinel1": {
+   "n": 64,
+   "read": 64,
+   "with_event": 54,
+   "rate": 0.844,
+   "wilson95": [
+    0.736,
+    0.913
+   ]
+  },
+  "false_alarm_sentinel1": {
+   "n": 64,
+   "read": 57,
+   "with_event": 0,
+   "rate": 0.0,
+   "wilson95": [
+    0,
+    0.063
+   ]
+  },
+  "per_event": {
+   "E1": {
+    "label": "bão Yagi — đồng bằng sông Hồng",
+    "sensor": "Sentinel-1",
+    "date": "2024-09-12",
+    "sensitivity": {
+     "n": 8,
+     "read": 8,
+     "with_event": 3,
+     "rate": 0.375,
+     "wilson95": [
+      0.137,
+      0.694
+     ]
+    },
+    "false_alarm": {
+     "n": 8,
+     "read": 8,
+     "with_event": 0,
+     "rate": 0.0,
+     "wilson95": [
+      0,
+      0.324
+     ]
+    }
+   },
+   "E2": {
+    "label": "bão Yagi — Bắc Giang",
+    "sensor": "Sentinel-1",
+    "date": "2024-09-10",
+    "sensitivity": {
+     "n": 8,
+     "read": 8,
+     "with_event": 7,
+     "rate": 0.875,
+     "wilson95": [
+      0.529,
+      0.978
+     ]
+    },
+    "false_alarm": {
+     "n": 8,
+     "read": 8,
+     "with_event": 0,
+     "rate": 0.0,
+     "wilson95": [
+      0,
+      0.324
+     ]
+    }
+   },
+   "E3": {
+    "label": "bão 8/2025 — miền Bắc",
+    "sensor": "Sentinel-1",
+    "date": "2025-08-26",
+    "sensitivity": {
+     "n": 8,
+     "read": 8,
+     "with_event": 5,
+     "rate": 0.625,
+     "wilson95": [
+      0.306,
+      0.863
+     ]
+    },
+    "false_alarm": {
+     "n": 8,
+     "read": 8,
+     "with_event": 0,
+     "rate": 0.0,
+     "wilson95": [
+      0,
+      0.324
+     ]
+    }
+   },
+   "E4": {
+    "label": "lũ miền Trung — Hà Tĩnh",
+    "sensor": "SAOCOM-1A (băng L)",
+    "date": "2020-11-03",
+    "sensitivity": {
+     "n": 8,
+     "read": 8,
+     "with_event": 3,
+     "rate": 0.375,
+     "wilson95": [
+      0.137,
+      0.694
+     ]
+    },
+    "false_alarm": {
+     "n": 8,
+     "read": 8,
+     "with_event": 0,
+     "rate": 0.0,
+     "wilson95": [
+      0,
+      0.324
+     ]
+    }
+   },
+   "E5": {
+    "label": "lũ miền Trung — Nghệ An",
+    "sensor": "RADARSAT Constellation",
+    "date": "2020-10-31",
+    "sensitivity": {
+     "n": 8,
+     "read": 8,
+     "with_event": 3,
+     "rate": 0.375,
+     "wilson95": [
+      0.137,
+      0.694
+     ]
+    },
+    "false_alarm": {
+     "n": 8,
+     "read": 8,
+     "with_event": 0,
+     "rate": 0.0,
+     "wilson95": [
+      0,
+      0.324
+     ]
+    }
+   },
+   "E6": {
+    "label": "lũ miền Trung — Quảng Bình",
+    "sensor": "Sentinel-1",
+    "date": "2020-10-29",
+    "sensitivity": {
+     "n": 8,
+     "read": 8,
+     "with_event": 8,
+     "rate": 1.0,
+     "wilson95": [
+      0.676,
+      1.0
+     ]
+    },
+    "false_alarm": {
+     "n": 8,
+     "read": 8,
+     "with_event": 0,
+     "rate": 0.0,
+     "wilson95": [
+      0,
+      0.324
+     ]
+    }
+   },
+   "E7": {
+    "label": "lũ miền Trung — Quảng Trị",
+    "sensor": "Sentinel-1",
+    "date": "2020-10-29",
+    "sensitivity": {
+     "n": 8,
+     "read": 8,
+     "with_event": 8,
+     "rate": 1.0,
+     "wilson95": [
+      0.676,
+      1.0
+     ]
+    },
+    "false_alarm": {
+     "n": 8,
+     "read": 8,
+     "with_event": 0,
+     "rate": 0.0,
+     "wilson95": [
+      0,
+      0.324
+     ]
+    }
+   },
+   "E8": {
+    "label": "lũ miền Trung — Quảng Nam",
+    "sensor": "Sentinel-1",
+    "date": "2020-10-30",
+    "sensitivity": {
+     "n": 8,
+     "read": 8,
+     "with_event": 8,
+     "rate": 1.0,
+     "wilson95": [
+      0.676,
+      1.0
+     ]
+    },
+    "false_alarm": {
+     "n": 8,
+     "read": 8,
+     "with_event": 0,
+     "rate": 0.0,
+     "wilson95": [
+      0,
+      0.324
+     ]
+    }
+   },
+   "E9": {
+    "label": "lũ miền Trung — Quảng Ngãi",
+    "sensor": "Sentinel-1",
+    "date": "2020-10-30",
+    "sensitivity": {
+     "n": 8,
+     "read": 8,
+     "with_event": 8,
+     "rate": 1.0,
+     "wilson95": [
+      0.676,
+      1.0
+     ]
+    },
+    "false_alarm": {
+     "n": 8,
+     "read": 1,
+     "with_event": 0,
+     "rate": 0.0,
+     "wilson95": [
+      0,
+      0.793
+     ]
+    }
+   },
+   "E10": {
+    "label": "lũ miền Trung — Bình Định",
+    "sensor": "Sentinel-1",
+    "date": "2020-10-30",
+    "sensitivity": {
+     "n": 8,
+     "read": 8,
+     "with_event": 7,
+     "rate": 0.875,
+     "wilson95": [
+      0.529,
+      0.978
+     ]
+    },
+    "false_alarm": {
+     "n": 8,
+     "read": 8,
+     "with_event": 0,
+     "rate": 0.0,
+     "wilson95": [
+      0,
+      0.324
+     ]
+    }
+   }
+  }
+ },
+ "points": [
+  {
+   "kind": "pos",
+   "lat": 21.310724,
+   "lon": 105.473308,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E1"
+  },
+  {
+   "kind": "pos",
+   "lat": 20.6433,
+   "lon": 105.706766,
+   "read": true,
+   "events": [
+    {
+     "start": "2024-09-12",
+     "end": "2024-10-06",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 284,
+   "has_event": true,
+   "event": "E1"
+  },
+  {
+   "kind": "pos",
+   "lat": 20.844027,
+   "lon": 106.440102,
+   "read": true,
+   "events": [
+    {
+     "start": "2024-09-12",
+     "end": "2024-09-12",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 284,
+   "has_event": true,
+   "event": "E1"
+  },
+  {
+   "kind": "pos",
+   "lat": 20.570871,
+   "lon": 106.589084,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E1"
+  },
+  {
+   "kind": "pos",
+   "lat": 20.691747,
+   "lon": 105.66966,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E1"
+  },
+  {
+   "kind": "pos",
+   "lat": 20.754678,
+   "lon": 106.764421,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E1"
+  },
+  {
+   "kind": "pos",
+   "lat": 21.303143,
+   "lon": 106.069018,
+   "read": true,
+   "events": [
+    {
+     "start": "2024-09-12",
+     "end": "2024-09-12",
+     "cover": "10–25%"
+    }
+   ],
+   "n_scenes": 283,
+   "has_event": true,
+   "event": "E1"
+  },
+  {
+   "kind": "pos",
+   "lat": 20.790413,
+   "lon": 105.869674,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E1"
+  },
+  {
+   "kind": "neg",
+   "lat": 20.323824,
+   "lon": 105.133604,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E1"
+  },
+  {
+   "kind": "neg",
+   "lat": 20.751785,
+   "lon": 106.865197,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E1"
+  },
+  {
+   "kind": "neg",
+   "lat": 20.726214,
+   "lon": 105.386615,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E1"
+  },
+  {
+   "kind": "neg",
+   "lat": 21.026836,
+   "lon": 104.942394,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E1"
+  },
+  {
+   "kind": "neg",
+   "lat": 21.367258,
+   "lon": 104.88835,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E1"
+  },
+  {
+   "kind": "neg",
+   "lat": 21.401299,
+   "lon": 105.004164,
+   "read": true,
+   "events": [],
+   "n_scenes": 283,
+   "has_event": false,
+   "event": "E1"
+  },
+  {
+   "kind": "neg",
+   "lat": 20.271301,
+   "lon": 105.633684,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E1"
+  },
+  {
+   "kind": "neg",
+   "lat": 20.769387,
+   "lon": 105.750808,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E1"
+  },
+  {
+   "kind": "pos",
+   "lat": 20.989359,
+   "lon": 106.271724,
+   "read": true,
+   "events": [
+    {
+     "start": "2024-09-12",
+     "end": "2024-09-12",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 284,
+   "has_event": true,
+   "event": "E2"
+  },
+  {
+   "kind": "pos",
+   "lat": 21.224105,
+   "lon": 106.339277,
+   "read": true,
+   "events": [
+    {
+     "start": "2024-09-12",
+     "end": "2024-09-12",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 284,
+   "has_event": true,
+   "event": "E2"
+  },
+  {
+   "kind": "pos",
+   "lat": 21.241004,
+   "lon": 106.377862,
+   "read": true,
+   "events": [
+    {
+     "start": "2024-09-12",
+     "end": "2024-10-06",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 283,
+   "has_event": true,
+   "event": "E2"
+  },
+  {
+   "kind": "pos",
+   "lat": 20.9954,
+   "lon": 106.268176,
+   "read": true,
+   "events": [
+    {
+     "start": "2024-09-12",
+     "end": "2024-09-12",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 284,
+   "has_event": true,
+   "event": "E2"
+  },
+  {
+   "kind": "pos",
+   "lat": 21.235472,
+   "lon": 106.352469,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E2"
+  },
+  {
+   "kind": "pos",
+   "lat": 20.971599,
+   "lon": 106.283401,
+   "read": true,
+   "events": [
+    {
+     "start": "2024-09-12",
+     "end": "2024-09-12",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 284,
+   "has_event": true,
+   "event": "E2"
+  },
+  {
+   "kind": "pos",
+   "lat": 21.108185,
+   "lon": 106.237434,
+   "read": true,
+   "events": [
+    {
+     "start": "2024-09-12",
+     "end": "2024-09-12",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 284,
+   "has_event": true,
+   "event": "E2"
+  },
+  {
+   "kind": "pos",
+   "lat": 21.225289,
+   "lon": 106.33159,
+   "read": true,
+   "events": [
+    {
+     "start": "2024-09-12",
+     "end": "2024-09-12",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 284,
+   "has_event": true,
+   "event": "E2"
+  },
+  {
+   "kind": "neg",
+   "lat": 20.860714,
+   "lon": 106.359491,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E2"
+  },
+  {
+   "kind": "neg",
+   "lat": 20.931092,
+   "lon": 106.434454,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E2"
+  },
+  {
+   "kind": "neg",
+   "lat": 21.394587,
+   "lon": 106.319907,
+   "read": true,
+   "events": [],
+   "n_scenes": 283,
+   "has_event": false,
+   "event": "E2"
+  },
+  {
+   "kind": "neg",
+   "lat": 21.407386,
+   "lon": 106.27737,
+   "read": true,
+   "events": [],
+   "n_scenes": 283,
+   "has_event": false,
+   "event": "E2"
+  },
+  {
+   "kind": "neg",
+   "lat": 21.190384,
+   "lon": 106.534393,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E2"
+  },
+  {
+   "kind": "neg",
+   "lat": 21.280855,
+   "lon": 106.318582,
+   "read": true,
+   "events": [],
+   "n_scenes": 283,
+   "has_event": false,
+   "event": "E2"
+  },
+  {
+   "kind": "neg",
+   "lat": 20.93516,
+   "lon": 106.32063,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E2"
+  },
+  {
+   "kind": "neg",
+   "lat": 21.400987,
+   "lon": 106.411046,
+   "read": true,
+   "events": [],
+   "n_scenes": 283,
+   "has_event": false,
+   "event": "E2"
+  },
+  {
+   "kind": "pos",
+   "lat": 21.21819,
+   "lon": 105.388649,
+   "read": true,
+   "events": [
+    {
+     "start": "2025-08-26",
+     "end": "2025-08-26",
+     "cover": "10–25%"
+    }
+   ],
+   "n_scenes": 284,
+   "has_event": true,
+   "event": "E3"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.94738,
+   "lon": 105.14174,
+   "read": true,
+   "events": [
+    {
+     "start": "2025-08-26",
+     "end": "2025-08-26",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 371,
+   "has_event": true,
+   "event": "E3"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.909682,
+   "lon": 105.602738,
+   "read": true,
+   "events": [
+    {
+     "start": "2025-08-26",
+     "end": "2025-08-26",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 371,
+   "has_event": true,
+   "event": "E3"
+  },
+  {
+   "kind": "pos",
+   "lat": 20.087838,
+   "lon": 106.048342,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E3"
+  },
+  {
+   "kind": "pos",
+   "lat": 21.364882,
+   "lon": 105.214854,
+   "read": true,
+   "events": [
+    {
+     "start": "2025-07-09",
+     "end": "2025-11-18",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 283,
+   "has_event": true,
+   "event": "E3"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.841678,
+   "lon": 105.70562,
+   "read": true,
+   "events": [],
+   "n_scenes": 371,
+   "has_event": false,
+   "event": "E3"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.658279,
+   "lon": 105.420658,
+   "read": true,
+   "events": [
+    {
+     "start": "2025-08-26",
+     "end": "2025-09-01",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 374,
+   "has_event": true,
+   "event": "E3"
+  },
+  {
+   "kind": "pos",
+   "lat": 20.337253,
+   "lon": 106.145275,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E3"
+  },
+  {
+   "kind": "neg",
+   "lat": 21.282268,
+   "lon": 105.009602,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E3"
+  },
+  {
+   "kind": "neg",
+   "lat": 20.741711,
+   "lon": 106.732122,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E3"
+  },
+  {
+   "kind": "neg",
+   "lat": 20.518415,
+   "lon": 104.645078,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E3"
+  },
+  {
+   "kind": "neg",
+   "lat": 21.090943,
+   "lon": 106.854411,
+   "read": true,
+   "events": [],
+   "n_scenes": 284,
+   "has_event": false,
+   "event": "E3"
+  },
+  {
+   "kind": "neg",
+   "lat": 19.023615,
+   "lon": 104.543852,
+   "read": true,
+   "events": [],
+   "n_scenes": 426,
+   "has_event": false,
+   "event": "E3"
+  },
+  {
+   "kind": "neg",
+   "lat": 21.258843,
+   "lon": 107.028427,
+   "read": true,
+   "events": [],
+   "n_scenes": 283,
+   "has_event": false,
+   "event": "E3"
+  },
+  {
+   "kind": "neg",
+   "lat": 21.389399,
+   "lon": 107.087078,
+   "read": true,
+   "events": [],
+   "n_scenes": 283,
+   "has_event": false,
+   "event": "E3"
+  },
+  {
+   "kind": "neg",
+   "lat": 19.340232,
+   "lon": 105.631759,
+   "read": true,
+   "events": [],
+   "n_scenes": 302,
+   "has_event": false,
+   "event": "E3"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.734124,
+   "lon": 105.762539,
+   "read": true,
+   "events": [],
+   "n_scenes": 371,
+   "has_event": false,
+   "event": "E4"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.467582,
+   "lon": 105.808162,
+   "read": true,
+   "events": [],
+   "n_scenes": 374,
+   "has_event": false,
+   "event": "E4"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.492435,
+   "lon": 105.633301,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-11-02",
+     "end": "2020-11-02",
+     "cover": "10–25%"
+    }
+   ],
+   "n_scenes": 374,
+   "has_event": true,
+   "event": "E4"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.326904,
+   "lon": 105.860413,
+   "read": true,
+   "events": [],
+   "n_scenes": 374,
+   "has_event": false,
+   "event": "E4"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.558799,
+   "lon": 105.586277,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-21",
+     "end": "2020-11-02",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 374,
+   "has_event": true,
+   "event": "E4"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.527614,
+   "lon": 105.539434,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-21",
+     "end": "2020-11-02",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 374,
+   "has_event": true,
+   "event": "E4"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.09429,
+   "lon": 106.332391,
+   "read": true,
+   "events": [],
+   "n_scenes": 374,
+   "has_event": false,
+   "event": "E4"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.300869,
+   "lon": 105.995904,
+   "read": true,
+   "events": [],
+   "n_scenes": 374,
+   "has_event": false,
+   "event": "E4"
+  },
+  {
+   "kind": "neg",
+   "lat": 18.301957,
+   "lon": 105.447037,
+   "read": true,
+   "events": [],
+   "n_scenes": 374,
+   "has_event": false,
+   "event": "E4"
+  },
+  {
+   "kind": "neg",
+   "lat": 18.190149,
+   "lon": 105.839922,
+   "read": true,
+   "events": [],
+   "n_scenes": 374,
+   "has_event": false,
+   "event": "E4"
+  },
+  {
+   "kind": "neg",
+   "lat": 18.572662,
+   "lon": 105.330672,
+   "read": true,
+   "events": [],
+   "n_scenes": 374,
+   "has_event": false,
+   "event": "E4"
+  },
+  {
+   "kind": "neg",
+   "lat": 18.319008,
+   "lon": 105.406801,
+   "read": true,
+   "events": [],
+   "n_scenes": 374,
+   "has_event": false,
+   "event": "E4"
+  },
+  {
+   "kind": "neg",
+   "lat": 18.202673,
+   "lon": 105.617798,
+   "read": true,
+   "events": [],
+   "n_scenes": 374,
+   "has_event": false,
+   "event": "E4"
+  },
+  {
+   "kind": "neg",
+   "lat": 18.254309,
+   "lon": 105.454622,
+   "read": true,
+   "events": [],
+   "n_scenes": 374,
+   "has_event": false,
+   "event": "E4"
+  },
+  {
+   "kind": "neg",
+   "lat": 18.290425,
+   "lon": 105.246792,
+   "read": true,
+   "events": [],
+   "n_scenes": 374,
+   "has_event": false,
+   "event": "E4"
+  },
+  {
+   "kind": "neg",
+   "lat": 18.067565,
+   "lon": 105.862714,
+   "read": true,
+   "events": [],
+   "n_scenes": 375,
+   "has_event": false,
+   "event": "E4"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.673345,
+   "lon": 105.71664,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-11-02",
+     "end": "2020-11-02",
+     "cover": "10–25%"
+    }
+   ],
+   "n_scenes": 371,
+   "has_event": true,
+   "event": "E5"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.697417,
+   "lon": 105.754072,
+   "read": true,
+   "events": [],
+   "n_scenes": 371,
+   "has_event": false,
+   "event": "E5"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.677928,
+   "lon": 105.597376,
+   "read": true,
+   "events": [],
+   "n_scenes": 371,
+   "has_event": false,
+   "event": "E5"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.581102,
+   "lon": 105.562519,
+   "read": true,
+   "events": [],
+   "n_scenes": 374,
+   "has_event": false,
+   "event": "E5"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.604277,
+   "lon": 105.654069,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-11-02",
+     "end": "2020-11-02",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 374,
+   "has_event": true,
+   "event": "E5"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.964403,
+   "lon": 105.521366,
+   "read": true,
+   "events": [],
+   "n_scenes": 371,
+   "has_event": false,
+   "event": "E5"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.849449,
+   "lon": 105.66188,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-11-02",
+     "end": "2020-12-26",
+     "cover": "10–25%"
+    }
+   ],
+   "n_scenes": 371,
+   "has_event": true,
+   "event": "E5"
+  },
+  {
+   "kind": "pos",
+   "lat": 18.705129,
+   "lon": 105.731013,
+   "read": true,
+   "events": [],
+   "n_scenes": 371,
+   "has_event": false,
+   "event": "E5"
+  },
+  {
+   "kind": "neg",
+   "lat": 19.167508,
+   "lon": 104.790242,
+   "read": true,
+   "events": [],
+   "n_scenes": 393,
+   "has_event": false,
+   "event": "E5"
+  },
+  {
+   "kind": "neg",
+   "lat": 19.328199,
+   "lon": 105.616218,
+   "read": true,
+   "events": [],
+   "n_scenes": 302,
+   "has_event": false,
+   "event": "E5"
+  },
+  {
+   "kind": "neg",
+   "lat": 18.804985,
+   "lon": 105.382734,
+   "read": true,
+   "events": [],
+   "n_scenes": 371,
+   "has_event": false,
+   "event": "E5"
+  },
+  {
+   "kind": "neg",
+   "lat": 18.801431,
+   "lon": 104.851131,
+   "read": true,
+   "events": [],
+   "n_scenes": 405,
+   "has_event": false,
+   "event": "E5"
+  },
+  {
+   "kind": "neg",
+   "lat": 18.987729,
+   "lon": 105.389644,
+   "read": true,
+   "events": [],
+   "n_scenes": 371,
+   "has_event": false,
+   "event": "E5"
+  },
+  {
+   "kind": "neg",
+   "lat": 19.110966,
+   "lon": 104.863535,
+   "read": true,
+   "events": [],
+   "n_scenes": 393,
+   "has_event": false,
+   "event": "E5"
+  },
+  {
+   "kind": "neg",
+   "lat": 19.383783,
+   "lon": 105.551582,
+   "read": true,
+   "events": [],
+   "n_scenes": 302,
+   "has_event": false,
+   "event": "E5"
+  },
+  {
+   "kind": "neg",
+   "lat": 19.024537,
+   "lon": 104.888276,
+   "read": true,
+   "events": [],
+   "n_scenes": 371,
+   "has_event": false,
+   "event": "E5"
+  },
+  {
+   "kind": "pos",
+   "lat": 17.291529,
+   "lon": 106.695003,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-09-28",
+     "end": "2021-01-14",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 326,
+   "has_event": true,
+   "event": "E6"
+  },
+  {
+   "kind": "pos",
+   "lat": 17.24969,
+   "lon": 106.73688,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-09-28",
+     "end": "2021-01-14",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 326,
+   "has_event": true,
+   "event": "E6"
+  },
+  {
+   "kind": "pos",
+   "lat": 17.301802,
+   "lon": 106.734625,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-10",
+     "end": "2021-01-14",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 326,
+   "has_event": true,
+   "event": "E6"
+  },
+  {
+   "kind": "pos",
+   "lat": 17.611777,
+   "lon": 106.502551,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-28",
+     "end": "2020-11-15",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 327,
+   "has_event": true,
+   "event": "E6"
+  },
+  {
+   "kind": "pos",
+   "lat": 17.636479,
+   "lon": 106.40839,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-10",
+     "end": "2020-11-15",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 327,
+   "has_event": true,
+   "event": "E6"
+  },
+  {
+   "kind": "pos",
+   "lat": 17.792767,
+   "lon": 106.382509,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-11-02",
+     "end": "2020-11-02",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 375,
+   "has_event": true,
+   "event": "E6"
+  },
+  {
+   "kind": "pos",
+   "lat": 17.239733,
+   "lon": 106.769726,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-10",
+     "end": "2020-12-09",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 326,
+   "has_event": true,
+   "event": "E6"
+  },
+  {
+   "kind": "pos",
+   "lat": 17.326953,
+   "lon": 106.671543,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-10",
+     "end": "2020-11-15",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 326,
+   "has_event": true,
+   "event": "E6"
+  },
+  {
+   "kind": "neg",
+   "lat": 17.672147,
+   "lon": 106.153446,
+   "read": true,
+   "events": [],
+   "n_scenes": 375,
+   "has_event": false,
+   "event": "E6"
+  },
+  {
+   "kind": "neg",
+   "lat": 17.793767,
+   "lon": 106.203797,
+   "read": true,
+   "events": [],
+   "n_scenes": 375,
+   "has_event": false,
+   "event": "E6"
+  },
+  {
+   "kind": "neg",
+   "lat": 17.355496,
+   "lon": 106.131985,
+   "read": true,
+   "events": [],
+   "n_scenes": 373,
+   "has_event": false,
+   "event": "E6"
+  },
+  {
+   "kind": "neg",
+   "lat": 17.53309,
+   "lon": 106.371077,
+   "read": true,
+   "events": [],
+   "n_scenes": 326,
+   "has_event": false,
+   "event": "E6"
+  },
+  {
+   "kind": "neg",
+   "lat": 17.238325,
+   "lon": 106.350368,
+   "read": true,
+   "events": [],
+   "n_scenes": 326,
+   "has_event": false,
+   "event": "E6"
+  },
+  {
+   "kind": "neg",
+   "lat": 17.093893,
+   "lon": 106.478912,
+   "read": true,
+   "events": [],
+   "n_scenes": 326,
+   "has_event": false,
+   "event": "E6"
+  },
+  {
+   "kind": "neg",
+   "lat": 17.405328,
+   "lon": 106.463843,
+   "read": true,
+   "events": [],
+   "n_scenes": 283,
+   "has_event": false,
+   "event": "E6"
+  },
+  {
+   "kind": "neg",
+   "lat": 17.120208,
+   "lon": 106.642909,
+   "read": true,
+   "events": [],
+   "n_scenes": 301,
+   "has_event": false,
+   "event": "E6"
+  },
+  {
+   "kind": "pos",
+   "lat": 16.704631,
+   "lon": 107.170525,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-10",
+     "end": "2020-10-28",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 328,
+   "has_event": true,
+   "event": "E7"
+  },
+  {
+   "kind": "pos",
+   "lat": 16.705037,
+   "lon": 107.304392,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-10",
+     "end": "2021-01-14",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 328,
+   "has_event": true,
+   "event": "E7"
+  },
+  {
+   "kind": "pos",
+   "lat": 16.962457,
+   "lon": 107.086091,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-10",
+     "end": "2020-11-15",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 326,
+   "has_event": true,
+   "event": "E7"
+  },
+  {
+   "kind": "pos",
+   "lat": 16.815448,
+   "lon": 107.124857,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-10",
+     "end": "2020-12-09",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 326,
+   "has_event": true,
+   "event": "E7"
+  },
+  {
+   "kind": "pos",
+   "lat": 16.69054,
+   "lon": 107.282968,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-10",
+     "end": "2021-01-14",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 328,
+   "has_event": true,
+   "event": "E7"
+  },
+  {
+   "kind": "pos",
+   "lat": 16.672987,
+   "lon": 107.308863,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-10",
+     "end": "2021-01-14",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 328,
+   "has_event": true,
+   "event": "E7"
+  },
+  {
+   "kind": "pos",
+   "lat": 16.742067,
+   "lon": 107.286779,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-10",
+     "end": "2020-12-21",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 326,
+   "has_event": true,
+   "event": "E7"
+  },
+  {
+   "kind": "pos",
+   "lat": 16.659105,
+   "lon": 107.313439,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-10",
+     "end": "2020-11-15",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 328,
+   "has_event": true,
+   "event": "E7"
+  },
+  {
+   "kind": "neg",
+   "lat": 16.685582,
+   "lon": 106.93551,
+   "read": true,
+   "events": [],
+   "n_scenes": 328,
+   "has_event": false,
+   "event": "E7"
+  },
+  {
+   "kind": "neg",
+   "lat": 16.767263,
+   "lon": 107.023352,
+   "read": true,
+   "events": [],
+   "n_scenes": 323,
+   "has_event": false,
+   "event": "E7"
+  },
+  {
+   "kind": "neg",
+   "lat": 16.474806,
+   "lon": 106.904011,
+   "read": true,
+   "events": [],
+   "n_scenes": 328,
+   "has_event": false,
+   "event": "E7"
+  },
+  {
+   "kind": "neg",
+   "lat": 16.9855,
+   "lon": 106.941612,
+   "read": true,
+   "events": [],
+   "n_scenes": 326,
+   "has_event": false,
+   "event": "E7"
+  },
+  {
+   "kind": "neg",
+   "lat": 16.685094,
+   "lon": 106.669463,
+   "read": true,
+   "events": [],
+   "n_scenes": 328,
+   "has_event": false,
+   "event": "E7"
+  },
+  {
+   "kind": "neg",
+   "lat": 16.887609,
+   "lon": 106.918128,
+   "read": true,
+   "events": [],
+   "n_scenes": 326,
+   "has_event": false,
+   "event": "E7"
+  },
+  {
+   "kind": "neg",
+   "lat": 17.019512,
+   "lon": 106.819713,
+   "read": true,
+   "events": [],
+   "n_scenes": 326,
+   "has_event": false,
+   "event": "E7"
+  },
+  {
+   "kind": "neg",
+   "lat": 16.74211,
+   "lon": 106.912279,
+   "read": true,
+   "events": [],
+   "n_scenes": 328,
+   "has_event": false,
+   "event": "E7"
+  },
+  {
+   "kind": "pos",
+   "lat": 15.647528,
+   "lon": 108.497633,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-17",
+     "end": "2021-01-09",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 311,
+   "has_event": true,
+   "event": "E8"
+  },
+  {
+   "kind": "pos",
+   "lat": 15.901153,
+   "lon": 108.266406,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-29",
+     "end": "2020-10-29",
+     "cover": "10–25%"
+    }
+   ],
+   "n_scenes": 311,
+   "has_event": true,
+   "event": "E8"
+  },
+  {
+   "kind": "pos",
+   "lat": 15.825198,
+   "lon": 108.322591,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-17",
+     "end": "2020-12-04",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 311,
+   "has_event": true,
+   "event": "E8"
+  },
+  {
+   "kind": "pos",
+   "lat": 15.882811,
+   "lon": 108.262542,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-29",
+     "end": "2020-10-29",
+     "cover": "10–25%"
+    }
+   ],
+   "n_scenes": 311,
+   "has_event": true,
+   "event": "E8"
+  },
+  {
+   "kind": "pos",
+   "lat": 15.89481,
+   "lon": 108.161361,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-17",
+     "end": "2020-10-29",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 311,
+   "has_event": true,
+   "event": "E8"
+  },
+  {
+   "kind": "pos",
+   "lat": 15.690559,
+   "lon": 108.462379,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-17",
+     "end": "2021-01-09",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 311,
+   "has_event": true,
+   "event": "E8"
+  },
+  {
+   "kind": "pos",
+   "lat": 15.891474,
+   "lon": 108.158044,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-17",
+     "end": "2020-10-29",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 311,
+   "has_event": true,
+   "event": "E8"
+  },
+  {
+   "kind": "pos",
+   "lat": 15.658562,
+   "lon": 108.428427,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-17",
+     "end": "2020-11-10",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 311,
+   "has_event": true,
+   "event": "E8"
+  },
+  {
+   "kind": "neg",
+   "lat": 15.447797,
+   "lon": 108.616899,
+   "read": true,
+   "events": [],
+   "n_scenes": 308,
+   "has_event": false,
+   "event": "E8"
+  },
+  {
+   "kind": "neg",
+   "lat": 15.601623,
+   "lon": 107.826912,
+   "read": true,
+   "events": [],
+   "n_scenes": 328,
+   "has_event": false,
+   "event": "E8"
+  },
+  {
+   "kind": "neg",
+   "lat": 15.556379,
+   "lon": 108.150031,
+   "read": true,
+   "events": [],
+   "n_scenes": 308,
+   "has_event": false,
+   "event": "E8"
+  },
+  {
+   "kind": "neg",
+   "lat": 15.220374,
+   "lon": 108.207753,
+   "read": true,
+   "events": [],
+   "n_scenes": 292,
+   "has_event": false,
+   "event": "E8"
+  },
+  {
+   "kind": "neg",
+   "lat": 15.257846,
+   "lon": 108.127208,
+   "read": true,
+   "events": [],
+   "n_scenes": 292,
+   "has_event": false,
+   "event": "E8"
+  },
+  {
+   "kind": "neg",
+   "lat": 15.087641,
+   "lon": 108.10524,
+   "read": true,
+   "events": [],
+   "n_scenes": 292,
+   "has_event": false,
+   "event": "E8"
+  },
+  {
+   "kind": "neg",
+   "lat": 15.753609,
+   "lon": 108.096458,
+   "read": true,
+   "events": [],
+   "n_scenes": 311,
+   "has_event": false,
+   "event": "E8"
+  },
+  {
+   "kind": "neg",
+   "lat": 15.921629,
+   "lon": 107.870159,
+   "read": true,
+   "events": [],
+   "n_scenes": 327,
+   "has_event": false,
+   "event": "E8"
+  },
+  {
+   "kind": "pos",
+   "lat": 14.788713,
+   "lon": 109.000199,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-29",
+     "end": "2020-11-10",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 292,
+   "has_event": true,
+   "event": "E9"
+  },
+  {
+   "kind": "pos",
+   "lat": 14.90712,
+   "lon": 108.92518,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-17",
+     "end": "2020-11-16",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 292,
+   "has_event": true,
+   "event": "E9"
+  },
+  {
+   "kind": "pos",
+   "lat": 14.983053,
+   "lon": 108.888317,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-29",
+     "end": "2020-11-10",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 292,
+   "has_event": true,
+   "event": "E9"
+  },
+  {
+   "kind": "pos",
+   "lat": 14.965516,
+   "lon": 108.901027,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-29",
+     "end": "2020-11-10",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 292,
+   "has_event": true,
+   "event": "E9"
+  },
+  {
+   "kind": "pos",
+   "lat": 15.062545,
+   "lon": 108.865424,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-29",
+     "end": "2020-11-10",
+     "cover": "10–25%"
+    }
+   ],
+   "n_scenes": 292,
+   "has_event": true,
+   "event": "E9"
+  },
+  {
+   "kind": "pos",
+   "lat": 14.858429,
+   "lon": 108.958244,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-29",
+     "end": "2020-11-10",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 292,
+   "has_event": true,
+   "event": "E9"
+  },
+  {
+   "kind": "pos",
+   "lat": 14.952538,
+   "lon": 108.902406,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-13",
+     "end": "2020-11-30",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 256,
+   "has_event": true,
+   "event": "E9"
+  },
+  {
+   "kind": "pos",
+   "lat": 15.184705,
+   "lon": 108.869634,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-29",
+     "end": "2020-11-10",
+     "cover": "25–50%"
+    }
+   ],
+   "n_scenes": 182,
+   "has_event": true,
+   "event": "E9"
+  },
+  {
+   "event": "E9",
+   "kind": "neg",
+   "lat": 15.087993,
+   "lon": 108.555348,
+   "read": false,
+   "reason": "Không tìm thấy cảnh Sentinel-1 nào trên thửa này.",
+   "has_event": null
+  },
+  {
+   "event": "E9",
+   "kind": "neg",
+   "lat": 15.2057,
+   "lon": 108.412108,
+   "read": false,
+   "reason": "Không tìm thấy cảnh Sentinel-1 nào trên thửa này.",
+   "has_event": null
+  },
+  {
+   "event": "E9",
+   "kind": "neg",
+   "lat": 14.957756,
+   "lon": 108.339384,
+   "read": false,
+   "reason": "Không tìm thấy cảnh Sentinel-1 nào trên thửa này.",
+   "has_event": null
+  },
+  {
+   "event": "E9",
+   "kind": "neg",
+   "lat": 15.161388,
+   "lon": 108.361147,
+   "read": false,
+   "reason": "Không tìm thấy cảnh Sentinel-1 nào trên thửa này.",
+   "has_event": null
+  },
+  {
+   "event": "E9",
+   "kind": "neg",
+   "lat": 14.848286,
+   "lon": 108.748256,
+   "read": false,
+   "reason": "Không tìm thấy cảnh Sentinel-1 nào trên thửa này.",
+   "has_event": null
+  },
+  {
+   "event": "E9",
+   "kind": "neg",
+   "lat": 14.738822,
+   "lon": 108.991116,
+   "read": false,
+   "reason": "Không tìm thấy cảnh Sentinel-1 nào trên thửa này.",
+   "has_event": null
+  },
+  {
+   "event": "E9",
+   "kind": "neg",
+   "lat": 14.646288,
+   "lon": 108.63488,
+   "read": false,
+   "reason": "Không tìm thấy cảnh Sentinel-1 nào trên thửa này.",
+   "has_event": null
+  },
+  {
+   "kind": "neg",
+   "lat": 15.022847,
+   "lon": 108.312769,
+   "read": true,
+   "events": [],
+   "n_scenes": 202,
+   "has_event": false,
+   "event": "E9"
+  },
+  {
+   "kind": "pos",
+   "lat": 13.955624,
+   "lon": 109.13094,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-29",
+     "end": "2020-11-10",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 320,
+   "has_event": true,
+   "event": "E10"
+  },
+  {
+   "kind": "pos",
+   "lat": 14.486198,
+   "lon": 109.023188,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-11",
+     "end": "2020-10-29",
+     "cover": "10–25%"
+    }
+   ],
+   "n_scenes": 108,
+   "has_event": true,
+   "event": "E10"
+  },
+  {
+   "kind": "pos",
+   "lat": 13.82014,
+   "lon": 109.138656,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-11",
+     "end": "2021-03-04",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 313,
+   "has_event": true,
+   "event": "E10"
+  },
+  {
+   "kind": "pos",
+   "lat": 13.806383,
+   "lon": 109.204549,
+   "read": true,
+   "events": [],
+   "n_scenes": 269,
+   "has_event": false,
+   "event": "E10"
+  },
+  {
+   "kind": "pos",
+   "lat": 14.327928,
+   "lon": 109.115772,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-11",
+     "end": "2021-03-04",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 320,
+   "has_event": true,
+   "event": "E10"
+  },
+  {
+   "kind": "pos",
+   "lat": 13.861536,
+   "lon": 109.207436,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-17",
+     "end": "2020-10-29",
+     "cover": "10–25%"
+    }
+   ],
+   "n_scenes": 320,
+   "has_event": true,
+   "event": "E10"
+  },
+  {
+   "kind": "pos",
+   "lat": 13.846088,
+   "lon": 109.179855,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-17",
+     "end": "2020-12-04",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 320,
+   "has_event": true,
+   "event": "E10"
+  },
+  {
+   "kind": "pos",
+   "lat": 14.317842,
+   "lon": 109.125586,
+   "read": true,
+   "events": [
+    {
+     "start": "2020-10-11",
+     "end": "2020-10-29",
+     "cover": "≥50%"
+    }
+   ],
+   "n_scenes": 320,
+   "has_event": true,
+   "event": "E10"
+  },
+  {
+   "kind": "neg",
+   "lat": 13.770592,
+   "lon": 108.873406,
+   "read": true,
+   "events": [],
+   "n_scenes": 313,
+   "has_event": false,
+   "event": "E10"
+  },
+  {
+   "kind": "neg",
+   "lat": 14.637074,
+   "lon": 108.914059,
+   "read": true,
+   "events": [],
+   "n_scenes": 348,
+   "has_event": false,
+   "event": "E10"
+  },
+  {
+   "kind": "neg",
+   "lat": 14.405663,
+   "lon": 108.851458,
+   "read": true,
+   "events": [],
+   "n_scenes": 320,
+   "has_event": false,
+   "event": "E10"
+  },
+  {
+   "kind": "neg",
+   "lat": 13.645713,
+   "lon": 109.009737,
+   "read": true,
+   "events": [],
+   "n_scenes": 313,
+   "has_event": false,
+   "event": "E10"
+  },
+  {
+   "kind": "neg",
+   "lat": 13.843547,
+   "lon": 109.00524,
+   "read": true,
+   "events": [],
+   "n_scenes": 313,
+   "has_event": false,
+   "event": "E10"
+  },
+  {
+   "kind": "neg",
+   "lat": 14.429708,
+   "lon": 109.06725,
+   "read": true,
+   "events": [],
+   "n_scenes": 320,
+   "has_event": false,
+   "event": "E10"
+  },
+  {
+   "kind": "neg",
+   "lat": 13.928782,
+   "lon": 108.85688,
+   "read": true,
+   "events": [],
+   "n_scenes": 320,
+   "has_event": false,
+   "event": "E10"
+  },
+  {
+   "kind": "neg",
+   "lat": 14.030266,
+   "lon": 109.020614,
+   "read": true,
+   "events": [],
+   "n_scenes": 320,
+   "has_event": false,
+   "event": "E10"
+  }
+ ],
+ "seconds": 84982.2,
+ "reporting_fix_after_scoring": {
+  "written": "2026-10-22",
+  "what": "Lỗi BÁO CÁO trong script: dòng kết quả {'event': mã sự kiện, **kết quả_kiểm} bị khoá 'event' (có/không đợt nước) của hàm kiểm ghi đè → bảng từng sự kiện và nhóm cảm biến khác ra 0/0. Gán lại mã sự kiện theo thứ tự cố định của bộ chấm (16 điểm mỗi sự kiện, 8 dương rồi 8 âm — đã kiểm khớp từng dòng), đổi tên trường thành 'has_event'. Tổng độ nhạy/báo nhầm KHÔNG đổi (60/80, 0/73); không chấm lại lịch sử nước.",
+  "seconds_note": "'seconds' ghi 84.982 s là sai — đồng hồ máy đổi trong lúc chạy (qua nửa đêm có đồng bộ giờ); lượt chạy thật ~1,5–2 giờ."
+ }
+}
