@@ -1,0 +1,23 @@
+{
+ "id": "terratwin.s1_unet_vn/3",
+ "registered": "2026-10-22",
+ "registered_before_scoring": true,
+ "history": "Bản 1 (Sen1Floods11) và bản 2 (tinh chỉnh ruộng Việt Nam) đều TRƯỢT. Chẩn đoán bản 2: mô hình đọc đúng nước (Quảng Điền lũ 100%, ảnh S2 xác nhận mặt nước cố định ở Thiên An), nhưng quy tắc 'xác nhận khi ≥ 10% khung là nước' đếm cả nước THƯỜNG TRỰC; G1 điểm ảnh IoU 0,433 < 0,45 với nhãn quang học nhiễu (≤ 48 giờ). Bản 3 KHÔNG huấn luyện lại — giữ nguyên trọng số bản 2 (chọn theo VAL, sha256 trong s1_unet_vn_train.json) — chỉ đổi quy tắc ở mức THỬA theo đúng chẩn đoán, và chấm trên bộ kiểm MỚI ở mức đợt nước (câu hỏi thật của 'ý kiến thứ hai').",
+ "honesty": "Bộ điểm UNOSAT đã dùng để chấm LỊCH SỬ NƯỚC (8259ebf) nhưng CHƯA từng chạy U-Net trên đó; quy tắc bản 3 (6 cảnh nền, ngưỡng 0,10) rút từ chẩn đoán bản 2, không từ kết quả UNOSAT. Đã biết trước kết quả của lịch sử nước theo từng sự kiện — ghi ra đây để người đọc tự cân nhắc.",
+ "rule": {
+  "model": "s1_water_unet_vn.onnx (bản 2) + mặt nạ dốc > 5° (như bản 2), khung 128 × 128 ô 10 m bám lưới cảnh S1, tỉ lệ nước khung tâm 20 × 20",
+  "event_scene": "cảnh trong chuỗi lịch sử nước của chính thửa (cùng quỹ đạo) GẦN NGÀY D NHẤT trong [D − 6, D + 6]; không có → không đọc được",
+  "baseline": "6 cảnh của chính chuỗi đó, tháng NGOÀI mùa lũ (flood_season.months của lịch sử nước), cách D > 30 ngày, chọn random.Random(20261022 + chỉ số).sample; nền = TRUNG VỊ tỉ lệ nước của 6 cảnh",
+  "confirm": "xác nhận khi tỉ lệ nước cảnh D − nền ≥ 0,10 (mức VƯỢT nền, cùng ý với lịch sử nước)"
+ },
+ "gate": {
+  "U1_independent": "160 điểm UNOSAT (water_unosat_result.json, cùng toạ độ, cùng ngày tham chiếu D): điểm ngập xác nhận ≥ 0,60; điểm khô xác nhận nhầm ≤ 0,10; đọc được ≥ 80% — báo riêng nhóm cảm biến khác Sentinel-1 (E4, E5)",
+  "U2_known_not_independent": "đúng ca của bản 1/2: Quảng Điền — đợt của lịch sử nước chồng 06–20/10/2020 và 25/10–10/11/2025 phải XÁC NHẬN (D = flag_date); Đà Lạt + Thiên An — 24 cảnh mỗi thửa (random.Random(20261020), như bản 1) phải 0 xác nhận; nền mỗi thửa từ 6 cảnh mùa khô KHÔNG trùng các cảnh được chấm",
+  "U3_hills": "3 điểm đồi của bản 2 (Bảo Lộc, Đắk Mil, Măng Đen): 24 cảnh mỗi điểm từ chuỗi lịch sử nước (random.Random(20261022)), ≤ 1 xác nhận nhầm / 72",
+  "pass": "đạt cả U1, U2, U3"
+ },
+ "if_pass": "bật /api/water/unet với quy tắc bản 3 — vẫn chỉ là Ý KIẾN THỨ HAI tham khảo khi mở từng đợt, không đổi danh sách đợt, không vào hồ sơ ký",
+ "if_fail": "công bố trượt, U-Net giữ TẮT; không chỉnh ngưỡng/số cảnh nền trên chính bộ này",
+ "one_shot": "ops/s1_unet_v3_gate.py — chấm MỘT lần",
+ "run_log": []
+}
