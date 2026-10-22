@@ -7,6 +7,7 @@ import json
 
 def test_chua_dat_phep_kiem_thi_tat(monkeypatch, tmp_path):
     from app.services import s1_unet
+    monkeypatch.setattr(s1_unet, "v3_available", lambda: False)            # kiểm riêng điều kiện bật của bản 1
     (tmp_path / "m.onnx").write_bytes(b"x")
     monkeypatch.setattr(s1_unet, "MODEL_PATH", str(tmp_path / "m.onnx"))
     monkeypatch.setattr(s1_unet, "RESULT_PATH", str(tmp_path / "kq.json"))

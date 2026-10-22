@@ -46,6 +46,8 @@ def gate_passed() -> bool:
 
 
 def available() -> bool:
+    if v3_available():
+        return True
     if os.environ.get("TERRATWIN_S1_UNET", "1") == "0" or not os.path.exists(MODEL_PATH) or not gate_passed():
         return False
     try:
@@ -125,6 +127,18 @@ def infer(arr, radius_m: float = 100.0) -> float:
 def water_share(lat: float, lon: float, day: str, radius_m: float = 100.0, force: bool = False) -> dict | None:
     """U-Net trên cảnh ngày `day` của thửa. force=True dùng cho phép kiểm (bỏ qua điều kiện bật)."""
     from app.services import cache_store, water_history as wh
+    if v3_available():                                   # bản 3 ĐẠT (s1_unet_v3_protocol.json): mức vượt nền mùa khô
+        key = cache_store.make_key("s1unet", round(lat, 4), round(lon, 4), day, "v3")
+        hit = cache_store.get(key)
+        if hit is not None:
+            return hit
+        hist = cache_store.get(wh.cache_key(lat, lon, radius_m))
+        if not hist or not hist.get("available"):
+            return None
+        out = v3_judge(lat, lon, day, hist)
+        if out is not None:
+            cache_store.put(key, out, 400 * 24 * 3600)
+        return out
     if not force and not available():
         return None
     key = cache_store.make_key("s1unet", round(lat, 4), round(lon, 4), day, "v1")
@@ -273,3 +287,82 @@ def v2_session(path: str | None = None):
             return s
         _sess2 = s
     return _sess2
+
+
+# ───────────── Bản 3 (s1_unet_v3_protocol.json, ĐẠT 22/10/2026): trọng số bản 2 + quy tắc MỨC VƯỢT nền ─────────────
+# Chẩn đoán bản 2: mô hình đọc đúng nước, nhưng "≥ 10% khung là nước" đếm cả hồ thường trực (Thiên An). Bản 3 so cảnh của
+# đợt với TRUNG VỊ 6 cảnh mùa khô của chính thửa (cùng quỹ đạo, cách ngày đợt > 30 ngày) — cùng ý với lịch sử nước.
+
+V3_RESULT_PATH = os.path.join(DATA, "s1_unet_v3_result.json")
+V3_K, V3_EXCESS, V3_GAP_DAYS = 6, 0.10, 30
+_slope_memo: dict = {}
+
+
+def v3_gate_passed() -> bool:
+    try:
+        return json.load(open(V3_RESULT_PATH, encoding="utf-8")).get("passed") is True
+    except (OSError, ValueError):
+        return False
+
+
+def v3_available() -> bool:
+    if os.environ.get("TERRATWIN_S1_UNET", "1") == "0" or not os.path.exists(V2_MODEL_PATH) or not v3_gate_passed():
+        return False
+    try:
+        import onnxruntime  # noqa: F401
+    except Exception:  # noqa: BLE001
+        return False
+    return True
+
+
+def _item(item_id: str) -> dict | None:
+    from app.services import mpc
+    return mpc._call(STAC_ITEM.format(c="sentinel-1-rtc", i=item_id))
+
+
+def share_on_day(lat: float, lon: float, day: str) -> tuple[float | None, str | None]:
+    """(tỉ lệ nước khung tâm, mã cảnh) của bản 2 + mặt nạ dốc trên cảnh ngày `day` của chuỗi thửa."""
+    from app.services import water_history as wh
+    sc = wh.scene(lat, lon, day)
+    it = _item(sc["item"]) if sc else None
+    if not it:
+        return None, None
+    epsg, box = s1_grid_box(it, lat, lon)
+    arr = fetch_grid(it, epsg, box)
+    key = (epsg, tuple(round(v) for v in box))
+    if key not in _slope_memo:
+        _slope_memo[key] = slope_deg(epsg, box, lat, lon)
+    if arr is None or _slope_memo[key] is None:
+        return None, it["id"]
+    with _lock:
+        logit = v2_session().run(None, {"s1": prepare(arr)})[0][0, 0]
+    return plot_share(predict_mask(logit, _slope_memo[key])), it["id"]
+
+
+def v3_judge(lat: float, lon: float, day: str, hist: dict) -> dict | None:
+    """Ý kiến thứ hai cho đợt ngày `day`: tỉ lệ nước − nền mùa khô ≥ 0,10 thì xác nhận. None nếu không đọc được."""
+    import random
+    import statistics
+    from datetime import date
+    from app.services import flood_season as fs
+    d = date.fromisoformat(day)
+    m = (hist.get("flood_season") or {}).get("months") or (fs.season(lat, lon) or {}).get("months")
+    if not m:
+        return None                                       # không biết mùa lũ thì không có "nền mùa khô" — không đoán
+    months = set(m)
+    dry = [s for s, *_ in hist.get("series") or [] if int(s[5:7]) not in months
+           and abs((date.fromisoformat(s) - d).days) > V3_GAP_DAYS]
+    if len(dry) < V3_K:
+        return None
+    s, item = share_on_day(lat, lon, day)
+    if s is None:
+        return None
+    seed = int(f"{abs(round(lat * 1e4))}{abs(round(lon * 1e4))}{d.toordinal()}") % (2 ** 31)
+    vals = [share_on_day(lat, lon, x)[0] for x in sorted(random.Random(seed).sample(sorted(dry), V3_K))]
+    vals = [v for v in vals if v is not None]
+    if len(vals) < 4:
+        return None
+    base = statistics.median(vals)
+    return {"date": day, "item": item, "share": s, "baseline": round(base, 3), "excess": round(s - base, 3),
+            "confirmed": s - base >= V3_EXCESS, "model": "s1_water_unet_vn (Sen1Floods11 + ruộng Việt Nam) · bản 3",
+            "rule": f"xác nhận khi tỉ lệ nước vượt nền mùa khô của chính thửa ≥ {int(V3_EXCESS * 100)}%"}

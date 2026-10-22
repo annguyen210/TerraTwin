@@ -20,11 +20,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "backend"))
 sys.path.insert(0, os.path.join(ROOT, "ops"))
 
-from app.services import s1_unet as U, water_history as wh  # noqa: E402
+from app.services import flood_season as fs, s1_unet as U, water_history as wh  # noqa: E402
 from s1_unet_gate import NEG as OLD_NEG, POS as OLD_POS, SEED as OLD_SEED, N_NEG, overlaps  # noqa: E402
 from s1_unet_v2_gate import NEW_NEG, V2, item_json, sess  # noqa: E402
 
 RESULT = os.path.join(ROOT, "backend", "data", "ml", "s1_unet_v3_result.json")
+RUN1 = os.path.join(ROOT, "backend", "data", "ml", "s1_unet_v3_result_run1.json")
 UNOSAT = os.path.join(ROOT, "backend", "data", "eval", "water_unosat_result.json")
 K_BASE, EXCESS, WIN = 6, 0.10, 6
 _slope: dict = {}
@@ -48,12 +49,20 @@ def share_day(lat: float, lon: float, day: str):
     return None
 
 
+def flood_months(lat, lon, h) -> set | None:
+    """Tháng mùa lũ của thửa; KHÔNG đoán khi thiếu (lượt 1 bị Open-Meteo chặn → nền lấy cả mùa lũ — lệch giao thức)."""
+    m = (h.get("flood_season") or {}).get("months") or (fs.season(lat, lon) or {}).get("months")
+    return set(m) if m else None
+
+
 def baseline(lat, lon, h, avoid: list[date], seed: int):
-    months = set((h.get("flood_season") or {}).get("months") or [])
+    months = flood_months(lat, lon, h)
+    if months is None:
+        return None, "no flood season"
     days = [d for d, *_ in h["series"] if int(d[5:7]) not in months
             and all(abs((date.fromisoformat(d) - a).days) > 30 for a in avoid)]
     if len(days) < K_BASE:
-        return None, []
+        return None, "too few dry scenes"
     pick = sorted(random.Random(seed).sample(sorted(days), K_BASE))
     vals = [share_day(lat, lon, d) for d in pick]
     vals = [v for v in vals if v is not None]
@@ -79,7 +88,7 @@ def judge(lat, lon, d: date, seed: int) -> dict:
     s = share_day(lat, lon, day)
     base, bl = baseline(lat, lon, h, [d], seed)
     if s is None or base is None:
-        return {"read": False, "reason": "không đọc được cảnh hoặc nền"}
+        return {"read": False, "reason": bl if isinstance(bl, str) else "không đọc được cảnh hoặc nền"}
     return {"read": True, "scene": day, "share": s, "baseline": base, "excess": round(s - base, 4),
             "confirmed": s - base >= EXCESS, "baseline_scenes": bl}
 
@@ -94,6 +103,9 @@ def main() -> None:
     global S2
     if os.path.exists(RESULT) and "--force" not in sys.argv:
         sys.exit("Đã có kết quả — chấm một lần.")
+    # Lượt chạy lại (22/10/2026): lượt 1 giữ nguyên ở s1_unet_v3_result_run1.json; lượt này áp ĐÚNG quy tắc nền mùa khô.
+    if "--rerun-compliance" in sys.argv and not os.path.exists(RUN1):
+        sys.exit("Thiếu lượt 1 để đối chiếu.")
     t0 = time.time()
     S2 = sess(V2)
     un = json.load(open(UNOSAT, encoding="utf-8"))

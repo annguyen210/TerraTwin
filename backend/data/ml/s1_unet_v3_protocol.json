@@ -19,5 +19,11 @@
  "if_pass": "bật /api/water/unet với quy tắc bản 3 — vẫn chỉ là Ý KIẾN THỨ HAI tham khảo khi mở từng đợt, không đổi danh sách đợt, không vào hồ sơ ký",
  "if_fail": "công bố trượt, U-Net giữ TẮT; không chỉnh ngưỡng/số cảnh nền trên chính bộ này",
  "one_shot": "ops/s1_unet_v3_gate.py — chấm MỘT lần",
- "run_log": []
+ "run_log": [
+  {
+   "at": "2026-10-22",
+   "what": "Lượt 1: U1 70/80 xác nhận, 0/80 nhầm; U2, U3 đạt — NHƯNG lệch giao thức: Open-Meteo 429 làm thiếu mùa lũ ở một số thửa, nền lấy cả mùa lũ (≥ 8 điểm E1). Không dùng để bật; giữ ở s1_unet_v3_result_run1.json.",
+   "next": "Chạy lại toàn bộ bằng ops/s1_unet_v3_gate.py --rerun-compliance khi Open-Meteo hoạt động lại; thiếu mùa lũ → không đọc được."
+  }
+ ]
 }

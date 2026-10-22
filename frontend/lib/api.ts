@@ -2891,7 +2891,8 @@ export function waterScene(lat: number, lon: number, date: string) {
 }
 
 // ---- U-Net radar: ý kiến thứ hai cho cảnh của một đợt nước (chỉ có khi phép kiểm đăng ký trước đạt) ----
-export type WaterUnet = { available: boolean; reason?: string; date?: string; share?: number; confirmed?: boolean; rule?: string };
+export type WaterUnet = { available: boolean; reason?: string; date?: string; share?: number; confirmed?: boolean; rule?: string;
+  baseline?: number; excess?: number };
 export function waterUnet(lat: number, lon: number, date: string) {
   return getJson<WaterUnet>(`/api/water/unet?lat=${lat}&lon=${lon}&date=${date}&lang=${curLang()}`, "Không chạy được U-Net");
 }

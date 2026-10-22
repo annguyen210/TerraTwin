@@ -113,8 +113,10 @@ function MapScrubber({ r, lat, lon, onScene, focus }: { r: WaterHistoryResult; l
           <button type="button" className="wh-off" onClick={() => { setI(null); setDay(null); setScene(null); onScene(null); }}>{t("Tắt lớp radar", "Hide radar layer")}</button></> : null}</p>}
       {day == null && <button type="button" className="bat-btn ghost" onClick={() => setI(years.length - 1)}>{t("Hiện lớp radar", "Show radar layer")}</button>}
       {unet?.available && unet.share != null && (
-        <p className="wh-scene">{t(`Học sâu (U-Net radar, tham khảo): ~${Math.round(unet.share * 100)}% khung thửa là nước — `,
-          `Deep learning (radar U-Net, reference): ~${Math.round(unet.share * 100)}% of the plot window is water — `)}
+        <p className="wh-scene">{t(`Học sâu (U-Net radar, tham khảo): ~${Math.round(unet.share * 100)}% khung thửa là nước`,
+          `Deep learning (radar U-Net, reference): ~${Math.round(unet.share * 100)}% of the plot window is water`)}
+          {unet.baseline != null && t(` (mùa khô thường ~${Math.round(unet.baseline * 100)}%)`, ` (dry season usually ~${Math.round(unet.baseline * 100)}%)`)}
+          {" — "}
           <b>{unet.confirmed ? t("xác nhận đợt này", "confirms this event") : t("không xác nhận", "does not confirm")}</b>.</p>
       )}
       {scene && <p className="eu-src">{scene.legend} {scene.attribution}.</p>}

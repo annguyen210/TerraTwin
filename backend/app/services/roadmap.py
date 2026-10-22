@@ -197,8 +197,7 @@ def _principle(name: str, status: str, note: str) -> dict:
                      f"của đường cơ sở màu; ảnh ruộng khô trung vị {dry.get('median')}), mô hình nền AlphaEarth của Google "
                      f"DeepMind + bộ phân loại cho loại đất (mIoU {aef.get('miou_test')} trên tỉnh chưa thấy) — và NLP/LLM. "
                      "Mô hình học sâu nào trượt cổng thì công bố và TẮT: U-Net loại đất (thua AlphaEarth), U-Net radar "
-                     "(bản 1 đạt cổng Sen1Floods11 nhưng trượt trên thửa Việt Nam; bản 2 tinh chỉnh trên ruộng Việt Nam "
-                     "IoU 0,43 < 0,45 — cũng trượt)."),
+                     "(bản 1 và bản 2 trượt; bản 3 — mức vượt nền mùa khô — đang chấm lại vì lượt đầu lệch giao thức)."),
         }
     if not landcover.available():
         return {"name": name, "status": status, "note": note}

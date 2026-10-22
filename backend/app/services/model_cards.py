@@ -334,6 +334,66 @@ def cards() -> list[dict]:
             "code": f"{REPO}/ml/s1_unet_v2_train.py",
         })
 
+    # 4'' — U-Net radar BẢN 3: trọng số bản 2 + quy tắc MỨC VƯỢT nền mùa khô (s1_unet_v3_protocol.json)
+    v3 = _load("ml", "s1_unet_v3_result.json")
+    run1 = _load("ml", "s1_unet_v3_result_run1.json")
+    if not v3 and run1:
+        s1 = ((run1.get("U1") or {}).get("summary") or {})
+        out.append({
+            "id": "s1_water_unet_v3", "kind": tr("học sâu", "deep learning"),
+            "name": tr("Nước trên radar — U-Net bản 3 (mức vượt nền mùa khô)", "Radar water — U-Net v3 (excess over dry-season baseline)"),
+            "status": "pending",
+            "status_label": tr("lượt 1 LỆCH giao thức (Open-Meteo chặn → nền lấy cả mùa lũ) · đang chạy lại · chưa bật",
+                               "run 1 DEVIATED from protocol (Open-Meteo blocked → baseline included flood months) · re-running · not on"),
+            "task": tr("Đợt nước của lịch sử nước có thật không: tỉ lệ nước khung thửa so với 6 cảnh mùa khô của chính thửa",
+                       "Is a water-history event real: plot-window water share vs 6 dry-season scenes of the same plot"),
+            "data": tr("Trọng số bản 2; kiểm trên 160 điểm UNOSAT", "v2 weights; tested on 160 UNOSAT points"),
+            "split": tr("đăng ký trước 22/10/2026 (e0dd563)", "pre-registered 22/10/2026 (e0dd563)"),
+            "metrics": [{"label": tr("Lượt 1 (KHÔNG dùng để quyết định): điểm ngập xác nhận · điểm khô nhầm",
+                                     "Run 1 (NOT used for the decision): flooded confirmed · dry wrongly confirmed"),
+                         "value": f"{(s1.get('pos') or {}).get('confirmed')}/80 · {(s1.get('neg') or {}).get('confirmed')}/80",
+                         "threshold": "≥ 0.60 · ≤ 0.10", "passed": None}],
+            "limits": (run1.get("protocol_deviation") or {}).get("what", ""),
+            "not_for": tr("Chưa bật.", "Not on."), "code": f"{REPO}/ops/s1_unet_v3_gate.py",
+        })
+    if v3:
+        u1, u2, u3 = v3.get("U1") or {}, v3.get("U2") or {}, v3.get("U3") or {}
+        sm = u1.get("summary") or {}
+        on3 = v3.get("passed") and __import__("app.services.s1_unet", fromlist=["v3_available"]).v3_available()
+        f = lambda x: f"{(x or {}).get('confirmed')}/{(x or {}).get('read')}"  # noqa: E731
+        out.append({
+            "id": "s1_water_unet_v3", "kind": tr("học sâu", "deep learning"),
+            "name": tr("Nước trên radar — U-Net bản 3 (mức vượt nền mùa khô)", "Radar water — U-Net v3 (excess over dry-season baseline)"),
+            "status": "accepted" if v3.get("passed") else "rejected",
+            "status_label": (tr("đạt · đang chạy — ý kiến thứ hai khi mở từng đợt nước", "passed · live — second opinion on each water event") if on3 else
+                             tr("đạt · chưa bật", "passed · not on") if v3.get("passed") else tr("trượt · không bật", "failed · off")),
+            "task": tr("Đợt nước của lịch sử nước có thật không: tỉ lệ nước khung thửa so với 6 cảnh mùa khô của chính thửa",
+                       "Is a water-history event real: plot-window water share vs 6 dry-season scenes of the same plot"),
+            "data": tr("Trọng số bản 2 (không huấn luyện lại); kiểm trên 160 điểm vùng ngập/khô của bản đồ UNOSAT — bộ chưa từng chạy U-Net",
+                       "v2 weights (no retraining); tested on 160 flooded/dry points from UNOSAT maps — a set the U-Net had never run on"),
+            "split": tr("đăng ký trước 22/10/2026 (e0dd563) sau khi bản 1 và bản 2 trượt; chấm một lần", "pre-registered 22/10/2026 (e0dd563) after v1 and v2 failed; scored once"),
+            "metrics": [
+                {"label": tr("U1 điểm ngập UNOSAT được xác nhận", "U1 UNOSAT flooded points confirmed"), "value": f(sm.get("pos")),
+                 "threshold": "≥ 0.60", "passed": (u1.get("checks") or {}).get("pos_confirm_ge_0_60", [None, None])[1]},
+                {"label": tr("  · bản đồ từ vệ tinh KHÁC Sentinel-1 (SAOCOM, RADARSAT)", "  · maps from sensors OTHER than Sentinel-1"),
+                 "value": f(sm.get("pos_other_sensor")), "threshold": tr("báo riêng", "reported"), "passed": None},
+                {"label": tr("U1 điểm khô bị xác nhận nhầm", "U1 dry points wrongly confirmed"), "value": f(sm.get("neg")),
+                 "threshold": "≤ 0.10", "passed": (u1.get("checks") or {}).get("neg_confirm_le_0_10", [None, None])[1]},
+                {"label": tr("U2 Quảng Điền lũ 2020/2025 · Đà Lạt + Thiên An (đã biết trước)", "U2 Quảng Điền floods · Đà Lạt + Thiên An (known)"),
+                 "value": f"{sum(p['pass'] for p in u2.get('positive', []))}/{len(u2.get('positive', []))} · "
+                          f"{sum(n['bad'] for n in u2.get('negative', []))}/{sum(n['n'] for n in u2.get('negative', []))}",
+                 "threshold": tr("2/2 · 0", "2/2 · 0"), "passed": u2.get("pass")},
+                {"label": tr("U3 ba điểm đồi: cảnh xác nhận nhầm", "U3 three hill sites: scenes wrongly confirmed"),
+                 "value": f"{u3.get('bad_total')}/72", "threshold": "≤ 1", "passed": u3.get("pass")}],
+            "limits": tr("Mỗi lần hỏi đọc 7 cảnh radar (~20 giây lần đầu, sau đó lấy từ bộ nhớ). Bộ UNOSAT đã dùng chấm lịch sử nước trước đó "
+                         "(chưa dùng cho U-Net). Không xét được thửa có quá ít cảnh mùa khô.",
+                         "Each request reads 7 radar scenes (~20 s first time, then cached). The UNOSAT set had been used to score water "
+                         "history before (not the U-Net). Plots with too few dry-season scenes cannot be judged."),
+            "not_for": tr("Chỉ là ý kiến thứ hai tham khảo; không đổi danh sách đợt, không vào hồ sơ ký.",
+                          "Reference second opinion only; does not change events or signed dossiers."),
+            "code": f"{REPO}/backend/app/services/s1_unet.py",
+        })
+
     # 4a' — Nước trong ẢNH THỰC ĐỊA (SegFormer-b0, Flood Area Segmentation CC0) — đăng ký trước 18/10/2026 (2e44cb0)
     fw = _load("ml", "field_water_result.json")
     fw_base = {
