@@ -24,6 +24,10 @@
    "at": "2026-10-22",
    "what": "Lượt 1: U1 70/80 xác nhận, 0/80 nhầm; U2, U3 đạt — NHƯNG lệch giao thức: Open-Meteo 429 làm thiếu mùa lũ ở một số thửa, nền lấy cả mùa lũ (≥ 8 điểm E1). Không dùng để bật; giữ ở s1_unet_v3_result_run1.json.",
    "next": "Chạy lại toàn bộ bằng ops/s1_unet_v3_gate.py --rerun-compliance khi Open-Meteo hoạt động lại; thiếu mùa lũ → không đọc được."
+  },
+  {
+   "at": "2026-10-22 ~24:10",
+   "what": "Lượt chạy lại đầu tiên DỪNG trước khi ghi kết quả: Open-Meteo lại trả 429 (50 lần) vì mỗi điểm thiếu mùa lũ gọi ERA5 10 năm — nhiều điểm sẽ thành 'không đọc được' vì nguồn dữ liệu, không phải vì mô hình. Thay bằng: ops/prefetch_flood_season.py tải trước mùa lũ cho 166 điểm theo nhịp chậm (chờ + thử lại khi bị chặn, cache 1 năm), xong mới chạy --rerun-compliance. Quy tắc chấm không đổi."
   }
  ]
 }
