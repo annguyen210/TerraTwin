@@ -69,9 +69,16 @@ with sync_playwright() as p:
                               geolocation={"latitude": 12.7530, "longitude": 108.1120}, permissions=["geolocation"])
     page = ctx.new_page()
     page.set_default_navigation_timeout(180_000)   # server dev biên dịch trang lần đầu có thể >30 giây
-    page.on("console", lambda m: m.type == "error" and console_errors.append(f"{page.url} :: {m.text[:200]}"))
-    page.on("pageerror", lambda e: console_errors.append(f"{page.url} :: PAGEERROR {str(e)[:200]}"))
-    page.on("response", lambda r: r.status >= 400 and bad_responses.append(f"{r.status} {r.request.method} {r.url[:140]}"))
+    def watch(pg):
+        """Ghi lỗi console, lỗi trang, phản hồi ≥ 400 và yêu cầu HỎNG MẠNG — cả với trang của ngữ cảnh riêng (23/10/2026:
+        hai bước ở ngữ cảnh riêng trượt vì API không trả lời mà báo cáo ghi '0 lỗi')."""
+        pg.on("console", lambda m: m.type == "error" and console_errors.append(f"{pg.url} :: {m.text[:200]}"))
+        pg.on("pageerror", lambda e: console_errors.append(f"{pg.url} :: PAGEERROR {str(e)[:200]}"))
+        pg.on("response", lambda r: r.status >= 400 and bad_responses.append(f"{r.status} {r.request.method} {r.url[:140]}"))
+        pg.on("requestfailed", lambda r: bad_responses.append(f"FAILED {r.failure} {r.method} {r.url[:140]}"))
+        return pg
+
+    watch(page)
 
     @step("Trang đầu: sự thật về một mảnh đất + chương EUDR")
     def landing():
@@ -289,7 +296,7 @@ with sync_playwright() as p:
         # Báo cáo kiểm toàn bộ 12/10/2026, mục 3–4: hộp hướng dẫn từng che cả màn sau khi đã chọn thửa; lịch sử
         # nước bắt bấm nút rồi chờ ~150 s. Ngữ cảnh mới = lần đầu vào (chưa có cờ đã xem hướng dẫn).
         ctx = browser.new_context(viewport={"width": 1366, "height": 860})
-        pg = ctx.new_page()
+        pg = watch(ctx.new_page())
         pg.goto(WEB + "/", wait_until="networkidle", timeout=120_000)
         pg.get_by_role("button", name=re.compile("Xem ngay")).first.click()
         pg.locator(".pw-tabs").wait_for(timeout=60_000)
@@ -322,7 +329,7 @@ with sync_playwright() as p:
         # 17–18/10/2026: xác nhận từng đợt nước (chỉ người đăng nhập bấm được) + đọc link "địa điểm" Google Maps (lỗi cũ ra
         # toạ độ (1, 1)). CHỈ ĐỌC: không bấm xác nhận, không chọn thửa.
         ctx = browser.new_context(viewport={"width": 1366, "height": 860})
-        pg = ctx.new_page()
+        pg = watch(ctx.new_page())
         pg.goto(WEB + "/plot/16.57510,107.49520", wait_until="domcontentloaded", timeout=120_000)
         pg.locator("section.wh .wh-list li").first.wait_for(timeout=180_000)      # thửa mẫu đã hâm nóng (warm-demo)
         n = pg.locator("section.wh .wh-list li").count()
@@ -364,7 +371,7 @@ with sync_playwright() as p:
     def moisture():
         # 20/10/2026: NDMI 10 m bật sau phép kiểm Wald đăng ký trước (s2_sharpen_result.json). CHỈ ĐỌC (GET).
         ctx = browser.new_context(viewport={"width": 1366, "height": 860})
-        pg = ctx.new_page()
+        pg = watch(ctx.new_page())
         pg.goto(WEB + "/", wait_until="networkidle", timeout=120_000)     # /plot/… là Sổ tay thửa, không có khu làm việc
         pg.get_by_role("button", name=re.compile("Xem ngay")).first.click()
         pg.locator(".pw-tabs").wait_for(timeout=120_000)
@@ -402,7 +409,7 @@ with sync_playwright() as p:
     @step("Khu làm việc trên điện thoại: tấm trượt 3 nấc, không tràn ngang")
     def phone_workspace():
         m = browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True, has_touch=True)
-        pg = m.new_page()
+        pg = watch(m.new_page())
         pg.goto(WEB + "/", wait_until="networkidle", timeout=120_000)
         pg.locator(".start-quick button").first.click()
         pg.locator(".pw-tabs").wait_for(timeout=60_000)
@@ -433,7 +440,7 @@ with sync_playwright() as p:
     @step("Ảnh điện thoại (390 px) không tràn ngang")
     def phone():
         m = browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True)
-        pg = m.new_page()
+        pg = watch(m.new_page())
         over = []
         for path, name in (("/", "09-phone-landing"), ("/eudr", "10-phone-eudr"), *( [(f"/h/{state['did']}", "11-phone-dossier")] if state.get("did") else []), ("/kiem", "12-phone-kiem"), ("/hom-nay", "16-phone-today")):
             pg.goto(WEB + path, wait_until="networkidle", timeout=120_000)
@@ -454,7 +461,7 @@ for n, ok, info in results:
 print(f"\nLỗi console/trang ({len(console_errors)}):")
 for e in dict.fromkeys(console_errors):
     print("  ", e)
-print(f"Phản hồi HTTP ≥400 ({len(bad_responses)}):")
+print(f"Phản hồi HTTP ≥400 + yêu cầu hỏng mạng ({len(bad_responses)}):")
 for e in dict.fromkeys(bad_responses):
     print("  ", e)
 print("Ảnh chụp:", OUT)
