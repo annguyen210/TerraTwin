@@ -187,17 +187,28 @@ def _principle(name: str, status: str, note: str) -> dict:
         # hàm chỉ hỏi landcover (U-Net loại đất — đã thua AlphaEarth nên không bật) và báo "CHƯA có HỌC SÂU" sai.
         fw = _load_ml("field_water_v2_result.json") or {}
         t, dry = fw.get("test") or {}, fw.get("dry_test") or {}
-        from app.services import aef_landuse
+        from app.services import aef_landuse, s1_unet
         aef = aef_landuse.model() or {}
+        u3 = _load_ml("s1_unet_v3_result.json") or {}
+        if s1_unet.v3_available():
+            pos = ((u3.get("U1") or {}).get("summary") or {}).get("pos") or {}
+            radar = (f"; U-Net radar bản 3 đang chạy — ý kiến thứ hai cho từng đợt nước, đo mức vượt nền mùa khô của chính thửa "
+                     f"(xác nhận {pos.get('confirmed')}/{pos.get('read')} điểm ngập UNOSAT, 0 điểm khô nhầm; lượt 1 lệch giao thức đã bỏ, "
+                     "chấm lại đúng giao thức)")
+            failed = "U-Net radar bản 1 và bản 2"
+        else:
+            radar = ""
+            failed = ("U-Net radar (bản 1 và bản 2 trượt; bản 3 — mức vượt nền mùa khô — "
+                      + ("đạt nhưng chưa bật trên máy này" if u3.get("passed") else "trượt" if u3
+                         else "đang chấm lại vì lượt đầu lệch giao thức") + ")")
         return {
             "name": name, "status": "done",
             "note": ("Đủ cả bốn tầng: thuật toán cổ điển (tối ưu hoá, phân vị, Monte Carlo analog, chỉ số phổ, thuỷ văn SCS), "
                      "học máy (mô hình bất thường đa biến trên 28.256 ngày ERA5), HỌC SÂU đang chạy — SegFormer-b0 tự huấn luyện "
                      f"trên GPU đọc nước trong ảnh thực địa (IoU test {t.get('model_iou')} so với {t.get('color_baseline_iou')} "
                      f"của đường cơ sở màu; ảnh ruộng khô trung vị {dry.get('median')}), mô hình nền AlphaEarth của Google "
-                     f"DeepMind + bộ phân loại cho loại đất (mIoU {aef.get('miou_test')} trên tỉnh chưa thấy) — và NLP/LLM. "
-                     "Mô hình học sâu nào trượt cổng thì công bố và TẮT: U-Net loại đất (thua AlphaEarth), U-Net radar "
-                     "(bản 1 và bản 2 trượt; bản 3 — mức vượt nền mùa khô — đang chấm lại vì lượt đầu lệch giao thức)."),
+                     f"DeepMind + bộ phân loại cho loại đất (mIoU {aef.get('miou_test')} trên tỉnh chưa thấy){radar} — và NLP/LLM. "
+                     f"Mô hình học sâu nào trượt cổng thì công bố và TẮT: U-Net loại đất (thua AlphaEarth), {failed}."),
         }
     if not landcover.available():
         return {"name": name, "status": status, "note": note}

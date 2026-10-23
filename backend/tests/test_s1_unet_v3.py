@@ -1,5 +1,5 @@
 """U-Net radar bản 3 (s1_unet_v3_protocol.json): xác nhận theo MỨC VƯỢT nền mùa khô của chính thửa — hồ thường trực
-không còn bị đếm là đợt ngập. Kết quả thật 22/10/2026: ĐẠT."""
+không còn bị đếm là đợt ngập. Lượt 1 (22/10/2026) LỆCH giao thức; chấm lại đúng giao thức 23/10/2026: ĐẠT."""
 from __future__ import annotations
 
 import json
@@ -58,3 +58,66 @@ def test_chua_co_ket_qua_chay_lai_thi_tat():
     from app.services import s1_unet as U
     if not os.path.exists(U.V3_RESULT_PATH):
         assert U.v3_gate_passed() is False and U.v3_available() is False
+
+
+def test_ket_qua_cham_lai_dung_giao_thuc():
+    """Kết quả dùng để BẬT là lượt chấm lại 23/10/2026: đọc được mọi điểm (thiếu mùa lũ thì 'không đọc', không đoán)."""
+    import os
+    from app.services import s1_unet as U
+    if not os.path.exists(U.V3_RESULT_PATH):
+        return
+    r = json.load(open(U.V3_RESULT_PATH, encoding="utf-8"))
+    sm = r["U1"]["summary"]
+    assert r["passed"] is True and r["protocol"] == "terratwin.s1_unet_vn/3"
+    assert sm["pos"]["rate"] >= 0.60 and sm["neg"]["rate"] <= 0.10 and sm["pos"]["read"] / sm["pos"]["n"] >= 0.80
+    assert all(len(p["baseline_scenes"]) == U.V3_K for p in r["U1"]["points"] if p["read"])
+    log = json.load(open(os.path.join(os.path.dirname(U.V3_RESULT_PATH), "s1_unet_v3_protocol.json"), encoding="utf-8"))["run_log"]
+    assert any("đúng giao thức" in e["what"] for e in log)
+
+
+def test_chay_nen_tra_pending_roi_ket_qua(monkeypatch):
+    """Máy chủ 0,1 CPU: không giữ yêu cầu chờ 1–2 phút — chạy nền, không chạy trùng, rồi trả từ bộ nhớ."""
+    import time
+    from app.services import cache_store, s1_unet as U
+    out = {"date": "2021-10-15", "share": 0.9, "baseline": 0.0, "excess": 0.9, "confirmed": True}
+    calls = []
+
+    def fake(la, lo, d, r=100.0):
+        calls.append(d)
+        time.sleep(0.2)
+        cache_store.put(U._v3_key(la, lo, d), out, 60)
+        return out
+    monkeypatch.setattr(U, "water_share", fake)
+    lat, lon, d = 16.1111, 107.2222, "2021-10-15"
+    assert U.water_share_bg(lat, lon, d) == "pending"
+    assert U.water_share_bg(lat, lon, d) == "pending"          # đang chạy → không chạy trùng
+    for _ in range(100):
+        if U.water_share_bg(lat, lon, d) != "pending":
+            break
+        time.sleep(0.05)
+    assert U.water_share_bg(lat, lon, d)["confirmed"] is True and calls == [d]
+
+
+def test_doc_hong_thi_bao_khong_doc_duoc_va_khong_chay_lai_ngay(monkeypatch):
+    import time
+    from app.services import s1_unet as U
+    calls = []
+    monkeypatch.setattr(U, "water_share", lambda la, lo, d, r=100.0: calls.append(d))
+    lat, lon, d = 16.3333, 107.4444, "2021-10-16"
+    assert U.water_share_bg(lat, lon, d) == "pending"
+    for _ in range(100):
+        if U.water_share_bg(lat, lon, d) != "pending":
+            break
+        time.sleep(0.05)
+    assert U.water_share_bg(lat, lon, d) is None and calls == [d]
+
+
+def test_diem_cuoi_ban_3_tra_pending(monkeypatch):
+    from fastapi.testclient import TestClient
+    from app.main import app
+    from app.services import s1_unet as U
+    monkeypatch.setattr(U, "v3_available", lambda: True)
+    monkeypatch.setattr(U, "water_share_bg", lambda la, lo, d: "pending")
+    with TestClient(app) as c:
+        j = c.get("/api/water/unet", params={"lat": 16.575, "lon": 107.495, "date": "2020-10-10"}).json()
+    assert j == {"available": True, "pending": True, "retry_after_s": 10}

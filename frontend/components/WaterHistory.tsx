@@ -92,9 +92,15 @@ function MapScrubber({ r, lat, lon, onScene, focus }: { r: WaterHistoryResult; l
   useEffect(() => {                                            // U-Net chỉ hỏi cho ngày nằm trong một đợt nước
     setUnet(null);
     if (day == null || !wet.has(day)) return;
-    let live = true;
-    waterUnet(lat, lon, day).then((u) => live && setUnet(u)).catch(() => live && setUnet(null));
-    return () => { live = false; };
+    let live = true, tries = 0, timer: ReturnType<typeof setTimeout> | undefined;
+    // Bản 3 đọc 7 cảnh radar + 7 lượt U-Net: lần đầu máy chủ chạy NỀN (~1–2 phút) và trả pending → hỏi lại, tối đa ~4 phút.
+    const ask = () => waterUnet(lat, lon, day).then((u) => {
+      if (!live) return;
+      if (u.pending && ++tries < 24) { setUnet(u); timer = setTimeout(ask, (u.retry_after_s ?? 10) * 1000); }
+      else setUnet(u.pending ? null : u);
+    }).catch(() => live && setUnet(null));
+    ask();
+    return () => { live = false; if (timer) clearTimeout(timer); };
   }, [day, lat, lon]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!years.length) return null;
@@ -112,6 +118,8 @@ function MapScrubber({ r, lat, lon, onScene, focus }: { r: WaterHistoryResult; l
         : scene ? <>{t(`Ảnh radar ngày ${scene.date}`, `Radar image of ${scene.date}`)}{wet.has(cur.date) ? t(" — nằm trong một đợt nước phủ của thửa", " — inside one of the plot's water events") : ""}.{" "}
           <button type="button" className="wh-off" onClick={() => { setI(null); setDay(null); setScene(null); onScene(null); }}>{t("Tắt lớp radar", "Hide radar layer")}</button></> : null}</p>}
       {day == null && <button type="button" className="bat-btn ghost" onClick={() => setI(years.length - 1)}>{t("Hiện lớp radar", "Show radar layer")}</button>}
+      {unet?.pending && <p className="wh-scene" role="status">{t("Học sâu (U-Net radar, tham khảo): đang đọc 7 cảnh radar của thửa — lần đầu khoảng 1–2 phút…",
+        "Deep learning (radar U-Net, reference): reading 7 radar scenes of the plot — about 1–2 minutes the first time…")}</p>}
       {unet?.available && unet.share != null && (
         <p className="wh-scene">{t(`Học sâu (U-Net radar, tham khảo): ~${Math.round(unet.share * 100)}% khung thửa là nước`,
           `Deep learning (radar U-Net, reference): ~${Math.round(unet.share * 100)}% of the plot window is water`)}

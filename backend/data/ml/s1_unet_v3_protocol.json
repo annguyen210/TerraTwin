@@ -28,6 +28,11 @@
   {
    "at": "2026-10-22 ~24:10",
    "what": "Lượt chạy lại đầu tiên DỪNG trước khi ghi kết quả: Open-Meteo lại trả 429 (50 lần) vì mỗi điểm thiếu mùa lũ gọi ERA5 10 năm — nhiều điểm sẽ thành 'không đọc được' vì nguồn dữ liệu, không phải vì mô hình. Thay bằng: ops/prefetch_flood_season.py tải trước mùa lũ cho 166 điểm theo nhịp chậm (chờ + thử lại khi bị chặn, cache 1 năm), xong mới chạy --rerun-compliance. Quy tắc chấm không đổi."
+  },
+  {
+   "at": "2026-10-23 22:48",
+   "what": "Lượt chấm lại đúng giao thức (ops/s1_unet_v3_gate.py --rerun-compliance; mùa lũ tải trước bằng ops/prefetch_flood_season.py; CSDL đường dẫn tuyệt đối để bộ nhớ đệm ghi được; 12 luồng — chỉ đổi tốc độ, không đổi quy tắc). 160/160 điểm có mùa lũ; kiểm lại sau khi chấm: 960/960 cảnh nền nằm ngoài mùa lũ của thửa, không cảnh nào trong ±30 ngày của ngày D. U1 71/80 xác nhận (0,887), 0/80 nhầm, đọc 100% (vệ tinh khác Sentinel-1: 13/16); U2 2/2 · 0/48; U3 0/72 → ĐẠT, kết quả ở s1_unet_v3_result.json.",
+   "next": "Bật theo if_pass. ONNX = bản 2 không đổi (sha256 d907a5bd…, như s1_unet_vn_train.json)."
   }
  ]
 }

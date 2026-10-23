@@ -101,7 +101,20 @@ def water_warm_demo(authorization: str | None = Header(default=None), x_cron_key
                 pass
     if gate()["passed"]:
         threading.Thread(target=_landcover, name="warm-landcover", daemon=True).start()
-    return {"plots": out, "n_cached": sum(1 for o in out if o["water"] == "cached"), "n_total": len(out)}
+    # U-Net bản 3 (23/10/2026): ý kiến thứ hai cho từng đợt của THỬA MẪU "Xem ngay" — đúng ngày giao diện mở
+    # (wettestOfEvent: cảnh trung vị VV thấp nhất của đợt). Mỗi đợt ~1–2 phút nền trên 0,1 CPU, giữ 400 ngày → tốn một lần.
+    unet: dict[str, int] = {}
+    from app.services import s1_unet
+    if s1_unet.v3_available():
+        lat, lon, _ = demo_plots.DEMO_PLOTS[0]
+        h = cache_store.get(water_history.cache_key(lat, lon)) or {}
+        p50 = {s[0]: s[1] for s in h.get("series") or []}
+        for e in h.get("events") or []:
+            ds = e.get("dates") or [e.get("start")]
+            r = s1_unet.water_share_bg(lat, lon, min(ds, key=lambda d: p50.get(d, 0)))
+            st = "cached" if isinstance(r, dict) else (r or "unreadable")
+            unet[st] = unet.get(st, 0) + 1
+    return {"plots": out, "n_cached": sum(1 for o in out if o["water"] == "cached"), "n_total": len(out), "unet_demo": unet}
 
 
 class ConfirmIn(BaseModel):
@@ -192,7 +205,8 @@ def water_scene(lat: float, lon: float, date: str, lang: str = "vi") -> dict:
 @router.get("/api/water/unet")
 def water_unet(lat: float, lon: float, date: str, lang: str = "vi") -> dict:
     """Ý kiến thứ hai của U-Net radar cho cảnh ngày `date` (services/s1_unet.py). Chỉ có khi phép kiểm đăng ký trước
-    (s1_unet_confirm_protocol.json) ĐẠT; không đổi danh sách đợt, không vào hồ sơ ký."""
+    ĐẠT — nay là bản 3 (s1_unet_v3_protocol.json, đạt 23/10/2026); không đổi danh sách đợt, không vào hồ sơ ký.
+    Bản 3 chưa có trong bộ nhớ thì chạy nền và trả {"pending": true} — giao diện hỏi lại sau `retry_after_s`."""
     import re
 
     from app.services import s1_unet
@@ -202,7 +216,12 @@ def water_unet(lat: float, lon: float, date: str, lang: str = "vi") -> dict:
     if not s1_unet.available():
         return {"available": False, "reason": tr("U-Net radar chưa bật (chưa qua phép kiểm đăng ký trước).",
                                                  "Radar U-Net not enabled (pre-registered check not passed).")}
-    r = s1_unet.water_share(lat, lon, date)
+    if s1_unet.v3_available():
+        r = s1_unet.water_share_bg(lat, lon, date)
+        if r == "pending":
+            return {"available": True, "pending": True, "retry_after_s": 10}
+    else:
+        r = s1_unet.water_share(lat, lon, date)
     if r is None:
         raise HTTPException(503, tr("Chưa đọc được ảnh radar để chạy U-Net — thử lại sau.",
                                     "Could not read the radar image for the U-Net — try again later."))

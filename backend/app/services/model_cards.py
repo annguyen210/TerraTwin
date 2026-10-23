@@ -371,7 +371,10 @@ def cards() -> list[dict]:
                        "Is a water-history event real: plot-window water share vs 6 dry-season scenes of the same plot"),
             "data": tr("Trọng số bản 2 (không huấn luyện lại); kiểm trên 160 điểm vùng ngập/khô của bản đồ UNOSAT — bộ chưa từng chạy U-Net",
                        "v2 weights (no retraining); tested on 160 flooded/dry points from UNOSAT maps — a set the U-Net had never run on"),
-            "split": tr("đăng ký trước 22/10/2026 (e0dd563) sau khi bản 1 và bản 2 trượt; chấm một lần", "pre-registered 22/10/2026 (e0dd563) after v1 and v2 failed; scored once"),
+            "split": tr("đăng ký trước 22/10/2026 (e0dd563) sau khi bản 1 và bản 2 trượt. Lượt 1 LỆCH giao thức (thiếu mùa lũ → nền lấy cả mùa lũ) "
+                        "nên không dùng; chấm lại đúng giao thức 23/10/2026 — quy tắc, ngưỡng, trọng số không đổi; công bố cả lượt 1",
+                        "pre-registered 22/10/2026 (e0dd563) after v1 and v2 failed. Run 1 DEVIATED from protocol (missing flood season → baseline "
+                        "included flood months) so it was not used; re-scored per protocol 23/10/2026 — rule, thresholds, weights unchanged; run 1 published"),
             "metrics": [
                 {"label": tr("U1 điểm ngập UNOSAT được xác nhận", "U1 UNOSAT flooded points confirmed"), "value": f(sm.get("pos")),
                  "threshold": "≥ 0.60", "passed": (u1.get("checks") or {}).get("pos_confirm_ge_0_60", [None, None])[1]},
@@ -385,10 +388,13 @@ def cards() -> list[dict]:
                  "threshold": tr("2/2 · 0", "2/2 · 0"), "passed": u2.get("pass")},
                 {"label": tr("U3 ba điểm đồi: cảnh xác nhận nhầm", "U3 three hill sites: scenes wrongly confirmed"),
                  "value": f"{u3.get('bad_total')}/72", "threshold": "≤ 1", "passed": u3.get("pass")}],
-            "limits": tr("Mỗi lần hỏi đọc 7 cảnh radar (~20 giây lần đầu, sau đó lấy từ bộ nhớ). Bộ UNOSAT đã dùng chấm lịch sử nước trước đó "
-                         "(chưa dùng cho U-Net). Không xét được thửa có quá ít cảnh mùa khô.",
-                         "Each request reads 7 radar scenes (~20 s first time, then cached). The UNOSAT set had been used to score water "
-                         "history before (not the U-Net). Plots with too few dry-season scenes cannot be judged."),
+            "limits": tr("Mỗi đợt đọc 7 cảnh radar và chạy U-Net 7 lần — trên máy chủ miễn phí mất khoảng 1–2 phút lần đầu (chạy nền), sau đó lấy "
+                         "từ bộ nhớ. 9/80 điểm ngập UNOSAT không được xác nhận; bản đồ từ vệ tinh khác Sentinel-1 khớp 13/16. Bộ UNOSAT đã dùng chấm "
+                         "lịch sử nước trước đó (chưa dùng cho U-Net). Không xét được thửa thiếu mùa lũ hoặc có quá ít cảnh mùa khô.",
+                         "Each event reads 7 radar scenes and runs the U-Net 7 times — about 1–2 minutes the first time on the free server (runs in "
+                         "the background), then cached. 9/80 UNOSAT flooded points were not confirmed; maps from sensors other than Sentinel-1 "
+                         "match 13/16. The UNOSAT set had been used to score water history before (not the U-Net). Plots without a flood season "
+                         "or with too few dry-season scenes cannot be judged."),
             "not_for": tr("Chỉ là ý kiến thứ hai tham khảo; không đổi danh sách đợt, không vào hồ sơ ký.",
                           "Reference second opinion only; does not change events or signed dossiers."),
             "code": f"{REPO}/backend/app/services/s1_unet.py",

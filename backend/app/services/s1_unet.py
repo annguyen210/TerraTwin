@@ -366,3 +366,56 @@ def v3_judge(lat: float, lon: float, day: str, hist: dict) -> dict | None:
     return {"date": day, "item": item, "share": s, "baseline": round(base, 3), "excess": round(s - base, 3),
             "confirmed": s - base >= V3_EXCESS, "model": "s1_water_unet_vn (Sen1Floods11 + ruộng Việt Nam) · bản 3",
             "rule": f"xác nhận khi tỉ lệ nước vượt nền mùa khô của chính thửa ≥ {int(V3_EXCESS * 100)}%"}
+
+
+# Máy chủ miễn phí (Render 0,1 CPU): một ý kiến bản 3 = 7 cảnh radar × U-Net ≈ 1–2 phút lần đầu — KHÔNG giữ yêu cầu HTTP
+# chờ (proxy cắt, trình duyệt bỏ cuộc rồi hỏi lại thành chạy trùng). Chưa có thì chạy NỀN, trả "pending"; giao diện hỏi lại.
+_bg = None
+_bg_lock = threading.Lock()
+_inflight: set[str] = set()
+_failed: dict[str, float] = {}
+FAILED_TTL_S = 600
+
+
+def _v3_key(lat: float, lon: float, day: str) -> str:
+    from app.services import cache_store
+    return cache_store.make_key("s1unet", round(lat, 4), round(lon, 4), day, "v3")
+
+
+def water_share_bg(lat: float, lon: float, day: str, radius_m: float = 100.0):
+    """Bản 3: dict khi đã có (bộ nhớ đệm), "pending" khi đang/bắt đầu chạy nền, None khi vừa thử mà không đọc được
+    (nhớ 10 phút để không chạy lại liên tục)."""
+    import logging
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+    from app.services import cache_store
+    global _bg
+    key = _v3_key(lat, lon, day)
+    hit = cache_store.get(key)
+    if hit is not None:
+        return hit
+    with _bg_lock:
+        if key in _inflight:
+            return "pending"
+        t = _failed.get(key)
+        if t is not None and time.time() - t < FAILED_TTL_S:
+            return None
+        _failed.pop(key, None)
+        _inflight.add(key)
+        if _bg is None:
+            _bg = ThreadPoolExecutor(max_workers=1, thread_name_prefix="s1unet")
+
+    def run() -> None:
+        ok = False
+        try:
+            ok = water_share(lat, lon, day, radius_m) is not None
+        except Exception:  # noqa: BLE001
+            logging.getLogger(__name__).exception("U-Net bản 3 lỗi ở (%s, %s) %s", lat, lon, day)
+        finally:
+            with _bg_lock:
+                _inflight.discard(key)
+                if not ok:
+                    _failed[key] = time.time()
+
+    _bg.submit(run)
+    return "pending"

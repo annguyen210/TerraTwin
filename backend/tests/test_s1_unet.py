@@ -52,6 +52,7 @@ def test_diem_cuoi_khi_bat(monkeypatch):
     from app.main import app
     from app.services import s1_unet
     monkeypatch.setattr(s1_unet, "available", lambda: True)
+    monkeypatch.setattr(s1_unet, "v3_available", lambda: False)          # đường bản 1 (đồng bộ)
     monkeypatch.setattr(s1_unet, "water_share", lambda la, lo, d, **k: {"date": d, "item": "S1X", "share": 0.42, "confirmed": True,
                                                                          "model": "m", "rule": "r"})
     with TestClient(app) as c:

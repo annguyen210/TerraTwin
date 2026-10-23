@@ -148,3 +148,25 @@ def test_danh_sach_chon_nhanh_khop_giua_giao_dien_va_may_chu():
     assert len(ui) == 8
     assert ui == [(la, lo) for la, lo, _ in warm.DEMO]
     assert ui == [(la, lo) for la, lo, _ in demo_plots.DEMO_PLOTS[1:9]]
+
+
+def test_ham_nong_y_kien_unet_cho_dot_cua_thua_mau(monkeypatch):
+    """U-Net bản 3: warm-demo xếp sẵn ý kiến cho từng đợt của thửa mẫu, đúng ngày ướt nhất của đợt (như wettestOfEvent)."""
+    from fastapi.testclient import TestClient
+    from app import routes_water
+    from app.main import app
+    from app.services import aef_landuse, cache_store, demo_plots, s1_unet, water_history as wh
+    monkeypatch.setenv("TERRATWIN_CRON_KEY", "khoa-thu")
+    monkeypatch.setattr(routes_water, "gate", lambda: {"passed": False})
+    monkeypatch.setattr(aef_landuse, "change", lambda la, lo: {"available": True})
+    monkeypatch.setattr(s1_unet, "v3_available", lambda: True)
+    lat, lon, _ = demo_plots.DEMO_PLOTS[0]
+    hist = {"available": True, "series": [["2020-10-10", -18.0], ["2020-10-22", -21.0], ["2025-11-01", -19.0]],
+            "events": [{"start": "2020-10-10", "dates": ["2020-10-10", "2020-10-22"]}, {"start": "2025-11-01"}]}
+    real_get = cache_store.get
+    monkeypatch.setattr(cache_store, "get", lambda k: hist if k == wh.cache_key(lat, lon) else (None if k.startswith("water:") else real_get(k)))
+    asked = []
+    monkeypatch.setattr(s1_unet, "water_share_bg", lambda la, lo, d: (asked.append(d), "pending")[1])
+    with TestClient(app) as c:
+        r = c.post("/api/water/warm-demo", headers={"X-Cron-Key": "khoa-thu"}).json()
+    assert asked == ["2020-10-22", "2025-11-01"] and r["unet_demo"] == {"pending": 2}
