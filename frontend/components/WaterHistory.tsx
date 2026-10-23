@@ -304,6 +304,7 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
               : t("Bạn biết ruộng này? Đăng nhập (góc trên) để xác nhận từng đợt có ngập thật không — mỗi câu là sự thật mặt đất để kiểm radar.",
                   "Know this field? Log in (top corner) to confirm whether each event really flooded — every answer is ground truth for the radar.")}</p>
           )}
+          {r.events.length > 0 && <InviteConfirm lat={lat} lon={lon} />}
           {r.events.length > 0 && (
             <ol className="wh-list">
               {r.events.slice().reverse().map((e) => (
@@ -327,5 +328,37 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
         </>
       )}
     </section>
+  );
+}
+
+
+/** Mời NGƯỜI THẬT ở thửa xác nhận từng đợt (kiểm thực địa — water_field_protocol.json): điện thoại mở bảng chia sẻ (Zalo,
+ *  Messenger…), máy tính chép link. Link mở trang thửa công khai, cuộn thẳng tới lịch sử nước. Không tự tạo tài khoản. */
+function InviteConfirm({ lat, lon }: { lat: number; lon: number }) {
+  const { t } = useLang();
+  const [done, setDone] = useState<string | null>(null);
+  async function invite() {
+    const url = `${window.location.origin}/plot/${lat.toFixed(5)},${lon.toFixed(5)}?xac-nhan=1`;
+    const text = t("Bạn biết thửa này? Radar ghi nhận các đợt nước dưới đây — bấm xác nhận đợt nào ngập thật giúp mình.",
+                   "Know this plot? Radar recorded the water events below — please confirm which ones really flooded.");
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "TerraTwin", text, url });
+        setDone(t("Đã mở bảng chia sẻ.", "Share sheet opened."));
+        return;
+      }
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      setDone(t("Đã chép link — dán vào Zalo hoặc tin nhắn.", "Link copied — paste it into Zalo or a message."));
+    } catch {
+      setDone(url);
+    }
+  }
+  return (
+    <p className="wh-invite">
+      <button type="button" className="bat-btn ghost" onClick={invite}>
+        {t("Mời người ở đó xác nhận (gửi qua Zalo…)", "Invite people there to confirm (send via Zalo…)")}
+      </button>
+      {done && <small role="status"> {done}</small>}
+    </p>
   );
 }

@@ -7,6 +7,10 @@ vào tờ khai khi nộp.
 Cá nhân đứng tên được — **không cần chờ pháp nhân**. Sau này lập hộ kinh doanh/công ty thì làm thủ tục chuyển nhượng hoặc
 ghi nhận thay đổi chủ đơn/chủ văn bằng.
 
+**Tệp làm sẵn (22/10/2026):** `docs/nhan-hieu/To-khai-nhan-hieu-TerraTwin-dien-san.docx` — tờ khai điền sẵn mọi mục trừ
+thông tin cá nhân (mục 2 để trống) · `docs/nhan-hieu/mau-nhan-TerraTwin-80x80mm.png` — mẫu nhãn 80 × 80 mm, 300 dpi (in 5 bản
+nếu nộp giấy). Chép nội dung vào Mẫu số 04 chính thức khi nộp.
+
 ## 1. Mẫu đơn đúng thời điểm này
 
 - **Tờ khai: Mẫu số 04** theo Thông tư 10/2026/TT-BKHCN (hiệu lực 01/04/2026) — thay cho Mẫu số 08 cũ của Nghị định

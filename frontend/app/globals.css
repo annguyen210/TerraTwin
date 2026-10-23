@@ -5320,3 +5320,8 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .pw-basemap { margin: 2px 0 6px; font-size: .78rem; color: var(--muted, #6b7a86); }
 .pw-basemap.old { color: var(--warn, #B07A2E); }
 .pw-basemap-src { opacity: .8; }
+
+/* Mời người thật ở thửa xác nhận từng đợt nước (kiểm thực địa) */
+.wh-invite { margin: 6px 0 10px; }
+.wh-invite small { color: var(--muted, #6b7a86); }
+.pp-invite { margin: 10px 0 14px; padding: 12px 16px; border-radius: 10px; background: rgba(78, 168, 222, .12); border-left: 4px solid #4ea8de; }

@@ -328,6 +328,7 @@ with sync_playwright() as p:
         n = pg.locator("section.wh .wh-list li").count()
         assert pg.locator("section.wh p.wh-cf-note").count() == 1, "thiếu lời mời xác nhận từng đợt"
         assert pg.locator("section.wh .wh-cf").count() == 0, "khách chưa đăng nhập không được thấy nút xác nhận"
+        assert pg.get_by_role("button", name=re.compile("Mời người ở đó xác nhận")).count() == 1, "thiếu nút mời xác nhận"
         pg.goto(WEB + "/", wait_until="domcontentloaded", timeout=120_000)
         q = pg.locator("input.start-q").first
         q.wait_for(timeout=60_000)

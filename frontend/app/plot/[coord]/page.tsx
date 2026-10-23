@@ -37,6 +37,14 @@ export default function PlotPassportPage() {
   const [pp, setPp] = useState<Passport | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  // Link mời xác nhận (nút "Mời người ở đó xác nhận" trong lịch sử nước): ?xac-nhan=1 → lời mời + cuộn tới lịch sử nước.
+  const [invited, setInvited] = useState(false);
+  useEffect(() => {
+    if (!new URLSearchParams(window.location.search).has("xac-nhan")) return;
+    setInvited(true);
+    const id = window.setTimeout(() => document.querySelector("section.wh")?.scrollIntoView({ behavior: "smooth", block: "start" }), 800);
+    return () => window.clearTimeout(id);
+  }, []);
 
   useEffect(() => {
     if (!valid) { setErr("Toạ độ không hợp lệ."); return; }
@@ -90,6 +98,11 @@ export default function PlotPassportPage() {
 
         {/* BẰNG CHỨNG TRƯỚC — chạy NGAY khi mở trang, song song với hồ sơ thửa: chỉ cần toạ độ. Trước đây phải đợi
             /api/passport (10 năm khí tượng; toạ độ mới trên Render có khi > 2 phút) xong mới bắt đầu đọc radar. */}
+        {valid && invited && (
+          <p className="pp-invite" role="note">{t(
+            "Bạn được mời xác nhận: radar ghi nhận các đợt nước ở thửa này. Nếu bạn biết ruộng/đất ở đây, hãy đăng nhập (góc trên — tạo tài khoản miễn phí) rồi bấm Có / Không / Không chắc cho từng đợt. Chỉ trả lời điều bạn thật sự biết.",
+            "You were invited to confirm: radar recorded water events at this plot. If you know this land, log in (top corner — free account) and tap Yes / No / Not sure for each event. Only answer what you actually know.")}</p>
+        )}
         {valid && (
           <>
             <WaterHistory lat={lat} lon={lon} />
