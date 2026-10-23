@@ -21,7 +21,7 @@ from app.services import flood_season as fs  # noqa: E402
 from s1_unet_gate import NEG as OLD_NEG, POS as OLD_POS  # noqa: E402
 from s1_unet_v2_gate import NEW_NEG  # noqa: E402
 
-PACE_S, WAIT_S, TRIES = 8, 300, 30
+PACE_S, WAIT_S, TRIES = 10, 600, 1100   # gói miễn phí ~38 điểm/ngày (mỗi điểm ≈ 260 lượt) → chờ được ~7 ngày
 
 
 def main() -> None:
