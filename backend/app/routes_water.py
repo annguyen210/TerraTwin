@@ -102,7 +102,7 @@ def water_warm_demo(authorization: str | None = Header(default=None), x_cron_key
     if gate()["passed"]:
         threading.Thread(target=_landcover, name="warm-landcover", daemon=True).start()
     # U-Net bản 3 (23/10/2026): ý kiến thứ hai cho từng đợt của THỬA MẪU "Xem ngay" — đúng ngày giao diện mở
-    # (wettestOfEvent: cảnh trung vị VV thấp nhất của đợt). Mỗi đợt ~1–2 phút nền trên 0,1 CPU, giữ 400 ngày → tốn một lần.
+    # (wettestOfEvent: cảnh trung vị VV thấp nhất của đợt). Mỗi đợt ~20 s nền (lâu hơn khi máy bận), giữ 400 ngày → tốn một lần.
     unet: dict[str, int] = {}
     from app.services import s1_unet
     if s1_unet.v3_available():

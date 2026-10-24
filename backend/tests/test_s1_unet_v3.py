@@ -76,7 +76,7 @@ def test_ket_qua_cham_lai_dung_giao_thuc():
 
 
 def test_chay_nen_tra_pending_roi_ket_qua(monkeypatch):
-    """Máy chủ 0,1 CPU: không giữ yêu cầu chờ 1–2 phút — chạy nền, không chạy trùng, rồi trả từ bộ nhớ."""
+    """Máy chủ 0,1 CPU: không giữ yêu cầu chờ hàng chục giây — chạy nền, không chạy trùng, rồi trả từ bộ nhớ."""
     import time
     from app.services import cache_store, s1_unet as U
     out = {"date": "2021-10-15", "share": 0.9, "baseline": 0.0, "excess": 0.9, "confirmed": True}

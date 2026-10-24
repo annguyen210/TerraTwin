@@ -368,7 +368,7 @@ def v3_judge(lat: float, lon: float, day: str, hist: dict) -> dict | None:
             "rule": f"xác nhận khi tỉ lệ nước vượt nền mùa khô của chính thửa ≥ {int(V3_EXCESS * 100)}%"}
 
 
-# Máy chủ miễn phí (Render 0,1 CPU): một ý kiến bản 3 = 7 cảnh radar × U-Net ≈ 1–2 phút lần đầu — KHÔNG giữ yêu cầu HTTP
+# Máy chủ miễn phí (Render 0,1 CPU): một ý kiến bản 3 = 7 cảnh radar × U-Net (đo 24/10/2026: ~21 s một đợt, lâu hơn khi máy bận) — KHÔNG giữ yêu cầu HTTP
 # chờ (proxy cắt, trình duyệt bỏ cuộc rồi hỏi lại thành chạy trùng). Chưa có thì chạy NỀN, trả "pending"; giao diện hỏi lại.
 _bg = None
 _bg_lock = threading.Lock()
