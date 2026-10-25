@@ -157,3 +157,11 @@ def doc_schema():
         assert not errs, errs
     check.validator = v
     return check
+
+
+@pytest.fixture(autouse=True)
+def _xoa_bo_dem_dang_nhap_sai():
+    """Bộ đếm lượt đăng nhập SAI theo email (services/quota.py "login", 25/10/2026) nằm trong bộ nhớ tiến trình — xoá
+    trước mỗi test để lượt sai của test này không khoá email của test khác."""
+    from app.services import quota
+    quota.reset("login")

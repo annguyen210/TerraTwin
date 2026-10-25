@@ -274,18 +274,30 @@ def twofa_disable(body: Disable2faIn, user: User = Depends(auth.current_user),
 
 @router.post("/api/auth/login", response_model=TokenOut)
 def login(body: LoginIn, db: Session = Depends(get_session)) -> TokenOut:
+    import hashlib
+    from app.services import quota
     email = body.email.strip().lower()
+    # Kiểm 25/10/2026: 10 lần SAI / 15 phút cho mỗi email → 429, kể cả khi lần sau gõ đúng (chặn dò mật khẩu một tài
+    # khoản). Đếm theo mã băm email — email chưa đăng ký cũng bị đếm y hệt, cùng thông báo: không lộ email nào tồn tại.
+    lk = hashlib.sha256(email.encode("utf-8")).hexdigest()[:32]
+    wait = quota.blocked("login", lk)
+    if wait is not None:
+        raise HTTPException(429, f"Đăng nhập sai quá nhiều lần — thử lại sau {wait // 60 + 1} phút.",
+                            headers={"Retry-After": str(wait)})
     user = db.execute(select(User).where(User.email == email)).scalar_one_or_none()
     # Cùng một thông báo cho email sai và mật khẩu sai — không tiết lộ email nào tồn tại.
     if user is None:
         # Băm giả để thời gian phản hồi KHÔNG tiết lộ email nào đã đăng ký (chống
         # dò tài khoản qua đo thời gian). Vẫn báo lỗi y hệt nhánh sai mật khẩu.
         auth.verify_password(body.password, auth.DUMMY_HASH)
+        quota.hit("login", lk)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Email hoặc mật khẩu không đúng.")
     if not auth.verify_password(body.password, user.password_hash):
+        quota.hit("login", lk)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Email hoặc mật khẩu không đúng.")
     if getattr(user, "totp_enabled", 0):
-        _check_second_factor(db, user, body.otp)
+        _check_second_factor(db, user, body.otp)       # mã hai lớp có hạn mức riêng ("otp")
+    quota.clear("login", lk)                           # đăng nhập đúng → xoá bộ đếm lượt sai
     # Đ11 sửa sau kiểm toán — email nằm trong TERRATWIN_ADMIN_EMAILS được
     # NÂNG lên admin mỗi lần đăng nhập (bắt được cả trường hợp tài khoản đã
     # tồn tại TRƯỚC khi email được thêm vào danh sách). CỐ Ý không tự động

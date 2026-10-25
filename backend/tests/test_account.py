@@ -546,3 +546,39 @@ def test_contribution_dem_dung_quan_sat_va_canh_bao_da_xac_minh(client):
 
 def test_contribution_can_dang_nhap(client):
     assert client.get("/api/account/contribution").status_code == 401
+
+
+def test_dang_nhap_sai_10_lan_bi_khoa_15_phut_ke_ca_mat_khau_dung(client, monkeypatch):
+    """Kiểm 25/10/2026: 10 lần sai / 15 phút cho mỗi email → lần 11 là 429 KỂ CẢ khi mật khẩu đúng; hết thời gian chờ
+    thì đăng nhập lại được; đăng nhập đúng xoá bộ đếm. Email chưa đăng ký bị đếm y hệt (không lộ email nào tồn tại)."""
+    from app.services import quota
+    _register(client)
+    t = {"now": 1_900_000_000.0}
+    monkeypatch.setattr(quota.time, "time", lambda: t["now"])
+    for _ in range(10):
+        assert client.post("/api/auth/login", json={"email": "a@x.com", "password": "SaiRoi123"}).status_code == 401
+    r = client.post("/api/auth/login", json={"email": "A@X.com ", "password": GOOD_PW})   # đúng mật khẩu, khác hoa/thường
+    assert r.status_code == 429 and "thử lại sau" in r.json()["detail"] and int(r.headers["Retry-After"]) > 0
+    t["now"] += 901                                                        # hết 15 phút
+    assert client.post("/api/auth/login", json={"email": "a@x.com", "password": GOOD_PW}).status_code == 200
+    for _ in range(9):                                                     # đăng nhập đúng đã xoá bộ đếm
+        assert client.post("/api/auth/login", json={"email": "a@x.com", "password": "SaiRoi123"}).status_code == 401
+    assert client.post("/api/auth/login", json={"email": "a@x.com", "password": GOOD_PW}).status_code == 200
+    # Email chưa đăng ký: cùng 401 rồi cùng 429, cùng thông báo — không phân biệt được với email có thật.
+    for _ in range(10):
+        assert client.post("/api/auth/login", json={"email": "khong@x.com", "password": "SaiRoi123"}).status_code == 401
+    ghost = client.post("/api/auth/login", json={"email": "khong@x.com", "password": "SaiRoi123"})
+    for _ in range(10):
+        client.post("/api/auth/login", json={"email": "a@x.com", "password": "SaiRoi123"})
+    real = client.post("/api/auth/login", json={"email": "a@x.com", "password": "SaiRoi123"})
+    assert ghost.status_code == real.status_code == 429
+    assert ghost.json()["detail"].split("—")[0] == real.json()["detail"].split("—")[0]
+
+
+def test_dem_dang_nhap_sai_tach_theo_email(client):
+    _register(client)
+    _register(client, email="b@x.com")
+    for _ in range(10):
+        client.post("/api/auth/login", json={"email": "a@x.com", "password": "SaiRoi123"})
+    assert client.post("/api/auth/login", json={"email": "a@x.com", "password": GOOD_PW}).status_code == 429
+    assert client.post("/api/auth/login", json={"email": "b@x.com", "password": GOOD_PW}).status_code == 200
