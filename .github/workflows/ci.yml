@@ -8,7 +8,7 @@ on:
 jobs:
   backend:
     name: Backend — pytest
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: backend
@@ -28,7 +28,7 @@ jobs:
     # cache sổ điểm) CHƯA từng chạy trên Postgres. Deploy dùng Postgres, và đúng
     # loại lỗi này (DATETIME, DDL, SQL riêng của Postgres) chỉ lộ ở đó. Chạy
     # ĐÚNG bộ test hiện có trên Postgres để bắt trước khi lên production.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: backend
@@ -93,7 +93,7 @@ jobs:
 
   frontend:
     name: Frontend — typecheck + build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: frontend
@@ -113,7 +113,7 @@ jobs:
     name: Bảo mật — lỗ hổng thư viện đã công bố
     # Phần mềm giữ chữ ký số, tài khoản và sổ minh bạch: thư viện có lỗ hổng đã công bố
     # (PyJWT, Pillow, Starlette — 40 mã lỗ hổng, vá 10/2026) phải làm CI đỏ ngay.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
