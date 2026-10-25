@@ -75,7 +75,10 @@ with sync_playwright() as p:
         pg.on("console", lambda m: m.type == "error" and console_errors.append(f"{pg.url} :: {m.text[:200]}"))
         pg.on("pageerror", lambda e: console_errors.append(f"{pg.url} :: PAGEERROR {str(e)[:200]}"))
         pg.on("response", lambda r: r.status >= 400 and bad_responses.append(f"{r.status} {r.request.method} {r.url[:140]}"))
-        pg.on("requestfailed", lambda r: bad_responses.append(f"FAILED {r.failure} {r.method} {r.url[:140]}"))
+        # ERR_ABORTED = yêu cầu bị HUỶ khi chuyển trang / đóng ngữ cảnh (ô bản đồ đang tải dở) — không phải lỗi; lượt
+        # 25/10/2026 ghi 385 dòng loại này làm chìm 18 dòng API hỏng thật.
+        pg.on("requestfailed", lambda r: "ERR_ABORTED" not in (r.failure or "")
+              and bad_responses.append(f"FAILED {r.failure} {r.method} {r.url[:140]}"))
         return pg
 
     watch(page)
@@ -391,22 +394,27 @@ with sync_playwright() as p:
         pg.get_by_role("tab", name=re.compile("Canh đất")).click()
         pg.get_by_role("button", name=re.compile("Xem độ ẩm tán lá 10 m")).click()
         pg.locator("section.mm .mm-pair, section.mm .doc-note, section.mm .bat-err").first.wait_for(timeout=180_000)
-        if pg.locator("section.mm .bat-err").count() and "request/phút" in pg.locator("section.mm .bat-err").inner_text():
-            # Bộ giới hạn 120 lượt/phút/IP: cả bộ E2E chạy từ MỘT IP. Làm như người dùng — chờ hết phút rồi bấm Thử lại.
+        retried = ""
+        err_txt = pg.locator("section.mm .bat-err").first.inner_text() if pg.locator("section.mm .bat-err").count() else ""
+        if "request/phút" in err_txt or "Không kết nối được máy chủ" in err_txt:
+            # Bộ giới hạn 120 lượt/phút/IP — hoặc (23/10 và 25/10/2026) lớp proxy của Render trả lỗi KHÔNG kèm CORS khi
+            # một IP vừa dội ~20 yêu cầu ở bước khu làm việc (cả bộ E2E chạy từ MỘT IP). Làm như người dùng: chờ rồi bấm
+            # Thử lại MỘT lần; vẫn hỏng thì trượt thật. Ghi rõ vào kết quả để không che chuyện đã phải thử lại.
             pg.wait_for_timeout(65_000)
             pg.locator("section.mm").get_by_role("button", name="Thử lại").click()
             pg.locator("section.mm .mm-pair, section.mm .doc-note, section.mm .bat-err").first.wait_for(timeout=180_000)
+            retried = f" · ĐÃ THỬ LẠI 1 lần sau lỗi: {err_txt[:60]}"
         pg.wait_for_timeout(800)
         pg.screenshot(path=os.path.join(OUT, "19-do-am-10m.png"), full_page=False)
         if pg.locator("section.mm .mm-pair").count():
             sizes = pg.evaluate("Array.from(document.querySelectorAll('section.mm canvas')).map((c) => c.width)")
             assert sizes == [32, 64], f"lưới sai: {sizes}"
             ctx.close()
-            return f"ảnh 20 m (32 ô) cạnh ảnh 10 m (64 ô) · {basemap[:90]}"
+            return f"ảnh 20 m (32 ô) cạnh ảnh 10 m (64 ô) · {basemap[:90]}{retried}"
         assert not pg.locator("section.mm .bat-err").count(), pg.locator("section.mm .bat-err").inner_text()
         msg = pg.locator("section.mm .doc-note").first.inner_text()
         ctx.close()
-        return f"không có ảnh quang mây — nói rõ: {msg[:80]}"
+        return f"không có ảnh quang mây — nói rõ: {msg[:80]}{retried}"
     moisture()
 
     @step("Khu làm việc trên điện thoại: tấm trượt 3 nấc, không tràn ngang")
