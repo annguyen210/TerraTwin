@@ -90,18 +90,29 @@ jobs:
                                            method="POST" if body is not None else "GET")
               with urllib.request.urlopen(req, timeout=timeout) as f:
                   return json.load(f)
-          for raw in [x for x in os.environ["THUA"].split(";") if x.strip()]:
-              lat, lon = (float(v) for v in raw.split(","))
+          plots = [tuple(float(v) for v in x.split(",")) for x in os.environ["THUA"].split(";") if x.strip()]
+          # Gửi HẾT trước (máy chủ chạy song song, 25/10/2026: chờ từng thửa nối tiếp thì thửa mới đọc lần đầu
+          # trên 0,1 CPU mất > 6 phút/thửa), rồi mới hỏi tiến độ chung — tối đa 15 phút.
+          jobs = {}
+          for lat, lon in plots:
               try:
-                  j = call("/api/water/history?lang=vi", {"lat": lat, "lon": lon})
-                  t0 = time.time()
-                  while j.get("state") != "done" and j.get("job_id") and time.time() - t0 < 360:
-                      time.sleep(10)
-                      j = call(f"/api/water/history/{j['job_id']}")
-                  r = j.get("result") or {}
-                  print(f"{lat},{lon}: lịch sử nước {j.get('state')} · {len(r.get('events') or [])} đợt")
+                  jobs[(lat, lon)] = call("/api/water/history?lang=vi", {"lat": lat, "lon": lon})
               except Exception as e:  # noqa: BLE001 — một thửa hỏng không dừng cả lượt
-                  print(f"::warning::{lat},{lon}: lịch sử nước chưa đọc được ({e})")
+                  print(f"::warning::{lat},{lon}: lịch sử nước chưa gửi được ({e})")
+          t0 = time.time()
+          while time.time() - t0 < 900 and any(j.get("state") != "done" and j.get("job_id") for j in jobs.values()):
+              time.sleep(15)
+              for k, j in jobs.items():
+                  if j.get("state") != "done" and j.get("job_id"):
+                      try:
+                          jobs[k] = call(f"/api/water/history/{j['job_id']}")
+                      except Exception:  # noqa: BLE001
+                          pass
+          for (lat, lon), j in jobs.items():
+              r = j.get("result") or {}
+              print(f"{lat},{lon}: lịch sử nước {j.get('state')} · {len(r.get('events') or [])} đợt"
+                    + ("" if j.get("state") == "done" else " — vẫn chạy trên máy chủ, mở lại sau vài phút"))
+          for lat, lon in plots:
               for path in (f"/api/landcover/change?lat={lat}&lon={lon}&lang=vi", f"/api/basemap/meta?lat={lat}&lon={lon}&lang=vi",
                            f"/api/water/summary?points={lat},{lon}"):
                   try:
