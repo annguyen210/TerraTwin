@@ -283,6 +283,28 @@ def document(row: Dossier, db: Session | None = None) -> dict:
     }
 
 
+def _narrative_key(n) -> list | None:
+    """(câu, id bằng chứng) của lời diễn giải để so; None nếu sai kiểu. None/{} = không có câu nào."""
+    if n is None:
+        return []
+    if not isinstance(n, dict):
+        return None
+    ss = n.get("sentences", [])
+    if ss is None:
+        return []
+    if not isinstance(ss, list):
+        return None
+    out = []
+    for s in ss:
+        if not isinstance(s, dict):
+            return None
+        ev = s.get("evidence") or []
+        if not isinstance(ev, list):
+            return None
+        out.append((s.get("text"), tuple(json.dumps(e, sort_keys=True, ensure_ascii=False) for e in ev)))
+    return out
+
+
 def verify_document(db: Session, doc: dict) -> dict:
     """Kiểm một tệp hồ sơ ai đó đưa cho bạn: có đúng là bản đã phát hành không.
 
@@ -316,19 +338,28 @@ def verify_document(db: Session, doc: dict) -> dict:
     if "issued_at" in doc and str(doc.get("issued_at")) != _iso(row.created_at):
         problems.append(tr(f"ngày phát hành trong tệp ({doc.get('issued_at')}) khác sổ ({_iso(row.created_at)})",
                            f"issue time in file ({doc.get('issued_at')}) differs from the log ({_iso(row.created_at)})"))
-    proof = doc.get("proof") or {}
+    # Tệp là dữ liệu NGƯỜI KHÁC đưa: trường sai kiểu là một lỗi của tệp (valid:false + problems), không phải lỗi 500
+    # (kiểm 24/10/2026: narrative là chuỗi/list, sentences là chuỗi/chứa số → AttributeError).
+    proof = doc.get("proof")
+    if proof is not None and not isinstance(proof, dict):
+        problems.append(tr("bằng chứng (proof) sai kiểu — phải là một đối tượng", "proof has the wrong type — must be an object"))
+        proof = {}
     for k, real in (("facts_hash", row.facts_hash), ("prev_hash", row.prev_hash), ("entry_hash", row.entry_hash),
                     ("signature", row.signature), ("key_id", row.key_id)):
-        if k in proof and proof.get(k) != real:
+        if k in (proof or {}) and proof.get(k) != real:
             problems.append(tr(f"bằng chứng '{k}' trong tệp khác sổ", f"proof field '{k}' differs from the log"))
     if "narrative" in doc:
         # Lời diễn giải KHÔNG nằm trong phần ký — nhưng ai đó có thể sửa nó trong tệp để người đọc tin nhầm. Dựng
         # lại từ nội dung ĐÃ KÝ (mẫu câu tất định) và so từng câu + id bằng chứng.
         from app.services import narrative as narr
         rebuilt = narr.build(json.loads(row.facts_json), row.id) or {}
-        def key(n):
-            return [(s.get("text"), tuple(s.get("evidence") or [])) for s in (n or {}).get("sentences", [])]
-        if key(doc.get("narrative")) != key(rebuilt):
+        given_n = _narrative_key(doc.get("narrative"))
+        if given_n is None:
+            problems.append(tr("lời diễn giải (narrative) sai kiểu — phải là đối tượng có danh sách câu 'sentences', "
+                               "mỗi câu là đối tượng {text, evidence}",
+                               "narrative has the wrong type — must be an object with a 'sentences' list of "
+                               "{text, evidence} objects"))
+        elif given_n != _narrative_key(rebuilt):
             problems.append(tr("lời diễn giải trong tệp khác bản dựng lại từ nội dung đã ký",
                                "the narrative in the file differs from the one rebuilt from the signed content"))
     known = {"id", "seq", "issued_at", "facts", "facts_canonical", "proof", "narrative"}

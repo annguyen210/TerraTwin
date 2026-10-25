@@ -185,7 +185,7 @@ export default function BatchPage() {
                   <table className="bat-table">
                     <thead><tr>
                       <th>{t("Mã", "Ref")}</th><th>{t("Loại đất", "Land")}</th><th>{t("Rủi ro", "Risk")}</th>
-                      <th>{t("Điểm", "Score")}</th><th>{t("Đe doạ", "Threats")}</th>
+                      <th title={t("TerraScore: hiểm hoạ 7 ngày tới, không phải lịch sử ngập", "TerraScore: next-7-day hazards, not flood history")}>{t("Điểm 7 ngày tới", "Score, next 7 days")}</th><th>{t("Đe doạ", "Threats")}</th>
                       <th>{t("Ngập 10 năm", "Floods 10y")}</th><th>{t("Hạn 10 năm", "Droughts 10y")}</th><th></th>
                     </tr></thead>
                     <tbody>

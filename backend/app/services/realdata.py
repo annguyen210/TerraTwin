@@ -40,7 +40,8 @@ import urllib.request
 # chính nguyên nhân sinh ra 38 lần 429 mà công cụ đo lại không sống nổi để đo.
 # Chuyển cả ba xuống kv_cache (bảng DB, đã dùng cho passport/scorecard/heatmap)
 # — cùng cách đã làm cho nhật ký lượt quét radar.
-_QUOTA_TTL = 1800.0                # sau nửa giờ không tái diễn thì coi như đã qua
+_QUOTA_TTL = 1800.0                # TRẦN thời gian nghỉ khi 429 lặp lại liên tục
+_QUOTA_BACKOFF_MIN = 120.0         # lần 429 đầu: nghỉ 2 phút rồi thử lại (kiểm 24/10/2026, việc 4)
 _QUOTA_LOG_WINDOW = 86400.0
 
 
@@ -49,20 +50,45 @@ def _quota_key(host: str) -> str:
     return cache_store.make_key("quota", host)
 
 
-def _record_429(host: str) -> None:
+def _log_entries(row: dict) -> list[tuple[float, str]]:
+    """(thời điểm, loại lệnh gọi) — bản ghi cũ chỉ có thời điểm (loại "")."""
+    out = []
+    for e in row.get("log", []):
+        if isinstance(e, (list, tuple)) and e:
+            out.append((float(e[0]), str(e[1]) if len(e) > 1 else ""))
+        elif isinstance(e, (int, float)):
+            out.append((float(e), ""))
+    return out
+
+
+def _record_429(host: str, kind: str = "") -> None:
+    """Ghi một lần 429 và đặt thời gian NGHỈ TĂNG DẦN: 2 → 4 → 8 → 16 → 30 phút khi 429 lặp lại ngay sau mỗi lần nghỉ.
+
+    Kiểm 24/10/2026 (việc 4): trước đây MỘT lần 429 khoá host trọn 30 phút → /api/health 'degraded' 30 phút, mọi lượt
+    gọi trong lúc đó rơi xuống nguồn dự phòng — trong khi hạn mức theo PHÚT của Open-Meteo hồi lại sau một phút. Bị
+    chặn dài thật (đo 2026-09-17: > 18 phút liên tục) thì thời gian nghỉ tự dài ra tới trần 30 phút.
+    `kind` = loại lệnh gọi (forecast, elevation, archive…) để báo cáo biết 429 rơi vào đâu."""
     from app.services import cache_store
 
     now = time.time()
     key = _quota_key(host)
     row = cache_store.get(key) or {"last": 0.0, "log": []}
-    if now - row.get("last", 0.0) > _QUOTA_TTL:
+    last = row.get("last", 0.0)
+    prev_wait = row.get("wait", _QUOTA_TTL)
+    streak = row.get("streak", 1) + 1 if now - last < prev_wait + 600 else 1
+    wait = min(_QUOTA_TTL, _QUOTA_BACKOFF_MIN * 2 ** (streak - 1))
+    if streak == 1:
         from app.safelog import log
-        log(f"[TerraTwin] {host}: bi chan vi qua han muc (HTTP 429). "
-            f"Moi ket qua se bao 'chua du du lieu'.")
-    log_ = [t for t in row.get("log", []) if now - t < _QUOTA_LOG_WINDOW]
-    log_.append(now)
-    cache_store.put(key, {"last": now, "log": log_},
+        log(f"[TerraTwin] {host}: bi chan vi qua han muc (HTTP 429, {kind or '?'}). "
+            f"Nghi {int(wait)} s roi thu lai; trong luc do dung ban cache cu / nguon du phong.")
+    log_ = [[t, k] for t, k in _log_entries(row) if now - t < _QUOTA_LOG_WINDOW]
+    log_.append([now, kind])
+    cache_store.put(key, {"last": now, "until": now + wait, "wait": wait, "streak": streak, "log": log_},
                     ttl_seconds=int(_QUOTA_LOG_WINDOW) + 3600)
+
+
+def _blocked_until(row: dict) -> float:
+    return row.get("until", row.get("last", 0.0) + _QUOTA_TTL)      # bản ghi cũ: khoá 30 phút như trước
 
 
 def _host_exhausted(host: str, now: float | None = None) -> bool:
@@ -80,7 +106,7 @@ def _host_exhausted(host: str, now: float | None = None) -> bool:
     row = cache_store.get(_quota_key(host))
     if not row:
         return False
-    return now - row.get("last", 0.0) < _QUOTA_TTL
+    return now < _blocked_until(row)
 
 
 # Danh sách CỐ ĐỊNH — mọi host thật sự được gọi trong file này (+ probabilistic
@@ -101,21 +127,30 @@ def quota_status() -> dict:
 
     now = time.time()
     hit: dict[str, float] = {}
+    retry_in: dict[str, int] = {}
     counts_24h: dict[str, int] = {}
+    by_kind: dict[str, dict[str, int]] = {}
     for host in _KNOWN_HOSTS:
         row = cache_store.get(_quota_key(host))
         if not row:
             continue
         last = row.get("last", 0.0)
-        if now - last < _QUOTA_TTL:
+        if now < _blocked_until(row):
             hit[host] = round((now - last) / 60.0, 1)
-        n = len([t for t in row.get("log", []) if now - t < _QUOTA_LOG_WINDOW])
-        if n:
-            counts_24h[host] = n
+            retry_in[host] = int(_blocked_until(row) - now)
+        recent = [k for t, k in _log_entries(row) if now - t < _QUOTA_LOG_WINDOW]
+        if recent:
+            counts_24h[host] = len(recent)
+            kinds: dict[str, int] = {}
+            for k in recent:
+                kinds[k or "?"] = kinds.get(k or "?", 0) + 1
+            by_kind[host] = kinds
     return {
         "exhausted": sorted(hit),
         "minutes_since_detected": hit,
+        "retry_in_s": retry_in,
         "count_429_24h": counts_24h,
+        "count_429_24h_by_kind": by_kind,
         "message": (
             "Đang bị nguồn dữ liệu chặn vì gọi quá nhiều: " + ", ".join(sorted(hit))
             + ". Đây là hạn mức của nguồn miễn phí, thường tự qua — nhưng đo "
@@ -132,9 +167,11 @@ def quota_status() -> dict:
 # phút không "tươi" hơn cache 3 giờ chút nào, chỉ tốn thêm 6x lượt gọi.
 _TTL_FOREVER = 3650 * 86400   # ~10 năm — cao độ, không đổi theo thời gian
 _TTL_30D = 30 * 86400         # ERA5 lịch sử — dữ liệu quá khứ, không đổi
-_TTL_3H = 3 * 3600            # dự báo (forecast/marine/ensemble/MET Norway)
-_TTL_6H = 6 * 3600            # lưu lượng sông (flood-api)
-_STALE_MAX = 12 * 3600        # phao cứu sinh khi gọi mạng hỏng — nâng từ 6h
+# Kiểm 24/10/2026 (việc 4 — 429 lúc vài người mở cùng lúc): dự báo 3 → 6 giờ (ICON, GFS, IFS đều chạy mỗi 6 giờ — bản
+# 3 giờ không mới hơn), sông 6 → 12 giờ (GloFAS cập nhật mỗi ngày), phao cứu sinh 12 → 24 giờ.
+_TTL_6H = 6 * 3600            # dự báo (forecast/marine/ensemble/MET Norway)
+_TTL_12H = 12 * 3600          # lưu lượng sông (flood-api)
+_STALE_MAX = 24 * 3600        # phao cứu sinh khi gọi mạng hỏng — nâng từ 12h
 
 
 def _ttl_for(url: str) -> tuple[int, int]:
@@ -144,10 +181,10 @@ def _ttl_for(url: str) -> tuple[int, int]:
     if "archive-api." in url:
         return _TTL_30D, _TTL_30D
     if "flood-api." in url:
-        return _TTL_6H, _STALE_MAX
+        return _TTL_12H, _STALE_MAX
     # /v1/forecast (Open-Meteo), marine-api, ensemble-api, api.met.no —
     # đều là dự báo, đổi theo giờ chứ không theo phút.
-    return _TTL_3H, _STALE_MAX
+    return _TTL_6H, _STALE_MAX
 
 
 # ĐẾM LỜI GỌI — cho /api/health biết một lượt quét 18 mô-đun thật sự tốn bao
@@ -199,7 +236,7 @@ def _fetch(url: str, timeout: float, headers: dict | None = None):
         except urllib.error.HTTPError as e:
             if e.code == 429:
                 host = url.split("/")[2] if "//" in url else url[:40]
-                _record_429(host)
+                _record_429(host, url.split("?")[0].rstrip("/").rsplit("/", 1)[-1])
             return None
         except Exception:
             return None
@@ -219,6 +256,21 @@ def _snap(v: float) -> float:
     thừa là thêm một bước tới 429. KHÔNG dùng cho cao độ (DEM 90 m đổi theo từng trăm mét).
     """
     return round(float(v), 2)
+
+
+_CELL = 0.05
+
+
+def _cell(v: float) -> float:
+    """Toạ độ cho lượt gọi DỰ BÁO, gộp theo ô 0,05° (~5,5 km) — kiểm 24/10/2026, việc 4: vài người mở các thửa GẦN nhau
+    cùng lúc thì chung một lượt gọi thay vì mỗi người một lượt (Open-Meteo tính hạn mức theo số TOẠ ĐỘ khác nhau, gộp
+    nhiều toạ độ vào một yêu cầu không giảm hạn mức — chỉ bớt toạ độ khác nhau mới giảm).
+
+    Vẫn nhỏ hơn ô mô hình dự báo (~9–13 km). Đo 24/10/2026 ở 5 nơi (Quảng Điền, Cà Mau phẳng; Lâm Hà, Bảo Lộc, Đà Lạt
+    đồi núi): ô 0,01° và ô 0,05° trả CÙNG ô mô hình, mưa giống hệt, nhiệt độ tối đa lệch ≤ 0,3 °C (hiệu chỉnh theo cao độ
+    điểm hỏi), ET0 lệch ≤ 0,02 mm. KHÔNG dùng cho sông (GloFAS ô 0,05° — dời ô có thể sang sông khác), biển, ERA5
+    (khoá cache 30 ngày đang có), cao độ."""
+    return round(round(float(v) / _CELL) * _CELL, 2)
 
 
 def _get(url: str, timeout: float = 8.0, headers: dict | None = None):
@@ -315,7 +367,7 @@ def weather_7d(lat: float, lon: float):
     """
     url = (
         "https://api.open-meteo.com/v1/forecast"
-        f"?latitude={_snap(lat)}&longitude={_snap(lon)}"
+        f"?latitude={_cell(lat)}&longitude={_cell(lon)}"
         "&daily=precipitation_sum,et0_fao_evapotranspiration,temperature_2m_max"
         "&forecast_days=7&timezone=auto" + _models_q()
     )
@@ -409,7 +461,7 @@ def weather_7d_metno(lat: float, lon: float):
     from datetime import datetime as _dt
     from datetime import timedelta as _td
 
-    url = f"{_METNO_URL}?lat={_snap(lat)}&lon={_snap(lon)}"
+    url = f"{_METNO_URL}?lat={_cell(lat)}&lon={_cell(lon)}"
     d = _get(url, timeout=10.0, headers=_metno_headers())
     if not d:
         return None
@@ -572,19 +624,24 @@ def weather_multi(points: list[tuple[float, float]]):
             "&forecast_days=7&timezone=auto" + _models_q()
         )
 
-    out = _parallel_chunks(points, _url, 25.0)
+    # Gộp theo ô 0,05° (xem _cell): các điểm cùng ô chung một toạ độ hỏi — bản đồ nhiệt dày / lưới thượng nguồn bớt
+    # hẳn số toạ độ khác nhau mà Open-Meteo tính vào hạn mức.
+    cells = [(_cell(la), _cell(lo)) for la, lo in points]
+    uniq = list(dict.fromkeys(cells))
+    got_u = _parallel_chunks(uniq, _url, 25.0)
 
     # Dự phòng MET Norway khi Open-Meteo chặn IP dùng chung của Render — chỉ cho tập
-    # NHỎ (lưới thượng nguồn, vùng nguyên liệu): mỗi điểm một lượt gọi. Bản đồ nhiệt
-    # hàng chục điểm không đi đường này để khỏi dội nguồn dự phòng.
-    miss = [i for i, v in enumerate(out) if not v]
-    if miss and len(points) <= _METNO_MAX_POINTS:
+    # NHỎ (lưới thượng nguồn, vùng nguyên liệu): mỗi Ô một lượt gọi. Bản đồ nhiệt
+    # hàng chục ô không đi đường này để khỏi dội nguồn dự phòng.
+    miss = [i for i, v in enumerate(got_u) if not v]
+    if miss and len(uniq) <= _METNO_MAX_POINTS:
         from app.services import jobs
-        got = jobs.gather([lambda i=i: weather_7d_metno(*points[i]) for i in miss])
+        got = jobs.gather([lambda i=i: weather_7d_metno(*uniq[i]) for i in miss])
         for i, v in zip(miss, got):
             if v:
-                out[i] = v
-    return out
+                got_u[i] = v
+    pos = {c: i for i, c in enumerate(uniq)}
+    return [got_u[pos[c]] for c in cells]
 
 
 _METNO_MAX_POINTS = 25          # lưới vùng nguyên liệu 5×5

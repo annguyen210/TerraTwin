@@ -13,6 +13,7 @@ import {
   getPortfolioOverview, type AuthUser, type PortfolioOverview as PO,
 } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
+import { floodKey, floodLine, useFloodSummaries } from "@/components/FloodCount";
 import ModuleIcon from "@/components/ModuleIcon";
 
 const COLOR: Record<string, string> = {
@@ -39,6 +40,7 @@ export default function PortfolioOverview({
   const [d, setD] = useState<PO | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const floods = useFloodSummaries(d?.plots ?? []);        // lịch sử ngập cạnh điểm (kiểm 24/10/2026)
 
   const run = useCallback(async () => {
     setBusy(true);
@@ -129,9 +131,14 @@ export default function PortfolioOverview({
                 <b>{p.name}</b>
                 <span className="po-plot-m">
                   {p.area_ha != null && `${p.area_ha} ha · `}
-                  {p.score != null && `TerraScore ${p.score} (${p.grade})`}
+                  {p.score != null && t(`TerraScore ${p.score} (${p.grade}) · 7 ngày tới`, `TerraScore ${p.score} (${p.grade}) · next 7 days`)}
                 </span>
               </button>
+              {floods && (
+                <div className={`po-flood fc-line${(floods.get(floodKey(p.lat, p.lon))?.n_events ?? 0) > 0 ? " has" : ""}`}>
+                  🌊 {floodLine(floods.get(floodKey(p.lat, p.lon)), t)}
+                </div>
+              )}
               {p.drivers.length > 0 && (
                 <div className="po-drivers">
                   {p.drivers.map((dr) => (

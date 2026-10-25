@@ -292,6 +292,27 @@ def seasons(lat: float, lon: float, r: dict) -> dict:
     return out
 
 
+def summary(lat: float, lon: float) -> dict:
+    """Tóm tắt lịch sử nước CHỈ từ bộ nhớ đệm — không đọc radar, không gọi ERA5. Cho chỗ hiện điểm hiểm hoạ 7 ngày
+    (embed, danh mục thửa) đặt số đợt nước CẠNH điểm, để hạng 'A' không đứng một mình (kiểm 24/10/2026: Quảng Điền
+    100/100 hạng A dù có 7 đợt nước trong mùa lũ). cached=False: chưa ai mở lịch sử nước của thửa này."""
+    from app.services import flood_season as fs
+    base = {"lat": lat, "lon": lon}
+    hit = cache_store.get(cache_key(lat, lon))
+    if hit is None:
+        return {**base, "cached": False}
+    if not hit.get("available"):
+        return {**base, "cached": True, "available": False}
+    ev = hit.get("events") or []
+    out = {**base, "cached": True, "available": True, "n_events": len(ev), "first": hit.get("first"),
+           "last": hit.get("last"), "last_event": max((e["start"] for e in ev), default=None)}
+    s = fs.season_cached(lat, lon) if ev and fs.gate_passed() else None
+    if s:
+        n_in = sum(1 for e in ev if fs.label(e["start"], s) == "in")
+        out.update(n_in=n_in, n_out=len(ev) - n_in)
+    return out
+
+
 def history(lat: float, lon: float, radius_m: float = RADIUS_M, today: date | None = None,
             progress=None, use_cache: bool = True) -> dict:
     today = today or date.today()

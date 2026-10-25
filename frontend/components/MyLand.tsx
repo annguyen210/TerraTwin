@@ -37,6 +37,7 @@ import PlotHistory from "@/components/PlotHistory";
 import PlotJournal from "@/components/PlotJournal";
 import Link from "next/link";
 import { useLang } from "@/lib/i18n";
+import { floodKey, floodLine, useFloodSummaries } from "@/components/FloodCount";
 import { Bell, CircleCheck, Inbox, ScrollText, ShieldCheck, Sprout, Sun, TriangleAlert } from "lucide-react";
 
 const GRADE_COLOR: Record<string, string> = {
@@ -55,6 +56,7 @@ export default function MyLand({
 }) {
   const { t, lang } = useLang();
   const [plots, setPlots] = useState<ServerPlot[]>([]);
+  const floods = useFloodSummaries(plots);                 // lịch sử ngập cạnh hạng (kiểm 24/10/2026)
   const [alerts, setAlerts] = useState<AlertRow[]>([]);
   const [questions, setQuestions] = useState<TapQuestion[]>([]);   // H6
   const [answered, setAnswered] = useState<Record<number, string>>({});
@@ -363,11 +365,23 @@ export default function MyLand({
                 <span
                   className="ml-grade"
                   style={{ background: GRADE_COLOR[p.grade ?? ""] ?? "#5a6b73" }}
+                  title={t("Hạng TerraScore: hiểm hoạ 7 ngày tới, không phải lịch sử ngập", "TerraScore grade: next-7-day hazards, not flood history")}
                 >
                   {p.grade ?? "—"}
                 </span>
                 <span className="ml-plot-info">
                   <span className="ml-plot-name">{p.name}</span>
+                  {p.grade && (
+                    <span className="ml-plot-meta">
+                      {t(`Hạng ${p.grade}${p.score != null ? ` (${p.score}/100)` : ""} — hiểm hoạ 7 ngày tới, không phải lịch sử ngập`,
+                         `Grade ${p.grade}${p.score != null ? ` (${p.score}/100)` : ""} — next-7-day hazards, not flood history`)}
+                    </span>
+                  )}
+                  {floods && (
+                    <span className={`ml-plot-meta fc-line${(floods.get(floodKey(p.lat, p.lon))?.n_events ?? 0) > 0 ? " has" : ""}`}>
+                      🌊 {floodLine(floods.get(floodKey(p.lat, p.lon)), t)}
+                    </span>
+                  )}
                   <span className="ml-plot-meta">
                     {p.lat.toFixed(3)}, {p.lon.toFixed(3)}
                     {p.area_ha ? ` · ${p.area_ha} ha` : ""}

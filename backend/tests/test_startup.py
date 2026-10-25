@@ -182,11 +182,11 @@ def test_cache_song_qua_restart_va_lam_phao_cuu_sinh(monkeypatch):
     key = realdata._cache_key(url)
     cache_store.clear_prefix("realdata")
 
-    # Bản cache "cũ" — quá TTL dự báo (3 giờ, xem _ttl_for) nên không còn tính
-    # là MỚI, nhưng trong hạn phao cứu sinh (12 giờ) nên còn dùng được.
-    stale_at = time.time() - 4 * 3600
+    # Bản cache "cũ" — quá TTL dự báo (6 giờ từ 24/10/2026, xem _ttl_for) nên không
+    # còn tính là MỚI, nhưng trong hạn phao cứu sinh (24 giờ) nên còn dùng được.
+    stale_at = time.time() - 8 * 3600
     cache_store.put(key, {"at": stale_at, "data": {"daily": {"time": ["x"]}}},
-                    ttl_seconds=12 * 3600)
+                    ttl_seconds=24 * 3600)
 
     # Không dùng dict `realdata._CACHE` nào cả — đọc thẳng từ cache_store, đúng
     # như một tiến trình MỚI (sau restart) sẽ làm. Mạng THẬT SỰ được thử (không
@@ -436,3 +436,69 @@ def test_mua_nhieu_diem_du_phong_metno_chi_cho_tap_nho(monkeypatch):
     calls.clear()
     big = [(11.0 + i * 0.05, 107.8) for i in range(realdata._METNO_MAX_POINTS + 1)]
     assert all(not r for r in realdata.weather_multi(big)) and calls == []
+
+
+def test_429_nghi_tang_dan_khong_khoa_cung_30_phut(monkeypatch):
+    """Kiểm 24/10/2026 việc 4: MỘT lần 429 từng khoá host 30 phút (health 'degraded' 30 phút) dù hạn mức theo phút
+    của Open-Meteo hồi sau một phút. Nay: nghỉ 2 phút; 429 lặp lại ngay sau lần nghỉ thì 4, 8… tối đa 30 phút;
+    lâu sau mới lại 429 thì về 2 phút. Đếm 429 theo loại lệnh gọi để báo cáo."""
+    from app.services import cache_store, realdata
+    cache_store.clear_prefix("quota")
+    t = {"now": 1_900_000_000.0}
+    monkeypatch.setattr(realdata.time, "time", lambda: t["now"])
+    h = "api.open-meteo.com"
+    realdata._record_429(h, "forecast")
+    q = realdata.quota_status()
+    assert h in q["exhausted"] and 115 <= q["retry_in_s"][h] <= 120
+    t["now"] += 121                                       # hết 2 phút nghỉ → thử lại được
+    assert not realdata._host_exhausted(h) and realdata.quota_status()["exhausted"] == []
+    realdata._record_429(h, "forecast")                   # vẫn bị chặn ngay khi thử lại → nghỉ 4 phút
+    assert 235 <= realdata.quota_status()["retry_in_s"][h] <= 240
+    for _ in range(6):                                    # chặn dài thật → trần 30 phút
+        t["now"] += realdata.quota_status()["retry_in_s"][h] + 1
+        realdata._record_429(h, "elevation")
+    assert realdata.quota_status()["retry_in_s"][h] == int(realdata._QUOTA_TTL)
+    t["now"] += 3 * 3600                                  # vài giờ sau mới lại 429 → về 2 phút
+    realdata._record_429(h, "forecast")
+    q = realdata.quota_status()
+    assert 115 <= q["retry_in_s"][h] <= 120
+    assert q["count_429_24h"][h] == 9 and q["count_429_24h_by_kind"][h] == {"forecast": 3, "elevation": 6}
+    cache_store.clear_prefix("quota")
+
+
+def test_ban_ghi_429_cu_van_doc_duoc(monkeypatch):
+    """Bản ghi trước 24/10/2026 chỉ có 'last' + danh sách thời điểm — vẫn đọc được, khoá 30 phút như cũ."""
+    import time
+    from app.services import cache_store, realdata
+    cache_store.clear_prefix("quota")
+    now = time.time()
+    cache_store.put(realdata._quota_key("api.open-meteo.com"), {"last": now - 60, "log": [now - 60, now - 7200]}, 3600)
+    q = realdata.quota_status()
+    assert "api.open-meteo.com" in q["exhausted"] and q["count_429_24h"]["api.open-meteo.com"] == 2
+    assert q["count_429_24h_by_kind"]["api.open-meteo.com"] == {"?": 2}
+    cache_store.clear_prefix("quota")
+
+
+def test_du_bao_gop_theo_o_luoi(monkeypatch):
+    """Kiểm 24/10/2026 việc 4: các thửa GẦN nhau chung một toạ độ hỏi (ô 0,05°) — Open-Meteo tính hạn mức theo số toạ
+    độ khác nhau. Sông/biển/ERA5 không đổi (khoá cũ, GloFAS ô 0,05° — dời ô có thể sang sông khác)."""
+    from app.services import realdata
+    assert realdata._cell(16.5751) == 16.6 and realdata._cell(107.4952) == 107.5 and realdata._cell(16.5249) == 16.5
+    seen = []
+    monkeypatch.setattr(realdata, "_get", lambda url, *a, **k: (seen.append(url), None)[1])
+    realdata.weather_7d(16.5751, 107.4952)
+    realdata.weather_7d(16.5880, 107.4890)                # thửa khác ~1,5 km, cùng ô
+    fc = [u for u in seen if "api.open-meteo.com/v1/forecast" in u]
+    assert len(set(fc)) == 1 and "latitude=16.6&longitude=107.5&" in fc[0]
+    got = {}
+
+    def chunks(points, build_url, timeout):
+        got["points"] = list(points)
+        return [[{"day": i}] for i in range(len(points))]
+    monkeypatch.setattr(realdata, "_parallel_chunks", chunks)
+    out = realdata.weather_multi([(16.5751, 107.4952), (16.5880, 107.4890), (10.07, 106.57)])
+    assert got["points"] == [(16.6, 107.5), (10.05, 106.55)]          # 3 điểm → 2 ô
+    assert out[0] == out[1] == [{"day": 0}] and out[2] == [{"day": 1}]
+    seen.clear()
+    realdata.river_discharge_7d(16.5751, 107.4952)                     # sông: giữ làm tròn 0,01°
+    assert [u for u in seen if "flood-api" in u] and all("latitude=16.58&longitude=107.5&" in u for u in seen if "flood-api" in u)

@@ -4,7 +4,7 @@
  * TAB CANH ĐẤT — phần đầu (báo cáo kiểm toàn bộ 12/10/2026, mục 5).
  *  · Đã đăng nhập VÀ thửa đang xem đã lưu → nhật ký riêng của thửa (PlotJournal) hiện thẳng ở đây.
  *  · Chưa đăng nhập / chưa lưu → nhật ký 7 ngày của toạ độ này từ nguồn công khai (mưa, radar) + nhật ký sống của
- *    6 thửa mẫu được canh mỗi ngày (nhánh journal-log) — không còn một tab gần như trống.
+ *    các thửa mẫu được canh mỗi ngày (nhánh journal-log; số thửa theo plot_journal.SAMPLE_PLOTS) — không còn một tab gần như trống.
  */
 import { useEffect, useState } from "react";
 import { getPublicJournal, listPlots, type AuthUser, type PublicJournal, type ServerPlot } from "@/lib/api";

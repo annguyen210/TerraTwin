@@ -12,6 +12,9 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { scanAll, type ScanResult } from "@/lib/api";
+import { floodKey, floodLine, hazardScope, useFloodSummaries } from "@/components/FloodCount";
+
+const vi = (v: string) => v;   // widget nhúng chỉ tiếng Việt
 
 const GRADE: Record<string, string> = {
   A: "#2E9E67", B: "#3aa0a0", C: "#B07A2E", D: "#C2412E",
@@ -32,6 +35,9 @@ export default function EmbedPage() {
   const valid = Number.isFinite(lat) && Number.isFinite(lon);
   const [d, setD] = useState<ScanResult | null>(null);
   const [err, setErr] = useState<"" | "coord" | "net">("");
+  // Kiểm 24/10/2026: "100/100 hạng A" đứng một mình ở Quảng Điền (7 đợt nước trong mùa lũ) — đặt lịch sử ngập cạnh điểm.
+  const floods = useFloodSummaries(valid ? [{ lat, lon }] : []);
+  const flood = floods?.get(floodKey(lat, lon));
 
   useEffect(() => {
     if (!valid) { setErr("coord"); return; }
@@ -74,6 +80,9 @@ export default function EmbedPage() {
           <b style={{ fontSize: 14 }}>◵ TerraTwin</b>
           <span style={{ fontSize: 11, color: "#66716a" }}>{lat.toFixed(3)}, {lon.toFixed(3)}</span>
         </div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#66716a", textTransform: "uppercase", letterSpacing: 0.3 }}>
+          {hazardScope(vi)}
+        </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ width: 54, height: 54, borderRadius: "50%", border: `3px solid ${GRADE[g] ?? "#567"}`,
             color: GRADE[g] ?? "#567", display: "flex", flexDirection: "column",
@@ -82,11 +91,16 @@ export default function EmbedPage() {
             <span style={{ fontSize: 9 }}>/100</span>
           </div>
           <div>
-            <div style={{ fontWeight: 700, color: GRADE[g] ?? "#567" }}>TerraScore hạng {g} · hiểm hoạ 7 ngày tới</div>
+            <div style={{ fontWeight: 700, color: GRADE[g] ?? "#567" }}>TerraScore hạng {g}</div>
             <div style={{ fontSize: 13 }}>Rủi ro 7 ngày tới:{" "}
               <b style={{ color: riskColor }}>{riskLabel}</b></div>
           </div>
         </div>
+        {floods && (
+          <div style={{ fontSize: 13, fontWeight: 600, color: (flood?.n_events ?? 0) > 0 ? "#1F5F8B" : "#33403a" }}>
+            🌊 {floodLine(flood, vi)}
+          </div>
+        )}
         <div style={{ marginTop: "auto", fontSize: 11, color: "#66716a" }}>
           Dữ liệu vệ tinh & khí hậu thật · bấm để xem đầy đủ →
         </div>

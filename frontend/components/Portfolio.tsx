@@ -8,6 +8,7 @@ import {
   scanAll,
   signReport,
   trackEvent,
+  waterSummary,
   type AuthUser,
   type ServerPlot,
   type SignedReport,
@@ -15,6 +16,7 @@ import {
 } from "@/lib/api";
 import PlotHistory from "@/components/PlotHistory";
 import { useLang } from "@/lib/i18n";
+import { floodKey, floodLine, useFloodSummaries } from "@/components/FloodCount";
 
 const GRADE_COLOR: Record<string, string> = {
   A: "#2E9E67",
@@ -40,6 +42,7 @@ export default function Portfolio({
 }) {
   const { t } = useLang();
   const [plots, setPlots] = useState<ServerPlot[]>([]);
+  const floods = useFloodSummaries(plots);                 // lịch sử ngập cạnh điểm (kiểm 24/10/2026)
   const [exporting, setExporting] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -106,9 +109,11 @@ export default function Portfolio({
         generated_at: scan.generated_at,
       };
       const signed = await signReport(facts).catch(() => null);
+      const fl = await waterSummary([coord]).then((r) => (r.enabled ? r.items[0] : undefined)).catch(() => undefined);
+      const flood = fl ? floodLine(fl, (v) => v) : null;   // bản in tiếng Việt như phần còn lại
       const w = window.open("", "_blank");
       if (w) {
-        w.document.write(buildReportHtml(scan, area, signed));
+        w.document.write(buildReportHtml(scan, area, signed, flood));
         w.document.close();
         w.focus();
         setTimeout(() => w.print(), 400);
@@ -158,13 +163,22 @@ export default function Portfolio({
               <span
                 className="pf-grade"
                 style={{ background: GRADE_COLOR[p.grade ?? ""] ?? "#5a6b73" }}
+                title={t("Hạng TerraScore: hiểm hoạ 7 ngày tới, không phải lịch sử ngập", "TerraScore grade: next-7-day hazards, not flood history")}
               >
                 {p.grade ?? "—"}
               </span>
               <span className="pf-info">
                 <span className="pf-name">{p.name}</span>
                 <span className="pf-meta">
-                  {p.score ?? "—"}/100 · {p.lat.toFixed(3)}, {p.lon.toFixed(3)}
+                  {p.score ?? "—"}/100 · {t("hiểm hoạ 7 ngày tới, không phải lịch sử ngập", "next-7-day hazards, not flood history")}
+                </span>
+                {floods && (
+                  <span className={`pf-meta fc-line${(floods.get(floodKey(p.lat, p.lon))?.n_events ?? 0) > 0 ? " has" : ""}`}>
+                    🌊 {floodLine(floods.get(floodKey(p.lat, p.lon)), t)}
+                  </span>
+                )}
+                <span className="pf-meta">
+                  {p.lat.toFixed(3)}, {p.lon.toFixed(3)}
                   {p.area_ha ? ` · ${p.area_ha} ha` : ""}
                 </span>
               </span>
@@ -198,7 +212,7 @@ function esc(s: string): string {
   return s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] as string));
 }
 
-function buildReportHtml(scan: any, area?: number, signed?: SignedReport | null): string {
+function buildReportHtml(scan: any, area?: number, signed?: SignedReport | null, flood?: string | null): string {
   const t = scan.terrascore;
   const rows = scan.modules
     .map(
@@ -241,9 +255,9 @@ function buildReportHtml(scan: any, area?: number, signed?: SignedReport | null)
   <p class="sub">Vị trí ${scan.location.lat.toFixed(4)}, ${scan.location.lon.toFixed(4)}${
     area ? ` · diện tích ${area} ha` : ""
   } · lập ${new Date(scan.generated_at).toLocaleString("vi-VN")}</p>
-  <div><span class="score">${t.score ?? "—"}</span><span class="sum"><b>TerraScore (hiểm hoạ 7 ngày tới) hạng ${t.grade}</b><br>${esc(
+  <div><span class="score">${t.score ?? "—"}</span><span class="sum"><b>TerraScore hạng ${t.grade} — hiểm hoạ 7 ngày tới, không phải lịch sử ngập</b><br>${esc(
     t.summary,
-  )}</span></div>
+  )}${flood ? `<br><b>🌊 ${esc(flood)}</b>` : ""}</span></div>
   <h3>Cảnh báo cần chú ý (từ dữ liệu thật)</h3>
   <ul>${alerts || "<li>Không có cảnh báo từ dữ liệu thật.</li>"}</ul>
   <h3>Toàn cảnh mọi mũi nhọn</h3>

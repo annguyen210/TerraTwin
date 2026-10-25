@@ -3,7 +3,7 @@
 /**
  * HÔM NAY — trang người dùng mở mỗi sáng. Không phải trang phân tích: là NHẬT KÝ CÁC THỬA của chính họ
  * (mưa, radar, cảnh báo, cảm biến — từ lần mở trước có gì đổi) và DANH SÁCH VIỆC xếp theo độ gấp.
- * Chưa có thửa → nhật ký sống của 6 thửa mẫu được canh mỗi ngày. Phần EUDR (đồng hồ hạn, mức sẵn sàng,
+ * Chưa có thửa → nhật ký sống của các thửa mẫu được canh mỗi ngày (số thửa lấy từ CHÍNH bản ghi nhật ký — kiểm 24/10/2026). Phần EUDR (đồng hồ hạn, mức sẵn sàng,
  * điều khoản mỗi ngày) chỉ hiện cho doanh nghiệp đã có bộ vườn / lô hàng (báo cáo 12/10/2026, mục 9).
  */
 
@@ -43,6 +43,7 @@ export default function TodayPage() {
   const [err, setErr] = useState<string | null>(null);
   const [plots, setPlots] = useState<ServerPlot[] | null>(null);
   const [samples, setSamples] = useState<PublicJournal["samples"] | undefined>(undefined);
+  const nSamples = samples?.plots.length ?? 0;     // MỘT nguồn số cho câu mở đầu, nhãn và tiêu đề
   const load = () => getToday().then((x) => {
     setD(x);
     if (x.signed_in) listPlots().then(setPlots).catch(() => setPlots([])); else setPlots([]);
@@ -71,8 +72,8 @@ export default function TodayPage() {
             <p className="doc-lede">{d?.signed_in
               ? (d.items.length ? t(`Có ${d.items.length} việc đang chờ bạn.`, `${d.items.length} things are waiting for you.`)
                 : t("Không có việc gì gấp. Vườn của bạn đang được canh.", "Nothing urgent. Your plots are being watched."))
-              : t("Mỗi sáng: thửa đất của bạn đêm qua có gì đổi — mưa, ảnh radar, cảnh báo, cảm biến. Đăng nhập và lưu thửa để có nhật ký riêng; dưới đây là nhật ký sống của 6 thửa mẫu.",
-                  "Every morning: what changed on your land overnight — rain, radar images, alerts, sensors. Sign in and save a plot for its own journal; below is the live journal of 6 sample plots.")}</p>
+              : t(`Mỗi sáng: thửa đất của bạn đêm qua có gì đổi — mưa, ảnh radar, cảnh báo, cảm biến. Đăng nhập và lưu thửa để có nhật ký riêng; dưới đây là nhật ký sống của ${nSamples ? `${nSamples} ` : "các "}thửa mẫu.`,
+                  `Every morning: what changed on your land overnight — rain, radar images, alerts, sensors. Sign in and save a plot for its own journal; below is the live journal of ${nSamples ? `${nSamples} ` : "the "}sample plots.`)}</p>
           </div>
           {d && biz && <div className="hn-rings">{d.deadlines.map((x, i) => <Ring key={x.date} days={x.days} total={i === 0 ? 450 : 630} label={x.who} date={x.date} unit={t("ngày", "days")} />)}</div>}
         </section>
@@ -90,8 +91,8 @@ export default function TodayPage() {
           </section>
         )}
         {plots && plots.length === 0 && samples && samples.plots.length > 0 && (
-          <section className="hn-plots" aria-label={t("Nhật ký sống 6 thửa mẫu", "Live journal of 6 sample plots")}>
-            <h2>{t(`${samples.plots.length} thửa mẫu được canh mỗi ngày — ${samples.n_days} ngày nhật ký sống`, `${samples.plots.length} sample plots watched daily — ${samples.n_days} days of live journal`)}</h2>
+          <section className="hn-plots" aria-label={t(`Nhật ký sống ${nSamples} thửa mẫu`, `Live journal of ${nSamples} sample plots`)}>
+            <h2>{t(`${nSamples} thửa mẫu được canh mỗi ngày — ${samples.n_days} ngày nhật ký sống`, `${nSamples} sample plots watched daily — ${samples.n_days} days of live journal`)}</h2>
             <div className="wh-samples">
               <ul>
                 {samples.plots.map((p) => (

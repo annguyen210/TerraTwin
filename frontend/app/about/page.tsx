@@ -48,8 +48,8 @@ export default function AboutPage() {
 
         <h2>{t("5. Canh đất khi bạn ngủ", "5. Watching your land while you sleep")}</h2>
         <p>{t(
-          "Lưu thửa thì có nhật ký riêng: từ lần mở trước có gì đổi — mưa rất to, ảnh radar mới thấy nước, cảnh báo, cảm biến tại vườn (số đo ký số), câu trả lời và ảnh thực địa của bạn được đối chiếu ba chiều với radar và mưa. Chỉ báo khi có thay đổi thật. Sáu thửa mẫu được canh công khai mỗi ngày trên nhánh journal-log của kho mã. Cảnh báo thiên tai chỉ để tham khảo — bản tin chính thức do Trung tâm Dự báo KTTV quốc gia phát (nchmf.gov.vn).",
-          "Save a plot for its own journal: what changed since your last visit — very heavy rain, a new radar image showing water, alerts, field sensors (signed readings), your answers and field photos reconciled three ways with radar and rain. Only real changes are reported. Six sample plots are watched publicly every day on the repository's journal-log branch. Disaster alerts are reference only — official bulletins come from Vietnam's national forecasting centre (nchmf.gov.vn).")}</p>
+          "Lưu thửa thì có nhật ký riêng: từ lần mở trước có gì đổi — mưa rất to, ảnh radar mới thấy nước, cảnh báo, cảm biến tại vườn (số đo ký số), câu trả lời và ảnh thực địa của bạn được đối chiếu ba chiều với radar và mưa. Chỉ báo khi có thay đổi thật. Các thửa mẫu được canh công khai mỗi ngày trên nhánh journal-log của kho mã. Cảnh báo thiên tai chỉ để tham khảo — bản tin chính thức do Trung tâm Dự báo KTTV quốc gia phát (nchmf.gov.vn).",
+          "Save a plot for its own journal: what changed since your last visit — very heavy rain, a new radar image showing water, alerts, field sensors (signed readings), your answers and field photos reconciled three ways with radar and rain. Only real changes are reported. Sample plots are watched publicly every day on the repository's journal-log branch. Disaster alerts are reference only — official bulletins come from Vietnam's national forecasting centre (nchmf.gov.vn).")}</p>
 
         <h2>{t("6. So sánh thửa", "6. Comparing plots")}</h2>
         <p>{t(

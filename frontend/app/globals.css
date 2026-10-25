@@ -5325,3 +5325,8 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .wh-invite { margin: 6px 0 10px; }
 .wh-invite small { color: var(--muted, #6b7a86); }
 .pp-invite { margin: 10px 0 14px; padding: 12px 16px; border-radius: 10px; background: rgba(78, 168, 222, .12); border-left: 4px solid #4ea8de; }
+
+/* Lịch sử ngập radar cạnh điểm hiểm hoạ 7 ngày (components/FloodCount.tsx — kiểm 24/10/2026) */
+.fc-line { color: var(--dim); }
+.fc-line.has { color: #7fc0ea; font-weight: 600; }   /* như .wh-season.in */
+.po-flood { font-size: 11px; margin: 2px 0 0 16px; }

@@ -170,3 +170,31 @@ def test_ham_nong_y_kien_unet_cho_dot_cua_thua_mau(monkeypatch):
     with TestClient(app) as c:
         r = c.post("/api/water/warm-demo", headers={"X-Cron-Key": "khoa-thu"}).json()
     assert asked == ["2020-10-22", "2025-11-01"] and r["unet_demo"] == {"pending": 2}
+
+
+def test_tom_tat_chi_doc_bo_nho_dem_khong_chay_radar(monkeypatch):
+    """Kiểm 24/10/2026 việc 2: số đợt nước cạnh điểm hiểm hoạ — chỉ từ cache, chưa có thì nói 'chưa đọc', không chạy radar."""
+    from fastapi.testclient import TestClient
+    from app import routes_water
+    from app.main import app
+    from app.services import cache_store, flood_season as fs, water_history as wh
+    monkeypatch.setattr(routes_water, "gate", lambda: {"passed": True})
+    monkeypatch.setattr(fs, "gate_passed", lambda: True)
+    monkeypatch.setattr(wh, "history", lambda *a, **k: (_ for _ in ()).throw(AssertionError("không được đọc radar")))
+    monkeypatch.setattr(fs, "season", lambda *a, **k: (_ for _ in ()).throw(AssertionError("không được gọi ERA5")))
+    lat, lon = 16.5751, 107.4952
+    hist = {"available": True, "first": "2017-01-05", "last": "2026-10-20",
+            "events": [{"start": "2020-10-10"}, {"start": "2025-11-01"}, {"start": "2023-03-02"}]}
+    store = {wh.cache_key(lat, lon): hist,
+             cache_store.make_key("flood-season", fs.RULE_V, round(lat, 2), round(lon, 2)): {"months": [9, 10, 11, 12]}}
+    real_get = cache_store.get
+    monkeypatch.setattr(cache_store, "get", lambda k: store.get(k) if k in store else (None if k.startswith(("water:", "flood-season:")) else real_get(k)))
+    with TestClient(app) as c:
+        j = c.get("/api/water/summary", params={"points": f"{lat},{lon};10.07,106.57"}).json()
+        assert j["enabled"] is True
+        a, b = j["items"]
+        assert a["cached"] is True and a["n_events"] == 3 and a["n_in"] == 2 and a["n_out"] == 1
+        assert a["first"] == "2017-01-05" and a["last_event"] == "2025-11-01"
+        assert b == {"lat": 10.07, "lon": 106.57, "cached": False}
+        assert c.get("/api/water/summary", params={"points": "1,2"}).status_code == 422
+        assert c.get("/api/water/summary", params={"points": ";".join(["16.5,107.5"] * 51)}).status_code == 422

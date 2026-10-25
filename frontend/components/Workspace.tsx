@@ -27,6 +27,7 @@ import Learning from "@/components/Learning";
 import PortfolioOverview from "@/components/PortfolioOverview";
 import Roadmap from "@/components/Roadmap";
 import { useLang } from "@/lib/i18n";
+import { floodKey, floodLine, useFloodSummaries } from "@/components/FloodCount";
 import TwoFactor from "@/components/TwoFactor";
 
 type Tab = "portfolio" | "twins" | "data" | "alerts" | "api" | "learn" | "status";
@@ -70,6 +71,7 @@ function TwinsPanel({
 }) {
   const { t, lang } = useLang();
   const [rows, setRows] = useState<TwinSummary[]>([]);
+  const floods = useFloodSummaries(rows);                  // lịch sử ngập cạnh điểm (kiểm 24/10/2026)
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -128,8 +130,14 @@ function TwinsPanel({
             <p>
               {tw.lat.toFixed(4)}, {tw.lon.toFixed(4)}
               {tw.area_ha != null && ` · ${tw.area_ha} ha`}
-              {tw.score != null && ` · TerraScore ${tw.score} (${tw.grade})`}
+              {tw.score != null && t(` · TerraScore ${tw.score} (${tw.grade}) — hiểm hoạ 7 ngày tới, không phải lịch sử ngập`,
+                                     ` · TerraScore ${tw.score} (${tw.grade}) — next-7-day hazards, not flood history`)}
             </p>
+            {floods && (
+              <p className={`fc-line${(floods.get(floodKey(tw.lat, tw.lon))?.n_events ?? 0) > 0 ? " has" : ""}`}>
+                🌊 {floodLine(floods.get(floodKey(tw.lat, tw.lon)), t)}
+              </p>
+            )}
             <p className="ws-when">{t("Dựng lúc", "Built at")} {when(tw.built_at, lang)}</p>
           </div>
           <button

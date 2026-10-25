@@ -230,3 +230,34 @@ def test_che_do_nghiem_khong_tu_sinh_khoa(env, monkeypatch):
     monkeypatch.setenv("TERRATWIN_STRICT", "1")
     r = c.post("/api/dossier", json={"lat": 16.46, "lon": 107.59})
     assert r.status_code == 503 and "TERRATWIN_SIGNING_KEY" in r.json()["detail"]
+
+
+@pytest.mark.parametrize("narr", [
+    "Thửa này chưa từng ngập.",                                   # narrative là chuỗi
+    [{"text": "Thửa này chưa từng ngập.", "evidence": []}],       # narrative là list
+    {"sentences": "Thửa này chưa từng ngập."},                    # sentences là chuỗi
+    {"sentences": [1, 2.5, "câu"]},                               # sentences chứa số / chuỗi
+])
+def test_kiem_tep_narrative_sai_kieu_khong_loi_500(env, narr):
+    """Kiểm 24/10/2026: kiểu sai trong tệp người khác đưa phải ra valid:false kèm problems, không phải lỗi 500."""
+    c, _ = env
+    d = _issue(c)
+    doc = {k: d[k] for k in ("id", "seq", "issued_at", "facts", "proof")} | {"narrative": narr}
+    r = c.post("/api/dossier/verify", json=doc)
+    assert r.status_code == 200, r.text
+    j = r.json()
+    assert j["valid"] is False and j["found"] is True
+    assert any("narrative" in p and "sai kiểu" in p for p in j["problems"]), j["problems"]
+
+
+def test_kiem_tep_proof_sai_kieu_va_narrative_dung_van_khop(env):
+    c, _ = env
+    d = _issue(c)
+    doc = {k: d[k] for k in ("id", "seq", "issued_at", "facts")}
+    for bad in ("chuoi", ["facts_hash"]):
+        j = c.post("/api/dossier/verify", json=doc | {"proof": bad}).json()
+        assert j["valid"] is False and any("proof" in p for p in j["problems"])
+    full = c.get(f"/api/dossier/{d['id']}").json()
+    if full.get("narrative"):                                     # lời diễn giải dựng lại đúng thì vẫn KHỚP
+        j = c.post("/api/dossier/verify", json=doc | {"proof": d["proof"], "narrative": full["narrative"]}).json()
+        assert j["valid"] is True, j["problems"]

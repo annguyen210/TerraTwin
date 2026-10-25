@@ -73,6 +73,11 @@ def season(lat: float, lon: float) -> dict | None:
     return out
 
 
+def season_cached(lat: float, lon: float) -> dict | None:
+    """Như season() nhưng CHỈ đọc bộ nhớ đệm — không gọi ERA5 (cho chỗ hiện tóm tắt nhẹ: embed, danh mục)."""
+    return cache_store.get(cache_store.make_key("flood-season", RULE_V, round(lat, 2), round(lon, 2))) or None
+
+
 def label(start: str, s: dict) -> str:
     """'in' nếu tháng bắt đầu của đợt thuộc mùa lũ, ngược lại 'out'."""
     return "in" if int(start[5:7]) in s["months"] else "out"

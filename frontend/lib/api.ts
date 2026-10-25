@@ -2732,6 +2732,14 @@ export type WaterHistoryResult = { available: boolean; message?: string; n_scene
 export type WaterJob = { state: "queued" | "running" | "done" | "error"; job_id?: string; id?: string;
   progress?: { done: number; total: number }; result?: WaterHistoryResult; message?: string;
   elapsed_s?: number; queued_s?: number };
+// Số đợt nước radar của nhiều thửa, CHỈ từ bộ nhớ đệm máy chủ (không chạy radar) — đặt cạnh điểm hiểm hoạ 7 ngày.
+export type WaterSummary = { lat: number; lon: number; cached: boolean; available?: boolean; n_events?: number;
+  n_in?: number; n_out?: number; first?: string | null; last?: string | null; last_event?: string | null };
+export function waterSummary(points: { lat: number; lon: number }[]) {
+  const q = points.map((p) => `${p.lat.toFixed(5)},${p.lon.toFixed(5)}`).join(";");
+  return getJson<{ enabled: boolean; items: WaterSummary[] }>(`/api/water/summary?points=${encodeURIComponent(q)}&lang=${curLang()}`,
+    "Không tải được lịch sử nước");
+}
 export function waterStatus() {
   return getJson<{ enabled: boolean; gate: { passed: boolean; run_at: string | null } }>(`/api/water/status?lang=${curLang()}`,
     "Không tải được trạng thái lịch sử nước");

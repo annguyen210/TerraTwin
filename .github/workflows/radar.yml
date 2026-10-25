@@ -60,7 +60,7 @@ jobs:
 
       # if: always() — bước quét ở trên có thể đã exit 1 (thiếu khoá, api chết);
       # đúng lúc đó là lúc cần biết health nhất.
-      # Thửa dùng khi demo (backend/app/services/demo_plots.py: thửa mẫu Huế, 8 nơi chọn nhanh, 6 thửa nhật ký sống):
+      # Thửa dùng khi demo (backend/app/services/demo_plots.py: thửa mẫu Huế, 8 nơi chọn nhanh, các thửa nhật ký sống):
       # giữ lịch sử nước radar (hạn 6 ngày) + loại đất trong bộ nhớ đệm để khách mở là thấy ngay — thửa mới phải chờ
       # thường 1–3 phút. Đã có thì máy chủ bỏ qua, không tốn gì. Khoá cron: không trừ hạn mức của khách.
       - name: Hâm nóng lịch sử nước + loại đất các thửa demo
@@ -85,6 +85,10 @@ jobs:
           if echo "$body" | grep -q '"status":"degraded"'; then
             echo "::warning::terratwin-api đang degraded — nguồn dữ liệu miễn phí (Open-Meteo) bị chặn vì quá hạn mức. Xem trường quota trong /api/health."
           fi
+          # Kiểm 24/10/2026 việc 4: ghi số 429 trong 24 giờ (theo host và theo loại lệnh gọi) vào nhật ký mỗi 6 giờ —
+          # đo được hiệu quả của cache dài hơn + gộp theo ô mà không cần ai ngồi canh /api/health.
+          q429=$(echo "$body" | python3 -c 'import json,sys; q=json.load(sys.stdin).get("quota",{}); print(json.dumps({"count_429_24h": q.get("count_429_24h"), "by_kind": q.get("count_429_24h_by_kind"), "retry_in_s": q.get("retry_in_s")}, ensure_ascii=False))' 2>/dev/null || echo "?")
+          echo "::notice::Open-Meteo 429 trong 24 giờ: $q429"
 
       - name: Chuẩn bị nhánh ops-state (lưu trạng thái lần trước)
         if: always()

@@ -299,7 +299,9 @@ export default function DossierPage() {
               {cr ? (
                 <>
                   <p className="dos-score">
-                    <b>{cr.terrascore.score}/100 · {cr.terrascore.grade}</b> {cr.terrascore.summary}
+                    <b>{cr.terrascore.score}/100 · {cr.terrascore.grade}</b>{" "}
+                    <small>({t("hiểm hoạ 7 ngày tới lúc phát hành, không phải lịch sử ngập", "next-7-day hazards at issuance, not flood history")})</small>{" "}
+                    {cr.terrascore.summary}
                   </p>
                   <ul className="dos-mods">
                     {cr.modules.map((m) => {

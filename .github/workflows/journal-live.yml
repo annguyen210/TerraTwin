@@ -1,7 +1,7 @@
 name: Journal live (GĐ6)
 
 # CỔNG GĐ6: "nhật ký thửa không sinh sự kiện rác trong 7 ngày chạy thử". Mỗi ngày chạy nhật ký 24 giờ qua trên
-# 6 thửa mẫu bằng dữ liệu THẬT (mưa Open-Meteo, cảnh radar Sentinel-1), ghi một dòng vào nhánh `journal-log`
+# các thửa mẫu (ops/journal_gate.py PLOTS — 8 từ 17/10/2026) bằng dữ liệu THẬT (mưa Open-Meteo, cảnh radar Sentinel-1), ghi một dòng vào nhánh `journal-log`
 # của kho công khai, rồi tổng kết. Đủ 7 ngày sống, 0 rác → cổng đạt (ops/journal_gate.py --summary).
 #
 # Nhánh riêng để không kích hoạt deploy Render. Không cần secret: chỉ đọc nguồn công khai.

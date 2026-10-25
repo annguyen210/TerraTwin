@@ -248,7 +248,7 @@ with sync_playwright() as p:
     if not READONLY:
         lots()
 
-    @step("Trang Hôm nay: đất trước — nhật ký sống 6 thửa mẫu (khách), EUDR chỉ là lối tắt Doanh nghiệp")
+    @step("Trang Hôm nay: đất trước — nhật ký sống các thửa mẫu (khách), EUDR chỉ là lối tắt Doanh nghiệp")
     def today():
         # Báo cáo 12/10/2026, mục 9: vòng đếm ngược EUDR (.hn-ring) chỉ hiện cho doanh nghiệp đã có bộ vườn / lô hàng.
         # Chế độ GHI (19/10/2026): bước lô hàng đã đăng nhập một doanh nghiệp CÓ lô → token còn trong trình duyệt. Kiểm
@@ -270,6 +270,9 @@ with sync_playwright() as p:
         shot(page, "13-today")
         assert n >= 6, f"{n} thửa mẫu"
         assert rings == 0, "khách thấy vòng đếm ngược EUDR"
+        # Kiểm 24/10/2026 việc 3: câu mở đầu ghi "6 thửa mẫu" trong khi tiêu đề ghi 8 — một nguồn số cho cả ba chỗ.
+        lede, h2 = page.locator(".hn-hero .doc-lede").first.inner_text(), page.locator(".hn-plots h2").first.inner_text()
+        assert f"{n} thửa mẫu" in lede and h2.startswith(f"{n} thửa mẫu"), f"lệch số thửa mẫu: {n} dòng · '{lede[-40:]}' · '{h2[:40]}'"
         return f"{n} thửa mẫu sống · {page.locator('.hn-biz .hn-tile').count()} lối tắt Doanh nghiệp{biz}"
     today()
 

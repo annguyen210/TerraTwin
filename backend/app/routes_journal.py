@@ -42,7 +42,7 @@ def get_journal(plot_id: int, fast: bool = False, since: str | None = None, lang
 
 @router.get("/api/journal/public")
 def public_journal(lat: float, lon: float, days: int = 7, lang: str = "vi") -> dict:
-    """Nhật ký công khai của một toạ độ + nhật ký sống 6 thửa mẫu — KHÔNG cần đăng nhập (tab Canh đất).
+    """Nhật ký công khai của một toạ độ + nhật ký sống các thửa mẫu — KHÔNG cần đăng nhập (tab Canh đất).
     Không trừ hạn mức sàng lọc: chỉ mưa + tìm cảnh radar, cache theo (toạ độ, ngày)."""
     reqlang.set_lang(lang)
     if not (8.0 <= lat <= 24.0 and 102.0 <= lon <= 110.5):
@@ -52,7 +52,7 @@ def public_journal(lat: float, lon: float, days: int = 7, lang: str = "vi") -> d
 
 @router.get("/api/journal/samples")
 def journal_samples() -> dict:
-    """Bản ghi mới nhất của nhật ký sống 6 thửa mẫu (nhánh journal-log) — cho trang Hôm nay khi chưa có thửa."""
+    """Bản ghi mới nhất của nhật ký sống các thửa mẫu (nhánh journal-log) — cho trang Hôm nay khi chưa có thửa."""
     return {"samples": plot_journal.live_samples()}
 
 

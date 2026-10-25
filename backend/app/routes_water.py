@@ -45,6 +45,26 @@ def water_status(lang: str = "vi") -> dict:
             "merge_gap_days": water_history.MERGE_GAP_DAYS, "collection": water_history.COLLECTION}}
 
 
+@router.get("/api/water/summary")
+def water_summary(points: str, lang: str = "vi") -> dict:
+    """Số đợt nước radar của tối đa 50 thửa (`points=lat,lon;lat,lon`), CHỈ từ bộ nhớ đệm — để mọi chỗ hiện điểm hiểm
+    hoạ 7 ngày đặt lịch sử ngập cạnh điểm. Không khởi chạy việc đọc radar, không trừ hạn mức (kiểm 24/10/2026, việc 2)."""
+    import re
+    reqlang.set_lang(lang)
+    pts = []
+    for raw in points.split(";"):
+        m = re.fullmatch(r"\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*", raw)
+        if not m or not (8.0 <= float(m[1]) <= 24.0 and 102.0 <= float(m[2]) <= 110.0):
+            raise HTTPException(422, tr("Toạ độ không hợp lệ (dạng lat,lon;lat,lon trong Việt Nam).",
+                                        "Invalid coordinates (lat,lon;lat,lon within Vietnam)."))
+        pts.append((float(m[1]), float(m[2])))
+    if not 1 <= len(pts) <= 50:
+        raise HTTPException(422, tr("Từ 1 đến 50 thửa mỗi lần.", "Between 1 and 50 plots per request."))
+    if not gate()["passed"]:
+        return {"enabled": False, "items": []}
+    return {"enabled": True, "items": [water_history.summary(la, lo) for la, lo in pts]}
+
+
 @router.post("/api/water/history")
 def water_history_start(body: WaterIn, request: Request, lang: str = "vi",
                         user: User | None = Depends(auth.optional_user),

@@ -79,7 +79,7 @@ def rain(lat: float, lon: float, days: int) -> list[dict] | None:
     """Mưa ngày đo được các ngày vừa qua (Open-Meteo, phân tích mô hình gần thời gian thực)."""
     from app.services import realdata
     url = ("https://api.open-meteo.com/v1/forecast"
-           f"?latitude={realdata._snap(lat)}&longitude={realdata._snap(lon)}"
+           f"?latitude={realdata._cell(lat)}&longitude={realdata._cell(lon)}"   # gộp theo ô như dự báo (kiểm 24/10/2026)
            f"&daily=precipitation_sum&past_days={max(1, min(days, 31))}&forecast_days=1&timezone=auto")
     d = realdata._get(url)
     try:
@@ -332,7 +332,7 @@ def summary(since: datetime, sig: list[dict], ctx: dict) -> str:
 
 # ------------------------------------------------------------------ nhật ký CÔNG KHAI (chưa đăng nhập)
 
-# Sáu thửa mẫu mà tác vụ .github/workflows/journal-live.yml canh MỖI NGÀY bằng dữ liệu thật (giữ khớp với
+# Các thửa mẫu (8 từ 17/10/2026) mà tác vụ .github/workflows/journal-live.yml canh MỖI NGÀY bằng dữ liệu thật (giữ khớp với
 # ops/journal_gate.py PLOTS). Kết quả ghi trên nhánh `journal-log` của kho công khai.
 SAMPLE_PLOTS = [("Quảng Điền, Huế (lúa)", 16.5751, 107.4952), ("Phong Điền, Cần Thơ", 10.0452, 105.7469),
                 ("Đông Anh, Hà Nội", 21.1405, 105.8468), ("Lâm Hà, Lâm Đồng (cà phê)", 11.7536, 108.2190),
@@ -345,7 +345,7 @@ _live_memo: dict = {"at": 0.0, "v": None}
 
 
 def live_samples() -> dict | None:
-    """Bản ghi mới nhất của nhật ký sống 6 thửa mẫu (cache 1 giờ). Lỗi mạng → bản cũ hoặc None."""
+    """Bản ghi mới nhất của nhật ký sống các thửa mẫu (cache 1 giờ). Lỗi mạng → bản cũ hoặc None."""
     import time
     import urllib.request
     if _live_memo["v"] is not None and time.time() - _live_memo["at"] < 3600:
