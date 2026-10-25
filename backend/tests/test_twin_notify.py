@@ -269,9 +269,31 @@ def test_rate_limit_uses_forwarded_ip_when_proxy_trusted(monkeypatch):
             self.client = type("C", (), {"host": host})()
 
     monkeypatch.setattr(main, "_TRUST_PROXY", True)
-    r = Req({"x-forwarded-for": "203.0.113.9, 10.0.0.1"}, "10.0.0.1")
-    assert main._client_ip(r) == "203.0.113.9"      # IP thật, không phải proxy
+    # Proxy tin cậy NỐI THÊM IP thật vào CUỐI; phần đầu là thứ người gửi tự đặt (25/10/2026: bản cũ lấy phần đầu → bịa được).
+    r = Req({"x-forwarded-for": "6.6.6.6, 203.0.113.9"}, "10.0.0.1")
+    assert main._client_ip(r) == "203.0.113.9"      # IP thật do proxy thêm, không phải IP tự bịa / IP proxy
     assert main._client_ip(Req({"x-real-ip": "203.0.113.7"}, "10.0.0.1")) == "203.0.113.7"
+    # Sau Cloudflare: CF-Connecting-IP (Cloudflare ghi đè, không bịa được) thắng X-Forwarded-For.
+    cf = Req({"cf-connecting-ip": "198.51.100.23", "x-forwarded-for": "6.6.6.6, 198.51.100.23, 172.70.1.1"}, "10.0.0.1")
+    assert main._client_ip_src(cf) == ("198.51.100.23", "cf-connecting-ip")
+    monkeypatch.setattr(main, "_TRUSTED_HOPS", 2)   # hai proxy tin cậy (vd. Cloudflare + Render) không có CF header
+    assert main._client_ip(Req({"x-forwarded-for": "6.6.6.6, 198.51.100.23, 172.70.1.1"}, "10.0.0.1")) == "198.51.100.23"
+
+
+def test_xff_tu_bia_khong_ne_duoc_khoa_dang_nhap(monkeypatch, tmp_path):
+    """Kiểm 25/10/2026: đổi phần ĐẦU của X-Forwarded-For mỗi lần (thứ người gửi tự đặt) không được tính là IP mới."""
+    from fastapi.testclient import TestClient
+    from app import main
+    from app.services import quota
+    quota.reset("login")
+    monkeypatch.setattr(main, "_TRUST_PROXY", True)
+    c = TestClient(main.app)
+    codes = [c.post("/api/auth/login", json={"email": "khong-co@x.vn", "password": "sai"},
+                    headers={"X-Forwarded-For": f"6.6.6.{i}, 203.0.113.9"}).status_code for i in range(12)]
+    assert codes[:10] == [401] * 10 and codes[10:] == [429, 429]
+    assert c.get("/api/health", headers={"CF-Connecting-IP": "203.0.113.9"}).json()["rate_limit"]["client_ip_source"] \
+        == "cf-connecting-ip"
+    quota.reset("login")
 
 
 def test_forwarded_header_ignored_when_proxy_not_trusted(monkeypatch):

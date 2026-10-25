@@ -494,7 +494,7 @@ def test_doc_re_tinh_vao_thung_nhe_rieng(monkeypatch):
     assert j.status_code == 429
     main._HITS.clear(); main._HITS_LIGHT.clear()
     h = c.get("/api/health").json()
-    assert h["rate_limit"] == {"per_ip_per_min": 2, "light_per_ip_per_min": 4}
+    assert h["rate_limit"]["per_ip_per_min"] == 2 and h["rate_limit"]["light_per_ip_per_min"] == 4
     main._HITS.clear(); main._HITS_LIGHT.clear()
 
 

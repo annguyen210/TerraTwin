@@ -371,17 +371,30 @@ def _is_light(request) -> bool:
 # để đọc X-Forwarded-For. KHÔNG bật mặc định: nếu app phơi trực tiếp ra Internet,
 # tin XFF cho phép client tự bịa IP và né hoàn toàn giới hạn.
 _TRUST_PROXY = os.environ.get("TERRATWIN_TRUST_PROXY", "").strip() in ("1", "true", "yes")
+# Số proxy TIN CẬY nối thêm vào CUỐI X-Forwarded-For (chỉ dùng khi không có CF-Connecting-IP).
+_TRUSTED_HOPS = max(1, int(os.environ.get("TERRATWIN_TRUSTED_PROXY_HOPS", "1")))
+
+
+def _client_ip_src(request: Request) -> tuple[str, str]:
+    """(IP người gọi, header đã dùng). Kiểm 25/10/2026 trên production: bản cũ lấy phần tử ĐẦU của X-Forwarded-For —
+    phần NGƯỜI GỬI tự đặt (Cloudflare trước Render chỉ NỐI THÊM IP thật vào cuối): bịa XFF khác mỗi lần là né được mọi
+    giới hạn theo IP (240/phút, đăng nhập email+IP, hạn mức ẩn danh). Nay: CF-Connecting-IP (Cloudflare GHI ĐÈ bằng IP
+    thật, không bịa được) → phần tử thứ _TRUSTED_HOPS tính từ PHẢI của X-Forwarded-For → X-Real-IP → socket."""
+    if _TRUST_PROXY:
+        cf = (request.headers.get("cf-connecting-ip") or "").strip()
+        if cf:
+            return cf, "cf-connecting-ip"
+        parts = [p.strip() for p in (request.headers.get("x-forwarded-for") or "").split(",") if p.strip()]
+        if parts:
+            return parts[max(0, len(parts) - _TRUSTED_HOPS)], "x-forwarded-for"
+        real = (request.headers.get("x-real-ip") or "").strip()
+        if real:
+            return real, "x-real-ip"
+    return (request.client.host if request.client else "unknown"), "socket"
 
 
 def _client_ip(request: Request) -> str:
-    if _TRUST_PROXY:
-        xff = request.headers.get("x-forwarded-for")
-        if xff:
-            return xff.split(",")[0].strip()
-        real = request.headers.get("x-real-ip")
-        if real:
-            return real.strip()
-    return request.client.host if request.client else "unknown"
+    return _client_ip_src(request)[0]
 
 
 @app.middleware("http")
@@ -557,7 +570,7 @@ def _openmeteo_plan() -> dict:
 
 
 @app.get("/api/health")
-def health() -> dict:
+def health(request: Request) -> dict:
     """Sức khoẻ máy chủ VÀ tình trạng hạn mức nguồn dữ liệu.
 
     Hạn mức nằm ở đây có chủ đích: Open-Meteo giới hạn theo NGÀY, và khi cạn thì
@@ -626,7 +639,9 @@ def health() -> dict:
     return {"status": "degraded" if q["degraded"] else ("fallback" if q["fallback"] else "ok"),
             "service": "terratwin", "modules": len(list_modules()),
             "quota": q, "jobs": jobs.stats(), "email": email,
-            "rate_limit": {"per_ip_per_min": _RATE, "light_per_ip_per_min": _RATE_LIGHT},
+            "rate_limit": {"per_ip_per_min": _RATE, "light_per_ip_per_min": _RATE_LIGHT,
+                           # header đã dùng để nhận IP của CHÍNH lượt gọi này (không trả IP) — kiểm được không bịa được
+                           "client_ip_source": _client_ip_src(request)[1]},
             "database": database,
             "weather_data_plan": _openmeteo_plan(),
             "signing": signing_info,
