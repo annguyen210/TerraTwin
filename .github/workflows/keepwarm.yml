@@ -27,8 +27,23 @@ name: Keep warm
 # Lịch GitHub cũng không đáng tin: đo 10–29/9/2026, lịch "*/10" chỉ chạy 3–8
 # lần/ngày (khoảng cách trung vị 2,5–6 giờ), không phải 144 lần.
 
+# 25/10/2026 (chuẩn bị đi thi): thêm 2 ô khi bấm Run workflow —
+#   giu_phut: giữ CẢ web lẫn api thức thêm N phút rồi TỰ DỪNG (0 = chỉ đánh thức một lần như cũ; tối đa 120).
+#             Tốn N/60 giờ × 2 service trong 750 giờ/tháng — 90 phút = 3 giờ, không phải chạy liên tục.
+#   thua:     toạ độ các thửa sẽ mở khi trình bày ("lat,lon;lat,lon") — đọc SẴN lịch sử nước radar, loại đất, ảnh nền
+#             để lên sân khấu mở là có ngay (thửa mới đọc lần đầu mất 1–3 phút). Mặc định: thửa mẫu Quảng Điền + hai thửa
+#             ngập THẬT đã được bản đồ UNOSAT xác nhận (Quảng Bình lũ 10/2020; vùng Bắc Giang bão Yagi 9/2024).
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      giu_phut:
+        description: "Giữ máy chủ thức thêm bao nhiêu phút (0 = chỉ đánh thức một lần; tối đa 120)"
+        required: false
+        default: "90"
+      thua:
+        description: "Thửa đọc sẵn cho buổi trình bày — lat,lon;lat,lon (để trống = không đọc sẵn)"
+        required: false
+        default: "16.5751,107.4952;17.6118,106.5026;20.9716,106.2834"
 
 concurrency:
   group: keepwarm
@@ -40,6 +55,7 @@ permissions:
 jobs:
   ping:
     runs-on: ubuntu-24.04
+    timeout-minutes: 140
     steps:
       - name: Đánh thức api + web
         run: |
@@ -59,3 +75,53 @@ jobs:
             fi
           done
           exit $fail
+
+      - name: Đọc sẵn các thửa sẽ trình bày (lịch sử nước, loại đất, ảnh nền)
+        if: ${{ inputs.thua != '' }}
+        env:
+          THUA: ${{ inputs.thua }}
+        run: |
+          python3 - <<'PY'
+          import json, os, time, urllib.request
+          API = "https://terratwin-api.onrender.com"
+          def call(path, body=None, timeout=120):
+              req = urllib.request.Request(API + path, data=json.dumps(body).encode() if body is not None else None,
+                                           headers={"Content-Type": "application/json", "User-Agent": "terratwin-keepwarm"},
+                                           method="POST" if body is not None else "GET")
+              with urllib.request.urlopen(req, timeout=timeout) as f:
+                  return json.load(f)
+          for raw in [x for x in os.environ["THUA"].split(";") if x.strip()]:
+              lat, lon = (float(v) for v in raw.split(","))
+              try:
+                  j = call("/api/water/history?lang=vi", {"lat": lat, "lon": lon})
+                  t0 = time.time()
+                  while j.get("state") != "done" and j.get("job_id") and time.time() - t0 < 360:
+                      time.sleep(10)
+                      j = call(f"/api/water/history/{j['job_id']}")
+                  r = j.get("result") or {}
+                  print(f"{lat},{lon}: lịch sử nước {j.get('state')} · {len(r.get('events') or [])} đợt")
+              except Exception as e:  # noqa: BLE001 — một thửa hỏng không dừng cả lượt
+                  print(f"::warning::{lat},{lon}: lịch sử nước chưa đọc được ({e})")
+              for path in (f"/api/landcover/change?lat={lat}&lon={lon}&lang=vi", f"/api/basemap/meta?lat={lat}&lon={lon}&lang=vi",
+                           f"/api/water/summary?points={lat},{lon}"):
+                  try:
+                      call(path)
+                  except Exception as e:  # noqa: BLE001
+                      print(f"::warning::{lat},{lon}: {path.split('?')[0]} chưa đọc được ({e})")
+          PY
+
+      - name: Giữ web + api thức (tự dừng sau số phút đã chọn)
+        if: ${{ inputs.giu_phut != '' && inputs.giu_phut != '0' }}
+        env:
+          GIU: ${{ inputs.giu_phut }}
+        run: |
+          mins=$(( GIU > 120 ? 120 : GIU ))
+          end=$(( $(date +%s) + mins * 60 ))
+          echo "Giữ thức ${mins} phút — tới $(date -u -d @${end} +%H:%M) UTC"
+          while [ "$(date +%s)" -lt "$end" ]; do
+            for url in "https://terratwin-api.onrender.com/api/health" "https://terratwin-web.onrender.com/"; do
+              curl -fsS --max-time 90 --retry 3 --retry-delay 15 --retry-all-errors "$url" -o /dev/null \
+                || echo "::warning::$url không trả lời lúc $(date -u +%H:%M)"
+            done
+            sleep 540     # 9 phút — dưới ngưỡng ngủ 15 phút của gói miễn phí
+          done

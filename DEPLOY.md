@@ -35,6 +35,18 @@ git push -u origin main
 
 ✅ **Xong khi:** cả `terratwin-api` và `terratwin-web` đều xanh (Live).
 
+### Trước giờ thi / trình bày (10–15 phút trước)
+
+GitHub → **Actions → Keep warm → Run workflow** (bấm được từ app GitHub trên điện thoại):
+
+- **giu_phut** (mặc định 90): giữ cả web lẫn api thức chừng ấy phút rồi tự dừng — không còn lượt khởi động nguội ~1 phút
+  giữa buổi. Đừng để chạy liên tục: gói miễn phí có 750 giờ/tháng cho cả workspace (đã bị đình chỉ 28–29/9/2026).
+- **thua**: toạ độ các thửa sẽ mở trên sân khấu, dạng `lat,lon;lat,lon` — đọc sẵn lịch sử nước radar, loại đất, ảnh nền.
+  Mặc định: thửa mẫu Quảng Điền (16.5751,107.4952) + hai thửa ngập THẬT đã được bản đồ UNOSAT xác nhận:
+  Quảng Bình 17.6118,106.5026 (đợt 28/10/2020 — UNOSAT ghi ngập 29/10/2020) và vùng Bắc Giang của bão Yagi
+  20.9716,106.2834 (đợt 12/9/2024). Thay bằng thửa của người quen / nơi bạn biết rõ từng ngập nếu có.
+- Xong khi bước "Đọc sẵn…" in ra số đợt nước cho từng thửa. Rồi mở trang chủ và một thửa trên máy trình bày.
+
 ### Deploy tự động chỉ sau khi kiểm thử qua (25/10/2026)
 
 `render.yaml` đặt `autoDeployTrigger: checksPass` cho cả hai dịch vụ: đẩy code lên `main` thì Render **chờ mọi kiểm thử
