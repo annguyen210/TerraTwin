@@ -36,6 +36,10 @@ export default function StatusPage() {
   }, []);
 
   const ok = h?.status === "ok";
+  // Kiểm 25/10/2026: nguồn chính bị chặn mà dự phòng còn chạy → KHÔNG gọi là "suy giảm" (số liệu vẫn thật).
+  const fb = h?.status === "fallback";
+  const fbVerified = fb && Object.values(h?.quota.fallback ?? {}).every((v) => v.state === "ok");
+  const VIA: Record<string, string> = { "api.met.no": "MET Norway" };
 
   return (
     <AppShell>
@@ -56,13 +60,16 @@ export default function StatusPage() {
             <div style={{
               display: "flex", alignItems: "center", gap: 10, margin: "16px 0",
               padding: "14px 18px", borderRadius: 12,
-              background: ok ? "rgba(62,203,131,.08)" : "rgba(224,164,74,.08)",
-              border: `1px solid ${ok ? "rgba(62,203,131,.3)" : "rgba(224,164,74,.3)"}`,
+              background: ok ? "rgba(62,203,131,.08)" : fb ? "rgba(61,143,196,.10)" : "rgba(224,164,74,.08)",
+              border: `1px solid ${ok ? "rgba(62,203,131,.3)" : fb ? "rgba(61,143,196,.35)" : "rgba(224,164,74,.3)"}`,
             }}>
-              <span style={{ fontSize: 22 }}>{ok ? "✅" : "⚠️"}</span>
+              <span style={{ fontSize: 22 }} aria-hidden="true">{ok ? "✅" : fb ? "🔁" : "⚠️"}</span>
               <b style={{ fontSize: "1.05rem" }}>
                 {ok ? t("Mọi thứ bình thường", "All systems normal")
-                    : t("Đang suy giảm — xem chi tiết bên dưới", "Degraded — see details below")}
+                  : fb ? (fbVerified
+                      ? t("Đang dùng nguồn dự phòng (MET Norway) — số liệu vẫn thật", "Using the backup source (MET Norway) — data is still real")
+                      : t("Nguồn chính bị chặn — dự báo tự chuyển sang nguồn dự phòng (MET Norway)", "Primary source blocked — forecasts switch to the backup source (MET Norway)"))
+                  : t("Đang suy giảm — nguồn dữ liệu bị chặn và không có dự phòng chạy được", "Degraded — a data source is blocked with no working backup")}
               </b>
             </div>
 
@@ -82,7 +89,10 @@ export default function StatusPage() {
                   <td>{t("Nguồn dữ liệu hết hạn mức", "Data sources over quota")}</td>
                   <td>{h.quota.exhausted.length === 0
                     ? t("không có", "none")
-                    : h.quota.exhausted.join(", ")}</td>
+                    : h.quota.exhausted.map((x) => {
+                        const f = h.quota.fallback?.[x];
+                        return f ? `${x} (${t("đang dùng dự phòng", "using backup")} ${VIA[f.via] ?? f.via})` : x;
+                      }).join(", ")}</td>
                 </tr>
                 <tr>
                   <td>{t("Số mô-đun đang chạy", "Modules running")}</td>

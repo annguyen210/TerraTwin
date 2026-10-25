@@ -121,8 +121,50 @@ _KNOWN_HOSTS = (
 )
 
 
+# NGUỒN DỰ PHÒNG theo host (kiểm 25/10/2026, việc 2): host chính bị chặn mà dự phòng còn chạy → số liệu VẪN THẬT, chỉ
+# khác nguồn — không gọi là "suy giảm". Chỉ dự báo có dự phòng (MET Norway); ERA5, sông, biển không có.
+FALLBACKS = {"api.open-meteo.com": "api.met.no"}
+_FALLBACK_FRESH_S = 6 * 3600
+
+
+def _fallback_key(host: str) -> str:
+    from app.services import cache_store
+    return cache_store.make_key("fallback", host)
+
+
+def _record_fallback(host: str, ok: bool) -> None:
+    """Lần cuối nguồn dự phòng trả được số liệu / hỏng. Chỉ ghi CSDL khi đổi trạng thái hoặc đã quá 60 s."""
+    from app.services import cache_store
+    now = time.time()
+    row = cache_store.get(_fallback_key(host)) or {}
+    k = "ok" if ok else "fail"
+    other = "fail" if ok else "ok"
+    if now - row.get(k, 0.0) < 60 and row.get(k, 0.0) >= row.get(other, 0.0):
+        return
+    cache_store.put(_fallback_key(host), {**row, k: now}, ttl_seconds=2 * 86400)
+
+
+def fallback_state(host: str) -> str | None:
+    """Trạng thái nguồn dự phòng của `host`: "ok" (vừa trả số liệu thật), "failing" (hỏng / cũng bị chặn), "unknown"
+    (chưa dùng gần đây). None nếu host không có dự phòng."""
+    from app.services import cache_store
+    via = FALLBACKS.get(host)
+    if not via:
+        return None
+    if _host_exhausted(via):
+        return "failing"
+    row = cache_store.get(_fallback_key(via)) or {}
+    ok, fail, now = row.get("ok", 0.0), row.get("fail", 0.0), time.time()
+    if ok and ok >= fail and now - ok < _FALLBACK_FRESH_S:
+        return "ok"
+    if fail and fail > ok and now - fail < _FALLBACK_FRESH_S:
+        return "failing"
+    return "unknown"
+
+
 def quota_status() -> dict:
-    """Nguồn nào đang bị chặn vì quá hạn mức, và cách đây bao lâu."""
+    """Nguồn nào đang bị chặn vì quá hạn mức, và cách đây bao lâu; nguồn bị chặn nào có dự phòng đang chạy
+    (`fallback`) và nguồn nào thật sự suy giảm (`degraded` — không có dự phòng, hoặc dự phòng cũng hỏng)."""
     from app.services import cache_store
 
     now = time.time()
@@ -145,19 +187,32 @@ def quota_status() -> dict:
             for k in recent:
                 kinds[k or "?"] = kinds.get(k or "?", 0) + 1
             by_kind[host] = kinds
+    fallback: dict[str, dict] = {}
+    for host in sorted(hit):
+        st = fallback_state(host)
+        if st is not None and st != "failing":
+            fallback[host] = {"via": FALLBACKS[host], "state": st}
+    degraded = [h for h in sorted(hit) if h not in fallback]
     return {
         "exhausted": sorted(hit),
+        "fallback": fallback,
+        "degraded": degraded,
         "minutes_since_detected": hit,
         "retry_in_s": retry_in,
         "count_429_24h": counts_24h,
         "count_429_24h_by_kind": by_kind,
         "message": (
-            "Đang bị nguồn dữ liệu chặn vì gọi quá nhiều: " + ", ".join(sorted(hit))
+            "Đang bị nguồn dữ liệu chặn vì gọi quá nhiều: " + ", ".join(degraded)
             + ". Đây là hạn mức của nguồn miễn phí, thường tự qua — nhưng đo "
               "thực tế 2026-09-17 cho thấy có lúc kéo dài hơn 18 phút liên tục, "
               "không phải mười phút như từng ghi. Nếu lặp lại nhiều khi có "
               "người dùng thật thì tăng thời gian cache hoặc nâng gói Open-Meteo."
-            if hit else "Chưa nguồn nào bị chặn vì quá hạn mức."),
+            if degraded else
+            ("Nguồn chính " + ", ".join(fallback) + " đang bị chặn — "
+             + ("đang dùng nguồn dự phòng MET Norway, số liệu vẫn là đo thật."
+                if all(v["state"] == "ok" for v in fallback.values())
+                else "dự báo tự chuyển sang nguồn dự phòng MET Norway.")
+             if fallback else "Chưa nguồn nào bị chặn vì quá hạn mức.")),
     }
 
 # THỜI GIAN CACHE THEO TỪNG NGUỒN (2026-09-21) — trước đây MỘT hằng số 1800s
@@ -448,6 +503,13 @@ def _hargreaves_et0(tmin: float, tmax: float, tmean: float,
 
 
 def weather_7d_metno(lat: float, lon: float):
+    """Dự phòng cho weather_7d() — xem _metno_rows(). Ghi lại nguồn dự phòng còn chạy hay không (cho /api/health)."""
+    rows = _metno_rows(lat, lon)
+    _record_fallback("api.met.no", rows is not None)
+    return rows
+
+
+def _metno_rows(lat: float, lon: float):
     """Dự phòng cho weather_7d() khi Open-Meteo bị chặn/mất mạng. Trả cùng
     khuôn {day,date,precip,et0,tmax,source} hoặc None — is_real=True vẫn đúng,
     đây LÀ dữ liệu đo thật, chỉ khác nguồn.

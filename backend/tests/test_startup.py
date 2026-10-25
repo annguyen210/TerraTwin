@@ -129,13 +129,14 @@ def test_can_han_muc_khac_voi_mat_mang(monkeypatch):
 
     def _429(req, timeout=None):
         raise urllib.error.HTTPError(
-            "https://api.open-meteo.com/v1/x", 429, "Too Many Requests", {}, None)
+            "https://archive-api.open-meteo.com/v1/x", 429, "Too Many Requests", {}, None)
 
     monkeypatch.setattr("urllib.request.urlopen", _429)
-    assert realdata._get("https://api.open-meteo.com/v1/forecast?x=1") is None
+    # ERA5 (archive-api) KHÔNG có nguồn dự phòng → bị chặn là suy giảm thật (25/10/2026: dự báo thì có MET Norway).
+    assert realdata._get("https://archive-api.open-meteo.com/v1/archive?x=1") is None
 
     q = realdata.quota_status()
-    assert "api.open-meteo.com" in q["exhausted"]
+    assert "archive-api.open-meteo.com" in q["exhausted"] and q["degraded"] == ["archive-api.open-meteo.com"]
     assert "quá nhiều" in q["message"]
     # KHÔNG được hứa hẹn một thời gian phục hồi cụ thể — đo lại 2026-09-17 cho
     # thấy có lúc chặn liên tục 18 phút, lâu hơn hẳn ghi chú "mười phút" cũ mà
@@ -320,16 +321,61 @@ def client():
 
 
 def test_health_bao_degraded_khi_can_han_muc(client, monkeypatch):
+    """Host KHÔNG có dự phòng (ERA5) bị chặn → degraded."""
     from app.services import cache_store, realdata
 
     cache_store.clear_prefix("quota")
+    cache_store.clear_prefix("fallback")
     assert client.get("/api/health").json()["status"] == "ok"
 
-    realdata._record_429("api.open-meteo.com")
+    realdata._record_429("archive-api.open-meteo.com")
     d = client.get("/api/health").json()
     assert d["status"] == "degraded"
-    assert "api.open-meteo.com" in d["quota"]["exhausted"]
+    assert "archive-api.open-meteo.com" in d["quota"]["exhausted"]
     cache_store.clear_prefix("quota")
+
+
+def test_health_dung_du_phong_khong_goi_la_suy_giam(client, monkeypatch):
+    """Kiểm 25/10/2026 việc 2: Open-Meteo 429 mà MET Norway còn trả số liệu → "fallback" (số liệu vẫn thật), không phải
+    "degraded". Chỉ "degraded" khi cả dự phòng cũng hỏng. Chưa dùng dự phòng lần nào → "fallback" nhưng KHÔNG khẳng
+    định "số liệu vẫn thật"."""
+    from app.services import cache_store, realdata
+
+    cache_store.clear_prefix("quota")
+    cache_store.clear_prefix("fallback")
+    realdata._record_429("api.open-meteo.com", "forecast")
+    d = client.get("/api/health").json()
+    assert d["status"] == "fallback" and d["quota"]["fallback"]["api.open-meteo.com"]["state"] == "unknown"
+    assert "vẫn là đo thật" not in d["quota"]["message"] and "MET Norway" in d["quota"]["message"]
+
+    realdata._record_fallback("api.met.no", True)                 # dự phòng vừa trả số liệu thật
+    d = client.get("/api/health").json()
+    assert d["status"] == "fallback" and d["quota"]["degraded"] == []
+    assert d["quota"]["fallback"] == {"api.open-meteo.com": {"via": "api.met.no", "state": "ok"}}
+    assert "vẫn là đo thật" in d["quota"]["message"] and "suy giảm" not in d["quota"]["message"]
+
+    realdata._record_fallback("api.met.no", False)                # dự phòng hỏng sau đó
+    d = client.get("/api/health").json()
+    assert d["status"] == "degraded" and d["quota"]["degraded"] == ["api.open-meteo.com"]
+
+    cache_store.clear_prefix("fallback")
+    realdata._record_429("api.met.no")                             # dự phòng cũng bị chặn
+    assert client.get("/api/health").json()["status"] == "degraded"
+    cache_store.clear_prefix("quota")
+    cache_store.clear_prefix("fallback")
+
+
+def test_metno_ghi_suc_khoe_du_phong(monkeypatch):
+    from app.services import cache_store, realdata
+    cache_store.clear_prefix("fallback")
+    monkeypatch.setattr(realdata, "_metno_rows", lambda la, lo: [{"day": 0}])
+    assert realdata.weather_7d_metno(16.46, 107.59) == [{"day": 0}]
+    assert realdata.fallback_state("api.open-meteo.com") == "ok"
+    monkeypatch.setattr(realdata, "_metno_rows", lambda la, lo: None)
+    assert realdata.weather_7d_metno(16.46, 107.59) is None
+    assert realdata.fallback_state("api.open-meteo.com") == "failing"
+    assert realdata.fallback_state("archive-api.open-meteo.com") is None
+    cache_store.clear_prefix("fallback")
 
 
 def test_health_bao_loai_csdl_khong_lo_url(client):

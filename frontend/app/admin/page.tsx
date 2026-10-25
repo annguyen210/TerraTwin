@@ -49,8 +49,8 @@ function HealthTab() {
   return (
     <div>
       <p>
-        Trạng thái: <b style={{ color: h.status === "ok" ? "var(--ok, #3ecb83)" : "var(--warn, #e0a44a)" }}>
-          {h.status === "ok" ? "✅ bình thường" : "⚠️ suy giảm"}
+        Trạng thái: <b style={{ color: h.status === "ok" ? "var(--ok, #3ecb83)" : h.status === "fallback" ? "#7fc0ea" : "var(--warn, #e0a44a)" }}>
+          {h.status === "ok" ? "✅ bình thường" : h.status === "fallback" ? "🔁 dùng nguồn dự phòng — số liệu vẫn thật" : "⚠️ suy giảm"}
         </b>
         {" · "}{h.modules} mô-đun · {h.service}
       </p>

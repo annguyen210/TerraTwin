@@ -1670,11 +1670,14 @@ export function getChannelStatus() {
 
 // P5/N1 — sức khoẻ máy chủ công khai (trang /status + banner SMTP ở /forgot).
 export type HealthStatus = {
-  status: "ok" | "degraded";
+  // fallback (25/10/2026): nguồn chính bị chặn nhưng nguồn dự phòng (MET Norway) còn chạy — số liệu vẫn thật.
+  status: "ok" | "fallback" | "degraded";
   service: string;
   modules: number;
   quota: {
     exhausted: string[];
+    fallback?: Record<string, { via: string; state: "ok" | "unknown" }>;
+    degraded?: string[];
     minutes_since_detected: Record<string, number>;
     count_429_24h: Record<string, number>;
     message: string;

@@ -22,6 +22,8 @@ spec.loader.exec_module(keepwarm_alert)
 def test_classify_trang_thai():
     assert keepwarm_alert.classify({"status": "ok"}) == "ok"
     assert keepwarm_alert.classify({"status": "degraded"}) == "degraded"
+    assert keepwarm_alert.classify({"status": "fallback"}) == "fallback"      # 25/10/2026: dự phòng chạy ≠ hỏng
+    assert "số liệu vẫn thật" in keepwarm_alert.format_message("degraded", "fallback", "u")
     assert keepwarm_alert.classify({"status": "gi-do-la"}) == "broken"
     assert keepwarm_alert.classify(None) == "broken"
     assert keepwarm_alert.classify({}) == "broken"

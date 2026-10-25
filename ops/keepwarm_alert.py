@@ -43,16 +43,18 @@ def fetch_health(url: str, timeout: float = 30.0) -> dict | None:
 
 
 def classify(health: dict | None) -> str:
-    """broken = không gọi được / JSON hỏng. degraded/ok = đúng theo health.status."""
+    """broken = không gọi được / JSON hỏng. ok/fallback/degraded = đúng theo health.status (fallback: nguồn chính bị
+    chặn nhưng dự phòng MET Norway còn chạy — số liệu vẫn thật; thêm 25/10/2026)."""
     if not health or "status" not in health:
         return "broken"
     status = str(health.get("status", "")).lower()
-    return status if status in ("ok", "degraded") else "broken"
+    return status if status in ("ok", "fallback", "degraded") else "broken"
 
 
 def format_message(prev: str, cur: str, health_url: str) -> str:
-    icon = {"ok": "✅", "degraded": "⚠️", "broken": "🔴"}.get(cur, "❓")
-    label = {"ok": "BÌNH THƯỜNG", "degraded": "SUY GIẢM (hết hạn mức nguồn dữ liệu miễn phí)",
+    icon = {"ok": "✅", "fallback": "🔁", "degraded": "⚠️", "broken": "🔴"}.get(cur, "❓")
+    label = {"ok": "BÌNH THƯỜNG", "fallback": "DÙNG NGUỒN DỰ PHÒNG (MET Norway) — số liệu vẫn thật",
+             "degraded": "SUY GIẢM (nguồn dữ liệu bị chặn, không có dự phòng chạy được)",
              "broken": "HỎNG (không gọi được /api/health)"}.get(cur, cur)
     return (f"{icon} TerraTwin — đổi trạng thái: {prev} → {cur}\n"
             f"{label}\n{health_url}")

@@ -622,7 +622,8 @@ def health() -> dict:
     except Exception:
         pass
 
-    return {"status": "degraded" if q["exhausted"] else "ok",
+    # Kiểm 25/10/2026: nguồn chính bị chặn mà dự phòng còn chạy → "fallback" (số liệu vẫn thật), KHÔNG phải "degraded".
+    return {"status": "degraded" if q["degraded"] else ("fallback" if q["fallback"] else "ok"),
             "service": "terratwin", "modules": len(list_modules()),
             "quota": q, "jobs": jobs.stats(), "email": email,
             "rate_limit": {"per_ip_per_min": _RATE, "light_per_ip_per_min": _RATE_LIGHT},
