@@ -35,6 +35,20 @@ git push -u origin main
 
 ✅ **Xong khi:** cả `terratwin-api` và `terratwin-web` đều xanh (Live).
 
+### Deploy tự động chỉ sau khi kiểm thử qua (25/10/2026)
+
+`render.yaml` đặt `autoDeployTrigger: checksPass` cho cả hai dịch vụ: đẩy code lên `main` thì Render **chờ mọi kiểm thử
+GitHub của commit đó** (CI + E2E cục bộ) xanh rồi mới deploy; có kiểm thử đỏ thì commit đó không lên production. Trước
+ngày này dashboard đặt "On Commit" — code lên ngay khi đẩy, trước cả CI. Kiểm trong Settings → Auto-Deploy của từng
+dịch vụ: phải là **After CI Checks Pass**.
+
+- **E2E đỏ vì nguồn ảnh vệ tinh chập chờn** (Planetary Computer: "ảnh vệ tinh: 0", "Chưa đọc được ảnh Sentinel-2", lịch sử
+  nước quá 180 s): mở lượt chạy trên GitHub Actions → **Re-run failed jobs**. Xanh thì Render tự deploy. **Không deploy
+  tay** để vượt kiểm thử — bản đỏ có thể là lỗi thật, và deploy tay làm production chạy bản chưa qua kiểm thử.
+- Commit chỉ sửa ngoài `backend/` hoặc `frontend/` (vd. `ops/`, `.github/`) không làm dịch vụ nào deploy lại (rootDir).
+- Sửa `render.yaml` thì Render đồng bộ Blueprint ngay (áp biến môi trường / cài đặt mới) — chạy test liên quan ở máy
+  trước khi đẩy.
+
 ---
 
 ## Bước 2 — Nối frontend ↔ backend (~5 phút, BẮT BUỘC)

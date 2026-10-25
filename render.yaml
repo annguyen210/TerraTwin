@@ -28,6 +28,9 @@ services:
     runtime: python
     plan: free
     rootDir: backend
+    # 25/10/2026: chỉ deploy khi MỌI kiểm thử GitHub của commit qua (CI + E2E cục bộ). Trước đó dashboard đặt
+    # "On Commit" — code lên production ngay khi đẩy, trước cả CI. E2E đỏ vì nguồn ảnh chập chờn → chạy lại job (DEPLOY.md).
+    autoDeployTrigger: checksPass
     # onnxruntime cài sẵn ở đây, KHÔNG phải để dùng ngay. Nếu bạn huấn luyện
     # mô hình lớp phủ trên máy có GPU rồi chép landcover.onnx lên, máy chủ phải
     # có sẵn thư viện đọc nó — nếu không, lớp học sâu IM LẶNG trả None và bạn
@@ -159,6 +162,7 @@ services:
     runtime: node
     plan: free
     rootDir: frontend
+    autoDeployTrigger: checksPass      # như terratwin-api (25/10/2026)
     buildCommand: npm ci && npm run build
     startCommand: npm run start -- -p $PORT
     envVars:

@@ -2,7 +2,8 @@ name: E2E production (chỉ đọc) + Lighthouse
 
 # GĐ1 kế hoạch tổng: kiểm thử giao diện tự động trong CI. Chạy trên PRODUCTION ở chế độ CHỈ ĐỌC
 # (--readonly: không phát hành hồ sơ — sổ minh bạch không xoá được) mỗi ngày và khi bấm tay.
-# Không chạy trên mỗi push: deploy chỉ lên SAU khi CI xanh, nên chạy ngay lúc push là đo bản cũ.
+# Không chạy trên mỗi push: deploy chỉ lên SAU khi mọi kiểm thử của commit xanh (render.yaml autoDeployTrigger: checksPass
+# từ 25/10/2026 — trước đó dashboard đặt "On Commit", ghi chú cũ ở đây sai), nên chạy ngay lúc push là đo bản cũ.
 
 on:
   schedule:
