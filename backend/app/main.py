@@ -3,7 +3,8 @@
 Chạy: uvicorn app.main:app --port 8000
 Cấu hình qua biến môi trường (xem .env.example):
   TERRATWIN_CORS        : danh sách origin cho CORS, phân tách bằng dấu phẩy (mặc định *)
-  TERRATWIN_RATE_LIMIT  : số request/phút cho mỗi IP (mặc định 120; 0 = tắt)
+  TERRATWIN_RATE_LIMIT  : số request/phút cho mỗi IP (mặc định 240; 0 = tắt)
+  TERRATWIN_RATE_LIMIT_LIGHT : số request NHẸ/phút cho mỗi IP (mặc định 600) — xem _is_light()
   ANTHROPIC_API_KEY     : bật Copilot LLM thật (tùy chọn)
 """
 from __future__ import annotations
@@ -347,8 +348,22 @@ app.add_middleware(
 
 # ---- Rate limit đơn giản theo IP (sliding window, in-memory) ----
 # Bảo vệ nguồn Open-Meteo/NASA free khỏi bị lạm dụng → chặn IP.
-_RATE = int(os.environ.get("TERRATWIN_RATE_LIMIT", "120"))
+# 25/10/2026 (E2E production + lo demo nhiều người chung Wi-Fi = chung MỘT IP công cộng): bản cũ đếm MỌI lời gọi vào
+# một thùng 120/phút — mở khu làm việc ~20 lượt, chờ lịch sử nước hỏi tiến độ mỗi 3 giây (20 lượt/phút/người) → ~6
+# người là chạm trần, kể cả khi phần lớn chỉ là đọc rẻ. Nay HAI thùng: nặng 240/phút (mọi thứ chạm nguồn dữ liệu hay
+# tính toán) và NHẸ 600/phút cho đọc rẻ (xem _is_light) — nhẹ vẫn có trần, không bị lạm dụng vô hạn.
+_RATE = int(os.environ.get("TERRATWIN_RATE_LIMIT", "240"))
+_RATE_LIGHT = int(os.environ.get("TERRATWIN_RATE_LIMIT_LIGHT", "600"))
 _HITS: dict[str, deque] = defaultdict(deque)
+_HITS_LIGHT: dict[str, deque] = defaultdict(deque)
+# GET chỉ đọc dữ liệu cố định trong bộ nhớ / một dòng CSDL theo khoá — không chạm nguồn ngoài, không tính toán.
+_LIGHT_GET = frozenset({"/api/modules", "/api/water/status", "/api/push/key"})
+_LIGHT_GET_PREFIX = ("/api/water/history/", "/api/radar/run/")     # hỏi tiến độ việc chạy nền theo job_id
+
+
+def _is_light(request) -> bool:
+    p = request.url.path
+    return request.method == "GET" and (p in _LIGHT_GET or p.startswith(_LIGHT_GET_PREFIX))
 
 # Sau reverse proxy (Render, nginx, Cloudflare), request.client.host là IP của
 # PROXY — nghĩa là mọi người dùng dùng chung một hạn mức và app sập ngay khi có
@@ -486,13 +501,15 @@ class SecurityHeaders:
 @app.middleware("http")
 async def rate_limit(request: Request, call_next):
     # Preflight (OPTIONS) không tính vào hạn mức — nó không chạm nguồn dữ liệu nào.
-    if _RATE > 0 and request.url.path.startswith("/api/") and request.method != "OPTIONS":
+    light = _is_light(request)
+    limit = (_RATE_LIGHT if light else _RATE) if _RATE > 0 else 0      # TERRATWIN_RATE_LIMIT=0 vẫn là TẮT hẳn
+    if limit > 0 and request.url.path.startswith("/api/") and request.method != "OPTIONS":
         ip = _client_ip(request)
         now = time.time()
-        dq = _HITS[ip]
+        dq = (_HITS_LIGHT if light else _HITS)[ip]
         while dq and now - dq[0] > 60.0:
             dq.popleft()
-        if len(dq) >= _RATE:
+        if len(dq) >= limit:
             # Middleware này nằm NGOÀI CORSMiddleware (đăng ký sau) nên phải tự gắn header
             # CORS: thiếu nó, trình duyệt chỉ báo "lỗi CORS" mờ mịt thay vì đọc được 429
             # (đã gặp khi kiểm thử bằng trình duyệt thật 3/10/2026).
@@ -503,7 +520,7 @@ async def rate_limit(request: Request, call_next):
                 hdrs["Vary"] = "Origin"
             return JSONResponse(
                 status_code=429,
-                content={"detail": f"Quá {_RATE} request/phút. Thử lại sau ít giây."},
+                content={"detail": f"Quá {limit} request/phút. Thử lại sau ít giây."},
                 headers=hdrs,
             )
         dq.append(now)
@@ -608,6 +625,7 @@ def health() -> dict:
     return {"status": "degraded" if q["exhausted"] else "ok",
             "service": "terratwin", "modules": len(list_modules()),
             "quota": q, "jobs": jobs.stats(), "email": email,
+            "rate_limit": {"per_ip_per_min": _RATE, "light_per_ip_per_min": _RATE_LIGHT},
             "database": database,
             "weather_data_plan": _openmeteo_plan(),
             "signing": signing_info,

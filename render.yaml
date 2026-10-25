@@ -53,7 +53,7 @@ services:
       - key: TERRATWIN_TOKEN_HOURS
         value: "72"
       - key: TERRATWIN_RATE_LIMIT
-        value: "120"
+        value: "240"                 # 25/10/2026: 120 → 240 + thùng nhẹ 600 (main.py) — demo nhiều người chung một IP
       - key: TERRATWIN_TRUST_PROXY
         value: "1"                   # BẮT BUỘC: Render đứng sau proxy
       # Production → cảnh báo thật vào sổ điểm công khai. Máy dev đặt "dev" trong

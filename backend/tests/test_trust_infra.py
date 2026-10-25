@@ -472,3 +472,38 @@ def test_han_muc_phat_hanh_an_danh(env, monkeypatch):
     h = _login(c, "qh@vd.vn")
     assert _issue(c, "Q4", 12.34, h)["id"]                     # đăng nhập: hạn mức riêng, cao hơn
     quota.reset()
+
+
+def test_doc_re_tinh_vao_thung_nhe_rieng(monkeypatch):
+    """25/10/2026: demo nhiều người chung một IP — hỏi tiến độ việc nền / danh sách công cụ không ăn vào thùng nặng;
+    thùng nhẹ vẫn có trần riêng. 429 nói đúng trần của thùng đã chạm."""
+    from app import main
+    from fastapi.testclient import TestClient
+    monkeypatch.setattr(main, "_RATE", 2)
+    monkeypatch.setattr(main, "_RATE_LIGHT", 4)
+    main._HITS.clear(); main._HITS_LIGHT.clear()
+    c = TestClient(main.app)
+    light = [c.get("/api/modules").status_code, c.get("/api/water/status").status_code,
+             c.get("/api/water/history/khong-co-viec-nay").status_code, c.get("/api/push/key").status_code]
+    assert 429 not in light                                           # 4 lượt nhẹ — chưa tới trần nhẹ
+    assert [c.get("/api/eudr/method").status_code for _ in range(3)] == [200, 200, 429]   # thùng nặng còn nguyên 2
+    r = c.get("/api/modules")
+    assert r.status_code == 429 and "4 request" in r.json()["detail"]   # lượt nhẹ thứ 5 chạm trần nhẹ
+    assert main._is_light(type("R", (), {"method": "POST", "url": type("U", (), {"path": "/api/water/history/x"})()})()) is False
+    j = c.get("/api/health")                                          # health vẫn tính vào thùng nặng (đã đầy)
+    assert j.status_code == 429
+    main._HITS.clear(); main._HITS_LIGHT.clear()
+    h = c.get("/api/health").json()
+    assert h["rate_limit"] == {"per_ip_per_min": 2, "light_per_ip_per_min": 4}
+    main._HITS.clear(); main._HITS_LIGHT.clear()
+
+
+def test_rate_limit_0_van_tat_ca_thung_nhe(monkeypatch):
+    from app import main
+    from fastapi.testclient import TestClient
+    monkeypatch.setattr(main, "_RATE", 0)
+    monkeypatch.setattr(main, "_RATE_LIGHT", 1)
+    main._HITS_LIGHT.clear()
+    c = TestClient(main.app)
+    assert [c.get("/api/modules").status_code for _ in range(3)] == [200, 200, 200]
+    main._HITS_LIGHT.clear()
