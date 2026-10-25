@@ -10,7 +10,7 @@ import os
 import re
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -273,14 +273,16 @@ def twofa_disable(body: Disable2faIn, user: User = Depends(auth.current_user),
 
 
 @router.post("/api/auth/login", response_model=TokenOut)
-def login(body: LoginIn, db: Session = Depends(get_session)) -> TokenOut:
+def login(body: LoginIn, request: Request, db: Session = Depends(get_session)) -> TokenOut:
     import hashlib
+    from app.main import _client_ip
     from app.services import quota
     email = body.email.strip().lower()
-    # Kiểm 25/10/2026: 10 lần SAI / 15 phút cho mỗi email → 429, kể cả khi lần sau gõ đúng (chặn dò mật khẩu một tài
-    # khoản). Đếm theo mã băm email — email chưa đăng ký cũng bị đếm y hệt, cùng thông báo: không lộ email nào tồn tại.
-    lk = hashlib.sha256(email.encode("utf-8")).hexdigest()[:32]
-    wait = quota.blocked("login", lk)
+    # Kiểm 25/10/2026: lượt SAI → 429 khi email+IP sai 10 lần HOẶC email sai 50 lần (mọi IP) trong 15 phút, kể cả khi
+    # lần sau gõ đúng. Hai bộ đếm (thay cho một theo email) để người ngoài không khoá được tài khoản (vd. admin) chỉ bằng
+    # 10 lần gõ sai. Đếm theo mã băm — email chưa đăng ký bị đếm y hệt, cùng thông báo: không lộ email nào tồn tại.
+    lk, ip = hashlib.sha256(email.encode("utf-8")).hexdigest()[:32], _client_ip(request)
+    wait = quota.login_blocked(lk, ip)
     if wait is not None:
         raise HTTPException(429, f"Đăng nhập sai quá nhiều lần — thử lại sau {wait // 60 + 1} phút.",
                             headers={"Retry-After": str(wait)})
@@ -290,14 +292,14 @@ def login(body: LoginIn, db: Session = Depends(get_session)) -> TokenOut:
         # Băm giả để thời gian phản hồi KHÔNG tiết lộ email nào đã đăng ký (chống
         # dò tài khoản qua đo thời gian). Vẫn báo lỗi y hệt nhánh sai mật khẩu.
         auth.verify_password(body.password, auth.DUMMY_HASH)
-        quota.hit("login", lk)
+        quota.login_failed(lk, ip)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Email hoặc mật khẩu không đúng.")
     if not auth.verify_password(body.password, user.password_hash):
-        quota.hit("login", lk)
+        quota.login_failed(lk, ip)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Email hoặc mật khẩu không đúng.")
     if getattr(user, "totp_enabled", 0):
         _check_second_factor(db, user, body.otp)       # mã hai lớp có hạn mức riêng ("otp")
-    quota.clear("login", lk)                           # đăng nhập đúng → xoá bộ đếm lượt sai
+    quota.login_ok(lk, ip)                             # đăng nhập đúng → xoá cả hai bộ đếm lượt sai
     # Đ11 sửa sau kiểm toán — email nằm trong TERRATWIN_ADMIN_EMAILS được
     # NÂNG lên admin mỗi lần đăng nhập (bắt được cả trường hợp tài khoản đã
     # tồn tại TRƯỚC khi email được thêm vào danh sách). CỐ Ý không tự động

@@ -582,3 +582,55 @@ def test_dem_dang_nhap_sai_tach_theo_email(client):
         client.post("/api/auth/login", json={"email": "a@x.com", "password": "SaiRoi123"})
     assert client.post("/api/auth/login", json={"email": "a@x.com", "password": GOOD_PW}).status_code == 429
     assert client.post("/api/auth/login", json={"email": "b@x.com", "password": GOOD_PW}).status_code == 200
+
+
+def _ip(c, monkeypatch):
+    from app import main
+    monkeypatch.setattr(main, "_TRUST_PROXY", True)               # đọc IP từ X-Forwarded-For như sau proxy Render
+    return lambda email, pw, ip: c.post("/api/auth/login", json={"email": email, "password": pw},
+                                        headers={"X-Forwarded-For": ip})
+
+
+def test_khoa_theo_email_va_ip_nguoi_ngoai_khong_khoa_duoc_chu_tai_khoan(client, monkeypatch):
+    """Kiểm 25/10/2026 việc 2: 10 lần sai từ MỘT IP chỉ khoá email+IP đó — chủ tài khoản ở IP khác vẫn vào được."""
+    _register(client)
+    login = _ip(client, monkeypatch)
+    for _ in range(10):
+        assert login("a@x.com", "SaiRoi123", "198.51.100.1").status_code == 401
+    assert login("a@x.com", GOOD_PW, "198.51.100.1").status_code == 429   # IP kẻ dò: khoá kể cả mật khẩu đúng
+    assert login("a@x.com", GOOD_PW, "203.0.113.7").status_code == 200    # chủ tài khoản ở IP khác: vào được
+
+
+def test_khoa_theo_email_chung_50_lan_moi_ip(client, monkeypatch):
+    """Dò từ nhiều IP: email sai 50 lần (mọi IP) trong 15 phút → khoá cả email, kể cả IP mới với mật khẩu đúng."""
+    _register(client)
+    login = _ip(client, monkeypatch)
+    for n in range(5):
+        for _ in range(10):
+            assert login("a@x.com", "SaiRoi123", f"198.51.100.{n}").status_code == 401
+    r = login("a@x.com", GOOD_PW, "192.0.2.99")
+    assert r.status_code == 429 and "thử lại sau" in r.json()["detail"]
+
+
+def test_bo_dem_dang_nhap_khong_phinh_bo_nho():
+    """Kiểm 25/10/2026 việc 1: 100.000 email sai → số khoá bị giữ ở trần (50.000/loại); hết cửa sổ 15 phút thì dọn về
+    gần 0. blocked() chỉ đọc, không tạo khoá mới."""
+    import hashlib
+    from app.services import quota
+    quota.reset()
+    t = {"now": 1_900_000_000.0}
+    real = quota.time.time
+    quota.time.time = lambda: t["now"]
+    try:
+        assert quota.blocked("login", "chua-tung-thay") is None and quota.size() == 0
+        for i in range(100_000):
+            quota.login_failed(hashlib.sha256(f"rac{i}@x.vn".encode()).hexdigest()[:32], f"203.0.113.{i % 250}")
+            t["now"] += 0.001
+        assert quota.size("login") <= quota.MAX_KEYS["login"] and quota.size("login_ip") <= quota.MAX_KEYS["login_ip"]
+        t["now"] += 901                                           # hết cửa sổ
+        for i in range(5):
+            quota.blocked("login", f"binh-thuong-{i}")             # lượt gọi bình thường kích hoạt dọn định kỳ
+        assert quota.size() <= 5
+    finally:
+        quota.time.time = real
+        quota.reset()
