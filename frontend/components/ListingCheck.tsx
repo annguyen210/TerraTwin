@@ -10,6 +10,10 @@ import { FileSearch } from "lucide-react";
 import { issueDossier, listingCheck, waterPoll, waterStart, type ListingCheckResult } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
+// Đổi tab trong thẻ thửa (Kiểm chứng → Hồ sơ → Kiểm chứng) dựng lại thẻ này từ đầu: chữ đã dán và kết quả mất trắng —
+// đúng lúc kịch bản demo quay lại tab Kiểm chứng. Giữ theo thửa trong BỘ NHỚ TRANG (tải lại trang là hết; không lưu đâu cả).
+const memo = new Map<string, { text: string; r: ListingCheckResult | null }>();
+
 const V: Record<string, { cls: string; vi: string; en: string }> = {
   consistent: { cls: "lc-ok", vi: "Khớp", en: "Consistent" },
   contradicted: { cls: "lc-bad", vi: "Mâu thuẫn", en: "Contradicted" },
@@ -18,8 +22,13 @@ const V: Record<string, { cls: string; vi: string; en: string }> = {
 
 export default function ListingCheck({ lat, lon }: { lat: number; lon: number }) {
   const { t } = useLang();
-  const [text, setText] = useState("");
-  const [r, setR] = useState<ListingCheckResult | null>(null);
+  const key = `${lat.toFixed(5)},${lon.toFixed(5)}`;
+  const [text, setText] = useState(() => memo.get(key)?.text ?? "");
+  const [r, setR] = useState<ListingCheckResult | null>(() => memo.get(key)?.r ?? null);
+  // Chọn thửa KHÁC khi đang ở tab này: giữ chữ tin (vẫn là tin đó), bỏ kết quả (nó đo cho thửa cũ).
+  const [shownKey, setShownKey] = useState(key);
+  if (shownKey !== key) { setShownKey(key); setR(null); }
+  useEffect(() => { memo.set(key, { text, r }); }, [key, text, r]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [issuing, setIssuing] = useState(false);

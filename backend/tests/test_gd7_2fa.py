@@ -228,3 +228,44 @@ def test_quan_tri_cap_goi_han_muc_va_duyet_yeu_cau(c, monkeypatch):
         assert all(quota.take("screen", "uY", True, plans.mult_for(u)) is None for _ in range(6))   # gói pro ×3 = 6
     finally:
         db.close()
+
+
+def test_quan_tri_xoa_tai_khoan_thu(c):
+    """Quản trị xoá tài khoản thử còn sót (vd e2e…): cùng đường xoá với "Xoá tài khoản của tôi", phải gõ lại đúng
+    email, không xoá chính mình, không xoá tài khoản đang là quản trị; thước đo (ca mùa lũ v4) giữ lại nhưng gỡ người."""
+    from app.db import AuditLog, Plot, SeasonCase, SessionLocal, User, WaterConfirm
+    ha = _reg(c, "quantri@vd.vn")
+    hu = _reg(c, "e2e-cu@vd.vn")
+    c.post("/api/plots", headers=hu, json={"name": "Thửa thử", "location": {"lat": 16.5, "lon": 107.5}})
+    db = SessionLocal()
+    try:
+        uid = db.query(User).filter(User.email == "e2e-cu@vd.vn").one().id
+        db.add(WaterConfirm(user_id=uid, lat=16.5, lon=107.5, cell="16.500,107.500", event_start="2020-10-10", answer="yes"))
+        db.add(SeasonCase(user_id=uid, lat=16.5, lon=107.5, observed_on="2020-10-11", event_start="2020-10-10", event_end="2020-10-12"))
+        db.commit()
+    finally:
+        db.close()
+    me = next(u for u in c.get("/api/admin/users?q=quantri", headers=ha).json()["users"] if u["email"] == "quantri@vd.vn")
+    url = f"/api/admin/users/{uid}/delete"
+    assert c.post(url, headers=hu, json={"confirm_email": "e2e-cu@vd.vn"}).status_code == 403           # người thường
+    assert c.post(url, headers=ha, json={"confirm_email": "e2e-khac@vd.vn"}).status_code == 422         # gõ sai email
+    assert c.post(f"/api/admin/users/{me['id']}/delete", headers=ha, json={"confirm_email": "quantri@vd.vn"}).status_code == 409
+    assert c.post(f"/api/admin/users/{uid}", headers=ha, json={"role": "admin"}).status_code == 200
+    assert c.post(url, headers=ha, json={"confirm_email": "e2e-cu@vd.vn"}).status_code == 409           # đang là quản trị
+    assert c.post(f"/api/admin/users/{uid}", headers=ha, json={"role": "user"}).status_code == 200
+    r = c.post(url, headers=ha, json={"confirm_email": " E2E-cu@vd.vn "})
+    assert r.status_code == 200 and r.json()["deleted"] == "e2e-cu@vd.vn"
+    assert c.post(url, headers=ha, json={"confirm_email": "e2e-cu@vd.vn"}).status_code == 404
+    assert all(u["email"] != "e2e-cu@vd.vn" for u in c.get("/api/admin/users", headers=ha).json()["users"])
+    assert c.post("/api/auth/login", json={"email": "e2e-cu@vd.vn", "password": PW}).status_code == 401
+    db = SessionLocal()
+    try:
+        assert db.query(Plot).filter(Plot.user_id == uid).count() == 0
+        assert db.query(WaterConfirm).filter(WaterConfirm.user_id == uid).count() == 0
+        assert db.query(AuditLog).filter(AuditLog.user_id == uid).count() == 0
+        sc = db.query(SeasonCase).one()
+        assert sc.user_id is None and sc.event_start == "2020-10-10"
+    finally:
+        db.close()
+    audit = [e["label"] for e in c.get("/api/account/audit", headers=ha).json()["entries"]]
+    assert "Xoá một tài khoản khác (quản trị)" in audit

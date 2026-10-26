@@ -280,6 +280,34 @@ def admin_update_user(user_id: int, body: GrantIn, admin: User = Depends(auth.re
     return {"ok": True, "changed": done, "plan": _plan_view(u), "role": u.role}
 
 
+class DeleteUserIn(BaseModel):
+    confirm_email: str = Field(min_length=3, max_length=320)       # gõ lại đúng email — chống bấm nhầm dòng
+
+
+@router.post("/api/admin/users/{user_id}/delete")
+def admin_delete_user(user_id: int, body: DeleteUserIn, admin: User = Depends(auth.require_admin),
+                      db: Session = Depends(get_session)) -> dict:
+    """Xoá VĨNH VIỄN một tài khoản (vd tài khoản thử e2e… còn sót) bằng đúng đường xoá của "Xoá tài khoản của tôi"
+    (routes_account.purge_user). Rào chắn: không xoá chính mình ở đây, không xoá tài khoản đang là quản trị (bỏ quyền
+    trước — quản trị gốc theo TERRATWIN_ADMIN_EMAILS thì không bỏ được nên không xoá được), phải gõ lại đúng email.
+    Ghi vào nhật ký của người xoá (nhật ký của tài khoản bị xoá đi cùng nó)."""
+    from app.routes_account import purge_user
+    u = db.get(User, user_id)
+    if u is None:
+        raise HTTPException(404, "Không có tài khoản này.")
+    if u.id == admin.id:
+        raise HTTPException(409, "Không xoá chính mình ở đây — dùng Tài khoản của tôi → Xoá tài khoản.")
+    if (u.role or "user") == "admin":
+        raise HTTPException(409, "Tài khoản này đang có quyền quản trị — bỏ quyền trước rồi mới xoá.")
+    if body.confirm_email.strip().lower() != (u.email or "").strip().lower():
+        raise HTTPException(422, "Email gõ lại không khớp — chưa xoá gì.")
+    email = u.email
+    purge_user(db, u)
+    log_audit(db, admin.id, "admin_user_deleted", f"{email} (#{user_id})")
+    db.commit()
+    return {"ok": True, "deleted": email}
+
+
 @router.get("/api/admin/upgrade-requests")
 def admin_requests(status: str = "pending", admin: User = Depends(auth.require_admin),
                    db: Session = Depends(get_session)) -> dict:

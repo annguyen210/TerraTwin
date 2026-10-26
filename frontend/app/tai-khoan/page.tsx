@@ -31,6 +31,8 @@ const COUNT_LABEL: Record<string, [string, string, string?]> = {
   push_subs: ["Thiết bị nhận thông báo", "Push devices"],
   pilot_feedback: ["Góp ý thí điểm", "Pilot feedback"],
   labels_v3: ["Nhãn kiểm định v3", "v3 validation labels", "/gan-nhan"],
+  water_confirms: ["Xác nhận đợt nước", "Water-event confirmations"],
+  upgrade_requests: ["Yêu cầu nâng hạn mức", "Quota requests"],
 };
 
 function when(iso: string) {
@@ -66,6 +68,11 @@ export default function MyAccountPage() {
     getAccountAudit(100).then((r) => setAudit(r.entries)).catch(() => {});
     getMyPlan().then(setPlan).catch(() => {});
   }, [lang]);
+  // /tai-khoan#hai-lop (link từ trang Quản trị): mục Bảo mật chỉ có sau khi tải xong → tự cuộn tới khi đã có.
+  const loaded = !!s;
+  useEffect(() => {
+    if (loaded && window.location.hash === "#hai-lop") document.getElementById("hai-lop")?.scrollIntoView({ block: "start" });
+  }, [loaded]);
 
   async function download() {
     const data = await exportMyData();
@@ -221,7 +228,7 @@ export default function MyAccountPage() {
             </section>
 
             <div className="tk-grid2">
-              <section className="tk-card">
+              <section className="tk-card" id="hai-lop">
                 <h2>{t("Bảo mật", "Security")}</h2>
                 <TwoFactor user={s.account} />
                 <h3 className="ws-hint">{t("Đổi mật khẩu", "Change password")}</h3>

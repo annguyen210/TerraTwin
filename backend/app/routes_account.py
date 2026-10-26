@@ -20,7 +20,8 @@ from app import auth
 from app.services import plans
 from app.db import (
     ActionLog, Alert, ApiKey, AuditLog, BatchRun, Dataset, Device, Dossier, EudrSet, FieldPhoto, Lot,
-    KnowledgeNote, LabelerGrant, LabelV3, NotifyChannel, Observation, PilotFeedback, Plot, PushSub, SensorReading, Twin, UpgradeRequest, User, get_session,
+    KnowledgeNote, LabelerGrant, LabelV3, NotifyChannel, Observation, PilotFeedback, Plot, PushSub, SeasonCase, SensorReading, Twin,
+    UpgradeRequest, User, WaterConfirm, get_session,
 )
 from app.schemas import Location
 
@@ -566,7 +567,7 @@ _OWNED = [
     ("knowledge_notes", KnowledgeNote), ("api_keys", ApiKey),
     ("datasets", Dataset), ("alerts", Alert), ("audit_logs", AuditLog),
     ("push_subs", PushSub), ("batch_runs", BatchRun), ("eudr_sets", EudrSet),
-    ("devices", Device), ("upgrade_requests", UpgradeRequest),
+    ("devices", Device), ("upgrade_requests", UpgradeRequest), ("water_confirms", WaterConfirm),
 ]
 # Xuất nhưng KHÔNG xoá theo tài khoản: hồ sơ đất số nằm trong sổ đăng ký công
 # khai móc xích — xoá một hồ sơ là gãy mọi mắt xích sau nó; ảnh đã gắn vào hồ sơ
@@ -628,6 +629,7 @@ _AUDIT_LABELS = {
     "upgrade_rejected": "Yêu cầu nâng hạn mức bị từ chối",
     "admin_grant": "Quản trị cấp quyền / gói",
     "admin_grant_given": "Cấp quyền / gói cho tài khoản khác",
+    "admin_user_deleted": "Xoá một tài khoản khác (quản trị)",
 }
 
 # Vai trò nói bằng lời — người dùng không cần biết chữ "admin" hay "coop" nghĩa là gì.
@@ -690,7 +692,14 @@ def my_audit(limit: int = 50, user: User = Depends(auth.current_user),
                response_model=None)
 def delete_my_account(user: User = Depends(auth.current_user),
                       db: Session = Depends(get_session)):
-    """Xoá vĩnh viễn tài khoản và MỌI dữ liệu thuộc về nó.
+    """Xoá vĩnh viễn tài khoản và MỌI dữ liệu thuộc về nó — xem purge_user."""
+    purge_user(db, user)
+    db.commit()
+
+
+def purge_user(db: Session, user: User) -> None:
+    """Xoá một tài khoản và mọi dữ liệu thuộc về nó (chưa commit). Dùng cho cả "xoá tài khoản của tôi" lẫn quản trị
+    xoá tài khoản thử (routes_admin) — một đường xoá duy nhất, không có bản thứ hai sót bảng.
 
     Xoá tường minh từng bảng thay vì dựa vào cascade của cơ sở dữ liệu: SQLite
     mặc định KHÔNG bật khoá ngoại, nên 'ON DELETE CASCADE' có thể im lặng không
@@ -734,11 +743,13 @@ def delete_my_account(user: User = Depends(auth.current_user),
     # (user_id âm: không trỏ tới ai, vẫn tách được hai người gán). Quyền gán nhãn: xoá.
     for lb in db.execute(select(LabelV3).where(LabelV3.user_id == user.id)).scalars().all():
         lb.user_id = -user.id
+    # Ca mùa lũ v4 cũng là thước đo (có thể đã đăng ký vào cổng): giữ, gỡ người báo.
+    for sc in db.execute(select(SeasonCase).where(SeasonCase.user_id == user.id)).scalars().all():
+        sc.user_id = None
     g = db.get(LabelerGrant, (user.email or "").strip().lower())
     if g is not None:
         db.delete(g)
     db.delete(user)
-    db.commit()
 
 
 # ---------------------------------------------------------------------------

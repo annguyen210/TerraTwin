@@ -2981,6 +2981,11 @@ export function adminUpdateUser(id: number, body: { role?: "user" | "coop" | "ad
   return authed<{ ok: boolean; changed: string[] }>(`/api/admin/users/${id}`, { method: "POST", body: JSON.stringify(body) },
     "Không cập nhật được tài khoản");
 }
+/** Xoá VĨNH VIỄN một tài khoản (vd tài khoản thử e2e… còn sót) — phải gõ lại đúng email; máy chủ chặn xoá chính mình/quản trị. */
+export function adminDeleteUser(id: number, confirmEmail: string) {
+  return authed<{ ok: boolean; deleted: string }>(`/api/admin/users/${id}/delete`,
+    { method: "POST", body: JSON.stringify({ confirm_email: confirmEmail }) }, "Không xoá được tài khoản");
+}
 export type AdminPayment = { id: number; created_at: string | null; txn: string; amount_vnd: number; content: string;
   request_id: number | null; status: "matched" | "underpaid" | "unmatched" | "ignored"; note: string };
 export function adminPayments() {

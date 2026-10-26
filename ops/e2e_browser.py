@@ -294,7 +294,14 @@ with sync_playwright() as p:
         assert "Kiểm chứng" in sel, sel
         assert hgt >= 40, f"thanh tab bị ép còn {hgt}px"
         page.locator(".lc textarea").wait_for(timeout=30_000)
-        return f"tab {sel.strip()} · cao {hgt}px · khung 'ngoài phạm vi': {offsite}"
+        # Kịch bản demo: dán tin ở Kiểm chứng → sang Hồ sơ xem radar → QUAY LẠI Kiểm chứng. Thẻ dựng lại theo tab từng làm
+        # mất trắng chữ đã dán (26/10/2026).
+        page.locator(".lc textarea").fill("Đất cao ráo, không bao giờ ngập.")
+        page.get_by_role("tab", name=re.compile("Hồ sơ")).click()
+        page.get_by_role("tab", name=re.compile("Kiểm chứng")).click()
+        kept = page.locator(".lc textarea").input_value(timeout=30_000)
+        assert "không bao giờ ngập" in kept, f"đổi tab mất chữ tin đã dán: '{kept}'"
+        return f"tab {sel.strip()} · cao {hgt}px · khung 'ngoài phạm vi': {offsite} · đổi tab giữ chữ tin"
     try_now()
 
     @step("Trang đầu → 'Xem ngay: Huế': không lớp phủ nào chặn bấm, lịch sử nước TỰ đọc (không phải bấm nút)")

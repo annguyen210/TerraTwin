@@ -9,7 +9,8 @@ KHÔNG chạy vào production: script ghi dữ liệu (đăng ký, yêu cầu n�
 
 Luồng: người dùng xin nâng gói → thấy mã VietQR đúng nội dung → giả lập SePay báo tiền về → trang Tài khoản TỰ cập nhật
 gói → quản trị thấy giao dịch "đã cấp gói" → quản trị thêm/xoá tin đăng vàng (số điện thoại bị xoá trước khi lưu) →
-các tab quản trị mở được → thẻ mô hình → tải dữ liệu của tôi → người thường bị chặn khỏi tab quản trị.
+các tab quản trị mở được → thẻ mô hình → tải dữ liệu của tôi → bật hai lớp + tải mã khôi phục → người thường bị chặn khỏi
+tab quản trị → quản trị xoá tài khoản thử (gõ lại email).
 """
 from __future__ import annotations
 
@@ -56,6 +57,19 @@ def api(method, path, body=None, tok=None, headers=None):
             return resp.status, json.loads(resp.read() or b"null")
     except urllib.error.HTTPError as e:
         return e.code, json.loads(e.read() or b"null")
+
+
+def totp_now(secret_b32: str) -> str:
+    """Mã TOTP 6 số hiện tại (RFC 6238, SHA-1, 30 giây) — như ứng dụng Authenticator tính từ khoá trên màn hình."""
+    import base64
+    import hashlib
+    import hmac
+    import struct
+    s = secret_b32.replace(" ", "").upper()
+    key = base64.b32decode(s + "=" * (-len(s) % 8))
+    h = hmac.new(key, struct.pack(">Q", int(time.time()) // 30), hashlib.sha1).digest()
+    o = h[-1] & 0x0F
+    return f"{(struct.unpack('>I', h[o:o + 4])[0] & 0x7FFFFFFF) % 1_000_000:06d}"
 
 
 def register(email):
@@ -124,6 +138,28 @@ with sync_playwright() as p:
         assert USER in json.dumps(data, ensure_ascii=False), "tệp xuất không có email của mình"
         return f"{os.path.getsize(path)} byte"
 
+    @step("Người dùng: bật xác thực hai lớp bằng mã 6 số → tải tệp 8 mã khôi phục")
+    def two_factor():
+        page.goto(WEB + "/tai-khoan#hai-lop", wait_until="networkidle")
+        page.get_by_role("button", name="Bật xác thực hai lớp").click()
+        sec = page.locator(".tf-secret").first
+        sec.wait_for(timeout=30_000)
+        href = page.get_by_role("link", name="Đang dùng điện thoại? Mở thẳng ứng dụng Authenticator").get_attribute("href") or ""
+        assert href.startswith("otpauth://totp/"), href
+        page.get_by_label("2. Nhập mã 6 số đang hiện").fill(totp_now(sec.inner_text()))
+        page.get_by_role("button", name="Xác nhận và bật").click()
+        page.get_by_text("Mã khôi phục — lưu ngay").first.wait_for(timeout=30_000)
+        with page.expect_download(timeout=30_000) as d:
+            page.get_by_role("button", name="Tải tệp .txt").click()
+        path = os.path.join(OUT, "ma-khoi-phuc.txt")
+        d.value.save_as(path)
+        codes = [ln for ln in open(path, encoding="utf-8").read().splitlines()[1:] if ln.strip()]
+        assert len(codes) == 8, codes
+        st, me = api("GET", "/api/auth/me", tok=state["user_tok"])
+        assert st == 200 and me["totp_enabled"] is True, (st, me)
+        page.screenshot(path=os.path.join(OUT, "02b-2fa-on.png"), full_page=True)
+        return "đã bật, tệp 8 mã"
+
     @step("Người thường KHÔNG thấy dữ liệu quản trị")
     def not_admin():
         st, _ = api("GET", "/api/admin/payments", tok=state["user_tok"])
@@ -180,6 +216,24 @@ with sync_playwright() as p:
         page.get_by_text("Nước trong ảnh thực địa").first.wait_for(timeout=30_000)
         page.get_by_text("Tách câu khẳng định trong tin đăng bán đất").first.wait_for(timeout=30_000)
         page.get_by_text("KHÔNG phải nhãn người").first.wait_for(timeout=30_000)
+
+    @step("Quản trị: xoá tài khoản thử (gõ lại email) → biến khỏi danh sách, không đăng nhập được nữa")
+    def admin_delete():
+        page.goto(WEB + "/admin", wait_until="networkidle")
+        page.get_by_role("button", name="Người dùng").first.click()
+        row = page.locator("tr", has_text=USER).first
+        row.wait_for(timeout=30_000)
+        page.once("dialog", lambda dlg: dlg.accept("sai-" + USER))          # gõ sai email → máy chủ từ chối, không xoá
+        row.get_by_role("button", name="Xoá tài khoản…").click()
+        page.get_by_text("Email gõ lại không khớp").first.wait_for(timeout=30_000)
+        page.once("dialog", lambda dlg: dlg.accept(USER))
+        row.get_by_role("button", name="Xoá tài khoản…").click()
+        page.get_by_text(f"Đã xoá {USER}").first.wait_for(timeout=30_000)
+        page.locator("tr", has_text=USER).first.wait_for(state="detached", timeout=30_000)
+        st, _ = api("POST", "/api/auth/login", {"email": USER, "password": "MatKhauE2E-123"})
+        assert st == 401, st
+        page.screenshot(path=os.path.join(OUT, "05-admin-delete.png"), full_page=True)
+        return "sai email bị từ chối; đúng email → xoá, đăng nhập 401"
 
     browser.close()
 

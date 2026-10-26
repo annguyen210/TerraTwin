@@ -16,7 +16,7 @@ import Link from "next/link";
 import {
   fetchMe, getHealth, getFunnel, getBackupStatus, getDrift, getCoopPlots, updateCoop,
   getPilotSummary, downloadPilotCsv, adminLabelers, adminAddLabeler, adminRemoveLabeler, adminLabelSummary,
-  adminLabelExport, adminUsers, adminUpdateUser, adminUpgradeRequests, adminDecideUpgrade, adminPayments, type AdminPayment, adminWaterConfirms, adminSeasonCases, adminListingGold, adminListingGoldAdd, adminListingGoldDelete,
+  adminLabelExport, adminUsers, adminUpdateUser, adminDeleteUser, adminUpgradeRequests, adminDecideUpgrade, adminPayments, type AdminPayment, adminWaterConfirms, adminSeasonCases, adminListingGold, adminListingGoldAdd, adminListingGoldDelete,
   type AdminUser, type UpgradeReq, type AdminWaterConfirms, type AdminSeasonCases, type ListingGoldView,
   type AuthUser, type HealthStatus, type CoopPlot, type PilotSummary, type LabelSummary,
 } from "@/lib/api";
@@ -196,6 +196,14 @@ function UsersTab() {
     try { const r = await adminUpdateUser(u.id, body); setMsg(`${u.email}: ${r.changed.join("; ") || "không đổi"}`); load(); }
     catch (e) { setErr((e as Error).message); }
   }
+  async function remove(u: AdminUser) {
+    setErr(null); setMsg(null);
+    const typed = window.prompt(`XOÁ VĨNH VIỄN ${u.email}: mọi thửa, quan sát, nhật ký… của tài khoản này mất hẳn, không khôi phục được `
+      + `(hồ sơ đã phát hành vẫn ở sổ công khai, chỉ gỡ người phát hành).\n\nGõ lại đúng email để xác nhận:`);
+    if (typed == null) return;
+    try { const r = await adminDeleteUser(u.id, typed); setMsg(`Đã xoá ${r.deleted}`); load(); }
+    catch (e) { setErr((e as Error).message); }
+  }
   return (
     <div>
       <p className="ws-hint">Mọi tài khoản có <b>đủ mọi tính năng</b>. Ở đây quản trị <b>cấp hạn mức</b> (gói) có thời hạn, vai trò hợp tác xã và cả
@@ -229,7 +237,8 @@ function UsersTab() {
                       <button className="ws-link" onClick={() => act(u, { role: u.role === "coop" ? "user" : "coop" })}>
                         {u.role === "coop" ? "Bỏ vai trò HTX" : "Cấp vai trò HTX"}</button>{" · "}
                       <button className="ws-link" onClick={() => { if (window.confirm(`Cấp QUYỀN QUẢN TRỊ cho ${u.email}? Người này sẽ thấy và làm được mọi thứ trong trang Quản trị.`)) act(u, { role: "admin" }); }}>
-                        Cấp quyền quản trị</button>
+                        Cấp quyền quản trị</button><br />
+                      <button className="ws-link" style={{ color: "var(--warn, #e0a44a)" }} onClick={() => remove(u)}>Xoá tài khoản…</button>
                     </>}
                     {u.role === "admin" && (
                       <button className="ws-link" onClick={() => { if (window.confirm(`Bỏ quyền quản trị của ${u.email}?`)) act(u, { role: "user" }); }}>Bỏ quyền quản trị</button>
@@ -357,34 +366,52 @@ function GoldTab() {
   const [text, setText] = useState("");
   const [note, setNote] = useState("");
   const [claims, setClaims] = useState<string[]>([]);
+  // "Không khẳng định loại nào" phải tích TƯỜNG MINH: quên tích nhãn và tin thật sự không có câu nào là hai thứ khác nhau,
+  // mà lưu ra giống hệt nhau — một tin quên nhãn sẽ thành "thừa" oan cho bộ tách câu.
+  const [none, setNone] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [saved, setSaved] = useState<string | null>(null);
   const load = () => { adminListingGold().then(setV).catch((e) => setErr(e.message)); };
   useEffect(load, []);
   const add = async () => {
-    setErr(null);
-    try { await adminListingGoldAdd(text, claims, note); setText(""); setNote(""); setClaims([]); load(); }
+    setErr(null); setSaved(null);
+    try {
+      await adminListingGoldAdd(text, claims, note);
+      setSaved(claims.length ? claims.map(name).join(", ") : "không câu khẳng định nào");
+      setText(""); setNote(""); setClaims([]); setNone(false); load();
+    }
     catch (e) { setErr((e as Error).message); }
   };
+  const labelled = claims.length > 0 || none;
   const name = (id: string) => v?.claim_types.find((c) => c.id === id)?.vi ?? id;
   return (
     <div>
       <p className="ws-hint">Cổng GĐ3 đo bộ tách câu khẳng định trên ≥ 20 tin đăng THẬT do bạn tự thu thập (tin bạn bè gửi, nhóm Zalo, tờ rơi —
         KHÔNG cào trang bất động sản). Dán nguyên văn, rồi tích những loại câu tin đó KHẲNG ĐỊNH. Số điện thoại, email, đường dẫn tự bị xoá trước khi lưu.
         Không ô nào tích sẵn: máy gợi ý sẽ làm lệch nhãn, vì bộ tách câu chính là thứ đang được chấm.</p>
+      <p className="ws-hint">Làm thẳng trên điện thoại được: đăng nhập trang này trên điện thoại → mở tin trong Zalo/Facebook → giữ ngón tay để chép
+        chữ → dán vào ô dưới → tích loại câu → Thêm tin. Tin chỉ có ảnh thì gõ lại phần chữ trong ảnh.</p>
       {err && <p className="ws-err">⚠️ {err}</p>}
+      {saved && <p className="ws-hint" role="status">✓ Đã lưu tin với nhãn: <b>{saved}</b></p>}
       <textarea rows={4} style={{ width: "100%" }} placeholder="Dán nội dung tin đăng…" value={text} onChange={(e) => setText(e.target.value)} />
       <div className="ws-row" style={{ flexWrap: "wrap", gap: 10 }}>
         {v?.claim_types.map((c) => (
           <label key={c.id} style={{ display: "inline-flex", gap: 4, alignItems: "center" }}>
             <input type="checkbox" checked={claims.includes(c.id)}
-                   onChange={(e) => setClaims((cur) => e.target.checked ? [...cur, c.id] : cur.filter((x) => x !== c.id))} /> {c.vi}
+                   onChange={(e) => { setNone(false); setClaims((cur) => e.target.checked ? [...cur, c.id] : cur.filter((x) => x !== c.id)); }} /> {c.vi}
           </label>
         ))}
+        <label style={{ display: "inline-flex", gap: 4, alignItems: "center" }}>
+          <input type="checkbox" checked={none} onChange={(e) => { setNone(e.target.checked); if (e.target.checked) setClaims([]); }} />
+          <i>Tin này không khẳng định loại nào</i>
+        </label>
       </div>
       <div className="ws-row">
         <input placeholder="Nguồn (vd: tin bạn gửi, nhóm Zalo xã) — không dán đường dẫn" value={note} onChange={(e) => setNote(e.target.value)} />
-        <button className="doc-btn" disabled={text.trim().length < 10} onClick={add}>Thêm tin</button>
+        <button className="doc-btn" disabled={text.trim().length < 10 || !labelled} onClick={add}
+                title={labelled ? undefined : "Tích ít nhất một loại câu, hoặc tích \"không khẳng định loại nào\""}>Thêm tin</button>
       </div>
+      {text.trim().length >= 10 && !labelled && <p className="ws-hint">Tích các loại câu tin này khẳng định — hoặc tích “Tin này không khẳng định loại nào”.</p>}
       {v && (
         <>
           <h4 style={{ marginTop: 16 }}>Đã có {v.score.n}/20 tin {v.score.enough ? "— đủ để chấm cổng" : ""}</h4>
@@ -640,8 +667,8 @@ export default function AdminPage() {
               <li><b>Trôi mô hình</b> — {t("dữ liệu đầu vào có lệch khỏi lúc huấn luyện không.", "whether inputs drift from training data.")}</li>
               <li><b>Hợp tác xã</b> — {t("thửa của thành viên đã đồng ý chia sẻ.", "members' plots shared with consent.")}</li>
             </ul>
-            <p className="ws-hint">{t("Bảo mật: bật xác thực hai lớp ở Thửa đất → Khu làm việc → Xác thực hai lớp, rồi đặt TERRATWIN_ADMIN_REQUIRE_2FA=1 trên Render.",
-                                      "Security: turn on 2FA in Land → Workspace → Two-factor, then set TERRATWIN_ADMIN_REQUIRE_2FA=1 on Render.")}</p>
+            <p className="ws-hint">{t("Bảo mật: bật xác thực hai lớp ở ", "Security: turn on 2FA at ")}<Link href="/tai-khoan#hai-lop">{t("Tài khoản của tôi → Xác thực hai lớp", "My account → Two-factor")}</Link>
+              {t(", rồi đặt TERRATWIN_ADMIN_REQUIRE_2FA=1 trên Render.", ", then set TERRATWIN_ADMIN_REQUIRE_2FA=1 on Render.")}</p>
           </details>
         )}
 
