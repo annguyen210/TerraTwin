@@ -25,6 +25,11 @@ RUNS = {   # lần → (tệp nhãn, tệp kết quả, mô tả dữ liệu VI,
           "20 tin lần 4 là tập phát triển",
           "20 NEW land-sale posts from 4 other public Facebook broker pages (Nam Định, former Quảng Bình, Bình Định, Cần Thơ), collected AFTER "
           "the run-5 rule fix was frozen; the run-4 posts are the development set"),
+    "6": ("listing_gate_v6_labels.json", "listing_gate_v6_result.json",
+          "20 bài bán đất trên trang Facebook công khai của môi giới (Bến Tre 15, Nghệ An 4, Khánh Hòa 1 — 3/4 trang chính không xem được, "
+          "lấy từ trang dự phòng theo thứ tự đăng ký); NHÃN NGƯỜI do chủ dự án tự gán, không thấy nhãn máy",
+          "20 land-sale posts from public Facebook broker pages (Bến Tre 15, Nghệ An 4, Khánh Hòa 1 — 3 of 4 main pages were unavailable, "
+          "filled from backup pages in registered order); HUMAN labels by the owner, who did not see any machine labels"),
 }
 THRESHOLD = 0.80
 
@@ -56,6 +61,18 @@ def main() -> None:
            "labeler": lab["labeler"],
            "data_note": note_vi, "data_note_en": note_en,
            "per_listing": per}
+    # Lần 6: nhãn chấm cổng là nhãn NGƯỜI; nhãn AI (khoá trước) chỉ để đo độ khớp AI–người.
+    ai_path = os.path.join(EVAL, LABELS.replace("_labels.json", "_ai_labels.json"))
+    if os.path.exists(ai_path):
+        ai = {r["id"]: set(r["claims"]) for r in json.load(open(ai_path, encoding="utf-8"))["labels"]}
+        hum = {r["id"]: set(r["claims"]) for r in lab["labels"]}
+        tp = sum(len(ai[i] & hum[i]) for i in hum); fp = sum(len(ai[i] - hum[i]) for i in hum); fn = sum(len(hum[i] - ai[i]) for i in hum)
+        p, r = tp / max(1, tp + fp), tp / max(1, tp + fn)
+        res["labeler_kind"] = "human"
+        res["ai_vs_human"] = {"listings_exact_match": sum(ai[i] == hum[i] for i in hum), "n": len(hum),
+                              "precision": round(p, 2), "recall": round(r, 2), "f1": round(2 * p * r / max(1e-9, p + r), 2),
+                              "tp": tp, "fp": fp, "fn": fn,
+                              "note": "Nhãn AI (Claude, khoá trước khi người gán) so với nhãn người, gộp mọi loại câu"}
     json.dump(res, open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(json.dumps({k: res[k] for k in ("macro_f1", "passed", "per_type", "no_claim_but_extracted")}, ensure_ascii=False, indent=1))
 

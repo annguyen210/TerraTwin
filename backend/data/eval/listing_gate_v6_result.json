@@ -1,0 +1,211 @@
+{
+ "protocol": "terratwin.listing_gate/6",
+ "source": "facebook_public_pages",
+ "n": 20,
+ "enough": true,
+ "per_type": [
+  {
+   "type": "residential",
+   "precision": 0.64,
+   "recall": 1.0,
+   "f1": 0.78,
+   "tp": 9,
+   "fp": 5,
+   "fn": 0
+  }
+ ],
+ "macro_f1": 0.78,
+ "threshold_macro_f1": 0.8,
+ "passed": false,
+ "no_claim_listings": 11,
+ "no_claim_but_extracted": [
+  12,
+  14,
+  16,
+  17,
+  19
+ ],
+ "labeler": "Chủ dự án (người), gửi 20 dòng mã A–H/0 trong phiên làm việc 26/10/2026",
+ "data_note": "20 bài bán đất trên trang Facebook công khai của môi giới (Bến Tre 15, Nghệ An 4, Khánh Hòa 1 — 3/4 trang chính không xem được, lấy từ trang dự phòng theo thứ tự đăng ký); NHÃN NGƯỜI do chủ dự án tự gán, không thấy nhãn máy",
+ "data_note_en": "20 land-sale posts from public Facebook broker pages (Bến Tre 15, Nghệ An 4, Khánh Hòa 1 — 3 of 4 main pages were unavailable, filled from backup pages in registered order); HUMAN labels by the owner, who did not see any machine labels",
+ "per_listing": [
+  {
+   "id": 1,
+   "region": "Nghệ An (dự phòng 1, thay trang Hà Tĩnh không xem được)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 2,
+   "region": "Nghệ An (dự phòng 1, thay trang Hà Tĩnh không xem được)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 3,
+   "region": "Nghệ An (dự phòng 1, thay trang Hà Tĩnh không xem được)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 4,
+   "region": "Nghệ An (dự phòng 1, thay trang Hà Tĩnh không xem được)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 5,
+   "region": "Bến Tre",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 6,
+   "region": "Bến Tre",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 7,
+   "region": "Bến Tre",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 8,
+   "region": "Bến Tre",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 9,
+   "region": "Bến Tre",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 10,
+   "region": "Bến Tre (dự phòng 2, thay trang Hà Tĩnh/Khánh Hòa không xem được)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 11,
+   "region": "Bến Tre (dự phòng 2, thay trang Hà Tĩnh/Khánh Hòa không xem được)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 12,
+   "region": "Bến Tre (dự phòng 2, thay trang Hà Tĩnh/Khánh Hòa không xem được)",
+   "gold": [],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 13,
+   "region": "Bến Tre (dự phòng 2, thay trang Hà Tĩnh/Khánh Hòa không xem được)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 14,
+   "region": "Bến Tre (dự phòng 2, thay trang Hà Tĩnh/Khánh Hòa không xem được)",
+   "gold": [],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 15,
+   "region": "Bến Tre (dự phòng 2, thay trang Hà Tĩnh/Khánh Hòa không xem được)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 16,
+   "region": "Bến Tre (dự phòng 2, thay trang Phú Yên không xem được)",
+   "gold": [],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 17,
+   "region": "Bến Tre (dự phòng 2, thay trang Phú Yên không xem được)",
+   "gold": [],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 18,
+   "region": "Bến Tre (dự phòng 2, thay trang Phú Yên không xem được)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 19,
+   "region": "Bến Tre (dự phòng 2, thay trang Phú Yên không xem được)",
+   "gold": [],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 20,
+   "region": "Khánh Hòa (dự phòng 3)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  }
+ ],
+ "labeler_kind": "human",
+ "ai_vs_human": {
+  "listings_exact_match": 20,
+  "n": 20,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "tp": 9,
+  "fp": 0,
+  "fn": 0,
+  "note": "Nhãn AI (Claude, khoá trước khi người gán) so với nhãn người, gộp mọi loại câu"
+ }
+}
