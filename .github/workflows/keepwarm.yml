@@ -32,7 +32,8 @@ name: Keep warm
 #             Tốn N/60 giờ × 2 service trong 750 giờ/tháng — 90 phút = 3 giờ, không phải chạy liên tục.
 #   thua:     toạ độ các thửa sẽ mở khi trình bày ("lat,lon;lat,lon") — đọc SẴN lịch sử nước radar, loại đất, ảnh nền
 #             để lên sân khấu mở là có ngay (thửa mới đọc lần đầu mất 1–3 phút). Mặc định: thửa mẫu Quảng Điền + hai thửa
-#             ngập THẬT đã được bản đồ UNOSAT xác nhận (Quảng Bình lũ 10/2020; vùng Bắc Giang bão Yagi 9/2024).
+#             ngập THẬT đã được bản đồ UNOSAT xác nhận: xã Tuệ Tĩnh, Hải Phòng (Cẩm Giàng, Hải Dương cũ) — bão Yagi
+#             12/9/2024; Hoàn Lão, Quảng Trị (Bố Trạch, Quảng Bình cũ) — lũ 10/2020.
 on:
   workflow_dispatch:
     inputs:
