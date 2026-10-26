@@ -35,6 +35,23 @@ def test_moi_khang_dinh_trich_dung_ve_cua_no():
     assert got == {"residential": "Bán đất thổ cư", "near_river": "gần sông mát mẻ", "no_flood": "không lo ngập"}
 
 
+@pytest.mark.parametrize("text,typ,want", [
+    # Lần 5 (26/10/2026): hai KIỂU nói vòng mà lần 4 (tin Facebook) bỏ sót — và các câu gần giống KHÔNG được tính.
+    ("Đất đẹp, cao ngang mặt đường, thoáng mát", "high_ground", True),
+    ("nền đất bằng mặt đường nhựa", "high_ground", True),
+    ("đất ngang với mặt đường, không phải đổ thêm", "high_ground", True),
+    ("Lô đất ngang 5m mặt đường 12m", "high_ground", False),
+    ("Ra biển và Đồi Rồng chỉ 3 phút", "near_sea", True),
+    ("chỉ 5 phút ra biển", "near_sea", True),
+    ("10 phút chạy xe ra bãi tắm", "near_sea", False),       # cụm giữa số và "ra" dài hơn mẫu cho phép — chấp nhận sót
+    ("đường ra biển đang mở rộng, hai làn xe", "near_sea", False),       # không có số phút → mẫu mới không bắt
+    ("Hướng Đông Nam, mặt tiền 6m", "near_sea", False),
+])
+def test_cach_noi_vong_lan_5(text, typ, want):
+    from app.services import listing_check as lc
+    assert (typ in {c["type"] for c in lc.extract(text)}) is want
+
+
 def test_cau_khong_khang_dinh_gi_thi_khong_bat_bua():
     from app.services import listing_check as lc
     assert lc.extract("Liên hệ chính chủ, giá thương lượng, xem đất thứ Bảy.") == []

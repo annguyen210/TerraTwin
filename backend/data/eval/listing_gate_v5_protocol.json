@@ -1,0 +1,31 @@
+{
+  "id": "terratwin.listing_gate/5",
+  "registered": "2026-10-26",
+  "registered_before_sampling": true,
+  "rules_frozen_before_sampling": true,
+  "purpose": "Kiểm bộ luật tách câu bản sửa lần 5 trên 20 tin Facebook MỚI (tập kiểm tra chưa ai đọc). Luật sửa theo lỗi lần 4 — 20 tin lần 4 nay là TẬP PHÁT TRIỂN, kết quả trên đó (F1 1,0 sau sửa) không có giá trị kiểm định.",
+  "deviation": "LỆCH khỏi ghi chú ở giao thức lần 3 và lần 4 ('lần sau là mô hình khác, không vá luật thêm'): lần 5 VẪN là luật từ khoá, có sửa. Lý do chọn: chủ dự án yêu cầu cách 'tối ưu chuẩn hoá nhất'; cách chuẩn là phát triển trên tập đã dùng rồi chấm trên tập mới thu SAU khi khoá luật. Việc lệch này được công bố ở đây, trên thẻ mô hình và slide; mọi lần chấm (kể cả trượt) vẫn hiện đủ.",
+  "rules_change": "services/listing_check.py: cao ráo thêm 'cao ngang/bằng/trên mặt đường', '(ngang|bằng) (với) mặt đường'; gần biển thêm 'ra/đi/đến biển … N phút' cách tối đa 40 ký tự (chỉ đơn vị PHÚT) và 'N phút/km ra biển' (số đứng trước). Không đổi mẫu nào khác. Commit cùng giao thức này, TRƯỚC khi mở trang nào của tập kiểm tra.",
+  "data": {
+    "source": "Trang Facebook CÔNG KHAI của môi giới đất, chọn THEO TÊN TRANG từ kết quả tìm kiếm web (chưa đọc bài nào), ở 4 vùng khác lần 4",
+    "pages": [
+      {"region": "Nam Định", "url": "https://www.facebook.com/NhaDatBanTaiNamDinh/"},
+      {"region": "Quảng Bình cũ (Quảng Trị mới)", "url": "https://www.facebook.com/nhadatcuongphatqb/"},
+      {"region": "Bình Định", "url": "https://www.facebook.com/sanmuabannhadatbinhdinh/"},
+      {"region": "Cần Thơ", "url": "https://www.facebook.com/nhadatnamct/"}
+    ],
+    "backup_pages": [
+      {"region": "Nam Định", "url": "https://www.facebook.com/100074563903323"},
+      {"region": "Bình Định", "url": "https://www.facebook.com/batdongsanso1quynhonbinhdinh/"}
+    ],
+    "selection": "Như lần 4: mỗi trang lấy 5 bài BÁN ĐẤT đầu tiên theo thứ tự hiện trên trang (bỏ cho thuê, bán nhà, căn hộ, cần mua, thông báo đấu giá, bài giới thiệu chung, bài trùng); không chọn theo câu khẳng định. Trang không đủ 5 bài bán đất sau ~30 lần cuộn, hoặc không xem được khi chưa tham gia → lấy phần còn thiếu từ trang dự phòng theo thứ tự.",
+    "access": "Chỉ đọc bằng tài khoản chủ dự án: không tham gia/theo dõi/tương tác, không dùng ô tìm kiếm Facebook",
+    "privacy": "Xoá số điện thoại (cả chữ số nhỏ), đường dẫn, tên người trước khi lưu; repo chỉ giữ vùng + SHA-256 + nhãn"
+  },
+  "labeler": "Claude (claude-opus-5-5) theo yêu cầu chủ dự án — KHÔNG phải nhãn người; nhãn commit TRƯỚC khi chạy bộ tách câu trên 20 tin này. Chủ dự án có thể duyệt lại nhãn sau; khi đó ghi 'nhãn AI, người duyệt' kèm số nhãn bị sửa.",
+  "label_rules": "Y nguyên label_rules của listing_gate_v3_protocol.json; ca 'cao ngang mặt đường' tính là cao ráo như lần 4.",
+  "metric": "Như lần 4 (listing_gold.score): chính xác / độ phủ / F1 từng loại; F1 trung bình (macro) trên các loại có nhãn hoặc dự đoán; kèm số tin không khẳng định gì mà luật vẫn bắt ra câu.",
+  "threshold": "ĐẠT khi F1 trung bình ≥ 0,80 trên 20 tin.",
+  "one_shot": "Chấm đúng một lần bằng ops/listing_gate_fb.py --run 5 sau commit nhãn.",
+  "script": "ops/listing_gate_fb.py"
+}

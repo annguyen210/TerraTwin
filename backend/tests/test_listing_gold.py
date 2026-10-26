@@ -46,7 +46,8 @@ def test_the_mo_hinh_doc_lan_cham_moi_nhat(monkeypatch):
     r2 = {"n": 40, "population": 9, "macro_f1": 0.85, "passed": True,
           "per_type": [{"type": "residential", "precision": 1.0, "recall": 1.0, "f1": 1.0, "tp": 8, "fp": 0, "fn": 0}]}
     files = {("eval", "listing_gate_result.json"): r1, ("eval", "listing_gate_v2_result.json"): r2,
-             ("eval", "listing_gate_v3_result.json"): None, ("eval", "listing_gate_v4_result.json"): None}
+             ("eval", "listing_gate_v3_result.json"): None, ("eval", "listing_gate_v4_result.json"): None,
+             ("eval", "listing_gate_v5_result.json"): None}
     monkeypatch.setattr(model_cards, "_load", lambda *p: files[p] if p in files else real(*p))
     c = next(x for x in model_cards.cards() if x["id"] == "listing_rules")
     assert c["status"] == "accepted" and "lần 2" in c["status_label"] and "KHÔNG phải nhãn người" in c["split"]
@@ -62,7 +63,8 @@ def test_the_mo_hinh_lan_4_tin_facebook_truot(monkeypatch):
     r4 = {"n": 20, "macro_f1": 0.5, "passed": False, "source": "facebook_public_pages", "data_note": "20 bài trên 4 trang Facebook",
           "per_type": [{"type": "near_sea", "precision": 0.0, "recall": 0.0, "f1": 0.0, "tp": 0, "fp": 0, "fn": 1}]}
     files = {("eval", "listing_gate_result.json"): None, ("eval", "listing_gate_v2_result.json"): None,
-             ("eval", "listing_gate_v3_result.json"): r3, ("eval", "listing_gate_v4_result.json"): r4}
+             ("eval", "listing_gate_v3_result.json"): r3, ("eval", "listing_gate_v4_result.json"): r4,
+             ("eval", "listing_gate_v5_result.json"): None}
     monkeypatch.setattr(model_cards, "_load", lambda *p: files[p] if p in files else real(*p))
     c = next(x for x in model_cards.cards() if x["id"] == "listing_rules")
     assert c["status"] == "rejected" and "lần 4 trượt" in c["status_label"]
