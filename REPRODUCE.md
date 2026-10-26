@@ -571,6 +571,14 @@ nên hai chỗ sửa của lần 5 chưa được tập kiểm tra thử tới.
 python ops/listing_gate_fb.py <tin_lan5.json> --run 5
 ```
 
+| Lần | Giao thức → nhãn AI → nhãn người → chấm | F1 trung bình | Ghi chú |
+|---|---|---|---|
+| 6 — **NHÃN NGƯỜI**: chủ dự án tự gán 20 tin Facebook mới, không thấy nhãn máy; luật y nguyên lần 5. 3/4 trang chính không xem được → Bến Tre 15, Nghệ An 4, Khánh Hòa 1 (trang dự phòng theo thứ tự đăng ký) | 27e7f05 → 6015002 → 84c4107 → 1d6260f | **0,78** (trượt sát) | thổ cư đúng 9/9 nhưng bắt NHẦM 5 tin "quy hoạch đất ở" (2 tin ghi rõ "chưa thổ cư"); nhãn AI khoá trước khớp nhãn người 20/20 tin; hướng dẫn gửi người gán có ví dụ "cách cầu Kênh X" trùng tin 14 |
+
+```bash
+python ops/listing_gate_fb.py <tin_lan6.json> --run 6    # in thêm độ khớp nhãn AI (listing_gate_v6_ai_labels.json) với nhãn người
+```
+
 Đọc kết quả: luật từ khoá gần như **không bắt nhầm** (độ chính xác 1,0 mọi loại ở lần 2) nhưng **sót cách nói vòng** ("gió
 sông rất mát", "đi biển 10 phút", "bên bờ vịnh"). Mẫu ngẫu nhiên rất ít câu "không ngập / gần sông" nên F1 các loại hiếm dao
 động mạnh. Lần 3 thêm cách nói vòng theo lỗi lần 2 và đạt trên mẫu mới. Cần đọc đúng mức: đây là lần thử THỨ BA (nguy cơ "thử tới khi đạt"),

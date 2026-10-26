@@ -600,7 +600,8 @@ def cards() -> list[dict]:
     runs = [(v, r) for v, r in (("1", _load("eval", "listing_gate_result.json")), ("2", _load("eval", "listing_gate_v2_result.json")),
                                      ("3", _load("eval", "listing_gate_v3_result.json")),
                                      ("4", _load("eval", "listing_gate_v4_result.json")),
-                                     ("5", _load("eval", "listing_gate_v5_result.json"))) if r]
+                                     ("5", _load("eval", "listing_gate_v5_result.json")),
+                                     ("6", _load("eval", "listing_gate_v6_result.json"))) if r]
     base = {
         "id": "listing_rules", "kind": tr("quy tắc NLP", "NLP rules"),
         "name": tr("Tách câu khẳng định trong tin đăng bán đất", "Claim extraction from land listings"),
@@ -618,19 +619,25 @@ def cards() -> list[dict]:
                       "trước, nên đây là nhãn AI có người duyệt, chưa phải người gán độc lập.",
                       f" The owner REVIEWED run {v}'s labels: {rv.get('n_reviewed')} labels, {rv.get('n_changed')} changed — the reviewer "
                       "saw the AI labels first, so these are reviewed AI labels, not independent human labels.") if rv else ""
+        # Lần 6 (26/10/2026): nhãn chấm cổng là NHÃN NGƯỜI (chủ dự án tự gán, không thấy nhãn máy); nhãn AI khoá trước chỉ để so.
+        avh = last.get("ai_vs_human") if last.get("labeler_kind") == "human" else None
         out.append({**base,
             "status": "accepted" if last.get("passed") else "rejected",
             "status_label": (tr(f"cổng lần {v} đạt · luật từ khoá đang chạy" + (" · nhãn AI, người duyệt" if rv else ""),
                                 f"gate run {v} passed · keyword rules live" + (" · AI labels, human-reviewed" if rv else "")) if last.get("passed")
-                             else tr(f"cổng lần {v} trượt · vẫn chạy luật từ khoá (không có bộ thay thế), độ chính xác công khai",
-                                     f"gate run {v} failed · keyword rules still live (no replacement), accuracy published")),
+                             else tr(f"cổng lần {v} trượt" + (" trên nhãn người" if avh else "") + " · vẫn chạy luật từ khoá (không có bộ thay thế), độ chính xác công khai",
+                                     f"gate run {v} failed" + (" on human labels" if avh else "") + " · keyword rules still live (no replacement), accuracy published")),
             # Lần 4 (26/10/2026) đổi NGUỒN: trang Facebook công khai của môi giới — tệp kết quả tự mô tả dữ liệu của nó.
             "data": tr(last["data_note"], last.get("data_note_en", last["data_note"])) if last.get("data_note") else
                     tr(f"{last['n']} tin đăng ĐẤT thật, lấy ngẫu nhiên theo hạt giống đăng ký trước từ bộ công khai tinixai/vietnam-real-estates "
                        f"(CC BY-NC 4.0, {last.get('population')} tin đất trong shard)",
                        f"{last['n']} real LAND listings, seeded random sample registered in advance from the public tinixai/vietnam-real-estates "
                        f"set (CC BY-NC 4.0, {last.get('population')} land listings in the shard)"),
-            "split": tr("nhãn do Claude (AI) gán theo uỷ quyền chủ dự án, commit TRƯỚC khi chấm — KHÔNG phải nhãn người; ngưỡng F1 trung bình ≥ 0,80; "
+            "split": (tr(f"Lần {v}: NHÃN NGƯỜI — chủ dự án tự gán {avh['n']} tin, không thấy nhãn máy; nhãn AI khoá trước khớp nhãn người "
+                         f"{avh['listings_exact_match']}/{avh['n']} tin. Các lần trước: ",
+                         f"Run {v}: HUMAN LABELS — the owner labelled {avh['n']} posts without seeing machine labels; AI labels frozen beforehand "
+                         f"match the human labels on {avh['listings_exact_match']}/{avh['n']} posts. Earlier runs: ") if avh else "")
+                     + tr("nhãn do Claude (AI) gán theo uỷ quyền chủ dự án, commit TRƯỚC khi chấm — KHÔNG phải nhãn người; ngưỡng F1 trung bình ≥ 0,80; "
                         + " · ".join(f"lần {k}: F1 {r.get('macro_f1')}" for k, r in runs),
                         "labels by Claude (AI) on the owner's authority, committed BEFORE scoring — NOT human labels; threshold macro F1 ≥ 0.80; "
                         + " · ".join(f"run {k}: F1 {r.get('macro_f1')}" for k, r in runs)) + reviewed,
@@ -640,7 +647,16 @@ def cards() -> list[dict]:
                          "threshold": f"F1 {r['f1']}", "passed": r["f1"] >= 0.8} for r in last.get("per_type", [])]
                        + [{"label": tr("F1 trung bình", "Macro F1"), "value": last.get("macro_f1"), "threshold": "≥ 0.80",
                            "passed": bool(last.get("passed"))}],
-            "limits": tr("Lần 5 là luật SỬA theo lỗi lần 4 (lệch ghi chú cũ 'lần sau là mô hình khác' — công bố); khoá luật trước khi thu 20 tin "
+            "limits": tr("Lần 6 trên nhãn người: luật bắt NHẦM 5/11 tin không có thổ cư — coi 'quy hoạch đất ở' là đã có đất ở, kể cả khi tin ghi "
+                         "'chưa thổ cư'; bắt đúng 9/9 tin có thổ cư. Mẫu lệch vùng (Bến Tre 15, Nghệ An 4, Khánh Hòa 1: 3/4 trang chính không xem "
+                         "được) và chỉ có câu thổ cư. Bản hướng dẫn gửi người gán có ví dụ 'cách cầu Kênh X' trùng tin 14. Không vá luật rồi chấm "
+                         "lại mẫu này; sửa thì phải chấm trên tin mới.",
+                         "Run 6 on human labels: the rules raise 5 FALSE claims on 11 posts without residential land — they read 'zoned for "
+                         "residential' as already residential, even when the post says 'not yet residential'; 9/9 residential posts caught. The "
+                         "sample is skewed by region (Bến Tre 15, Nghệ An 4, Khánh Hòa 1: 3 of 4 main pages unavailable) and has only residential "
+                         "claims. The labelling guide sent to the human had an example ('a bridge named Kênh X') matching post 14. Rules are not "
+                         "patched and re-scored on this sample; a fix must be scored on new posts.") if v == "6" else
+                      tr("Lần 5 là luật SỬA theo lỗi lần 4 (lệch ghi chú cũ 'lần sau là mô hình khác' — công bố); khoá luật trước khi thu 20 tin "
                          "Facebook mới. Mẫu kiểm tra chỉ có câu thổ cư (6) và gần sông (2): hai chỗ sửa 'cao ngang mặt đường', 'ra biển … phút' "
                          "CHƯA được tập kiểm tra thử tới; 13 tin không khẳng định gì, luật không bắt nhầm tin nào; sót 'DOT lâu dài' (gõ nhầm ODT). "
                          "Nhãn của AI cùng 'tác giả' với bộ luật. Tập vàng nhãn người ở /admin → Tin đăng GĐ3 vẫn chờ chủ dự án.",
