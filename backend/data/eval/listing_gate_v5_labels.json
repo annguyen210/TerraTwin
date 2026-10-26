@@ -1,0 +1,154 @@
+{
+ "protocol": "terratwin.listing_gate/5",
+ "labeler": "Claude (claude-opus-5-5) theo yêu cầu chủ dự án 26/10/2026 — KHÔNG phải nhãn người; chưa có người duyệt",
+ "labelled_before_scoring": true,
+ "rules_commit": "4286f5e (luật khoá trước khi thu mẫu)",
+ "text_note": "SHA-256 của văn bản SAU khi xoá số điện thoại/đường dẫn/tên người (bản lưu ngoài repo); nguyên văn không đưa vào repo",
+ "labels": [
+  {
+   "id": 1,
+   "region": "Nam Định",
+   "sha256": "03edfc794d494ce5733f9fcec2dfd075a294b8e4c070598562e53005e3580a2a",
+   "claims": []
+  },
+  {
+   "id": 2,
+   "region": "Nam Định",
+   "sha256": "5edccc48cb88d7f72dc582a6d1e19b52faf564e637970cc1d70437ce3a691dcb",
+   "claims": [],
+   "note": "'đất nở hậu' là hình dáng; 'không quy hoạch' không phải loại câu nào"
+  },
+  {
+   "id": 3,
+   "region": "Nam Định",
+   "sha256": "38bc83ecae3625d3a73ec5d871a64669a59c5d7d7118b03180b8743dbf162636",
+   "claims": [
+    "residential"
+   ],
+   "note": "danh sách nhiều lô, có '+ lô đất thổ cư ngõ 39 đường 19/5'"
+  },
+  {
+   "id": 4,
+   "region": "Nam Định",
+   "sha256": "a3a33a76be0a81224f042cb1cf88ef7e67f68f0ca5f4b3cf78f7aaac5a67793f",
+   "claims": []
+  },
+  {
+   "id": 5,
+   "region": "Nam Định",
+   "sha256": "3e3a860112945ace804ef0fcb0c0f4dba87c4c4be8dd452d0c9ad44c998f8441",
+   "claims": [
+    "residential"
+   ],
+   "note": "'Hình thức sử dụng đất, sử dụng riêng, DOT lâu dài' = chép lối ghi sổ đỏ 'ODT, lâu dài' (gõ nhầm DOT) → đất ở (ca cân nhắc)"
+  },
+  {
+   "id": 6,
+   "region": "Quảng Bình cũ",
+   "sha256": "154be6cfb9442b6b00d8d928908f65839bbbfb86480be11a62a4b701d2183a6f",
+   "claims": []
+  },
+  {
+   "id": 7,
+   "region": "Quảng Bình cũ",
+   "sha256": "0d8da9ec3ac654eb5e57f09af9aca9144de93468206183e01a2e0b13d703eb7c",
+   "claims": []
+  },
+  {
+   "id": 8,
+   "region": "Quảng Bình cũ",
+   "sha256": "f31aba8f89e13f217d1c1b84a3b0b44e4e9b44021568ab59d41da376a6164668",
+   "claims": []
+  },
+  {
+   "id": 9,
+   "region": "Quảng Bình cũ",
+   "sha256": "c01993d652818c1c25d6db280f3b578c2903f25454d7876a8dab626ab3df8344",
+   "claims": []
+  },
+  {
+   "id": 10,
+   "region": "Quảng Bình cũ",
+   "sha256": "68a345aaed99fd526382cc49274e4799883479cd7f57bc6ea26ae7b8ebd364a7",
+   "claims": []
+  },
+  {
+   "id": 11,
+   "region": "Bình Định",
+   "sha256": "c4437812ebfa8c418a39d11432afe295fcec69a00f312d52a314ee3a5ca8fc8d",
+   "claims": [
+    "residential"
+   ],
+   "note": "'200m2 ( 70m2) thổ cư'"
+  },
+  {
+   "id": 12,
+   "region": "Bình Định",
+   "sha256": "7ba1de760d4b378e926f40e402359c93d6e47ceaec7733db1fc5635a6fd8bc19",
+   "claims": []
+  },
+  {
+   "id": 13,
+   "region": "Nam Định (trang dự phòng 1)",
+   "sha256": "cec40f98b505b472e1820d0b36088550587d31b4f2c86724cee8ed5088cecdc6",
+   "claims": []
+  },
+  {
+   "id": 14,
+   "region": "Nam Định (trang dự phòng 1)",
+   "sha256": "c5c958b24f72eec244c01d9f13678f4568d8d7350cec4eda4302f36c80e326f2",
+   "claims": [],
+   "note": "'vuông vắn' là hình dáng, không tính bằng phẳng"
+  },
+  {
+   "id": 15,
+   "region": "Nam Định (trang dự phòng 1)",
+   "sha256": "4c87b57b98bfb74d9fa29948e0d8292937066abd1de1eadd2d3cdef9360687ac",
+   "claims": []
+  },
+  {
+   "id": 16,
+   "region": "Cần Thơ",
+   "sha256": "670310191da4a99faf83eb38e85d34ca3fdfc74f5dadd5811020c022a107eaf0",
+   "claims": [
+    "residential"
+   ],
+   "note": "'đất thổ cư 100%'"
+  },
+  {
+   "id": 17,
+   "region": "Cần Thơ",
+   "sha256": "16c2060d759e62df94df547df6cc457bcf57bce34693161592774577601c1795",
+   "claims": [
+    "residential"
+   ],
+   "note": "'Nền full thổ cư'"
+  },
+  {
+   "id": 18,
+   "region": "Cần Thơ",
+   "sha256": "24abf8ac01939e52caac28624228ae4291589db116e02a195712e561e936af00",
+   "claims": [
+    "residential",
+    "near_river"
+   ],
+   "note": "'300m2 thổ cư + 724m2 CLN'; 'view sông', 'mở rộng nhà sàn ra sông'"
+  },
+  {
+   "id": 19,
+   "region": "Cần Thơ",
+   "sha256": "3051f0bde5d76dc0526fb2e5e178dcd5046ec002d5556a908f798a85c2aa7596",
+   "claims": [
+    "near_river"
+   ],
+   "note": "'MẶT TIỀN RẠCH' — rạch tính là sông; đất lúa + đất vườn, không có thổ cư"
+  },
+  {
+   "id": 20,
+   "region": "Cần Thơ",
+   "sha256": "56de3d734d6819ccca862fbeab9c56240e6fc2ea73d1432a5a9d1b9c0da11c1b",
+   "claims": [],
+   "note": "'đất lúa', 'điện nước đầy đủ' — không loại câu nào"
+  }
+ ]
+}
