@@ -1,0 +1,155 @@
+{
+ "protocol": "terratwin.listing_gate/6",
+ "role": "primary — nhãn dùng chấm cổng",
+ "labeler": "Chủ dự án (người), gửi 20 dòng mã A–H/0 trong phiên làm việc 26/10/2026",
+ "labelled_before_scoring": true,
+ "saw_ai_labels": false,
+ "guideline": "Người gán nhận bảng 8 loại câu + label_rules lần 3 + 5 nguyên tắc chung + 4 ví dụ tự đặt (chi tiết hơn bản 'bảng + nguyên tắc chung' ghi trong giao thức). Một ví dụ loại trừ trong bản hướng dẫn ('cách cầu Kênh X') TRÙNG tình huống tin 14 — tin 14 ở loại gần sông không còn độc lập; lỗi của người soạn hướng dẫn (Claude).",
+ "labeler_decisions": [
+  "Tin 5: hashtag #DatVenSongTien là bộ hashtag chung kéo lượt xem (cùng có #DatVuonBenTre dù lô là ONT + SKC) → không gán gần sông; gán thổ cư vì có 100m² ONT",
+  "'Quy hoạch đất ở' (tin 11, 14, 16, 17, 19) → không gán thổ cư: nói vùng quy hoạch để ở, chưa nói lô đã có đất ở — cùng loại 'có thể lên thổ cư'",
+  "Tin 14: 'cách cầu kênh Tập Đoàn 100m' là tên cầu → không gán gần sông",
+  "Tin 3, 8, 9: 'nở hậu', 'vuông vức', 'đất không lỗi' là hình dáng/pháp lý → không gán bằng phẳng",
+  "Tin 12, 16: 'chưa thổ cư' là phủ định → không gán thổ cư"
+ ],
+ "labels": [
+  {
+   "id": 1,
+   "region": "Nghệ An (dự phòng 1, thay trang Hà Tĩnh không xem được)",
+   "sha256": "38a04bcabea7b6f084c7d28f62258e1ef5e7a882ac103949114f576b24d89a69",
+   "claims": []
+  },
+  {
+   "id": 2,
+   "region": "Nghệ An (dự phòng 1, thay trang Hà Tĩnh không xem được)",
+   "sha256": "bbee3b82847c2334ee35308a68744837dcf550feade5eef903b4b4ef337c8c30",
+   "claims": []
+  },
+  {
+   "id": 3,
+   "region": "Nghệ An (dự phòng 1, thay trang Hà Tĩnh không xem được)",
+   "sha256": "b9b592935f0284f99447db19df679fec3a27eee7490779caec9bbe8a9a7eee0f",
+   "claims": []
+  },
+  {
+   "id": 4,
+   "region": "Nghệ An (dự phòng 1, thay trang Hà Tĩnh không xem được)",
+   "sha256": "9524738da256ca85471e43e6c01925c327b61f4fc704c8ac411a89ced1932d2c",
+   "claims": []
+  },
+  {
+   "id": 5,
+   "region": "Bến Tre",
+   "sha256": "e1c2cbfc824f9299b90222b4ca7d842a14e77eed0455adeaaa0b39d6d9968cb0",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 6,
+   "region": "Bến Tre",
+   "sha256": "2d8fa007ad684bb85a311c26073d77da7bc2a1365bf07371e957fa8858963e61",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 7,
+   "region": "Bến Tre",
+   "sha256": "65910c827ff4fb76011a33587dbfeaac297a6cbd099f21b4c1943c6ccf03410d",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 8,
+   "region": "Bến Tre",
+   "sha256": "6ca870024c29260a1a500e78fc6ed819980d2b2beb4d41d9e448e0259f9e5786",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 9,
+   "region": "Bến Tre",
+   "sha256": "33ee178635b69b75e8b3a0db6b3b0314220fba803ce817e903a50ad4b817f166",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 10,
+   "region": "Bến Tre (dự phòng 2, thay trang Hà Tĩnh/Khánh Hòa không xem được)",
+   "sha256": "bdfa053be4e2e9a68adf6d67bc9b0c0ee98fcc08432ebcdd2043a992a2cab1fd",
+   "claims": []
+  },
+  {
+   "id": 11,
+   "region": "Bến Tre (dự phòng 2, thay trang Hà Tĩnh/Khánh Hòa không xem được)",
+   "sha256": "65b168eff7f147071d33c3fea3c81894deb1f3f1af9b70b34db119b36f09d189",
+   "claims": []
+  },
+  {
+   "id": 12,
+   "region": "Bến Tre (dự phòng 2, thay trang Hà Tĩnh/Khánh Hòa không xem được)",
+   "sha256": "179cf3714498d6336d4996103209ae6fc210284def61cba048ccdf586fdf555e",
+   "claims": []
+  },
+  {
+   "id": 13,
+   "region": "Bến Tre (dự phòng 2, thay trang Hà Tĩnh/Khánh Hòa không xem được)",
+   "sha256": "b1032ad3504e2019116ab55405d486100ec1dab70f61e6cd441f49c88d3a43a6",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 14,
+   "region": "Bến Tre (dự phòng 2, thay trang Hà Tĩnh/Khánh Hòa không xem được)",
+   "sha256": "a3caa33578e639383c14ada02058c7e8f5dc43fd2aea5d27202912c9672f8b4b",
+   "claims": []
+  },
+  {
+   "id": 15,
+   "region": "Bến Tre (dự phòng 2, thay trang Hà Tĩnh/Khánh Hòa không xem được)",
+   "sha256": "ef9bc55e406142316f084747b25cbc0242269fe1d4a6711e8f79460a2047dcc3",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 16,
+   "region": "Bến Tre (dự phòng 2, thay trang Phú Yên không xem được)",
+   "sha256": "41881683943319ecbcfe66ed07a7b7bb2b4605e7bda0b61fdbee25fb0d462055",
+   "claims": []
+  },
+  {
+   "id": 17,
+   "region": "Bến Tre (dự phòng 2, thay trang Phú Yên không xem được)",
+   "sha256": "2a41e127093f51373473b294c6522438ba94f05aaf572173ba49fd4ec54316f8",
+   "claims": []
+  },
+  {
+   "id": 18,
+   "region": "Bến Tre (dự phòng 2, thay trang Phú Yên không xem được)",
+   "sha256": "09c6132721c61848d851295ed5fa1ad9da1556a78010fe320660dbcc582cc766",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 19,
+   "region": "Bến Tre (dự phòng 2, thay trang Phú Yên không xem được)",
+   "sha256": "0ceb43be931d9c8cb531dbb3bb5c75033b3f55cc7f63e43cb6411ca8a8cec3a3",
+   "claims": []
+  },
+  {
+   "id": 20,
+   "region": "Khánh Hòa (dự phòng 3)",
+   "sha256": "0679b1306a439d682087d6aa2a5a06647d9bb3086c951079ee4ddb76bf33753d",
+   "claims": [
+    "residential"
+   ]
+  }
+ ]
+}
