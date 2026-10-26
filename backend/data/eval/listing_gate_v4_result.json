@@ -1,0 +1,196 @@
+{
+ "protocol": "terratwin.listing_gate/4",
+ "source": "facebook_public_pages",
+ "n": 20,
+ "enough": true,
+ "per_type": [
+  {
+   "type": "high_ground",
+   "precision": 0.0,
+   "recall": 0.0,
+   "f1": 0.0,
+   "tp": 0,
+   "fp": 0,
+   "fn": 2
+  },
+  {
+   "type": "near_river",
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 2,
+   "fp": 0,
+   "fn": 0
+  },
+  {
+   "type": "near_sea",
+   "precision": 0.0,
+   "recall": 0.0,
+   "f1": 0.0,
+   "tp": 0,
+   "fp": 0,
+   "fn": 1
+  },
+  {
+   "type": "residential",
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 2,
+   "fp": 0,
+   "fn": 0
+  }
+ ],
+ "macro_f1": 0.5,
+ "threshold_macro_f1": 0.8,
+ "passed": false,
+ "no_claim_listings": 13,
+ "no_claim_but_extracted": [],
+ "labeler": "Claude (claude-opus-5-5) theo yêu cầu chủ dự án 26/10/2026 ('bạn ấy nhãn luôn đi') — KHÔNG phải nhãn người; chưa có người duyệt",
+ "data_note": "20 bài bán đất trên 4 trang Facebook công khai của môi giới (Huế, Quảng Trị, Hải Phòng, Tiền Giang cũ), 5 bài/trang theo thứ tự trên trang",
+ "data_note_en": "20 land-sale posts from 4 public Facebook pages of brokers (Huế, Quảng Trị, Hải Phòng, former Tiền Giang), first 5 per page in page order",
+ "per_listing": [
+  {
+   "id": 1,
+   "region": "Quảng Điền, Huế",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 2,
+   "region": "Quảng Điền, Huế",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 3,
+   "region": "Quảng Điền, Huế",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 4,
+   "region": "Quảng Điền, Huế",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 5,
+   "region": "Quảng Điền, Huế",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 6,
+   "region": "Hải Lăng, Quảng Trị",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 7,
+   "region": "Hải Lăng, Quảng Trị",
+   "gold": [
+    "high_ground"
+   ],
+   "pred": []
+  },
+  {
+   "id": 8,
+   "region": "Hải Lăng, Quảng Trị",
+   "gold": [
+    "high_ground"
+   ],
+   "pred": []
+  },
+  {
+   "id": 9,
+   "region": "Hải Lăng, Quảng Trị",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 10,
+   "region": "Hải Lăng, Quảng Trị",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 11,
+   "region": "Đồ Sơn, Hải Phòng",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 12,
+   "region": "Đồ Sơn, Hải Phòng",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 13,
+   "region": "Đồ Sơn, Hải Phòng",
+   "gold": [
+    "near_sea"
+   ],
+   "pred": []
+  },
+  {
+   "id": 14,
+   "region": "Đồ Sơn, Hải Phòng",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 15,
+   "region": "Đồ Sơn, Hải Phòng",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 16,
+   "region": "Tiền Giang cũ (Đồng Tháp)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 17,
+   "region": "Tiền Giang cũ (Đồng Tháp)",
+   "gold": [
+    "near_river"
+   ],
+   "pred": [
+    "near_river"
+   ]
+  },
+  {
+   "id": 18,
+   "region": "Tiền Giang cũ (Đồng Tháp)",
+   "gold": [
+    "near_river"
+   ],
+   "pred": [
+    "near_river"
+   ]
+  },
+  {
+   "id": 19,
+   "region": "Tiền Giang cũ (Đồng Tháp)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 20,
+   "region": "Tiền Giang cũ (Đồng Tháp)",
+   "gold": [],
+   "pred": []
+  }
+ ]
+}

@@ -598,7 +598,8 @@ def cards() -> list[dict]:
     # 5 — Kiểm chứng tin đăng (luật từ khoá) và chạm-là-có-ranh (trượt)
     # Cổng GĐ3 (18/10/2026): mỗi lần là một mẫu MỚI đăng ký trước — lần sau không chấm lại mẫu của lần trước.
     runs = [(v, r) for v, r in (("1", _load("eval", "listing_gate_result.json")), ("2", _load("eval", "listing_gate_v2_result.json")),
-                                     ("3", _load("eval", "listing_gate_v3_result.json"))) if r]
+                                     ("3", _load("eval", "listing_gate_v3_result.json")),
+                                     ("4", _load("eval", "listing_gate_v4_result.json"))) if r]
     base = {
         "id": "listing_rules", "kind": tr("quy tắc NLP", "NLP rules"),
         "name": tr("Tách câu khẳng định trong tin đăng bán đất", "Claim extraction from land listings"),
@@ -615,7 +616,9 @@ def cards() -> list[dict]:
             "status_label": (tr(f"cổng lần {v} đạt · luật từ khoá đang chạy", f"gate run {v} passed · keyword rules live") if last.get("passed")
                              else tr(f"cổng lần {v} trượt · vẫn chạy luật từ khoá (không có bộ thay thế), độ chính xác công khai",
                                      f"gate run {v} failed · keyword rules still live (no replacement), accuracy published")),
-            "data": tr(f"{last['n']} tin đăng ĐẤT thật, lấy ngẫu nhiên theo hạt giống đăng ký trước từ bộ công khai tinixai/vietnam-real-estates "
+            # Lần 4 (26/10/2026) đổi NGUỒN: trang Facebook công khai của môi giới — tệp kết quả tự mô tả dữ liệu của nó.
+            "data": tr(last["data_note"], last.get("data_note_en", last["data_note"])) if last.get("data_note") else
+                    tr(f"{last['n']} tin đăng ĐẤT thật, lấy ngẫu nhiên theo hạt giống đăng ký trước từ bộ công khai tinixai/vietnam-real-estates "
                        f"(CC BY-NC 4.0, {last.get('population')} tin đất trong shard)",
                        f"{last['n']} real LAND listings, seeded random sample registered in advance from the public tinixai/vietnam-real-estates "
                        f"set (CC BY-NC 4.0, {last.get('population')} land listings in the shard)"),
@@ -629,7 +632,15 @@ def cards() -> list[dict]:
                          "threshold": f"F1 {r['f1']}", "passed": r["f1"] >= 0.8} for r in last.get("per_type", [])]
                        + [{"label": tr("F1 trung bình", "Macro F1"), "value": last.get("macro_f1"), "threshold": "≥ 0.80",
                            "passed": bool(last.get("passed"))}],
-            "limits": tr("Nhãn của AI cùng 'tác giả' với bộ luật nên không độc lập hoàn toàn; tin đăng phần lớn ở TP.HCM, Hà Nội, ít tin ruộng "
+            "limits": tr("Lần 4 trên tin Facebook thật của môi giới: luật sót cách nói vòng ('cao ngang mặt đường', 'ra biển và … chỉ 3 phút'); "
+                         "mẫu nhỏ — 20 tin, chỉ 7 câu khẳng định, 13 tin không khẳng định gì (luật không bắt nhầm tin nào). Không vá luật theo "
+                         "lần chấm này. Nhãn của AI cùng 'tác giả' với bộ luật nên không độc lập hoàn toàn. Tập vàng nhãn người ở /admin → Tin đăng GĐ3 "
+                         "vẫn chờ chủ dự án.",
+                         "Run 4 on real Facebook broker posts: the rules miss indirect phrasings ('level with the road', 'to the beach and … only "
+                         "3 minutes'); small sample — 20 posts, only 7 claims, 13 posts with none (no false alarms on them). Rules are not patched "
+                         "after this run. AI labels share an 'author' with the rules, so they are not fully independent. The human-labelled gold set "
+                         "in /admin → GĐ3 listings still awaits the owner.") if last.get("source") == "facebook_public_pages" else
+                      tr("Nhãn của AI cùng 'tác giả' với bộ luật nên không độc lập hoàn toàn; tin đăng phần lớn ở TP.HCM, Hà Nội, ít tin ruộng "
                          "vườn ven sông/biển nên loại 'không ngập', 'gần sông' có rất ít mẫu. Muốn tin hơn: chủ dự án duyệt/gán lại ở /admin → Tin đăng GĐ3.",
                          "AI labels share an 'author' with the rules, so they are not fully independent; listings are mostly HCMC/Hanoi with few "
                          "riverside/coastal farm plots, so 'no flooding' and 'near river' have very few examples. For more trust: the owner reviews "

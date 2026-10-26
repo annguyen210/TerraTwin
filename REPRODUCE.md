@@ -547,6 +547,17 @@ python ops/listing_gate_hf.py score shard_0002.parquet 3    # luật của commi
 | 1 — shard_0000, hạt giống 20261019 | c974060 → d1c8940 | **0,58** (trượt) | thổ cư 0,90 · gần biển 0,40 · gần sông 0 · cao ráo 1,0 |
 | 2 — shard_0001, hạt giống 20261020, luật sửa theo lỗi lần 1 | d751942 → c810876 | **0,72** (trượt) | thổ cư 1,0 (8/8, 0 bắt nhầm) · gần sông 0,67 · gần biển 0,50 |
 | 3 — shard_0002, hạt giống 20261021, thêm cách nói vòng theo lỗi lần 2 | dbd1c85 → 02ba524 | **0,99** (ĐẠT) | gần biển 1,0 (7/7) · thổ cư 0,97 (15/15, 1 bắt nhầm) · gần sông, cao ráo, bằng phẳng 1,0 nhưng mỗi loại chỉ 1 câu |
+| 4 — 20 bài trên 4 trang Facebook công khai của môi giới (26/10), luật KHÔNG đổi từ lần 3 | b0533d0 (giao thức + nhãn) → chấm ở commit sau | **0,50** (trượt) | gần sông 1,0 (2/2) · thổ cư 1,0 (2/2) · cao ráo 0 (sót 2 "cao ngang mặt đường") · gần biển 0 (sót "ra biển và Đồi Rồng chỉ 3 phút"); 13 tin không khẳng định gì, 0 bắt nhầm |
+
+Lần 4 đổi nguồn sang nơi người dùng thật mua bán đất — trang Facebook công khai của môi giới ở Huế, Quảng Trị, Hải Phòng,
+Tiền Giang cũ; mỗi trang 5 bài bán đất đầu tiên theo thứ tự trên trang (quy tắc ghi trước khi đọc). Đọc ở chế độ chỉ đọc; số
+điện thoại, đường dẫn, tên người đã xoá; nguyên văn giữ ngoài repo, đối chiếu bằng SHA-256 trong
+`backend/data/eval/listing_gate_v4_labels.json`. Nhãn vẫn do Claude gán. Thứ tự bài Facebook đổi giữa các lần tải trang nên
+không lấy lại đúng mẫu từ nguồn được — chấm lại cần chính tệp văn bản đã ẩn danh:
+
+```bash
+python ops/listing_gate_fb.py <tin.json>    # dừng nếu một tin lệch SHA-256; không chấm lần hai
+```
 
 Đọc kết quả: luật từ khoá gần như **không bắt nhầm** (độ chính xác 1,0 mọi loại ở lần 2) nhưng **sót cách nói vòng** ("gió
 sông rất mát", "đi biển 10 phút", "bên bờ vịnh"). Mẫu ngẫu nhiên rất ít câu "không ngập / gần sông" nên F1 các loại hiếm dao
