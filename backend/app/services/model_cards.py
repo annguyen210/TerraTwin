@@ -612,9 +612,16 @@ def cards() -> list[dict]:
     if runs:
         v, last = runs[-1]
         names = {t: vi for t, vi, *_ in __import__("app.services.listing_check", fromlist=["CLAIMS"]).CLAIMS}
+        # Chủ dự án DUYỆT nhãn AI của lần chấm (26/10/2026, lần 5): ghi đúng là "người duyệt", không phải "nhãn người".
+        rv = _load("eval", f"listing_gate_v{v}_review.json") if v != "1" else None
+        reviewed = tr(f" Chủ dự án đã DUYỆT nhãn lần {v}: {rv.get('n_reviewed')} nhãn, sửa {rv.get('n_changed')} — người duyệt thấy nhãn AI "
+                      "trước, nên đây là nhãn AI có người duyệt, chưa phải người gán độc lập.",
+                      f" The owner REVIEWED run {v}'s labels: {rv.get('n_reviewed')} labels, {rv.get('n_changed')} changed — the reviewer "
+                      "saw the AI labels first, so these are reviewed AI labels, not independent human labels.") if rv else ""
         out.append({**base,
             "status": "accepted" if last.get("passed") else "rejected",
-            "status_label": (tr(f"cổng lần {v} đạt · luật từ khoá đang chạy", f"gate run {v} passed · keyword rules live") if last.get("passed")
+            "status_label": (tr(f"cổng lần {v} đạt · luật từ khoá đang chạy" + (" · nhãn AI, người duyệt" if rv else ""),
+                                f"gate run {v} passed · keyword rules live" + (" · AI labels, human-reviewed" if rv else "")) if last.get("passed")
                              else tr(f"cổng lần {v} trượt · vẫn chạy luật từ khoá (không có bộ thay thế), độ chính xác công khai",
                                      f"gate run {v} failed · keyword rules still live (no replacement), accuracy published")),
             # Lần 4 (26/10/2026) đổi NGUỒN: trang Facebook công khai của môi giới — tệp kết quả tự mô tả dữ liệu của nó.
@@ -626,7 +633,7 @@ def cards() -> list[dict]:
             "split": tr("nhãn do Claude (AI) gán theo uỷ quyền chủ dự án, commit TRƯỚC khi chấm — KHÔNG phải nhãn người; ngưỡng F1 trung bình ≥ 0,80; "
                         + " · ".join(f"lần {k}: F1 {r.get('macro_f1')}" for k, r in runs),
                         "labels by Claude (AI) on the owner's authority, committed BEFORE scoring — NOT human labels; threshold macro F1 ≥ 0.80; "
-                        + " · ".join(f"run {k}: F1 {r.get('macro_f1')}" for k, r in runs)),
+                        + " · ".join(f"run {k}: F1 {r.get('macro_f1')}" for k, r in runs)) + reviewed,
             "metrics": [{"label": tr(f"{names.get(r['type'], r['type'])} — chính xác / độ phủ (đúng · thừa · sót)",
                                      f"{r['type']} — precision / recall (tp · fp · fn)"),
                          "value": f"{r['precision']} / {r['recall']} ({r['tp']} · {r['fp']} · {r['fn']})",

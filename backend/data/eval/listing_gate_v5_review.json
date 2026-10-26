@@ -1,0 +1,12 @@
+{
+ "protocol": "terratwin.listing_gate/5",
+ "reviewed": "2026-10-26",
+ "reviewer": "Chủ dự án (người), trong phiên làm việc với Claude",
+ "labels_commit": "00c3f64",
+ "scope": "Cả 20 nhãn: 7 tin có nhãn được hiện phần chữ chứa câu khẳng định kèm nhãn AI; 13 tin 'không khẳng định loại nào' được hiện bản tóm tắt một dòng để lướt tìm câu bị sót",
+ "decision": "Đồng ý hết",
+ "n_reviewed": 20,
+ "n_changed": 0,
+ "changes": [],
+ "caveat": "DUYỆT nhãn AI, không phải gán độc lập: người duyệt thấy nhãn AI trước (thiên về đồng ý); người duyệt là chủ dự án, không phải bên thứ ba; 13 tin không nhãn được duyệt trên bản tóm tắt. Không sửa nhãn nào nên kết quả chấm lần 5 (F1 0,95) giữ nguyên."
+}
