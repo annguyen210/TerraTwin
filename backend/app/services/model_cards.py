@@ -633,7 +633,16 @@ def cards() -> list[dict]:
                          "threshold": f"F1 {r['f1']}", "passed": r["f1"] >= 0.8} for r in last.get("per_type", [])]
                        + [{"label": tr("F1 trung bình", "Macro F1"), "value": last.get("macro_f1"), "threshold": "≥ 0.80",
                            "passed": bool(last.get("passed"))}],
-            "limits": tr("Lần 4 trên tin Facebook thật của môi giới: luật sót cách nói vòng ('cao ngang mặt đường', 'ra biển và … chỉ 3 phút'); "
+            "limits": tr("Lần 5 là luật SỬA theo lỗi lần 4 (lệch ghi chú cũ 'lần sau là mô hình khác' — công bố); khoá luật trước khi thu 20 tin "
+                         "Facebook mới. Mẫu kiểm tra chỉ có câu thổ cư (6) và gần sông (2): hai chỗ sửa 'cao ngang mặt đường', 'ra biển … phút' "
+                         "CHƯA được tập kiểm tra thử tới; 13 tin không khẳng định gì, luật không bắt nhầm tin nào; sót 'DOT lâu dài' (gõ nhầm ODT). "
+                         "Nhãn của AI cùng 'tác giả' với bộ luật. Tập vàng nhãn người ở /admin → Tin đăng GĐ3 vẫn chờ chủ dự án.",
+                         "Run 5 uses rules FIXED after run 4's errors (a disclosed departure from the earlier 'next time a different model' note), "
+                         "frozen before 20 new Facebook posts were collected. The test sample only had residential (6) and near-river (2) claims: the "
+                         "'level with the road' and 'to the beach … minutes' fixes were NOT exercised; 13 posts with no claims, no false alarms; "
+                         "missed 'DOT lâu dài' (a typo for ODT). AI labels share an 'author' with the rules. The human-labelled gold set in "
+                         "/admin → GĐ3 listings still awaits the owner.") if v == "5" else
+                      tr("Lần 4 trên tin Facebook thật của môi giới: luật sót cách nói vòng ('cao ngang mặt đường', 'ra biển và … chỉ 3 phút'); "
                          "mẫu nhỏ — 20 tin, chỉ 7 câu khẳng định, 13 tin không khẳng định gì (luật không bắt nhầm tin nào). Không vá luật theo "
                          "lần chấm này. Nhãn của AI cùng 'tác giả' với bộ luật nên không độc lập hoàn toàn. Tập vàng nhãn người ở /admin → Tin đăng GĐ3 "
                          "vẫn chờ chủ dự án.",

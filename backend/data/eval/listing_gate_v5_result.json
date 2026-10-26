@@ -1,0 +1,184 @@
+{
+ "protocol": "terratwin.listing_gate/5",
+ "source": "facebook_public_pages",
+ "n": 20,
+ "enough": true,
+ "per_type": [
+  {
+   "type": "near_river",
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 2,
+   "fp": 0,
+   "fn": 0
+  },
+  {
+   "type": "residential",
+   "precision": 1.0,
+   "recall": 0.83,
+   "f1": 0.91,
+   "tp": 5,
+   "fp": 0,
+   "fn": 1
+  }
+ ],
+ "macro_f1": 0.95,
+ "threshold_macro_f1": 0.8,
+ "passed": true,
+ "no_claim_listings": 13,
+ "no_claim_but_extracted": [],
+ "labeler": "Claude (claude-opus-5-5) theo yêu cầu chủ dự án 26/10/2026 — KHÔNG phải nhãn người; chưa có người duyệt",
+ "data_note": "20 bài bán đất MỚI trên 4 trang Facebook công khai khác (Nam Định, Quảng Bình cũ, Bình Định, Cần Thơ), thu SAU khi khoá luật sửa lần 5; 20 tin lần 4 là tập phát triển",
+ "data_note_en": "20 NEW land-sale posts from 4 other public Facebook broker pages (Nam Định, former Quảng Bình, Bình Định, Cần Thơ), collected AFTER the run-5 rule fix was frozen; the run-4 posts are the development set",
+ "per_listing": [
+  {
+   "id": 1,
+   "region": "Nam Định",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 2,
+   "region": "Nam Định",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 3,
+   "region": "Nam Định",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 4,
+   "region": "Nam Định",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 5,
+   "region": "Nam Định",
+   "gold": [
+    "residential"
+   ],
+   "pred": []
+  },
+  {
+   "id": 6,
+   "region": "Quảng Bình cũ",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 7,
+   "region": "Quảng Bình cũ",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 8,
+   "region": "Quảng Bình cũ",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 9,
+   "region": "Quảng Bình cũ",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 10,
+   "region": "Quảng Bình cũ",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 11,
+   "region": "Bình Định",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 12,
+   "region": "Bình Định",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 13,
+   "region": "Nam Định (trang dự phòng 1)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 14,
+   "region": "Nam Định (trang dự phòng 1)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 15,
+   "region": "Nam Định (trang dự phòng 1)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 16,
+   "region": "Cần Thơ",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 17,
+   "region": "Cần Thơ",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 18,
+   "region": "Cần Thơ",
+   "gold": [
+    "near_river",
+    "residential"
+   ],
+   "pred": [
+    "near_river",
+    "residential"
+   ]
+  },
+  {
+   "id": 19,
+   "region": "Cần Thơ",
+   "gold": [
+    "near_river"
+   ],
+   "pred": [
+    "near_river"
+   ]
+  },
+  {
+   "id": 20,
+   "region": "Cần Thơ",
+   "gold": [],
+   "pred": []
+  }
+ ]
+}

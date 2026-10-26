@@ -559,6 +559,18 @@ không lấy lại đúng mẫu từ nguồn được — chấm lại cần ch�
 python ops/listing_gate_fb.py <tin.json>    # dừng nếu một tin lệch SHA-256; không chấm lần hai
 ```
 
+| Lần | Giao thức → nhãn → chấm | F1 trung bình | Từng loại |
+|---|---|---|---|
+| 5 — luật SỬA theo lỗi lần 4 (20 tin lần 4 thành tập phát triển), khoá luật TRƯỚC khi thu 20 tin Facebook MỚI: Nam Định, Quảng Bình cũ, Bình Định (chỉ 2 bài bán đất → 3 bài từ trang dự phòng Nam Định theo thứ tự đăng ký), Cần Thơ | 4286f5e (luật + giao thức) → 00c3f64 (nhãn) → chấm ở commit sau | **0,95** (ĐẠT) | thổ cư 0,91 (5/6, sót "DOT lâu dài" — gõ nhầm ODT) · gần sông/rạch 1,0 (2/2); 13 tin không khẳng định gì, 0 bắt nhầm |
+
+Lần 5 LỆCH ghi chú ở giao thức lần 3–4 ("lần sau là mô hình khác, không vá luật thêm") — công bố trong
+`listing_gate_v5_protocol.json` và trên thẻ mô hình. Mẫu kiểm tra lần 5 không có câu "cao ráo", "gần biển", "không ngập",
+nên hai chỗ sửa của lần 5 chưa được tập kiểm tra thử tới.
+
+```bash
+python ops/listing_gate_fb.py <tin_lan5.json> --run 5
+```
+
 Đọc kết quả: luật từ khoá gần như **không bắt nhầm** (độ chính xác 1,0 mọi loại ở lần 2) nhưng **sót cách nói vòng** ("gió
 sông rất mát", "đi biển 10 phút", "bên bờ vịnh"). Mẫu ngẫu nhiên rất ít câu "không ngập / gần sông" nên F1 các loại hiếm dao
 động mạnh. Lần 3 thêm cách nói vòng theo lỗi lần 2 và đạt trên mẫu mới. Cần đọc đúng mức: đây là lần thử THỨ BA (nguy cơ "thử tới khi đạt"),

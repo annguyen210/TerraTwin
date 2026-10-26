@@ -70,3 +70,21 @@ def test_the_mo_hinh_lan_4_tin_facebook_truot(monkeypatch):
     assert c["status"] == "rejected" and "lần 4 trượt" in c["status_label"]
     assert c["data"] == "20 bài trên 4 trang Facebook" and "lần 3: F1 0.99" in c["split"] and "lần 4: F1 0.5" in c["split"]
     assert "Facebook" in c["limits"] and c["metrics"][0]["passed"] is False
+
+
+def test_the_mo_hinh_lan_5_ghi_ro_luat_sua_va_loai_chua_thu(monkeypatch):
+    """Lần 5 (26/10/2026): luật sửa theo lần 4, chấm trên tin MỚI — thẻ phải nói rõ việc lệch ghi chú cũ và các loại câu
+    mẫu kiểm tra không có (đạt không được hiểu là đã kiểm mọi loại)."""
+    from app.services import model_cards
+    real = model_cards._load
+    r4 = {"n": 20, "macro_f1": 0.5, "passed": False, "source": "facebook_public_pages", "data_note": "lần 4", "per_type": []}
+    r5 = {"n": 20, "macro_f1": 0.95, "passed": True, "source": "facebook_public_pages", "data_note": "20 bài MỚI",
+          "per_type": [{"type": "residential", "precision": 1.0, "recall": 0.83, "f1": 0.91, "tp": 5, "fp": 0, "fn": 1}]}
+    files = {("eval", "listing_gate_result.json"): None, ("eval", "listing_gate_v2_result.json"): None,
+             ("eval", "listing_gate_v3_result.json"): None, ("eval", "listing_gate_v4_result.json"): r4,
+             ("eval", "listing_gate_v5_result.json"): r5}
+    monkeypatch.setattr(model_cards, "_load", lambda *p: files[p] if p in files else real(*p))
+    c = next(x for x in model_cards.cards() if x["id"] == "listing_rules")
+    assert c["status"] == "accepted" and "lần 5 đạt" in c["status_label"]
+    assert "lần 4: F1 0.5" in c["split"] and "lần 5: F1 0.95" in c["split"] and "KHÔNG phải nhãn người" in c["split"]
+    assert "CHƯA được tập kiểm tra thử tới" in c["limits"] and "lệch ghi chú cũ" in c["limits"]
