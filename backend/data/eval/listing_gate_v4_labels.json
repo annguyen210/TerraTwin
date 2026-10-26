@@ -1,0 +1,154 @@
+{
+ "protocol": "terratwin.listing_gate/4",
+ "labeler": "Claude (claude-opus-5-5) theo yêu cầu chủ dự án 26/10/2026 ('bạn ấy nhãn luôn đi') — KHÔNG phải nhãn người; chưa có người duyệt",
+ "labelled_before_scoring": true,
+ "text_note": "SHA-256 của văn bản SAU khi xoá số điện thoại/đường dẫn/tên người (bản lưu ngoài repo); nguyên văn không đưa vào repo",
+ "labels": [
+  {
+   "id": 1,
+   "region": "Quảng Điền, Huế",
+   "sha256": "cac5e88e057479d4caa2edf149f97b6b026988e251c826dd89a9c31374c977a3",
+   "claims": []
+  },
+  {
+   "id": 2,
+   "region": "Quảng Điền, Huế",
+   "sha256": "5bddf747f605bfeddfe2da69a7edc780ca2b339eb77989bb3ed4bca8e3f15bdb",
+   "claims": []
+  },
+  {
+   "id": 3,
+   "region": "Quảng Điền, Huế",
+   "sha256": "bceba0a79365eee6ff3f395ce7867382417cb80a23184a8755914a30f7eb1088",
+   "claims": []
+  },
+  {
+   "id": 4,
+   "region": "Quảng Điền, Huế",
+   "sha256": "2d70341eb77f1ef6be1d9c040b7f079e9557e696000cd38b93e238ae11d0928c",
+   "claims": []
+  },
+  {
+   "id": 5,
+   "region": "Quảng Điền, Huế",
+   "sha256": "e693a8c54d05ef464956d316b72de70a46f2340aa9b4cb9b65eaa278f1babf91",
+   "claims": [],
+   "note": "'KQH' (khu quy hoạch), 'gần trường' — không khẳng định thổ cư"
+  },
+  {
+   "id": 6,
+   "region": "Hải Lăng, Quảng Trị",
+   "sha256": "55f29d3a96a5568278b38f81c7fb229bf8a2f8e2e36a3074391c1998decd8369",
+   "claims": []
+  },
+  {
+   "id": 7,
+   "region": "Hải Lăng, Quảng Trị",
+   "sha256": "eff9b6dca659bcd159513b3ce00cb1818e33793760e97bba40b3949da0d28f7c",
+   "claims": [
+    "high_ground"
+   ],
+   "note": "'cao ngang mặt đường' = đã san bằng mặt đường, không trũng → cao ráo (ca cân nhắc)"
+  },
+  {
+   "id": 8,
+   "region": "Hải Lăng, Quảng Trị",
+   "sha256": "7622db6c4386d9bd8bb6c2b617e1c8c95d5eed727cca08117effafd3b16f8e96",
+   "claims": [
+    "high_ground"
+   ],
+   "note": "như tin 7: 'cao ngang mặt đường'"
+  },
+  {
+   "id": 9,
+   "region": "Hải Lăng, Quảng Trị",
+   "sha256": "1ce85a14e6a254d6a871dfa288ed8f0af8d341705e225891b95c5191aadae782",
+   "claims": [],
+   "note": "'về cảng' là cảng, không khẳng định gần biển"
+  },
+  {
+   "id": 10,
+   "region": "Hải Lăng, Quảng Trị",
+   "sha256": "83858c7293572cfb8cddc30d5ecf58b579b75010ff1f9b77853aac910a109ea8",
+   "claims": []
+  },
+  {
+   "id": 11,
+   "region": "Đồ Sơn, Hải Phòng",
+   "sha256": "3bbec8ef90b7dc02e74b8869030be60aa70bf63ea87e23adbdc70b07546b3525",
+   "claims": [],
+   "note": "'khu TDC', 'dịch vụ sổ hồng' — không ghi rõ đất ở/thổ cư"
+  },
+  {
+   "id": 12,
+   "region": "Đồ Sơn, Hải Phòng",
+   "sha256": "ae071a1e79ea7808b1c01e5a0419f1cdf654d1fed4784c4bd0d4e2d747366083",
+   "claims": [],
+   "note": "'sổ đỏ chính chủ' — không ghi loại đất"
+  },
+  {
+   "id": 13,
+   "region": "Đồ Sơn, Hải Phòng",
+   "sha256": "2dee56b9f0d7f1188e05bd3784cecf0ccf6810e75d47df94c9fe3fbbfea5f291",
+   "claims": [
+    "near_sea"
+   ],
+   "note": "'Ra biển … chỉ 3 phút' — cách nói vòng gần biển (quy tắc lần 3)"
+  },
+  {
+   "id": 14,
+   "region": "Đồ Sơn, Hải Phòng",
+   "sha256": "3792c08068d0b426b6b9825836de1551350641951ed85b7e259e150bbf72732d",
+   "claims": []
+  },
+  {
+   "id": 15,
+   "region": "Đồ Sơn, Hải Phòng",
+   "sha256": "03c5badb5740db01a9c4469e3fdd4e86103a59844c226f71c123b25f754465a3",
+   "claims": []
+  },
+  {
+   "id": 16,
+   "region": "Tiền Giang cũ (Đồng Tháp)",
+   "sha256": "b915ca5f846064498c4c4c88e96ecdda631d904f9f2b57b12eda174c3bf5b9f2",
+   "claims": [
+    "residential"
+   ],
+   "note": "'CÓ THỔ CƯ' + #DatCoThoCu"
+  },
+  {
+   "id": 17,
+   "region": "Tiền Giang cũ (Đồng Tháp)",
+   "sha256": "ccb32e1d5bfee78a93e28e7102f2bd724258992bf9af66de397d1d62197fac20",
+   "claims": [
+    "near_river"
+   ],
+   "note": "'ven kênh', 'mặt tiền kênh 70m' — kênh tính là sông"
+  },
+  {
+   "id": 18,
+   "region": "Tiền Giang cũ (Đồng Tháp)",
+   "sha256": "8ba15e0caa28e4f3bc1548ca05eab82b67ff86d54388edbc58bdcc9a93602bf4",
+   "claims": [
+    "near_river"
+   ],
+   "note": "'ven kênh'"
+  },
+  {
+   "id": 19,
+   "region": "Tiền Giang cũ (Đồng Tháp)",
+   "sha256": "94f27e14d761da61d9a73fc6d920243932cd13ac1a1785599a3c9b85bf7978ce",
+   "claims": [
+    "residential"
+   ],
+   "note": "'Có sẵn 150m² đất thổ cư'"
+  },
+  {
+   "id": 20,
+   "region": "Tiền Giang cũ (Đồng Tháp)",
+   "sha256": "db328c0c55fc66275d3f5a23e7638bf4e835321c1d458594405a728b153a312e",
+   "claims": [],
+   "note": "'tặng nhà cấp 4', 'sổ hồng đầy đủ' — không ghi rõ đất ở/thổ cư"
+  }
+ ]
+}

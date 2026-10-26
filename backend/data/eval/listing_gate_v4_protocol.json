@@ -1,0 +1,19 @@
+{
+  "id": "terratwin.listing_gate/4",
+  "registered": "2026-10-26",
+  "registered_before_sampling": false,
+  "registered_before_scoring": true,
+  "purpose": "Kiểm bộ tách câu khẳng định (luật từ khoá, KHÔNG sửa luật nào sau lần 3) trên tin đăng THẬT ở NƠI người dùng thật mua bán đất: trang Facebook công khai của môi giới, khác hẳn phân bố tin của bộ tinixai (lần 1–3). Không phải lần thử để 'qua cổng': trượt thì công bố như lần 1–2.",
+  "data": {
+    "source": "20 bài trên 4 trang Facebook CÔNG KHAI của môi giới đất ở 4 vùng (Quảng Điền – Huế; Hải Lăng – Quảng Trị; Đồ Sơn – Hải Phòng; Tiền Giang cũ – Đồng Tháp), đọc ngày 26/10/2026 bằng tài khoản của chủ dự án ở chế độ CHỈ ĐỌC (không tham gia/theo dõi/tương tác; URL trang tìm bằng tìm kiếm web, không dùng ô tìm kiếm Facebook)",
+    "selection": "Quy tắc ghi TRƯỚC khi đọc (D:/tt-scratch/gd3fb/README.txt): mỗi trang lấy 5 bài BÁN ĐẤT đầu tiên theo thứ tự hiện trên trang; bỏ cho thuê, bán nhà, căn hộ, cần mua, thông báo đấu giá, bài giới thiệu chung, bài trùng; KHÔNG chọn theo việc bài có câu khẳng định hay không. Thứ tự bài Facebook đổi giữa các lần tải trang nên mẫu không tái lập tuyệt đối từ nguồn — bản văn bản đã ẩn danh được giữ ngoài repo, đối chiếu bằng SHA-256 trong tệp nhãn.",
+    "privacy": "Đã xoá số điện thoại (kể cả viết bằng chữ số nhỏ), đường dẫn và tên người trước khi lưu; repo chỉ giữ vùng + SHA-256 + nhãn, không chép nguyên văn bài viết của người khác",
+    "region_split": "5 tin mỗi vùng × 4 vùng = 20"
+  },
+  "labeler": "Claude (mô hình AI claude-opus-5-5) theo yêu cầu của chủ dự án 26/10/2026. KHÔNG phải nhãn người; cùng 'tác giả' với bộ luật nên không độc lập hoàn toàn — thẻ kết quả phải ghi rõ. Nhãn commit TRƯỚC khi chạy bộ tách câu trên 20 tin này (thứ tự commit là bằng chứng). Tập vàng nhãn NGƯỜI ở /admin → Tin đăng GĐ3 vẫn để trống chờ chủ dự án.",
+  "label_rules": "Y nguyên label_rules của listing_gate_v3_protocol.json (không đổi định nghĩa nào).",
+  "metric": "Như ops/listing_gate.py và services/listing_gold.score: chính xác / độ phủ / F1 từng loại câu; F1 trung bình (macro) trên các loại có ít nhất một nhãn hoặc một dự đoán. Báo thêm số tin không có câu khẳng định nào mà bộ tách vẫn bắt ra câu (báo động giả cấp tin).",
+  "threshold": "ĐẠT khi F1 trung bình ≥ 0,80 trên 20 tin (cùng ngưỡng lần 1–3).",
+  "one_shot": "Chấm đúng một lần bằng ops/listing_gate_fb.py sau commit nhãn. Không vá luật theo kết quả lần này; lần sau (nếu có) là nhãn người hoặc mô hình khác.",
+  "script": "ops/listing_gate_fb.py"
+}
