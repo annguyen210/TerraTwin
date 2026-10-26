@@ -1,0 +1,33 @@
+{
+  "id": "terratwin.listing_gate/6",
+  "registered": "2026-10-26",
+  "registered_before_sampling": true,
+  "purpose": "Lần đầu chấm bộ tách câu trên NHÃN NGƯỜI THẬT: chủ dự án tự gán 20 tin Facebook mới mà KHÔNG thấy nhãn hay kết quả máy nào. Đồng thời đo mức nhãn AI (Claude, khoá trước) khớp nhãn người trên cùng 20 tin.",
+  "rules": "Bộ luật tách câu GIỮ NGUYÊN như lần 5 (services/listing_check.py tại commit 4286f5e) — không sửa gì cho lần 6.",
+  "data": {
+    "source": "Trang Facebook CÔNG KHAI của môi giới đất, chọn THEO TÊN TRANG từ kết quả tìm kiếm web (chưa đọc bài nào), ở 4 vùng chưa dùng ở lần 4–5",
+    "pages": [
+      {"region": "Hà Tĩnh", "url": "https://www.facebook.com/NhadatthanhphoHaTinh/"},
+      {"region": "Bến Tre", "url": "https://www.facebook.com/dautubdsbentre/"},
+      {"region": "Khánh Hòa (ven biển Dốc Lết)", "url": "https://www.facebook.com/muabannhadatninhhoa/"},
+      {"region": "Phú Yên", "url": "https://www.facebook.com/people/H%E1%BB%99i-mua-b%C3%A1n-%C4%91%E1%BA%A5t-n%C3%B4ng-nghi%E1%BB%87p-ph%C3%BA-y%C3%AAn/100064993421002/"}
+    ],
+    "backup_pages": [
+      {"region": "Nghệ An", "url": "https://www.facebook.com/bdsnghiphong/"},
+      {"region": "Bến Tre", "url": "https://www.facebook.com/bdsphatlocbentre/"},
+      {"region": "Khánh Hòa", "url": "https://www.facebook.com/NhaDatCamlamCom/"}
+    ],
+    "selection": "Như lần 4–5: mỗi trang 5 bài BÁN ĐẤT đầu tiên theo thứ tự hiện trên trang (bỏ cho thuê, bán nhà, căn hộ, kiot, cần mua, thông báo đấu giá, bài giới thiệu chung, bài trùng); không chọn theo câu khẳng định. Thiếu sau ~30 lần cuộn → lấy tiếp từ trang dự phòng theo thứ tự (trang dự phòng đã dùng thì lấy tiếp bài sau đó).",
+    "access": "Chỉ đọc bằng tài khoản chủ dự án; không tham gia/theo dõi/tương tác; không dùng ô tìm kiếm Facebook",
+    "privacy": "Xoá số điện thoại, đường dẫn, tên người trước khi lưu và trước khi đưa cho người gán"
+  },
+  "labelers": {
+    "primary": "CHỦ DỰ ÁN (người) — nhận phần chữ 20 tin KHÔNG kèm nhãn, gợi ý hay kết quả máy nào; tự chọn mã A–H hoặc 0 theo bảng 8 loại câu. Đây là nhãn dùng để chấm cổng.",
+    "secondary": "Claude (claude-opus-5-5) gán riêng theo label_rules lần 3, commit TRƯỚC khi đưa tin cho chủ dự án — chỉ để đo độ khớp AI–người, không dùng để chấm cổng"
+  },
+  "label_rules": "Người gán nhận bảng 8 loại câu và nguyên tắc chung 'chỉ tính điều tin KHẲNG ĐỊNH về chính lô đất'. Claude dùng y nguyên label_rules của listing_gate_v3_protocol.json.",
+  "metric": "Cổng: F1 trung bình (macro) của bộ tách câu trên NHÃN NGƯỜI, cùng cách tính listing_gold.score. Phụ: độ khớp nhãn AI với nhãn người — số tin khớp hoàn toàn / 20, và chính xác / độ phủ / F1 của nhãn AI coi nhãn người là đúng (gộp mọi loại).",
+  "threshold": "ĐẠT khi F1 trung bình ≥ 0,80 trên 20 tin nhãn người.",
+  "one_shot": "Chấm đúng một lần sau khi commit nhãn người; không sửa nhãn người sau khi thấy kết quả. Nhãn người cũng được nhập vào tập vàng /admin → Tin đăng GĐ3 (đúng nơi thiết kế cho nhãn người).",
+  "script": "ops/listing_gate_fb.py --run 6"
+}
