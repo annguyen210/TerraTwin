@@ -66,6 +66,31 @@ _RADAR_RETRY_INTERVAL_MIN = float(os.environ.get("TERRATWIN_RADAR_RETRY_INTERVAL
 
 # Hâm nóng cache ngay sau khi dựng lại tiến trình. "0" = tắt; mặc định bật.
 _STARTUP_WARMUP = os.environ.get("TERRATWIN_STARTUP_WARMUP", "1").strip() != "0"
+_STARTED_AT = time.time()
+
+
+def _process_stats() -> dict:
+    """Bộ nhớ + CPU của CHÍNH tiến trình (26/10/2026): Render miễn phí không ghi biểu đồ bộ nhớ, nên API tự báo —
+    rss/đỉnh rss (Linux /proc/self/status), trần cgroup, số CPU nhìn thấy, số luồng BLAS, thời gian đã chạy (uptime
+    nhỏ ngay sau một lượt hỏng = vừa khởi động lại, nghi hết bộ nhớ)."""
+    out: dict = {"cpu_count": os.cpu_count(), "blas_threads": os.environ.get("OPENBLAS_NUM_THREADS"),
+                 "uptime_s": int(time.time() - _STARTED_AT), "rss_mb": None, "peak_rss_mb": None, "limit_mb": None}
+    try:
+        with open("/proc/self/status", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith(("VmRSS:", "VmHWM:")):
+                    out["rss_mb" if line.startswith("VmRSS") else "peak_rss_mb"] = round(int(line.split()[1]) / 1024)
+    except OSError:
+        pass
+    for path in ("/sys/fs/cgroup/memory.max", "/sys/fs/cgroup/memory/memory.limit_in_bytes"):
+        try:
+            raw = open(path, encoding="utf-8").read().strip()
+            if raw.isdigit() and int(raw) < 1 << 50:
+                out["limit_mb"] = round(int(raw) / 2**20)
+                break
+        except OSError:
+            continue
+    return out
 # Render free NGỦ sau 15 phút không ai gọi và DẬY lại nhiều lần mỗi ngày (cron, khách). Mỗi lần
 # dậy mà hâm nóng đủ 8 điểm là ~60 lượt gọi Open-Meteo dồn một lúc — từ một IP dùng chung với
 # khách Render khác — và chính nó làm /api/health báo "bị chặn hạn mức" khi CHƯA có người dùng.
@@ -643,6 +668,7 @@ def health(request: Request) -> dict:
                            # header đã dùng để nhận IP của CHÍNH lượt gọi này (không trả IP) — kiểm được không bịa được
                            "client_ip_source": _client_ip_src(request)[1]},
             "database": database,
+            "process": _process_stats(),
             "weather_data_plan": _openmeteo_plan(),
             "signing": signing_info,
             "field_photos": photos,

@@ -548,3 +548,14 @@ def test_du_bao_gop_theo_o_luoi(monkeypatch):
     seen.clear()
     realdata.river_discharge_7d(16.5751, 107.4952)                     # sông: giữ làm tròn 0,01°
     assert [u for u in seen if "flood-api" in u] and all("latitude=16.58&longitude=107.5&" in u for u in seen if "flood-api" in u)
+
+
+def test_blas_mot_luong_va_health_bao_tien_trinh(client):
+    """26/10/2026: BLAS (numpy) mặc định 1 luồng — trên 8 luồng nạp numpy tốn +235 MB, API khởi động 322 MB thay vì 97 MB;
+    /api/health tự báo bộ nhớ/CPU/uptime vì Render miễn phí không ghi biểu đồ bộ nhớ."""
+    import os
+    import app  # noqa: F401 — app/__init__.py đặt mặc định
+    assert os.environ.get("OPENBLAS_NUM_THREADS") and os.environ.get("OMP_NUM_THREADS")
+    p = client.get("/api/health").json()["process"]
+    assert p["cpu_count"] >= 1 and p["uptime_s"] >= 0 and p["blas_threads"] == os.environ["OPENBLAS_NUM_THREADS"]
+    assert set(p) >= {"rss_mb", "peak_rss_mb", "limit_mb"}
