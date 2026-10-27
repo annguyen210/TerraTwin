@@ -1,0 +1,194 @@
+{
+ "id": "terratwin.listing_gate/8",
+ "registered": "2026-10-27",
+ "registered_before_sampling": true,
+ "rules_frozen_before_sampling": true,
+ "purpose": "Đo 6 loại câu CHƯA từng được chấm trên NHÃN NGƯỜI: không ngập (A), gần sông (C), gần biển (D), bằng phẳng (E), không sạt lở (F), nước ngọt (H). 40 tin nhãn người lần 6–7 chỉ có câu thổ cư (G) và cao ráo (B); 6 loại kia mới chỉ được chấm trên nhãn AI (lần 1–5). Chọn mẫu theo cách cũ (5 bài đầu mỗi trang) gần như không gặp các loại này, nên lần 8 chọn mẫu CÓ CHỦ ĐÍCH theo từ chủ đề (xem data.selection).",
+ "rules_change": "KHÔNG đổi luật. Chấm đúng services/listing_check.py ở commit 68f46e9 (lần 7), SHA-256 tệp d7d856282d047d88a7b4bf34276de9118abd6994c7108fc0a28dfd21d671ec52.",
+ "data": {
+  "source": "Trang Facebook CÔNG KHAI của môi giới đất, chọn THEO TÊN TRANG từ kết quả tìm kiếm web (chưa đọc bài nào), ở vùng mà chủ đề đó hay được nhắc và chưa dùng ở lần 4–7; bỏ trang gắn website trong tên, nhóm, trang cá nhân",
+  "groups": [
+   {
+    "topic": "biển",
+    "target": "near_sea",
+    "words": [
+     "biển",
+     "bãi tắm",
+     "vịnh"
+    ],
+    "pages": [
+     {
+      "region": "Bình Thuận cũ (Phan Thiết)",
+      "url": "https://www.facebook.com/datbienphanthietbinhthuan/"
+     }
+    ],
+    "backup_pages": [
+     {
+      "region": "Quảng Ngãi",
+      "url": "https://www.facebook.com/chuyenbannhadatquangngai/"
+     }
+    ]
+   },
+   {
+    "topic": "sông",
+    "target": "near_river",
+    "words": [
+     "sông",
+     "kênh",
+     "rạch"
+    ],
+    "pages": [
+     {
+      "region": "Đồng Tháp (Sa Đéc)",
+      "url": "https://www.facebook.com/batdongsansadec"
+     }
+    ],
+    "backup_pages": [
+     {
+      "region": "Trà Vinh",
+      "url": "https://www.facebook.com/muabannhadattra/"
+     }
+    ]
+   },
+   {
+    "topic": "ngập",
+    "target": "no_flood",
+    "words": [
+     "ngập",
+     "lụt",
+     "khô ráo"
+    ],
+    "pages": [
+     {
+      "region": "Hà Nội (Chương Mỹ)",
+      "url": "https://www.facebook.com/batdongsanhuyenchuongmy/"
+     }
+    ],
+    "backup_pages": [
+     {
+      "region": "Hà Nội (Chương Mỹ)",
+      "url": "https://www.facebook.com/muabandathoachinhchuongmy/"
+     }
+    ]
+   },
+   {
+    "topic": "phẳng/dốc",
+    "target": "flat",
+    "words": [
+     "phẳng",
+     "dốc"
+    ],
+    "pages": [
+     {
+      "region": "Lâm Đồng (Bảo Lộc)",
+      "url": "https://www.facebook.com/DatbaolocAAA/"
+     }
+    ],
+    "backup_pages": [
+     {
+      "region": "Gia Lai",
+      "url": "https://www.facebook.com/NhadatgiatotGiaLai/"
+     }
+    ]
+   },
+   {
+    "topic": "sạt lở",
+    "target": "no_landslide",
+    "words": [
+     "sạt",
+     "lở"
+    ],
+    "pages": [
+     {
+      "region": "Lào Cai (Yên Bái cũ)",
+      "url": "https://www.facebook.com/nhadatchinhchuYB/"
+     }
+    ],
+    "backup_pages": [
+     {
+      "region": "Lào Cai",
+      "url": "https://www.facebook.com/Bandatlaocai/"
+     },
+     {
+      "region": "Lâm Đồng (Bảo Lộc)",
+      "url": "https://www.facebook.com/datvangbl/"
+     }
+    ]
+   },
+   {
+    "topic": "nước",
+    "target": "fresh_water",
+    "words": [
+     "nước ngọt",
+     "ngọt",
+     "mặn",
+     "giếng"
+    ],
+    "pages": [
+     {
+      "region": "Cà Mau",
+      "url": "https://www.facebook.com/caunoinhadat.com.camau/"
+     }
+    ],
+    "backup_pages": [
+     {
+      "region": "Cà Mau (Bạc Liêu cũ)",
+      "url": "https://www.facebook.com/duythua1988/"
+     },
+     {
+      "region": "Vĩnh Long (Trà Vinh cũ)",
+      "url": "https://www.facebook.com/TraVinh.bds.nhadat/"
+     }
+    ]
+   }
+  ],
+  "selection": "Mỗi nhóm 5 tin. Đọc bài BÁN ĐẤT theo thứ tự hiện trên trang (bỏ cho thuê, bán nhà, căn hộ, kiot, cần mua, thông báo đấu giá, bài giới thiệu chung, bài trùng — như lần 4–7); lấy 5 bài ĐẦU TIÊN có chứa ít nhất một từ chủ đề của nhóm. Lọc bằng máy, không do người chọn: văn bản chuẩn hoá NFKC, chữ thường, so khớp chuỗi có dấu với danh sách 'words'. Không lọc theo câu khẳng định hay theo mẫu của luật. Trang không xem được hoặc chưa đủ 5 bài sau ~30 lần cuộn → lấy tiếp từ trang dự phòng theo thứ tự; vẫn thiếu thì ghi số thiếu, KHÔNG thay trang khác. Ghi số bài bán đất đã đọc ở mỗi trang. Một tin trùng nhóm khác chỉ tính một lần, ở nhóm đọc trước.",
+  "order": "30 tin trộn thứ tự bằng hạt giống 20261027 trước khi đưa cho người gán; người gán KHÔNG được biết tin thuộc nhóm nào.",
+  "access": "Chỉ đọc bằng tài khoản chủ dự án; không tham gia/theo dõi/tương tác; không dùng ô tìm kiếm Facebook",
+  "privacy": "Xoá số điện thoại (kể cả chữ số kiểu toán học, đối chiếu theo ký tự sau chuẩn hoá NFKC), đường dẫn, tên người trước khi lưu và trước khi đưa cho người gán; giữ nguyên kiểu chữ gốc",
+  "limits": "Chọn theo từ chủ đề nên (1) ĐỘ PHỦ đo được là độ phủ trong các tin CÓ nhắc từ chủ đề — câu nói vòng không chứa từ đó (vd. 'khô ráo' không có chữ 'ngập' thì vẫn vào nhờ từ 'khô ráo', nhưng 'nền cao hơn mặt đường' không vào nhóm ngập) bị bỏ ngoài mẫu, nên độ phủ thật có thể THẤP hơn; (2) ĐỘ CHÍNH XÁC được kiểm khó hơn mẫu ngẫu nhiên vì nhiều tin nhắc chủ đề mà không khẳng định (vd. 'biển số', 'cách sông' kèm phủ định). Thứ tự bài trên Facebook đổi giữa các lần tải nên không tái lập tuyệt đối. 'Sạt lở' rất hiếm trong tin bán đất — thiếu mẫu thì ghi thiếu."
+ },
+ "labelers": {
+  "primary": "CHỦ DỰ ÁN (người) — nhận phần chữ 30 tin (đã trộn, KHÔNG kèm nhóm, nhãn, gợi ý hay kết quả máy nào) cùng bản hướng dẫn 'guideline' dưới đây, y nguyên lần 7. Không dán tin vào TerraTwin hay công cụ AI nào trước khi gán xong. Nhãn dùng chấm cổng.",
+  "secondary": "Claude (claude-opus-5-5) gán riêng theo cùng hướng dẫn TRƯỚC khi đưa tin cho người gán. Tệp nhãn AI giữ NGOÀI kho mã công khai; chỉ commit MÃ BĂM SHA-256 của tệp trước khi người gán nhận tin; công bố tệp sau khi nhãn người đã khoá (kiểm mã băm khớp). Không đưa ghi chú lý do của AI cho người gán. Chỉ để đo độ khớp AI–người."
+ },
+ "guideline": {
+  "task": "Với mỗi tin: người bán đang khẳng định điều gì về CHÍNH lô đất đang bán? Chọn các mã phù hợp; không có thì ghi 0.",
+  "codes": {
+   "A không ngập": "Tính: không ngập, chưa từng ngập, không lo ngập, khô ráo quanh năm.",
+   "B cao ráo": "Tính: đất cao, cao ráo, nền cao, không trũng, cao hơn mặt đường/khu vực. Không tính: 'đất đẹp', 'thoáng mát'.",
+   "C gần sông": "Tính: gần/ven/giáp/sát/view/mặt tiền/cách X m tới sông, kênh, rạch. Không tính: hồ, suối, ao; tên đường hay địa danh có chữ 'Sông', 'Kênh'.",
+   "D gần biển": "Tính: gần/ven/view/cách X km/'ra biển N phút' tới biển, bãi biển. Không tính: gần cảng, gần sân bay.",
+   "E bằng phẳng": "Tính: bằng phẳng, đất phẳng, không dốc. Không tính: vuông vức, vuông vắn, nở hậu (hình dáng).",
+   "F không sạt lở": "Tính: không sạt lở, chưa từng sạt lở.",
+   "G đất ở / thổ cư": "Tính: lô ĐÃ CÓ (toàn bộ hoặc một phần) đất ở/thổ cư/ODT/ONT. Không tính: 'có thể lên thổ cư', 'hỗ trợ lên thổ cư' (chưa có); 'nằm trong khu dân cư' (vị trí).",
+   "H nước ngọt": "Tính: nước ngọt, giếng ngọt, không nhiễm mặn."
+  },
+  "principles": [
+   "Chỉ tính điều tin khẳng định, không tính điều mình đoán.",
+   "Phải nói về chính lô đất đang bán, không phải nơi khác.",
+   "Câu phủ định thì không tính.",
+   "Viết khác chữ vẫn tính nếu cùng ý (viết tắt, không dấu, in hoa, chữ in đậm).",
+   "Chỗ quy tắc không nói rõ thì người gán tự quyết theo cách một người mua đất đọc tin sẽ hiểu."
+  ],
+  "examples": [
+   "'Đất cao ráo, không bao giờ ngập, cách sông Hậu 200m, sổ hồng thổ cư 100%' → A B C G",
+   "'Lô đất vuông vức, nở hậu, đường ô tô, giá rẻ' → 0",
+   "'Đất vườn 1.000m², hỗ trợ lên thổ cư, view hồ sen' → 0",
+   "'Nền đã có 60m² ONT, cách biển 2km' → D G"
+  ],
+  "note": "Y nội dung bản đã gửi ở lần 6, chỉ bỏ ví dụ cụ thể 'cách cầu Kênh X' (lần 6 trùng một tin); không thêm quy tắc nào về 'quy hoạch đất ở' — người gán tự quyết như lần 6."
+ },
+ "target_types": [
+  "no_flood",
+  "near_river",
+  "near_sea",
+  "flat",
+  "no_landslide",
+  "fresh_water"
+ ],
+ "metric": "CHÍNH: F1 trung bình (macro) của bộ tách câu trên NHÃN NGƯỜI, chỉ tính 6 loại đích (loại nào có ít nhất một tin đúng, thừa hoặc sót). PHỤ: F1 từng loại kèm số đúng/thừa/sót; F1 trung bình mọi loại (như /admin); độ khớp AI–người. Loại đích có < 3 tin người gán dương tính ghi 'ít mẫu — không kết luận riêng loại này' nhưng VẪN tính vào F1 chính.",
+ "threshold": "ĐẠT khi F1 chính (6 loại đích) ≥ 0,80 trên 30 tin nhãn người. Trượt thì công bố, không chấm lại mẫu này.",
+ "one_shot": "Chấm đúng một lần sau khi commit nhãn người; không sửa nhãn người hay luật sau khi thấy kết quả. Nhãn người được nhập thêm vào tập vàng /admin → Tin đăng GĐ3.",
+ "script": "ops/listing_gate_fb.py <tin.json> --run 8"
+}
