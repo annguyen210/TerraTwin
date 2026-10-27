@@ -1,0 +1,160 @@
+{
+ "protocol": "terratwin.listing_gate/7",
+ "role": "primary — nhãn dùng chấm cổng",
+ "labeler": "Chủ dự án (người), gửi 20 dòng mã A–H/0 ngày 27/10/2026, kèm các quyết định ở chỗ quy tắc chưa nói rõ",
+ "labelled_before_scoring": true,
+ "guideline": "Bản hướng dẫn ghi trong listing_gate_v7_protocol.json (commit 68f46e9, trước khi thu mẫu)",
+ "independence_caveat": "Nhãn AI phụ (listing_gate_v7_ai_labels.json, kèm ghi chú lý do) đã được đẩy lên kho mã CÔNG KHAI ở commit afb469f TRƯỚC khi chủ dự án gán. Về nguyên tắc người gán có thể đã xem; không có bằng chứng là đã xem, nhưng độ khớp AI–người KHÔNG chứng minh được độc lập. Lỗi thiết kế của Claude; lần sau chỉ công khai mã băm của nhãn AI cho tới khi có nhãn người. Cùng điểm yếu ở lần 6 (6015002 trước 84c4107).",
+ "labeler_decisions": [
+  "Tin 5 'San lấp toàn bộ' → 0: nói đã đổ đầy, không khẳng định cao hơn đường hay bằng phẳng",
+  "Tin 6 '4,7×23m thổ....' → G: 'thổ' là viết tắt quen thuộc của thổ cư",
+  "Tin 15 'đất nền cao bằng lộ' → B: nền không thấp hơn đường, tức không trũng",
+  "Tin 17 → B G: 'nền cao' và ODT 90m²",
+  "Tin 4, 20: nước máy/nước sạch không phải H; 'cống rãnh thoát nước đầy đủ' không phải A",
+  "Tin 7 'chưa thổ' → 0 (phủ định)",
+  "Tin Sóc Trăng: 'đã bán/đã nhận cọc' không đổi nhãn; 'Cầu Bắc Tà Ky' là địa danh, không gán C",
+  "'KDC' chỉ vị trí, không phải loại đất; tin 1 có G nhờ 'Đất ở đô thị'"
+ ],
+ "labels": [
+  {
+   "id": 1,
+   "region": "Vĩnh Long",
+   "sha256": "8fb40b0193523cc1f39f3a8159008e23fdb50ac2f1f0b9cb5f0b2f43ab889b91",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 2,
+   "region": "Long An",
+   "sha256": "e564e922964c9d99158e778abee7c251f008e09dda9978efc56699067a56969b",
+   "claims": []
+  },
+  {
+   "id": 3,
+   "region": "Long An",
+   "sha256": "bdd6054675839bdb3d86b262a362bb6b29cfc9ccdf996d0046588ab84c5e041c",
+   "claims": []
+  },
+  {
+   "id": 4,
+   "region": "Long An",
+   "sha256": "36be7374bc6900af0141755a3694b17cd6f318afbf04e8d696bb79960ba346c1",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 5,
+   "region": "Long An",
+   "sha256": "78926e30b913bebfded4534dc5b8b4c8cdfe41e4b0cde0adf5592c3dc289496c",
+   "claims": []
+  },
+  {
+   "id": 6,
+   "region": "Long An",
+   "sha256": "00667b7377e1afb314ccc241ffa3e6335068382acec927447833802b209a0622",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 7,
+   "region": "Đồng Nai",
+   "sha256": "0d40ddd3dcd682ab594d1c7bd43f0dde20eb19ded5d5be473d14d92c93d7e6bb",
+   "claims": []
+  },
+  {
+   "id": 8,
+   "region": "Đồng Nai",
+   "sha256": "b173c6556d062b00aa6996b476c2085b96d7a801f8bac60a49e2917020a2bfad",
+   "claims": []
+  },
+  {
+   "id": 9,
+   "region": "Đồng Nai",
+   "sha256": "421c364c14557b800b551e4adb1a42633edb4609ec586bd40b16d44433497619",
+   "claims": []
+  },
+  {
+   "id": 10,
+   "region": "Đồng Nai",
+   "sha256": "f3d8f960b5d958281aace99baa5b11c55b4191579b0c7d37bee19edb47db746a",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 11,
+   "region": "Đồng Nai",
+   "sha256": "cb9b5fe95f95f8b96c15c947c190fc6b7191c8e4abc040eb15cd719c122b8d1f",
+   "claims": []
+  },
+  {
+   "id": 12,
+   "region": "Sóc Trăng (dự phòng 1)",
+   "sha256": "a12169aae39428b27c1724f960039c189e5171b39439d0dc83c79167069f28e1",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 13,
+   "region": "Sóc Trăng (dự phòng 1)",
+   "sha256": "d609799b0b783b62b11df2deabba63f04b4fd03a8f8078684c4b35d50155714f",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 14,
+   "region": "Sóc Trăng (dự phòng 1)",
+   "sha256": "4cfd4d17a8783c605cee9a363feeeebf3b23faf8cb07d048d0f0fc338ec7849f",
+   "claims": []
+  },
+  {
+   "id": 15,
+   "region": "Sóc Trăng (dự phòng 1)",
+   "sha256": "9bf676ae91a667016979b38ffb5c55f84a87ec7cc4cbef05121fefa5a29a52da",
+   "claims": [
+    "high_ground",
+    "residential"
+   ]
+  },
+  {
+   "id": 16,
+   "region": "Sóc Trăng (dự phòng 1)",
+   "sha256": "2223b84fa18f7e00a7e24b01b310e82c591d586e6e2109fac0aca3e623e6a7e6",
+   "claims": []
+  },
+  {
+   "id": 17,
+   "region": "Sóc Trăng (dự phòng 1)",
+   "sha256": "bc343056b1a6c3e87b4012f2e1e0902a064c8e3cc8cf1c30908b8fa552d32694",
+   "claims": [
+    "high_ground",
+    "residential"
+   ]
+  },
+  {
+   "id": 18,
+   "region": "Sóc Trăng (dự phòng 1)",
+   "sha256": "ee3b86b478404ab988bb64642bf7fb67055299d4a879a8c5f485a5c9e4c7c55e",
+   "claims": []
+  },
+  {
+   "id": 19,
+   "region": "Thanh Hóa (dự phòng 2)",
+   "sha256": "9715fc1d3fe418c87f3c451453c2b2356304b9120e818ae4df54390cc1d00781",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 20,
+   "region": "Thanh Hóa (dự phòng 2)",
+   "sha256": "07a5ac80fbd0ba9b73afbacaae8cbe58db81f7c3aac4d1545143c49e85d806c6",
+   "claims": []
+  }
+ ]
+}
