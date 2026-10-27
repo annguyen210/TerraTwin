@@ -1,0 +1,274 @@
+{
+ "protocol": "terratwin.listing_gate/8",
+ "role": "primary — nhãn dùng chấm cổng",
+ "labeler": "Chủ dự án (người), gửi 30 dòng mã A–H/0 ngày 27/10/2026, kèm các quyết định ở chỗ quy tắc chưa nói rõ",
+ "labeler_attestation": "Hỏi trước khi khoá: 'bạn TỰ gán, không nhờ AI hay công cụ nào (kể cả không dán tin vào TerraTwin/ChatGPT/Claude…)?' — trả lời: 'Đúng, tôi tự gán' (27/10/2026)",
+ "labelled_before_scoring": true,
+ "ai_labels_seen_by_labeler": "Không thể thấy: nhãn AI chỉ công khai mã băm (6d6cd08) cho tới khi tệp nhãn này đã khoá",
+ "guideline": "Bản hướng dẫn trong listing_gate_v8_protocol.json (y nguyên lần 7, commit f3aa050, trước khi thu mẫu)",
+ "labeler_decisions": [
+  "Tin 1 → 0: \"gần đường liên huyện ra biển\": thứ nằm gần lô là con đường, không phải biển; Bàu Trắng là hồ (bàu), không tính",
+  "Tin 2 → D: quy ước dùng cho cả 30 tin: hễ tin nêu cự ly hoặc thời gian ra biển là tính D, không đặt ngưỡng km, vì bảng mã ghi \"cách X km\" mà không giới hạn",
+  "Tin 6 → 0: \"chưa chuyển thổ\" là câu phủ định; \"đường Kênh Trung Ương\" là tên đường",
+  "Tin 9 → E: suối không tính C; \"quy hoạch đất ở ONT\" với hiện trạng CLN là mới quy hoạch, chưa có đất ở, nên không G",
+  "Tin 11 → E: \"QH full ONT\" là quy hoạch, chưa phải đã có ONT",
+  "Tin 12 → H: \"đường bờ bao Nàng Rền\" là tên đường, không tính C",
+  "Tin 13 → B E: \"cao thoáng\" là khẳng định về độ cao, không chỉ là \"thoáng mát\"",
+  "Tin 14 → C G: \"kế bên bến đò, qua sông là tới chợ\" nghĩa là lô nằm sát sông; \"Rạch Giá\" là địa danh, không tính",
+  "Tin 18 → C G: \"Tho 150\" là \"thổ 150\", tức 150m² thổ cư viết không dấu",
+  "Tin 22 → D: \"hỗ trợ chuyển đổi mục đích sử dụng đất\" là chưa có đất ở, nên không G",
+  "Tin 27 → G: đất nuôi trồng thủy sản lợ, mặn nên không phải H; ao không tính C",
+  "Tin 28 → E G: \"thấp hơn đường chính\" nên không B; suối không tính C"
+ ],
+ "labels": [
+  {
+   "id": 1,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "sha256": "25764a8a6380b7649d01b7e7df43044450b3fa1ba7d556d472a89fdcc02f81a9",
+   "claims": []
+  },
+  {
+   "id": 2,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "sha256": "d96bc028a97a0f59ea0da0d6bab0094de5c29558bfd561a8dc877a2a73f76600",
+   "claims": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 3,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "sha256": "afcd8efaf8d39424a3e67c33035e292e9625d2dec58691a276efc796c274eaf6",
+   "claims": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 4,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "sha256": "a2bf44b60e196125d7c8a83d31f481600a082551c31f58812e8dc7167c6c1e55",
+   "claims": [
+    "flat",
+    "residential"
+   ]
+  },
+  {
+   "id": 5,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "sha256": "c9ff6984ac3818a1f3f74b11bb399de8c234bccdf74fb0881d2045d72cd36f5f",
+   "claims": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 6,
+   "region": "Đồng Tháp (Sa Đéc)",
+   "sha256": "dc05b8ee1d0febad70ef723a34e9beb53d9722ce6f1e57a7241db368154e2c79",
+   "claims": []
+  },
+  {
+   "id": 7,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "sha256": "96f4cbd72d56f3036bfd2f12f39a750d51e3c5052bc48f59e6d36dd1bacb3f42",
+   "claims": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 8,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "sha256": "889e91c405511fd3b20576639aaee5ac3dca6479870ed4010994ab6bf3608b1d",
+   "claims": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 9,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "sha256": "76c1ef082e638d2d351dd85a4135264e97ded26a6c12ecfd483b8bd44752a254",
+   "claims": [
+    "flat"
+   ]
+  },
+  {
+   "id": 10,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "sha256": "f9c3a50aeb6bc4c9c0c5d2b4a235d8c27f7bd727f7ed63feaa1cfd416c92ef77",
+   "claims": [
+    "flat"
+   ]
+  },
+  {
+   "id": 11,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "sha256": "0acb54e33bee0993b8b57e1129d6cdae043fd36f43d17db9b1e9047e32f9f943",
+   "claims": [
+    "flat"
+   ]
+  },
+  {
+   "id": 12,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "sha256": "a8a4fae56321d008f23767d6dbfa40559dc58d211d514295978e07467b4f27e0",
+   "claims": [
+    "fresh_water"
+   ]
+  },
+  {
+   "id": 13,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "sha256": "19d993bd811c1a658d567b28428cbc4e39e62a2002566f3211c21f0b7867de6e",
+   "claims": [
+    "flat",
+    "high_ground"
+   ]
+  },
+  {
+   "id": 14,
+   "region": "An Giang (Kiên Giang cũ, Rạch Giá)",
+   "sha256": "a7bc8df3cfba1675231c6fdd1059b5420d77137a97d5b4663583f086e517a95e",
+   "claims": [
+    "near_river",
+    "residential"
+   ]
+  },
+  {
+   "id": 15,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "sha256": "03ecbd64ae54a767d37a78360c22c5d68af573cddf5d17dc3c0f3809e12d4388",
+   "claims": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 16,
+   "region": "Trà Vinh",
+   "sha256": "8e157475dc76e7d149ddfe37f45928d5c161f146ebe127e205212323853e8f8b",
+   "claims": [
+    "high_ground",
+    "near_river",
+    "residential"
+   ]
+  },
+  {
+   "id": 17,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "sha256": "7417c6a5700e1eb3b8512f067c04ee42e5f89d32a154ca6adc6f1726c264383f",
+   "claims": [
+    "flat",
+    "residential"
+   ]
+  },
+  {
+   "id": 18,
+   "region": "Trà Vinh",
+   "sha256": "b0d6081540ed1e16bc53c1f92e0da7aa04028a8fee27406f7a18c2216591659b",
+   "claims": [
+    "near_river",
+    "residential"
+   ]
+  },
+  {
+   "id": 19,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "sha256": "54c3ac2bc672519caa0a8d5c26c5d6f5d3208b46f9f6927c97ebf58ca542837e",
+   "claims": [
+    "flat",
+    "residential"
+   ]
+  },
+  {
+   "id": 20,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "sha256": "4ee8abcc7eed97bb2ef4e3575933517708fbcc56f518ef5832a8841c902fd4a8",
+   "claims": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 21,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "sha256": "109d4ee97629a8e3d70d99d91bfd57055e8b9a6f05446f9dd95895e0ea72b158",
+   "claims": [
+    "flat",
+    "near_sea"
+   ]
+  },
+  {
+   "id": 22,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "sha256": "fbdd3e1bb32ab54d682e621dcc0b9e4defbc588c14395ba3873896b87337dfe9",
+   "claims": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 23,
+   "region": "Đồng Tháp (Sa Đéc)",
+   "sha256": "b80d6ee707fe23167a6b241beed51a5582f16a5684281ff7b814fcf50e853971",
+   "claims": [
+    "near_river",
+    "residential"
+   ]
+  },
+  {
+   "id": 24,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "sha256": "be8a26d75593addaca2611e7fc706ce7be6fddb32483c8bbe4f02c2445c2150e",
+   "claims": [
+    "flat",
+    "residential"
+   ]
+  },
+  {
+   "id": 25,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "sha256": "7c009094e3b1af3868a4e1a62be1dd5001c5af8ee3036ed17dffa4a5761afb6a",
+   "claims": [
+    "flat",
+    "residential"
+   ]
+  },
+  {
+   "id": 26,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "sha256": "16181623e823e64fae76e50923249ecc9f957d78d8954a403b460bba0d010929",
+   "claims": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 27,
+   "region": "Cần Thơ (Hậu Giang cũ)",
+   "sha256": "ed8e2fe62e2e07feb82aaacd18d59f4825b1f982dc5571ad70cc78dd0c0f0f4d",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 28,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "sha256": "81c8e6f4e9fb9fde1fbabd0a046f4b824068be72f79d224282bb073fd09b0c34",
+   "claims": [
+    "flat",
+    "residential"
+   ]
+  },
+  {
+   "id": 29,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "sha256": "45db56e8bae5bbff3b84a1e505c952961ccc563883b3c377efcf65414ec365ec",
+   "claims": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 30,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "sha256": "03636a7d3ded99ba60ab7b57274feeaf64d26c6f35036cec27050766ec37d5d5",
+   "claims": [
+    "near_sea"
+   ]
+  }
+ ]
+}
