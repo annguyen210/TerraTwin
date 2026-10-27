@@ -1,6 +1,6 @@
 {
  "schema": "terratwin.anchors/1",
- "updated": "2026-10-26T17:25:48Z",
+ "updated": "2026-10-27T02:09:05Z",
  "how_to_verify": "ots verify sth/<n>.txt.ots (hoặc tải cả hai tệp lên https://opentimestamps.org); python ops/verify_dossier.py <mã hồ sơ> kiểm luôn hồ sơ nằm trong gốc cây đã neo.",
  "anchors": [
   {
@@ -20,12 +20,16 @@
   {
    "tree_size": 7,
    "submitted_at": "2026-10-26T17:25:46Z",
-   "status": "pending",
+   "status": "confirmed",
    "root_hash": "e1d0360d01bc2caa66a870311de1c372509f914da840b9e7b9411b781c65e196",
    "sth_timestamp": "2026-10-26T05:03:42Z",
    "file": "sth/7.txt",
    "ots": "sth/7.txt.ots",
-   "digest_sha256": "4ae07f5456e1bf1aa6792baa9292f38b145d7dbaaa2b31f9ae20ee91bcd9c7df"
+   "digest_sha256": "4ae07f5456e1bf1aa6792baa9292f38b145d7dbaaa2b31f9ae20ee91bcd9c7df",
+   "bitcoin_height": 973268,
+   "bitcoin_time": "2026-10-26T18:20:03Z",
+   "explorer": "https://blockstream.info/api",
+   "confirmed_checked_at": "2026-10-27T02:09:05Z"
   }
  ]
 }
