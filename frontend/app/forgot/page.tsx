@@ -20,7 +20,7 @@ export default function ForgotPage() {
   const [smtpDown, setSmtpDown] = useState(false);
 
   useEffect(() => {
-    getHealth().then((h) => setSmtpDown(!h.email.smtp_configured)).catch(() => {});
+    getHealth().then((h) => setSmtpDown(!h.email.forgot_password_works)).catch(() => {});
   }, []);
 
   async function submit() {

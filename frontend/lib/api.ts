@@ -1685,6 +1685,8 @@ export type HealthStatus = {
   jobs: Record<string, unknown>;
   email: {
     smtp_configured: boolean;
+    transport?: "brevo" | "resend" | "smtp" | null;
+    last_send?: { at: string; transport: string | null; error: string | null } | null;
     forgot_password_works: boolean;
     email_verification_works: boolean;
     message: string | null;

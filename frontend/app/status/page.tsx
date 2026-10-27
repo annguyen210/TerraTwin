@@ -81,9 +81,11 @@ export default function StatusPage() {
                 </tr>
                 <tr>
                   <td>{t("Gửi email (quên mật khẩu, xác thực)", "Email delivery (reset, verification)")}</td>
-                  <td>{h.email.smtp_configured
-                    ? t("✅ hoạt động", "✅ working")
-                    : t("⚠️ chưa cấu hình — xem /forgot", "⚠️ not configured — see /forgot")}</td>
+                  <td>{!h.email.smtp_configured
+                    ? t("⚠️ chưa cấu hình — xem /forgot", "⚠️ not configured — see /forgot")
+                    : h.email.email_verification_works
+                      ? t("✅ hoạt động", "✅ working")
+                      : t("❌ lần gửi gần nhất bị lỗi", "❌ last send failed")}</td>
                 </tr>
                 <tr>
                   <td>{t("Nguồn dữ liệu hết hạn mức", "Data sources over quota")}</td>

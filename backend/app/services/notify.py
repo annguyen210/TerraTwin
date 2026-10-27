@@ -7,7 +7,7 @@ Bốn kênh, cả bốn đều chạy thật:
   zalo     — Zalo ZNS, gửi theo SỐ ĐIỆN THOẠI. Kênh của người Việt.
   telegram — Bot API, gửi theo chat_id. Chạy được ngay, không cần xét duyệt.
   webhook  — POST JSON tới URL của bạn, để nối vào hệ thống nội bộ.
-  email    — SMTP (đặt TERRATWIN_SMTP_* trong .env).
+  email    — API HTTPS Brevo/Resend hoặc SMTP (đặt TERRATWIN_BREVO_API_KEY / _RESEND_API_KEY / _SMTP_*).
 
 VÌ SAO THÊM ZALO VÀ TELEGRAM — một phép đo phơi ra lỗ hổng chí mạng: radar chạy
 đều 6 giờ một lần và đã sinh hàng trăm cảnh báo, nhưng KHÔNG cảnh báo nào có
@@ -134,16 +134,91 @@ def send_webhook(url: str, payload: dict) -> str | None:
         return f"Không gửi được: {type(e).__name__}."
 
 
-# ---------- Email (SMTP) ----------
+# ---------- Email (API HTTPS hoặc SMTP) ----------
+# 27/10/2026: gửi lại thư xác thực trên production trả "SMTP lỗi: OSError" — Render gói miễn phí CHẶN cổng SMTP
+# 25/465/587 từ 26/9/2025 (render.com/changelog). Thư chưa từng rời máy chủ, kể cả thư "quên mật khẩu". Nên thêm
+# đường gửi qua API HTTPS (cổng 443, không bị chặn): đặt khoá nào thì dùng đường đó, ưu tiên Brevo > Resend > SMTP.
+BREVO_API = "https://api.brevo.com/v3/smtp/email"
+RESEND_API = "https://api.resend.com/emails"
+_LAST_SEND: dict = {}        # lần gửi gần nhất (trong tiến trình) — /api/health báo thật, không chỉ "đã đặt biến"
+
+
+def email_transport() -> str | None:
+    if os.environ.get("TERRATWIN_BREVO_API_KEY"):
+        return "brevo"
+    if os.environ.get("TERRATWIN_RESEND_API_KEY"):
+        return "resend"
+    if os.environ.get("TERRATWIN_SMTP_HOST"):
+        return "smtp"
+    return None
+
 
 def smtp_configured() -> bool:
-    return bool(os.environ.get("TERRATWIN_SMTP_HOST"))
+    """Có đường gửi email nào chưa (API HTTPS hoặc SMTP). Giữ tên cũ vì giao diện và /api/health đọc nó."""
+    return email_transport() is not None
+
+
+def email_last_send() -> dict:
+    return dict(_LAST_SEND)
+
+
+def _sender(default: str | None = None) -> str:
+    return (os.environ.get("TERRATWIN_EMAIL_FROM") or default
+            or os.environ.get("TERRATWIN_SMTP_FROM") or os.environ.get("TERRATWIN_SMTP_USER")
+            or "terratwin@localhost")
+
+
+def _post_json(url: str, body: dict, headers: dict, name: str) -> str | None:
+    try:
+        req = urllib.request.Request(
+            url, data=json.dumps(body, ensure_ascii=False).encode("utf-8"),
+            headers={"content-type": "application/json", "accept": "application/json", **headers})
+        with urllib.request.urlopen(req, timeout=TIMEOUT):
+            return None
+    except urllib.error.HTTPError as e:
+        try:
+            detail = json.loads(e.read().decode("utf-8") or "{}").get("message") or ""
+        except Exception:
+            detail = ""
+        return f"{name} trả mã {e.code}" + (f": {detail[:200]}" if detail else ".")
+    except Exception as e:
+        return f"Không gửi được tới {name}: {type(e).__name__}."
+
+
+def _send_brevo(to: str, subject: str, body: str) -> str | None:
+    from email.utils import parseaddr
+    name, addr = parseaddr(_sender())
+    return _post_json(BREVO_API, {
+        "sender": {"email": addr, "name": name or "TerraTwin"}, "to": [{"email": to}],
+        "subject": subject, "textContent": body,
+    }, {"api-key": os.environ["TERRATWIN_BREVO_API_KEY"]}, "Brevo")
+
+
+def _send_resend(to: str, subject: str, body: str) -> str | None:
+    # Resend chỉ cho gửi TỪ tên miền đã xác minh; chưa có thì dùng onboarding@resend.dev (chỉ tới email chủ tài khoản).
+    return _post_json(RESEND_API, {
+        "from": _sender("TerraTwin <onboarding@resend.dev>"),
+        "to": [to], "subject": subject, "text": body,
+    }, {"authorization": f"Bearer {os.environ['TERRATWIN_RESEND_API_KEY']}"}, "Resend")
 
 
 def send_email(to: str, subject: str, body: str) -> str | None:
+    t = email_transport()
+    if t == "brevo":
+        err = _send_brevo(to, subject, body)
+    elif t == "resend":
+        err = _send_resend(to, subject, body)
+    elif t == "smtp":
+        err = _send_smtp(to, subject, body)
+    else:
+        err = "Chưa cấu hình gửi email (đặt TERRATWIN_BREVO_API_KEY, TERRATWIN_RESEND_API_KEY hoặc TERRATWIN_SMTP_HOST)."
+    _LAST_SEND.clear()
+    _LAST_SEND.update(at=datetime.now(timezone.utc).isoformat(timespec="seconds"), transport=t, error=err)
+    return err
+
+
+def _send_smtp(to: str, subject: str, body: str) -> str | None:
     host = os.environ.get("TERRATWIN_SMTP_HOST")
-    if not host:
-        return "Chưa cấu hình SMTP (đặt TERRATWIN_SMTP_HOST trong .env)."
     port = int(os.environ.get("TERRATWIN_SMTP_PORT", "587"))
     user = os.environ.get("TERRATWIN_SMTP_USER")
     pw = os.environ.get("TERRATWIN_SMTP_PASSWORD")
@@ -165,6 +240,12 @@ def send_email(to: str, subject: str, body: str) -> str | None:
                 s.login(user, pw)
             s.send_message(msg)
         return None
+    except smtplib.SMTPException as e:
+        return f"SMTP lỗi: {type(e).__name__}."
+    except OSError as e:
+        # Không mở nổi kết nối (OSError/timeout) — trên Render gói miễn phí là do cổng SMTP bị chặn.
+        return (f"SMTP lỗi: {type(e).__name__} — không kết nối được {host}:{port}; nếu chạy trên Render gói miễn "
+                f"phí thì cổng SMTP bị chặn, đặt TERRATWIN_BREVO_API_KEY để gửi qua HTTPS.")
     except Exception as e:
         return f"SMTP lỗi: {type(e).__name__}."
 

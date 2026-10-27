@@ -122,7 +122,15 @@ services:
       # @BotFather. Dùng làm kênh tạm trong lúc chờ Zalo.
       - key: TERRATWIN_TELEGRAM_TOKEN
         sync: false
-      # Tuỳ chọn — email SMTP.
+      # Email. Gói miễn phí CHẶN cổng SMTP 25/465/587 (từ 26/9/2025) — trên gói này phải gửi qua API HTTPS:
+      # đặt TERRATWIN_BREVO_API_KEY (ưu tiên) hoặc TERRATWIN_RESEND_API_KEY; From lấy từ TERRATWIN_EMAIL_FROM.
+      - key: TERRATWIN_BREVO_API_KEY
+        sync: false
+      - key: TERRATWIN_RESEND_API_KEY
+        sync: false
+      - key: TERRATWIN_EMAIL_FROM
+        sync: false
+      # SMTP — chỉ chạy trên gói trả phí hoặc máy chủ tự dựng.
       - key: TERRATWIN_SMTP_HOST
         sync: false
       - key: TERRATWIN_SMTP_PORT

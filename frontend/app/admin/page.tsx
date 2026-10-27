@@ -75,7 +75,9 @@ function HealthTab() {
 
       <h4 style={{ marginTop: 18 }}>Email</h4>
       <p>
-        SMTP: {h.email.smtp_configured ? "✅ đã cấu hình" : "⚠️ CHƯA cấu hình"}
+        Gửi email{h.email.transport ? ` (${h.email.transport})` : ""}:{" "}
+        {!h.email.smtp_configured ? "⚠️ CHƯA cấu hình"
+          : h.email.email_verification_works ? "✅ đã cấu hình" : "❌ đã cấu hình nhưng gửi HỎNG"}
         {h.email.message && <span className="ws-hint"> — {h.email.message}</span>}
       </p>
 
