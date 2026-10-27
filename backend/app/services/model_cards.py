@@ -624,8 +624,9 @@ def cards() -> list[dict]:
         avh = last.get("ai_vs_human") if last.get("labeler_kind") == "human" else None
         out.append({**base,
             "status": "accepted" if last.get("passed") else "rejected",
-            "status_label": (tr(f"cổng lần {v} đạt · luật từ khoá đang chạy" + (" · nhãn AI, người duyệt" if rv else ""),
-                                f"gate run {v} passed · keyword rules live" + (" · AI labels, human-reviewed" if rv else "")) if last.get("passed")
+            "status_label": (tr(f"cổng lần {v} đạt · luật từ khoá đang chạy" + (" · nhãn AI, người duyệt" if rv else "") + (" · nhãn người" if avh else ""),
+                                f"gate run {v} passed · keyword rules live" + (" · AI labels, human-reviewed" if rv else "")
+                                + (" · human labels" if avh else "")) if last.get("passed")
                              else tr(f"cổng lần {v} trượt" + (" trên nhãn người" if avh else "") + " · vẫn chạy luật từ khoá (không có bộ thay thế), độ chính xác công khai",
                                      f"gate run {v} failed" + (" on human labels" if avh else "") + " · keyword rules still live (no replacement), accuracy published")),
             # Lần 4 (26/10/2026) đổi NGUỒN: trang Facebook công khai của môi giới — tệp kết quả tự mô tả dữ liệu của nó.
@@ -648,7 +649,18 @@ def cards() -> list[dict]:
                          "threshold": f"F1 {r['f1']}", "passed": r["f1"] >= 0.8} for r in last.get("per_type", [])]
                        + [{"label": tr("F1 trung bình", "Macro F1"), "value": last.get("macro_f1"), "threshold": "≥ 0.80",
                            "passed": bool(last.get("passed"))}],
-            "limits": tr("Lần 6 trên nhãn người: luật bắt NHẦM 5/11 tin không có thổ cư — coi 'quy hoạch đất ở' là đã có đất ở, kể cả khi tin ghi "
+            "limits": tr("Lần 7 (nhãn người, 20 tin Facebook mới ở Sóc Trăng, Long An, Đồng Nai, Thanh Hóa, Vĩnh Long): luật SỬA theo lỗi lần 6 "
+                         "('quy hoạch đất ở', 'chưa thổ cư'), khoá trước khi thu mẫu; nhưng mẫu mới KHÔNG có câu 'quy hoạch đất ở' / 'chưa thổ cư' "
+                         "nào — luật cũ cũng đạt 0,97 trên mẫu này, nên chỗ sửa CHƯA được kiểm. Sót 'thổ....' bị cắt chữ. Chỉ có câu thổ cư và "
+                         "cao ráo. Nhãn AI phụ (kèm ghi chú) đã công khai trên kho mã TRƯỚC khi người gán ở cả lần 6 và lần 7 — độ khớp AI–người "
+                         "20/20 không chứng minh được độc lập; lần sau chỉ công khai mã băm.",
+                         "Run 7 (human labels, 20 new Facebook posts from Sóc Trăng, Long An, Đồng Nai, Thanh Hóa, Vĩnh Long): rules FIXED "
+                         "after run 6's errors ('zoned residential', 'not yet residential'), frozen before sampling; but the new sample has NO "
+                         "such phrase — the old rules also score 0.97 on it, so the fix is NOT yet tested. Missed a truncated 'thổ....'. Only "
+                         "residential and high-ground claims. The secondary AI labels (with notes) were public in the repo BEFORE the human "
+                         "labelled, in both run 6 and run 7 — the 20/20 AI–human agreement does not prove independence; next time only a "
+                         "hash will be published.") if v == "7" else
+                      tr("Lần 6 trên nhãn người: luật bắt NHẦM 5/11 tin không có thổ cư — coi 'quy hoạch đất ở' là đã có đất ở, kể cả khi tin ghi "
                          "'chưa thổ cư'; bắt đúng 9/9 tin có thổ cư. Mẫu lệch vùng (Bến Tre 15, Nghệ An 4, Khánh Hòa 1: 3/4 trang chính không xem "
                          "được) và chỉ có câu thổ cư. Bản hướng dẫn gửi người gán có ví dụ 'cách cầu Kênh X' trùng tin 14. Không vá luật rồi chấm "
                          "lại mẫu này; sửa thì phải chấm trên tin mới.",

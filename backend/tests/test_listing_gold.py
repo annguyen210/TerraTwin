@@ -116,9 +116,27 @@ def test_the_mo_hinh_lan_6_nhan_nguoi(monkeypatch):
     files = {("eval", "listing_gate_result.json"): None, ("eval", "listing_gate_v2_result.json"): None,
              ("eval", "listing_gate_v3_result.json"): None, ("eval", "listing_gate_v4_result.json"): None,
              ("eval", "listing_gate_v5_result.json"): None, ("eval", "listing_gate_v6_result.json"): r6, ("eval", "listing_gate_v7_result.json"): None,
-             ("eval", "listing_gate_v6_review.json"): None}
+             ("eval", "listing_gate_v6_review.json"): None, ("eval", "listing_gate_v7_result.json"): None}
     monkeypatch.setattr(model_cards, "_load", lambda *p: files[p] if p in files else real(*p))
     c = next(x for x in model_cards.cards() if x["id"] == "listing_rules")
     assert c["status"] == "rejected" and "lần 6 trượt trên nhãn người" in c["status_label"]
     assert c["split"].startswith("Lần 6: NHÃN NGƯỜI") and "20/20" in c["split"] and "lần 6: F1 0.78" in c["split"]
     assert "quy hoạch đất ở" in c["limits"]
+
+
+def test_the_mo_hinh_lan_7_dat_tren_nhan_nguoi_va_noi_ro_chua_kiem_cho_sua(monkeypatch):
+    """Lần 7 (27/10/2026): đạt trên nhãn người nhưng mẫu không có câu 'quy hoạch đất ở' — thẻ phải nói chỗ sửa chưa được kiểm,
+    và nhãn AI phụ đã công khai trước khi người gán."""
+    from app.services import model_cards
+    real = model_cards._load
+    r7 = {"n": 20, "macro_f1": 0.97, "passed": True, "source": "facebook_public_pages", "data_note": "lần 7",
+          "labeler_kind": "human", "ai_vs_human": {"listings_exact_match": 20, "n": 20},
+          "per_type": [{"type": "residential", "precision": 1.0, "recall": 0.89, "f1": 0.94, "tp": 8, "fp": 0, "fn": 1}]}
+    files = {("eval", "listing_gate_result.json"): None, ("eval", "listing_gate_v2_result.json"): None,
+             ("eval", "listing_gate_v3_result.json"): None, ("eval", "listing_gate_v4_result.json"): None,
+             ("eval", "listing_gate_v5_result.json"): None, ("eval", "listing_gate_v6_result.json"): None,
+             ("eval", "listing_gate_v7_result.json"): r7, ("eval", "listing_gate_v7_review.json"): None}
+    monkeypatch.setattr(model_cards, "_load", lambda *p: files[p] if p in files else real(*p))
+    c = next(x for x in model_cards.cards() if x["id"] == "listing_rules")
+    assert c["status"] == "accepted" and "lần 7 đạt" in c["status_label"] and "nhãn người" in c["status_label"]
+    assert c["split"].startswith("Lần 7: NHÃN NGƯỜI") and "CHƯA được kiểm" in c["limits"] and "công khai" in c["limits"]

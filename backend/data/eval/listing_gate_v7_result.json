@@ -1,0 +1,206 @@
+{
+ "protocol": "terratwin.listing_gate/7",
+ "source": "facebook_public_pages",
+ "n": 20,
+ "enough": true,
+ "per_type": [
+  {
+   "type": "high_ground",
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 2,
+   "fp": 0,
+   "fn": 0
+  },
+  {
+   "type": "residential",
+   "precision": 1.0,
+   "recall": 0.89,
+   "f1": 0.94,
+   "tp": 8,
+   "fp": 0,
+   "fn": 1
+  }
+ ],
+ "macro_f1": 0.97,
+ "threshold_macro_f1": 0.8,
+ "passed": true,
+ "no_claim_listings": 11,
+ "no_claim_but_extracted": [],
+ "labeler": "Chủ dự án (người), gửi 20 dòng mã A–H/0 ngày 27/10/2026, kèm các quyết định ở chỗ quy tắc chưa nói rõ",
+ "data_note": "20 bài bán đất MỚI trên trang Facebook công khai của môi giới (Vĩnh Long, Thanh Hóa, Long An, Đồng Nai + dự phòng), thu SAU khi khoá luật sửa lần 7; NHÃN NGƯỜI do chủ dự án tự gán; 20 tin lần 6 là tập phát triển",
+ "data_note_en": "20 NEW land-sale posts from public Facebook broker pages (Vĩnh Long, Thanh Hóa, Long An, Đồng Nai + backups), collected AFTER the run-7 rule fix was frozen; HUMAN labels by the owner; the run-6 posts are the development set",
+ "per_listing": [
+  {
+   "id": 1,
+   "region": "Vĩnh Long",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 2,
+   "region": "Long An",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 3,
+   "region": "Long An",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 4,
+   "region": "Long An",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 5,
+   "region": "Long An",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 6,
+   "region": "Long An",
+   "gold": [
+    "residential"
+   ],
+   "pred": []
+  },
+  {
+   "id": 7,
+   "region": "Đồng Nai",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 8,
+   "region": "Đồng Nai",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 9,
+   "region": "Đồng Nai",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 10,
+   "region": "Đồng Nai",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 11,
+   "region": "Đồng Nai",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 12,
+   "region": "Sóc Trăng (dự phòng 1)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 13,
+   "region": "Sóc Trăng (dự phòng 1)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 14,
+   "region": "Sóc Trăng (dự phòng 1)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 15,
+   "region": "Sóc Trăng (dự phòng 1)",
+   "gold": [
+    "high_ground",
+    "residential"
+   ],
+   "pred": [
+    "high_ground",
+    "residential"
+   ]
+  },
+  {
+   "id": 16,
+   "region": "Sóc Trăng (dự phòng 1)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 17,
+   "region": "Sóc Trăng (dự phòng 1)",
+   "gold": [
+    "high_ground",
+    "residential"
+   ],
+   "pred": [
+    "high_ground",
+    "residential"
+   ]
+  },
+  {
+   "id": 18,
+   "region": "Sóc Trăng (dự phòng 1)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 19,
+   "region": "Thanh Hóa (dự phòng 2)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 20,
+   "region": "Thanh Hóa (dự phòng 2)",
+   "gold": [],
+   "pred": []
+  }
+ ],
+ "labeler_kind": "human",
+ "ai_vs_human": {
+  "listings_exact_match": 20,
+  "n": 20,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "tp": 11,
+  "fp": 0,
+  "fn": 0,
+  "note": "Nhãn AI (Claude, khoá trước khi người gán) so với nhãn người, gộp mọi loại câu"
+ }
+}

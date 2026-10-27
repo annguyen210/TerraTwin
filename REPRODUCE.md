@@ -579,6 +579,14 @@ python ops/listing_gate_fb.py <tin_lan5.json> --run 5
 python ops/listing_gate_fb.py <tin_lan6.json> --run 6    # in thêm độ khớp nhãn AI (listing_gate_v6_ai_labels.json) với nhãn người
 ```
 
+| Lần | Luật + giao thức → nhãn AI → nhãn người → chấm | F1 trung bình | Ghi chú |
+|---|---|---|---|
+| 7 — **NHÃN NGƯỜI**, luật SỬA theo lỗi lần 6 ("quy hoạch đất ở", "chưa thổ cư"; lần 6 thành tập phát triển). 20 tin mới: Sóc Trăng 7, Long An 5, Đồng Nai 5, Thanh Hóa 2, Vĩnh Long 1 (trang dự phòng theo thứ tự đăng ký) | 68f46e9 → afb469f → 61dc1c2 → chấm ở commit sau | **0,97** (ĐẠT) | thổ cư 8/9, 0 bắt nhầm (sót "thổ...." bị cắt chữ); cao ráo 2/2. **Mẫu không có câu "quy hoạch đất ở"/"chưa thổ cư" — luật cũ cũng 0,97 trên mẫu này: chỗ sửa CHƯA được kiểm.** Nhãn AI phụ (kèm ghi chú) công khai trước khi người gán ở lần 6 và 7 → độ khớp 20/20 không chứng minh độc lập |
+
+```bash
+python ops/listing_gate_fb.py <tin_lan7.json> --run 7
+```
+
 Đọc kết quả: luật từ khoá gần như **không bắt nhầm** (độ chính xác 1,0 mọi loại ở lần 2) nhưng **sót cách nói vòng** ("gió
 sông rất mát", "đi biển 10 phút", "bên bờ vịnh"). Mẫu ngẫu nhiên rất ít câu "không ngập / gần sông" nên F1 các loại hiếm dao
 động mạnh. Lần 3 thêm cách nói vòng theo lỗi lần 2 và đạt trên mẫu mới. Cần đọc đúng mức: đây là lần thử THỨ BA (nguy cơ "thử tới khi đạt"),
