@@ -905,23 +905,26 @@ def _read_verify_token(token: str) -> dict | None:
     return d
 
 
-def _send_verification_email(user: User) -> None:
+def _send_verification_email(user: User) -> str | None:
     """Best-effort tuyệt đối — KHÔNG được làm hỏng đăng ký nếu SMTP hỏng hoặc
     chưa cấu hình. Im lặng bỏ qua nếu chưa cấu hình SMTP; xem /api/health và
-    /api/auth/resend-verification cho đường xử lý khi người dùng cần biết."""
+    /api/auth/resend-verification cho đường xử lý khi người dùng cần biết.
+
+    Trả về None khi máy chủ thư nhận thư, chuỗi lỗi khi không — notify.send_email báo lỗi bằng GIÁ TRỊ TRẢ VỀ chứ
+    không ném ngoại lệ; trước 27/10/2026 giá trị đó bị bỏ qua nên "gửi lại" luôn báo "đã gửi" dù thư không đi."""
     from app.services import notify, onetap
     if not notify.smtp_configured():
-        return
+        return "chưa cấu hình SMTP"
     token = _make_verify_token(user.id)
     link = f"{onetap.base_url()}/verify-email/{token}"
     try:
-        notify.send_email(
+        return notify.send_email(
             user.email, "TerraTwin — xác thực email",
             f"Bấm vào liên kết để xác thực email (hết hạn sau 24 giờ):\n\n{link}\n\n"
             "Chưa xác thực thì bạn vẫn dùng app bình thường — chỉ là chưa nhận "
             "được cảnh báo gửi qua email/Zalo/Telegram/webhook.")
-    except Exception:      # noqa: BLE001 — gửi hỏng không được làm hỏng đăng ký
-        pass
+    except Exception as e:      # noqa: BLE001 — gửi hỏng không được làm hỏng đăng ký
+        return f"SMTP lỗi: {type(e).__name__}."
 
 
 class VerifyEmailIn(BaseModel):
@@ -960,6 +963,9 @@ def resend_verification(user: User = Depends(auth.current_user),
         return {"message": ("Máy chủ chưa cấu hình gửi email (SMTP) — liên hệ người "
                             "vận hành để được xác thực thủ công."),
                 "sent": False}
-    _send_verification_email(user)
-    return {"message": "Đã gửi lại liên kết xác thực — kiểm tra hộp thư (kể cả mục spam).",
+    err = _send_verification_email(user)
+    if err:
+        return {"message": f"KHÔNG gửi được thư xác thực ({err}) — liên hệ người vận hành.", "sent": False, "error": err}
+    return {"message": ("Đã gửi lại liên kết xác thực — kiểm tra hộp thư, mục Spam/Quảng cáo; nếu máy chủ gửi bằng chính "
+                        "địa chỉ của bạn thì Gmail có thể chỉ cất thư trong mục 'Đã gửi'."),
             "sent": True}

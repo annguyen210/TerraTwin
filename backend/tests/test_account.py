@@ -276,6 +276,18 @@ def test_resend_khi_chua_cau_hinh_smtp_bao_ro_khong_gui(client):
     assert r.json()["sent"] is False
 
 
+def test_resend_bao_that_khi_smtp_tu_choi(client, monkeypatch):
+    """27/10/2026: notify.send_email báo lỗi bằng giá trị trả về — trước đây bị bỏ qua nên 'gửi lại' luôn báo đã gửi."""
+    from app.services import notify
+    tok = _register(client)
+    monkeypatch.setattr(notify, "smtp_configured", lambda: True)
+    monkeypatch.setattr(notify, "send_email", lambda to, subject, body: "SMTP lỗi: SMTPAuthenticationError.")
+    r = client.post("/api/auth/resend-verification", headers=_hdr(tok)).json()
+    assert r["sent"] is False and "SMTPAuthenticationError" in r["error"]
+    monkeypatch.setattr(notify, "send_email", lambda to, subject, body: None)
+    assert client.post("/api/auth/resend-verification", headers=_hdr(tok)).json()["sent"] is True
+
+
 def test_resend_khi_da_xac_thuc_thi_khong_gui_lai(client):
     from app.routes_account import _make_verify_token
     from app import db as dbmod
