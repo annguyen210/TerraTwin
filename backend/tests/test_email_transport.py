@@ -22,8 +22,10 @@ def _clean_env(monkeypatch):
     for k in _KEYS:
         monkeypatch.delenv(k, raising=False)
     notify._LAST_SEND.clear()
+    notify._SMTP_PROBE.clear()
     yield
     notify._LAST_SEND.clear()
+    notify._SMTP_PROBE.clear()
 
 
 class _Resp:
@@ -100,6 +102,7 @@ def test_health_bao_hong_khi_lan_gui_gan_nhat_loi(monkeypatch):
     from app.main import app
     monkeypatch.setenv("TERRATWIN_SMTP_HOST", "smtp.gmail.com")
     monkeypatch.setattr(notify.smtplib, "SMTP", lambda *a, **k: (_ for _ in ()).throw(OSError("blocked")))
+    monkeypatch.setattr(notify, "smtp_probe", lambda: None)      # cổng mở được — chỉ kiểm phần "lần gửi gần nhất"
     c = TestClient(app)
     e = c.get("/api/health").json()["email"]
     assert e["smtp_configured"] and e["email_verification_works"] and e["transport"] == "smtp"
@@ -111,3 +114,23 @@ def test_health_bao_hong_khi_lan_gui_gan_nhat_loi(monkeypatch):
     monkeypatch.setenv("TERRATWIN_BREVO_API_KEY", "k")
     e = c.get("/api/health").json()["email"]
     assert e["transport"] == "brevo" and e["email_verification_works"] is True
+
+
+def test_health_thu_cong_smtp_ngay_ca_khi_chua_gui_lan_nao(monkeypatch):
+    """Render khởi động lại là mất lần gửi gần nhất — không thử cổng thì health báo ✅ tới tận lần gửi hỏng đầu tiên."""
+    from app.main import app
+    monkeypatch.setenv("TERRATWIN_SMTP_HOST", "smtp.gmail.com")
+    calls = []
+
+    def blocked(addr, timeout=None):
+        calls.append(addr)
+        raise TimeoutError("timed out")
+    monkeypatch.setattr(notify.socket, "create_connection", blocked)
+    c = TestClient(app)
+    e = c.get("/api/health").json()["email"]
+    assert e["email_verification_works"] is False and e["last_send"] is None
+    assert "TERRATWIN_BREVO_API_KEY" in e["message"] and calls == [("smtp.gmail.com", 587)]
+    c.get("/api/health")
+    assert len(calls) == 1          # có hạn dùng lại — health không mở cổng mỗi lần bị gọi
+    monkeypatch.setenv("TERRATWIN_BREVO_API_KEY", "k")   # đi HTTPS thì không thử cổng SMTP
+    assert c.get("/api/health").json()["email"]["email_verification_works"] is True and len(calls) == 1

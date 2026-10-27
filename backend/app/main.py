@@ -615,21 +615,23 @@ def health(request: Request) -> dict:
     # chạy prod, để người vận hành biết mà không phải đoán qua một ticket
     # "sao tôi không nhận được email đặt lại mật khẩu".
     # 27/10/2026: "đã đặt biến" KHÁC "gửi được" — SMTP_* đã đặt mà Render chặn cổng, health vẫn báo ✅. Nay lần gửi
-    # gần nhất hỏng thì báo hỏng kèm lỗi thật.
+    # gần nhất hỏng thì báo hỏng kèm lỗi thật; đi SMTP thì thử mở cổng (Render khởi động lại là mất lần gửi gần nhất).
     smtp_ok = notify.smtp_configured()
+    transport = notify.email_transport()
     last_send = notify.email_last_send()
-    send_failed = bool(last_send.get("error")) and last_send.get("transport") == notify.email_transport()
-    works = smtp_ok and not send_failed
+    send_err = last_send.get("error") if last_send.get("transport") == transport else None
+    probe_err = notify.smtp_probe() if transport == "smtp" and not send_err else None
+    works = smtp_ok and not send_err and not probe_err
     is_prod = os.environ.get("TERRATWIN_ENV", "prod").strip().lower() != "dev"
     email = {
         "smtp_configured": smtp_ok,
-        "transport": notify.email_transport(),
+        "transport": transport,
         "last_send": last_send or None,
         "forgot_password_works": works,
         "email_verification_works": works,
         "message": (
-            (f"CẢNH BÁO: lần gửi email gần nhất ({last_send['at']}) HỎNG — {last_send['error']}"
-             if send_failed else None) if smtp_ok else
+            (f"CẢNH BÁO: lần gửi email gần nhất ({last_send['at']}) HỎNG — {send_err}" if send_err else
+             f"CẢNH BÁO: email KHÔNG gửi được — {probe_err}" if probe_err else None) if smtp_ok else
             ("CẢNH BÁO: chưa đặt TERRATWIN_SMTP_* — \"quên mật khẩu\" và \"xác "
              "thực email\" KHÔNG hoạt động trên production. Người dùng bấm quên "
              "mật khẩu vẫn thấy thông báo đã gửi (cố ý, chống dò email) nhưng "

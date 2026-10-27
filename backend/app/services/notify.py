@@ -162,6 +162,27 @@ def email_last_send() -> dict:
     return dict(_LAST_SEND)
 
 
+_SMTP_PROBE: dict = {}       # {"at": monotonic, "error": str|None} — thử mở cổng, KHÔNG gửi thư
+
+
+def smtp_probe(max_age: float = 600.0) -> str | None:
+    """Mở thử kết nối TCP tới máy chủ SMTP (không gửi gì). Render khởi động lại liên tục nên _LAST_SEND hay trống —
+    không thử thì health báo "gửi được" tới tận lần gửi hỏng đầu tiên. Trả None nếu mở được, hoặc lỗi."""
+    import time
+    if _SMTP_PROBE and time.monotonic() - _SMTP_PROBE["at"] < max_age:
+        return _SMTP_PROBE["error"]
+    host = os.environ.get("TERRATWIN_SMTP_HOST")
+    port = int(os.environ.get("TERRATWIN_SMTP_PORT", "587"))
+    try:
+        socket.create_connection((host, port), timeout=3).close()
+        err = None
+    except OSError as e:
+        err = (f"không mở được kết nối tới {host}:{port} ({type(e).__name__}) — Render gói miễn phí chặn cổng SMTP; "
+               f"đặt TERRATWIN_BREVO_API_KEY để gửi qua HTTPS.")
+    _SMTP_PROBE.update(at=time.monotonic(), error=err)
+    return err
+
+
 def _sender(default: str | None = None) -> str:
     return (os.environ.get("TERRATWIN_EMAIL_FROM") or default
             or os.environ.get("TERRATWIN_SMTP_FROM") or os.environ.get("TERRATWIN_SMTP_USER")
