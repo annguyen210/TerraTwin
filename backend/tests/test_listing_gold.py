@@ -47,7 +47,7 @@ def test_the_mo_hinh_doc_lan_cham_moi_nhat(monkeypatch):
           "per_type": [{"type": "residential", "precision": 1.0, "recall": 1.0, "f1": 1.0, "tp": 8, "fp": 0, "fn": 0}]}
     files = {("eval", "listing_gate_result.json"): r1, ("eval", "listing_gate_v2_result.json"): r2,
              ("eval", "listing_gate_v3_result.json"): None, ("eval", "listing_gate_v4_result.json"): None,
-             ("eval", "listing_gate_v5_result.json"): None, ("eval", "listing_gate_v6_result.json"): None}
+             ("eval", "listing_gate_v5_result.json"): None, ("eval", "listing_gate_v6_result.json"): None, ("eval", "listing_gate_v7_result.json"): None}
     monkeypatch.setattr(model_cards, "_load", lambda *p: files[p] if p in files else real(*p))
     c = next(x for x in model_cards.cards() if x["id"] == "listing_rules")
     assert c["status"] == "accepted" and "lần 2" in c["status_label"] and "KHÔNG phải nhãn người" in c["split"]
@@ -64,7 +64,7 @@ def test_the_mo_hinh_lan_4_tin_facebook_truot(monkeypatch):
           "per_type": [{"type": "near_sea", "precision": 0.0, "recall": 0.0, "f1": 0.0, "tp": 0, "fp": 0, "fn": 1}]}
     files = {("eval", "listing_gate_result.json"): None, ("eval", "listing_gate_v2_result.json"): None,
              ("eval", "listing_gate_v3_result.json"): r3, ("eval", "listing_gate_v4_result.json"): r4,
-             ("eval", "listing_gate_v5_result.json"): None, ("eval", "listing_gate_v6_result.json"): None}
+             ("eval", "listing_gate_v5_result.json"): None, ("eval", "listing_gate_v6_result.json"): None, ("eval", "listing_gate_v7_result.json"): None}
     monkeypatch.setattr(model_cards, "_load", lambda *p: files[p] if p in files else real(*p))
     c = next(x for x in model_cards.cards() if x["id"] == "listing_rules")
     assert c["status"] == "rejected" and "lần 4 trượt" in c["status_label"]
@@ -82,7 +82,7 @@ def test_the_mo_hinh_lan_5_ghi_ro_luat_sua_va_loai_chua_thu(monkeypatch):
           "per_type": [{"type": "residential", "precision": 1.0, "recall": 0.83, "f1": 0.91, "tp": 5, "fp": 0, "fn": 1}]}
     files = {("eval", "listing_gate_result.json"): None, ("eval", "listing_gate_v2_result.json"): None,
              ("eval", "listing_gate_v3_result.json"): None, ("eval", "listing_gate_v4_result.json"): r4,
-             ("eval", "listing_gate_v5_result.json"): r5, ("eval", "listing_gate_v6_result.json"): None}
+             ("eval", "listing_gate_v5_result.json"): r5, ("eval", "listing_gate_v6_result.json"): None, ("eval", "listing_gate_v7_result.json"): None}
     monkeypatch.setattr(model_cards, "_load", lambda *p: files[p] if p in files else real(*p))
     c = next(x for x in model_cards.cards() if x["id"] == "listing_rules")
     assert c["status"] == "accepted" and "lần 5 đạt" in c["status_label"]
@@ -99,7 +99,7 @@ def test_the_mo_hinh_ghi_nguoi_duyet_khong_ghi_nhan_nguoi(monkeypatch):
     files = {("eval", "listing_gate_result.json"): None, ("eval", "listing_gate_v2_result.json"): None,
              ("eval", "listing_gate_v3_result.json"): None, ("eval", "listing_gate_v4_result.json"): None,
              ("eval", "listing_gate_v5_result.json"): r5, ("eval", "listing_gate_v5_review.json"): rv,
-             ("eval", "listing_gate_v6_result.json"): None}
+             ("eval", "listing_gate_v6_result.json"): None, ("eval", "listing_gate_v7_result.json"): None}
     monkeypatch.setattr(model_cards, "_load", lambda *p: files[p] if p in files else real(*p))
     c = next(x for x in model_cards.cards() if x["id"] == "listing_rules")
     assert "nhãn AI, người duyệt" in c["status_label"]
@@ -115,7 +115,7 @@ def test_the_mo_hinh_lan_6_nhan_nguoi(monkeypatch):
           "per_type": [{"type": "residential", "precision": 0.64, "recall": 1.0, "f1": 0.78, "tp": 9, "fp": 5, "fn": 0}]}
     files = {("eval", "listing_gate_result.json"): None, ("eval", "listing_gate_v2_result.json"): None,
              ("eval", "listing_gate_v3_result.json"): None, ("eval", "listing_gate_v4_result.json"): None,
-             ("eval", "listing_gate_v5_result.json"): None, ("eval", "listing_gate_v6_result.json"): r6,
+             ("eval", "listing_gate_v5_result.json"): None, ("eval", "listing_gate_v6_result.json"): r6, ("eval", "listing_gate_v7_result.json"): None,
              ("eval", "listing_gate_v6_review.json"): None}
     monkeypatch.setattr(model_cards, "_load", lambda *p: files[p] if p in files else real(*p))
     c = next(x for x in model_cards.cards() if x["id"] == "listing_rules")

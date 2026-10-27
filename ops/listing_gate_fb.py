@@ -30,6 +30,11 @@ RUNS = {   # lần → (tệp nhãn, tệp kết quả, mô tả dữ liệu VI,
           "lấy từ trang dự phòng theo thứ tự đăng ký); NHÃN NGƯỜI do chủ dự án tự gán, không thấy nhãn máy",
           "20 land-sale posts from public Facebook broker pages (Bến Tre 15, Nghệ An 4, Khánh Hòa 1 — 3 of 4 main pages were unavailable, "
           "filled from backup pages in registered order); HUMAN labels by the owner, who did not see any machine labels"),
+    "7": ("listing_gate_v7_labels.json", "listing_gate_v7_result.json",
+          "20 bài bán đất MỚI trên trang Facebook công khai của môi giới (Vĩnh Long, Thanh Hóa, Long An, Đồng Nai + dự phòng), thu SAU khi khoá "
+          "luật sửa lần 7; NHÃN NGƯỜI do chủ dự án tự gán; 20 tin lần 6 là tập phát triển",
+          "20 NEW land-sale posts from public Facebook broker pages (Vĩnh Long, Thanh Hóa, Long An, Đồng Nai + backups), collected AFTER the "
+          "run-7 rule fix was frozen; HUMAN labels by the owner; the run-6 posts are the development set"),
 }
 THRESHOLD = 0.80
 

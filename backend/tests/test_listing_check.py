@@ -52,6 +52,27 @@ def test_cach_noi_vong_lan_5(text, typ, want):
     assert (typ in {c["type"] for c in lc.extract(text)}) is want
 
 
+@pytest.mark.parametrize("text,want", [
+    # Lần 7 (27/10/2026): lỗi lần 6 trên NHÃN NGƯỜI — quy hoạch / phủ định / chuyển đổi tương lai KHÔNG phải đã có đất ở.
+    ("Quy hoạch đất ở toàn bộ, giá 1 tỷ 9", False),
+    ("Diện tích 117m ( chưa thổ cư ), quy hoạch đất ở", False),
+    ("đất CLN, quy hoạch đất ở đô thị", False),
+    ("Quy hoạch ĐẤT Ở. Tổng DT 4.078m2", False),
+    ("QH đất ở, sổ sẵn", False),
+    ("đất vườn, chưa có thổ cư, hỗ trợ chuyển đất ở", False),
+    ("không có thổ cư", False),
+    # còn lại vẫn phải bắt
+    ("Có 74m thổ cư, đường hẻm", True),
+    ("Pháp lý sổ đỏ, đất thổ cư 100%", True),
+    ("100m2 ONT + 581,5m2 SKC", True),
+    ("có 50m thổ cư, phần còn lại quy hoạch đất ở", True),
+    ("Đất ở đô thị lâu dài, sổ hồng riêng", True),
+])
+def test_tho_cu_lan_7(text, want):
+    from app.services import listing_check as lc
+    assert ("residential" in {c["type"] for c in lc.extract(text)}) is want
+
+
 def test_cau_khong_khang_dinh_gi_thi_khong_bat_bua():
     from app.services import listing_check as lc
     assert lc.extract("Liên hệ chính chủ, giá thương lượng, xem đất thứ Bảy.") == []

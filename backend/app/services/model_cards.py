@@ -601,7 +601,8 @@ def cards() -> list[dict]:
                                      ("3", _load("eval", "listing_gate_v3_result.json")),
                                      ("4", _load("eval", "listing_gate_v4_result.json")),
                                      ("5", _load("eval", "listing_gate_v5_result.json")),
-                                     ("6", _load("eval", "listing_gate_v6_result.json"))) if r]
+                                     ("6", _load("eval", "listing_gate_v6_result.json")),
+                                     ("7", _load("eval", "listing_gate_v7_result.json"))) if r]
     base = {
         "id": "listing_rules", "kind": tr("quy tắc NLP", "NLP rules"),
         "name": tr("Tách câu khẳng định trong tin đăng bán đất", "Claim extraction from land listings"),

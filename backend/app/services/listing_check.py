@@ -44,8 +44,12 @@ CLAIMS: list[tuple[str, str, str, list[str]]] = [
         r"duong bao bien", r"(nhin|huong|mat) ra (bai )?bien\b", r"\bgio bien\b"]),
     ("flat", "Bằng phẳng", "Flat", [r"bang phang", r"dat phang", r"khong (bi )?doc", r"mat bang phang"]),
     ("no_landslide", "Không sạt lở", "No landslides", [r"khong (bi |lo )?sat lo", r"chua (tung )?sat lo"]),
+    # Lần 7 (27/10/2026) theo lỗi lần 6 (NHÃN NGƯỜI, 20 tin Facebook — nay là tập phát triển): "quy hoạch đất ở" là vùng
+    # QUY HOẠCH, chưa phải đất ở; "chưa thổ cư" là PHỦ ĐỊNH. Loại cả ba ngữ cảnh: quy hoạch, phủ định, chuyển đổi tương lai.
     ("residential", "Đất ở / thổ cư", "Residential land", [
-        r"(?<!len )(?<!lam )tho cu", r"dat o\b(?! (khu|tai|gan|ngay|trong|thon|xom|xa|phuong|quan|huyen|duong|pho|ap|to|day|"
+        r"(?<!len )(?<!lam )(?<!chua )(?<!chua co )(?<!khong co )(?<!khong phai )(?<!quy hoach )(?<!quy hoach la )(?<!qh )tho cu",
+        r"(?<!quy hoach )(?<!quy hoach la )(?<!qh )(?<!len )(?<!chuyen )(?<!chua co )(?<!khong phai )"
+        r"dat o\b(?! (khu|tai|gan|ngay|trong|thon|xom|xa|phuong|quan|huyen|duong|pho|ap|to|day|"
         r"vi tri|cho|noi|mat|sau|cuoi|dau|canh|giua|ven|nong thon|thanh pho|trung tam))", r"\bodt\b", r"\bont\b",
         r"da (duoc )?lenh? tho\b", r"\b(full|100%?) ?tc\b", r"\btc 100"]),
     ("fresh_water", "Nước ngọt", "Fresh water", [r"nuoc ngot", r"khong (bi )?(nhiem )?man", r"gieng ngot"]),

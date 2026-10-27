@@ -1,0 +1,61 @@
+{
+  "id": "terratwin.listing_gate/7",
+  "registered": "2026-10-27",
+  "registered_before_sampling": true,
+  "rules_frozen_before_sampling": true,
+  "purpose": "Kiểm bộ luật tách câu bản SỬA lần 7 trên NHÃN NGƯỜI, 20 tin Facebook mới. Luật sửa theo lỗi lần 6 (20 tin lần 6 nay là TẬP PHÁT TRIỂN — F1 1,0 sau sửa, không có giá trị kiểm định).",
+  "rules_change": "services/listing_check.py, loại 'thổ cư / đất ở': không tính khi đứng sau ngữ cảnh QUY HOẠCH ('quy hoạch', 'quy hoạch là', 'QH'), PHỦ ĐỊNH ('chưa', 'chưa có', 'không có', 'không phải') hoặc CHUYỂN ĐỔI TƯƠNG LAI ('lên', 'chuyển'). Không đổi loại câu nào khác. Đối chiếu không hồi quy: lần 4 vẫn 1,0, lần 5 vẫn 0,95. Commit cùng giao thức này, TRƯỚC khi mở trang nào của tập kiểm tra.",
+  "data": {
+    "source": "Trang Facebook CÔNG KHAI của môi giới đất, chọn THEO TÊN TRANG từ kết quả tìm kiếm web (chưa đọc bài nào), ở 4 vùng chưa dùng ở lần 4–6; bỏ trang gắn website và trang cá nhân",
+    "pages": [
+      {"region": "Vĩnh Long", "url": "https://www.facebook.com/datnenvinhlong64/"},
+      {"region": "Thanh Hóa", "url": "https://www.facebook.com/thanhhoanhadat/"},
+      {"region": "Long An", "url": "https://www.facebook.com/muadatlongan/"},
+      {"region": "Đồng Nai", "url": "https://www.facebook.com/nhadatxaanphuoc/"}
+    ],
+    "backup_pages": [
+      {"region": "Sóc Trăng", "url": "https://www.facebook.com/Dichvunhadatsoctrang/"},
+      {"region": "Thanh Hóa", "url": "https://www.facebook.com/hoangthanhbatdongsan/"},
+      {"region": "Long An", "url": "https://www.facebook.com/bdstanan/"},
+      {"region": "Đồng Nai", "url": "https://www.facebook.com/anhsambds/"}
+    ],
+    "selection": "Như lần 4–6: mỗi trang 5 bài BÁN ĐẤT đầu tiên theo thứ tự hiện trên trang (bỏ cho thuê, bán nhà, căn hộ, kiot, cần mua, thông báo đấu giá, bài giới thiệu chung, bài trùng; bài bán đất có tặng nhà cũ vẫn tính là bán đất); không chọn theo câu khẳng định. Trang không xem được hoặc thiếu sau ~30 lần cuộn → lấy tiếp từ trang dự phòng theo thứ tự (trang dự phòng đã dùng thì lấy tiếp bài sau đó).",
+    "access": "Chỉ đọc bằng tài khoản chủ dự án; không tham gia/theo dõi/tương tác; không dùng ô tìm kiếm Facebook",
+    "privacy": "Xoá số điện thoại (kể cả chữ số kiểu toán học, đối chiếu theo ký tự sau chuẩn hoá NFKC), đường dẫn, tên người trước khi lưu và trước khi đưa cho người gán; giữ nguyên kiểu chữ gốc"
+  },
+  "labelers": {
+    "primary": "CHỦ DỰ ÁN (người) — nhận phần chữ 20 tin KHÔNG kèm nhãn, gợi ý hay kết quả máy nào, cùng bản hướng dẫn 'guideline' dưới đây (viết và commit TRƯỚC khi thu mẫu). Nhãn dùng chấm cổng.",
+    "secondary": "Claude (claude-opus-5-5) gán riêng theo label_rules lần 3, commit TRƯỚC khi đưa tin cho chủ dự án — chỉ để đo độ khớp AI–người"
+  },
+  "guideline": {
+    "task": "Với mỗi tin: người bán đang khẳng định điều gì về CHÍNH lô đất đang bán? Chọn các mã phù hợp; không có thì ghi 0.",
+    "codes": {
+      "A không ngập": "Tính: không ngập, chưa từng ngập, không lo ngập, khô ráo quanh năm.",
+      "B cao ráo": "Tính: đất cao, cao ráo, nền cao, không trũng, cao hơn mặt đường/khu vực. Không tính: 'đất đẹp', 'thoáng mát'.",
+      "C gần sông": "Tính: gần/ven/giáp/sát/view/mặt tiền/cách X m tới sông, kênh, rạch. Không tính: hồ, suối, ao; tên đường hay địa danh có chữ 'Sông', 'Kênh'.",
+      "D gần biển": "Tính: gần/ven/view/cách X km/'ra biển N phút' tới biển, bãi biển. Không tính: gần cảng, gần sân bay.",
+      "E bằng phẳng": "Tính: bằng phẳng, đất phẳng, không dốc. Không tính: vuông vức, vuông vắn, nở hậu (hình dáng).",
+      "F không sạt lở": "Tính: không sạt lở, chưa từng sạt lở.",
+      "G đất ở / thổ cư": "Tính: lô ĐÃ CÓ (toàn bộ hoặc một phần) đất ở/thổ cư/ODT/ONT. Không tính: 'có thể lên thổ cư', 'hỗ trợ lên thổ cư' (chưa có); 'nằm trong khu dân cư' (vị trí).",
+      "H nước ngọt": "Tính: nước ngọt, giếng ngọt, không nhiễm mặn."
+    },
+    "principles": [
+      "Chỉ tính điều tin khẳng định, không tính điều mình đoán.",
+      "Phải nói về chính lô đất đang bán, không phải nơi khác.",
+      "Câu phủ định thì không tính.",
+      "Viết khác chữ vẫn tính nếu cùng ý (viết tắt, không dấu, in hoa, chữ in đậm).",
+      "Chỗ quy tắc không nói rõ thì người gán tự quyết theo cách một người mua đất đọc tin sẽ hiểu."
+    ],
+    "examples": [
+      "'Đất cao ráo, không bao giờ ngập, cách sông Hậu 200m, sổ hồng thổ cư 100%' → A B C G",
+      "'Lô đất vuông vức, nở hậu, đường ô tô, giá rẻ' → 0",
+      "'Đất vườn 1.000m², hỗ trợ lên thổ cư, view hồ sen' → 0",
+      "'Nền đã có 60m² ONT, cách biển 2km' → D G"
+    ],
+    "note": "Y nội dung bản đã gửi ở lần 6, chỉ bỏ ví dụ cụ thể 'cách cầu Kênh X' (lần 6 trùng một tin); không thêm quy tắc nào về 'quy hoạch đất ở' — người gán tự quyết như lần 6."
+  },
+  "metric": "Như lần 6: F1 trung bình (macro) của bộ tách câu trên NHÃN NGƯỜI (listing_gold.score); phụ: độ khớp nhãn AI với nhãn người.",
+  "threshold": "ĐẠT khi F1 trung bình ≥ 0,80 trên 20 tin nhãn người.",
+  "one_shot": "Chấm đúng một lần sau khi commit nhãn người; không sửa nhãn người sau khi thấy kết quả. Nhãn người được nhập thêm vào tập vàng /admin → Tin đăng GĐ3.",
+  "script": "ops/listing_gate_fb.py --run 7"
+}
