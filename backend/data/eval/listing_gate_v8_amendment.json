@@ -1,0 +1,29 @@
+{
+ "id": "terratwin.listing_gate/8 — phụ lục 1",
+ "registered": "2026-10-27",
+ "registered_before_reading_added_pages": true,
+ "why": "Làm đúng giao thức f3aa050 chỉ thu được 15/30 tin (biển 5, sông 4, ngập 0, phẳng/dốc 5, sạt lở 0, nước 1): trang Sa Đéc và trang Cà Mau dừng tải bài ở 11 và 20 bài; khoảng 29 bài bán đất ở Chương Mỹ không có 'ngập/lụt/khô ráo' và trang dự phòng ẩn hết bài; khoảng 100 bài bán đất ở 3 trang không có 'sạt/lở'; trang dự phòng cuối nhóm nước toàn bán nhà TP.HCM. Mã băm bản 15 tin đã khoá ở 3413664. Chủ dự án yêu cầu thu đủ 30/30 (27/10/2026). Phụ lục này ghi TRƯỚC khi mở bất kỳ trang bổ sung nào.",
+ "what_changes": "CHỈ thêm trang dự phòng cho 4 nhóm còn thiếu, theo thứ tự dưới đây. Mọi quy tắc khác của giao thức giữ nguyên: lọc bằng từ chủ đề (topic.hits), đọc bài BÁN ĐẤT theo thứ tự trên trang, ~30 lần cuộn mỗi trang, bỏ trang không xem được, tin trùng chỉ tính một lần, vẫn thiếu thì GHI SỐ THIẾU (không thêm trang ngoài danh sách này). 15 tin đã lấy giữ nguyên chữ và nhãn AI; không đọc lại trang cũ.",
+ "added_pages": {
+  "near_river": {"need": 1, "pages": [
+   {"region": "An Giang (Kiên Giang cũ, Rạch Giá)", "url": "https://www.facebook.com/nhadatkiengiang7979/"},
+   {"region": "An Giang (Kiên Giang cũ)", "url": "https://www.facebook.com/nhadathungtinh/"}]},
+  "no_flood": {"need": 5, "pages": [
+   {"region": "Đà Nẵng (Hòa Vang — Hòa Phước)", "url": "https://www.facebook.com/nhadathoaphuocdanang/"},
+   {"region": "Đà Nẵng – Quảng Nam", "url": "https://www.facebook.com/datredanangvn/"},
+   {"region": "Đà Nẵng (Hòa Vang — Hòa Bắc)", "url": "https://www.facebook.com/muabandatxahoabachoavangdanang/"}]},
+  "no_landslide": {"need": 5, "pages": [
+   {"region": "Phú Thọ (Hòa Bình cũ)", "url": "https://www.facebook.com/bandathoabinh/"},
+   {"region": "Lâm Đồng (Đà Lạt)", "url": "https://www.facebook.com/datdoidalat/"},
+   {"region": "Lâm Đồng (Lâm Hà)", "url": "https://www.facebook.com/nhadallamha/"},
+   {"region": "Lâm Đồng (ven Đà Lạt)", "url": "https://www.facebook.com/Datvungvendalat/"}]},
+  "fresh_water": {"need": 4, "pages": [
+   {"region": "An Giang (Phú Quốc)", "url": "https://www.facebook.com/bandatphuquockiengiang/"},
+   {"region": "Cần Thơ (Hậu Giang cũ)", "url": "https://www.facebook.com/p/%C4%90%E1%BA%A5t-V%C6%B0%E1%BB%9Dn-H%E1%BA%ADu-Giang-100087589658134/"},
+   {"region": "Cần Thơ (Hậu Giang cũ, Vị Thanh)", "url": "https://www.facebook.com/toanthugroup/"}]}
+ },
+ "page_choice": "Chọn THEO TÊN TRANG từ kết quả tìm kiếm web 'site:facebook.com …' (Đà Nẵng Hòa Vang; Hòa Bình/Đà Lạt nghỉ dưỡng; Kiên Giang/Hậu Giang đất vườn; Phú Quốc), CHƯA đọc bài nào; vùng chưa dùng ở lần 4–7; bỏ trang gắn website trong tên, nhóm, chợ Marketplace. Thứ tự trong mỗi nhóm ghi sẵn ở trên.",
+ "order_and_ids": "Gộp 15 tin cũ và tin mới theo thứ tự nhóm rồi theo thứ tự lấy, trộn lại bằng random.Random(20261027), đánh số lại 1–N. Mã băm 3413664 (bản 15 tin) được thay bằng listing_gate_v8_hashes.json mới, khoá trước khi người gán nhận tin; bản cũ còn trong lịch sử git.",
+ "unchanged": "Luật (listing_check.py SHA-256 d7d85628…), hướng dẫn gán, thước đo, ngưỡng F1 chính ≥ 0,80, chấm đúng một lần.",
+ "limits": "Phụ lục viết SAU khi đã thấy thành phần mẫu 15 tin (chưa có nhãn người, chưa chấm). Trang bổ sung ở vùng khác giao thức gốc. 'Sạt lở' có thể vẫn không đủ — khi đó ghi thiếu, không ép."
+}
