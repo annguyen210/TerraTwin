@@ -1,0 +1,26 @@
+{
+ "protocol": "terratwin.listing_gate/8",
+ "committed": "2026-10-27",
+ "purpose": "Khoá TRƯỚC khi người gán nhận tin: nhãn AI phụ và nhật ký chọn mẫu giữ ngoài kho công khai, chỉ công bố mã băm. Sau khi nhãn người khoá, hai tệp sẽ được chép vào kho; mã băm phải khớp.",
+ "ai_labels_sha256": "ee7b8c4e5675936c50f6994939f4e17e53492b79cf4b460be3579112f59aa8b7",
+ "selection_sha256": "25b71e349f18dea3a4d4a3062876697fd5dff4e343b76bddb943503e2c6b8162",
+ "n_listings": 15,
+ "n_note": "Thu được 15/30 tin — nhiều trang không đủ bài có từ chủ đề sau ~30 lần cuộn kể cả trang dự phòng; theo giao thức ghi số thiếu, không thay trang khác. Chi tiết từng trang trong selection.json (công bố sau khi nhãn người khoá).",
+ "text_sha256": {
+  "1": "8e157475dc76e7d149ddfe37f45928d5c161f146ebe127e205212323853e8f8b",
+  "2": "76c1ef082e638d2d351dd85a4135264e97ded26a6c12ecfd483b8bd44752a254",
+  "3": "b80d6ee707fe23167a6b241beed51a5582f16a5684281ff7b814fcf50e853971",
+  "4": "03636a7d3ded99ba60ab7b57274feeaf64d26c6f35036cec27050766ec37d5d5",
+  "5": "b0d6081540ed1e16bc53c1f92e0da7aa04028a8fee27406f7a18c2216591659b",
+  "6": "45db56e8bae5bbff3b84a1e505c952961ccc563883b3c377efcf65414ec365ec",
+  "7": "7417c6a5700e1eb3b8512f067c04ee42e5f89d32a154ca6adc6f1726c264383f",
+  "8": "dc05b8ee1d0febad70ef723a34e9beb53d9722ce6f1e57a7241db368154e2c79",
+  "9": "7c009094e3b1af3868a4e1a62be1dd5001c5af8ee3036ed17dffa4a5761afb6a",
+  "10": "19d993bd811c1a658d567b28428cbc4e39e62a2002566f3211c21f0b7867de6e",
+  "11": "fbdd3e1bb32ab54d682e621dcc0b9e4defbc588c14395ba3873896b87337dfe9",
+  "12": "a8a4fae56321d008f23767d6dbfa40559dc58d211d514295978e07467b4f27e0",
+  "13": "f9c3a50aeb6bc4c9c0c5d2b4a235d8c27f7bd727f7ed63feaa1cfd416c92ef77",
+  "14": "4ee8abcc7eed97bb2ef4e3575933517708fbcc56f518ef5832a8841c902fd4a8",
+  "15": "96f4cbd72d56f3036bfd2f12f39a750d51e3c5052bc48f59e6d36dd1bacb3f42"
+ }
+}
