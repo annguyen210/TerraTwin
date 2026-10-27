@@ -1,0 +1,25 @@
+{
+ "id": "terratwin.listing_gate/8 — phụ lục 2",
+ "registered": "2026-10-27",
+ "registered_before_reading_added_pages": true,
+ "why": "Giao thức gốc (f3aa050) + phụ lục 1 (6621e13) thu được 17/30 tin (biển 5, sông 5, ngập 0, phẳng/dốc 5, sạt lở 0, nước 2); mã băm bản 17 tin khoá ở cb32f44, CHƯA đưa cho người gán gán. Chủ dự án yêu cầu đủ 30 tin (27/10/2026). Phụ lục này ghi TRƯỚC khi mở bất kỳ trang nào dưới đây và TRƯỚC khi đọc thêm bài nào.",
+ "step_1_added_pages": {
+  "rule": "Như giao thức: đọc bài BÁN ĐẤT theo thứ tự, lấy bài có từ chủ đề của nhóm (topic.hits), ~30 lần cuộn/trang, bỏ trang không xem được, tin trùng chỉ tính một lần.",
+  "no_flood": {"need": 5, "pages": [
+   {"region": "TP.HCM (Bình Chánh)", "url": "https://www.facebook.com/MuaBanDatNenBinhChanh/"},
+   {"region": "TP.HCM (Củ Chi, Hóc Môn)", "url": "https://www.facebook.com/NHAPHOCUCHIHOCMONQUAN12/"},
+   {"region": "Hà Nội (Long Biên)", "url": "https://www.facebook.com/nhadatbode/"}]},
+  "no_landslide": {"need": 5, "pages": [
+   {"region": "Lâm Đồng (Tà Nung, Đà Lạt)", "url": "https://www.facebook.com/datvuontanung/"},
+   {"region": "Đồng Nai (Bình Phước cũ)", "url": "https://www.facebook.com/datvuonbp/"},
+   {"region": "Đà Nẵng (đất nghỉ dưỡng)", "url": "https://www.facebook.com/datnghiduongdanang/"}]},
+  "fresh_water": {"need": 3, "pages": [
+   {"region": "Đông Nam Bộ (đất vườn trái cây)", "url": "https://www.facebook.com/Cucvo11/"},
+   {"region": "Đà Nẵng (đất vườn)", "url": "https://www.facebook.com/datvuondanang92/"}]}
+ },
+ "step_2_fill_to_30": "Nếu sau bước 1 vẫn dưới 30 tin: bù chỗ còn thiếu bằng các bài BÁN ĐẤT TIẾP THEO có từ chủ đề của chính nhóm đó, trên trang mà nhóm đó đã lấy tin (biển: datbienphanthietbinhthuan; sông: muabannhadattra; phẳng/dốc: DatbaolocAAA; nước: trang Đất Vườn Hậu Giang), xoay vòng theo thứ tự biển → sông → phẳng/dốc → nước, mỗi vòng mỗi nhóm một tin, bỏ tin đã lấy (so chữ sau chuẩn hoá), cho đến đủ 30. Nhóm nào hết bài (~30 lần cuộn) thì bỏ khỏi vòng. Không chọn tay; thứ tự trên trang có thể khác lần tải trước — ghi lại vị trí mới.",
+ "page_choice": "Trang bước 1 chọn THEO TÊN từ kết quả tìm kiếm web 'site:facebook.com …' (đất nền TP.HCM/Hà Nội; đất vườn/nghỉ dưỡng vùng đồi; đất vườn), chưa đọc bài nào; bỏ trang gắn website trong tên, nhóm, chợ Marketplace, vùng đã dùng ở lần 4–7.",
+ "consequence": "Nếu bước 2 phải dùng, mẫu 30 tin sẽ lệch về các loại có nhiều nguồn (biển, sông, phẳng, nước); hai loại 'không ngập' và 'không sạt lở' vẫn có thể không có tin dương tính — khi đó ghi 'không đo được trên nguồn này'.",
+ "order_and_ids": "Gộp mọi tin theo thứ tự nhóm rồi thứ tự lấy, trộn bằng random.Random(20261027), đánh số lại 1–30. Mã băm cb32f44 (bản 17 tin) được thay bằng listing_gate_v8_hashes.json mới, khoá trước khi người gán nhận tin.",
+ "unchanged": "Luật (listing_check.py SHA-256 d7d85628…), hướng dẫn gán, thước đo, ngưỡng F1 chính ≥ 0,80, chấm đúng một lần."
+}
