@@ -1,0 +1,420 @@
+{
+ "protocol": "terratwin.listing_gate/8",
+ "source": "facebook_public_pages",
+ "n": 30,
+ "enough": true,
+ "per_type": [
+  {
+   "type": "high_ground",
+   "precision": 0.0,
+   "recall": 0.0,
+   "f1": 0.0,
+   "tp": 0,
+   "fp": 0,
+   "fn": 2
+  },
+  {
+   "type": "near_river",
+   "precision": 1.0,
+   "recall": 0.75,
+   "f1": 0.86,
+   "tp": 3,
+   "fp": 0,
+   "fn": 1
+  },
+  {
+   "type": "near_sea",
+   "precision": 1.0,
+   "recall": 0.92,
+   "f1": 0.96,
+   "tp": 11,
+   "fp": 0,
+   "fn": 1
+  },
+  {
+   "type": "flat",
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 11,
+   "fp": 0,
+   "fn": 0
+  },
+  {
+   "type": "residential",
+   "precision": 0.83,
+   "recall": 0.91,
+   "f1": 0.87,
+   "tp": 10,
+   "fp": 2,
+   "fn": 1
+  },
+  {
+   "type": "fresh_water",
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 1,
+   "fp": 0,
+   "fn": 0
+  }
+ ],
+ "macro_f1": 0.95,
+ "threshold_macro_f1": 0.8,
+ "passed": true,
+ "no_claim_listings": 2,
+ "no_claim_but_extracted": [],
+ "labeler": "Chủ dự án (người), gửi 30 dòng mã A–H/0 ngày 27/10/2026, kèm các quyết định ở chỗ quy tắc chưa nói rõ",
+ "data_note": "30 bài bán đất trên trang Facebook công khai của môi giới, CHỌN THEO TỪ CHỦ ĐỀ (biển, sông, ngập, phẳng/dốc, sạt lở, nước — 5 bài/nhóm) để đo 6 loại câu chưa từng chấm trên nhãn người; luật GIỮ NGUYÊN lần 7; NHÃN NGƯỜI do chủ dự án tự gán",
+ "data_note_en": "30 land-sale posts from public Facebook broker pages, SELECTED BY TOPIC WORD (sea, river, flood, flat/slope, landslide, water — 5 per group) to measure the 6 claim types never scored on human labels; rules UNCHANGED from run 7; HUMAN labels by the owner",
+ "per_listing": [
+  {
+   "id": 1,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 2,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "gold": [
+    "near_sea"
+   ],
+   "pred": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 3,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "gold": [
+    "near_sea"
+   ],
+   "pred": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 4,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "gold": [
+    "flat",
+    "residential"
+   ],
+   "pred": [
+    "flat",
+    "residential"
+   ]
+  },
+  {
+   "id": 5,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "gold": [
+    "near_sea"
+   ],
+   "pred": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 6,
+   "region": "Đồng Tháp (Sa Đéc)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 7,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "gold": [
+    "near_sea"
+   ],
+   "pred": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 8,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "gold": [
+    "near_sea"
+   ],
+   "pred": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 9,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "gold": [
+    "flat"
+   ],
+   "pred": [
+    "flat",
+    "residential"
+   ]
+  },
+  {
+   "id": 10,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "gold": [
+    "flat"
+   ],
+   "pred": [
+    "flat"
+   ]
+  },
+  {
+   "id": 11,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "gold": [
+    "flat"
+   ],
+   "pred": [
+    "flat",
+    "residential"
+   ]
+  },
+  {
+   "id": 12,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "gold": [
+    "fresh_water"
+   ],
+   "pred": [
+    "fresh_water"
+   ]
+  },
+  {
+   "id": 13,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "gold": [
+    "flat",
+    "high_ground"
+   ],
+   "pred": [
+    "flat"
+   ]
+  },
+  {
+   "id": 14,
+   "region": "An Giang (Kiên Giang cũ, Rạch Giá)",
+   "gold": [
+    "near_river",
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 15,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "gold": [
+    "near_sea"
+   ],
+   "pred": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 16,
+   "region": "Trà Vinh",
+   "gold": [
+    "high_ground",
+    "near_river",
+    "residential"
+   ],
+   "pred": [
+    "near_river",
+    "residential"
+   ]
+  },
+  {
+   "id": 17,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "gold": [
+    "flat",
+    "residential"
+   ],
+   "pred": [
+    "flat",
+    "residential"
+   ]
+  },
+  {
+   "id": 18,
+   "region": "Trà Vinh",
+   "gold": [
+    "near_river",
+    "residential"
+   ],
+   "pred": [
+    "near_river"
+   ]
+  },
+  {
+   "id": 19,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "gold": [
+    "flat",
+    "residential"
+   ],
+   "pred": [
+    "flat",
+    "residential"
+   ]
+  },
+  {
+   "id": 20,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "gold": [
+    "near_sea"
+   ],
+   "pred": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 21,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "gold": [
+    "flat",
+    "near_sea"
+   ],
+   "pred": [
+    "flat",
+    "near_sea"
+   ]
+  },
+  {
+   "id": 22,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "gold": [
+    "near_sea"
+   ],
+   "pred": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 23,
+   "region": "Đồng Tháp (Sa Đéc)",
+   "gold": [
+    "near_river",
+    "residential"
+   ],
+   "pred": [
+    "near_river",
+    "residential"
+   ]
+  },
+  {
+   "id": 24,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "gold": [
+    "flat",
+    "residential"
+   ],
+   "pred": [
+    "flat",
+    "residential"
+   ]
+  },
+  {
+   "id": 25,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "gold": [
+    "flat",
+    "residential"
+   ],
+   "pred": [
+    "flat",
+    "residential"
+   ]
+  },
+  {
+   "id": 26,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "gold": [
+    "near_sea"
+   ],
+   "pred": []
+  },
+  {
+   "id": 27,
+   "region": "Cần Thơ (Hậu Giang cũ)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 28,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "gold": [
+    "flat",
+    "residential"
+   ],
+   "pred": [
+    "flat",
+    "residential"
+   ]
+  },
+  {
+   "id": 29,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "gold": [
+    "near_sea"
+   ],
+   "pred": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 30,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "gold": [
+    "near_sea"
+   ],
+   "pred": [
+    "near_sea"
+   ]
+  }
+ ],
+ "target_types": [
+  "no_flood",
+  "near_river",
+  "near_sea",
+  "flat",
+  "no_landslide",
+  "fresh_water"
+ ],
+ "macro_f1_all_types": 0.78,
+ "target_positives": {
+  "no_flood": 0,
+  "near_river": 4,
+  "near_sea": 12,
+  "flat": 11,
+  "no_landslide": 0,
+  "fresh_water": 1
+ },
+ "few_samples": [
+  "no_flood",
+  "no_landslide",
+  "fresh_water"
+ ],
+ "labeler_kind": "human",
+ "ai_vs_human": {
+  "listings_exact_match": 30,
+  "n": 30,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "tp": 41,
+  "fp": 0,
+  "fn": 0,
+  "note": "Nhãn AI (Claude, khoá trước khi người gán) so với nhãn người, gộp mọi loại câu"
+ }
+}
