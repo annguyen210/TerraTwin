@@ -1,0 +1,4 @@
+# GĐ3 lần 8: tệp công bố sau khi khoá MÃ BĂM — giữ nguyên từng byte (kể cả CRLF) để SHA-256 kiểm lại được
+backend/data/eval/listing_gate_v8_ai_labels.json -text
+backend/data/eval/listing_gate_v8_selection.json -text
+backend/data/eval/listing_gate_v8_superseded/*.json -text

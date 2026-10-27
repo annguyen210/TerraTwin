@@ -1,0 +1,504 @@
+{
+ "protocol": "terratwin.listing_gate/8",
+ "collected": "2026-10-27",
+ "collector": "Claude (claude-opus-5-5) qua Chrome của chủ dự án — chỉ đọc: mở thẳng địa chỉ trang, không dùng ô tìm kiếm, không tham gia/theo dõi/thích/bình luận/nhắn tin; chỉ bấm 'Xem thêm'",
+ "method": "Mỗi trang: chạy collect.js (≤ 30 lần cuộn, giữ thứ tự xuất hiện), đọc bài BÁN ĐẤT theo thứ tự (bỏ cho thuê, bán nhà, căn hộ, kiot, cần mua, đấu giá, bài giới thiệu chung, bài trùng); lấy 5 bài đầu có topic.hits(text, nhóm) khác rỗng. Bản thu gọn ('… Xem thêm') và bản mở rộng của cùng bài tính là một bài; chữ giao diện 'Ẩn bớt' ở cuối bị bỏ.",
+ "anonymization": "topic.anonymize (số điện thoại kể cả chữ số kiểu toán học, email, đường dẫn) + tên người thay '[tên]' bằng tay",
+ "shuffle_seed": 20261027,
+ "total": 15,
+ "target": 30,
+ "shortfall_total": 15,
+ "groups": [
+  {
+   "group": "near_sea",
+   "topic": "biển",
+   "pages": [
+    {
+     "region": "Bình Thuận cũ (Phan Thiết)",
+     "url": "https://www.facebook.com/datbienphanthietbinhthuan/",
+     "viewable": true,
+     "scrolls_when_stopped": 16,
+     "posts_seen_in_order": 49,
+     "land_sale_read": 7,
+     "land_sale_with_topic_word": 5,
+     "read_log": [
+      {
+       "pos": 9,
+       "land_sale": true,
+       "hits": []
+      },
+      {
+       "pos": 12,
+       "land_sale": true,
+       "hits": [],
+       "note": "bài 21 trùng bài này"
+      },
+      {
+       "pos": 13,
+       "land_sale": true,
+       "hits": [
+        "biển"
+       ],
+       "taken": 1,
+       "note": "13 = bản thu gọn của 15"
+      },
+      {
+       "pos": 14,
+       "land_sale": true,
+       "hits": [
+        "biển"
+       ],
+       "taken": 2,
+       "note": "14 = bản thu gọn của 16"
+      },
+      {
+       "pos": 18,
+       "land_sale": false,
+       "hits": [
+        "biển"
+       ],
+       "note": "bài giới thiệu chung thị trường đất ven biển, không có lô cụ thể — bỏ như lần 4–7"
+      },
+      {
+       "pos": 19,
+       "land_sale": true,
+       "hits": [
+        "biển"
+       ],
+       "taken": 3,
+       "note": "19 = bản thu gọn của 20"
+      },
+      {
+       "pos": 27,
+       "land_sale": true,
+       "hits": [
+        "biển"
+       ],
+       "taken": 4,
+       "note": "giỏ hàng đất vườn; 27 = bản thu gọn của 34"
+      },
+      {
+       "pos": 28,
+       "land_sale": true,
+       "hits": [
+        "biển"
+       ],
+       "taken": 5
+      }
+     ],
+     "skipped_other": "vị trí 0–8, 10–11, 17, 22–26: tin du lịch/hạ tầng/bài hướng dẫn/đường dẫn — không phải bài bán đất"
+    }
+   ],
+   "taken": [
+    {
+     "id": 4,
+     "region": "Bình Thuận cũ (Phan Thiết)",
+     "page_pos": 28,
+     "hits": [
+      "biển"
+     ]
+    },
+    {
+     "id": 6,
+     "region": "Bình Thuận cũ (Phan Thiết)",
+     "page_pos": 16,
+     "hits": [
+      "biển"
+     ]
+    },
+    {
+     "id": 11,
+     "region": "Bình Thuận cũ (Phan Thiết)",
+     "page_pos": 34,
+     "hits": [
+      "biển"
+     ]
+    },
+    {
+     "id": 14,
+     "region": "Bình Thuận cũ (Phan Thiết)",
+     "page_pos": 15,
+     "hits": [
+      "biển"
+     ]
+    },
+    {
+     "id": 15,
+     "region": "Bình Thuận cũ (Phan Thiết)",
+     "page_pos": 20,
+     "hits": [
+      "biển"
+     ]
+    }
+   ],
+   "shortfall": 0
+  },
+  {
+   "group": "near_river",
+   "topic": "sông",
+   "pages": [
+    {
+     "region": "Đồng Tháp (Sa Đéc)",
+     "url": "https://www.facebook.com/batdongsansadec",
+     "viewable": true,
+     "scrolls": 30,
+     "posts_seen_in_order": 11,
+     "exhausted": "sau 30 lần cuộn trang không tải thêm bài (dừng ở 11 bài) → sang trang dự phòng",
+     "land_sale_read": 4,
+     "land_sale_with_topic_word": 2,
+     "read_log": [
+      {
+       "pos": 0,
+       "land_sale": true,
+       "hits": []
+      },
+      {
+       "pos": 1,
+       "land_sale": true,
+       "hits": [
+        "sông"
+       ],
+       "taken": 1,
+       "note": "1 = bản thu gọn của 3"
+      },
+      {
+       "pos": 2,
+       "land_sale": true,
+       "hits": [
+        "kênh"
+       ],
+       "taken": 2,
+       "note": "từ 'kênh' nằm trong tên đường — lọc máy vẫn tính"
+      },
+      {
+       "pos": 5,
+       "land_sale": true,
+       "hits": []
+      }
+     ],
+     "skipped_other": "vị trí 4, 6–10: bán nhà (bỏ như lần 4–7)"
+    },
+    {
+     "region": "Trà Vinh",
+     "url": "https://www.facebook.com/muabannhadattra/",
+     "viewable": true,
+     "backup": true,
+     "scrolls": 30,
+     "posts_seen_in_order": 110,
+     "land_sale_read": 50,
+     "land_sale_read_note": "đếm theo bài khác nhau: gộp bản thu gọn/mở rộng của cùng bài và bài đăng lại cùng lô (vị trí 20, 57, 101); bỏ bán nhà/nhà trọ (17, 30, 32, 54, 73, 84, 87)",
+     "land_sale_with_topic_word": 2,
+     "read_log": [
+      {
+       "pos": 14,
+       "land_sale": true,
+       "hits": [
+        "kênh"
+       ],
+       "taken": 3,
+       "note": "14 = bản thu gọn của 16"
+      },
+      {
+       "pos": 80,
+       "land_sale": true,
+       "hits": [
+        "sông"
+       ],
+       "taken": 4,
+       "note": "80 = bản thu gọn của 81"
+      }
+     ],
+     "exhausted": "hết 30 lần cuộn, chỉ 2 bài bán đất có từ chủ đề"
+    }
+   ],
+   "taken": [
+    {
+     "id": 1,
+     "region": "Trà Vinh",
+     "page_pos": 81,
+     "hits": [
+      "sông"
+     ]
+    },
+    {
+     "id": 3,
+     "region": "Đồng Tháp (Sa Đéc)",
+     "page_pos": 3,
+     "hits": [
+      "sông"
+     ]
+    },
+    {
+     "id": 5,
+     "region": "Trà Vinh",
+     "page_pos": 16,
+     "hits": [
+      "kênh"
+     ]
+    },
+    {
+     "id": 8,
+     "region": "Đồng Tháp (Sa Đéc)",
+     "page_pos": 2,
+     "hits": [
+      "kênh"
+     ]
+    }
+   ],
+   "shortfall": 1
+  },
+  {
+   "group": "no_flood",
+   "topic": "ngập",
+   "pages": [
+    {
+     "region": "Hà Nội (Chương Mỹ)",
+     "url": "https://www.facebook.com/batdongsanhuyenchuongmy/",
+     "viewable": true,
+     "scrolls": 30,
+     "posts_seen_in_order": 99,
+     "land_sale_read": 29,
+     "land_sale_read_note": "đếm theo bài khác nhau (gộp bản thu gọn/mở rộng); bỏ bài quảng bá công ty, dịch vụ giấy tờ, tin hạ tầng, bán nhà/biệt thự/nhà phố",
+     "land_sale_with_topic_word": 0,
+     "read_log": [],
+     "exhausted": "hết 30 lần cuộn, không bài nào có 'ngập', 'lụt' hay 'khô ráo' → sang trang dự phòng"
+    },
+    {
+     "region": "Hà Nội (Chương Mỹ)",
+     "url": "https://www.facebook.com/muabandathoachinhchuongmy/",
+     "backup": true,
+     "viewable": false,
+     "scrolls": 17,
+     "posts_seen_in_order": 0,
+     "land_sale_read": 0,
+     "land_sale_with_topic_word": 0,
+     "note": "trang mở được nhưng mọi bài hiện 'Nội dung này hiện không hiển thị' (chủ trang giới hạn người xem hoặc đã xoá) — không đọc được chữ bài nào"
+    }
+   ],
+   "taken": [],
+   "shortfall": 5
+  },
+  {
+   "group": "flat",
+   "topic": "phẳng/dốc",
+   "pages": [
+    {
+     "region": "Lâm Đồng (Bảo Lộc)",
+     "url": "https://www.facebook.com/DatbaolocAAA/",
+     "viewable": true,
+     "scrolls_when_stopped": 10,
+     "posts_seen_in_order": 34,
+     "land_sale_read": 16,
+     "land_sale_with_topic_word": 5,
+     "land_sale_read_note": "bài bán đất khác nhau ở vị trí 0,1,2,3,4,8,11,13,14,17,18,19,23,25,26,29 (gộp bản thu gọn/mở rộng); bỏ 10 (tin hạ tầng), 20/22 (bán nhà)",
+     "read_log": [
+      {
+       "pos": 8,
+       "hits": [
+        "phẳng"
+       ],
+       "taken": 1,
+       "note": "8 = bản thu gọn của 9"
+      },
+      {
+       "pos": 13,
+       "hits": [
+        "phẳng"
+       ],
+       "taken": 2,
+       "note": "13 = bản thu gọn của 15"
+      },
+      {
+       "pos": 17,
+       "hits": [
+        "phẳng"
+       ],
+       "taken": 3
+      },
+      {
+       "pos": 25,
+       "hits": [
+        "dốc"
+       ],
+       "taken": 4,
+       "note": "25 = bản thu gọn của 27"
+      },
+      {
+       "pos": 29,
+       "hits": [
+        "phẳng"
+       ],
+       "taken": 5,
+       "note": "29 = bản thu gọn của 31"
+      }
+     ]
+    }
+   ],
+   "taken": [
+    {
+     "id": 2,
+     "region": "Lâm Đồng (Bảo Lộc)",
+     "page_pos": 17,
+     "hits": [
+      "phẳng"
+     ]
+    },
+    {
+     "id": 7,
+     "region": "Lâm Đồng (Bảo Lộc)",
+     "page_pos": 31,
+     "hits": [
+      "phẳng"
+     ]
+    },
+    {
+     "id": 9,
+     "region": "Lâm Đồng (Bảo Lộc)",
+     "page_pos": 15,
+     "hits": [
+      "phẳng"
+     ]
+    },
+    {
+     "id": 10,
+     "region": "Lâm Đồng (Bảo Lộc)",
+     "page_pos": 9,
+     "hits": [
+      "phẳng"
+     ]
+    },
+    {
+     "id": 13,
+     "region": "Lâm Đồng (Bảo Lộc)",
+     "page_pos": 27,
+     "hits": [
+      "dốc"
+     ]
+    }
+   ],
+   "shortfall": 0
+  },
+  {
+   "group": "no_landslide",
+   "topic": "sạt lở",
+   "pages": [
+    {
+     "region": "Lào Cai (Yên Bái cũ)",
+     "url": "https://www.facebook.com/nhadatchinhchuYB/",
+     "viewable": true,
+     "scrolls": 30,
+     "posts_seen_in_order": 82,
+     "land_sale_read": 22,
+     "land_sale_read_note": "đếm theo bài khác nhau (gộp bản thu gọn/mở rộng, bài đăng lại cùng lô 67/69); bỏ bán nhà, bài chúc mừng/đời thường/giao dịch thành công",
+     "land_sale_with_topic_word": 0,
+     "read_log": [],
+     "exhausted": "hết 30 lần cuộn, không bài nào có 'sạt' hay 'lở' → sang trang dự phòng 1"
+    },
+    {
+     "region": "Lào Cai",
+     "url": "https://www.facebook.com/Bandatlaocai/",
+     "backup": true,
+     "viewable": true,
+     "scrolls": 30,
+     "posts_seen_in_order": 107,
+     "land_sale_read": 47,
+     "land_sale_read_note": "khoảng 47 bài bán đất khác nhau (gộp bản thu gọn/mở rộng, bỏ bài đăng lại lô Cao Xuân Quế); bỏ bán nhà/dãy trọ, tin công trình, bài chúc",
+     "land_sale_with_topic_word": 0,
+     "read_log": [],
+     "exhausted": "hết 30 lần cuộn, không bài nào có 'sạt' hay 'lở' → sang trang dự phòng 2"
+    },
+    {
+     "region": "Lâm Đồng (Bảo Lộc)",
+     "url": "https://www.facebook.com/datvangbl/",
+     "backup": true,
+     "viewable": true,
+     "scrolls": 30,
+     "posts_seen_in_order": 75,
+     "land_sale_read": 34,
+     "land_sale_read_note": "khoảng 34 bài bán đất khác nhau (gộp bản thu gọn/mở rộng, bỏ bài đăng lại); bỏ biệt thự/nhà, bài kiến thức, bài chúc mừng",
+     "land_sale_with_topic_word": 0,
+     "read_log": [],
+     "exhausted": "hết 30 lần cuộn, không bài nào có 'sạt' hay 'lở'"
+    }
+   ],
+   "taken": [],
+   "shortfall": 5,
+   "note": "Ba trang (khoảng 103 bài bán đất) không bài nào nhắc 'sạt' hay 'lở' — đúng như giới hạn giao thức đã ghi: 'Sạt lở rất hiếm trong tin bán đất'."
+  },
+  {
+   "group": "fresh_water",
+   "topic": "nước",
+   "pages": [
+    {
+     "region": "Cà Mau",
+     "url": "https://www.facebook.com/caunoinhadat.com.camau/",
+     "viewable": true,
+     "scrolls": 30,
+     "posts_seen_in_order": 20,
+     "land_sale_read": 9,
+     "land_sale_read_note": "bài bán đất ở vị trí 1, 2/6, 3/7, 4, 9/10, 11/12, 13/16, 14/17, 18/19; bỏ 0 (hướng dẫn đăng tin), 5/8 và 15 (bán nhà)",
+     "land_sale_with_topic_word": 0,
+     "read_log": [],
+     "exhausted": "sau 30 lần cuộn trang không tải thêm bài (dừng ở 20 bài), không bài nào có từ chủ đề → sang trang dự phòng 1"
+    },
+    {
+     "region": "Cà Mau (Bạc Liêu cũ)",
+     "url": "https://www.facebook.com/duythua1988/",
+     "backup": true,
+     "viewable": true,
+     "scrolls": 30,
+     "posts_seen_in_order": 43,
+     "land_sale_read": 5,
+     "land_sale_read_note": "trang cá nhân hoá của môi giới, phần lớn bài đời thường/tin tức; bài bán đất ở vị trí 3/5, 14, 17, 31, 34; bỏ bán nhà (8/10, 9, 12, 19, 20/21, 38/39); vị trí 40 ('gửi bán 6 cây dừa') không rõ là bán đất — không tính",
+     "land_sale_with_topic_word": 1,
+     "read_log": [
+      {
+       "pos": 31,
+       "land_sale": true,
+       "hits": [
+        "nước ngọt",
+        "ngọt"
+       ],
+       "taken": 1
+      }
+     ],
+     "exhausted": "hết 30 lần cuộn, 1 bài bán đất có từ chủ đề → sang trang dự phòng 2"
+    },
+    {
+     "region": "Vĩnh Long (Trà Vinh cũ)",
+     "url": "https://www.facebook.com/TraVinh.bds.nhadat/",
+     "backup": true,
+     "viewable": true,
+     "scrolls": 30,
+     "posts_seen_in_order": 37,
+     "land_sale_read": 0,
+     "land_sale_read_note": "cả 37 bài đều BÁN NHÀ ở TP.HCM (Thủ Đức, Tân Bình) — không có bài bán đất; bài 3 có chữ 'giếng' nhưng là bán nhà nên không lấy",
+     "land_sale_with_topic_word": 0,
+     "read_log": [
+      {
+       "pos": 3,
+       "land_sale": false,
+       "hits": [
+        "giếng"
+       ],
+       "note": "bán nhà — bỏ"
+      }
+     ],
+     "exhausted": "hết 30 lần cuộn"
+    }
+   ],
+   "taken": [
+    {
+     "id": 12,
+     "region": "Cà Mau (Bạc Liêu cũ)",
+     "page_pos": 31,
+     "hits": [
+      "nước ngọt",
+      "ngọt"
+     ]
+    }
+   ],
+   "shortfall": 4
+  }
+ ]
+}

@@ -1,0 +1,169 @@
+{
+ "protocol": "terratwin.listing_gate/8",
+ "role": "secondary — chỉ để đo độ khớp AI–người, KHÔNG dùng chấm cổng",
+ "labeler": "Claude (claude-opus-5-5)",
+ "labelled_before_human": true,
+ "method": "gán tay theo 'guideline' của giao thức v8, KHÔNG gọi bộ tách câu (services/listing_check.py); 15 tin cũ giữ nguyên nhãn bản 15 tin (khớp theo SHA-256 chữ tin), 2 tin mới từ phụ lục 1 gán khi dựng bản 17 tin",
+ "text_note": "SHA-256 văn bản sau khi xoá số điện thoại/đường dẫn/tên người (giữ nguyên kiểu chữ gốc)",
+ "labels": [
+  {
+   "id": 1,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "sha256": "f9c3a50aeb6bc4c9c0c5d2b4a235d8c27f7bd727f7ed63feaa1cfd416c92ef77",
+   "claims": [
+    "flat"
+   ],
+   "note": "'Đất bằng, không dốc'"
+  },
+  {
+   "id": 2,
+   "region": "Đồng Tháp (Sa Đéc)",
+   "sha256": "b80d6ee707fe23167a6b241beed51a5582f16a5684281ff7b814fcf50e853971",
+   "claims": [
+    "near_river",
+    "residential"
+   ],
+   "note": "'view sông'; 'gần 300m² thổ cư'"
+  },
+  {
+   "id": 3,
+   "region": "Trà Vinh",
+   "sha256": "8e157475dc76e7d149ddfe37f45928d5c161f146ebe127e205212323853e8f8b",
+   "claims": [
+    "high_ground",
+    "near_river",
+    "residential"
+   ],
+   "note": "'view sông' (bờ kè Trà Đét); 'thổ cư 100%'; 'mặt bằng cao' = nền cao"
+  },
+  {
+   "id": 4,
+   "region": "Cần Thơ (Hậu Giang cũ)",
+   "sha256": "ed8e2fe62e2e07feb82aaacd18d59f4825b1f982dc5571ad70cc78dd0c0f0f4d",
+   "claims": [
+    "residential"
+   ],
+   "note": "'Có 100m² đất thổ cư'; 'đất nuôi trồng thủy sản lợ, mặn' là nước mặn → không H [gán khi dựng bản 17 tin]"
+  },
+  {
+   "id": 5,
+   "region": "Trà Vinh",
+   "sha256": "b0d6081540ed1e16bc53c1f92e0da7aa04028a8fee27406f7a18c2216591659b",
+   "claims": [
+    "near_river",
+    "residential"
+   ],
+   "note": "'Giáp kênh'; 'Tho 150+ cay lau nam' = có 150 m² thổ cư"
+  },
+  {
+   "id": 6,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "sha256": "7c009094e3b1af3868a4e1a62be1dd5001c5af8ee3036ed17dffa4a5761afb6a",
+   "claims": [
+    "flat",
+    "residential"
+   ],
+   "note": "'địa thế bằng phẳng'; 'có sẵn 150m² đất ở ODT'"
+  },
+  {
+   "id": 7,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "sha256": "4ee8abcc7eed97bb2ef4e3575933517708fbcc56f518ef5832a8841c902fd4a8",
+   "claims": [
+    "near_sea"
+   ],
+   "note": "'ra biển từ 4km'"
+  },
+  {
+   "id": 8,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "sha256": "19d993bd811c1a658d567b28428cbc4e39e62a2002566f3211c21f0b7867de6e",
+   "claims": [
+    "high_ground",
+    "flat"
+   ],
+   "note": "'bằng phẳng, cao thoáng' — 'cao thoáng' hiểu là đất cao"
+  },
+  {
+   "id": 9,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "sha256": "a8a4fae56321d008f23767d6dbfa40559dc58d211d514295978e07467b4f27e0",
+   "claims": [
+    "fresh_water"
+   ],
+   "note": "'mua đất nước ngọt làm farm' nói về chính miếng đất đang bán"
+  },
+  {
+   "id": 10,
+   "region": "Đồng Tháp (Sa Đéc)",
+   "sha256": "dc05b8ee1d0febad70ef723a34e9beb53d9722ce6f1e57a7241db368154e2c79",
+   "claims": [],
+   "note": "'Kênh Trung Ương' là tên đường → không C; 'chưa chuyển thổ' → không G"
+  },
+  {
+   "id": 11,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "sha256": "7417c6a5700e1eb3b8512f067c04ee42e5f89d32a154ca6adc6f1726c264383f",
+   "claims": [
+    "flat",
+    "residential"
+   ],
+   "note": "'Thế đất bằng phẳng'; 'có 120m thổ cư'; suối nhỏ không tính C"
+  },
+  {
+   "id": 12,
+   "region": "An Giang (Kiên Giang cũ, Rạch Giá)",
+   "sha256": "a7bc8df3cfba1675231c6fdd1059b5420d77137a97d5b4663583f086e517a95e",
+   "claims": [
+    "near_river",
+    "residential"
+   ],
+   "note": "'kế bên bến đò … qua sông là tới chợ' — lô sát sông (người mua hiểu vậy); 'thổ cư là 273m2' [gán khi dựng bản 17 tin]"
+  },
+  {
+   "id": 13,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "sha256": "fbdd3e1bb32ab54d682e621dcc0b9e4defbc588c14395ba3873896b87337dfe9",
+   "claims": [
+    "near_sea"
+   ],
+   "note": "'Đất vườn ven BIỂN MŨI NÉ'; 'hỗ trợ chuyển đổi mục đích' → không G"
+  },
+  {
+   "id": 14,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "sha256": "96f4cbd72d56f3036bfd2f12f39a750d51e3c5052bc48f59e6d36dd1bacb3f42",
+   "claims": [
+    "near_sea"
+   ],
+   "note": "'ra biển và Novaworld chỉ 8 phút'"
+  },
+  {
+   "id": 15,
+   "region": "Lâm Đồng (Bảo Lộc)",
+   "sha256": "76c1ef082e638d2d351dd85a4135264e97ded26a6c12ecfd483b8bd44752a254",
+   "claims": [
+    "flat"
+   ],
+   "note": "'địa thế bằng phẳng'; suối không tính C; hiện trạng CLN, 'quy hoạch đất ở ONT' là chưa có đất ở → không G"
+  },
+  {
+   "id": 16,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "sha256": "45db56e8bae5bbff3b84a1e505c952961ccc563883b3c377efcf65414ec365ec",
+   "claims": [
+    "near_sea"
+   ],
+   "note": "'ra biển 8km'"
+  },
+  {
+   "id": 17,
+   "region": "Bình Thuận cũ (Phan Thiết)",
+   "sha256": "03636a7d3ded99ba60ab7b57274feeaf64d26c6f35036cec27050766ec37d5d5",
+   "claims": [
+    "near_sea"
+   ],
+   "note": "'Cách biển 6km'"
+  }
+ ]
+}
