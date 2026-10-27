@@ -602,7 +602,8 @@ def cards() -> list[dict]:
                                      ("4", _load("eval", "listing_gate_v4_result.json")),
                                      ("5", _load("eval", "listing_gate_v5_result.json")),
                                      ("6", _load("eval", "listing_gate_v6_result.json")),
-                                     ("7", _load("eval", "listing_gate_v7_result.json"))) if r]
+                                     ("7", _load("eval", "listing_gate_v7_result.json")),
+                                     ("8", _load("eval", "listing_gate_v8_result.json"))) if r]
     base = {
         "id": "listing_rules", "kind": tr("quy tắc NLP", "NLP rules"),
         "name": tr("Tách câu khẳng định trong tin đăng bán đất", "Claim extraction from land listings"),
@@ -622,11 +623,17 @@ def cards() -> list[dict]:
                       "saw the AI labels first, so these are reviewed AI labels, not independent human labels.") if rv else ""
         # Lần 6 (26/10/2026): nhãn chấm cổng là NHÃN NGƯỜI (chủ dự án tự gán, không thấy nhãn máy); nhãn AI khoá trước chỉ để so.
         avh = last.get("ai_vs_human") if last.get("labeler_kind") == "human" else None
+        # Lần 8 (27/10/2026): F1 chính chỉ tính các loại ĐÍCH có mặt trong mẫu — loại vắng mặt là CHƯA đo, không phải đạt.
+        tgt = last.get("target_types") or []
+        seen = {r["type"] for r in last.get("per_type", [])}
+        measured = [t for t in tgt if t in seen]
+        tgt_vi = f" · {len(measured)}/{len(tgt)} loại đích đo được" if tgt else ""
+        tgt_en = f" · {len(measured)}/{len(tgt)} target types measured" if tgt else ""
         out.append({**base,
             "status": "accepted" if last.get("passed") else "rejected",
-            "status_label": (tr(f"cổng lần {v} đạt · luật từ khoá đang chạy" + (" · nhãn AI, người duyệt" if rv else "") + (" · nhãn người" if avh else ""),
+            "status_label": (tr(f"cổng lần {v} đạt · luật từ khoá đang chạy" + (" · nhãn AI, người duyệt" if rv else "") + (" · nhãn người" if avh else "") + tgt_vi,
                                 f"gate run {v} passed · keyword rules live" + (" · AI labels, human-reviewed" if rv else "")
-                                + (" · human labels" if avh else "")) if last.get("passed")
+                                + (" · human labels" if avh else "") + tgt_en) if last.get("passed")
                              else tr(f"cổng lần {v} trượt" + (" trên nhãn người" if avh else "") + " · vẫn chạy luật từ khoá (không có bộ thay thế), độ chính xác công khai",
                                      f"gate run {v} failed" + (" on human labels" if avh else "") + " · keyword rules still live (no replacement), accuracy published")),
             # Lần 4 (26/10/2026) đổi NGUỒN: trang Facebook công khai của môi giới — tệp kết quả tự mô tả dữ liệu của nó.
@@ -639,17 +646,43 @@ def cards() -> list[dict]:
                          f"{avh['listings_exact_match']}/{avh['n']} tin. Các lần trước: ",
                          f"Run {v}: HUMAN LABELS — the owner labelled {avh['n']} posts without seeing machine labels; AI labels frozen beforehand "
                          f"match the human labels on {avh['listings_exact_match']}/{avh['n']} posts. Earlier runs: ") if avh else "")
-                     + tr("nhãn do Claude (AI) gán theo uỷ quyền chủ dự án, commit TRƯỚC khi chấm — KHÔNG phải nhãn người; ngưỡng F1 trung bình ≥ 0,80; "
+                     + tr("lần 1–5 nhãn do Claude (AI) gán theo uỷ quyền chủ dự án, commit TRƯỚC khi chấm — KHÔNG phải nhãn người; lần 6 trở đi "
+                          "nhãn người; ngưỡng F1 trung bình ≥ 0,80; "
                         + " · ".join(f"lần {k}: F1 {r.get('macro_f1')}" for k, r in runs),
-                        "labels by Claude (AI) on the owner's authority, committed BEFORE scoring — NOT human labels; threshold macro F1 ≥ 0.80; "
+                        "runs 1–5 labelled by Claude (AI) on the owner's authority, committed BEFORE scoring — NOT human labels; run 6 onward "
+                        "human labels; threshold macro F1 ≥ 0.80; "
                         + " · ".join(f"run {k}: F1 {r.get('macro_f1')}" for k, r in runs)) + reviewed,
-            "metrics": [{"label": tr(f"{names.get(r['type'], r['type'])} — chính xác / độ phủ (đúng · thừa · sót)",
-                                     f"{r['type']} — precision / recall (tp · fp · fn)"),
+            "metrics": [{"label": tr(f"{names.get(r['type'], r['type'])} — chính xác / độ phủ (đúng · thừa · sót)"
+                                     + (" · ít mẫu (< 3 tin)" if r["type"] in (last.get("few_samples") or []) else ""),
+                                     f"{r['type']} — precision / recall (tp · fp · fn)"
+                                     + (" · few samples (< 3 posts)" if r["type"] in (last.get("few_samples") or []) else "")),
                          "value": f"{r['precision']} / {r['recall']} ({r['tp']} · {r['fp']} · {r['fn']})",
                          "threshold": f"F1 {r['f1']}", "passed": r["f1"] >= 0.8} for r in last.get("per_type", [])]
-                       + [{"label": tr("F1 trung bình", "Macro F1"), "value": last.get("macro_f1"), "threshold": "≥ 0.80",
-                           "passed": bool(last.get("passed"))}],
-            "limits": tr("Lần 7 (nhãn người, 20 tin Facebook mới ở Sóc Trăng, Long An, Đồng Nai, Thanh Hóa, Vĩnh Long): luật SỬA theo lỗi lần 6 "
+                       + [{"label": tr(f"{names.get(t, t)} — CHƯA đo (không có tin nào trong mẫu)", f"{t} — NOT measured (no post in the sample)"),
+                           "value": None, "threshold": "—", "passed": None} for t in tgt if t not in seen]
+                       + [{"label": tr(f"F1 trung bình {len(measured)} loại đích đo được" if tgt else "F1 trung bình",
+                                       f"Macro F1 over {len(measured)} measured target types" if tgt else "Macro F1"),
+                           "value": last.get("macro_f1"), "threshold": "≥ 0.80", "passed": bool(last.get("passed"))}]
+                       + ([{"label": tr("F1 trung bình MỌI loại (số phụ, không phải ngưỡng cổng)", "Macro F1 over ALL types (secondary, not the gate)"),
+                            "value": last["macro_f1_all_types"], "threshold": "—", "passed": None}] if "macro_f1_all_types" in last else []),
+            "limits": tr("Lần 8 (nhãn người, 30 tin Facebook CHỌN THEO TỪ CHỦ ĐỀ — biển, sông, ngập, phẳng/dốc, sạt lở, nước — để đo 6 loại câu "
+                         "chưa từng chấm trên nhãn người; luật giữ nguyên lần 7): đạt trên 4 loại đo được — gần biển 0,96 (12 tin), bằng phẳng 1,0 "
+                         "(11), gần sông 0,86 (4), nước ngọt 1,0 (chỉ 1 tin, ít mẫu). 'Không ngập' và 'không sạt lở' KHÔNG có tin nào trong mẫu — "
+                         "không thu được bài bán đất nào nhắc 'ngập/lụt/khô ráo' hay 'sạt/lở' dù đã thêm trang ở phụ lục 1–2 — nên VẪN CHƯA ĐO trên "
+                         "nhãn người. Tính mọi loại thì F1 0,78: sót 'cao ráo' 2/2 (vd. 'cao thoáng'), bắt nhầm thổ cư 2 tin 'QH/quy hoạch … ONT' "
+                         "(bản sửa lần 7 chưa chặn chữ ONT), sót 'Tho 150' viết không dấu. Chọn theo từ chủ đề nên độ phủ có thể cao hơn thực tế. "
+                         "Lần này nhãn AI phụ chỉ công khai MÃ BĂM tới khi nhãn người đã khoá; khớp 30/30. Không vá luật theo mẫu này; sửa thì "
+                         "chấm trên tin mới.",
+                         "Run 8 (human labels, 30 Facebook posts SELECTED BY TOPIC WORD — sea, river, flood, flat/slope, landslide, water — to "
+                         "measure the 6 claim types never scored on human labels; rules unchanged from run 7): passes on the 4 measurable types — "
+                         "near sea 0.96 (12 posts), flat 1.0 (11), near river 0.86 (4), fresh water 1.0 (only 1 post, few samples). 'No flooding' "
+                         "and 'no landslides' have NO post in the sample — no land-sale post mentioning 'flood' or 'landslide' was found even after "
+                         "the pages added in amendments 1–2 — so they are STILL NOT measured on human labels. Over all types macro F1 is 0.78: "
+                         "high ground missed 2/2 (e.g. 'cao thoáng'), 2 false residential claims on 'zoned … ONT' (the run-7 fix does not cover "
+                         "the ONT token), 'Tho 150' without diacritics missed. Topic-word selection may overstate recall. This time the secondary "
+                         "AI labels were published only as a HASH until the human labels were frozen; agreement 30/30. Rules are not patched on "
+                         "this sample; a fix must be scored on new posts.") if v == "8" else
+                      tr("Lần 7 (nhãn người, 20 tin Facebook mới ở Sóc Trăng, Long An, Đồng Nai, Thanh Hóa, Vĩnh Long): luật SỬA theo lỗi lần 6 "
                          "('quy hoạch đất ở', 'chưa thổ cư'), khoá trước khi thu mẫu; nhưng mẫu mới KHÔNG có câu 'quy hoạch đất ở' / 'chưa thổ cư' "
                          "nào — luật cũ cũng đạt 0,97 trên mẫu này, nên chỗ sửa CHƯA được kiểm. Sót 'thổ....' bị cắt chữ. Chỉ có câu thổ cư và "
                          "cao ráo. Nhãn AI phụ (kèm ghi chú) đã công khai trên kho mã TRƯỚC khi người gán ở cả lần 6 và lần 7 — độ khớp AI–người "
