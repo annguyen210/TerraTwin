@@ -31,7 +31,9 @@ export default function StatusPage() {
   }
   useEffect(() => {
     load();
-    const id = setInterval(load, 60_000);   // tự làm mới mỗi phút — không cần bấm
+    // Tự làm mới mỗi phút — nhưng CHỈ khi tab đang hiện. 28/10/2026: Render tạm ngưng cả web lẫn API vì hết 750 giờ
+    // miễn phí/tháng; một tab /status để mở nền gọi API mỗi phút là đủ giữ API thức 24/24 (máy chỉ ngủ sau 15 phút yên).
+    const id = setInterval(() => { if (document.visibilityState === "visible") load(); }, 60_000);
     return () => clearInterval(id);
   }, []);
 
