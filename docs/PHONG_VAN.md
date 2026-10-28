@@ -52,7 +52,7 @@ Xin phép trước khi ghi chép hoặc ghi âm. Không ghi số điện thoại
 
 ### Phần 3 — cho xem TerraTwin (5 phút)
 
-Mở terratwin-web.onrender.com, dán toạ độ một thửa họ biết (hoặc thửa demo 20.9716, 106.2834), để họ tự bấm.
+Mở terratwin-web.vercel.app, dán toạ độ một thửa họ biết (hoặc thửa demo 20.9716, 106.2834), để họ tự bấm.
 Không giải thích trước — ghi lại chỗ họ dừng lại, chỗ họ hỏi "cái này là gì".
 
 6. Anh/chị thấy cái gì đầu tiên? Có tin con số đó không — vì sao?

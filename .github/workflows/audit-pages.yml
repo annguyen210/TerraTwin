@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  WEB: https://terratwin-web.onrender.com
+  WEB: https://terratwin-web.vercel.app
   API: https://terratwin-api.onrender.com
 
 jobs:

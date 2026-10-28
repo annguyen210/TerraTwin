@@ -35,7 +35,7 @@ INNER = 256
 PER = SHARD // INNER                       # 16 khối con mỗi chiều
 NODATA = -128
 _MISSING = (1 << 64) - 1
-_UA = {"User-Agent": "TerraTwin/aef (+https://terratwin-web.onrender.com)"}
+_UA = {"User-Agent": "TerraTwin/aef (+https://terratwin-web.vercel.app)"}
 
 _LOCK = threading.Lock()
 _INFLIGHT: dict[tuple, threading.Lock] = {}               # một khối con chỉ tải MỘT lần dù nhiều luồng cùng cần

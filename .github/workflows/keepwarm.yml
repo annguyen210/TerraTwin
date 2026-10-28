@@ -63,7 +63,7 @@ jobs:
           fail=0
           for url in \
             "https://terratwin-api.onrender.com/api/health" \
-            "https://terratwin-web.onrender.com/" ; do
+            "https://terratwin-web.vercel.app/" ; do
             echo "→ $url"
             # --retry-all-errors để thử lại cả khi gặp 503 lúc service đang dậy;
             # tổng thời gian chờ đủ để một service nguội khởi động xong (~60s).
@@ -131,7 +131,7 @@ jobs:
           end=$(( $(date +%s) + mins * 60 ))
           echo "Giữ thức ${mins} phút — tới $(date -u -d @${end} +%H:%M) UTC"
           while [ "$(date +%s)" -lt "$end" ]; do
-            for url in "https://terratwin-api.onrender.com/api/health" "https://terratwin-web.onrender.com/"; do
+            for url in "https://terratwin-api.onrender.com/api/health" "https://terratwin-web.vercel.app/"; do
               curl -fsS --max-time 90 --retry 3 --retry-delay 15 --retry-all-errors "$url" -o /dev/null \
                 || echo "::warning::$url không trả lời lúc $(date -u +%H:%M)"
             done

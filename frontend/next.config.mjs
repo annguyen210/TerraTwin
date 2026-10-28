@@ -91,6 +91,14 @@ const nextConfig = {
       { source: "/:path*", headers: SECURITY_HEADERS },
     ];
   },
+  // 28/10/2026: web chuyển sang Vercel (không ngủ, không tính vào 750 giờ miễn phí/tháng của Render — hết giờ là Render
+  // đình chỉ cả web lẫn api). Bản còn chạy trên Render (Render đặt RENDER=true) chỉ CHUYỂN HƯỚNG sang Vercel để QR,
+  // liên kết trong slide và trong hồ sơ đất số đã ký vẫn dùng được. 307 (không vĩnh viễn) để sau này đổi tên miền riêng.
+  async redirects() {
+    if (!process.env.RENDER) return [];
+    const to = (process.env.TERRATWIN_WEB_CANONICAL || "https://terratwin-web.vercel.app").replace(/\/$/, "");
+    return [{ source: "/:path*", destination: `${to}/:path*`, permanent: false }];
+  },
   webpack: (config) => {
     // Khai báo alias @/ TƯỜNG MINH cho webpack thay vì trông chờ Next tự đọc
     // "paths" trong tsconfig. Việc đọc tsconfig đó nhạy cảm với phiên bản Node:

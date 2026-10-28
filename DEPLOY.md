@@ -67,9 +67,16 @@ dịch vụ: phải là **After CI Checks Pass**.
 
 ## Bước 2 — Nối frontend ↔ backend (~5 phút, BẮT BUỘC)
 
+> **Từ 28/10/2026 web chạy trên Vercel** (`https://terratwin-web.vercel.app`, dự án Vercel `terratwin-web`, Root Directory
+> `frontend`, biến `NEXT_PUBLIC_API`). Lý do: 750 giờ miễn phí/tháng của Render dùng chung cho cả workspace — web và api
+> cùng thức là hết giờ, Render đình chỉ CẢ HAI (đã xảy ra 28/9 và 28/10). Vercel không ngủ và không tính giờ. Dịch vụ
+> `terratwin-web` trên Render vẫn giữ nhưng chỉ chuyển hướng 307 sang Vercel (`next.config.mjs` → `redirects()` khi
+> `RENDER` có mặt; đổi đích bằng `TERRATWIN_WEB_CANONICAL`) để QR, slide và hồ sơ đất số đã ký không gãy link.
+> Mỗi lần đẩy lên `main`, Vercel tự build bản web mới. Bảng dưới vẫn đúng cho api; với web, thay "Render" bằng Vercel.
+
 Render cấp cho bạn 2 URL, ví dụ:
 - API: `https://terratwin-api.onrender.com`
-- Web: `https://terratwin-web.onrender.com`
+- Web: `https://terratwin-web.vercel.app` (Vercel; bản Render cũ chuyển hướng sang đây)
 
 Đặt 2 biến môi trường (dashboard Render → service → **Environment**):
 
@@ -78,7 +85,7 @@ Render cấp cho bạn 2 URL, ví dụ:
 | `terratwin-web` | `NEXT_PUBLIC_API` | URL của **api** (vd `https://terratwin-api.onrender.com`) |
 | `terratwin-api` | `TERRATWIN_DATABASE_URL` | URL Neon loại **Direct** — thiếu biến này app rơi về SQLite trên đĩa tạm và mất dữ liệu mỗi lần khởi động lại |
 | `terratwin-api` | `TERRATWIN_SIGNING_KEY` | Khoá ký **Hồ sơ đất số** (Ed25519). Sinh trong terminal riêng: `cd backend && .venv/Scripts/python.exe ../ops/gen_signing_key.py` → dán dòng trong `backend/.signing-key.txt` rồi **xoá tệp đó**. Thiếu biến này thì máy chủ tự sinh khoá và lưu **trong CSDL** — ai sửa được CSDL cũng ký lại được hồ sơ đã sửa; `/status` báo "⚠️ tự sinh". Đặt xong, phần bí mật của khoá tự sinh cũ bị xoá khỏi CSDL (khoá công khai giữ lại để hồ sơ cũ vẫn kiểm được). |
-| `terratwin-api` | `TERRATWIN_CORS` | URL của **web** (vd `https://terratwin-web.onrender.com`) |
+| `terratwin-api` | `TERRATWIN_CORS` | URL của **web**, phân tách dấu phẩy (hiện `https://terratwin-web.onrender.com,https://terratwin-web.vercel.app`) |
 | `terratwin-api` | `TERRATWIN_PUBLIC_URL` | URL của **web** — để link một chạm trong cảnh báo trỏ đúng |
 
 Đặt xong bấm **Manual Deploy → Deploy latest** cho `terratwin-web` (vì `NEXT_PUBLIC_*` nhúng lúc build).

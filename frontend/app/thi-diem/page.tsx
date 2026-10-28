@@ -16,7 +16,7 @@ import { useLang } from "@/lib/i18n";
 
 type Sheet = "all" | "invite" | "farmer" | "staff" | "form";
 
-const SITE = "terratwin-web.onrender.com";
+const SITE = "terratwin-web.vercel.app";
 
 export default function PilotKitPage() {
   const { t } = useLang();

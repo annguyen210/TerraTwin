@@ -2,7 +2,7 @@
 
 /**
  * M3 — WIDGET NHÚNG. Một thẻ rủi ro gọn cho website khác nhúng qua <iframe>:
- *   <iframe src="https://terratwin-web.onrender.com/embed/16.46,107.59"
+ *   <iframe src="https://terratwin-web.vercel.app/embed/16.46,107.59"
  *           width="320" height="220" style="border:0"></iframe>
  *
  * Không có app chrome, không đăng nhập, chỉ TerraScore + mức rủi ro cao nhất +
@@ -56,7 +56,7 @@ export default function EmbedPage() {
     return () => { live = false; };
   }, [lat, lon, valid]);
 
-  const site = process.env.NEXT_PUBLIC_SITE_URL || "https://terratwin-web.onrender.com";
+  const site = process.env.NEXT_PUBLIC_SITE_URL || "https://terratwin-web.vercel.app";
   const full = `${site}/plot/${lat},${lon}`;
 
   const wrap: React.CSSProperties = {

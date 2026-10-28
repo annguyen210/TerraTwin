@@ -3,7 +3,7 @@ import "./globals.css";
 import RegisterSW from "@/components/RegisterSW";
 import { LangProvider } from "@/lib/i18n";
 
-const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "https://terratwin-web.onrender.com").replace(/\/$/, "");
+const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "https://terratwin-web.vercel.app").replace(/\/$/, "");
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
