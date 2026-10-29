@@ -1,0 +1,269 @@
+{
+ "protocol": "terratwin.listing_gate/9",
+ "role": "primary — nhãn dùng chấm cổng",
+ "labeler": "Chủ dự án (người), gửi 30 dòng mã A–H/0 ngày 29/10/2026, kèm các quyết định ở chỗ quy tắc chưa nói rõ",
+ "labeler_attestation": "Hỏi trước khi khoá: 'bạn tự gán cả 30 tin, không nhờ AI hay công cụ nào?' — trả lời: 'tôi tự gán' (29/10/2026)",
+ "labelled_before_scoring": true,
+ "ai_labels_seen_by_labeler": "KHÔNG LOẠI TRỪ ĐƯỢC: kho mã chỉ có mã băm nhãn AI (22adb88), NHƯNG nhãn AI kèm ghi chú lý do nằm nguyên văn trong một lệnh hiển thị ở phiên chat của chủ dự án trước khi gán (lỗi quy trình của Claude). Nhãn người khớp nhãn AI 30/30 và lý do ở các tin 2, 7, 18, 27 gần giống ghi chú AI — độ khớp AI–người KHÔNG chứng minh được độc lập.",
+ "guideline": {
+  "task": "Với mỗi tin: người bán đang khẳng định điều gì về CHÍNH lô đất đang bán? Chọn các mã phù hợp; không có thì ghi 0.",
+  "codes": {
+   "A không ngập": "Tính: không ngập, chưa từng ngập, không lo ngập, khô ráo quanh năm.",
+   "B cao ráo": "Tính: đất cao, cao ráo, nền cao, không trũng, cao hơn mặt đường/khu vực. Không tính: 'đất đẹp', 'thoáng mát'.",
+   "C gần sông": "Tính: gần/ven/giáp/sát/view/mặt tiền/cách X m tới sông, kênh, rạch. Không tính: hồ, suối, ao; tên đường hay địa danh có chữ 'Sông', 'Kênh'.",
+   "D gần biển": "Tính: gần/ven/view/cách X km/'ra biển N phút' tới biển, bãi biển. Không tính: gần cảng, gần sân bay.",
+   "E bằng phẳng": "Tính: bằng phẳng, đất phẳng, không dốc. Không tính: vuông vức, vuông vắn, nở hậu (hình dáng).",
+   "F không sạt lở": "Tính: không sạt lở, chưa từng sạt lở.",
+   "G đất ở / thổ cư": "Tính: lô ĐÃ CÓ (toàn bộ hoặc một phần) đất ở/thổ cư/ODT/ONT. Không tính: 'có thể lên thổ cư', 'hỗ trợ lên thổ cư' (chưa có); 'nằm trong khu dân cư' (vị trí).",
+   "H nước ngọt": "Tính: nước ngọt, giếng ngọt, không nhiễm mặn."
+  },
+  "principles": [
+   "Chỉ tính điều tin khẳng định, không tính điều mình đoán.",
+   "Phải nói về chính lô đất đang bán, không phải nơi khác.",
+   "Câu phủ định thì không tính.",
+   "Viết khác chữ vẫn tính nếu cùng ý (viết tắt, không dấu, in hoa, chữ in đậm).",
+   "Chỗ quy tắc không nói rõ thì người gán tự quyết theo cách một người mua đất đọc tin sẽ hiểu."
+  ],
+  "examples": [
+   "'Đất cao ráo, không bao giờ ngập, cách sông Hậu 200m, sổ hồng thổ cư 100%' → A B C G",
+   "'Lô đất vuông vức, nở hậu, đường ô tô, giá rẻ' → 0",
+   "'Đất vườn 1.000m², hỗ trợ lên thổ cư, view hồ sen' → 0",
+   "'Nền đã có 60m² ONT, cách biển 2km' → D G"
+  ],
+  "note": "Y nội dung bản đã gửi ở lần 6, chỉ bỏ ví dụ cụ thể 'cách cầu Kênh X' (lần 6 trùng một tin); không thêm quy tắc nào về 'quy hoạch đất ở' — người gán tự quyết như lần 6."
+ },
+ "labeler_decisions": [
+  "Tin 2 → 0: 'miếng đất ở Vĩnh Châu' — chữ 'ở' chỉ nơi chốn, không phải loại đất ở",
+  "Tin 7 → 0: 'đã có chủ trương xây dựng 15p' là được phép xây, tin không nói loại đất nên không G",
+  "Tin 15 → G: 'tc 60m' là thổ cư 60m² viết tắt",
+  "Tin 18 → 0: giống tin 7 — 'chủ trương xây dựng biệt thự 15p' không nói loại đất",
+  "Tin 24 → C: 'mặt tiền Sông' viết hoa nhưng không kèm tên đường hay địa danh nào, hiểu là mặt tiền sông",
+  "Tin 27 → 0: 'tại kênh 10, Vĩnh Châu, Châu Đốc' viết như địa chỉ, coi là địa danh, không tính C"
+ ],
+ "labels": [
+  {
+   "id": 1,
+   "region": "Đà Nẵng – Quảng Nam",
+   "sha256": "9c716667a98b94b2faf118de05ca43b2fc917add0a9c46b415f42f7dd43e99f4",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 2,
+   "region": "An Giang (Châu Đốc)",
+   "sha256": "ca1300a04b4be45ba29a8bfc4341048d29237e5f31ebaee9e9b568fc91cac663",
+   "claims": []
+  },
+  {
+   "id": 3,
+   "region": "Đà Nẵng – Quảng Nam",
+   "sha256": "c579e2dd0f7f80a14f1bef38e3a8cfda29cacd366aec633a4acbd7d18159e163",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 4,
+   "region": "An Giang (Châu Đốc)",
+   "sha256": "846fd1180d3542c0e35920ef9a9d2eddd87353768cce95a6897b81464be85bf0",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 5,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "sha256": "13bf9ee4d6d71a74c3e4de88aa7fcee94f347a04276f59a326652d6e69a14867",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 6,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "sha256": "8d3fe2dd4b96401251e0a8f28e5d820d50f282d64de95b13af5fd19aa5f8dd98",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 7,
+   "region": "Đà Nẵng (Hội An, Quảng Nam cũ)",
+   "sha256": "dc339d2f20f4b7b6c79153d65fe7e0c60578d89dd95f18ec1d0694820c087f82",
+   "claims": []
+  },
+  {
+   "id": 8,
+   "region": "An Giang (Châu Đốc)",
+   "sha256": "5ceac74906e853f1e181f90e596a84857f1d8bb5d65b2a25747e84b0fc745786",
+   "claims": []
+  },
+  {
+   "id": 9,
+   "region": "Tây Ninh",
+   "sha256": "88b67f2fdbd1e5badf8a8bdf296872ee63930f8045ac0e499a4f53fe7f1b53d9",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 10,
+   "region": "Tây Ninh",
+   "sha256": "0af3719a215eb69cbdbcb9f28225c74a3f4669734b46b8a5df4f451f2c691ba6",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 11,
+   "region": "Tây Ninh",
+   "sha256": "349d1b403f1c7d1306d6525b4a1f6d087855d4fc53e95126b086377c92ed378f",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 12,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "sha256": "6ad6c615215f454a45ebb42f8f1824d3003512bd31cb1d5e55cc1d4b67d926c9",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 13,
+   "region": "Đà Nẵng (Hội An, Quảng Nam cũ)",
+   "sha256": "5d5711b0081b98dd8b6794ca45eb0decb93aeff88763cebf69eb026d423c5353",
+   "claims": []
+  },
+  {
+   "id": 14,
+   "region": "Tây Ninh",
+   "sha256": "b44c7a5dfc850610cb1d4e9a5a119292036f20bcdf734f0d533815eadd834b13",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 15,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "sha256": "56edeb01a0efae322c1fc8d7d19a642de51283d7d31a05ecd02387cff6518c16",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 16,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "sha256": "01d086375d3760ff0ae6025a8bc187b2f69d87fcb2efbc296a2af4f72ba1c5cc",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 17,
+   "region": "An Giang (Châu Đốc)",
+   "sha256": "0ba512e3396069bc1f830493735431dce157e2c929504d0d7ab6fca73a5bd69d",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 18,
+   "region": "Đà Nẵng (Hội An, Quảng Nam cũ)",
+   "sha256": "93ec3a9b18089a8ca8ae2328cb2a3f1153a27a79a3a84bbb48b0b9785e6582c5",
+   "claims": []
+  },
+  {
+   "id": 19,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "sha256": "b50c5374c28610d4b809d0ecaf4376abb9050a1c913e1f92b973e0083bd7f259",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 20,
+   "region": "Tây Ninh",
+   "sha256": "39e29445e3912608237c1fc0182e160d7a7cf98149f8931ab44f72ddfabd92c7",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 21,
+   "region": "An Giang (Châu Đốc)",
+   "sha256": "73e4fcc136e518586daf2f51cc59483c25c8923001764c0e4b370d9fbdf878af",
+   "claims": []
+  },
+  {
+   "id": 22,
+   "region": "An Giang (Châu Đốc)",
+   "sha256": "cc2006f0ab0bd29f82201c0078700f26015677f11600c38c26da481c00c7bc4f",
+   "claims": []
+  },
+  {
+   "id": 23,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "sha256": "26bbeca6187bba8016f56e89011814f9ab6cf5747315c0cb9d3155d8818034f1",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 24,
+   "region": "Đà Nẵng (Hội An, Quảng Nam cũ)",
+   "sha256": "5670aca0d8bd14e4c8c19791426d8176fafa44348790157663b2dbe5b141fd9d",
+   "claims": [
+    "near_river"
+   ]
+  },
+  {
+   "id": 25,
+   "region": "An Giang (Châu Đốc)",
+   "sha256": "a89f3adc408968ab9000b8dcd83481330cd42cb2a8298a45a7ca9f8d16250c8c",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 26,
+   "region": "Đà Nẵng (Hội An, Quảng Nam cũ)",
+   "sha256": "fd9c01dd3f1a7805debf4eb84342ac47bc3b68607f9b8438865dec442db5f211",
+   "claims": [
+    "near_river"
+   ]
+  },
+  {
+   "id": 27,
+   "region": "An Giang (Châu Đốc)",
+   "sha256": "b86bcda5075bd062db735eed22bcbacb66026ad402f5a8c22d60ecaadb2bcde9",
+   "claims": []
+  },
+  {
+   "id": 28,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "sha256": "eba2c9120e4a4b81dc55bf2dd226f1530719b6e1c39dda55089e442c3116e430",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 29,
+   "region": "Tây Ninh",
+   "sha256": "334881d5e23f61ab62c1a35f99265bc1c916fc3c3b60d5e61f3290b681ea8912",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 30,
+   "region": "Tây Ninh",
+   "sha256": "792203f932c8d3970f1e57cf5e1b72815440d80f2e5afef2b5aeb2cbb366a5e0",
+   "claims": [
+    "residential"
+   ]
+  }
+ ]
+}
