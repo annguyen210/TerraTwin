@@ -583,8 +583,12 @@ python ops/listing_gate_fb.py <tin_lan6.json> --run 6    # in thêm độ khớp
 |---|---|---|---|
 | 7 — **NHÃN NGƯỜI**, luật SỬA theo lỗi lần 6 ("quy hoạch đất ở", "chưa thổ cư"; lần 6 thành tập phát triển). 20 tin mới: Sóc Trăng 7, Long An 5, Đồng Nai 5, Thanh Hóa 2, Vĩnh Long 1 (trang dự phòng theo thứ tự đăng ký) | 68f46e9 → afb469f → 61dc1c2 → chấm ở commit sau | **0,97** (ĐẠT) | thổ cư 8/9, 0 bắt nhầm (sót "thổ...." bị cắt chữ); cao ráo 2/2. **Mẫu không có câu "quy hoạch đất ở"/"chưa thổ cư" — luật cũ cũng 0,97 trên mẫu này: chỗ sửa CHƯA được kiểm.** Nhãn AI phụ (kèm ghi chú) công khai trước khi người gán ở lần 6 và 7 → độ khớp 20/20 không chứng minh độc lập |
 
+| 8 — **NHÃN NGƯỜI**, luật giữ nguyên lần 7. 30 tin CHỌN THEO TỪ CHỦ ĐỀ (biển, sông, ngập, phẳng/dốc, sạt lở, nước) để đo 6 loại chưa chấm trên nhãn người; giao thức f3aa050 + phụ lục 1–2 | f3aa050 → 6d6cd08 (mã băm) → ea70425 → c678ceb | **0,95** trên 4/6 loại đích (ĐẠT) | không ngập + không sạt lở: 0 tin → CHƯA ĐO. Mọi loại 0,78: bắt nhầm "QH … ONT", sót "cao thoáng", "Tho 150" |
+| 9 — **NHÃN NGƯỜI**, luật SỬA theo lỗi lần 8 (lần 8 thành tập phát triển; kiểm lại lần 1–8: lần 8 0,78 → 1,00, không lần nào giảm). 30 tin mới: Đắk Lắk, Hội An, Tây Ninh (dự phòng), Châu Đốc — 20 bài đầu + 10 bài có "quy hoạch/QH/ONT/ODT" | 7c16e8b → 22adb88 (mã băm) → a4b8fbc → 65aaacb → chấm ở commit sau | **0,98** (ĐẠT) | thổ cư 0,95 (bắt nhầm "miếng đất ở Vĩnh Châu", sót "tc 60m"), gần sông 1,0. **0/5 kiểu câu đã sửa có trong mẫu mới — chỗ sửa CHƯA được kiểm trên tin mới.** Nhãn AI phụ kèm lý do đã hiện trong phiên chat của người gán → độ khớp 30/30 không chứng minh độc lập |
+
 ```bash
 python ops/listing_gate_fb.py <tin_lan7.json> --run 7
+python ops/listing_gate_fb.py <tin_lan9.json> --run 9    # in thêm fixes_exercised: chỗ sửa nào có trong mẫu mới
 ```
 
 Đọc kết quả: luật từ khoá gần như **không bắt nhầm** (độ chính xác 1,0 mọi loại ở lần 2) nhưng **sót cách nói vòng** ("gió

@@ -603,7 +603,8 @@ def cards() -> list[dict]:
                                      ("5", _load("eval", "listing_gate_v5_result.json")),
                                      ("6", _load("eval", "listing_gate_v6_result.json")),
                                      ("7", _load("eval", "listing_gate_v7_result.json")),
-                                     ("8", _load("eval", "listing_gate_v8_result.json"))) if r]
+                                     ("8", _load("eval", "listing_gate_v8_result.json")),
+                                     ("9", _load("eval", "listing_gate_v9_result.json"))) if r]
     base = {
         "id": "listing_rules", "kind": tr("quy tắc NLP", "NLP rules"),
         "name": tr("Tách câu khẳng định trong tin đăng bán đất", "Claim extraction from land listings"),
@@ -623,6 +624,11 @@ def cards() -> list[dict]:
                       "saw the AI labels first, so these are reviewed AI labels, not independent human labels.") if rv else ""
         # Lần 6 (26/10/2026): nhãn chấm cổng là NHÃN NGƯỜI (chủ dự án tự gán, không thấy nhãn máy); nhãn AI khoá trước chỉ để so.
         avh = last.get("ai_vs_human") if last.get("labeler_kind") == "human" else None
+        # Lần 9 (29/10/2026): nhãn AI kèm lý do đã hiện trong phiên chat của người gán TRƯỚC khi gán — không nói "không thấy nhãn máy".
+        hl = _load("eval", f"listing_gate_v{v}_labels.json") if avh else None
+        ai_seen = bool(hl) and str(hl.get("ai_labels_seen_by_labeler", "")).startswith("KHÔNG LOẠI TRỪ")
+        fixes = last.get("fixes_exercised") or {}
+        n_fix_tested = sum(1 for f in fixes.values() if f.get("tested"))
         # Lần 8 (27/10/2026): F1 chính chỉ tính các loại ĐÍCH có mặt trong mẫu — loại vắng mặt là CHƯA đo, không phải đạt.
         tgt = last.get("target_types") or []
         seen = {r["type"] for r in last.get("per_type", [])}
@@ -642,10 +648,15 @@ def cards() -> list[dict]:
                        f"(CC BY-NC 4.0, {last.get('population')} tin đất trong shard)",
                        f"{last['n']} real LAND listings, seeded random sample registered in advance from the public tinixai/vietnam-real-estates "
                        f"set (CC BY-NC 4.0, {last.get('population')} land listings in the shard)"),
-            "split": (tr(f"Lần {v}: NHÃN NGƯỜI — chủ dự án tự gán {avh['n']} tin, không thấy nhãn máy; nhãn AI khoá trước khớp nhãn người "
-                         f"{avh['listings_exact_match']}/{avh['n']} tin. Các lần trước: ",
-                         f"Run {v}: HUMAN LABELS — the owner labelled {avh['n']} posts without seeing machine labels; AI labels frozen beforehand "
-                         f"match the human labels on {avh['listings_exact_match']}/{avh['n']} posts. Earlier runs: ") if avh else "")
+            "split": ((tr(f"Lần {v}: NHÃN NGƯỜI — chủ dự án tự gán {avh['n']} tin; nhãn AI phụ (kèm lý do) đã hiện trong phiên chat của người "
+                          f"gán TRƯỚC khi gán, nên độ khớp {avh['listings_exact_match']}/{avh['n']} tin KHÔNG chứng minh được độc lập. Các lần trước: ",
+                          f"Run {v}: HUMAN LABELS — the owner labelled {avh['n']} posts; the secondary AI labels (with notes) were visible in the "
+                          f"labeller's chat session BEFORE labelling, so the {avh['listings_exact_match']}/{avh['n']} agreement does NOT prove "
+                          "independence. Earlier runs: ") if ai_seen else
+                       tr(f"Lần {v}: NHÃN NGƯỜI — chủ dự án tự gán {avh['n']} tin, không thấy nhãn máy; nhãn AI khoá trước khớp nhãn người "
+                          f"{avh['listings_exact_match']}/{avh['n']} tin. Các lần trước: ",
+                          f"Run {v}: HUMAN LABELS — the owner labelled {avh['n']} posts without seeing machine labels; AI labels frozen beforehand "
+                          f"match the human labels on {avh['listings_exact_match']}/{avh['n']} posts. Earlier runs: ")) if avh else "")
                      + tr("lần 1–5 nhãn do Claude (AI) gán theo uỷ quyền chủ dự án, commit TRƯỚC khi chấm — KHÔNG phải nhãn người; lần 6 trở đi "
                           "nhãn người; ngưỡng F1 trung bình ≥ 0,80; "
                         + " · ".join(f"lần {k}: F1 {r.get('macro_f1')}" for k, r in runs),
@@ -664,8 +675,26 @@ def cards() -> list[dict]:
                                        f"Macro F1 over {len(measured)} measured target types" if tgt else "Macro F1"),
                            "value": last.get("macro_f1"), "threshold": "≥ 0.80", "passed": bool(last.get("passed"))}]
                        + ([{"label": tr("F1 trung bình MỌI loại (số phụ, không phải ngưỡng cổng)", "Macro F1 over ALL types (secondary, not the gate)"),
-                            "value": last["macro_f1_all_types"], "threshold": "—", "passed": None}] if "macro_f1_all_types" in last else []),
-            "limits": tr("Lần 8 (nhãn người, 30 tin Facebook CHỌN THEO TỪ CHỦ ĐỀ — biển, sông, ngập, phẳng/dốc, sạt lở, nước — để đo 6 loại câu "
+                            "value": last["macro_f1_all_types"], "threshold": "—", "passed": None}] if "macro_f1_all_types" in last else [])
+                       + ([{"label": tr("Chỗ sửa luật được kiểm trên tin MỚI (số kiểu câu đã sửa có xuất hiện trong mẫu)",
+                                        "Rule fixes exercised on NEW posts (fixed phrasings that occur in the sample)"),
+                            "value": f"{n_fix_tested}/{len(fixes)}", "threshold": "—", "passed": None}] if fixes else []),
+            "limits": tr("Lần 9 (nhãn người, 30 tin Facebook MỚI ở Đắk Lắk, Hội An, Tây Ninh, Châu Đốc: 20 bài đầu mỗi trang + 10 bài có "
+                         "'quy hoạch/QH/ONT/ODT'): luật SỬA theo lỗi lần 8 ('QH … ONT', 'cao thoáng', 'mặt bằng cao', 'Tho 150', 'bến đò', 'ra biển …, "
+                         "chỉ 7km'), khoá trước khi thu mẫu; F1 0,98 — thổ cư 0,95 (bắt nhầm 'miếng đất ở Vĩnh Châu' — chữ 'ở' chỉ nơi chốn; sót 'tc 60m'), "
+                         "gần sông 1,0 (2 tin). NHƯNG không tin nào chứa đúng kiểu câu đã sửa (0/5): tầng 'quy hoạch' thực tế là 'đường quy hoạch 12m' "
+                         "và ODT thật — các chỗ sửa CHƯA được kiểm trên tin mới (chỉ kiểm trên tập phát triển: lần 8 0,78 → 1,00, lần 1–7 không giảm). "
+                         "Mẫu chỉ có câu thổ cư và gần sông. Nhãn AI phụ (kèm lý do) đã hiện trong phiên chat của người gán trước khi gán — độ khớp "
+                         "30/30 không chứng minh độc lập. Không vá theo mẫu này; hai lỗi mới sửa ở lần sau.",
+                         "Run 9 (human labels, 30 NEW Facebook posts from Đắk Lắk, Hội An, Tây Ninh, Châu Đốc: first 20 per page + 10 containing "
+                         "'quy hoạch/QH/ONT/ODT'): rules FIXED after run 8's errors ('QH … ONT', 'cao thoáng', 'mặt bằng cao', 'Tho 150', 'ferry "
+                         "landing', 'to the sea …, only 7km'), frozen before sampling; F1 0.98 — residential 0.95 (false claim on 'land located in "
+                         "Vĩnh Châu'; missed 'tc 60m'), near river 1.0 (2 posts). BUT no new post contains any fixed phrasing (0/5): the 'zoning' "
+                         "stratum turned out to be 'planned 12m road' and real ODT — the fixes are NOT tested on new posts (only on the development "
+                         "set: run 8 0.78 → 1.00, runs 1–7 unchanged). Only residential and near-river claims. The secondary AI labels (with notes) "
+                         "were visible in the labeller's chat session before labelling — 30/30 agreement does not prove independence. Not patched "
+                         "on this sample; the two new errors are fixed in a later run.") if v == "9" else
+                      tr("Lần 8 (nhãn người, 30 tin Facebook CHỌN THEO TỪ CHỦ ĐỀ — biển, sông, ngập, phẳng/dốc, sạt lở, nước — để đo 6 loại câu "
                          "chưa từng chấm trên nhãn người; luật giữ nguyên lần 7): đạt trên 4 loại đo được — gần biển 0,96 (12 tin), bằng phẳng 1,0 "
                          "(11), gần sông 0,86 (4), nước ngọt 1,0 (chỉ 1 tin, ít mẫu). 'Không ngập' và 'không sạt lở' KHÔNG có tin nào trong mẫu — "
                          "không thu được bài bán đất nào nhắc 'ngập/lụt/khô ráo' hay 'sạt/lở' dù đã thêm trang ở phụ lục 1–2 — nên VẪN CHƯA ĐO trên "

@@ -1,0 +1,379 @@
+{
+ "protocol": "terratwin.listing_gate/9",
+ "source": "facebook_public_pages",
+ "n": 30,
+ "enough": true,
+ "per_type": [
+  {
+   "type": "near_river",
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 2,
+   "fp": 0,
+   "fn": 0
+  },
+  {
+   "type": "residential",
+   "precision": 0.95,
+   "recall": 0.95,
+   "f1": 0.95,
+   "tp": 19,
+   "fp": 1,
+   "fn": 1
+  }
+ ],
+ "macro_f1": 0.98,
+ "threshold_macro_f1": 0.8,
+ "passed": true,
+ "no_claim_listings": 8,
+ "no_claim_but_extracted": [
+  2
+ ],
+ "labeler": "Chủ dự án (người), gửi 30 dòng mã A–H/0 ngày 29/10/2026, kèm các quyết định ở chỗ quy tắc chưa nói rõ",
+ "data_note": "30 bài bán đất MỚI trên 4 trang Facebook công khai của môi giới (Đắk Lắk, Quảng Nam, Tây Ninh, An Giang + dự phòng): 20 bài đầu theo thứ tự trên trang + 10 bài có chữ 'quy hoạch'/'QH'/'ONT'/'ODT'; thu SAU khi khoá luật sửa lần 9; NHÃN NGƯỜI do chủ dự án tự gán; 30 tin lần 8 là tập phát triển",
+ "data_note_en": "30 NEW land-sale posts from 4 public Facebook broker pages (Đắk Lắk, Quảng Nam, Tây Ninh, An Giang + backups): first 20 in page order + 10 containing 'quy hoạch'/'QH'/'ONT'/'ODT'; collected AFTER the run-9 rule fix was frozen; HUMAN labels by the owner; the run-8 posts are the development set",
+ "per_listing": [
+  {
+   "id": 1,
+   "region": "Đà Nẵng – Quảng Nam",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 2,
+   "region": "An Giang (Châu Đốc)",
+   "gold": [],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 3,
+   "region": "Đà Nẵng – Quảng Nam",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 4,
+   "region": "An Giang (Châu Đốc)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 5,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 6,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 7,
+   "region": "Đà Nẵng (Hội An, Quảng Nam cũ)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 8,
+   "region": "An Giang (Châu Đốc)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 9,
+   "region": "Tây Ninh",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 10,
+   "region": "Tây Ninh",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 11,
+   "region": "Tây Ninh",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 12,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 13,
+   "region": "Đà Nẵng (Hội An, Quảng Nam cũ)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 14,
+   "region": "Tây Ninh",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 15,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "gold": [
+    "residential"
+   ],
+   "pred": []
+  },
+  {
+   "id": 16,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 17,
+   "region": "An Giang (Châu Đốc)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 18,
+   "region": "Đà Nẵng (Hội An, Quảng Nam cũ)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 19,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 20,
+   "region": "Tây Ninh",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 21,
+   "region": "An Giang (Châu Đốc)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 22,
+   "region": "An Giang (Châu Đốc)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 23,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 24,
+   "region": "Đà Nẵng (Hội An, Quảng Nam cũ)",
+   "gold": [
+    "near_river"
+   ],
+   "pred": [
+    "near_river"
+   ]
+  },
+  {
+   "id": 25,
+   "region": "An Giang (Châu Đốc)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 26,
+   "region": "Đà Nẵng (Hội An, Quảng Nam cũ)",
+   "gold": [
+    "near_river"
+   ],
+   "pred": [
+    "near_river"
+   ]
+  },
+  {
+   "id": 27,
+   "region": "An Giang (Châu Đốc)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 28,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 29,
+   "region": "Tây Ninh",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 30,
+   "region": "Tây Ninh",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  }
+ ],
+ "labeler_kind": "human",
+ "ai_vs_human": {
+  "listings_exact_match": 30,
+  "n": 30,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "tp": 22,
+  "fp": 0,
+  "fn": 0,
+  "note": "Nhãn AI (Claude, khoá trước khi người gán) so với nhãn người, gộp mọi loại câu"
+ },
+ "fixes_exercised": {
+  "quy_hoach_ont": {
+   "type": "residential",
+   "listings": 0,
+   "machine_correct": 0,
+   "tested": false,
+   "ids": []
+  },
+  "cao_thoang_mat_bang_cao": {
+   "type": "high_ground",
+   "listings": 0,
+   "machine_correct": 0,
+   "tested": false,
+   "ids": []
+  },
+  "ben_do_qua_song": {
+   "type": "near_river",
+   "listings": 0,
+   "machine_correct": 0,
+   "tested": false,
+   "ids": []
+  },
+  "tho_kem_so": {
+   "type": "residential",
+   "listings": 0,
+   "machine_correct": 0,
+   "tested": false,
+   "ids": []
+  },
+  "ra_bien_km_co_phay": {
+   "type": "near_sea",
+   "listings": 0,
+   "machine_correct": 0,
+   "tested": false,
+   "ids": []
+  }
+ },
+ "per_stratum": {
+  "A": {
+   "n": 20,
+   "macro_f1": 0.97,
+   "per_type_f1": {
+    "near_river": 1.0,
+    "residential": 0.95
+   },
+   "errors": [
+    2
+   ]
+  },
+  "B": {
+   "n": 10,
+   "macro_f1": 0.95,
+   "per_type_f1": {
+    "residential": 0.95
+   },
+   "errors": [
+    15
+   ]
+  }
+ },
+ "per_stratum_note": "Tầng A = 5 bài bán đất đầu mỗi trang (20); tầng B = bài có 'quy hoạch/QH/ONT/ODT' (10). Tính sau khi chấm từ per_listing + listing_gate_v9_selection.json — không chấm lại."
+}
