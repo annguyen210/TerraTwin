@@ -26,7 +26,9 @@ CLAIMS: list[tuple[str, str, str, list[str]]] = [
     # chỉ 3 phút") hoặc số đứng TRƯỚC ("5 phút ra biển"). Mẫu thời gian chỉ nhận PHÚT — "đường ra biển rộng 12m" không tính.
     ("high_ground", "Đất cao ráo", "High ground", [
         r"cao rao", r"nen (dat )?cao", r"(the|vi tri) dat cao", r"dat cao\b", r"khong (bi )?trung",
-        r"cao (hon|ngang|bang|tren) (voi )?(mat )?(duong|khu vuc|nen duong)", r"\b(ngang|bang) (voi )?mat duong\b"]),
+        r"cao (hon|ngang|bang|tren) (voi )?(mat )?(duong|khu vuc|nen duong)", r"\b(ngang|bang) (voi )?mat duong\b",
+        # Lần 9 (29/10/2026) theo lỗi lần 8 (NHÃN NGƯỜI — nay là tập phát triển): "cao thoáng", "mặt bằng cao".
+        r"\bcao thoang\b", r"\bmat bang (dat )?cao\b"]),
     # Lần 2 (18/10/2026) sửa theo lỗi cổng GĐ3 lần 1 — chấm lại trên mẫu MỚI (listing_gate_v2_protocol.json):
     # "dòng sông", "bao quanh bởi sông", "cách biển <tên> 100m", "bãi tắm"; "đất ở khu dân cư" là NẰM Ở, không phải
     # loại đất ở; "lên/làm thổ cư" là chuyển đổi tương lai (chỉ tính "đã lên thổ"); "mặt bằng vuông/đẹp" là hình dáng.
@@ -35,11 +37,15 @@ CLAIMS: list[tuple[str, str, str, list[str]]] = [
     ("near_river", "Gần sông", "Near a river", [
         r"(gan|ven|giap|sat|view|mat tien|canh|ke) (bo |dong |con )?song", r"(gan|ven|giap|sat|view|mat tien|canh|ke) (kenh|rach)",
         r"(bao quanh|bao boc|om tron) (boi )?(\d |hai |cac )?(dong |con )?song", r"cach (dong )?(song|kenh|rach)\b[^.,;]{0,25}?\d",
-        r"\bgio song\b", r"\bbo song\b", r"(nhin|huong|mat) ra (dong |con )?song"]),
+        r"\bgio song\b", r"\bbo song\b", r"(nhin|huong|mat) ra (dong |con )?song",
+        # Lần 9: "kế bên bến đò … qua sông là tới chợ" — lô sát bến đò / sát sông nói vòng.
+        r"(ke ben|gan|canh|sat|ngay) ben (do|pha|ghe)\b", r"\bqua (dong |con )?song (la|da) (toi|den)\b"]),
     ("near_sea", "Gần biển", "Near the sea", [
         r"(gan|ven|giap|sat|view|mat tien|canh|ke) (bai )?(bien|bai tam)\b", r"cach (bai )?(bien|bai tam)\b[^.,;]{0,25}?\d",
         r"\b(di|ra|xuong|toi|den) (bai )?(bien|bai tam)\b[^.,;]{0,15}?\d+ ?(p|ph|phut|km|m|met)\b", r"(ben bo|bo|ven|sat|giap|view|nhin ra) vinh\b",
         r"\b(di|ra|xuong|toi|den) (bai )?(bien|bai tam)\b[^.,;]{0,40}?\d+ ?(p|ph|phut)\b",
+        # Lần 9: "ra biển và các dự án Novaworld, Safari chỉ 7km" — cho phép dấu phẩy, tối đa 45 ký tự tới con số.
+        r"\b(di|ra|xuong|toi|den) (bai )?(bien|bai tam)\b[^.;]{0,45}?\d+ ?(p|ph|phut|km)\b",
         r"\b\d+ ?(p|ph|phut|km)\b (di |chay |lai xe |xe may )?(ra|den|toi|xuong) (bai )?(bien|bai tam)\b",
         r"duong bao bien", r"(nhin|huong|mat) ra (bai )?bien\b", r"\bgio bien\b"]),
     ("flat", "Bằng phẳng", "Flat", [r"bang phang", r"dat phang", r"khong (bi )?doc", r"mat bang phang"]),
@@ -50,8 +56,14 @@ CLAIMS: list[tuple[str, str, str, list[str]]] = [
         r"(?<!len )(?<!lam )(?<!chua )(?<!chua co )(?<!khong co )(?<!khong phai )(?<!quy hoach )(?<!quy hoach la )(?<!qh )tho cu",
         r"(?<!quy hoach )(?<!quy hoach la )(?<!qh )(?<!len )(?<!chuyen )(?<!chua co )(?<!khong phai )"
         r"dat o\b(?! (khu|tai|gan|ngay|trong|thon|xom|xa|phuong|quan|huyen|duong|pho|ap|to|day|"
-        r"vi tri|cho|noi|mat|sau|cuoi|dau|canh|giua|ven|nong thon|thanh pho|trung tam))", r"\bodt\b", r"\bont\b",
-        r"da (duoc )?lenh? tho\b", r"\b(full|100%?) ?tc\b", r"\btc 100"]),
+        r"vi tri|cho|noi|mat|sau|cuoi|dau|canh|giua|ven|nong thon|thanh pho|trung tam))",
+        # Lần 9 theo lỗi lần 8: "quy hoạch đất ở ONT", "QH full ONT" là QUY HOẠCH, chưa phải đã có đất ở.
+        r"(?<!quy hoach )(?<!quy hoach dat o )(?<!quy hoach la )(?<!quy hoach full )(?<!qh )(?<!qh full )(?<!qh dat o )"
+        r"\b(odt|ont)\b",
+        r"da (duoc )?lenh? tho\b", r"\b(full|100%?) ?tc\b", r"\btc 100",
+        # Lần 9: "Tho 150+ cây lâu năm", "thổ 100%" — "thổ" kèm số/"hết". Loại tên riêng có "Thọ" đứng sau
+        # (Phước Lộc Thọ, Phúc Thọ, Trường Thọ, Đông Thọ, Vĩnh Thọ…) — sau khi bỏ dấu "thọ" và "thổ" trùng nhau.
+        r"(?<!loc )(?<!phuc )(?<!truong )(?<!dong )(?<!vinh )(?<!xuan )(?<!hoa )(?<!an )(?<!phu )(?<!chua )\btho (\d|het\b)"]),
     ("fresh_water", "Nước ngọt", "Fresh water", [r"nuoc ngot", r"khong (bi )?(nhiem )?man", r"gieng ngot"]),
 ]
 

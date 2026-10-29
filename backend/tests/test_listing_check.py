@@ -73,6 +73,30 @@ def test_tho_cu_lan_7(text, want):
     assert ("residential" in {c["type"] for c in lc.extract(text)}) is want
 
 
+@pytest.mark.parametrize("text,typ,want", [
+    # Lần 9 (29/10/2026): lỗi lần 8 trên NHÃN NGƯỜI (30 tin Facebook — nay là tập phát triển) — và câu gần giống.
+    ("Sổ hồng, hiện trạng đất CLN, quy hoạch đất ở ONT", "residential", False),
+    ("Sổ có sẵn QH full ONT", "residential", False),
+    ("Sổ hồng đất ở ODT + CLN, quy hoạch thổ cư", "residential", True),
+    ("100m2 ONT + 581,5m2 SKC", "residential", True),
+    ("Tho 150+ cay lau nam", "residential", True),
+    ("DT: 5m x 22.7m thổ 100%", "residential", True),
+    ("Cách ngã 4 Phước Lộc Thọ 300m", "residential", False),
+    ("Đất có địa thế đẹp, bằng phẳng, cao thoáng, vuông vắn", "high_ground", True),
+    ("Đất mặt tiền nhựa, mặt bằng cao xây nhà ngay", "high_ground", True),
+    ("Mặt bằng đất thấp hơn đường chính", "high_ground", False),
+    ("Không gian thoáng mát, view đẹp", "high_ground", False),
+    ("Nền kế bên bến đò chợ Tắc Ráng", "near_river", True),
+    ("gần trường học, qua sông là tới chợ", "near_river", True),
+    ("Đường đi qua sông Hồng rất đẹp", "near_river", False),
+    ("Đất 2 mặt tiền, ra biển và các dự án Novaworld, Safari chỉ 7km", "near_sea", True),
+    ("Gần Đường Liên Huyện Ra Biển Hòa Thắng, Liền kề KDL Bàu Trắng, đường đi Safari", "near_sea", False),
+])
+def test_loi_lan_8(text, typ, want):
+    from app.services import listing_check as lc
+    assert (typ in {c["type"] for c in lc.extract(text)}) is want
+
+
 def test_cau_khong_khang_dinh_gi_thi_khong_bat_bua():
     from app.services import listing_check as lc
     assert lc.extract("Liên hệ chính chủ, giá thương lượng, xem đất thứ Bảy.") == []

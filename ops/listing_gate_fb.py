@@ -1,4 +1,4 @@
-"""CỔNG GĐ3 lần 4–8 — 20 tin bán đất thật từ trang Facebook công khai của môi giới (listing_gate_v4/v5_protocol.json).
+"""CỔNG GĐ3 lần 4–9 — 20 tin bán đất thật từ trang Facebook công khai của môi giới (listing_gate_v4/v5_protocol.json).
 
     python ops/listing_gate_fb.py <tin.json>            # lần 4: chấm MỘT lần, ghi backend/data/eval/listing_gate_v4_result.json
     python ops/listing_gate_fb.py <tin.json> --run 5    # lần 5 (luật sửa, tập kiểm tra mới): listing_gate_v5_result.json
@@ -40,7 +40,22 @@ RUNS = {   # lần → (tệp nhãn, tệp kết quả, mô tả dữ liệu VI,
           "5 bài/nhóm) để đo 6 loại câu chưa từng chấm trên nhãn người; luật GIỮ NGUYÊN lần 7; NHÃN NGƯỜI do chủ dự án tự gán",
           "30 land-sale posts from public Facebook broker pages, SELECTED BY TOPIC WORD (sea, river, flood, flat/slope, landslide, water — "
           "5 per group) to measure the 6 claim types never scored on human labels; rules UNCHANGED from run 7; HUMAN labels by the owner"),
+    "9": ("listing_gate_v9_labels.json", "listing_gate_v9_result.json",
+          "30 bài bán đất MỚI trên 4 trang Facebook công khai của môi giới (Đắk Lắk, Quảng Nam, Tây Ninh, An Giang + dự phòng): 20 bài đầu theo "
+          "thứ tự trên trang + 10 bài có chữ 'quy hoạch'/'QH'/'ONT'/'ODT'; thu SAU khi khoá luật sửa lần 9; NHÃN NGƯỜI do chủ dự án tự gán; "
+          "30 tin lần 8 là tập phát triển",
+          "30 NEW land-sale posts from 4 public Facebook broker pages (Đắk Lắk, Quảng Nam, Tây Ninh, An Giang + backups): first 20 in page "
+          "order + 10 containing 'quy hoạch'/'QH'/'ONT'/'ODT'; collected AFTER the run-9 rule fix was frozen; HUMAN labels by the owner; "
+          "the run-8 posts are the development set"),
 }
+# Lần 9: chỗ sửa nào ĐƯỢC KIỂM — đếm tin mới có đúng kiểu câu đã sửa (trên chữ đã bỏ dấu) và máy đúng/sai ở loại đó.
+FIX_FAMILIES = {"9": {
+    "quy_hoach_ont": ("residential", r"(quy hoach|\bqh\b)[^.;\n]{0,25}\b(ont|odt)\b"),
+    "cao_thoang_mat_bang_cao": ("high_ground", r"\bcao thoang\b|\bmat bang (dat )?cao\b"),
+    "ben_do_qua_song": ("near_river", r"\bben (do|pha|ghe)\b|\bqua (dong |con )?song\b"),
+    "tho_kem_so": ("residential", r"\btho (\d|het\b)"),
+    "ra_bien_km_co_phay": ("near_sea", r"\b(di|ra|xuong|toi|den) (bai )?bien\b[^.;]{0,45}?,[^.;]*?\d+ ?(km|p|phut)\b"),
+}}
 # Lần 8: F1 CHÍNH chỉ tính 6 loại đích (listing_gate_v8_protocol.json "target_types"); F1 mọi loại vẫn ghi làm số phụ.
 TARGETS = {"8": ["no_flood", "near_river", "near_sea", "flat", "no_landslide", "fresh_water"]}
 THRESHOLD = 0.80
@@ -94,6 +109,15 @@ def main() -> None:
                               "precision": round(p, 2), "recall": round(r, 2), "f1": round(2 * p * r / max(1e-9, p + r), 2),
                               "tp": tp, "fp": fp, "fn": fn,
                               "note": "Nhãn AI (Claude, khoá trước khi người gán) so với nhãn người, gộp mọi loại câu"}
+    if run in FIX_FAMILIES:
+        import re
+        fam = {}
+        for name, (typ, rx) in FIX_FAMILIES[run].items():
+            hit = [p for p, g in zip(per, gold) if re.search(rx, lc.fold(g["text"]))]
+            ok = sum((typ in p["gold"]) == (typ in p["pred"]) for p in hit)
+            fam[name] = {"type": typ, "listings": len(hit), "machine_correct": ok,
+                         "tested": bool(hit), "ids": [p["id"] for p in hit]}
+        res["fixes_exercised"] = fam
     json.dump(res, open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(json.dumps({k: res[k] for k in ("macro_f1", "passed", "per_type", "no_claim_but_extracted")}, ensure_ascii=False, indent=1))
 
