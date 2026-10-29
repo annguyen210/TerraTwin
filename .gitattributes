@@ -2,3 +2,5 @@
 backend/data/eval/listing_gate_v8_ai_labels.json -text
 backend/data/eval/listing_gate_v8_selection.json -text
 backend/data/eval/listing_gate_v8_superseded/*.json -text
+backend/data/eval/listing_gate_v9_ai_labels.json -text
+backend/data/eval/listing_gate_v9_selection.json -text

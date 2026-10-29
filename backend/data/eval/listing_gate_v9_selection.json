@@ -1,0 +1,282 @@
+{
+ "protocol": "terratwin.listing_gate/9",
+ "collected": "2026-10-29",
+ "collector": "Claude (claude-opus-5-5) qua Chrome của chủ dự án — chỉ đọc: mở thẳng địa chỉ trang, không dùng ô tìm kiếm, không tham gia/theo dõi/thích/bình luận/nhắn tin; chỉ bấm 'Xem thêm'",
+ "method": "collect.js (≤ 30 lần cuộn, giữ thứ tự xuất hiện; bản thu gọn và mở rộng của cùng bài tính là một). Tầng A: 5 bài bán đất đầu mỗi trang. Tầng B: đọc tiếp, bài bán đất có 'quy hoạch'/'QH'/'ONT'/'ODT', tối đa 3/trang, vòng theo trang 1→4; trang thiếu → trang dự phòng của vùng đó. Bài chữ bị cắt ('… Xem thêm' không mở được) bỏ vì không đọc đủ để gán.",
+ "anonymization": "topic.anonymize + tên/chữ ký người đăng thay '[tên]' + soát không còn dãy ≥ 8 chữ số",
+ "shuffle_seed": 20261029,
+ "total": 30,
+ "pages": [
+  {
+   "n": 1,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "url": "https://www.facebook.com/NhaDatBuonMaThuotDaklac/",
+   "viewable": true,
+   "scrolls_when_stopped": 10,
+   "posts_seen_in_order": 36,
+   "read_log": "tầng A = 5 bài bán đất đầu: vị trí 0/4, 1/5, 2/6, 3/7, 8/15 (đều bán đất). Tầng B đọc tiếp sau 8/15: bài bán đất có quy hoạch/QH/ONT/ODT theo thứ tự: 12/14, 26/27, 33/35 (đủ 3 bài/trang). Bỏ qua giữa chừng: 9/11, 10/19, 13/16, 17/18, 20/21, 22/24, 23/25, 28/30, 32/34 (bán đất không có từ tầng B), 29/31 (sang quán cafe — không phải bán đất). Bài 1/5 có 'qh' nhưng đã thuộc tầng A."
+  },
+  {
+   "n": 2,
+   "region": "Đà Nẵng (Hội An, Quảng Nam cũ)",
+   "url": "https://www.facebook.com/bandathoianvn/",
+   "viewable": true,
+   "scrolls": 30,
+   "posts_seen_in_order": 47,
+   "read_log": "tầng A: 0/3 (tìm đối tác HOẶC bán lô đất — có chào bán, tính là bài bán đất), 1/5 BỎ vì chữ bị cắt ('Bán đất … Xem thêm', bấm không mở được, tải lại không còn hiện) — không đọc đủ thì không gán được, 2, 4, 6, 7. Tầng B: hết 30 lần cuộn, KHÔNG bài nào có quy hoạch/QH/ONT/ODT (trang phần lớn tin ngắn, nhiều bài cần mua/cho thuê) → tầng B của vùng này lấy ở trang dự phòng theo giao thức."
+  },
+  {
+   "n": 3,
+   "region": "Tây Ninh",
+   "url_main": "https://www.facebook.com/diaoctayninh/",
+   "main_viewable": false,
+   "url": "https://www.facebook.com/Nhadatvangtayninh/",
+   "backup": true,
+   "viewable": true,
+   "scrolls": 30,
+   "posts_seen_in_order": 103,
+   "read_log": "Trang chính diaoctayninh: 'Bạn hiện không xem được nội dung này' → trang dự phòng Nhadatvangtayninh. Tầng A: 1, 6/8/11 (cùng bài), 16/18, 19/21, 20/22; bỏ 2/4 (đất có nhà mới 98% — bán nhà), 3/5, 7/9/12, 10/13, 14, 15/17 (bán nhà). Tầng B sau 20/22: 63/67, 65 (bán đất có quy hoạch/ODT); bỏ 47 (bán nhà có chữ quy hoạch). Hết 30 lần cuộn: tầng B trang này được 2/3. Tên bác sĩ dùng làm mốc vị trí (bài 16/18) thay [tên]."
+  },
+  {
+   "n": 4,
+   "region": "An Giang (Châu Đốc)",
+   "url": "https://www.facebook.com/nhadatchaudoc/",
+   "viewable": true,
+   "scrolls": 30,
+   "posts_seen_in_order": 40,
+   "read_log": "Trang ít bài bán đất (nhiều bài mời vào nhóm, tin thời sự, cho thuê). Tầng A: 6, 12/14, 13, 22/23, 25. Tầng B: bài duy nhất có chữ quy hoạch (4/5) là TIN THỜI SỰ về cầu, không phải bán đất → 0 bài; hết 30 lần cuộn → tầng B của vùng lấy ở trang dự phòng. Bỏ 31/33 (bán nhà & nền — có nhà), 34/39 (bán nhà)."
+  },
+  {
+   "n": "2-dự phòng",
+   "region": "Đà Nẵng – Quảng Nam",
+   "url": "https://www.facebook.com/Nhadatts/",
+   "backup": true,
+   "viewable": true,
+   "scrolls": 28,
+   "posts_seen_in_order": 54,
+   "read_log": "Chỉ lấy tầng B (trang chính Hội An không có bài nào). Bài có quy hoạch/QH/ONT/ODT theo thứ tự: 8/9 bán đất ODT ✓; 18/19 bài thông tin tách thửa — không phải bán đất; 20/23 bài tản văn — không phải bán đất; 38 bán đất ODT ✓; 45 = đăng lại CÙNG lô 766 m² của 38 (bài trùng) → bỏ. Hết 28 lần cuộn (trang dừng tải): 2/3. Ký hiệu cuối bài 9 ('lvtt', tên viết tắt người đăng) thay [tên]."
+  },
+  {
+   "n": "4-dự phòng",
+   "region": "An Giang (Châu Đốc)",
+   "url": "https://www.facebook.com/nguyenthaicuongtkhcd/",
+   "backup": true,
+   "viewable": true,
+   "scrolls_when_stopped": 9,
+   "posts_seen_in_order": 26,
+   "read_log": "Chỉ lấy tầng B. Theo thứ tự: 7/9/11 ✓; 13 BỎ vì chữ bị cắt ('… Xem thêm' không mở được, không có bản đầy đủ); 14/21 ✓; 20/22 ✓ → đủ 3 (dừng cuộn ở lần 9). Bỏ 2/4 và 15/24 (bán nhà). Tên người đăng thay [tên]; hai số điện thoại nối bằng gạch ngang che cả hai."
+  }
+ ],
+ "taken": [
+  {
+   "id": 1,
+   "page": "2-dự phòng",
+   "region": "Đà Nẵng – Quảng Nam",
+   "page_pos": 9,
+   "stratum": "B"
+  },
+  {
+   "id": 2,
+   "page": 4,
+   "region": "An Giang (Châu Đốc)",
+   "page_pos": 23,
+   "stratum": "A"
+  },
+  {
+   "id": 3,
+   "page": "2-dự phòng",
+   "region": "Đà Nẵng – Quảng Nam",
+   "page_pos": 38,
+   "stratum": "B"
+  },
+  {
+   "id": 4,
+   "page": "4-dự phòng",
+   "region": "An Giang (Châu Đốc)",
+   "page_pos": 11,
+   "stratum": "B"
+  },
+  {
+   "id": 5,
+   "page": 1,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "page_pos": 5,
+   "stratum": "A"
+  },
+  {
+   "id": 6,
+   "page": 1,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "page_pos": 4,
+   "stratum": "A"
+  },
+  {
+   "id": 7,
+   "page": 2,
+   "region": "Đà Nẵng (Hội An, Quảng Nam cũ)",
+   "page_pos": 7,
+   "stratum": "A"
+  },
+  {
+   "id": 8,
+   "page": 4,
+   "region": "An Giang (Châu Đốc)",
+   "page_pos": 13,
+   "stratum": "A"
+  },
+  {
+   "id": 9,
+   "page": 3,
+   "region": "Tây Ninh",
+   "page_pos": 18,
+   "stratum": "A"
+  },
+  {
+   "id": 10,
+   "page": 3,
+   "region": "Tây Ninh",
+   "page_pos": 67,
+   "stratum": "B"
+  },
+  {
+   "id": 11,
+   "page": 3,
+   "region": "Tây Ninh",
+   "page_pos": 21,
+   "stratum": "A"
+  },
+  {
+   "id": 12,
+   "page": 1,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "page_pos": 7,
+   "stratum": "A"
+  },
+  {
+   "id": 13,
+   "page": 2,
+   "region": "Đà Nẵng (Hội An, Quảng Nam cũ)",
+   "page_pos": 4,
+   "stratum": "A"
+  },
+  {
+   "id": 14,
+   "page": 3,
+   "region": "Tây Ninh",
+   "page_pos": 65,
+   "stratum": "B"
+  },
+  {
+   "id": 15,
+   "page": 1,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "page_pos": 27,
+   "stratum": "B"
+  },
+  {
+   "id": 16,
+   "page": 1,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "page_pos": 15,
+   "stratum": "A"
+  },
+  {
+   "id": 17,
+   "page": "4-dự phòng",
+   "region": "An Giang (Châu Đốc)",
+   "page_pos": 22,
+   "stratum": "B"
+  },
+  {
+   "id": 18,
+   "page": 2,
+   "region": "Đà Nẵng (Hội An, Quảng Nam cũ)",
+   "page_pos": 3,
+   "stratum": "A"
+  },
+  {
+   "id": 19,
+   "page": 1,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "page_pos": 6,
+   "stratum": "A"
+  },
+  {
+   "id": 20,
+   "page": 3,
+   "region": "Tây Ninh",
+   "page_pos": 1,
+   "stratum": "A"
+  },
+  {
+   "id": 21,
+   "page": 4,
+   "region": "An Giang (Châu Đốc)",
+   "page_pos": 25,
+   "stratum": "A"
+  },
+  {
+   "id": 22,
+   "page": 4,
+   "region": "An Giang (Châu Đốc)",
+   "page_pos": 14,
+   "stratum": "A"
+  },
+  {
+   "id": 23,
+   "page": 1,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "page_pos": 14,
+   "stratum": "B"
+  },
+  {
+   "id": 24,
+   "page": 2,
+   "region": "Đà Nẵng (Hội An, Quảng Nam cũ)",
+   "page_pos": 2,
+   "stratum": "A"
+  },
+  {
+   "id": 25,
+   "page": "4-dự phòng",
+   "region": "An Giang (Châu Đốc)",
+   "page_pos": 21,
+   "stratum": "B"
+  },
+  {
+   "id": 26,
+   "page": 2,
+   "region": "Đà Nẵng (Hội An, Quảng Nam cũ)",
+   "page_pos": 6,
+   "stratum": "A"
+  },
+  {
+   "id": 27,
+   "page": 4,
+   "region": "An Giang (Châu Đốc)",
+   "page_pos": 6,
+   "stratum": "A"
+  },
+  {
+   "id": 28,
+   "page": 1,
+   "region": "Đắk Lắk (Buôn Ma Thuột)",
+   "page_pos": 35,
+   "stratum": "B"
+  },
+  {
+   "id": 29,
+   "page": 3,
+   "region": "Tây Ninh",
+   "page_pos": 11,
+   "stratum": "A"
+  },
+  {
+   "id": 30,
+   "page": 3,
+   "region": "Tây Ninh",
+   "page_pos": 22,
+   "stratum": "A"
+  }
+ ]
+}
