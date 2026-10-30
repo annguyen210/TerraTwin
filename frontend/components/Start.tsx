@@ -55,9 +55,12 @@ const QUICK: { name: string; lat: number; lon: number; note: string; note_en: st
 export default function Start({
   onPick,
   onStory,
+  onListing,
 }: {
   onPick: (lat: number, lon: number, label?: string) => void;
   onStory?: () => void;
+  /** Người dùng vừa dán NỘI DUNG TIN ĐĂNG (không phải địa danh) — trang đầu chuyển sẵn sang mở tab Kiểm chứng. */
+  onListing?: () => void;
 }) {
   const { t } = useLang();
   const [q, setQ] = useState("");
@@ -135,6 +138,7 @@ export default function Start({
     }
     if (s.length >= 80) {
       saveListingDraft(s);
+      onListing?.();
       const c = findCoordInText(s);
       setHits(c ? [asHit(c)] : []);
       setMsg(c ? t("Đã giữ nội dung tin — chọn toạ độ dưới đây rồi mở tab Kiểm chứng để đối chiếu từng câu với số đo.",

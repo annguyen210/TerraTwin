@@ -97,6 +97,22 @@ def test_loi_lan_8(text, typ, want):
     assert (typ in {c["type"] for c in lc.extract(text)}) is want
 
 
+def test_tin_mau_trang_dau_tach_du_5_loai_va_thua_mau_duoc_ham_nong():
+    """Luồng chính trang đầu (29/10/2026): tin mẫu frontend/lib/demo.ts phải ra đủ 5 câu để minh hoạ Khớp/Mâu thuẫn/
+    Không đủ dữ liệu; thửa mẫu phải là DEMO_PLOTS[0] (radar + U-Net hâm mỗi 6 giờ) và nằm trong ô mặc định Keep warm."""
+    import os
+    import re
+    from app.services import demo_plots, listing_check as lc
+    root = os.path.join(os.path.dirname(__file__), "..", "..")
+    src = open(os.path.join(root, "frontend", "lib", "demo.ts"), encoding="utf-8").read()
+    text = re.search(r'DEMO_LISTING =\s*"([^"]+)"', src).group(1)
+    assert sorted({c["type"] for c in lc.extract(text)}) == ["flat", "high_ground", "near_river", "no_flood", "residential"]
+    lat, lon = (float(x) for x in re.search(r"DEMO_PLOT = \{ lat: ([\d.]+), lon: ([\d.]+)", src).groups())
+    assert (lat, lon) == demo_plots.DEMO_PLOTS[0][:2]
+    warm = open(os.path.join(root, ".github", "workflows", "keepwarm.yml"), encoding="utf-8").read()
+    assert f"{lat},{lon}" in warm
+
+
 def test_cau_khong_khang_dinh_gi_thi_khong_bat_bua():
     from app.services import listing_check as lc
     assert lc.extract("Liên hệ chính chủ, giá thương lượng, xem đất thứ Bảy.") == []

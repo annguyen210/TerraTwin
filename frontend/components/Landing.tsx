@@ -5,13 +5,17 @@
  * ai cũng kiểm lại được." Thứ đầu tiên người xem gặp là Ô TÌM THỬA và các năng lực ĐÃ CHẠY (lịch sử nước radar, kiểm
  * tin đăng, hồ sơ neo Bitcoin, nhật ký thửa, so sánh…), mỗi cái có nút "Thử ngay" mở đúng chỗ. EUDR lùi thành
  * chương 2 (vẫn đủ: ranh, sàng lọc, hồ sơ vườn, lô hàng). Mọi tài khoản có đủ mọi tính năng.
+ *
+ * 29/10/2026 — gọt quanh MỘT câu chuyện: "định mua đất → kiểm lời rao trước khi xuống tiền". Ba trụ + tám năng lực +
+ * EUDR + sổ điểm xếp liền nhau làm người xem không nhớ nổi TerraTwin là gì; bỏ khối "Ba trụ" (trùng tám năng lực),
+ * đưa ba bước + bốn con số kiểm chứng độc lập lên ngay dưới phần đầu, thửa mẫu là ruộng ngập bão Yagi UNOSAT đã ghi.
  */
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import {
-  BadgeCheck, Check, ClipboardList, Cpu, FileSearch, FileSignature, Footprints, GitCompare, Link2, Minus, NotebookPen,
+  BadgeCheck, Check, ClipboardList, Cpu, FileSearch, FileSignature, Footprints, GitCompare, Link2, NotebookPen,
   Package, Radar, ScanSearch, Settings, ShieldCheck, Sprout, TreePine, Waves, X, type LucideIcon,
 } from "lucide-react";
 
@@ -21,39 +25,15 @@ import Start from "./Start";
 import { eudrPublicStats, getScorecard, trackEvent, type AuthUser, type ModuleInfo, type Scorecard as SC } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 import { DataSaverToggle } from "@/lib/net";
+import { DEMO_LISTING, DEMO_PLOT } from "@/lib/demo";
+import { saveListingDraft } from "@/lib/listingDraft";
 
 // Chỉ người ĐÃ đăng nhập mới thấy "Thửa của tôi" — khách mới không phải tải mã của nó (Lighthouse TBT).
 const MyLand = dynamic(() => import("./MyLand"));
 
 const HERO_IMG = "/hero-coffee-s2.png";
-const HUE = { lat: 16.5751, lon: 107.4952, label: "Đồng lúa Quảng Điền, Huế" };   // thửa có lịch sử nước đã kiểm (cổng GĐ2)
 
 type Chapter = "plan" | "mine" | "verify" | "tools";
-
-// Ba trụ sản phẩm (kế hoạch tổng). Mỗi dòng là một thứ ĐÃ CHẠY — không có tính năng nào khoá sau gói trả phí.
-const PILLARS: { tag: [string, string]; name: [string, string]; lede: [string, string]; items: [string, string][]; ch: Chapter; who: [string, string] }[] = [
-  { tag: ["Trụ 1 · mua một lần", "Pillar 1 · one-off"], name: ["Hồ sơ đất", "Land dossier"], ch: "plan",
-    lede: ["Chọn một thửa, nhận hồ sơ ký số trong vài chục giây.", "Pick a plot, get a signed dossier in seconds."],
-    items: [["Lịch sử nước radar 2017 → nay, kéo theo năm trên bản đồ", "Radar water history 2017 → now, scrub by year on the map"],
-            ["Loại đất thật + \"đất có đổi khác sau 2021?\" (AlphaEarth)", "Real land cover + \"changed since 2021?\" (AlphaEarth)"],
-            ["10 năm hiểm hoạ ERA5: lũ, sạt lở, hạn", "10 years of ERA5 hazards: flood, landslide, drought"],
-            ["Ký số Ed25519, QR, neo Bitcoin — mỗi câu bấm ra bằng chứng", "Ed25519 signed, QR, Bitcoin-anchored — each sentence opens its evidence"]],
-    who: ["Người sắp mua/thuê đất · môi giới chứng minh đất \"sạch\"", "Buyers and renters · brokers proving land is clean"] },
-  { tag: ["Trụ 2 · mở mỗi ngày", "Pillar 2 · daily"], name: ["Canh đất", "Land watch"], ch: "mine",
-    lede: ["Lý do mở TerraTwin mỗi sáng.", "The reason to open TerraTwin every morning."],
-    items: [["Nhật ký thửa: chỉ báo khi có thay đổi thật", "Plot journal: only real changes"],
-            ["Bản tin sáng, cảnh báo đẩy về điện thoại", "Morning brief, push alerts"],
-            ["Đối chiếu ba chiều: câu trả lời ↔ radar ↔ mưa", "Three-way check: your answer ↔ radar ↔ rain"],
-            ["Cảm biến ký số (độ mặn, độ ẩm đất) vào nhật ký trong 10 giây", "Signed sensors (salinity, soil moisture) in the journal within 10 s"]],
-    who: ["Chủ đất, nông hộ, hợp tác xã", "Landowners, farmers, co-ops"] },
-  { tag: ["Trụ 3 · doanh nghiệp", "Pillar 3 · business"], name: ["Kiểm chứng", "Verification"], ch: "verify",
-    lede: ["Cho tổ chức cần thẩm định nhiều thửa và kiểm hồ sơ.", "For organisations appraising many plots and checking dossiers."],
-    items: [["Kiểm chứng tin đăng bán đất từng câu", "Sentence-by-sentence land-listing check"],
-            ["So sánh 2–4 thửa trên một màn", "Compare 2–4 plots on one screen"],
-            ["Thẩm định hàng loạt từ CSV, API có khoá", "Batch appraisal from CSV, keyed API"],
-            ["Trang kiểm chứng công khai + script tự kiểm không cần tin máy chủ", "Public verify page + a script that checks without trusting us"]],
-    who: ["Ngân hàng, bảo hiểm, sàn môi giới, doanh nghiệp xuất khẩu", "Banks, insurers, brokerages, exporters"] },
-];
 
 // 8 năng lực đặc trưng — mỗi cái có lối "Thử ngay" mở đúng chỗ.
 const CAPS: { icon: LucideIcon; name: [string, string]; see: [string, string]; go: { ch?: Chapter; href?: string } }[] = [
@@ -128,6 +108,22 @@ function ScanDemo() {
   );
 }
 
+// Luồng chính — ba bước của người định mua đất.
+const STEPS: { icon: LucideIcon; vi: string; en: string }[] = [
+  { icon: ClipboardList, vi: "Dán tin rao — hoặc chọn thửa trên bản đồ", en: "Paste the listing — or pick the plot on the map" },
+  { icon: FileSearch, vi: "Từng câu: Khớp · Mâu thuẫn · Không đủ dữ liệu, kèm số đo và ngày", en: "Each claim: Consistent · Contradicted · Not enough data, with measurements and dates" },
+  { icon: FileSignature, vi: "Hồ sơ ký số — người bán, ngân hàng quét QR là kiểm lại được", en: "A signed dossier — the seller or a bank scans the QR to re-check it" },
+];
+
+// Ba con số chấm MỘT lần, khoá trong repo (backend/data/eval/water_unosat_result.json,
+// listing_gate_v9_result.json) + cơ chế ký — đổi số ở đây phải đổi từ tệp kết quả, không làm tròn đẹp.
+const PROOF: { b: string; vi: string; en: string }[] = [
+  { b: "60/80", vi: "điểm ngập trên bản đồ UNOSAT (10 trận 2020–2025) radar thấy đợt nước", en: "flooded points on UNOSAT maps (10 floods 2020–2025) where radar saw the water" },
+  { b: "0/73", vi: "điểm khô (cách vùng nước ≥ 500 m) bị báo nhầm là có đợt nước", en: "dry points (≥ 500 m from water) falsely flagged with a water event" },
+  { b: "0,98", vi: "F1 nhận câu khẳng định trên 30 tin rao Facebook thật, nhãn người (lần 9)", en: "F1 for spotting claims in 30 real Facebook ads, human labels (run 9)" },
+  { b: "Ed25519", vi: "chữ ký số + sổ minh bạch + neo Bitcoin: sửa một chữ là lộ", en: "signature + transparency log + Bitcoin anchor: one changed letter shows" },
+];
+
 const EUDR_STEPS: { icon: LucideIcon; vi: string; en: string }[] = [
   { icon: Footprints, vi: "Lấy ranh vườn — vẽ hoặc đi bộ GPS", en: "Capture the boundary — draw or GPS walk" },
   { icon: ScanSearch, vi: "Kiểm chuẩn EU + ba bản đồ rừng 2020 bỏ phiếu", en: "EU format + three 2020 forest maps vote" },
@@ -153,7 +149,6 @@ export default function Landing({
   // Số ngày tới hạn EUDR tính Ở TRÌNH DUYỆT theo ngày thật — trước đây tính lúc build trang tĩnh nên hiện 0/54/73 lẫn lộn.
   const [days, setDays] = useState<number | null>(null);
   const [want, setWant] = useState<Chapter>("plan");
-  const searchRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     trackEvent("open");
     eudrPublicStats().then(setPs).catch(() => {});
@@ -166,9 +161,12 @@ export default function Landing({
   }, [lang]);
   const logCount = useCountUp(ps?.log_size ?? 0);
 
-  // "Thử ngay": mở thẳng thửa mẫu (Huế — thửa có lịch sử nước đã kiểm) ở đúng tab; hoặc cuộn tới ô tìm thửa của bạn.
-  function tryNow(ch: Chapter) { onStart(HUE.lat, HUE.lon, HUE.label, ch); }
-  function pickMine(ch: Chapter) { setWant(ch); searchRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }
+  // "Thử ngay": mở thẳng thửa mẫu (ruộng ngập bão Yagi, UNOSAT đã ghi) ở đúng tab. Tab Kiểm chứng thì điền sẵn TIN MẪU
+  // (ô kiểm tin ghi rõ là tin soạn để minh hoạ).
+  function tryNow(ch: Chapter) {
+    if (ch === "verify") saveListingDraft(DEMO_LISTING);
+    onStart(DEMO_PLOT.lat, DEMO_PLOT.lon, DEMO_PLOT.label, ch);
+  }
 
   return (
     <AppShell user={user} onAuth={onAuth}>
@@ -177,60 +175,36 @@ export default function Landing({
           <div className="lp3-copy tt-reveal">
             <span className="lp3-badge"><span className="lp3-pulse" aria-hidden="true" /> {t("Đo bằng vệ tinh · ký bằng mật mã · ai cũng kiểm lại được", "Measured by satellite · signed with cryptography · checkable by anyone")}</span>
             <h1 className="lp3-h1">{t("Sự thật về một mảnh đất.", "The truth about a plot of land.")}<br />
-              <span>{t("Thửa này từng ngập chưa? Tin đăng có nói thật không?", "Has it ever flooded? Is the listing telling the truth?")}</span></h1>
+              <span>{t("Định mua đất? Kiểm lời rao trước khi xuống tiền.", "Buying land? Check the listing before you pay.")}</span></h1>
             <p className="lp3-lede">{t(
-              "Chọn một thửa: radar nhìn xuyên mây đọc lại 9 năm xem nước đã phủ bao nhiêu lần, loại đất thật hiện nay, hiểm hoạ 10 năm, đối chiếu từng câu trong tin đăng bán đất — rồi phát hành hồ sơ ký số mà ngân hàng, người mua quét QR là biết bị sửa hay chưa. Không điểm số hộp đen: mọi câu đều bấm ra số đo và nguồn.",
-              "Pick a plot: cloud-piercing radar re-reads 9 years to count how often water covered it, today's real land cover, 10 years of hazards, each claim in a sale listing checked against measurements — then issue a signed dossier a bank or buyer can verify by scanning a QR. No black-box score: every sentence opens its measurement and source.")}</p>
+              "Người bán viết \"cao ráo, không bao giờ ngập\". TerraTwin đặt từng câu đó cạnh số đo của đúng thửa: ảnh radar Sentinel-1 nhìn xuyên mây từ 2017, độ cao địa hình, khoảng cách tới sông và biển. Câu nào trái với dữ liệu thì tô đỏ, kèm ngày và nguồn.",
+              "The seller writes \"high ground, never floods\". TerraTwin puts each claim next to measurements of that exact plot: cloud-piercing Sentinel-1 radar since 2017, terrain height, distance to rivers and the sea. Claims the data contradicts turn red, with dates and sources.")}</p>
+            <ol className="lp4-steps">{STEPS.map((x, n) => <li key={x.vi}><x.icon size={18} aria-hidden="true" /> <b>{n + 1}.</b> {t(x.vi, x.en)}</li>)}</ol>
             <div className="lp3-cta">
-              <button type="button" className="lp3-btn" onClick={() => tryNow("plan")}><Waves size={18} aria-hidden="true" /> {t("Xem ngay: lịch sử nước thửa ở Huế", "See it now: water history of a plot in Huế")}</button>
-              <button type="button" className="lp3-btn ghost" onClick={() => tryNow("verify")}><FileSearch size={18} aria-hidden="true" /> {t("Kiểm một tin đăng bán đất", "Check a land listing")}</button>
+              <button type="button" className="lp3-btn" onClick={() => tryNow("verify")}><FileSearch size={18} aria-hidden="true" /> {t("Kiểm một tin đăng mẫu — ruộng ngập bão Yagi", "Check a sample listing — a field flooded by Typhoon Yagi")}</button>
+              <button type="button" className="lp3-btn ghost" onClick={() => tryNow("plan")}><Waves size={18} aria-hidden="true" /> {t("Xem ngay: 9 năm nước của thửa đó", "See it now: 9 years of water on that plot")}</button>
             </div>
+            <p className="lp3-note">{t("Tin mẫu do TerraTwin soạn để minh hoạ. Thửa là thật: bản đồ ngập UNOSAT ngày 10/9/2024 (bão Yagi) ghi điểm này ngập.",
+              "The sample ad is written by TerraTwin for illustration. The plot is real: the UNOSAT flood map of 10/9/2024 (Typhoon Yagi) marks it flooded.")}</p>
             <p className="lp4-free">✓ {t("Mọi tài khoản có đủ mọi tính năng — không cần nâng cấp mới dùng được.", "Every account gets every feature — no upgrade needed.")}</p>
           </div>
-          <div className="lp4-search" ref={searchRef} id="tim-thua">
-            <p className="eu-eyebrow">{t("Thửa đất của bạn ở đâu?", "Where is your land?")}</p>
+          <div className="lp4-search" id="tim-thua">
+            <p className="eu-eyebrow">{t("Mảnh đất bạn định mua — hoặc đang có — ở đâu?", "Where is the land you are buying — or own?")}</p>
             <div className="lp4-want" role="group" aria-label={t("Mở thửa ở tab", "Open the plot on tab")}>
               {([["plan", "Hồ sơ", "Dossier"], ["mine", "Canh đất", "Watch"], ["verify", "Kiểm chứng", "Verify"]] as const).map(([k, vi, en]) => (
                 <button key={k} type="button" className={want === k ? "on" : ""} aria-pressed={want === k} onClick={() => setWant(k)}>{t(vi, en)}</button>
               ))}
             </div>
             {user && <MyLand user={user} onOpen={(la, lo, lab) => onStart(la, lo, lab, want)} />}
-            <Start onPick={(la, lo, lab) => onStart(la, lo, lab, want)} onStory={onStory} />
+            <Start onPick={(la, lo, lab) => onStart(la, lo, lab, want)} onStory={onStory} onListing={() => setWant("verify")} />
           </div>
         </section>
 
         <section className="lp3-sec">
-          <p className="eu-eyebrow">{t("Sản phẩm", "Product")}</p>
-          <h2 className="lp3-h2">{t("Ba trụ — chọn đúng việc bạn cần", "Three pillars — pick what you need")}</h2>
-          <div className="lp4-pillars">
-            {PILLARS.map((p) => (
-              <article key={p.name[0]} className="tt-card lp4-pillar">
-                <span className="lp4-tag">{t(...p.tag)}</span>
-                <h3>{t(...p.name)}</h3>
-                <p>{t(...p.lede)}</p>
-                <ul>{p.items.map((it) => <li key={it[0]}><Check size={14} aria-hidden="true" /> {t(...it)}</li>)}</ul>
-                <div className="lp4-pillar-go">
-                  <button type="button" className="bat-btn" onClick={() => tryNow(p.ch)}>{t("Thử ngay với thửa mẫu", "Try with a sample plot")}</button>
-                  <button type="button" className="bat-btn ghost" onClick={() => pickMine(p.ch)}>{t("Chọn thửa của tôi", "Pick my plot")}</button>
-                </div>
-                <small>{t(...p.who)}</small>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="lp3-sec">
-          <p className="eu-eyebrow">{t("Đang chạy, không phải bản vẽ", "Live, not a mock-up")}</p>
-          <h2 className="lp3-h2">{t("8 năng lực — bấm là chạy", "8 capabilities — click to run")}</h2>
-          <div className="lp4-caps">
-            {CAPS.map((c, i) => {
-              const body = <><span className="lp4-cap-n">{i + 1}</span><c.icon size={20} aria-hidden="true" /><b>{t(...c.name)}</b><p>{t(...c.see)}</p><span className="lp4-cap-go">{t("Thử ngay →", "Try it →")}</span></>;
-              return c.go.href
-                ? <Link key={c.name[0]} href={c.go.href} className="tt-card lift lp4-cap">{body}</Link>
-                : <button key={c.name[0]} type="button" className="tt-card lift lp4-cap" onClick={() => tryNow(c.go.ch!)}>{body}</button>;
-            })}
-          </div>
-          <p className="lp3-note">{t("Mô hình AI chỉ được bật khi vượt ngưỡng đặt trước; trượt thì công khai — xem ", "AI models are switched on only above pre-set thresholds; failures are published — see ")}<Link href="/mo-hinh">{t("thẻ mô hình", "model cards")}</Link>.</p>
+          <p className="eu-eyebrow">{t("Vì sao tin được", "Why you can trust it")}</p>
+          <h2 className="lp3-h2">{t("Chấm bằng dữ liệu người khác làm ra — kể cả chỗ còn yếu", "Scored against data made by others — weak spots included")}</h2>
+          <div className="lp3-stats">{PROOF.map((x) => <div key={x.b}><b>{x.b}</b><span>{t(x.vi, x.en)}</span></div>)}</div>
+          <p className="lp3-note">{t("Bản đồ UNOSAT từ vệ tinh khác Sentinel-1 chỉ khớp 6/16 điểm ngập; tin rao lần 9 do chủ dự án tự gán. Đầy đủ ở ", "UNOSAT maps from satellites other than Sentinel-1 match only 6/16 flooded points; run-9 ads were labelled by the project owner. Full details in the ")}<Link href="/mo-hinh">{t("thẻ mô hình", "model cards")}</Link>.</p>
         </section>
 
         <section className="lp3-sec">
@@ -246,6 +220,20 @@ export default function Landing({
           </div>
           <p className="lp3-note">{t("Zillow từng gắn điểm rủi ro khí hậu vào tin đăng (9/2024) rồi phải gỡ (cuối 2025) vì không chứng minh được độ đúng. TerraTwin đi đường ngược lại: bằng chứng đo được cho từng thửa, tự công bố tỉ lệ sai, ký số để không ai sửa được.",
             "Zillow added climate-risk scores to listings (9/2024) and had to remove them (late 2025) for lack of proven accuracy. TerraTwin goes the other way: measured evidence per plot, published error rates, signatures nobody can alter.")}</p>
+        </section>
+
+        <section className="lp3-sec">
+          <p className="eu-eyebrow">{t("Đang chạy, không phải bản vẽ", "Live, not a mock-up")}</p>
+          <h2 className="lp3-h2">{t("8 năng lực — bấm là chạy", "8 capabilities — click to run")}</h2>
+          <div className="lp4-caps">
+            {CAPS.map((c, i) => {
+              const body = <><span className="lp4-cap-n">{i + 1}</span><c.icon size={20} aria-hidden="true" /><b>{t(...c.name)}</b><p>{t(...c.see)}</p><span className="lp4-cap-go">{t("Thử ngay →", "Try it →")}</span></>;
+              return c.go.href
+                ? <Link key={c.name[0]} href={c.go.href} className="tt-card lift lp4-cap">{body}</Link>
+                : <button key={c.name[0]} type="button" className="tt-card lift lp4-cap" onClick={() => tryNow(c.go.ch!)}>{body}</button>;
+            })}
+          </div>
+          <p className="lp3-note">{t("Mô hình AI chỉ được bật khi vượt ngưỡng đặt trước; trượt thì công khai — xem ", "AI models are switched on only above pre-set thresholds; failures are published — see ")}<Link href="/mo-hinh">{t("thẻ mô hình", "model cards")}</Link>.</p>
         </section>
 
         <section className="lp3-sec lp4-eudr">

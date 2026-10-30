@@ -130,7 +130,7 @@ def test_ham_nong_thua_demo_can_khoa_cron_bo_qua_thua_da_co(monkeypatch):
         assert c.post("/api/water/warm-demo").status_code == 401
         assert c.post("/api/water/warm-demo", headers={"X-Cron-Key": "sai"}).status_code == 401
         r = c.post("/api/water/warm-demo", headers={"X-Cron-Key": "khoa-thu"}).json()
-        assert r["n_total"] == len(demo_plots.DEMO_PLOTS) == 14 and r["n_cached"] == 1
+        assert r["n_total"] == len(demo_plots.DEMO_PLOTS) == 16 and r["n_cached"] == 1
         assert r["plots"][0]["water"] == "cached" and all(p["water"] == "queued" for p in r["plots"][1:])
         again = c.post("/api/water/warm-demo", headers={"X-Cron-Key": "khoa-thu"}).json()
         assert all(p["water"] == "running" for p in again["plots"][1:])          # gọi lại không xếp đôi

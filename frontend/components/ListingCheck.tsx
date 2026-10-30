@@ -6,6 +6,7 @@
  */
 import { useEffect, useState } from "react";
 import { clearListingDraft, takeListingDraft } from "@/lib/listingDraft";
+import { isDemoListing } from "@/lib/demo";
 import { FileSearch } from "lucide-react";
 import { issueDossier, listingCheck, waterPoll, waterStart, type ListingCheckResult } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
@@ -82,7 +83,12 @@ export default function ListingCheck({ lat, lon }: { lat: number; lon: number })
                                      "Paste the listing text (e.g. \"high ground, never floods, near the river\")")}
         <textarea rows={4} maxLength={5000} value={text} onChange={(e) => setText(e.target.value)} />
       </label>
-      {fromStart && <p className="doc-note">{t("Đã điền sẵn nội dung tin bạn dán ở trang đầu — kiểm lại rồi bấm đối chiếu.",
+      {/* Tin mẫu của trang đầu: ghi rõ là tin SOẠN để minh hoạ — cả trước lẫn sau khi có kết quả, để ảnh chụp màn hình
+          không bị hiểu là một tin rao thật bị bắt lỗi. */}
+      {isDemoListing(text) ? (
+        <p className="doc-note lc-sample">{t("TIN MẪU do TerraTwin soạn để minh hoạ — không phải tin rao thật. Bấm đối chiếu để xem từng câu được kiểm thế nào, hoặc xoá đi và dán tin bạn định mua.",
+                                             "A SAMPLE listing written by TerraTwin for illustration — not a real ad. Run the check to see how each claim is tested, or replace it with the listing you are considering.")}</p>
+      ) : fromStart && <p className="doc-note">{t("Đã điền sẵn nội dung tin bạn dán ở trang đầu — kiểm lại rồi bấm đối chiếu.",
                                                "Pre-filled with the listing text you pasted on the start page — review it, then run the check.")}</p>}
       <div className="gn-actions">
         <button className="bat-btn" onClick={run} disabled={busy || text.trim().length < 3}>

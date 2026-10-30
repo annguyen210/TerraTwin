@@ -304,8 +304,8 @@ with sync_playwright() as p:
         return f"tab {sel.strip()} · cao {hgt}px · khung 'ngoài phạm vi': {offsite} · đổi tab giữ chữ tin"
     try_now()
 
-    @step("Trang đầu → 'Xem ngay: Huế': không lớp phủ nào chặn bấm, lịch sử nước TỰ đọc (không phải bấm nút)")
-    def try_hue():
+    @step("Trang đầu → 'Xem ngay' (thửa mẫu Tuệ Tĩnh): không lớp phủ nào chặn bấm, lịch sử nước TỰ đọc (không phải bấm nút)")
+    def try_hue():   # tên cũ: thửa mẫu trang đầu là Huế tới 29/10/2026
         # Báo cáo kiểm toàn bộ 12/10/2026, mục 3–4: hộp hướng dẫn từng che cả màn sau khi đã chọn thửa; lịch sử
         # nước bắt bấm nút rồi chờ ~150 s. Ngữ cảnh mới = lần đầu vào (chưa có cờ đã xem hướng dẫn).
         ctx = browser.new_context(viewport={"width": 1366, "height": 860})
