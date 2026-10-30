@@ -1428,9 +1428,9 @@ export type PlanCatalogue = { billing?: boolean;
 };
 
 export type PilotFeedbackIn = {
-  role: "farmer" | "coop" | "exporter" | "other"; ease: number; trust: number;
+  role: "farmer" | "coop" | "exporter" | "buyer" | "broker" | "other"; ease: number; trust: number;
   would_use: "yes" | "maybe" | "no";
-  hardest: "boundary" | "screen" | "dossier" | "lot" | "verify" | "none";
+  hardest: "boundary" | "screen" | "dossier" | "lot" | "verify" | "listing" | "water" | "none";
   minutes: number | null; region: string; comment: string; contact: string;
   consent_contact: boolean; source: "web" | "paper";
 };

@@ -28,7 +28,7 @@ OUT = os.path.join(os.environ.get("TEMP") or os.environ.get("RUNNER_TEMP") or ".
 CI = bool(os.environ.get("GITHUB_ACTIONS"))
 os.makedirs(OUT, exist_ok=True)
 ROUTES = ["/", "/hom-nay", "/eudr", "/eudr?tab=lo", "/eudr?tab=tong-quan", "/eudr?tab=hoi-dap", "/eudr?tab=phuong-phap",
-          "/lo", "/kiem", "/about", "/pricing", "/help", "/thi-diem", "/gan-nhan", "/mo-hinh", "/so-sanh?p=16.4637,107.5909,Hue|10.0452,105.7469,Can%20Tho", "/privacy", "/terms", "/status", "/buyer", "/batch",
+          "/lo", "/kiem", "/about", "/pricing", "/help", "/thi-diem", "/dung-thu", "/gan-nhan", "/mo-hinh", "/so-sanh?p=16.4637,107.5909,Hue|10.0452,105.7469,Can%20Tho", "/privacy", "/terms", "/status", "/buyer", "/batch",
           "/forgot", "/thiet-bi", "/plot/12.7530,108.1120", "/embed/12.7530,108.1120", "/admin"]
 if DID:
     ROUTES.append(f"/h/{DID}")

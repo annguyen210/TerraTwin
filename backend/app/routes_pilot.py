@@ -1,4 +1,4 @@
-"""THÍ ĐIỂM — phiếu góp ý của nông hộ, hợp tác xã, doanh nghiệp sau khi dùng thử.
+"""THÍ ĐIỂM — phiếu góp ý của nông hộ, hợp tác xã, doanh nghiệp, người định mua đất và môi giới sau khi dùng thử.
 
 Đây là chỗ đo xem sản phẩm có dùng được ngoài đời không: mất bao nhiêu phút cho một hồ
 sơ, bước nào khó nhất, có tin kết quả không, có dùng tiếp không. Gửi phiếu KHÔNG cần
@@ -24,16 +24,18 @@ from app.services.reqlang import tr
 
 router = APIRouter(tags=["pilot"])
 
-ROLES = ("farmer", "coop", "exporter", "other")
-STEPS = ("boundary", "screen", "dossier", "lot", "verify", "none")
+# 30/10/2026: thêm người ĐỊNH MUA đất và môi giới (trang /dung-thu) — luồng "kiểm lời rao trước khi xuống tiền"; hai bước
+# của luồng đó là kiểm tin đăng (listing) và đọc lịch sử nước của thửa (water).
+ROLES = ("farmer", "coop", "exporter", "buyer", "broker", "other")
+STEPS = ("boundary", "screen", "dossier", "lot", "verify", "listing", "water", "none")
 
 
 class FeedbackIn(BaseModel):
-    role: Literal["farmer", "coop", "exporter", "other"]
+    role: Literal["farmer", "coop", "exporter", "buyer", "broker", "other"]
     ease: int = Field(ge=1, le=5)
     trust: int = Field(ge=1, le=5)
     would_use: Literal["yes", "maybe", "no"]
-    hardest: Literal["boundary", "screen", "dossier", "lot", "verify", "none"] = "none"
+    hardest: Literal["boundary", "screen", "dossier", "lot", "verify", "listing", "water", "none"] = "none"
     minutes: int | None = Field(default=None, ge=0, le=600)
     region: str = Field(default="", max_length=80)
     comment: str = Field(default="", max_length=2000)

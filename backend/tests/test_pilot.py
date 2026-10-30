@@ -101,6 +101,15 @@ def test_tong_hop_chi_admin_xem_va_so_lieu_dung(c):
     assert r["all"]["hardest"]["lot"] == 1 and r["note"]   # n < 30 → có cảnh báo
 
 
+def test_nguoi_dinh_mua_dat_va_moi_gioi_gui_phieu_duoc(c):
+    """30/10/2026: trang /dung-thu cho người định mua đất và môi giới — bước khó là kiểm tin (listing) hoặc lịch sử nước (water)."""
+    assert c.post("/api/pilot/feedback", json={**OK, "role": "buyer", "hardest": "listing"}).status_code == 200
+    assert c.post("/api/pilot/feedback", json={**OK, "role": "broker", "hardest": "water", "would_use": "no"}).status_code == 200
+    r = c.get("/api/admin/pilot/feedback", headers=_login(c, "admin@vd.vn", admin=True)).json()
+    assert r["by_role"]["buyer"]["n"] == 1 and r["by_role"]["broker"]["would_use"]["no"] == 1
+    assert r["all"]["hardest"]["listing"] == 1 and r["all"]["hardest"]["water"] == 1
+
+
 def test_csv_chan_chen_cong_thuc_excel(c):
     c.post("/api/pilot/feedback", json={**OK, "comment": "=HYPERLINK(\"http://x\")"})
     h = _login(c, "admin2@vd.vn", admin=True)

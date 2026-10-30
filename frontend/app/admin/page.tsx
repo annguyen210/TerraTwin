@@ -154,7 +154,8 @@ function PilotTab() {
 
   if (err) return <p className="ws-err">⚠️ {err}</p>;
   if (!data) return <p className="ws-hint">Đang tải…</p>;
-  const ROLE: Record<string, string> = { farmer: "Nông hộ", coop: "Cán bộ HTX", exporter: "Xuất khẩu", other: "Khác" };
+  const ROLE: Record<string, string> = { farmer: "Nông hộ", coop: "Cán bộ HTX", exporter: "Xuất khẩu", buyer: "Người định mua đất",
+    broker: "Môi giới", other: "Khác" };
   const rows = [["Tất cả", data.all] as const, ...Object.entries(data.by_role).map(([k, b]) => [ROLE[k] ?? k, b] as const)];
 
   return (
@@ -174,7 +175,7 @@ function PilotTab() {
       <p className="ws-hint">Bước khó nhất: {Object.entries(data.all.hardest).map(([k, n]) => `${k} ${n}`).join(" · ")}</p>
       <button className="doc-btn" onClick={() => downloadPilotCsv().catch((e) => setErr(e.message))}>Tải CSV</button>
       <h4 style={{ marginTop: 18 }}>Góp ý mới nhất</h4>
-      {data.latest.length === 0 ? <p className="ws-hint">Chưa có phiếu nào. Gửi thử ở <Link href="/thi-diem">/thi-diem</Link>.</p> : (
+      {data.latest.length === 0 ? <p className="ws-hint">Chưa có phiếu nào. Gửi thử ở <Link href="/dung-thu">/dung-thu</Link> (người mua đất, môi giới) hoặc <Link href="/thi-diem">/thi-diem</Link> (HTX, EUDR).</p> : (
         <ul>
           {data.latest.filter((r) => r.comment).slice(0, 30).map((r) => (
             <li key={r.id}>{when(r.created_at)} · {ROLE[r.role] ?? r.role}{r.region ? ` · ${r.region}` : ""}{r.source === "paper" ? " · phiếu giấy" : ""}: {r.comment}{r.contact ? ` (liên hệ: ${r.contact})` : ""}</li>
