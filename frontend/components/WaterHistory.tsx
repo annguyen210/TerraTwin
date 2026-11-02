@@ -294,7 +294,7 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
         <>
           {r.plain && <p className={`wh-plain wh-plain-${r.plain.level}`}>{r.plain.text}</p>}
           {r.urban &&<p className="wh-surface" role="note"><b>{t("Khu đô thị — radar không thấy được ngập giữa nhà cửa.", "Urban area — radar can't see flooding between buildings.")}</b> {r.urban.note}</p>}
-          {r.canopy && <p className="wh-surface" role="note"><b>{t("Tán cây dày — radar không thấy được nước dưới tán.", "Dense canopy — radar can't see water beneath it.")}</b> {r.canopy.note}</p>}
+          {r.canopy && r.plain?.level !== "blind" && <p className="wh-surface" role="note"><b>{t("Tán cây dày — radar không thấy được nước dưới tán.", "Dense canopy — radar can't see water beneath it.")}</b> {r.canopy.note}</p>}
           {r.cropland && <p className="wh-surface wh-crop" role="note"><b>{t("Ruộng — có thể lẫn nước tưới theo vụ.", "Cropland — may include seasonal irrigation.")}</b> {r.cropland.note}</p>}
           {r.water_surface && <p className="wh-surface" role="note"><b>{t("Khung đo có mặt nước thường xuyên.", "The frame contains permanent water.")}</b> {r.water_surface.note}</p>}
           {!!r.n_failed && <p className="wh-surface" role="note"><b>{t("Chưa đọc đủ ảnh radar.", "Not every radar image was read.")}</b> {r.failed_note}</p>}
