@@ -263,7 +263,71 @@ def _annotate(r: dict, lat: float | None = None, lon: float | None = None) -> di
             r["canopy"] = None if r["urban"] else canopy(lat, lon)
             r["cropland"] = cropland(lat, lon) if r.get("n_events") else None
             r.update(seasons(lat, lon, r))
+            r["plain"] = plain(r)
     return r
+
+
+def _vn_date(iso: str) -> str:
+    y, m, d = iso[:10].split("-")
+    return f"{int(d)}/{int(m)}/{y}"
+
+
+def plain(r: dict) -> dict | None:
+    """MỘT CÂU cho người không đọc radar (việc b, 2/11/2026 — "kết quả còn nói giọng kỹ sư"): thửa này bị nước phủ mấy
+    lần, lần gần nhất khi nào — hoặc vì sao vệ tinh không kết luận được. Chỉ diễn đạt lại các trường đã có (đợt, mùa lũ,
+    đô thị/tán cây, mặt nước), không thêm phép đo. Có lớp mùa lũ thì chỉ đếm đợt TRONG mùa (đúng như kiểm tin đăng: chỉ
+    đợt trong mùa mới làm "không ngập" mâu thuẫn); đợt ngoài mùa nói riêng là không tính và vì sao. Ca thật Sịa (Huế),
+    2/11/2026: hai điểm cách nhau 1 km cùng "có nước" đúng một ảnh 31/5/2026, 8 ngày trước đó mưa tổng ~10 mm (ERA5)."""
+    if not r.get("available"):
+        return None
+    ev = r.get("events") or []
+    seasonal = "n_in" in r
+    k = r["n_in"] if seasonal else len(ev)
+    n_out = r.get("n_out", 0) if seasonal else 0
+    y0 = (r.get("first") or "")[:4]
+    blind = r.get("urban") or r.get("canopy")
+    if r.get("water_surface"):
+        level = "water_body"
+        text = tr("Khung đo có mặt nước thường xuyên (ao, sông, kênh) — kiểm lại đã chọn đúng giữa thửa chưa; ở đây khó tách "
+                  "nước ngập khỏi mặt nước sẵn có.",
+                  "The frame contains permanent water (pond, river, canal) — check the point is in the middle of the plot; "
+                  "here flooding is hard to separate from standing water.")
+    elif k:
+        level = "water"
+        last = max(e["start"] for e in ev if not seasonal or e.get("season") == "in")
+        text = tr(f"Từ {y0} đến nay, vệ tinh thấy nước phủ thửa này {k} lần{' trong mùa mưa lũ' if seasonal else ''}, "
+                  f"lần gần nhất {_vn_date(last)}.",
+                  f"Since {y0}, satellites have seen water covering this plot {k} time{'s' if k > 1 else ''}"
+                  f"{' in the rainy flood season' if seasonal else ''}, most recently on {_vn_date(last)}.")
+        if not seasonal and r.get("cropland"):
+            text += tr(" Đây là ruộng: một phần có thể là nước tưới theo vụ.", " This is cropland: some of it may be seasonal irrigation.")
+        if blind:
+            text += tr(" Thửa ở giữa nhà cửa hoặc tán cây nên radar còn bỏ sót — số thật có thể nhiều hơn.",
+                       " The plot is among buildings or trees, so radar misses some — the real count may be higher.")
+    elif blind:
+        level = "blind"
+        what = tr("nhà cửa", "buildings") if r.get("urban") else tr("tán cây dày", "dense tree canopy")
+        text = tr(f"Vệ tinh KHÔNG kết luận được thửa này có ngập hay không: {what} che phần lớn khung đo, radar không nhìn thấy "
+                  "nước ở đó. Hãy hỏi người dân hoặc chính quyền địa phương.",
+                  f"Satellites CANNOT tell whether this plot floods: {what} cover most of the frame and radar can't see water "
+                  "there. Ask residents or the local authority.")
+    else:
+        level = "dry"
+        text = (tr(f"Từ {y0} đến nay, vệ tinh chưa thấy nước phủ thửa này trong mùa mưa lũ ({r['n_scenes']} lần chụp).",
+                   f"Since {y0}, satellites have not seen water covering this plot in the rainy flood season ({r['n_scenes']} images).")
+                if n_out else
+                tr(f"Từ {y0} đến nay, trong {r['n_scenes']} lần chụp, vệ tinh chưa lần nào thấy nước phủ thửa này.",
+                   f"Since {y0}, in {r['n_scenes']} images, satellites have never seen water covering this plot."))
+        text += tr(" Ảnh cách nhau 6–12 ngày nên lũ rút trong vài ngày có thể lọt.",
+                   " Images are 6–12 days apart, so a flood that drains within days can be missed.")
+    if n_out:
+        lone = all(e.get("n_scenes", 1) <= 1 for e in ev if e.get("season") == "out")
+        why = (tr("thường là nước tưới / nuôi trồng theo vụ", "usually irrigation / seasonal farming") if r.get("out_kind") == "irrigation"
+               else tr("chỉ thấy trên ảnh lẻ — có thể là nhiễu hoặc mưa trái mùa", "seen on single images only — may be noise or off-season rain")
+               if lone else tr("có thể là mưa trái mùa — đối chiếu thời tiết", "may be off-season rain — check the weather"))
+        text += tr(f" Không tính {n_out} lần nước ngoài mùa mưa ({why}).", f" Not counted: {n_out} out-of-season water event(s) ({why}).")
+    short = text.split(". ")[0].rstrip(".") + "."
+    return {"level": level, "count": k, "text": text, "short": short}
 
 
 def seasons(lat: float, lon: float, r: dict) -> dict:
@@ -286,7 +350,8 @@ def seasons(lat: float, lon: float, r: dict) -> dict:
                             "window": s.get("window"), "source": s.get("source"), "rule_v": s.get("rule_v")},
            "out_note": (fs.seasonal_note() if use else tr("ngoài các tháng mưa lớn nhất của điểm — đối chiếu sự kiện thời tiết",
                                                            "outside the point's wettest months — check against weather events"))
-                       if n_out else None}
+                       if n_out else None,
+           "out_kind": ("irrigation" if use else "weather") if n_out else None}
     if out["flood_season"]:
         out["cropland"] = None              # đã tách trong/ngoài mùa — lời nhắc chung không còn cần
     return out

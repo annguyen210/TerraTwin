@@ -26,8 +26,8 @@ dòng đó; khi nói cũng phải nói rõ như vậy.
 | Thời gian | Bấm | Nói (ý chính, không đọc thuộc) | Kết quả thật (điền khi tập) |
 |---|---|---|---|
 | 0:00–0:20 | (trang đầu) | "Sau bão Yagi, người bán đất ở đồng bằng Bắc Bộ vẫn viết 'đất cao ráo, không bao giờ ngập'. Người mua kiểm câu đó bằng cách nào? Hỏi hàng xóm. TerraTwin cho họ cách khác: hỏi vệ tinh." | |
-| 0:20–1:00 | **Kiểm một tin đăng mẫu — ruộng ngập bão Yagi** → **Đối chiếu với số đo** | "Đây là tin mẫu chúng tôi soạn, nhưng thửa là thật. Máy tách năm lời khẳng định và đặt từng câu cạnh số đo." Chỉ vào câu **"không bao giờ ngập" → Mâu thuẫn**: radar thấy nước phủ, có ngày 12/9/2024. Chỉ câu **"thổ cư" → Không đủ dữ liệu**: "Pháp lý chúng tôi không đoán — dữ liệu địa chính không công khai." | Mâu thuẫn: … · Khớp: … · Không đủ: … |
-| 1:00–1:45 | Tab **Hồ sơ** → dải lịch sử nước → bấm đợt **9/2024** | "Đây là 9 năm ảnh radar Sentinel-1 của đúng thửa này, nhìn xuyên mây, chụp được cả giữa bão. Mỗi chấm là một ngày nước phủ." Bấm đợt → ảnh radar ngày đó hiện trên bản đồ. "Bản đồ ngập UNOSAT của Liên Hợp Quốc ngày 10/9/2024 cũng ghi điểm này ngập — đó là bản đồ của người khác, không phải của chúng tôi." | Số đợt: … · ý kiến U-Net đợt 9/2024: … |
+| 0:20–1:00 | **Kiểm một tin đăng mẫu — ruộng ngập bão Yagi** → **Đối chiếu với số đo** | "Đây là tin mẫu chúng tôi soạn, nhưng thửa là thật. Máy tách năm lời khẳng định và đặt từng câu cạnh số đo." Chỉ vào câu **"không bao giờ ngập" → Mâu thuẫn**: radar thấy nước phủ, có ngày 12/9/2024. Chỉ câu **"thổ cư" → Không đủ dữ liệu**: "Pháp lý chúng tôi không đoán — dữ liệu địa chính không công khai." | 2/11/2026 (gọi API bản thật): Mâu thuẫn 2 ("không bao giờ ngập", "cao ráo") · Khớp 2 ("gần sông" 510 m, "bằng phẳng" 0,1°) · Không đủ 1 ("thổ cư"). Ngay sau khi API khởi động lại thì "không ngập" ra **Không đủ — chưa đọc lịch sử nước** cho tới khi radar đọc xong (~1 phút) → bắt buộc chạy Keep warm trước. |
+| 1:00–1:45 | Tab **Hồ sơ** → dải lịch sử nước → bấm đợt **9/2024** | "Đây là 9 năm ảnh radar Sentinel-1 của đúng thửa này, nhìn xuyên mây, chụp được cả giữa bão. Mỗi chấm là một ngày nước phủ." Bấm đợt → ảnh radar ngày đó hiện trên bản đồ. "Bản đồ ngập UNOSAT của Liên Hợp Quốc ngày 10/9/2024 cũng ghi điểm này ngập — đó là bản đồ của người khác, không phải của chúng tôi." | 2/11/2026: 285 cảnh (1/2017–10/2026), **5 đợt, cả 5 trong mùa lũ** (tháng 7–10): 7/2017, 7/2018, 7/2024, **12/9/2024**, 1/10/2025 · U-Net bản 3 ngày 12/9/2024: ~99% khung thửa là nước (mùa khô ~0%). |
 | 1:45–2:25 | Quay lại **Kiểm chứng** → **Đưa kết quả vào Hồ sơ đất số ký số** → trang hồ sơ → tab `/kiem` dán mã | "Kết quả thành hồ sơ có chữ ký số, ghi vào sổ minh bạch, neo thời gian lên Bitcoin. Người bán, ngân hàng quét QR là kiểm lại được — sửa một chữ là báo đỏ, kể cả chúng tôi sửa." | Mã hồ sơ: … · "Bản gốc — đã kiểm chứng" |
 | 2:25–3:00 | (cuộn trang đầu tới **Vì sao tin được**) | "Chúng tôi tự chấm bằng dữ liệu người khác làm ra: 60/80 điểm ngập trên bản đồ UNOSAT radar bắt được, 0/73 điểm khô bị báo nhầm. Chỗ yếu cũng công khai: vệ tinh khác Sentinel-1 chỉ khớp 6/16. TerraTwin không nói đất tốt hay xấu — nó đưa bằng chứng để người mua tự quyết, và ai cũng kiểm lại được." | |
 
@@ -97,6 +97,28 @@ Không đưa một điểm số hộp đen: mỗi câu kết quả bấm ra số
 **14. Ai làm phần nào?**
 Tự trả lời thật: phần bạn quyết định (hướng sản phẩm, thửa demo, gán nhãn tin rao, thí điểm) và phần dùng công cụ hỗ
 trợ lập trình. Giám khảo đánh giá cao sự rõ ràng hơn là nói quá.
+
+**15. Thử với tin rao THẬT chưa? Có phải tin nào ghi "không ngập" cũng bị tô đỏ?**
+Đã thử (2/11/2026) với một tin rao công khai ở thị trấn Sịa (Quảng Điền, Huế), đăng 30/10/2026: "cao ráo, không bao
+giờ ngập lụt", trên đường Trần Bá Song. Tin không có toạ độ thửa nên đo ba điểm dọc đường (đầu tây, giữa, đầu đông;
+vị trí lấy từ Google Maps). Kết quả **không bác bỏ** lời rao:
+- Radar 330 ảnh (1/2017–10/2026): **0 đợt nước trong mùa lũ** ở cả ba điểm. Ngay ngày lũ lịch sử 28/10/2020 và mùa
+  lũ 10–11/2025, tín hiệu vẫn ở mức đất khô (−6 đến −9 dB, ngưỡng nước −18 dB).
+- Bản đồ ngập UNOSAT 29/10/2020, 4/11 và 10/11/2020: chính con đường **không** nằm trong vùng ngập; ruộng xung quanh
+  ngập, cách đường 12–220 m ngày 29/10 (đầu đông có 37% vòng 100 m bị ngập).
+- Hai trên ba điểm có 40–45% là nhà cửa → TerraTwin tự ghi "radar không thấy được ngập giữa nhà cửa — 0 đợt không có
+  nghĩa là không ngập".
+- Ô kiểm tin trên bản thật (2/11/2026, dán đúng tiêu đề tin): ở cả ba điểm, "cao ráo" và "không bao giờ ngập lụt" đều
+  **Không đủ dữ liệu** — 0 khớp, 0 mâu thuẫn. Địa hình: thửa ở mức trung bình (thấp hơn 33–38% đất xung quanh).
+
+Câu trả lời: "Không. Chúng tôi thử một tin thật ở Huế — dữ liệu không bác bỏ, nên TerraTwin không tô đỏ; nó nói thẳng
+chỗ radar không nhìn thấy và bảo người mua hỏi người dân. Tin mẫu trên sân khấu là do chúng tôi soạn, vì tin rao công
+khai hầu như không ghi toạ độ thửa." Không nêu tên trang, mã tin hay người bán.
+
+Cũng từ ca này: hai điểm cách nhau 1 km cùng "có nước" đúng một ảnh 31/5/2026 (8 ngày trước đó mưa tổng ~10 mm, ERA5)
+→ nhiều khả năng nhiễu. TerraTwin xếp nó "ngoài mùa lũ" và câu lời thường ghi "không tính — có thể là nhiễu". Ngày
+31/5/2026 cũng có trong lịch sử nước của điểm Cà Mau dùng ở cổng mùa lũ — **chưa kiểm** xem có phải lỗi của cảnh radar
+ngày đó trên diện rộng không.
 
 ## Sau mỗi lần tập
 

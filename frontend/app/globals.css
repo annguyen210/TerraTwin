@@ -5336,3 +5336,10 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .fc-line { color: var(--dim); }
 .fc-line.has { color: #7fc0ea; font-weight: 600; }   /* như .wh-season.in */
 .po-flood { font-size: 11px; margin: 2px 0 0 16px; }
+
+/* Câu lời thường (việc b, 2/11/2026): một câu cho người không đọc radar, đặt trên dòng số liệu kỹ thuật. */
+.wh-plain, .lc-head { margin: 0; padding: 10px 12px; border-radius: 10px; border-left: 4px solid var(--line); background: var(--panel); font-size: 1.02rem; line-height: 1.5; font-weight: 600; color: var(--text); }
+.wh-plain-water, .lc-head-bad { border-left-color: var(--bad); background: rgba(229, 112, 90, .1); }
+.wh-plain-dry, .lc-head-ok { border-left-color: var(--ok); background: rgba(62, 203, 131, .08); }
+.wh-plain-blind, .wh-plain-water_body, .lc-head-na, .lc-head-wait { border-left-color: var(--warn); background: rgba(224, 164, 74, .1); }
+.wh-sum-tech { font-size: .86rem; color: var(--muted, var(--text)); opacity: .85; }

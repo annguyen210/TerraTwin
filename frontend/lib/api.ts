@@ -2732,8 +2732,10 @@ export type WaterHistoryResult = { available: boolean; message?: string; n_scene
   urban?: { built_pct: number; note: string } | null;
   canopy?: { tree_pct: number; note: string } | null;
   cropland?: { crop_pct: number; note: string } | null;
-  n_in?: number; n_out?: number; out_note?: string | null;
-  flood_season?: { months: number[]; core: number[]; text: string; window?: string; source?: string; rule_v?: number } };
+  n_in?: number; n_out?: number; out_note?: string | null; out_kind?: "irrigation" | "weather" | null;
+  flood_season?: { months: number[]; core: number[]; text: string; window?: string; source?: string; rule_v?: number };
+  // Một câu lời thường (việc b, 2/11/2026) — backend water_history.plain
+  plain?: { level: "water" | "dry" | "blind" | "water_body"; count: number; text: string; short: string } | null };
 export type WaterJob = { state: "queued" | "running" | "done" | "error"; job_id?: string; id?: string;
   progress?: { done: number; total: number }; result?: WaterHistoryResult; message?: string;
   elapsed_s?: number; queued_s?: number };
@@ -2758,7 +2760,8 @@ export function waterPoll(jobId: string) {
 
 export type ListingClaim = { type: string; label: string; sentence: string;
   verdict: "consistent" | "contradicted" | "insufficient"; evidence: string; source: string };
-export type ListingCheckResult = { needs_water?: boolean; claims: ListingClaim[]; counts: Record<string, number>; note: string };
+export type ListingCheckResult = { needs_water?: boolean; claims: ListingClaim[]; counts: Record<string, number>; note: string;
+  headline?: { level: "bad" | "wait" | "ok" | "na"; text: string } | null };
 export function listingCheck(text: string, lat: number, lon: number) {
   return postJson<ListingCheckResult>(`/api/listing/check?lang=${curLang()}`, { text, lat, lon }, "Không kiểm được tin đăng");
 }

@@ -100,6 +100,7 @@ export default function ListingCheck({ lat, lon }: { lat: number; lon: number })
                                    "No checkable claims found (flooding, high ground, near river/sea, flat, landslides, residential, fresh water).")}</p>
       ) : (
         <>
+          {r.headline && <p className={`lc-head lc-head-${r.headline.level}`} role="status">{r.headline.text}</p>}
           <p className="wh-sum">{t(`${r.counts.contradicted || 0} mâu thuẫn · ${r.counts.consistent || 0} khớp · ${r.counts.insufficient || 0} không đủ dữ liệu`,
                                    `${r.counts.contradicted || 0} contradicted · ${r.counts.consistent || 0} consistent · ${r.counts.insufficient || 0} not enough data`)}</p>
           <ul className="lc-list">

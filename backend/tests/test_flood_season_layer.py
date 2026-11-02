@@ -74,6 +74,26 @@ def test_chi_co_dot_ngoai_mua_thi_khong_du_du_lieu(fake, monkeypatch):
     assert c["verdict"] == "insufficient" and "đều NGOÀI mùa lũ" in c["evidence"] and "nước tưới" in c["evidence"]
 
 
+def test_cau_loi_thuong_chi_dem_dot_trong_mua_va_noi_ro_phan_khong_tinh(fake):
+    """Việc b (2/11/2026): một câu cho người không đọc radar — đếm đúng như kiểm tin đăng (chỉ đợt TRONG mùa)."""
+    from app.services import water_history as wh
+    p = wh.history(*CM)["plain"]
+    assert (p["level"], p["count"]) == ("water", 3)
+    assert p["short"] == "Từ 2017 đến nay, vệ tinh thấy nước phủ thửa này 3 lần trong mùa mưa lũ, lần gần nhất 16/9/2026."
+    assert "Không tính 10 lần nước ngoài mùa mưa (thường là nước tưới / nuôi trồng theo vụ)" in p["text"]
+    assert wh.history(*QD)["plain"]["short"].endswith("7 lần trong mùa mưa lũ, lần gần nhất 30/1/2026.")
+
+
+def test_cau_dau_kiem_tin_noi_bang_loi_thuong(fake, monkeypatch):
+    from app.services import listing_check as lc
+    h = lc.check("Đất cao ráo, không bao giờ ngập", *QD)["headline"]
+    assert h["level"] == "bad" and h["text"].startswith("Tin viết “không bao giờ ngập” — nhưng từ 2017 đến nay, vệ tinh thấy nước phủ thửa này 7 lần")
+    # Hà Nội chỉ còn đợt tháng 2–3 (lúa xuân): không có câu nào mâu thuẫn → không được nói "trái dữ liệu"
+    monkeypatch.setitem(CASES, HN, {**CASES[HN], "all_events": [e for e in CASES[HN]["all_events"] if e["start"][5:7] in ("02", "03")]})
+    h = lc.check("Đất không bao giờ ngập", *HN)["headline"]
+    assert h["level"] == "na" and "trái" not in h["text"]
+
+
 def test_ho_so_ky_va_loi_dien_giai_ghi_cung_cach_tach(fake):
     from app.services import dossier, narrative
     w = dossier._water_section(*CM)

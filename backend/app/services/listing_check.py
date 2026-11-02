@@ -274,6 +274,50 @@ def _judge(typ: str, ev: dict) -> tuple[str, str, str]:
     return "insufficient", "", ""
 
 
+_ORDER = {"no_flood": 0, "high_ground": 1, "no_landslide": 2, "flat": 3, "near_river": 4, "near_sea": 5}
+
+
+def _lower1(s: str) -> str:
+    return s[:1].lower() + s[1:] if s[:2] != s[:2].upper() else s       # giữ nguyên chữ viết tắt (ESA, OSM…)
+
+
+def headline(rows: list[dict], ev: dict, needs_water: bool) -> dict | None:
+    """MỘT CÂU đầu kết quả cho người định mua (việc b, 2/11/2026): câu tin viết mà dữ liệu trái nhất, nói bằng lời thường —
+    ngập thì dùng đúng câu của lịch sử nước (`water_history.plain`). Không có câu nào trái thì nói vậy, kèm lời nhắc khớp
+    dữ liệu chưa phải bảo đảm. Chỉ diễn đạt lại phán quyết từng câu, không đổi phán quyết."""
+    if not rows:
+        return None
+    bad = sorted((r for r in rows if r["verdict"] == "contradicted"), key=lambda r: _ORDER.get(r["type"], 9))
+    if bad:
+        top = bad[0]
+        p = (ev.get("water") or {}).get("plain") or {}
+        why = p["short"] if top["type"] in ("no_flood", "high_ground") and p.get("level") == "water" else top["evidence"]
+        text = tr(f"Tin viết “{top['sentence']}” — nhưng {_lower1(why)}", f"The listing says “{top['sentence']}” — but {_lower1(why)}")
+        if len(bad) > 1:
+            text += tr(f" Thêm {len(bad) - 1} câu khác cũng trái với dữ liệu đo.", f" {len(bad) - 1} more claim(s) also contradict the data.")
+        return {"level": "bad", "text": text}
+    if needs_water:
+        return {"level": "wait", "text": tr("Câu về ngập cần lịch sử nước của thửa — bấm đọc bên dưới (thường 1–3 phút), xong sẽ tự đối chiếu lại.",
+                                            "The flood claim needs the plot's water history — read it below (usually 1–3 min); it re-checks by itself.")}
+    blind = ev.get("urban") or ev.get("canopy")
+    wet = next((r for r in rows if r["type"] in ("no_flood", "high_ground") and r["verdict"] == "insufficient"), None)
+    if blind and wet:
+        what = tr("nhà cửa", "buildings") if ev.get("urban") else tr("tán cây dày", "dense trees")
+        return {"level": "na", "text": tr(f"Tin viết “{wet['sentence']}” — vệ tinh KHÔNG kiểm được câu này: thửa ở giữa {what}, radar không "
+                                          "nhìn thấy nước ở đó. Hỏi người dân hoặc chính quyền địa phương trước khi đặt cọc.",
+                                          f"The listing says “{wet['sentence']}” — satellites CANNOT check this: the plot is among {what}, "
+                                          "where radar can't see water. Ask residents or the local authority before paying a deposit.")}
+    ok = sum(1 for r in rows if r["verdict"] == "consistent")
+    na = len(rows) - ok
+    if ok:
+        return {"level": "ok", "text": tr(f"Chưa thấy câu nào trong tin trái với dữ liệu đo ({ok} câu khớp, {na} câu chưa đủ dữ liệu). "
+                                          "Khớp dữ liệu chưa phải bảo đảm — vẫn xem sổ đỏ và hỏi người dân trước khi đặt cọc.",
+                                          f"No claim in the listing contradicts the measured data ({ok} consistent, {na} not enough data). "
+                                          "Consistent is not a guarantee — still check the certificate and ask residents before paying a deposit.")}
+    return {"level": "na", "text": tr("Dữ liệu vệ tinh chưa đủ để kiểm các câu trong tin này — lý do từng câu ở dưới; hỏi người dân và xem sổ đỏ.",
+                                      "Satellite data is not enough to check this listing's claims — reasons below; ask residents and check the certificate.")}
+
+
 def check(text: str, lat: float, lon: float) -> dict:
     from app.services import region
     claims = extract(text)
@@ -291,8 +335,9 @@ def check(text: str, lat: float, lon: float) -> dict:
     count = {v: sum(1 for r in rows if r["verdict"] == v) for v in ("consistent", "contradicted", "insufficient")}
     # Câu về ngập/cao ráo cần lịch sử nước radar; chưa đọc thì giao diện mời đọc (~2 phút) rồi tự đối chiếu lại.
     needs_water = any(r["type"] in ("no_flood", "high_ground") for r in rows) and not ev.get("water")
-    return {"claims": rows, "counts": count, "location": {"lat": lat, "lon": lon}, "needs_water": needs_water and not on_water,
-            "on_water": on_water,
+    needs_water = needs_water and not on_water
+    return {"claims": rows, "counts": count, "location": {"lat": lat, "lon": lon}, "needs_water": needs_water,
+            "on_water": on_water, "headline": headline(rows, ev, needs_water),
             "note": tr("Đối chiếu từ dữ liệu đo, lời văn trung lập — không phải kết luận pháp lý về người bán. "
                        "Nội dung tin đăng không được lưu.",
                        "Compared against measured data, in neutral wording — not a legal finding about the seller. "
