@@ -21,6 +21,7 @@ def test_khu_nha_cua_0_dot_thi_noi_khong_ket_luan_duoc_khong_noi_chua_tung_ngap(
     r = {**BASE, "n_events": 0, "events": [], "urban": {"built_pct": 44.7, "note": "…"}}
     p = wh.plain(r)
     assert p["level"] == "blind" and "KHÔNG kết luận được" in p["text"] and "chưa lần nào" not in p["text"]
+    assert "nhà cửa chiếm 44.7% khung đo" in p["text"] and "phần lớn" not in p["text"]   # 44,7% không phải "phần lớn"
 
 
 def test_khong_co_lop_mua_lu_dem_moi_dot_va_nhac_nuoc_tuoi_neu_la_ruong():

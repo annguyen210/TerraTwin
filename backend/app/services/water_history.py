@@ -306,11 +306,14 @@ def plain(r: dict) -> dict | None:
                        " The plot is among buildings or trees, so radar misses some — the real count may be higher.")
     elif blind:
         level = "blind"
-        what = tr("nhà cửa", "buildings") if r.get("urban") else tr("tán cây dày", "dense tree canopy")
-        text = tr(f"Vệ tinh KHÔNG kết luận được thửa này có ngập hay không: {what} che phần lớn khung đo, radar không nhìn thấy "
-                  "nước ở đó. Hãy hỏi người dân hoặc chính quyền địa phương.",
-                  f"Satellites CANNOT tell whether this plot floods: {what} cover most of the frame and radar can't see water "
-                  "there. Ask residents or the local authority.")
+        u, c = r.get("urban") or {}, r.get("canopy") or {}
+        what = tr("nhà cửa", "buildings") if u else tr("tán cây dày", "dense tree canopy")
+        pct = u.get("built_pct") if u else c.get("tree_pct")
+        share = tr(f" chiếm {pct:g}% khung đo", f" cover {pct:g}% of the frame") if isinstance(pct, (int, float)) else ""
+        text = tr(f"Vệ tinh KHÔNG kết luận được thửa này có ngập hay không: {what}{share}, radar không nhìn thấy nước giữa "
+                  "chúng. Hãy hỏi người dân hoặc chính quyền địa phương.",
+                  f"Satellites CANNOT tell whether this plot floods: {what}{share}, and radar can't see water among them. "
+                  "Ask residents or the local authority.")
     else:
         level = "dry"
         text = (tr(f"Từ {y0} đến nay, vệ tinh chưa thấy nước phủ thửa này trong mùa mưa lũ ({r['n_scenes']} lần chụp).",
