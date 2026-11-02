@@ -15,6 +15,7 @@ import { usePathname } from "next/navigation";
 import { Building2, CalendarCheck, Columns2, LayoutDashboard, Map as MapIcon, Search, ShieldCheck } from "lucide-react";
 import CommandPalette, { openCommandPalette } from "@/components/CommandPalette";
 import Account from "@/components/Account";
+import InstallApp from "@/components/InstallApp";
 import { fetchMe, getToken, type AuthUser } from "@/lib/api";
 import { LangToggle, useLang } from "@/lib/i18n";
 
@@ -85,6 +86,7 @@ export default function AppShell({ children, user: userProp, onAuth, extra, wide
       </header>
       <div className="tt-page">{children}</div>
       <CommandPalette />
+      <InstallApp />
       <nav className="tt-tabbar" aria-label={t("Điều hướng", "Navigation")}>
         {NAV.map((n) => (
           <Link key={n.href} href={n.href} className={active(path, n.href) ? "on" : ""} aria-current={active(path, n.href) ? "page" : undefined}>

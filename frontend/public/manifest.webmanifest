@@ -1,15 +1,18 @@
 {
-  "name": "TerraTwin — Hồ sơ vườn chuẩn EUDR",
+  "id": "/",
+  "name": "TerraTwin — Kiểm đất trước khi mua",
   "short_name": "TerraTwin",
-  "description": "Chứng minh vườn không phá rừng trước hạn EUDR 30/12/2026: ranh chuẩn EU, sàng lọc bằng vệ tinh, hồ sơ ký số ai cũng kiểm được.",
+  "description": "Định mua đất? Kiểm lời rao trước khi xuống tiền: lịch sử ngập 9 năm của đúng thửa từ radar vệ tinh, đối chiếu từng câu trong tin rao, hồ sơ ký số ai cũng kiểm lại được.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "any",
   "background_color": "#0e1720",
   "theme_color": "#0e1720",
   "lang": "vi",
-  "categories": ["productivity", "utilities", "weather"],
+  "dir": "ltr",
+  "categories": ["productivity", "utilities", "business"],
   "icons": [
     {
       "src": "/icon-192.png",
@@ -28,6 +31,28 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Kiểm đất trước khi mua",
+      "short_name": "Kiểm đất",
+      "description": "Chọn vị trí mảnh đất định mua, xem lịch sử ngập và kiểm tin rao",
+      "url": "/buyer",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Kiểm một hồ sơ đất số",
+      "short_name": "Kiểm hồ sơ",
+      "description": "Dán mã hoặc quét QR để kiểm hồ sơ đã ký",
+      "url": "/kiem",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Dùng thử 10 phút và góp ý",
+      "short_name": "Dùng thử",
+      "url": "/dung-thu",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

@@ -5343,3 +5343,17 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .wh-plain-dry, .lc-head-ok { border-left-color: var(--ok); background: rgba(62, 203, 131, .08); }
 .wh-plain-blind, .wh-plain-water_body, .lc-head-na, .lc-head-wait { border-left-color: var(--warn); background: rgba(224, 164, 74, .1); }
 .wh-sum-tech { font-size: .86rem; color: var(--muted, var(--text)); opacity: .85; }
+/* Cài lên màn hình chính (InstallApp, 2/11/2026): thẻ nổi góc dưới; trên điện thoại nằm NGAY TRÊN thanh tab đáy. */
+.tt-install { position: fixed; z-index: 50; right: 16px; bottom: 16px; width: min(380px, calc(100vw - 32px)); display: flex; align-items: center; gap: 10px;
+  padding: 10px 10px 10px 12px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line-2, var(--line)); box-shadow: var(--shadow);
+  animation: tt-rise .3s var(--tt-ease) both; }
+.tt-install-t { display: grid; gap: 2px; min-width: 0; flex: 1; font-size: .86rem; line-height: 1.35; color: var(--text); }
+.tt-install-t small { color: var(--dim); font-size: .78rem; }
+.tt-install-t small svg { vertical-align: -2px; }
+.tt-install-go { display: inline-flex; align-items: center; gap: 5px; border: 0; border-radius: 10px; padding: 8px 12px; font-weight: 700; cursor: pointer;
+  background: var(--ok); color: #06210f; white-space: nowrap; }
+.tt-install-x { border: 0; background: transparent; color: var(--dim); padding: 6px; cursor: pointer; border-radius: 8px; }
+.tt-install-x:hover, .tt-install-x:focus-visible { color: var(--text); background: rgba(255, 255, 255, .06); }
+@media (max-width: 860px) {
+  .tt-install { left: 16px; right: 16px; width: auto; bottom: calc(var(--tt-tab-h) + env(safe-area-inset-bottom, 0px) + 10px); }
+}

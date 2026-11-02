@@ -14,8 +14,8 @@ export const metadata: Metadata = {
   description:
     "Thửa đất từng ngập chưa, tin đăng có nói thật không: lịch sử nước radar Sentinel-1 từ 2017, loại đất, hiểm hoạ 10 năm, kiểm chứng tin đăng bán đất, hồ sơ ký số neo Bitcoin ai cũng tự kiểm được. Kèm hồ sơ vườn chuẩn EUDR.",
   keywords: [
-    "EUDR", "quy định chống phá rừng EU", "truy xuất nguồn gốc", "cà phê", "cao su", "hồ sơ vườn",
-    "GeoJSON", "Sentinel-2", "chữ ký số", "Việt Nam", "TerraTwin",
+    "kiểm tra đất trước khi mua", "đất có bị ngập không", "tin rao bán đất", "lịch sử ngập", "radar vệ tinh",
+    "EUDR", "hồ sơ vườn", "GeoJSON", "Sentinel-2", "chữ ký số", "Việt Nam", "TerraTwin",
   ],
   authors: [{ name: "TerraTwin" }],
   openGraph: {
@@ -24,18 +24,18 @@ export const metadata: Metadata = {
     siteName: "TerraTwin",
     title: "TerraTwin — Sự thật về một mảnh đất",
     description:
-      "Ranh chuẩn EU, sàng lọc bằng ba bản đồ rừng 2020 và ảnh vệ tinh, hồ sơ ký số nông hộ giữ, lô hàng có cân bằng khối lượng.",
+      "Định mua đất? Kiểm lời rao trước khi xuống tiền: lịch sử ngập 9 năm của đúng thửa từ radar vệ tinh, đối chiếu từng câu trong tin rao, hồ sơ ký số ai cũng kiểm lại được.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "TerraTwin — Hồ sơ vườn chuẩn EUDR",
-    description: "Sàng lọc phá rừng bằng vệ tinh, hồ sơ ký số, sổ minh bạch ai cũng kiểm được.",
+    title: "TerraTwin — Sự thật về một mảnh đất",
+    description: "Kiểm lời rao bán đất bằng lịch sử ngập 9 năm từ radar vệ tinh — hồ sơ ký số ai cũng kiểm lại được.",
   },
   manifest: "/manifest.webmanifest",
   applicationName: "TerraTwin",
-  // Mã commit của bản đang chạy (Render đặt RENDER_GIT_COMMIT lúc build). Không có quyền xem
+  // Mã commit của bản đang chạy (Render đặt RENDER_GIT_COMMIT, Vercel đặt VERCEL_GIT_COMMIT_SHA lúc build). Không có quyền xem
   // log Render vẫn kiểm được deploy đã lên hay chưa: so <meta name="tt-build"> với git log.
-  other: { "tt-build": (process.env.RENDER_GIT_COMMIT || "local").slice(0, 7) },
+  other: { "tt-build": (process.env.RENDER_GIT_COMMIT || process.env.VERCEL_GIT_COMMIT_SHA || "local").slice(0, 7) },
   appleWebApp: {
     capable: true,
     title: "TerraTwin",

@@ -5,7 +5,7 @@
    Chỉ cache vỏ ứng dụng (tài nguyên tĩnh) để mở nhanh và hiện được trang
    offline tử tế.
 */
-const CACHE = "terratwin-shell-v1";
+const CACHE = "terratwin-shell-v2";   // v2 (2/11/2026): bỏ bản v1 đã lưu manifest + dữ liệu trang cũ
 const OFFLINE_URL = "/offline.html";
 // P3 — đệm TILE bản đồ (cross-origin, ArcGIS World Imagery). Người dùng mở lại
 // quanh thửa đã lưu thì bản đồ hiện ngay, không tải lại từng ô — quan trọng với
@@ -72,22 +72,29 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Tài nguyên tĩnh cùng nguồn: cache-first cho nhẹ mạng.
-  if (url.origin === self.location.origin) {
-    event.respondWith(
-      caches.match(req).then(
-        (hit) =>
-          hit ||
-          fetch(req).then((res) => {
-            if (res.ok && res.type === "basic") {
-              const copy = res.clone();
-              caches.open(CACHE).then((c) => c.put(req, copy));
-            }
-            return res;
-          }),
-      ),
-    );
+  if (url.origin !== self.location.origin) return;
+
+  // Chỉ tệp tĩnh KHÔNG ĐỔI theo tên (chunk có mã băm của Next, ảnh, phông) mới cache-first. Mọi thứ khác cùng nguồn —
+  // manifest, dữ liệu trang khi chuyển trang (?_rsc=), sitemap… — đi mạng trước (2/11/2026: trước đây cache-first cả
+  // manifest và ?_rsc=, máy đã cài có thể giữ tên app / nội dung trang cũ sau mỗi lần cập nhật).
+  const fixed = url.pathname.startsWith("/_next/static/") || /\.(?:png|jpe?g|webp|svg|ico|woff2?)$/.test(url.pathname);
+  if (!fixed) {
+    event.respondWith(fetch(req).catch(() => caches.match(req).then((hit) => hit || Response.error())));
+    return;
   }
+  event.respondWith(
+    caches.match(req).then(
+      (hit) =>
+        hit ||
+        fetch(req).then((res) => {
+          if (res.ok && res.type === "basic") {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put(req, copy));
+          }
+          return res;
+        }),
+    ),
+  );
 });
 
 // M1 — WEB PUSH. Nhận payload {title, body, url} từ máy chủ và hiện thông báo,
