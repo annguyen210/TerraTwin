@@ -23,6 +23,15 @@ def test_nhan_dien_tung_loai(text, typ):
     assert typ in {c["type"] for c in lc.extract(text)}
 
 
+def test_doan_trich_khong_dinh_cum_gia_phia_sau():
+    """Tin thật Sịa (2/11/2026): "…không bao giờ ngập lụt chỉ 5tr/m2" — trích bỏ cụm giá; loại câu vẫn dò như cũ."""
+    from app.services import listing_check as lc
+    got = {c["type"]: c["sentence"] for c in lc.extract("Đất Thị Trấn Sịa, cao ráo, không bao giờ ngập lụt chỉ 5tr/m2")}
+    assert got == {"high_ground": "cao ráo", "no_flood": "không bao giờ ngập lụt"}
+    got = {c["type"]: c["sentence"] for c in lc.extract("Lô đất không ngập giá 1,2 tỷ")}
+    assert got["no_flood"] == "Lô đất không ngập"
+
+
 def test_moi_khang_dinh_trich_dung_ve_cua_no():
     """Mục 7 báo cáo 12/10/2026: mỗi loại trích ĐÚNG vế của nó, không phải cụm đầu của tin."""
     from app.services import listing_check as lc

@@ -79,8 +79,10 @@ def sentences(text: str) -> list[str]:
 
 
 def clauses(sentence: str) -> list[str]:
-    """Vế câu: tách theo dấu phẩy, chấm phẩy, hai chấm, ngoặc, gạch nối có khoảng trắng."""
-    parts = re.split(r"\s*[,;:()]\s*|\s+[-–—]\s+", sentence)
+    """Vế câu: tách theo dấu phẩy, chấm phẩy, hai chấm, ngoặc, gạch nối có khoảng trắng — và trước cụm giá không có dấu
+    ngăn ("…không bao giờ ngập lụt chỉ 5tr/m2", tin thật Sịa 2/11/2026: đoạn trích dính cả giá). Chỉ đổi ĐOẠN TRÍCH;
+    loại câu vẫn dò trên cả câu như cũ."""
+    parts = re.split(r"\s*[,;:()]\s*|\s+[-–—]\s+|\s+(?=(?:chỉ|giá|chi|gia)\s+\d)", sentence, flags=re.I)
     return [p.strip(" .!?") for p in parts if p and len(p.strip()) >= 2]
 
 

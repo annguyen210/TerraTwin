@@ -116,9 +116,14 @@ chỗ radar không nhìn thấy và bảo người mua hỏi người dân. Tin 
 khai hầu như không ghi toạ độ thửa." Không nêu tên trang, mã tin hay người bán.
 
 Cũng từ ca này: hai điểm cách nhau 1 km cùng "có nước" đúng một ảnh 31/5/2026 (8 ngày trước đó mưa tổng ~10 mm, ERA5)
-→ nhiều khả năng nhiễu. TerraTwin xếp nó "ngoài mùa lũ" và câu lời thường ghi "không tính — có thể là nhiễu". Ngày
-31/5/2026 cũng có trong lịch sử nước của điểm Cà Mau dùng ở cổng mùa lũ — **chưa kiểm** xem có phải lỗi của cảnh radar
-ngày đó trên diện rộng không.
+→ nhiều khả năng nhiễu. TerraTwin xếp nó "ngoài mùa lũ" và câu lời thường ghi "không tính — có thể là nhiễu".
+Đã kiểm (2/11/2026): cảnh đó do **Sentinel-1D** chụp (vệ tinh mới, có trên Planetary Computer từ 19/5/2026). Ở đầu tây
+Sịa, 14 ảnh S1D chỉ riêng 31/5 tụt mạnh (−14 dB); 84 ảnh S1A/S1C năm 2025–2026 không ảnh nào tụt ≥ 6 dB. So với ảnh
+S1C chụp 30/5 (cùng quỹ đạo, cách 1 ngày): 4/30 ô quanh Sịa tụt ≥ 5 dB nhưng cũng có ô TĂNG tới 12 dB — kiểu lệch hai
+chiều ở vùng xen ao/ruộng (lệch vị trí giữa hai sản phẩm hoặc gió làm mặt ao gợn); vùng đồng nhất (gò Đông Hà, cùng
+cảnh) và quỹ đạo khác (S1A) không lệch. Cà Mau không có ảnh S1D nào tụt ≥ 6 dB. Kết luận: lỗi LẺ cục bộ của một ảnh,
+không phải lỗi cả vệ tinh hay cả lượt chụp; chưa xác định được cơ chế. Bộ phát hiện không đổi (đổi phải qua cổng
+đăng ký trước).
 
 ## Sau mỗi lần tập
 
