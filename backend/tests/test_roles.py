@@ -142,6 +142,7 @@ def test_backup_status_nhan_dien_ban_da_ma_hoa_gpg(tmp_path, monkeypatch):
     backup_status() trước đây chỉ glob *.sql.gz trần nên luôn báo sai 'chưa có
     bản sao lưu nào' trên prod (nơi LUÔN có passphrase). Test này giữ lỗi khỏi
     tái diễn."""
+    _xoa_nhip()                     # nhịp GitHub Actions có trong CSDL thì thắng thư mục — test này đo đường thư mục
     daily = tmp_path / "daily"
     daily.mkdir()
     (daily / "terratwin-20260101-000000.sql.gz.gpg").write_bytes(b"gia lap ban ma hoa")
@@ -154,6 +155,45 @@ def test_backup_status_nhan_dien_ban_da_ma_hoa_gpg(tmp_path, monkeypatch):
         body = r.json()
         assert body["configured"] is True, "bản .sql.gz.gpg phải được nhận diện là đã có sao lưu"
         assert body["count"] == 1
+
+
+def _xoa_nhip():
+    from app import routes_trust as rt
+    from app.services import cache_store
+    cache_store.delete(rt._BEAT_KEY)
+    cache_store.delete(rt._BEAT_HIST)
+
+
+def test_nhip_sao_luu_tu_github_actions_hien_o_admin(monkeypatch):
+    """Kiểm 7/11/2026 mục 2: sao lưu chạy trên GitHub Actions (repo riêng tư) nên ./backups trên Render luôn trống →
+    /admin báo "chưa có bản sao lưu nào". backup.yml báo nhịp về /api/ops/backup-heartbeat (X-Cron-Key) sau diễn tập."""
+    _xoa_nhip()
+    monkeypatch.setenv("TERRATWIN_CRON_KEY", "khoa-cron-thu")
+    monkeypatch.setenv("TERRATWIN_BACKUP_DIR", "/khong/co/thu/muc/nay")
+    cron = {"X-Cron-Key": "khoa-cron-thu"}
+    beat = {"ok": True, "tables": 34, "rows": 14702, "file": "terratwin-20261107-020000.sql.gz.gpg", "source": "neon",
+            "run_url": "https://github.com/annguyen210/TerraTwin/actions/runs/1"}
+    with TestClient(app) as c:
+        tok = _login(c, "beat_admin@x.com", "admin")
+        adm = {"Authorization": f"Bearer {tok}"}
+        r = c.get("/api/admin/backup-status", headers=adm).json()
+        assert r["configured"] is False and "cron ngoài" not in r["message"] and "Database backup" in r["message"]
+
+        assert c.post("/api/ops/backup-heartbeat", json=beat).status_code == 401
+        assert c.post("/api/ops/backup-heartbeat", json=beat, headers={"X-Cron-Key": "sai"}).status_code == 401
+        assert c.post("/api/ops/backup-heartbeat", json={**beat, "run_url": "https://ke-gian.example/x"}, headers=cron).status_code == 200
+        assert c.get("/api/admin/backup-status", headers=adm).json()["run_url"] is None      # chỉ nhận link github.com
+        assert c.post("/api/ops/backup-heartbeat", json=beat, headers=cron).status_code == 200
+        r = c.get("/api/admin/backup-status", headers=adm).json()
+        assert r["via"] == "github-actions" and r["ok"] is True and r["stale"] is False
+        assert (r["tables"], r["rows"]) == (34, 14702) and "34 bảng, 14.702 hàng khớp" in r["message"]
+
+        # diễn tập trượt → đỏ, lịch sử giữ cả hai lượt (mới nhất trước)
+        assert c.post("/api/ops/backup-heartbeat", json={**beat, "ok": False, "tables": None, "rows": None}, headers=cron).status_code == 200
+        r = c.get("/api/admin/backup-status", headers=adm).json()
+        assert r["stale"] is True and "THẤT BẠI" in r["message"]
+        assert [h["ok"] for h in r["history"]] == [False, True, True]
+    _xoa_nhip()
 
 
 # ---------- Sửa sau kiểm toán #2 — TERRATWIN_ADMIN_EMAILS ----------

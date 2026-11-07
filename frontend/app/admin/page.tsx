@@ -502,12 +502,34 @@ function BackupTab() {
   if (err) return <p className="ws-err">⚠️ {err}</p>;
   if (!data) return <p className="ws-hint">Đang tải…</p>;
 
+  const num = (v?: number | null) => (v == null ? "—" : v.toLocaleString("vi-VN"));
   return (
     <div>
       <p style={{ color: data.stale ? "var(--warn, #e0a44a)" : "var(--ok, #3ecb83)" }}>
         {data.stale ? "⚠️" : "✅"} {data.message}
       </p>
-      {data.configured && (
+      {data.via === "github-actions" && (
+        <>
+          <ul>
+            <li>Lượt gần nhất: <b>{data.last_at ? when(data.last_at) : "—"}</b> (cách đây {data.age_hours} giờ) —{" "}
+              {data.ok ? "sao lưu + diễn tập khôi phục ĐẠT" : "THẤT BẠI"}</li>
+            {data.ok && <li>Khôi phục thử vào CSDL tạm: <b>{num(data.tables)}</b> bảng, <b>{num(data.rows)}</b> hàng khớp với bản gốc</li>}
+            {data.latest && <li>Bản sao lưu: <code>{data.latest}</code> (mã hoá GPG, lưu ở repo riêng tư){data.source ? ` · nguồn: ${data.source}` : ""}</li>}
+            {data.run_url && <li><a href={data.run_url} target="_blank" rel="noreferrer">Xem lượt chạy trên GitHub Actions</a></li>}
+          </ul>
+          {!!data.history?.length && (
+            <table className="ws-table">
+              <thead><tr><th>Lượt (mới nhất trước)</th><th>Kết quả</th><th>Bảng</th><th>Hàng</th></tr></thead>
+              <tbody>
+                {data.history.map((h) => (
+                  <tr key={h.at}><td>{when(h.at)}</td><td>{h.ok ? "Đạt" : "Thất bại"}</td><td>{num(h.tables)}</td><td>{num(h.rows)}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </>
+      )}
+      {data.via === "local-dir" && (
         <ul>
           <li>Bản mới nhất: <b>{data.latest}</b></li>
           <li>Cách đây: {data.age_hours} giờ</li>
@@ -518,8 +540,13 @@ function BackupTab() {
   );
 }
 
+// Kiểm 7/11/2026 mục 3: bảng thay cho JSON thô. Số khớp đúng services/drift.py (CSI 30 ngày gần so với 90 ngày trước,
+// đếm theo đợt từ sổ điểm, chỉ prod).
+const DRIFT_NAME: Record<string, string> = { all: "Tất cả mô-đun", drought: "Hạn & thiếu nước", flood: "Lũ / ngập sớm",
+  wildfire: "Cháy rừng", landslide: "Sạt lở" };
+
 function DriftTab() {
-  const [data, setData] = useState<Record<string, unknown> | null>(null);
+  const [data, setData] = useState<Awaited<ReturnType<typeof getDrift>> | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
@@ -531,7 +558,35 @@ function DriftTab() {
   if (err) return <p className="ws-err">⚠️ {err}</p>;
   if (!data) return <p className="ws-hint">Đang tải…</p>;
 
-  return <pre className="ws-pre">{JSON.stringify(data, null, 2)}</pre>;
+  const o = data.overall;
+  const scored = o.recent_scored + o.prior_scored;
+  const pct = (v: number | null) => (v == null ? "—" : `${v.toLocaleString("vi-VN")}%`);
+  const rows = [o, ...data.by_module];
+  return (
+    <div>
+      {!o.enough
+        ? <p className="ws-hint"><b>Chưa đủ dữ liệu ({scored.toLocaleString("vi-VN")} kết quả chấm).</b> Trôi hiệu năng chỉ đo được khi
+            sổ điểm có cảnh báo đã chấm đúng/sai ở CẢ 30 ngày gần đây lẫn 90 ngày trước đó.</p>
+        : data.degraded_modules.length
+          ? <p style={{ color: "var(--warn, #e0a44a)" }}>⚠️ Kém đi rõ (CSI tụt quá 10 điểm %): {data.degraded_modules.map((m) => DRIFT_NAME[m] ?? m).join(", ")}</p>
+          : <p style={{ color: "var(--ok, #3ecb83)" }}>✅ Không mô-đun nào kém đi rõ so với 90 ngày trước.</p>}
+      <table className="ws-table">
+        <thead><tr><th>Mô-đun</th><th>CSI 30 ngày gần</th><th>CSI 90 ngày trước</th><th>Tụt</th><th>Kết quả chấm (gần / trước)</th><th>Trạng thái</th></tr></thead>
+        <tbody>
+          {rows.map((d) => (
+            <tr key={d.module_id}>
+              <td>{DRIFT_NAME[d.module_id] ?? d.module_id}</td>
+              <td>{pct(d.csi_recent_pct)}</td><td>{pct(d.csi_prior_pct)}</td>
+              <td>{d.csi_drop_pct == null ? "—" : `${d.csi_drop_pct.toLocaleString("vi-VN")} điểm %`}</td>
+              <td>{d.recent_scored} / {d.prior_scored}</td>
+              <td>{!d.enough ? `Chưa đủ dữ liệu (${d.recent_scored + d.prior_scored} kết quả chấm)` : d.degraded ? "⚠️ Kém đi" : "Ổn"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="ws-hint">{data.note}</p>
+    </div>
+  );
 }
 
 function CoopTab({ user }: { user: AuthUser }) {

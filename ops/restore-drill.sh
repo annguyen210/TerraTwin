@@ -73,6 +73,11 @@ test -s "$TMP/after.tsv" || { echo "[drill] ❌ CSDL gốc không có bảng nà
 # So khớp (ops/restore-drill-compare.awk): mỗi bảng ở gốc phải có trong bản khôi phục, số hàng nằm giữa trước/sau.
 if awk -F'\t' -v B="$BEFORE" -v R="$TMP/restored.tsv" -f "$(dirname "$0")/restore-drill-compare.awk" "$TMP/after.tsv"; then
   echo "[drill] ✅ KHỚP — bản sao lưu khôi phục được, đủ mọi bảng."
+  # 7/11/2026: tóm tắt cho backup.yml báo nhịp về API (/admin → Sao lưu): "số bảng<TAB>tổng số hàng<TAB>tên bản" — chỉ con số.
+  if [ -n "${TERRATWIN_DRILL_SUMMARY:-}" ]; then
+    printf '%s\t%s\t%s\n' "$(wc -l < "$TMP/restored.tsv" | tr -d ' ')" \
+      "$(awk -F'\t' '{s += $2} END {print s + 0}' "$TMP/restored.tsv")" "$(basename "$LATEST")" > "$TERRATWIN_DRILL_SUMMARY"
+  fi
 else
   echo "[drill] ❌ LỆCH — chưa được tin bản sao lưu này."; exit 1
 fi

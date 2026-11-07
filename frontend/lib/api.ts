@@ -1715,11 +1715,18 @@ export function getFunnel(days = 30) {
 }
 export function getBackupStatus() {
   return authed<{ configured: boolean; stale: boolean; message: string;
-    latest?: string; age_hours?: number; count?: number }>(
+    latest?: string | null; age_hours?: number; count?: number;
+    // 7/11/2026 — nhịp từ backup.yml (GitHub Actions) sau diễn tập khôi phục
+    via?: "github-actions" | "local-dir"; ok?: boolean; last_at?: string; tables?: number | null; rows?: number | null;
+    source?: string | null; run_url?: string | null;
+    history?: { at: string; ok: boolean; tables: number | null; rows: number | null }[] }>(
     "/api/admin/backup-status", { method: "GET" }, "Không tải được trạng thái sao lưu");
 }
+export type DriftRow = { module_id: string; csi_recent_pct: number | null; csi_prior_pct: number | null;
+  csi_drop_pct: number | null; recent_scored: number; prior_scored: number; degraded: boolean; enough: boolean };
 export function getDrift() {
-  return authed<Record<string, unknown>>(
+  return authed<{ overall: DriftRow; by_module: DriftRow[]; degraded_modules: string[]; note: string;
+    climate_drift?: { available: boolean; psi?: number; drifting?: boolean; message: string } }>(
     "/api/admin/drift", { method: "GET" }, "Không tải được báo cáo trôi");
 }
 

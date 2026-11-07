@@ -16,7 +16,9 @@ hoạt được.
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+import datetime as _dt
+
+from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -232,40 +234,97 @@ def run_misses(days: int = verify.MISS_LOOKBACK_DAYS,
 # N2 — TRẠNG THÁI SAO LƯU (đòi đăng nhập: thông tin vận hành, không công khai)
 # ---------------------------------------------------------------------------
 
+class BackupBeatIn(BaseModel):
+    ok: bool
+    tables: int | None = Field(default=None, ge=0, le=100_000)
+    rows: int | None = Field(default=None, ge=0)
+    file: str = Field(default="", max_length=160)
+    source: str = Field(default="", max_length=16)
+    run_url: str = Field(default="", max_length=300)
+
+
+_BEAT_KEY = "ops:backup-heartbeat"
+_BEAT_HIST = "ops:backup-history"
+_BEAT_TTL = 400 * 24 * 3600
+_BEAT_KEEP = 14
+_BEAT_STALE_H = 36.0
+
+
+def _vn_int(v) -> str:
+    return f"{v:,}".replace(",", ".") if isinstance(v, int) else "?"
+
+
+@router.post("/api/ops/backup-heartbeat")
+def backup_heartbeat(body: BackupBeatIn, authorization: str | None = Header(default=None),
+                     x_cron_key: str | None = Header(default=None),
+                     db: Session = Depends(get_session)) -> dict:
+    """NHỊP SAO LƯU từ GitHub Actions (backup.yml, 7/11/2026). Sao lưu chạy trên máy CI rồi đẩy vào repo RIÊNG TƯ, nên
+    thư mục ./backups trên Render luôn trống → /admin báo "chưa có bản sao lưu nào" dù sao lưu vẫn chạy đều mỗi đêm.
+    Workflow báo về đây SAU bước diễn tập khôi phục (cả khi trượt): thời điểm, kết quả, số bảng/hàng đã khôi phục khớp.
+    Chỉ lưu con số và tên tệp — không có nội dung CSDL. Xác thực X-Cron-Key như /api/brief/run."""
+    from app.routes_data import _require_cron_or_admin
+    from app.services import cache_store
+    _require_cron_or_admin(authorization, x_cron_key, db)
+    beat = body.model_dump()
+    if beat["run_url"] and not beat["run_url"].startswith("https://github.com/"):
+        beat["run_url"] = ""
+    beat["at"] = _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")
+    cache_store.put(_BEAT_KEY, beat, ttl_seconds=_BEAT_TTL)
+    hist = [h for h in (cache_store.get(_BEAT_HIST) or []) if isinstance(h, dict)][-(_BEAT_KEEP - 1):] + [beat]
+    cache_store.put(_BEAT_HIST, hist, ttl_seconds=_BEAT_TTL)
+    stored = (cache_store.get(_BEAT_KEY) or {}).get("at") == beat["at"]
+    if not stored:
+        raise HTTPException(503, "Không ghi được nhịp sao lưu vào CSDL.")
+    return {"ok": True, "at": beat["at"]}
+
+
 @router.get("/api/admin/backup-status")
 def backup_status(user: User = Depends(auth.require_admin)) -> dict:
-    """Bản sao lưu gần nhất cách đây bao lâu. Báo động nếu quá 36 giờ.
+    """Bản sao lưu gần nhất cách đây bao lâu, đã khôi phục thử khớp chưa. Báo động nếu quá 36 giờ hoặc lượt cuối trượt.
 
-    Đọc thư mục TERRATWIN_BACKUP_DIR (do ops/backup.sh ghi). Có endpoint này để
-    biết sao lưu ĐANG chạy hay đã chết âm thầm — bản sao lưu mà không ai canh
-    cũng nguy hiểm như không có.
-    """
+    Nguồn chính: nhịp backup.yml gửi về /api/ops/backup-heartbeat (sao lưu chạy trên GitHub Actions, không trên Render).
+    Nguồn phụ khi tự chạy máy chủ: thư mục TERRATWIN_BACKUP_DIR do ops/backup.sh ghi."""
     import glob
     import os
     import time as _t
+    from app.services import cache_store
+
+    beat = cache_store.get(_BEAT_KEY)
+    if isinstance(beat, dict) and beat.get("at"):
+        age_h = (_dt.datetime.now(_dt.timezone.utc) - _dt.datetime.fromisoformat(beat["at"])).total_seconds() / 3600.0
+        ok = bool(beat.get("ok"))
+        if not ok:
+            msg = "Lượt sao lưu / diễn tập khôi phục gần nhất THẤT BẠI — mở lượt chạy trên GitHub Actions để xem lỗi."
+        elif age_h > _BEAT_STALE_H:
+            msg = f"Quá {int(_BEAT_STALE_H)} giờ chưa nhận nhịp sao lưu — kiểm tra workflow \"Database backup\" trên GitHub Actions."
+        else:
+            msg = (f"Sao lưu mỗi đêm đang chạy; bản gần nhất đã khôi phục thử vào CSDL tạm: "
+                   f"{_vn_int(beat.get('tables'))} bảng, {_vn_int(beat.get('rows'))} hàng khớp.")
+        hist = [h for h in (cache_store.get(_BEAT_HIST) or []) if isinstance(h, dict)]
+        return {"configured": True, "via": "github-actions", "ok": ok, "stale": (not ok) or age_h > _BEAT_STALE_H,
+                "message": msg, "last_at": beat["at"], "age_hours": round(age_h, 1), "latest": beat.get("file") or None,
+                "tables": beat.get("tables"), "rows": beat.get("rows"), "source": beat.get("source") or None,
+                "run_url": beat.get("run_url") or None,
+                "history": [{k: h.get(k) for k in ("at", "ok", "tables", "rows")} for h in reversed(hist)][:_BEAT_KEEP]}
 
     d = os.environ.get("TERRATWIN_BACKUP_DIR", "./backups")
-    # Đ11 — sửa: ops/backup.sh (N2) mã hoá GPG khi có TERRATWIN_BACKUP_PASSPHRASE
-    # nên tên file thật là *.sql.gz.gpg, không phải *.sql.gz trần. Glob cũ chỉ
-    # khớp bản CHƯA mã hoá nên trên prod (luôn có passphrase) mục này báo sai
-    # "chưa có bản sao lưu nào" dù cron vẫn chạy đều — *.sql.gz* khớp cả hai.
+    # Đ11 — ops/backup.sh mã hoá GPG khi có TERRATWIN_BACKUP_PASSPHRASE → *.sql.gz.gpg; *.sql.gz* khớp cả hai.
     files = glob.glob(os.path.join(d, "daily", "*.sql.gz*"))
     if not files:
         return {"configured": False, "stale": True,
-                "message": ("Chưa có bản sao lưu nào. Đặt cron ngoài gọi "
-                            "ops/backup.sh mỗi ngày.")}
+                "message": ("Chưa nhận nhịp nào từ workflow \"Database backup\" (GitHub Actions, chạy mỗi đêm). "
+                            "Lượt chạy kế tiếp tự báo về đây; muốn có ngay thì Actions → Database backup → Run workflow.")}
     newest = max(files, key=os.path.getmtime)
     age_h = (_t.time() - os.path.getmtime(newest)) / 3600.0
     return {
-        "configured": True,
+        "configured": True, "via": "local-dir",
         "latest": os.path.basename(newest),
         "age_hours": round(age_h, 1),
         "count": len(files),
-        "stale": age_h > 36.0,
-        "message": ("⚠️ Sao lưu gần nhất quá 36 giờ — kiểm tra cron."
-                    if age_h > 36.0 else "Sao lưu đang cập nhật đều."),
+        "stale": age_h > _BEAT_STALE_H,
+        "message": ("Sao lưu gần nhất quá 36 giờ — kiểm tra lịch chạy ops/backup.sh."
+                    if age_h > _BEAT_STALE_H else "Sao lưu đang cập nhật đều."),
     }
-
 
 # ---------------------------------------------------------------------------
 # Đ11 — VAI TRÒ COOP THẬT (trước đây chỉ là một dòng bình luận trong db.py,

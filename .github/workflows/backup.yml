@@ -227,4 +227,32 @@ jobs:
           TERRATWIN_BACKUP_PASSPHRASE: ${{ secrets.TERRATWIN_BACKUP_PASSPHRASE }}
           TERRATWIN_BACKUP_DIR: ${{ github.workspace }}/../backups-wt
           TERRATWIN_DRILL_BEFORE: ${{ runner.temp }}/before.tsv
+          TERRATWIN_DRILL_SUMMARY: ${{ runner.temp }}/drill-summary.tsv
         run: bash ops/restore-drill.sh
+
+      # Kiểm 7/11/2026: sao lưu nằm ở repo riêng tư trên GitHub, không ở Render → /admin không có thư mục nào để đếm và
+      # báo "chưa có bản sao lưu nào". Báo nhịp về API (cả khi lượt này trượt) để /admin → Sao lưu hiện đúng: thời điểm,
+      # thành/bại, số bảng + hàng đã khôi phục thử khớp. Báo không được thì chỉ cảnh báo — sao lưu đã xong và đã đẩy.
+      - name: Báo nhịp sao lưu về API (/admin → Sao lưu)
+        if: always()
+        env:
+          CRON_KEY: ${{ secrets.TERRATWIN_CRON_KEY }}
+          API: https://terratwin-api.onrender.com
+          OK: ${{ job.status == 'success' }}
+          SUMMARY: ${{ runner.temp }}/drill-summary.tsv
+          SRC: ${{ steps.src.outputs.src }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "$CRON_KEY" ]; then echo "::warning::Thiếu secret TERRATWIN_CRON_KEY — /admin sẽ không thấy nhịp sao lưu."; exit 0; fi
+          tables=null; rows=null; file=""
+          if [ "$OK" = "true" ] && [ -s "$SUMMARY" ]; then IFS=$'\t' read -r tables rows file < "$SUMMARY"; fi
+          body=$(printf '{"ok":%s,"tables":%s,"rows":%s,"file":"%s","source":"%s","run_url":"%s"}' \
+                 "$OK" "$tables" "$rows" "$file" "$SRC" "$RUN_URL")
+          code=000
+          for i in 1 2 3 4 5 6; do   # API Render miễn phí ngủ → lần đầu có thể mất ~1 phút để thức
+            code=$(curl -sS -o "$RUNNER_TEMP/beat.out" -w '%{http_code}' --max-time 90 -X POST "$API/api/ops/backup-heartbeat" \
+                   -H "X-Cron-Key: $CRON_KEY" -H "Content-Type: application/json" -d "$body" || true)
+            [ "$code" = "200" ] && { echo "::notice::Đã báo nhịp sao lưu về API: $body"; exit 0; }
+            echo "Lượt $i: HTTP $code — chờ 20 s rồi thử lại"; sleep 20
+          done
+          echo "::warning::Không báo được nhịp sao lưu về API (HTTP $code) — bản sao lưu vẫn xong; chỉ /admin chưa thấy lượt này."
