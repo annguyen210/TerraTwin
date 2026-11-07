@@ -15,10 +15,19 @@ nếu nộp giấy). Chép nội dung vào Mẫu số 04 chính thức khi nộp
 
 - **Tờ khai: Mẫu số 04** theo Thông tư 10/2026/TT-BKHCN (hiệu lực 01/04/2026) — thay cho Mẫu số 08 cũ của Nghị định
   65/2023/NĐ-CP. Lấy bản mới nhất trên trang Cục Sở hữu trí tuệ (ipvietnam.gov.vn) trước khi nộp.
+- Kiểm 07/11/2026: trang "Bộ tờ khai trong lĩnh vực sở hữu công nghiệp"
+  (https://ipvietnam.gov.vn/web/guest/bo-to-khai-trong-linh-vuc-so-huu-cong-nghiep) ghi bộ tờ khai Thông tư 10/2026 **đã
+  cập nhật theo Thông tư 20/2026/TT-BKHCN** (áp dụng cho mẫu tờ khai từ 01/07/2026). Mẫu số 04 Phụ lục I "Tờ khai đăng ký
+  nhãn hiệu" có bản PDF và Word ngay trên trang đó. Mục nào trên tờ khai chính thức khác tệp điền sẵn thì theo tờ khai chính
+  thức.
 - Đã tra trùng (docs/PHAP_NHAN.md §2b, 20/10/2026): **Việt Nam chưa có** "TerraTwin"; **Đức và EU đã có "Terratwin" cùng
   nhóm 9 và 42** → tại Việt Nam nộp được; bán tại EU dưới tên này có rủi ro, nên hỏi luật sư SHTT.
 - Tra lại một lần trên trang tra cứu của Cục (wipopublish.ipvietnam.gov.vn) ngay trước khi nộp — đơn mới có thể chưa lên
   cơ sở dữ liệu quốc tế.
+- Tra lại 07/11/2026 trên WIPO Global Brand Database (có bộ "IP VIET NAM", 965.284 bản ghi, cập nhật tới 06/11/2026; trang
+  wipopublish hôm đó không kết nối được — lỗi bắt tay TLS): chữ "terratwin" ra 4 kết quả, **0 ở Việt Nam** — Anh (đã hết),
+  Đức (đã cấp 06/08/2025, nhóm 9 + 42), Hàn Quốc (nhóm 19), EU (Terratwin GmbH, nhóm 9 + 42, đang chờ). Chỉ tra đúng chữ;
+  nhãn gần giống do Cục xét khi thẩm định.
 
 ## 2. Nội dung điền vào tờ khai
 
