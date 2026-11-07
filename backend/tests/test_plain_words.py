@@ -61,3 +61,23 @@ def test_cau_dau_kiem_tin_mau_thuan_khong_phai_ngap_dung_bang_chung_cua_cau_do()
             {"type": "flat", "sentence": "bằng phẳng", "verdict": "contradicted", "evidence": "Độ dốc 18° — không phải đất bằng."}]
     h = lc.headline(rows, {}, needs_water=False)
     assert h["text"] == "Tin viết “bằng phẳng” — nhưng độ dốc 18° — không phải đất bằng. Thêm 1 câu khác cũng trái với dữ liệu đo."
+
+
+def test_cao_rao_noi_theo_dem_duoc_va_noi_ro_mau_thuan_do_nuoc():
+    """Kiểm 7/11/2026 mục 5: "Thửa thấp hơn 38% đất trong bán kính" đọc như đất cao. Ca thửa demo Tuệ Tĩnh: 38% điểm quanh
+    cao hơn (mức giữa) + 5 đợt nước trong mùa lũ → mâu thuẫn CHỦ YẾU do nước, địa hình nói theo kiểu đếm được."""
+    terr = {"lower_than_pct": 38, "radius_km": 5.0, "elevation_m": 3.1}
+    w = {"n_in": 5, "n_out": 0, "n_events": 5, "events": [], "flood_season": {"text": "7–10", "window": "2016–2025"}}
+    v, msg, _ = lc.judge("high_ground", {"terrain": terr, "water": w})
+    assert v == "contradicted" and msg.startswith("Mâu thuẫn chủ yếu vì radar thấy nước phủ thửa 5 đợt trong mùa lũ.")
+    assert "cứ 100 điểm đo quanh thửa (bán kính 5 km) thì 38 điểm cao hơn thửa" in msg and "không phải chỗ cao" in msg
+    assert "thấp hơn 38%" not in msg
+
+    v, msg, _ = lc.judge("high_ground", {"terrain": {**terr, "lower_than_pct": 85}, "water": None})
+    assert v == "contradicted" and "trũng hơn hầu hết đất xung quanh" in msg and "85 điểm cao hơn thửa" in msg
+
+    v, msg, _ = lc.judge("high_ground", {"terrain": {**terr, "lower_than_pct": 12}, "water": None})
+    assert v == "consistent" and "cao hơn phần lớn đất xung quanh" in msg and "12 điểm cao hơn thửa" in msg
+
+    v, msg, _ = lc.judge("high_ground", {"terrain": terr, "water": {**w, "n_in": 1}})
+    assert v == "insufficient" and "mức giữa" in msg and "Radar thấy nước phủ 1 đợt trong mùa lũ." in msg

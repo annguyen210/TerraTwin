@@ -95,50 +95,26 @@ const GROUPS: Record<string, [string, string]> = {
   D: ["Đô thị, mỏ & chuỗi cung ứng", "Urban, mining & supply chain"],
 };
 
-function useCountUp(target: number, ms = 380) {
-  const [v, setV] = useState(target);
-  useEffect(() => {
-    if (typeof window === "undefined" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { setV(target); return; }
-    let raf = 0; const t0 = performance.now();
-    const step = (now: number) => {
-      const k = Math.min(1, (now - t0) / ms);
-      setV(Math.round(target * (1 - Math.pow(1 - k, 3))));
-      if (k < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [target, ms]);
-  return v;
-}
-
+// Kiểm 7/11/2026 mục 4: "TerraScore 100 · Hạng A" to nhất ở đầu thẻ thửa đọc như "đất tốt" — thửa demo ngập 5 lần trong
+// mùa lũ vẫn hiện 100/Hạng A. Con số này chỉ là hiểm hoạ THỜI TIẾT 7 ngày tới, nên nói đúng điều đó bằng chữ, chỉ sang
+// lịch sử nước, và lùi con số về chú thích nhỏ.
 function TerraBadge({ t }: { t: TerraScore }) {
   const { t: tr } = useLang();
-  const shown = useCountUp(t.score ?? 0);
-  const color =
-    t.grade === "A"
-      ? "#2E9E67"
-      : t.grade === "B"
-        ? "#3aa0a0"
-        : t.grade === "C"
-          ? "#B07A2E"
-          : "#C2412E";
+  const calm = t.grade === "A" || t.grade === "B";
+  const color = calm ? "#2E9E67" : t.grade === "C" ? "#B07A2E" : "#C2412E";
+  const head = calm ? tr("7 ngày tới: yên", "Next 7 days: calm")
+    : t.grade === "C" ? tr("7 ngày tới: cần để ý", "Next 7 days: watch")
+    : tr("7 ngày tới: nguy cơ cao", "Next 7 days: high risk");
   return (
-    <div className="terra">
-      <div className="terra-score" style={{ borderColor: color, color }}>
-        <b aria-label={`${t.score}`}>{shown}</b>
-        <span>/100</span>
-      </div>
+    <div className="terra terra-7d">
       <div className="terra-txt">
-        <div className="terra-grade" style={{ color }}>
-          {tr("TerraScore · hiểm hoạ 7 ngày tới · Hạng", "TerraScore · next-7-day hazards · Grade")} {t.grade}
+        <div className="terra-grade" style={{ color }}>{head}</div>
+        <div className="terra-sum">{tr("Thời tiết sắp tới, KHÔNG phải lịch sử ngập. Thửa từng ngập chưa: xem Lịch sử nước ở tab Hồ sơ.",
+                                       "Upcoming weather, NOT flood history. Has this plot flooded: see Water history in the Dossier tab.")}</div>
+        <div className="terra-real">
+          TerraScore {t.score}/100 · {tr("hạng", "grade")} {t.grade}
+          {t.real_data_ratio != null && ` · 🛰️ ${Math.round(t.real_data_ratio * 100)}% ${tr("hiểm họa dùng dữ liệu thật", "of hazards use real data")}`}
         </div>
-        <div className="terra-sum">{t.summary}</div>
-        {t.scope && <div className="terra-scope">{t.scope}</div>}
-        {t.real_data_ratio != null && (
-          <div className="terra-real">
-            🛰️ {Math.round(t.real_data_ratio * 100)}% {tr("hiểm họa dùng dữ liệu thật", "of hazards use real data")}
-          </div>
-        )}
       </div>
     </div>
   );

@@ -216,19 +216,35 @@ def _judge(typ: str, ev: dict) -> tuple[str, str, str]:
     if typ == "high_ground":
         if not terr:
             return "insufficient", tr("Không lấy được địa hình lúc này.", "Terrain unavailable right now."), "DEM"
-        low = terr["lower_than_pct"]
+        low = terr["lower_than_pct"]          # % điểm đo quanh thửa CAO HƠN thửa (passport.terrain)
         # chỉ đợt TRONG mùa lũ tính là "ướt" khi có lớp mùa lũ (nước tưới theo vụ không làm đất thành "thấp trũng")
         wet = (w or {}).get("n_in", (w or {}).get("n_events", 0))
+        in_season = tr(" trong mùa lũ", " in the flood season") if "n_in" in (w or {}) else ""
+        # Kiểm 7/11/2026 mục 5: "Thửa thấp hơn 38% đất trong bán kính" đọc như đất cao. Nói theo kiểu đếm được:
+        # cứ 100 điểm đo quanh thửa thì bao nhiêu điểm cao hơn — và nếu mâu thuẫn là do nước thì nói thẳng là do nước.
+        rk = terr.get("radius_km") or 5
+        count = tr(f"cứ 100 điểm đo quanh thửa (bán kính {rk:g} km) thì {low} điểm cao hơn thửa",
+                   f"of every 100 points measured around the plot (within {rk:g} km), {low} are higher than it")
+        level = (tr("thửa trũng hơn hầu hết đất xung quanh", "the plot is lower than most surrounding land") if low >= 70
+                 else tr("thửa cao hơn phần lớn đất xung quanh", "the plot is higher than most surrounding land") if low <= 30
+                 else tr("thửa ở mức giữa so với đất xung quanh, không phải chỗ cao", "the plot sits mid-level, not on high ground"))
         if low >= 70 or wet >= 2:
-            msg = tr(f"Thửa thấp hơn {low}% đất trong bán kính khảo sát", f"The plot is lower than {low}% of surrounding land")
-            if wet:
-                msg += tr(f"; radar ghi nhận nước phủ {wet} đợt", f"; radar recorded water {wet} times")
-            return "contradicted", msg + ".", "DEM + Sentinel-1"
+            if wet >= 2 and low < 70:
+                msg = tr(f"Mâu thuẫn chủ yếu vì radar thấy nước phủ thửa {wet} đợt{in_season}. Về địa hình, {level}: {count}.",
+                         f"Contradicted mainly because radar saw water cover the plot {wet} times{in_season}. Terrain-wise, {level}: {count}.")
+            else:
+                msg = tr(f"Địa hình: {level} — {count}.", f"Terrain: {level} — {count}.")
+                if wet:
+                    msg += tr(f" Radar còn thấy nước phủ {wet} đợt{in_season}.", f" Radar also saw water {wet} time(s){in_season}.")
+            return "contradicted", msg, "DEM + Sentinel-1"
         if low <= 30 and not wet:
-            return "consistent", tr(f"Thửa cao hơn {100 - low}% đất xung quanh (cao độ {terr['elevation_m']} m).",
-                                    f"The plot is higher than {100 - low}% of surrounding land (elevation {terr['elevation_m']} m)."), "DEM"
-        return "insufficient", tr(f"Thửa ở mức trung bình so với xung quanh (thấp hơn {low}%) — không đủ để nói là cao ráo hay trũng.",
-                                  f"The plot sits mid-level (lower than {low}% of surroundings) — not enough to call it high or low."), "DEM"
+            return "consistent", tr(f"Địa hình: {level} — {count} (cao độ {terr['elevation_m']} m).",
+                                    f"Terrain: {level} — {count} (elevation {terr['elevation_m']} m)."), "DEM"
+        msg = tr(f"Địa hình: {level} — {count}; không đủ để nói là cao ráo hay trũng.",
+                 f"Terrain: {level} — {count}; not enough to call it high or low.")
+        if wet:
+            msg += tr(f" Radar thấy nước phủ {wet} đợt{in_season}.", f" Radar saw water {wet} time(s){in_season}.")
+        return "insufficient", msg, "DEM"
     if typ == "flat":
         if not terr or terr.get("slope_deg") is None:
             return "insufficient", tr("Không lấy được độ dốc.", "Slope unavailable."), "DEM"

@@ -71,7 +71,13 @@ export default function TodayPage() {
             <h1>{hello}</h1>
             <p className="doc-lede">{d?.signed_in
               ? (d.items.length ? t(`Có ${d.items.length} việc đang chờ bạn.`, `${d.items.length} things are waiting for you.`)
-                : t("Không có việc gì gấp. Vườn của bạn đang được canh.", "Nothing urgent. Your plots are being watched."))
+                // Kiểm 7/11/2026 mục 6: chưa lưu thửa nào thì không có gì "đang được canh" — mời lưu thửa, nói rõ phần dưới là thửa mẫu.
+                : plots && plots.length === 0
+                  ? t(`Bạn chưa lưu thửa nào nên chưa có gì để canh. Mở một thửa ở mục Thửa đất rồi bấm Lưu — từ hôm sau mỗi sáng sẽ có nhật ký riêng; dưới đây là nhật ký sống của ${nSamples ? `${nSamples} ` : "các "}thửa mẫu.`,
+                      `You haven't saved a plot yet, so there's nothing to watch. Open a plot under Land and tap Save — from tomorrow you'll get its own morning journal; below is the live journal of ${nSamples ? `${nSamples} ` : "the "}sample plots.`)
+                  : plots
+                    ? t(`Không có việc gì gấp. ${plots.length} thửa của bạn đang được canh.`, `Nothing urgent. Your ${plots.length} plot(s) are being watched.`)
+                    : t("Không có việc gì gấp.", "Nothing urgent."))
               : t(`Mỗi sáng: thửa đất của bạn đêm qua có gì đổi — mưa, ảnh radar, cảnh báo, cảm biến. Đăng nhập và lưu thửa để có nhật ký riêng; dưới đây là nhật ký sống của ${nSamples ? `${nSamples} ` : "các "}thửa mẫu.`,
                   `Every morning: what changed on your land overnight — rain, radar images, alerts, sensors. Sign in and save a plot for its own journal; below is the live journal of ${nSamples ? `${nSamples} ` : "the "}sample plots.`)}</p>
           </div>
