@@ -42,11 +42,18 @@ export default function TodayPage() {
   }
   const [err, setErr] = useState<string | null>(null);
   const [plots, setPlots] = useState<ServerPlot[] | null>(null);
+  // Kiểm lại 7/11/2026: API ngủ / lỗi khi tải danh sách thửa KHÔNG có nghĩa là 0 thửa — trước đây catch → [] nên trang
+  // khẳng định "Bạn chưa lưu thửa nào" với cả người đã lưu. Lỗi giữ plots = null (chưa biết) và báo riêng, có nút thử lại.
+  const [plotsErr, setPlotsErr] = useState(false);
   const [samples, setSamples] = useState<PublicJournal["samples"] | undefined>(undefined);
   const nSamples = samples?.plots.length ?? 0;     // MỘT nguồn số cho câu mở đầu, nhãn và tiêu đề
+  const loadPlots = () => {
+    setPlotsErr(false);
+    listPlots().then(setPlots).catch(() => { setPlots(null); setPlotsErr(true); });
+  };
   const load = () => getToday().then((x) => {
     setD(x);
-    if (x.signed_in) listPlots().then(setPlots).catch(() => setPlots([])); else setPlots([]);
+    if (x.signed_in) loadPlots(); else setPlots([]);
   }).catch((e) => setErr(e.message));
   useEffect(() => { load(); }, [lang]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -80,6 +87,13 @@ export default function TodayPage() {
                     : t("Không có việc gì gấp.", "Nothing urgent."))
               : t(`Mỗi sáng: thửa đất của bạn đêm qua có gì đổi — mưa, ảnh radar, cảnh báo, cảm biến. Đăng nhập và lưu thửa để có nhật ký riêng; dưới đây là nhật ký sống của ${nSamples ? `${nSamples} ` : "các "}thửa mẫu.`,
                   `Every morning: what changed on your land overnight — rain, radar images, alerts, sensors. Sign in and save a plot for its own journal; below is the live journal of ${nSamples ? `${nSamples} ` : "the "}sample plots.`)}</p>
+            {plotsErr && (
+              <p className="bat-err" role="status">
+                {t("Chưa tải được danh sách thửa của bạn (máy chủ có thể đang thức dậy) — chưa kết luận gì về thửa đã lưu. ",
+                   "Couldn't load your plot list (the server may be waking up) — nothing is concluded about your saved plots. ")}
+                <button type="button" className="bat-btn ghost" onClick={loadPlots}>{t("Thử lại", "Retry")}</button>
+              </p>
+            )}
           </div>
           {d && biz && <div className="hn-rings">{d.deadlines.map((x, i) => <Ring key={x.date} days={x.days} total={i === 0 ? 450 : 630} label={x.who} date={x.date} unit={t("ngày", "days")} />)}</div>}
         </section>
@@ -162,7 +176,9 @@ export default function TodayPage() {
             {d.items.length === 0 ? (
               <div className="hn-empty"><CheckCircle2 size={22} aria-hidden="true" /> {plots && plots.length === 0
                 ? t("Chưa có việc nào — bạn chưa lưu thửa nào. Mở thửa đất của bạn trên bản đồ rồi bấm Lưu ở tab Canh đất.", "Nothing yet — you haven't saved a plot. Open your land on the map, then press Save in the Watch tab.")
-                : t("Mọi thứ ổn. Radar xuyên mây canh thửa của bạn cả mùa mưa; có thay đổi thật sẽ hiện ở đây.", "All clear. Cloud-piercing radar watches your plots through the rainy season; real changes show up here.")}</div>
+                : plots
+                  ? t("Mọi thứ ổn. Radar xuyên mây canh thửa của bạn cả mùa mưa; có thay đổi thật sẽ hiện ở đây.", "All clear. Cloud-piercing radar watches your plots through the rainy season; real changes show up here.")
+                  : t("Chưa có việc nào đang chờ.", "Nothing waiting right now.")}</div>
             ) : d.items.map((it, i) => {
               const Ic = icon[it.priority];
               return (

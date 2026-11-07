@@ -100,11 +100,12 @@ const GROUPS: Record<string, [string, string]> = {
 // lịch sử nước, và lùi con số về chú thích nhỏ.
 function TerraBadge({ t }: { t: TerraScore }) {
   const { t: tr } = useLang();
-  const calm = t.grade === "A" || t.grade === "B";
-  const color = calm ? "#2E9E67" : t.grade === "C" ? "#B07A2E" : "#C2412E";
-  const head = calm ? tr("7 ngày tới: yên", "Next 7 days: calm")
-    : t.grade === "C" ? tr("7 ngày tới: cần để ý", "Next 7 days: watch")
-    : tr("7 ngày tới: nguy cơ cao", "Next 7 days: high risk");
+  // Đúng thang của services/terrascore.py: chỉ A là "thấp"; B = "có vài mối cần theo dõi" — không gọi B là "yên" (kiểm lại 7/11).
+  const [color, head] =
+    t.grade === "A" ? ["#2E9E67", tr("7 ngày tới: yên", "Next 7 days: calm")]
+    : t.grade === "B" ? ["#3aa0a0", tr("7 ngày tới: có vài điều cần theo dõi", "Next 7 days: a few things to watch")]
+    : t.grade === "C" ? ["#B07A2E", tr("7 ngày tới: cần để ý", "Next 7 days: watch closely")]
+    : ["#C2412E", tr("7 ngày tới: nguy cơ cao", "Next 7 days: high risk")];
   return (
     <div className="terra terra-7d">
       <div className="terra-txt">
