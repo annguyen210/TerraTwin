@@ -47,6 +47,15 @@ RUNS = {   # lần → (tệp nhãn, tệp kết quả, mô tả dữ liệu VI,
           "30 NEW land-sale posts from 4 public Facebook broker pages (Đắk Lắk, Quảng Nam, Tây Ninh, An Giang + backups): first 20 in page "
           "order + 10 containing 'quy hoạch'/'QH'/'ONT'/'ODT'; collected AFTER the run-9 rule fix was frozen; HUMAN labels by the owner; "
           "the run-8 posts are the development set"),
+    "10": ("listing_gate_v10_labels.json", "listing_gate_v10_result.json",
+           "Bài bán đất MỚI trên 5 trang Facebook công khai của môi giới ở vùng hay ngập chưa dùng (Huế, Quảng Trị – Đông Hà, Hải Phòng – "
+           "Hải Dương cũ, Đồng Tháp – Tiền Giang cũ, Cần Thơ – Sóc Trăng cũ + dự phòng): 3 bài đầu mỗi trang theo thứ tự + tối đa 3 bài/trang "
+           "có gốc chữ lấy từ HƯỚNG DẪN gán mã A/B ('ngập', 'lụt', 'khô ráo', 'cao', 'trũng') — KHÔNG lọc bằng luật của bộ tách câu; luật "
+           "giữ nguyên như lần 9; NHÃN NGƯỜI; lần 1–9 là tập phát triển",
+           "NEW land-sale posts from 5 public Facebook broker pages in flood-prone regions not used before (Huế, Quảng Trị – Đông Hà, Hải Phòng "
+           "– former Hải Dương, Đồng Tháp – former Tiền Giang, Cần Thơ – former Sóc Trăng + backups): first 3 per page in page order + up to 3 "
+           "per page containing word stems taken from the A/B labelling GUIDELINE ('ngập', 'lụt', 'khô ráo', 'cao', 'trũng') — NOT filtered "
+           "with the extractor's own rules; rules unchanged since run 9; HUMAN labels; runs 1–9 are the development set"),
 }
 # Lần 9: chỗ sửa nào ĐƯỢC KIỂM — đếm tin mới có đúng kiểu câu đã sửa (trên chữ đã bỏ dấu) và máy đúng/sai ở loại đó.
 FIX_FAMILIES = {"9": {
@@ -57,7 +66,11 @@ FIX_FAMILIES = {"9": {
     "ra_bien_km_co_phay": ("near_sea", r"\b(di|ra|xuong|toi|den) (bai )?bien\b[^.;]{0,45}?,[^.;]*?\d+ ?(km|p|phut)\b"),
 }}
 # Lần 8: F1 CHÍNH chỉ tính 6 loại đích (listing_gate_v8_protocol.json "target_types"); F1 mọi loại vẫn ghi làm số phụ.
-TARGETS = {"8": ["no_flood", "near_river", "near_sea", "flat", "no_landslide", "fresh_water"]}
+TARGETS = {"8": ["no_flood", "near_river", "near_sea", "flat", "no_landslide", "fresh_water"],
+           # Lần 10 (đăng ký 7/11/2026): đo "không ngập" và "cao ráo" trên NHÃN NGƯỜI — lần 9 chỉ đo được gần sông + thổ cư.
+           "10": ["no_flood", "high_ground"]}
+# Lần 10: cần ≥ 8 tin có câu đích (mã A hoặc B theo nhãn người); thiếu thì CHƯA KẾT LUẬN — không tính đạt, không tính trượt.
+MIN_TARGET_LISTINGS = {"10": 8}
 THRESHOLD = 0.80
 
 
@@ -97,6 +110,13 @@ def main() -> None:
         res["macro_f1_all_types"] = s["macro_f1"]
         res["target_positives"] = {t: sum(t in g["claims"] for g in gold) for t in TARGETS[run]}
         res["few_samples"] = [t for t, n in res["target_positives"].items() if n < 3]
+        if run in MIN_TARGET_LISTINGS:
+            n_t = sum(any(t in g["claims"] for t in TARGETS[run]) for g in gold)
+            res["target_listings"], res["min_target_listings"] = n_t, MIN_TARGET_LISTINGS[run]
+            if n_t < MIN_TARGET_LISTINGS[run]:
+                res["passed"] = None
+                res["verdict"] = (f"CHƯA KẾT LUẬN — chỉ {n_t} tin có câu không ngập / cao ráo theo nhãn người "
+                                  f"(cần ≥ {MIN_TARGET_LISTINGS[run]})")
     # Lần 6: nhãn chấm cổng là nhãn NGƯỜI; nhãn AI (khoá trước) chỉ để đo độ khớp AI–người.
     ai_path = os.path.join(EVAL, LABELS.replace("_labels.json", "_ai_labels.json"))
     if os.path.exists(ai_path):
