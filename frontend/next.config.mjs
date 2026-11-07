@@ -58,7 +58,16 @@ const CSP = [
   "object-src 'none'",
 ].join("; ");
 
+// 7/11/2026: Vercel tự gắn `Access-Control-Allow-Origin: *` vào MỌI phản hồi (HTML, robots, manifest, chunk JS) → ZAP 10098
+// (CORS cấu hình sai) đỏ hằng ngày từ 30/10. Trang web không có API nào cho site khác gọi bằng trình duyệt, nên ghi đè
+// bằng đúng nguồn của chính web (API ở Render có CORS riêng, không dính header này).
+const WEB_ORIGIN = (() => {
+  try { return new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://terratwin-web.vercel.app").origin; }
+  catch { return "https://terratwin-web.vercel.app"; }
+})();
+
 const SECURITY_HEADERS = [
+  { key: "Access-Control-Allow-Origin", value: WEB_ORIGIN },
   { key: "Content-Security-Policy", value: CSP },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
@@ -73,6 +82,7 @@ const SECURITY_HEADERS = [
 // nosniff + HSTS. Chỉ /embed mới nới; phần còn lại vẫn khoá khung chặt.
 const EMBED_CSP = CSP.replace("frame-ancestors 'self'", "frame-ancestors *");
 const EMBED_HEADERS = [
+  { key: "Access-Control-Allow-Origin", value: WEB_ORIGIN },
   { key: "Content-Security-Policy", value: EMBED_CSP },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
