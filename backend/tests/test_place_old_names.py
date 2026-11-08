@@ -6,6 +6,8 @@ import pytest
 
 from app.services import place
 
+_REAL_NOMINATIM = place._from_nominatim      # fixture `nguon` thay hàm này; giữ bản thật cho test lọc POI
+
 
 @pytest.fixture
 def nguon(monkeypatch):
@@ -51,11 +53,41 @@ def test_khop_nguyen_tu_khong_khop_chuoi_con():
 
 def test_nominatim_co_nhan_khong_loi(monkeypatch):
     """8/11/2026: _from_nominatim gọi _label() chưa được định nghĩa → lỗi 500 trên Render (nơi Nominatim không bị chặn)."""
-    sample = [{"lat": "10.24", "lon": "106.38", "name": "Phú Khương", "addresstype": "suburb",
+    sample = [{"lat": "10.24", "lon": "106.38", "name": "Phú Khương", "category": "boundary", "addresstype": "suburb",
                "address": {"suburb": "Phú Khương", "city": "Bến Tre", "state": "Vĩnh Long"}}]
     monkeypatch.setattr(place, "_get", lambda url, timeout=None: sample)
     out = place._from_nominatim("Phú Khương, Bến Tre")
     assert out[0]["label"] == "Phú Khương · Bến Tre · Vĩnh Long" and out[0]["source"] == "nominatim"
+
+
+def test_nominatim_bo_cua_hang_ngan_hang(monkeypatch):
+    """8/11/2026 production: "Phú Khương, Bến Tre" ra toàn ngân hàng ACB, cửa hàng Honda… — chỉ giữ địa danh/ranh hành chính."""
+    sample = [
+        {"lat": "10.244", "lon": "106.375", "name": "Ngân Hàng Á Châu - ACB CN Bến Tre", "category": "amenity",
+         "addresstype": "amenity", "address": {"suburb": "Phường Phú Khương", "state": "Tỉnh Vĩnh Long"}},
+        {"lat": "10.246", "lon": "106.374", "name": "Honda Huỳnh Thành 1", "category": "shop",
+         "addresstype": "shop", "address": {"suburb": "Phường Phú Khương", "state": "Tỉnh Vĩnh Long"}},
+        {"lat": "10.237", "lon": "106.381", "name": "Thành phố Bến Tre", "category": "historic",
+         "addresstype": "historic", "address": {"suburb": "Phường An Hội", "state": "Tỉnh Vĩnh Long"}},
+        {"lat": "10.245", "lon": "106.376", "name": "Phường Phú Khương", "category": "boundary",
+         "addresstype": "suburb", "address": {"suburb": "Phường Phú Khương", "state": "Tỉnh Vĩnh Long"}},
+    ]
+    urls = []
+    monkeypatch.setattr(place, "_get", lambda url, timeout=None: urls.append(url) or sample)
+    out = place._from_nominatim("Phú Khương, Bến Tre")
+    assert [x["label"] for x in out] == ["Phường Phú Khương · Tỉnh Vĩnh Long"]
+    assert "featureType=settlement" in urls[0]
+
+
+def test_nominatim_chi_co_cua_hang_thi_tim_theo_ten_va_noi(nguon, monkeypatch):
+    """Nominatim chỉ trả POI → coi như rỗng, rơi xuống tìm "Tên" rồi lọc theo "Nơi" (cả tên tỉnh mới)."""
+    poi = [{"lat": "10.244", "lon": "106.375", "name": "ACB Bến Tre", "category": "amenity", "addresstype": "amenity",
+            "address": {"state": "Tỉnh Vĩnh Long"}}]
+    monkeypatch.setattr(place, "_get", lambda url, timeout=None: poi)
+    monkeypatch.setattr(place, "_MIN_GAP", 0)
+    monkeypatch.setattr(place, "_SOURCES", (place._from_open_meteo, place._from_photon, _REAL_NOMINATIM))
+    r = place.search("Phú Khương, Bến Tre")
+    assert [x["label"] for x in r["results"]] == ["Phường Phú Khương · Vĩnh Long Province"]
 
 
 def test_nominatim_nhieu_cap_van_giu_tinh():

@@ -146,15 +146,22 @@ def _from_nominatim(q: str) -> list | None:
         if gap < _MIN_GAP:
             time.sleep(_MIN_GAP - gap)
         try:
+            # featureType=settlement: chỉ lấy lớp địa chỉ (tỉnh → xóm). 8/11/2026 trên production, "Phú Khương, Bến Tre"
+            # trả 10 kết quả toàn ngân hàng, cửa hàng Honda, quán cà phê… có chữ "Bến Tre" trong tên, KHÔNG có chính
+            # phường Phú Khương — người dùng chọn kết quả đầu là rơi vào chỗ khác.
             d = _get(SEARCH + "?" + urllib.parse.urlencode({
                 "q": q, "format": "jsonv2", "countrycodes": "vn",
-                "limit": _LIMIT, "addressdetails": 1}))
+                "limit": _LIMIT, "addressdetails": 1, "featureType": "settlement"}))
         finally:
             _last[0] = time.time()
     if not d:
         return None
     out = []
     for it in d:
+        # Lọc thêm ở phía mình, phòng khi máy chủ Nominatim bỏ qua featureType: chỉ giữ địa danh (place) và ranh hành
+        # chính (boundary); bỏ amenity/shop/office/leisure/historic.
+        if it.get("category") not in _NOMINATIM_OK:
+            continue
         try:
             out.append({"label": _label(it), "lat": float(it["lat"]),
                         "lon": float(it["lon"]),
@@ -164,6 +171,8 @@ def _from_nominatim(q: str) -> list | None:
             continue
     return out
 
+
+_NOMINATIM_OK = {"place", "boundary"}
 
 _SOURCES = (_from_open_meteo, _from_photon, _from_nominatim)
 
@@ -235,7 +244,8 @@ def search(q: str) -> dict:
         return {"query": q, "results": [],
                 "message": "Gõ ít nhất hai ký tự."}
 
-    key = f"place:{q.lower()}"
+    # "v2" (8/11/2026): bỏ danh sách cũ đã cache 30 ngày lúc Nominatim còn trả ngân hàng/cửa hàng thay cho địa danh.
+    key = f"place:v2:{q.lower()}"
     hit = cache_store.get(key)
     if hit is not None:
         return {"query": q, "results": hit, "cached": True}
