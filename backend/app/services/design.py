@@ -210,6 +210,12 @@ def _item(code: str, item: str, why: str) -> dict:
 def _infrastructure(elev, slope, sal, flood_risk, coast) -> list[dict]:
     """Việc cần làm với đất, xếp theo mức ưu tiên."""
     items = []
+    if flood_risk == "unknown":
+        # 8/11/2026: Lũ chưa kết luận được (thiếu khí hậu nền / cao độ thật) — không được rơi xuống "mọi chỉ số an toàn".
+        items.append(_item("medium", tr("Chưa kết luận được về ngập — chưa nên quyết hạ tầng chống ngập",
+                                        "Flood risk not concluded yet — don't decide on flood works yet"),
+                           tr("Module Lũ chưa đủ dữ liệu để kết luận; thử lại sau ít phút. Chưa cảnh báo không có nghĩa là an toàn.",
+                              "The Flood module lacks data to conclude; try again in a few minutes. No alert does not mean safe.")))
     if flood_risk in ("warning", "danger"):
         items.append(_item("high", tr("Tôn nền hoặc đắp bờ bao", "Raise the ground or build a dike"),
                            tr(f"Module Lũ đang ở mức {flood_risk}; nền hiện {elev} m.",

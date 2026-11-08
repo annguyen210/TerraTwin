@@ -145,12 +145,28 @@ function headline(d: ScanResult, t: T): { tone: string; big: string; sub: string
     };
   }
 
+  // 8/11/2026: câu "bảy ngày tới" dựa trên chính các hiểm hoạ thời tiết 7 ngày (cùng bộ với TerraScore). Một mục trong đó
+  // chưa kết luận được (vd. chưa tải được khí hậu nền của điểm) thì KHÔNG được nói "chưa thấy rủi ro" — dù dưới ngưỡng 1/3.
+  const wxMu = d.modules.filter((m) => WEATHER_7D.includes(m.id) && m.status === "need_data");
+  if (wxMu.length) {
+    return {
+      tone: "warn",
+      big: t(`Chưa kết luận được thời tiết 7 ngày tới — ${wxMu.length} hiểm hoạ thiếu dữ liệu`,
+             `Can't conclude the next 7 days — ${wxMu.length} weather hazard(s) lack data`),
+      sub: t(`Chưa kết luận: ${wxMu.map((m) => m.name.toLowerCase()).join(", ")}. Thử lại sau ít phút — chưa cảnh báo không có nghĩa là an toàn.`,
+             `Not concluded: ${wxMu.map((m) => m.name.toLowerCase()).join(", ")}. Try again in a few minutes — no alert does NOT mean safe.`),
+    };
+  }
+
   return {
     tone: "ok",
     big: t("Bảy ngày tới chưa thấy rủi ro nào", "No risks in the next 7 days"),
     sub: duoi,
   };
 }
+
+// Hiểm hoạ thời tiết 7 ngày — cùng bộ với services/terrascore.py và advisor._WEATHER_7D.
+const WEATHER_7D = ["salinity", "drought", "flood", "landslide", "wildfire"];
 
 export default function Answer({
   lat,

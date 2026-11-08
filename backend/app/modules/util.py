@@ -57,14 +57,22 @@ def uncalibrated_assessment(module, loc: Location) -> Assessment:
     chưa biết, KHÔNG cảnh báo theo thang tuyệt đối. Thang tuyệt đối bão hoà ở vùng mưa nhiều: 8/11/2026 ruộng Tân Trụ
     (Long An), mưa ~10 mm/ngày → "NGUY CƠ NGẬP CAO 75,4, sẵn sàng sơ tán" trên thang tuyệt đối, 21,7 (an toàn) trên
     thang hiệu chuẩn; kế hoạch thửa (lượt quét riêng, khí hậu nền chưa về) báo động trong khi thẻ cùng trang báo "yên".
-    Cùng nguyên tắc với rủi ro vùng nguyên liệu (group_d): điểm chưa hiệu chuẩn = chưa biết."""
-    return need_data_assessment(
-        module, loc,
-        needs=tr("khí hậu nền 10 năm của chính điểm này (nguồn lưu trữ thời tiết chưa trả về)",
-                 "this point's own 10-year baseline climate (the weather archive hasn't responded yet)"),
-        will_do=tr("so dự báo với khí hậu của chính nơi này để biết thế nào là bất thường",
-                   "compare the forecast with this place's own climate to tell what is unusual"),
-        next_step=tr("Thử lại sau ít phút.", "Try again in a few minutes."))
+    Cùng nguyên tắc với rủi ro vùng nguyên liệu (group_d): điểm chưa hiệu chuẩn = chưa biết. Không dùng
+    need_data_assessment — lời giải thích ở đó nói về nguồn ẢNH, ở đây đã có dự báo thật, chỉ thiếu khí hậu nền."""
+    return Assessment(
+        module_id=module.id, module_name=module.disp_name(), location=loc,
+        status="need_data", risk_level="unknown", is_real=False,
+        headline=tr("Chưa kết luận được — chưa tải được khí hậu nền 10 năm của chính điểm này",
+                    "Can't conclude yet — this point's own 10-year baseline climate hasn't loaded"),
+        detail=tr("Đã có dự báo thời tiết thật, nhưng chưa tải được khí hậu 10 năm của chính điểm này để biết thế nào "
+                  "là bất thường ở đây. Thang tuyệt đối (chưa hiệu chuẩn) hay báo động oan ở vùng mưa nhiều nên không "
+                  "dùng để cảnh báo; chưa cảnh báo KHÔNG có nghĩa là an toàn.",
+                  "Real forecast weather is available, but this point's own 10-year climate hasn't loaded, so what "
+                  "counts as unusual here is unknown. The absolute (uncalibrated) scale over-warns in rainy regions, "
+                  "so it isn't used for alerts; no alert does NOT mean safe."),
+        recommendation=tr("Thử lại sau ít phút.", "Try again in a few minutes."),
+        confidence=None, data_sources=module.disp_data_sources(),
+    )
 
 
 def conf_band(confidence: float, is_real: bool) -> tuple[float, float]:

@@ -61,6 +61,43 @@ def test_terrascore_khong_tru_diem_vi_thang_chua_hieu_chuan(tan_tru, monkeypatch
     assert t.grade == "—" and t.score is None
 
 
+def test_loi_giai_thich_noi_dung_ly_do(tan_tru, monkeypatch):
+    """Lý do là thiếu KHÍ HẬU NỀN, không phải thiếu ảnh vệ tinh (góp ý review PR #4)."""
+    monkeypatch.setattr(cal, "climatology", lambda *a, **k: None)
+    a = get_module("flood").assess(Location(lat=LAT, lon=LON))
+    assert "khí hậu" in a.detail and "nguồn ảnh" not in a.detail and "vệ tinh" not in a.detail
+    assert "có nghĩa là an toàn" in a.detail
+
+
+def _scan_flood_chua_biet():
+    """Kết quả quét giả: lũ CHƯA kết luận, không cảnh báo nào, TerraScore chưa chấm được."""
+    from types import SimpleNamespace as NS
+    mods = [NS(id="flood", name="Cảnh báo lũ/ngập sớm", status="need_data"),
+            NS(id="solar", name="Điện mặt trời", status="ok")]
+    return NS(alerts=[], modules=mods, terrascore=NS(grade="—", score=None), real_data_ratio=0.5,
+              generated_at="2026-11-08T10:00:00")
+
+
+def test_ke_hoach_khong_goi_ngay_nao_an_toan_khi_hiem_hoa_chua_ket_luan(monkeypatch):
+    """Không cảnh báo vì CHƯA BIẾT ≠ an toàn: lịch 7 ngày, giá trị vụ và điểm nền đều phải nói chưa kết luận."""
+    from app.services import advisor, landuse, scan
+    monkeypatch.setattr(scan, "scan", lambda loc, deadline=None: _scan_flood_chua_biet())
+    monkeypatch.setattr(landuse, "fetch_raw", lambda la, lo: None)
+    p = advisor.build(Location(lat=LAT, lon=LON), crop="lua")
+    sw = p["safe_window"]
+    assert sw["safe_dates"] == [] and all(d["unknown"] and not d["safe"] for d in sw["days"])
+    assert sw["headline"].startswith("Chưa nói được ngày nào an toàn") and "lũ" in sw["headline"]
+    assert p["value"]["headline"].startswith("Chưa nói được giá trị vụ") and "✅" not in p["value"]["headline"]
+    assert p["watch"]["headline"].startswith("Chưa chấm được điểm nền") and "None" not in p["watch"]["headline"]
+
+
+def test_thiet_ke_khong_noi_moi_chi_so_an_toan_khi_lu_chua_biet():
+    from app.services import design
+    items = design._infrastructure(elev=2.0, slope=0.1, sal=None, flood_risk="unknown", coast=60)
+    text = " ".join(i["item"] + " " + i["why"] for i in items)
+    assert "Chưa kết luận được về ngập" in text and "Chưa cần hạ tầng đặc biệt" not in text
+
+
 def test_co_khi_hau_nen_thi_van_cham_binh_thuong(tan_tru, monkeypatch):
     """Có khí hậu nền: lũ chấm trên thang hiệu chuẩn — dữ liệu thật, không báo động với mưa ~10 mm/ngày."""
     dist = sorted((i / 2000) ** 2 * 400.0 for i in range(2000))
