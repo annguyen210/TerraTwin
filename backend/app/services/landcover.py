@@ -64,7 +64,12 @@ def _load():
         # gây hậu quả cho người thật.
         return None
     try:
-        _sess = ort.InferenceSession(MODEL_PATH, providers=["CPUExecutionProvider"])
+        # Một luồng như s1_unet/field_water: mặc định ONNX Runtime mở số luồng bằng số nhân tiến trình THẤY (Render báo 8)
+        # và cho chúng quay vòng chờ việc — trên máy chủ 0,1 CPU chỉ đốt hạn mức CPU (8/11/2026).
+        o = ort.SessionOptions()
+        o.intra_op_num_threads = 1
+        o.inter_op_num_threads = 1
+        _sess = ort.InferenceSession(MODEL_PATH, sess_options=o, providers=["CPUExecutionProvider"])
         _card = card
     except Exception:
         _sess = None

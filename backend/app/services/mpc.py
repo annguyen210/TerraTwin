@@ -38,6 +38,7 @@ import urllib.parse
 import urllib.request
 from datetime import date, timedelta
 
+from app import TLS_CONTEXT
 from app.services.reqlang import tr
 
 STAC = "https://planetarycomputer.microsoft.com/api/stac/v1/search"
@@ -121,7 +122,9 @@ def _pc_conn(timeout: float) -> http.client.HTTPSConnection:
     mở ~460 kết nối TLS mới — mỗi lần bắt tay mã hoá tốn CPU và vài vòng mạng (18/10/2026)."""
     c = getattr(_tls, "conn", None)
     if c is None:
-        c = http.client.HTTPSConnection(_PC_HOST, timeout=timeout)
+        # Context dùng chung (app.TLS_CONTEXT): luồng của jobs.gather là luồng MỚI mỗi lượt, nên kết nối mới liên tục —
+        # không truyền context thì mỗi kết nối nạp lại kho CA, giữ GIL (8/11/2026).
+        c = http.client.HTTPSConnection(_PC_HOST, timeout=timeout, context=TLS_CONTEXT)
         _tls.conn = c
     else:
         c.timeout = timeout
