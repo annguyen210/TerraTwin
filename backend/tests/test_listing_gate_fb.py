@@ -15,27 +15,32 @@ def _gate():
     return g
 
 
-def test_lan_10_nhan_claude_khong_duoc_tinh_dat():
-    """Giao thức lần 10 đăng ký chấm trên nhãn người — nhãn Claude thì CHƯA KẾT LUẬN dù F1 đạt ngưỡng."""
+def test_lan_10_nhan_claude_thi_khong_cham():
+    """Giao thức lần 10 đăng ký chấm trên nhãn người — nhãn Claude thì dừng trước khi ghi tệp kết quả một lần."""
     g = _gate()
-    res = {"macro_f1": 0.95, "passed": True}
-    g.require_human(res, "10", "claude")
-    assert res["passed"] is None and res["verdict"].startswith("CHƯA KẾT LUẬN") and "'claude'" in res["verdict"]
+    with pytest.raises(SystemExit) as e:
+        g.require_human("10", "claude")
+    assert "nhãn người" in str(e.value) and "'claude'" in str(e.value)
 
 
-def test_lan_10_giu_ly_do_thieu_tin_dich():
+def test_lan_10_nhan_nguoi_va_lan_khac_van_cham():
     g = _gate()
-    res = {"passed": None, "verdict": "CHƯA KẾT LUẬN — chỉ 5 tin có câu không ngập / cao ráo"}
-    g.require_human(res, "10", "claude")
-    assert "nhãn người" in res["verdict"] and "chỉ 5 tin" in res["verdict"]
+    g.require_human("10", "human")
+    g.require_human("9", "claude")
 
 
-def test_lan_10_nhan_nguoi_va_lan_khac_giu_nguyen():
+def test_lan_10_nhan_claude_khong_ghi_tep_ket_qua(tmp_path, monkeypatch):
+    """Chạy cả main(): tệp nhãn lần 10 khai 'claude' → dừng, KHÔNG có tệp kết quả nào được ghi."""
     g = _gate()
-    for run, kind in (("10", "human"), ("9", "claude")):
-        res = {"passed": True}
-        g.require_human(res, run, kind)
-        assert res == {"passed": True}
+    lab = {"labeler": "Claude", "labeler_kind": "claude", "labels": []}
+    (tmp_path / g.RUNS["10"][0]).write_text(json.dumps(lab), encoding="utf-8")
+    tin = tmp_path / "tin.json"
+    tin.write_text("[]", encoding="utf-8")
+    monkeypatch.setattr(g, "EVAL", str(tmp_path))
+    monkeypatch.setattr("sys.argv", ["listing_gate_fb.py", str(tin), "--run", "10"])
+    with pytest.raises(SystemExit):
+        g.main()
+    assert not (tmp_path / g.RUNS["10"][1]).exists()
 
 
 def test_tep_nhan_lan_4_den_9_deu_xac_dinh_duoc_nguoi_gan():

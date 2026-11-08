@@ -74,7 +74,7 @@ TARGETS = {"8": ["no_flood", "near_river", "near_sea", "flat", "no_landslide", "
 MIN_TARGET_LISTINGS = {"10": 8}
 # Lần 4–5 nhãn do Claude gán (REPRODUCE.md §13) — tệp nhãn cũ không có labeler_kind nên khai thay ở đây.
 DEFAULT_KIND = {"4": "claude", "5": "claude"}
-# Giao thức đã đăng ký chấm trên NHÃN NGƯỜI (listing_gate_v10_protocol.json "labelers") — nhãn khác thì CHƯA KẾT LUẬN.
+# Giao thức đã đăng ký chấm trên NHÃN NGƯỜI (listing_gate_v10_protocol.json "labelers") — nhãn khác thì KHÔNG chấm.
 HUMAN_REQUIRED = {"10"}
 THRESHOLD = 0.80
 
@@ -87,12 +87,12 @@ def labeler_kind(run: str, lab: dict) -> str:
     return kind
 
 
-def require_human(res: dict, run: str, kind: str) -> None:
-    """Giao thức cần nhãn người mà nhãn không phải của người → không tính đạt hay trượt, dù F1 bao nhiêu."""
+def require_human(run: str, kind: str) -> None:
+    """Giao thức cần nhãn người mà nhãn không phải của người → dừng TRƯỚC khi ghi tệp kết quả: chấm là một lần,
+    ghi kết quả nhãn Claude vào đó thì nhãn người về sau không còn lượt chấm."""
     if run in HUMAN_REQUIRED and kind != "human":
-        res["passed"] = None
-        res["verdict"] = (f"CHƯA KẾT LUẬN — giao thức lần {run} đăng ký chấm trên nhãn người, tệp nhãn khai labeler_kind "
-                          f"'{kind}'" + (f"; {res['verdict']}" if res.get("verdict") else ""))
+        sys.exit(f"lần {run}: giao thức đăng ký chấm trên nhãn người, tệp nhãn khai labeler_kind '{kind}' — không chấm, "
+                 "giữ lượt chấm một lần cho nhãn người")
 
 
 def main() -> None:
@@ -105,6 +105,7 @@ def main() -> None:
         sys.exit(f"{RESULT} đã có — giao thức chấm MỘT lần, không chấm lại")
     lab = json.load(open(os.path.join(EVAL, LABELS), encoding="utf-8"))
     kind = labeler_kind(run, lab)
+    require_human(run, kind)
     if kind == "claude":
         note_vi += "; NHÃN DO CLAUDE GÁN — không phải nhãn người"
         note_en += "; labels by CLAUDE — not human labels"
@@ -142,7 +143,6 @@ def main() -> None:
                 res["passed"] = None
                 res["verdict"] = (f"CHƯA KẾT LUẬN — chỉ {n_t} tin có câu không ngập / cao ráo theo nhãn chấm cổng "
                                   f"(cần ≥ {MIN_TARGET_LISTINGS[run]})")
-    require_human(res, run, kind)
     # Lần 6: nhãn AI phụ (khoá trước) chỉ để đo độ khớp với nhãn chấm cổng — tên khoá ai_vs_human giữ cho tương thích.
     ai_path = os.path.join(EVAL, LABELS.replace("_labels.json", "_ai_labels.json"))
     if os.path.exists(ai_path):
