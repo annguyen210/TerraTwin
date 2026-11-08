@@ -1,5 +1,16 @@
-import { getRetry } from "./retry";
+import { getRetry, NetworkError, offlineMessage } from "./retry";
 const BASE = process.env.NEXT_PUBLIC_API ?? "http://localhost:8000";
+
+// Lệnh ghi (POST…) không thử lại (gửi lại có thể làm hai lần) nhưng lỗi mạng vẫn phải là câu người đọc hiểu — trước đây
+// ô "Danh mục thửa" hiện nguyên "Failed to fetch" tiếng Anh lúc máy chủ khởi động lại (góp ý dùng thử 7/11/2026).
+async function apiFetch(input: string, init?: RequestInit): Promise<Response> {
+  try {
+    return await fetch(input, init);
+  } catch (e) {
+    if ((e as Error)?.name === "AbortError") throw e;
+    throw new NetworkError(offlineMessage(curLang()));
+  }
+}
 
 // Ngôn ngữ hiện tại để gửi cho máy chủ (nội dung động: tên mô-đun, headline,
 // recommendation…). LangProvider lưu vào localStorage "terratwin_lang".
@@ -171,7 +182,7 @@ export async function assess(
 ): Promise<Assessment> {
   const body: Record<string, number> = { lat, lon };
   if (areaHa != null) body.area_ha = areaHa;
-  const r = await fetch(`${BASE}/api/assess/${moduleId}${_lp()}`, {
+  const r = await apiFetch(`${BASE}/api/assess/${moduleId}${_lp()}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -181,7 +192,7 @@ export async function assess(
 }
 
 export async function getTerraScore(lat: number, lon: number): Promise<TerraScore> {
-  const r = await fetch(`${BASE}/api/terrascore${_lp()}`, {
+  const r = await apiFetch(`${BASE}/api/terrascore${_lp()}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ lat, lon }),
@@ -195,7 +206,7 @@ export async function askCopilot(
   lat: number,
   lon: number,
 ): Promise<CopilotAnswer> {
-  const r = await fetch(`${BASE}/api/copilot${_lp()}`, {
+  const r = await apiFetch(`${BASE}/api/copilot${_lp()}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ question, location: { lat, lon } }),
@@ -286,7 +297,7 @@ export async function scanAll(
 ): Promise<ScanResult> {
   const body: Record<string, number> = { lat, lon };
   if (areaHa != null) body.area_ha = areaHa;
-  const r = await fetch(`${BASE}/api/scan${_lp(deep ? "?deep=true" : "")}`, {
+  const r = await apiFetch(`${BASE}/api/scan${_lp(deep ? "?deep=true" : "")}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -300,7 +311,7 @@ export async function runWhatIf(
   lat: number,
   lon: number,
 ): Promise<WhatIfResult> {
-  const r = await fetch(`${BASE}/api/whatif/${moduleId}`, {
+  const r = await apiFetch(`${BASE}/api/whatif/${moduleId}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ lat, lon }),
@@ -460,7 +471,7 @@ async function authed<T>(
   init: RequestInit,
   err: string,
 ): Promise<T> {
-  const r = await fetch(`${BASE}${path}`, {
+  const r = await apiFetch(`${BASE}${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
@@ -485,7 +496,7 @@ export function register(email: string, password: string, name: string) {
 /** GĐ7 — tài khoản bật hai lớp: lỗi mang cờ otpRequired để form hiện ô nhập mã 6 số. */
 export type LoginError = Error & { otpRequired?: boolean };
 export async function login(email: string, password: string, otp?: string): Promise<TokenResponse> {
-  const r = await fetch(`${BASE}/api/auth/login`, {
+  const r = await apiFetch(`${BASE}/api/auth/login`, {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify(otp ? { email, password, otp } : { email, password }),
   });
@@ -815,7 +826,7 @@ async function getJson<T>(path: string, err: string): Promise<T> {
 }
 
 async function postJson<T>(path: string, body: unknown, err: string): Promise<T> {
-  const r = await fetch(`${BASE}${path}`, {
+  const r = await apiFetch(`${BASE}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -881,13 +892,13 @@ export function runAnomaly(lat: number, lon: number) {
 }
 
 export async function getBacktests(): Promise<BacktestEvent[]> {
-  const r = await fetch(`${BASE}/api/backtest${_lp()}`);
+  const r = await apiFetch(`${BASE}/api/backtest${_lp()}`);
   if (!r.ok) throw new Error("Không tải được danh sách backtest");
   return r.json();
 }
 
 export async function runBacktest(eventId: string): Promise<BacktestResult> {
-  const r = await fetch(`${BASE}/api/backtest/${eventId}${_lp()}`);
+  const r = await apiFetch(`${BASE}/api/backtest/${eventId}${_lp()}`);
   if (!r.ok) throw new Error("Không chạy được backtest");
   return r.json();
 }
@@ -1536,7 +1547,7 @@ export function getPilotSummary() {
 }
 
 export async function downloadPilotCsv() {
-  const r = await fetch(`${BASE}/api/admin/pilot/feedback.csv`, { headers: authHeaders() });
+  const r = await apiFetch(`${BASE}/api/admin/pilot/feedback.csv`, { headers: authHeaders() });
   if (!r.ok) throw new Error(await errMessage(r, "Không tải được tệp CSV"));
   const blob = await r.blob();
   const url = URL.createObjectURL(blob);
@@ -2285,7 +2296,7 @@ async function fileToB64(f: File): Promise<string> {
 export async function uploadEvidence(lat: number, lon: number, areaHa: number | null | undefined, file: File) {
   const body: Record<string, unknown> = { lat, lon, name: file.name, data_b64: await fileToB64(file) };
   if (areaHa != null) body.area_ha = areaHa;
-  const r = await fetch(`${BASE}/api/evidence?lang=${curLang()}`, {
+  const r = await apiFetch(`${BASE}/api/evidence?lang=${curLang()}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(body),
@@ -2385,7 +2396,7 @@ export async function issueDossier(lat: number, lon: number, areaHa?: number | n
   const body: Record<string, unknown> = { lat, lon, evidence_ids: evidenceIds };
   if (areaHa != null) body.area_ha = areaHa;
   if (listingText) body.listing_text = listingText;   // GĐ3 — máy chủ đối chiếu lại, không lưu nguyên văn
-  const r = await fetch(`${BASE}/api/dossier?lang=${curLang()}`, {
+  const r = await apiFetch(`${BASE}/api/dossier?lang=${curLang()}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(body),
@@ -2432,7 +2443,7 @@ export type BatchRunInfo = { id: string; title: string; n_rows: number; created_
 export const batchTemplateUrl = () => `${BASE}/api/batch/template`;
 
 export async function submitBatch(csv: string, title: string) {
-  const r = await fetch(`${BASE}/api/batch?lang=${curLang()}`, {
+  const r = await apiFetch(`${BASE}/api/batch?lang=${curLang()}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ csv, title }),
@@ -2462,7 +2473,7 @@ export function deleteBatch(id: string) {
 }
 
 export async function downloadBatchCsv(id: string) {
-  const r = await fetch(`${BASE}/api/batch/${encodeURIComponent(id)}/csv`, { headers: authHeaders() });
+  const r = await apiFetch(`${BASE}/api/batch/${encodeURIComponent(id)}/csv`, { headers: authHeaders() });
   if (!r.ok) throw new Error(await errMessage(r, "Không tải được CSV"));
   const url = URL.createObjectURL(await r.blob());
   const a = document.createElement("a");
@@ -2569,7 +2580,7 @@ function saveBlob(blob: Blob, name: string) {
 
 export async function eudrExport(body: { text?: string; filename?: string; geometry?: GeoGeometry; ref?: string;
                                          producer?: string; area_ha?: number | null }) {
-  const r = await fetch(`${BASE}/api/eudr/export?lang=${curLang()}`, {
+  const r = await apiFetch(`${BASE}/api/eudr/export?lang=${curLang()}`, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
   });
   if (!r.ok) throw new Error(await errMessage(r, "Không xuất được tệp GeoJSON"));
@@ -2578,7 +2589,7 @@ export async function eudrExport(body: { text?: string; filename?: string; geome
 
 export async function eudrIssueDossier(p: EudrPlotInput & { commodity: string; evidence_ids?: string[];
                                                               hide_producer?: boolean; land_document?: LandDocInput | null }) {
-  const r = await fetch(`${BASE}/api/eudr/dossier?lang=${curLang()}`, {
+  const r = await apiFetch(`${BASE}/api/eudr/dossier?lang=${curLang()}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(p),
@@ -2601,7 +2612,7 @@ export type EudrSet = {
 
 export async function eudrSubmitSet(body: { text: string; filename: string; title: string; commodity: string;
                                             producer: string }) {
-  const r = await fetch(`${BASE}/api/eudr/sets?lang=${curLang()}`, {
+  const r = await apiFetch(`${BASE}/api/eudr/sets?lang=${curLang()}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(body),
@@ -2631,7 +2642,7 @@ export function eudrSetDossiers(id: string) {
 export async function eudrDownloadSet(id: string, what: "csv" | "geojson-valid" | "geojson-passed") {
   const path = what === "csv" ? `csv?lang=${curLang()}`
     : `geojson?which=${what === "geojson-passed" ? "passed" : "valid"}`;
-  const r = await fetch(`${BASE}/api/eudr/sets/${encodeURIComponent(id)}/${path}`, { headers: authHeaders() });
+  const r = await apiFetch(`${BASE}/api/eudr/sets/${encodeURIComponent(id)}/${path}`, { headers: authHeaders() });
   if (!r.ok) throw new Error(await errMessage(r, "Không tải được tệp"));
   saveBlob(await r.blob(), `terratwin-eudr-${id.slice(0, 8)}-${what}.${what === "csv" ? "csv" : "geojson"}`);
 }
@@ -2651,7 +2662,7 @@ export async function landdocExtract(file: File) {
   let bin = "";
   for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
   const media = /png$/i.test(file.type) ? "image/png" : /webp$/i.test(file.type) ? "image/webp" : "image/jpeg";
-  const r = await fetch(`${BASE}/api/landdoc/extract?lang=${curLang()}`, {
+  const r = await apiFetch(`${BASE}/api/landdoc/extract?lang=${curLang()}`, {
     method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ data_b64: btoa(bin), media_type: media }),
   });
@@ -2703,7 +2714,7 @@ export function lotFromSet(setId: string) {
     `/api/lots/from-set/${encodeURIComponent(setId)}?lang=${curLang()}`, { method: "POST" }, "Không lấy được lô thửa");
 }
 export async function lotDownload(id: string, what: "dds" | "geojson") {
-  const r = await fetch(`${BASE}/api/lots/${encodeURIComponent(id)}/${what === "dds" ? `dds?lang=${curLang()}` : "geojson"}`, { headers: authHeaders() });
+  const r = await apiFetch(`${BASE}/api/lots/${encodeURIComponent(id)}/${what === "dds" ? `dds?lang=${curLang()}` : "geojson"}`, { headers: authHeaders() });
   if (!r.ok) throw new Error(await errMessage(r, "Không tải được tệp"));
   const blob = what === "dds" ? new Blob([JSON.stringify(await r.json(), null, 2)], { type: "application/json" }) : await r.blob();
   saveBlob(blob, `terratwin-lo-${id}-${what === "dds" ? "dds-nhap.json" : "vi-tri.geojson"}`);

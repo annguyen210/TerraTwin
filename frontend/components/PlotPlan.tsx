@@ -300,8 +300,8 @@ export default function PlotPlan({
       </div>
       {waterPending && (
         <div className="plan-assume plan-wait" role="group" aria-label={t("Lịch sử nước chưa đọc xong", "Water history not finished")}>
-          <p role="alert">{t("Lịch sử nước radar của thửa này đang được đọc (thửa mới thường khoảng 1 phút). Phát hành NGAY thì hồ sơ ký sẽ ghi mục này là THIẾU — không thể bổ sung sau, vì nội dung đã ký không sửa được.",
-                "This plot's radar water history is still being read (a new plot usually takes about a minute). Issuing NOW records that section as MISSING in the signed dossier — it can't be added later, since signed content can't change.")}</p>
+          <p role="alert">{t("Lịch sử nước radar của thửa này đang được đọc (thửa mới thường khoảng 2 phút). Phát hành NGAY thì hồ sơ ký sẽ ghi mục này là THIẾU — không thể bổ sung sau, vì nội dung đã ký không sửa được.",
+                "This plot's radar water history is still being read (a new plot usually takes about 2 minutes). Issuing NOW records that section as MISSING in the signed dossier — it can't be added later, since signed content can't change.")}</p>
           <div className="plan-wait-btns">
             <button className="bat-btn" disabled={issuing !== null} onClick={async () => {
               const id = waterPending;
@@ -431,7 +431,7 @@ export default function PlotPlan({
       {/* 2. NGÀY AN TOÀN */}
       {sw && (
         <section className="plan-sec">
-          <h4 className="plan-h"><CalendarDays size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Ngày an toàn để làm đồng (7 ngày tới)", "Safe days for fieldwork (next 7 days)")}</h4>
+          <h4 className="plan-h"><CalendarDays size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Ngày an toàn (7 ngày tới)", "Safe days (next 7 days)")}</h4>
           <div className="plan-week">
             {sw.days.map((d) => (
               <div

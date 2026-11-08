@@ -594,6 +594,15 @@ def _openmeteo_plan() -> dict:
     return openmeteo.plan()
 
 
+@app.get("/api/live")
+async def live() -> dict:
+    """Kiểm SỐNG cho healthCheckPath của Render (8/11/2026). `async`, không CSDL, không gọi ra ngoài: chạy thẳng trên vòng
+    lặp sự kiện, không chờ khe threadpool hay kết nối CSDL như /api/health. Render khởi động lại instance khi kiểm sống
+    quá 5 s — dùng /api/health (nặng, đồng bộ) làm kiểm sống thì lúc máy chủ 0,1 CPU đang bận phân tích một thửa mới,
+    nó tự làm sập dịch vụ. /api/health giữ nguyên cho người vận hành đọc."""
+    return {"ok": True}
+
+
 @app.get("/api/health")
 def health(request: Request) -> dict:
     """Sức khoẻ máy chủ VÀ tình trạng hạn mức nguồn dữ liệu.

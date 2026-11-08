@@ -136,7 +136,7 @@ export default function Landing({
 }: {
   user: AuthUser | null;
   onAuth: (u: AuthUser | null) => void;
-  onStart: (lat: number, lon: number, label?: string, chapter?: Chapter) => void;
+  onStart: (lat: number, lon: number, label?: string, chapter?: Chapter, area?: boolean) => void;
   onStory: () => void;
   onLoad: (lat: number, lon: number) => void;
   onWorkspace: () => void;
@@ -196,7 +196,7 @@ export default function Landing({
               ))}
             </div>
             {user && <MyLand user={user} onOpen={(la, lo, lab) => onStart(la, lo, lab, want)} />}
-            <Start onPick={(la, lo, lab) => onStart(la, lo, lab, want)} onStory={onStory} onListing={() => setWant("verify")} />
+            <Start onPick={(la, lo, lab, area) => onStart(la, lo, lab, want, area)} onStory={onStory} onListing={() => setWant("verify")} />
           </div>
         </section>
 

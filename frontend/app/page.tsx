@@ -142,6 +142,9 @@ export default function Home() {
   // Cột phải hẹp nên KHÔNG đổ hết mọi luồng ra cùng lúc: mở đủ thứ một lúc thì
   // người dùng phải cuộn qua sáu bảng mới thấy được kết quả module đang xem.
   const [placeLabel, setPlaceLabel] = useState<string | undefined>();
+  // Góp ý dùng thử 7/11/2026: tìm "Châu Đốc" ra ĐIỂM GIỮA thành phố mà thẻ gọi là "Thửa đang xem" và chấm điểm luôn —
+  // người mua tưởng là kết quả cho lô của mình. Điểm từ địa danh thì gọi là khu vực và nhắc kéo tới đúng thửa.
+  const [areaPick, setAreaPick] = useState(false);
   // Danh sách mô-đun gập lại trên điện thoại — nó là công cụ đào sâu, không
   // phải cửa vào. Trên máy tính CSS bỏ qua trạng thái này.
   const [railOpen, setRailOpen] = useState(false);
@@ -230,6 +233,7 @@ export default function Home() {
       setCoord({ lat, lon });
       setArea(areaHa);
       setPlaceLabel(undefined);
+      setAreaPick(false);
       // KHÔNG gọi run() ở đây nữa. Khối Answer bên phải chạy /api/scan, mà
       // scan đã tính sẵn CẢ TerraScore lẫn kết quả từng mô-đun. Gọi thêm
       // assess + terrascore là làm lại đúng việc đó lần thứ hai, và ba lời gọi
@@ -241,7 +245,7 @@ export default function Home() {
 
   // Từ màn hình đầu: có tên nơi, và bay bản đồ tới đó.
   const onStart = useCallback(
-    (lat: number, lon: number, label?: string, ch?: "plan" | "mine" | "verify" | "tools") => {
+    (lat: number, lon: number, label?: string, ch?: "plan" | "mine" | "verify" | "tools", area?: boolean) => {
       if (!inVietnam(lat, lon)) { setOutside(outsideMessage(lat, lon)); return; }
       setOutside(null);
       trackEvent("pick_plot");
@@ -249,6 +253,7 @@ export default function Home() {
       setCoord({ lat, lon });
       setArea(undefined);
       setPlaceLabel(label);
+      setAreaPick(!!area);
       setFlyTo({ lat, lon, key: Date.now() });
     },
     [],
@@ -267,6 +272,7 @@ export default function Home() {
       setOutside(null);
       setCoord({ lat, lon });
       setArea(undefined);
+      setAreaPick(false);                               // thửa đã lưu là thửa thật, không phải điểm giữa khu vực
       setFlyTo({ lat, lon, key: Date.now() });
       run(active, lat, lon, undefined);
     },
@@ -345,8 +351,10 @@ export default function Home() {
                                 `Drag or tap to resize the plot card (now: ${sheet})`)}><span /></button>
           <div className="pw-card tt-reveal">
             {outside && <p className="bat-err" role="alert">{outside}</p>}
-            <p className="eu-eyebrow">{t("Thửa đang xem", "Current plot")}</p>
+            <p className="eu-eyebrow">{areaPick ? t("Khu vực đang xem", "Area in view") : t("Thửa đang xem", "Current plot")}</p>
             <h1>{placeLabel ?? t("Thửa đã chọn", "Selected plot")}</h1>
+            {areaPick && <p className="pw-area-note">{t("Đây là điểm giữa của khu vực, CHƯA phải thửa của bạn — kéo bản đồ cho đúng thửa vào ô ngắm ✛ rồi bấm “Phân tích đúng thửa ở giữa”.",
+              "This is the centre of the area, NOT your plot yet — drag the map so your plot sits in the ✛ crosshair, then tap “Analyze the plot at center”.")}</p>}
             <p className="pw-coord">{coord.lat.toFixed(5)}, {coord.lon.toFixed(5)}{area != null ? ` · ${area} ha` : ""}</p>
             <BasemapInfo lat={coord.lat} lon={coord.lon} />
             {terra && serviceable && terra.grade !== "—" && <TerraBadge t={terra} />}
@@ -361,6 +369,18 @@ export default function Home() {
                   b?.scrollIntoView({ behavior: "smooth", block: "center" }); b?.focus({ preventScroll: true });
                 }, 400);
               }}>{t("Phát hành hồ sơ đất", "Issue land dossier")}</button>
+              {/* Góp ý dùng thử 7/11/2026: nút lưu nằm sâu dưới tab Canh đất, sau cả phần độ ẩm tán lá — người dùng không thấy. */}
+              <button className="bat-btn ghost" disabled={!serviceable} onClick={() => {
+                switchChapter("mine");
+                // Danh mục thửa nạp động: dò lại mỗi 200 ms tới 4 giây thay vì một lần sau 400 ms.
+                let tries = 0;
+                const seek = () => {
+                  const b = document.querySelector<HTMLButtonElement>(".pf-actions button");
+                  if (b) { b.scrollIntoView({ behavior: "smooth", block: "center" }); b.focus({ preventScroll: true }); }
+                  else if (++tries < 20) window.setTimeout(seek, 200);
+                };
+                window.setTimeout(seek, 200);
+              }}>💾 {t("Lưu thửa", "Save plot")}</button>
               <button className="bat-btn ghost" onClick={() => setWorkspace(true)}>{t("Khu làm việc", "Workspace")}</button>
             </div>
             <small className="pw-tip">{t("Bấm vào bản đồ để đổi thửa, hoặc vẽ một vùng.", "Click the map to change plot, or draw an area.")}</small>

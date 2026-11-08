@@ -57,7 +57,8 @@ export default function Start({
   onStory,
   onListing,
 }: {
-  onPick: (lat: number, lon: number, label?: string) => void;
+  /** area = điểm giữa của một ĐỊA DANH (kết quả tìm kiếm / nơi có sẵn), chưa phải thửa của người dùng. */
+  onPick: (lat: number, lon: number, label?: string, area?: boolean) => void;
   onStory?: () => void;
   /** Người dùng vừa dán NỘI DUNG TIN ĐĂNG (không phải địa danh) — trang đầu chuyển sẵn sang mở tab Kiểm chứng. */
   onListing?: () => void;
@@ -156,7 +157,7 @@ export default function Start({
       try {
         const r = await searchPlace(s);
         setHits(r.results);
-        setMsg(r.results.length ? null : r.message ?? null);
+        setMsg(r.message ?? null);          // có kết quả mà vẫn có lời nhắn (vd. trùng tên, không khớp nơi) thì vẫn hiện
       } catch {
         setHits([]);
         setMsg(t("Chưa tìm được — bạn có thể bấm thẳng lên bản đồ.", "Not found — you can tap the map directly."));
@@ -245,7 +246,7 @@ export default function Start({
         <ul className="start-hits">
           {hits.map((h, i) => (
             <li key={i}>
-              <button onClick={() => onPick(h.lat, h.lon, h.label)}>
+              <button onClick={() => onPick(h.lat, h.lon, h.label, h.kind !== "coord")}>
                 {h.label}
               </button>
             </li>
@@ -275,7 +276,7 @@ export default function Start({
 
       <div className="start-quick">
         {QUICK.map((p) => (
-          <button key={p.name} onClick={() => onPick(p.lat, p.lon, p.name)}>
+          <button key={p.name} onClick={() => onPick(p.lat, p.lon, p.name, true)}>
             <b>{p.name}</b>
             <small>{t(p.note, p.note_en)}</small>
           </button>

@@ -4707,6 +4707,7 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
   border: 1px solid var(--line-2); display: grid; gap: 8px; box-shadow: var(--shadow); }
 .pw-card h1 { margin: 0; font-size: 1.3rem; letter-spacing: -.01em; color: var(--text); text-wrap: balance; }
 .pw-coord { margin: 0; font-size: .78rem; color: var(--dim); font-family: ui-monospace, Consolas, monospace; }
+.pw-area-note { margin: .3rem 0 0; font-size: .8rem; line-height: 1.4; color: var(--warn, #c98a2b); }
 .pw-card-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .pw-card-actions .bat-btn { text-decoration: none; display: inline-flex; align-items: center; }
 .pw-tip { color: var(--dim); font-size: .72rem; }

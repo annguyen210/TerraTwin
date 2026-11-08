@@ -60,6 +60,14 @@ function statusLabel(st: string | undefined, t: T): string {
   return "";
 }
 
+// Góp ý dùng thử 7/11/2026: "cháy rừng 24.6", "sạt lở 29.8" — số trơn không đơn vị, không thang. Chỉ số 0–100 ghi /100.
+function unitSuffix(u?: string | null): string {
+  if (!u) return "";
+  if (u === "%") return "%";
+  if (u === "điểm" || u === "pts") return "/100";
+  return ` ${u}`;
+}
+
 function fmt(v: number): string {
   return Number.isInteger(v) ? String(v) : v.toFixed(1);
 }
@@ -475,7 +483,7 @@ export default function Answer({
                     <span className="ans-cell-data">
                       <Spark values={m.spark!} color={TONE_HEX[tone]} />
                       {m.peak != null && (
-                        <b>{fmt(m.peak)}{m.unit === "%" ? "%" : ""}</b>
+                        <b>{fmt(m.peak)}{unitSuffix(m.unit)}</b>
                       )}
                     </span>
                   ) : m.status === "ok" ? (
