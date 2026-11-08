@@ -49,6 +49,15 @@ def test_khop_nguyen_tu_khong_khop_chuoi_con():
     assert place._matches_component("vinh long", "Phường Phú Khương · Vĩnh Long Province")
 
 
+def test_nominatim_co_nhan_khong_loi(monkeypatch):
+    """8/11/2026: _from_nominatim gọi _label() chưa được định nghĩa → lỗi 500 trên Render (nơi Nominatim không bị chặn)."""
+    sample = [{"lat": "10.24", "lon": "106.38", "name": "Phú Khương", "addresstype": "suburb",
+               "address": {"suburb": "Phú Khương", "city": "Bến Tre", "state": "Vĩnh Long"}}]
+    monkeypatch.setattr(place, "_get", lambda url, timeout=None: sample)
+    out = place._from_nominatim("Phú Khương, Bến Tre")
+    assert out[0]["label"] == "Phú Khương · Bến Tre · Vĩnh Long" and out[0]["source"] == "nominatim"
+
+
 def test_context_terms_bo_tien_to_va_map_tinh_moi():
     assert place._context_terms("Tỉnh Bến Tre") == ["ben tre", "vinh long"]
     assert place._context_terms("TP Châu Đốc") == ["chau doc"]
