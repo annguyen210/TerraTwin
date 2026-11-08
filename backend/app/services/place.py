@@ -198,8 +198,18 @@ def _by_name_then_context(q: str) -> tuple[list, list, str]:
                 seen.add(h["label"])
                 hits.append(h)
     terms = _context_terms(ctx)
-    good = [h for h in hits if any(t and t in _fold(h["label"]) for t in terms)]
+    good = [h for h in hits if any(_matches_component(t, h["label"]) for t in terms)]
     return good, hits, name
+
+
+def _matches_component(term: str, label: str) -> bool:
+    """Khớp NGUYÊN TỪ trong một thành phần của nhãn ("Tên · Huyện · Tỉnh") — không phải chuỗi con bất kỳ: "Quận 1"
+    không được khớp "Quận 11" (góp ý review PR #5)."""
+    import re
+    if not term:
+        return False
+    pat = re.compile(r"(^|\s)" + re.escape(term) + r"($|\s)")
+    return any(pat.search(_fold(part)) for part in label.split("·"))
 
 
 def search(q: str) -> dict:

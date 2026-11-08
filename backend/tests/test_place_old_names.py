@@ -42,6 +42,13 @@ def test_noi_sau_dau_phay_khong_khop_thi_dua_moi_noi_trung_ten(nguon):
     assert len(r["results"]) == 3 and "chọn đúng nơi" in r["message"]
 
 
+def test_khop_nguyen_tu_khong_khop_chuoi_con():
+    """"Quận 1" không được khớp "Quận 11" (góp ý review PR #5)."""
+    assert place._matches_component("1", "Bến Thành · Quận 1 · Hồ Chí Minh")
+    assert not place._matches_component("1", "Phường 2 · Quận 11 · Hồ Chí Minh")
+    assert place._matches_component("vinh long", "Phường Phú Khương · Vĩnh Long Province")
+
+
 def test_context_terms_bo_tien_to_va_map_tinh_moi():
     assert place._context_terms("Tỉnh Bến Tre") == ["ben tre", "vinh long"]
     assert place._context_terms("TP Châu Đốc") == ["chau doc"]

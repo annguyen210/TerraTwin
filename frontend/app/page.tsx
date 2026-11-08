@@ -272,6 +272,7 @@ export default function Home() {
       setOutside(null);
       setCoord({ lat, lon });
       setArea(undefined);
+      setAreaPick(false);                               // thửa đã lưu là thửa thật, không phải điểm giữa khu vực
       setFlyTo({ lat, lon, key: Date.now() });
       run(active, lat, lon, undefined);
     },
@@ -371,10 +372,14 @@ export default function Home() {
               {/* Góp ý dùng thử 7/11/2026: nút lưu nằm sâu dưới tab Canh đất, sau cả phần độ ẩm tán lá — người dùng không thấy. */}
               <button className="bat-btn ghost" disabled={!serviceable} onClick={() => {
                 switchChapter("mine");
-                window.setTimeout(() => {
+                // Danh mục thửa nạp động: dò lại mỗi 200 ms tới 4 giây thay vì một lần sau 400 ms.
+                let tries = 0;
+                const seek = () => {
                   const b = document.querySelector<HTMLButtonElement>(".pf-actions button");
-                  b?.scrollIntoView({ behavior: "smooth", block: "center" }); b?.focus({ preventScroll: true });
-                }, 400);
+                  if (b) { b.scrollIntoView({ behavior: "smooth", block: "center" }); b.focus({ preventScroll: true }); }
+                  else if (++tries < 20) window.setTimeout(seek, 200);
+                };
+                window.setTimeout(seek, 200);
               }}>💾 {t("Lưu thửa", "Save plot")}</button>
               <button className="bat-btn ghost" onClick={() => setWorkspace(true)}>{t("Khu làm việc", "Workspace")}</button>
             </div>
