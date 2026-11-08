@@ -28,6 +28,10 @@ export default function BasemapInfo({ lat, lon }: { lat: number; lon: number }) 
       {d ? t(` · chụp ${d}`, ` · taken ${d}`) : t(" · không rõ ngày chụp", " · capture date unknown")}
       {old && t(` — đã ${m.age_years} năm, không phải hiện trạng`, ` — ${m.age_years} years old, not current`)}
       <span className="pw-basemap-src"> ({m.service})</span>
+      {/* Góp ý dùng thử 7/11/2026: ảnh nền Châu Đốc bị mây che gần nửa khung — ảnh của bên thứ ba, không đổi được; chỉ
+          sang ảnh Sentinel-2 mới (ít mây nhất gần đây) ở thẻ bên dưới. */}
+      <span className="pw-basemap-src">{t(" · Ảnh bị mây hoặc cũ? Xem ảnh vệ tinh Sentinel-2 mới ở mục “Thửa đất của bạn, nhìn từ vệ tinh”.",
+                                          " · Clouded or old? See the recent Sentinel-2 image under “Your plot, seen from satellite”.")}</span>
     </p>
   );
 }

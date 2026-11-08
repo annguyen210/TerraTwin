@@ -76,7 +76,11 @@ export default function TodayPage() {
           <div>
             <p className="eu-eyebrow">{now ? now.toLocaleDateString(lang === "en" ? "en-GB" : "vi-VN", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : " "}</p>
             <h1>{hello}</h1>
-            <p className="doc-lede">{d?.signed_in
+            {/* Đang tải thì CHƯA biết đã đăng nhập hay chưa — trước đây d === null rơi vào nhánh "Đăng nhập và lưu thửa…"
+                vài giây rồi mới đổi sang thửa của người đã đăng nhập (góp ý dùng thử 7/11/2026). */}
+            <p className="doc-lede">{!d
+              ? (err ? "" : t("Đang tải nhật ký sáng nay…", "Loading this morning's journal…"))
+              : d.signed_in
               ? (d.items.length ? t(`Có ${d.items.length} việc đang chờ bạn.`, `${d.items.length} things are waiting for you.`)
                 // Kiểm 7/11/2026 mục 6: chưa lưu thửa nào thì không có gì "đang được canh" — mời lưu thửa, nói rõ phần dưới là thửa mẫu.
                 : plots && plots.length === 0

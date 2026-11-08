@@ -266,8 +266,8 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
       </div>
       {!r && busy && (
         <div className="wh-start" aria-live="polite">
-          <p>{t("Đang tự đọc toàn bộ ảnh radar Sentinel-1 từ 2017 của đúng thửa này (radar nhìn xuyên mây). Thửa mới thường mất khoảng 1 phút (đo 18/10/2026: ~460 cảnh trong ~40 giây), lâu hơn khi nguồn ảnh bận — cứ xem các phần khác, xong sẽ tự hiện.",
-                "Reading every Sentinel-1 radar image since 2017 for this exact plot (radar sees through clouds). A new plot usually takes about a minute (measured 18/10/2026: ~460 scenes in ~40 s), longer when the image source is busy — keep browsing, it appears by itself.")}</p>
+          <p>{t("Đang tự đọc toàn bộ ảnh radar Sentinel-1 từ 2017 của đúng thửa này (radar nhìn xuyên mây). Thửa mới thường mất khoảng 2 phút (đo trên máy chủ 8/11/2026: 461 cảnh trong ~2 phút), lâu hơn khi nguồn ảnh bận — cứ xem các phần khác, xong sẽ tự hiện.",
+                "Reading every Sentinel-1 radar image since 2017 for this exact plot (radar sees through clouds). A new plot usually takes about 2 minutes (measured on the server 8/11/2026: 461 scenes in ~2 min), longer when the image source is busy — keep browsing, it appears by itself.")}</p>
           <div className="wh-prog" role="progressbar" aria-valuemin={0} aria-valuemax={prog?.total ?? 100}
                aria-valuenow={prog?.done ?? 0} aria-label={t("Tiến độ đọc ảnh radar", "Radar read progress")}>
             <span style={{ width: `${prog && prog.total ? Math.max(4, Math.round((prog.done / prog.total) * 100)) : 4}%` }} />

@@ -57,7 +57,8 @@ export default function Start({
   onStory,
   onListing,
 }: {
-  onPick: (lat: number, lon: number, label?: string) => void;
+  /** area = điểm giữa của một ĐỊA DANH (kết quả tìm kiếm / nơi có sẵn), chưa phải thửa của người dùng. */
+  onPick: (lat: number, lon: number, label?: string, area?: boolean) => void;
   onStory?: () => void;
   /** Người dùng vừa dán NỘI DUNG TIN ĐĂNG (không phải địa danh) — trang đầu chuyển sẵn sang mở tab Kiểm chứng. */
   onListing?: () => void;
@@ -245,7 +246,7 @@ export default function Start({
         <ul className="start-hits">
           {hits.map((h, i) => (
             <li key={i}>
-              <button onClick={() => onPick(h.lat, h.lon, h.label)}>
+              <button onClick={() => onPick(h.lat, h.lon, h.label, true)}>
                 {h.label}
               </button>
             </li>
@@ -275,7 +276,7 @@ export default function Start({
 
       <div className="start-quick">
         {QUICK.map((p) => (
-          <button key={p.name} onClick={() => onPick(p.lat, p.lon, p.name)}>
+          <button key={p.name} onClick={() => onPick(p.lat, p.lon, p.name, true)}>
             <b>{p.name}</b>
             <small>{t(p.note, p.note_en)}</small>
           </button>

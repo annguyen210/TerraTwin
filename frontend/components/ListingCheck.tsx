@@ -115,7 +115,7 @@ export default function ListingCheck({ lat, lon }: { lat: number; lon: number })
             <div className="lc-water">
               <p>{t("Câu về ngập / cao ráo cần lịch sử nước radar Sentinel-1 của thửa này — chưa đọc.", "Flood / high-ground claims need this plot's Sentinel-1 radar water history — not read yet.")}</p>
               <button className="bat-btn" onClick={readWaterThenRecheck} disabled={!!water}>
-                {water ?? t("Đọc lịch sử nước radar (thường khoảng 1 phút) rồi đối chiếu lại", "Read the radar water history (usually about 1 min) and re-check")}</button>
+                {water ?? t("Đọc lịch sử nước radar (thường khoảng 2 phút) rồi đối chiếu lại", "Read the radar water history (usually about 2 min) and re-check")}</button>
             </div>
           )}
           <p className="eu-src">{r.note}</p>

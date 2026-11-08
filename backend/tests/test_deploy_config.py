@@ -131,3 +131,23 @@ def test_chuyen_csdl_chi_chay_tay_va_khong_upload_ban_dump():
     y = _code(_doc(".github/workflows/migrate-neon.yml"))
     assert "workflow_dispatch" in y and "schedule:" not in y and "push:" not in y
     assert "upload-artifact" not in y
+
+
+def test_render_kiem_song_bang_endpoint_nhe():
+    """8/11/2026: Render khởi động lại instance khi /api/health (đồng bộ, mở CSDL) quá 5 s lúc máy chủ 0,1 CPU bận —
+    kiểm sống phải là /api/live (async, không CSDL)."""
+    y = _code(_doc("render.yaml"))
+    assert re.search(r"healthCheckPath:\s*/api/live\b", y)
+    assert not re.search(r"healthCheckPath:\s*/api/health\b", y)
+
+
+def test_api_live_tra_loi_ma_khong_cham_csdl(monkeypatch):
+    from fastapi.testclient import TestClient
+    from app import db as dbmod
+    from app.main import app
+
+    def boom(*a, **k):
+        raise AssertionError("/api/live không được mở CSDL")
+    monkeypatch.setattr(dbmod, "SessionLocal", boom)
+    r = TestClient(app).get("/api/live")
+    assert r.status_code == 200 and r.json() == {"ok": True}

@@ -151,6 +151,56 @@ def _from_nominatim(q: str) -> list | None:
 
 _SOURCES = (_from_open_meteo, _from_photon, _from_nominatim)
 
+# Tỉnh CŨ → tỉnh MỚI sau sắp xếp đơn vị hành chính 1/7/2025 (34 tỉnh, thành). Tin rao và người dùng vẫn gõ tên cũ
+# ("Phú Khương, Bến Tre") trong khi nguồn địa danh đã ghi tên mới ("Phường Phú Khương · Vĩnh Long") — góp ý dùng thử
+# 7/11/2026: gõ đúng tên phường trong tin rao mà "Chưa tìm được". Khoá/giá trị đã bỏ dấu, chữ thường.
+_OLD_PROVINCE = {
+    "ben tre": "vinh long", "tra vinh": "vinh long", "soc trang": "can tho", "hau giang": "can tho",
+    "tien giang": "dong thap", "long an": "tay ninh", "binh duong": "ho chi minh", "ba ria vung tau": "ho chi minh",
+    "vung tau": "ho chi minh", "binh phuoc": "dong nai", "binh thuan": "lam dong", "dak nong": "lam dong",
+    "ninh thuan": "khanh hoa", "phu yen": "dak lak", "binh dinh": "gia lai", "kon tum": "quang ngai",
+    "quang nam": "da nang", "quang binh": "quang tri", "ha nam": "ninh binh", "nam dinh": "ninh binh",
+    "thai binh": "hung yen", "hai duong": "hai phong", "bac giang": "bac ninh", "vinh phuc": "phu tho",
+    "hoa binh": "phu tho", "yen bai": "lao cai", "ha giang": "tuyen quang", "bac kan": "thai nguyen",
+    "kien giang": "an giang", "bac lieu": "ca mau",
+}
+
+
+def _fold(s: str) -> str:
+    import unicodedata
+    s = unicodedata.normalize("NFD", (s or "").replace("đ", "d").replace("Đ", "D"))
+    s = "".join(ch for ch in s if unicodedata.category(ch) != "Mn").lower()
+    return " ".join(s.replace("-", " ").replace("–", " ").split())
+
+
+def _context_terms(ctx: str) -> list[str]:
+    """'Bến Tre' → ['ben tre', 'vinh long']; bỏ tiền tố 'tỉnh', 'tp', 'thành phố', 'huyện', 'quận', 'thị xã'."""
+    c = _fold(ctx)
+    for pre in ("tinh ", "thanh pho ", "tp. ", "tp ", "huyen ", "quan ", "thi xa ", "tx "):
+        if c.startswith(pre):
+            c = c[len(pre):]
+    terms = [c] if c else []
+    if c in _OLD_PROVINCE:
+        terms.append(_OLD_PROVINCE[c])
+    return terms
+
+
+def _by_name_then_context(q: str) -> tuple[list, list, str]:
+    """'Tên, Nơi' không ra gì → tìm riêng 'Tên' ở cả hai nguồn nhanh, ưu tiên kết quả nhắc tới 'Nơi' (cả tên tỉnh mới).
+    Trả (khớp nơi, mọi kết quả theo tên, tên)."""
+    name, ctx = (x.strip() for x in q.split(",", 1))
+    if len(name) < 2:
+        return [], [], name
+    seen, hits = set(), []
+    for lay in (_from_open_meteo, _from_photon):
+        for h in lay(name) or []:
+            if h["label"] not in seen:
+                seen.add(h["label"])
+                hits.append(h)
+    terms = _context_terms(ctx)
+    good = [h for h in hits if any(t and t in _fold(h["label"]) for t in terms)]
+    return good, hits, name
+
 
 def search(q: str) -> dict:
     """Tìm địa điểm ở Việt Nam theo tên. Không bao giờ bịa kết quả."""
@@ -176,6 +226,15 @@ def search(q: str) -> dict:
         if r:
             out = r
             break
+
+    if not out and "," in q:
+        good, theo_ten, ten = _by_name_then_context(q)
+        if good:
+            out = good
+        elif theo_ten:
+            # Có nơi trùng TÊN nhưng không khớp phần sau dấu phẩy — đưa ra để người dùng tự chọn, không cache.
+            return {"query": q, "results": theo_ten[:_LIMIT],
+                    "message": f"Không thấy đúng “{q}”; đây là các nơi tên “{ten}” — chọn đúng nơi."}
 
     if not out and hong == len(_SOURCES):
         return {"query": q, "results": [],
