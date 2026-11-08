@@ -17,10 +17,10 @@ def test_ket_noi_hong_thi_mo_lai_mot_lan(monkeypatch):
     made = []
 
     class Conn:
-        def __init__(self, host, timeout=None):
+        def __init__(self, host, timeout=None, context=None):
             self.n = len(made)
             made.append(self)
-            self.timeout = timeout
+            self.timeout, self.context = timeout, context
 
         def request(self, method, path, body=None, headers=None):
             self.method, self.path = method, path
@@ -36,6 +36,9 @@ def test_ket_noi_hong_thi_mo_lai_mot_lan(monkeypatch):
     monkeypatch.setattr(mpc._tls, "conn", None, raising=False)
     out = mpc._pc_request(mpc.DATA + "?collection=x&item=y", {"type": "Feature"}, 30)
     assert out == {"ok": 1} and len(made) == 2 and made[1].method == "POST" and made[1].path.startswith("/api/data/v1/item/statistics?")
+    # 8/11/2026: mọi kết nối dùng SSLContext chung — không nạp lại kho CA mỗi kết nối
+    from app import TLS_CONTEXT
+    assert all(c.context is TLS_CONTEXT for c in made)
     # lượt sau dùng lại kết nối đang mở (không tạo thêm)
     assert mpc._pc_request(mpc.DATA + "?a=1", None, 30) == {"ok": 1} and len(made) == 2
 
@@ -44,7 +47,7 @@ def test_loi_http_tra_none(monkeypatch):
     from app.services import mpc
 
     class Conn:
-        def __init__(self, host, timeout=None):
+        def __init__(self, host, timeout=None, context=None):
             self.timeout = timeout
 
         def request(self, *a, **k):
