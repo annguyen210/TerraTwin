@@ -1961,6 +1961,8 @@ export type PlanDay = {
   date: string;
   weekday: string;
   safe: boolean;
+  // 8/11/2026: không cảnh báo NHƯNG có hiểm hoạ thời tiết chưa kết luận được — không phải "an toàn".
+  unknown?: boolean;
   hazards: string[];
 };
 export type PlanValueItem = {

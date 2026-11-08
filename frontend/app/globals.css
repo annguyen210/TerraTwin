@@ -3698,11 +3698,13 @@ body {
 }
 .pw-day.safe { background: rgba(62,203,131,0.10); border-color: rgba(62,203,131,0.3); }
 .pw-day.risky { background: rgba(229,112,90,0.10); border-color: rgba(229,112,90,0.3); }
+.pw-day.unknown { background: rgba(150,150,150,0.08); border-color: rgba(150,150,150,0.3); border-style: dashed; }
 .pw-wd { font-size: 0.66rem; color: var(--dim); }
 .pw-dt { font-size: 0.78rem; font-weight: 700; color: var(--text); }
 .pw-dot { font-size: 0.8rem; font-weight: 800; }
 .pw-day.safe .pw-dot { color: var(--ok); }
 .pw-day.risky .pw-dot { color: var(--bad); }
+.pw-day.unknown .pw-dot { color: var(--dim); }
 
 /* 3. Giá trị chịu rủi ro */
 /* Loại đất thật (ESA WorldCover) — thanh tỉ lệ các lớp, màu theo quy ước bản đồ

@@ -55,6 +55,10 @@ LOSS_FRACTION: dict[str, tuple[float, float]] = {
     "yield":          (0.1, 0.3),
 }
 
+# Hiểm hoạ thời tiết 7 ngày — cùng bộ với TerraScore. Mục nào CHƯA kết luận được (vd. chưa có khí hậu nền) thì không
+# được gọi ngày nào là "an toàn" (8/11/2026).
+_WEATHER_7D = ("salinity", "drought", "flood", "landslide", "wildfire")
+
 _WEEKDAY_VI = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật"]
 _WEEKDAY_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
@@ -107,6 +111,7 @@ def build(loc: Location, crop: str | None = None) -> dict:
     if not explicit:
         crop = fit["default_crop"]
     alerts = sc.alerts                      # đã lọc: thật + là mối đe doạ, nguy hiểm trước
+    unknown = [m.name for m in sc.modules if m.id in _WEATHER_7D and m.status == "need_data"]
     today = date.today()
     horizon = [(today + timedelta(days=i)).isoformat() for i in range(7)]
 
@@ -140,9 +145,15 @@ def build(loc: Location, crop: str | None = None) -> dict:
     for d in horizon:
         hz = sorted(set(by_day.get(d, [])))
         days.append({"date": d, "weekday": _weekday_vi(d),
-                     "safe": not hz, "hazards": hz})
+                     "safe": not hz and not unknown, "unknown": not hz and bool(unknown), "hazards": hz})
     safe_dates = [d["date"] for d in days if d["safe"]]
-    if not alerts:
+    if unknown:
+        names = ", ".join(n.lower() for n in unknown)
+        sw_headline = tr(f"Chưa nói được ngày nào an toàn — {len(unknown)} hiểm hoạ thời tiết chưa kết luận được "
+                         f"({names}). Thử lại sau ít phút.",
+                         f"Can't call any day safe yet — {len(unknown)} weather hazard(s) not concluded "
+                         f"({names}). Try again in a few minutes.")
+    elif not alerts:
         sw_headline = tr("Không có cảnh báo nào trong 7 ngày tới — mọi ngày đều thuận cho việc đồng áng.",
                          "No alerts in the next 7 days — every day is fine for fieldwork.")
     elif safe_dates:
@@ -230,6 +241,9 @@ def build(loc: Location, crop: str | None = None) -> dict:
                f"Up to ~{_money(worst_hi)} {_on_en} at risk "
                f"(largest single hazard, NOT summed).")
             if items else
+            tr("Chưa nói được giá trị vụ có an toàn không — hiểm hoạ thời tiết chưa kết luận được.",
+               "Can't say yet whether the crop value is safe — weather hazards not concluded.")
+            if unknown else
             tr(f"✅ Giá trị vụ ~{_money(plot_lo)}–{_money(plot_hi)} {_on_vi} đang được "
                f"canh giữ — không hiểm họa nào đe doạ trong 7 ngày tới.",
                f"✅ Crop value ~{_money(plot_lo)}–{_money(plot_hi)} {_on_en} is being "
@@ -251,10 +265,11 @@ def _assemble(loc, sc, alerts, actions, days, safe_dates, sw_headline, value) ->
         "grade": ts.grade, "score": ts.score,
         "n_alerts": n_alerts,
         "real_data_ratio": sc.real_data_ratio,
-        "headline": (tr(f"Điểm nền {ts.score}/100 ({ts.grade}) · {n_alerts} cảnh báo đang mở.",
-                        f"Baseline score {ts.score}/100 ({ts.grade}) · {n_alerts} open alert(s).") if n_alerts else
-                     tr(f"Điểm nền {ts.score}/100 ({ts.grade}) · chưa có cảnh báo nào.",
-                        f"Baseline score {ts.score}/100 ({ts.grade}) · no alerts yet.")),
+        "headline": ((tr(f"Điểm nền {ts.score}/100 ({ts.grade})", f"Baseline score {ts.score}/100 ({ts.grade})")
+                      if ts.score is not None else
+                      tr("Chưa chấm được điểm nền (thiếu dữ liệu thật)", "No baseline score yet (missing real data)"))
+                     + (tr(f" · {n_alerts} cảnh báo đang mở.", f" · {n_alerts} open alert(s).") if n_alerts else
+                        tr(" · chưa có cảnh báo nào.", " · no alerts yet."))),
         "capability": tr("Lưu thửa → TerraTwin tự rà nền 6 giờ một lần và báo TRƯỚC "
                          "qua web / email / webhook, kể cả lúc 3 giờ sáng khi bạn "
                          "không mở app. Bạn không phải nhớ vào xem.",

@@ -35,6 +35,11 @@ def offline(monkeypatch):
         for i in range(7)])
     monkeypatch.setattr(realdata, "river_discharge_7d", lambda la, lo: None)
     monkeypatch.setattr(realdata, "marine_7d", lambda la, lo: None)
+    # Khí hậu nền cũng giả lập (8/11/2026): trước đây fixture bỏ sót nên test tải ERA5 thật — máy có mạng thì hiệu chuẩn,
+    # CI không tải được thì lùi thang tuyệt đối; nay thang chưa hiệu chuẩn là "chưa biết" nên test phải tự cấp khí hậu nền.
+    from app.services import calibration as cal
+    dist = sorted((i / 500) ** 2 * 200.0 for i in range(500))
+    monkeypatch.setattr(cal, "climatology", lambda *a, **k: dist)
 
 
 # ---------- GloFAS lưu lượng sông ----------

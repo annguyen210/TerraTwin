@@ -436,12 +436,14 @@ export default function PlotPlan({
             {sw.days.map((d) => (
               <div
                 key={d.date}
-                className={`pw-day ${d.safe ? "safe" : "risky"}`}
-                title={d.safe ? t("Không cảnh báo", "No alerts") : d.hazards.join(", ")}
+                className={`pw-day ${d.safe ? "safe" : d.unknown ? "unknown" : "risky"}`}
+                title={d.safe ? t("Không cảnh báo", "No alerts")
+                  : d.unknown ? t("Chưa kết luận được — thiếu dữ liệu", "Not concluded — missing data")
+                  : d.hazards.join(", ")}
               >
                 <span className="pw-wd">{d.weekday}</span>
                 <span className="pw-dt">{ddmm(d.date)}</span>
-                <span className="pw-dot">{d.safe ? "✓" : d.hazards.length}</span>
+                <span className="pw-dot">{d.safe ? "✓" : d.unknown ? "?" : d.hazards.length}</span>
               </div>
             ))}
           </div>
