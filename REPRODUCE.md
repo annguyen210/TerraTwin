@@ -571,20 +571,26 @@ nên hai chỗ sửa của lần 5 chưa được tập kiểm tra thử tới.
 python ops/listing_gate_fb.py <tin_lan5.json> --run 5
 ```
 
-| Lần | Giao thức → nhãn AI → nhãn người → chấm | F1 trung bình | Ghi chú |
+> **Đính chính 8/11/2026:** nhãn chấm cổng lần 6–9 ghi là "nhãn người, chủ dự án tự gán" nhưng thực ra do **Claude** gán — một
+> phiên chat khác phiên viết luật; chủ dự án chuyển tin sang rồi gửi lại kết quả. 100/100 tin trùng đúng từng mã với câu trả lời
+> của phiên đó. Mã nhãn và số F1 không đổi; tệp `listing_gate_v6…v9_labels.json` / `_result.json` nay ghi `labeler_kind: "claude"`,
+> giữ ghi cũ ở `labeler_as_recorded`. Độ khớp "AI–người" 20/20, 30/30 thực ra là Claude so với Claude. **Chưa lần nào chấm trên
+> nhãn người.** Từ nay `ops/listing_gate_fb.py` dừng nếu tệp nhãn không khai `labeler_kind`.
+
+| Lần | Giao thức → nhãn AI → nhãn chấm cổng → chấm | F1 trung bình | Ghi chú |
 |---|---|---|---|
-| 6 — **NHÃN NGƯỜI**: chủ dự án tự gán 20 tin Facebook mới, không thấy nhãn máy; luật y nguyên lần 5. 3/4 trang chính không xem được → Bến Tre 15, Nghệ An 4, Khánh Hòa 1 (trang dự phòng theo thứ tự đăng ký) | 27e7f05 → 6015002 → 84c4107 → 1d6260f | **0,78** (trượt sát) | thổ cư đúng 9/9 nhưng bắt NHẦM 5 tin "quy hoạch đất ở" (2 tin ghi rõ "chưa thổ cư"); nhãn AI khoá trước khớp nhãn người 20/20 tin; hướng dẫn gửi người gán có ví dụ "cách cầu Kênh X" trùng tin 14 |
+| 6 — **NHÃN CLAUDE** (ghi nhầm là nhãn người tới 8/11/2026): 20 tin Facebook mới, phiên gán không thấy nhãn máy; luật y nguyên lần 5. 3/4 trang chính không xem được → Bến Tre 15, Nghệ An 4, Khánh Hòa 1 (trang dự phòng theo thứ tự đăng ký) | 27e7f05 → 6015002 → 84c4107 → 1d6260f | **0,78** (trượt sát) | thổ cư đúng 9/9 nhưng bắt NHẦM 5 tin "quy hoạch đất ở" (2 tin ghi rõ "chưa thổ cư"); nhãn AI khoá trước khớp nhãn chấm cổng 20/20 tin (Claude so với Claude); hướng dẫn gửi người gán có ví dụ "cách cầu Kênh X" trùng tin 14 |
 
 ```bash
-python ops/listing_gate_fb.py <tin_lan6.json> --run 6    # in thêm độ khớp nhãn AI (listing_gate_v6_ai_labels.json) với nhãn người
+python ops/listing_gate_fb.py <tin_lan6.json> --run 6    # in thêm độ khớp nhãn AI (listing_gate_v6_ai_labels.json) với nhãn chấm cổng
 ```
 
-| Lần | Luật + giao thức → nhãn AI → nhãn người → chấm | F1 trung bình | Ghi chú |
+| Lần | Luật + giao thức → nhãn AI → nhãn chấm cổng → chấm | F1 trung bình | Ghi chú |
 |---|---|---|---|
-| 7 — **NHÃN NGƯỜI**, luật SỬA theo lỗi lần 6 ("quy hoạch đất ở", "chưa thổ cư"; lần 6 thành tập phát triển). 20 tin mới: Sóc Trăng 7, Long An 5, Đồng Nai 5, Thanh Hóa 2, Vĩnh Long 1 (trang dự phòng theo thứ tự đăng ký) | 68f46e9 → afb469f → 61dc1c2 → chấm ở commit sau | **0,97** (ĐẠT) | thổ cư 8/9, 0 bắt nhầm (sót "thổ...." bị cắt chữ); cao ráo 2/2. **Mẫu không có câu "quy hoạch đất ở"/"chưa thổ cư" — luật cũ cũng 0,97 trên mẫu này: chỗ sửa CHƯA được kiểm.** Nhãn AI phụ (kèm ghi chú) công khai trước khi người gán ở lần 6 và 7 → độ khớp 20/20 không chứng minh độc lập |
+| 7 — **NHÃN CLAUDE** (ghi nhầm là nhãn người tới 8/11/2026), luật SỬA theo lỗi lần 6 ("quy hoạch đất ở", "chưa thổ cư"; lần 6 thành tập phát triển). 20 tin mới: Sóc Trăng 7, Long An 5, Đồng Nai 5, Thanh Hóa 2, Vĩnh Long 1 (trang dự phòng theo thứ tự đăng ký) | 68f46e9 → afb469f → 61dc1c2 → chấm ở commit sau | **0,97** (ĐẠT) | thổ cư 8/9, 0 bắt nhầm (sót "thổ...." bị cắt chữ); cao ráo 2/2. **Mẫu không có câu "quy hoạch đất ở"/"chưa thổ cư" — luật cũ cũng 0,97 trên mẫu này: chỗ sửa CHƯA được kiểm.** Độ khớp 20/20 với nhãn AI phụ là Claude so với Claude (nhãn AI phụ còn công khai trước khi gán ở lần 6 và 7) → không chứng minh độc lập |
 
-| 8 — **NHÃN NGƯỜI**, luật giữ nguyên lần 7. 30 tin CHỌN THEO TỪ CHỦ ĐỀ (biển, sông, ngập, phẳng/dốc, sạt lở, nước) để đo 6 loại chưa chấm trên nhãn người; giao thức f3aa050 + phụ lục 1–2 | f3aa050 → 6d6cd08 (mã băm) → ea70425 → c678ceb | **0,95** trên 4/6 loại đích (ĐẠT) | không ngập + không sạt lở: 0 tin → CHƯA ĐO. Mọi loại 0,78: bắt nhầm "QH … ONT", sót "cao thoáng", "Tho 150" |
-| 9 — **NHÃN NGƯỜI**, luật SỬA theo lỗi lần 8 (lần 8 thành tập phát triển; kiểm lại lần 1–8: lần 8 0,78 → 1,00, không lần nào giảm). 30 tin mới: Đắk Lắk, Hội An, Tây Ninh (dự phòng), Châu Đốc — 20 bài đầu + 10 bài có "quy hoạch/QH/ONT/ODT" | 7c16e8b → 22adb88 (mã băm) → a4b8fbc → 65aaacb → chấm ở commit sau | **0,98** (ĐẠT) | thổ cư 0,95 (bắt nhầm "miếng đất ở Vĩnh Châu", sót "tc 60m"), gần sông 1,0. **0/5 kiểu câu đã sửa có trong mẫu mới — chỗ sửa CHƯA được kiểm trên tin mới.** Nhãn AI phụ kèm lý do đã hiện trong phiên chat của người gán → độ khớp 30/30 không chứng minh độc lập |
+| 8 — **NHÃN CLAUDE** (ghi nhầm là nhãn người tới 8/11/2026), luật giữ nguyên lần 7. 30 tin CHỌN THEO TỪ CHỦ ĐỀ (biển, sông, ngập, phẳng/dốc, sạt lở, nước) để đo 6 loại chưa chấm trên nhãn người; giao thức f3aa050 + phụ lục 1–2 | f3aa050 → 6d6cd08 (mã băm) → ea70425 → c678ceb | **0,95** trên 4/6 loại đích (ĐẠT) | không ngập + không sạt lở: 0 tin → CHƯA ĐO. Mọi loại 0,78: bắt nhầm "QH … ONT", sót "cao thoáng", "Tho 150" |
+| 9 — **NHÃN CLAUDE** (ghi nhầm là nhãn người tới 8/11/2026), luật SỬA theo lỗi lần 8 (lần 8 thành tập phát triển; kiểm lại lần 1–8: lần 8 0,78 → 1,00, không lần nào giảm). 30 tin mới: Đắk Lắk, Hội An, Tây Ninh (dự phòng), Châu Đốc — 20 bài đầu + 10 bài có "quy hoạch/QH/ONT/ODT" | 7c16e8b → 22adb88 (mã băm) → a4b8fbc → 65aaacb → chấm ở commit sau | **0,98** (ĐẠT) | thổ cư 0,95 (bắt nhầm "miếng đất ở Vĩnh Châu", sót "tc 60m"), gần sông 1,0. **0/5 kiểu câu đã sửa có trong mẫu mới — chỗ sửa CHƯA được kiểm trên tin mới.** Nhãn chấm cổng do một phiên Claude khác gán → độ khớp 30/30 với nhãn AI phụ là Claude so với Claude, không chứng minh độc lập |
 
 ```bash
 python ops/listing_gate_fb.py <tin_lan7.json> --run 7

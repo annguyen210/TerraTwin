@@ -1,7 +1,10 @@
 {
  "protocol": "terratwin.listing_gate/7",
  "role": "primary — nhãn dùng chấm cổng",
- "labeler": "Chủ dự án (người), gửi 20 dòng mã A–H/0 ngày 27/10/2026, kèm các quyết định ở chỗ quy tắc chưa nói rõ",
+ "labeler": "Claude (AI) — một phiên chat khác phiên viết luật; chủ dự án chuyển tin sang và gửi lại 20 dòng mã (đính chính 8/11/2026)",
+ "labeler_kind": "claude",
+ "labeler_as_recorded": "Chủ dự án (người), gửi 20 dòng mã A–H/0 ngày 27/10/2026, kèm các quyết định ở chỗ quy tắc chưa nói rõ",
+ "provenance_correction": "ĐÍNH CHÍNH 8/11/2026: bộ nhãn này do Claude gán — một phiên chat Claude KHÁC phiên viết luật; chủ dự án chuyển tin sang phiên đó rồi gửi lại kết quả — KHÔNG phải nhãn người. Đối chiếu: 100/100 tin lần 6–9 trùng đúng từng mã với câu trả lời của phiên đó, kể cả các quyết định ở chỗ quy tắc chưa nói rõ (gần nguyên văn). Phiên gán không được xem nhãn AI phụ, nên độ khớp với nhãn AI phụ là Claude so với Claude, không phải bằng chứng độc lập. Ghi cũ giữ ở trường labeler_as_recorded.",
  "labelled_before_scoring": true,
  "guideline": "Bản hướng dẫn ghi trong listing_gate_v7_protocol.json (commit 68f46e9, trước khi thu mẫu)",
  "independence_caveat": "Nhãn AI phụ (listing_gate_v7_ai_labels.json, kèm ghi chú lý do) đã được đẩy lên kho mã CÔNG KHAI ở commit afb469f TRƯỚC khi chủ dự án gán. Về nguyên tắc người gán có thể đã xem; không có bằng chứng là đã xem, nhưng độ khớp AI–người KHÔNG chứng minh được độc lập. Lỗi thiết kế của Claude; lần sau chỉ công khai mã băm của nhãn AI cho tới khi có nhãn người. Cùng điểm yếu ở lần 6 (6015002 trước 84c4107).",

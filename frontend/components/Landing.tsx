@@ -120,7 +120,7 @@ const STEPS: { icon: LucideIcon; vi: string; en: string }[] = [
 const PROOF: { b: string; vi: string; en: string }[] = [
   { b: "60/80", vi: "điểm ngập trên bản đồ UNOSAT (10 trận 2020–2025) radar thấy đợt nước", en: "flooded points on UNOSAT maps (10 floods 2020–2025) where radar saw the water" },
   { b: "0/73", vi: "điểm khô (cách vùng nước ≥ 500 m) bị báo nhầm là có đợt nước", en: "dry points (≥ 500 m from water) falsely flagged with a water event" },
-  { b: "0,98", vi: "F1 nhận câu khẳng định trên 30 tin rao Facebook thật, nhãn người (lần 9)", en: "F1 for spotting claims in 30 real Facebook ads, human labels (run 9)" },
+  { b: "0,98", vi: "F1 nhận câu khẳng định trên 30 tin rao Facebook thật, nhãn do Claude gán — chưa có nhãn người (lần 9)", en: "F1 for spotting claims in 30 real Facebook ads, Claude labels — no human labels yet (run 9)" },
   { b: "Ed25519", vi: "chữ ký số + sổ minh bạch + neo Bitcoin: sửa một chữ là lộ", en: "signature + transparency log + Bitcoin anchor: one changed letter shows" },
 ];
 
@@ -204,7 +204,7 @@ export default function Landing({
           <p className="eu-eyebrow">{t("Vì sao tin được", "Why you can trust it")}</p>
           <h2 className="lp3-h2">{t("Chấm bằng dữ liệu người khác làm ra — kể cả chỗ còn yếu", "Scored against data made by others — weak spots included")}</h2>
           <div className="lp3-stats">{PROOF.map((x) => <div key={x.b}><b>{x.b}</b><span>{t(x.vi, x.en)}</span></div>)}</div>
-          <p className="lp3-note">{t("Bản đồ UNOSAT từ vệ tinh khác Sentinel-1 chỉ khớp 6/16 điểm ngập; tin rao lần 9 do chủ dự án tự gán. Đầy đủ ở ", "UNOSAT maps from satellites other than Sentinel-1 match only 6/16 flooded points; run-9 ads were labelled by the project owner. Full details in the ")}<Link href="/mo-hinh">{t("thẻ mô hình", "model cards")}</Link>.</p>
+          <p className="lp3-note">{t("Bản đồ UNOSAT từ vệ tinh khác Sentinel-1 chỉ khớp 6/16 điểm ngập; nhãn tin rao lần 6–9 do một phiên Claude khác gán, không phải chủ dự án — tới 8/11/2026 ghi nhầm là nhãn người. Đầy đủ ở ", "UNOSAT maps from satellites other than Sentinel-1 match only 6/16 flooded points; the run 6–9 ad labels came from a separate Claude session, not the project owner — misrecorded as human labels until 8 Nov 2026. Full details in the ")}<Link href="/mo-hinh">{t("thẻ mô hình", "model cards")}</Link>.</p>
         </section>
 
         <section className="lp3-sec">
