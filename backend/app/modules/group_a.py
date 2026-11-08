@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from app.modules.base import TwinModule
 from app.modules.util import (
-    _needs_sentinel, _next_sentinel, assessment_from_series, need_data_assessment,
+    _needs_sentinel, _next_sentinel, assessment_from_series, need_data_assessment, uncalibrated_assessment,
 )
 from app.schemas import Assessment, Location
 from app.services import datasources as ds
@@ -22,6 +22,8 @@ class DroughtModule(TwinModule):
 
     def assess(self, loc: Location) -> Assessment:
         s, real, calibrated, source = hazard.module_series(self.id, loc.lat, loc.lon)
+        if real and not calibrated:
+            return uncalibrated_assessment(self, loc)
 
         def texts(lvl, pk, fd):
             if fd:
@@ -55,6 +57,8 @@ class WildfireModule(TwinModule):
 
     def assess(self, loc: Location) -> Assessment:
         s, real, calibrated, source = hazard.module_series(self.id, loc.lat, loc.lon)
+        if real and not calibrated:
+            return uncalibrated_assessment(self, loc)
 
         def texts(lvl, pk, fd):
             if fd:

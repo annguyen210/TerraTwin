@@ -52,6 +52,21 @@ def need_data_assessment(module, loc: Location, needs: str, will_do: str,
     )
 
 
+def uncalibrated_assessment(module, loc: Location) -> Assessment:
+    """Mưa/nhiệt THẬT nhưng CHƯA hiệu chuẩn được theo khí hậu 10 năm của chính điểm (nguồn lưu trữ chưa trả về) →
+    chưa biết, KHÔNG cảnh báo theo thang tuyệt đối. Thang tuyệt đối bão hoà ở vùng mưa nhiều: 8/11/2026 ruộng Tân Trụ
+    (Long An), mưa ~10 mm/ngày → "NGUY CƠ NGẬP CAO 75,4, sẵn sàng sơ tán" trên thang tuyệt đối, 21,7 (an toàn) trên
+    thang hiệu chuẩn; kế hoạch thửa (lượt quét riêng, khí hậu nền chưa về) báo động trong khi thẻ cùng trang báo "yên".
+    Cùng nguyên tắc với rủi ro vùng nguyên liệu (group_d): điểm chưa hiệu chuẩn = chưa biết."""
+    return need_data_assessment(
+        module, loc,
+        needs=tr("khí hậu nền 10 năm của chính điểm này (nguồn lưu trữ thời tiết chưa trả về)",
+                 "this point's own 10-year baseline climate (the weather archive hasn't responded yet)"),
+        will_do=tr("so dự báo với khí hậu của chính nơi này để biết thế nào là bất thường",
+                   "compare the forecast with this place's own climate to tell what is unusual"),
+        next_step=tr("Thử lại sau ít phút.", "Try again in a few minutes."))
+
+
 def conf_band(confidence: float, is_real: bool) -> tuple[float, float]:
     """Khoảng tin cậy quanh điểm ước lượng — hẹp hơn khi có dữ liệu thật."""
     half = 0.08 if is_real else 0.15
