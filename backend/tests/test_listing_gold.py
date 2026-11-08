@@ -168,14 +168,27 @@ def test_the_mo_hinh_lan_8_ghi_loai_dich_chua_do(monkeypatch):
     labels = [m["label"] for m in c["metrics"]]
     assert sum("CHƯA đo" in x for x in labels) == 5
     assert any("MỌI loại" in x for x in labels) and c["metrics"][-1]["value"] == 0.78 and c["metrics"][-1]["passed"] is None
-    assert "VẪN CHƯA ĐO" in c["limits"] and "MÃ BĂM" in c["limits"] and "lần 6 trở đi" in c["split"]
+    assert "VẪN CHƯA ĐO" in c["limits"] and "MÃ BĂM" in c["limits"] and "lần 6–9" in c["split"]
 
 
-def test_the_mo_hinh_lan_9_noi_ro_cho_sua_chua_kiem_va_nhan_ai_da_hien():
-    """Lần 9 (29/10/2026): đạt 0,98 nhưng 0/5 kiểu câu đã sửa có trong mẫu mới — thẻ phải hiện '0/5' và nói chưa kiểm; nhãn AI
-    kèm lý do đã hiện trong phiên chat của người gán → không được ghi 'không thấy nhãn máy'."""
+def test_the_mo_hinh_lan_9_noi_ro_cho_sua_chua_kiem_va_nhan_la_cua_claude():
+    """Lần 9 (29/10/2026): đạt 0,98 nhưng 0/5 kiểu câu đã sửa có trong mẫu mới — thẻ phải hiện '0/5' và nói chưa kiểm.
+    Đính chính 8/11/2026: nhãn lần 6–9 do một phiên Claude khác gán — thẻ phải nói 'KHÔNG phải nhãn người', không ghi 'nhãn người'."""
     from app.services import model_cards
     c = next(x for x in model_cards.cards() if x["id"] == "listing_rules")
-    assert "lần 9 đạt" in c["status_label"] and "nhãn người" in c["status_label"]
-    assert "không thấy nhãn máy" not in c["split"] and "KHÔNG chứng minh được độc lập" in c["split"]
+    assert "lần 9 đạt" in c["status_label"] and "nhãn Claude, không phải nhãn người" in c["status_label"]
+    assert " · nhãn người" not in c["status_label"] and "chủ dự án tự gán 30" not in c["split"]
+    assert c["split"].startswith("Lần 9: nhãn do Claude gán") and "KHÔNG phải nhãn người" in c["split"] and "30/30" in c["split"]
+    assert "lần 6–9" in c["split"] and "nhãn Claude" in c["limits"]
     assert any(m["value"] == "0/5" for m in c["metrics"]) and "CHƯA được kiểm" in c["limits"]
+
+
+def test_tep_nhan_lan_6_9_khai_dung_nguoi_gan():
+    """Đính chính 8/11/2026: tệp nhãn và tệp kết quả lần 6–9 ghi labeler_kind 'claude'; mã nhãn không đổi."""
+    import json, os
+    ev = os.path.join(os.path.dirname(__file__), "..", "data", "eval")
+    for v in (6, 7, 8, 9):
+        for kind in ("labels", "result"):
+            d = json.load(open(os.path.join(ev, f"listing_gate_v{v}_{kind}.json"), encoding="utf-8"))
+            assert d["labeler_kind"] == "claude" and d["labeler"].startswith("Claude (AI)")
+            assert "KHÔNG phải nhãn người" in d["provenance_correction"] and d["labeler_as_recorded"].startswith("Chủ dự án")

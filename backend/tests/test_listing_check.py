@@ -62,7 +62,7 @@ def test_cach_noi_vong_lan_5(text, typ, want):
 
 
 @pytest.mark.parametrize("text,want", [
-    # Lần 7 (27/10/2026): lỗi lần 6 trên NHÃN NGƯỜI — quy hoạch / phủ định / chuyển đổi tương lai KHÔNG phải đã có đất ở.
+    # Lần 7 (27/10/2026): lỗi lần 6 trên nhãn Claude (ghi nhầm là nhãn người tới 8/11/2026) — quy hoạch / phủ định / chuyển đổi tương lai KHÔNG phải đã có đất ở.
     ("Quy hoạch đất ở toàn bộ, giá 1 tỷ 9", False),
     ("Diện tích 117m ( chưa thổ cư ), quy hoạch đất ở", False),
     ("đất CLN, quy hoạch đất ở đô thị", False),
@@ -83,7 +83,7 @@ def test_tho_cu_lan_7(text, want):
 
 
 @pytest.mark.parametrize("text,typ,want", [
-    # Lần 9 (29/10/2026): lỗi lần 8 trên NHÃN NGƯỜI (30 tin Facebook — nay là tập phát triển) — và câu gần giống.
+    # Lần 9 (29/10/2026): lỗi lần 8 trên nhãn Claude (ghi nhầm là nhãn người tới 8/11/2026; 30 tin Facebook — nay là tập phát triển) — và câu gần giống.
     ("Sổ hồng, hiện trạng đất CLN, quy hoạch đất ở ONT", "residential", False),
     ("Sổ có sẵn QH full ONT", "residential", False),
     ("Sổ hồng đất ở ODT + CLN, quy hoạch thổ cư", "residential", True),

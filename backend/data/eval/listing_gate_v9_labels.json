@@ -1,10 +1,13 @@
 {
  "protocol": "terratwin.listing_gate/9",
  "role": "primary — nhãn dùng chấm cổng",
- "labeler": "Chủ dự án (người), gửi 30 dòng mã A–H/0 ngày 29/10/2026, kèm các quyết định ở chỗ quy tắc chưa nói rõ",
+ "labeler": "Claude (AI) — một phiên chat khác phiên viết luật; chủ dự án chuyển tin sang và gửi lại 30 dòng mã (đính chính 8/11/2026)",
+ "labeler_kind": "claude",
+ "labeler_as_recorded": "Chủ dự án (người), gửi 30 dòng mã A–H/0 ngày 29/10/2026, kèm các quyết định ở chỗ quy tắc chưa nói rõ",
+ "provenance_correction": "ĐÍNH CHÍNH 8/11/2026: bộ nhãn này do Claude gán — một phiên chat Claude KHÁC phiên viết luật; chủ dự án chuyển tin sang phiên đó rồi gửi lại kết quả — KHÔNG phải nhãn người. Đối chiếu: 100/100 tin lần 6–9 trùng đúng từng mã với câu trả lời của phiên đó, kể cả các quyết định ở chỗ quy tắc chưa nói rõ (gần nguyên văn). Phiên gán không được xem nhãn AI phụ, nên độ khớp với nhãn AI phụ là Claude so với Claude, không phải bằng chứng độc lập. Ghi cũ giữ ở trường labeler_as_recorded; lời xác nhận 'tự gán' ở labeler_attestation không đúng với cách bộ nhãn được tạo ra.",
  "labeler_attestation": "Hỏi trước khi khoá: 'bạn tự gán cả 30 tin, không nhờ AI hay công cụ nào?' — trả lời: 'tôi tự gán' (29/10/2026)",
  "labelled_before_scoring": true,
- "ai_labels_seen_by_labeler": "KHÔNG LOẠI TRỪ ĐƯỢC: kho mã chỉ có mã băm nhãn AI (22adb88), NHƯNG nhãn AI kèm ghi chú lý do nằm nguyên văn trong một lệnh hiển thị ở phiên chat của chủ dự án trước khi gán (lỗi quy trình của Claude). Nhãn người khớp nhãn AI 30/30 và lý do ở các tin 2, 7, 18, 27 gần giống ghi chú AI — độ khớp AI–người KHÔNG chứng minh được độc lập.",
+ "ai_labels_seen_by_labeler": "Phiên Claude gán nhãn không được xem nhãn AI phụ; độ khớp 30/30 là hai phiên Claude cùng đọc một hướng dẫn. Giả thuyết cũ 'lộ nhãn AI qua lệnh hiển thị trong phiên chat' không phải nguyên nhân (đính chính 8/11/2026).",
  "guideline": {
   "task": "Với mỗi tin: người bán đang khẳng định điều gì về CHÍNH lô đất đang bán? Chọn các mã phù hợp; không có thì ghi 0.",
   "codes": {

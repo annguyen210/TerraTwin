@@ -27,7 +27,7 @@ CLAIMS: list[tuple[str, str, str, list[str]]] = [
     ("high_ground", "Đất cao ráo", "High ground", [
         r"cao rao", r"nen (dat )?cao", r"(the|vi tri) dat cao", r"dat cao\b", r"khong (bi )?trung",
         r"cao (hon|ngang|bang|tren) (voi )?(mat )?(duong|khu vuc|nen duong)", r"\b(ngang|bang) (voi )?mat duong\b",
-        # Lần 9 (29/10/2026) theo lỗi lần 8 (NHÃN NGƯỜI — nay là tập phát triển): "cao thoáng", "mặt bằng cao".
+        # Lần 9 (29/10/2026) theo lỗi lần 8 (nhãn Claude, ghi nhầm là nhãn người tới 8/11/2026 — nay là tập phát triển): "cao thoáng", "mặt bằng cao".
         r"\bcao thoang\b", r"\bmat bang (dat )?cao\b"]),
     # Lần 2 (18/10/2026) sửa theo lỗi cổng GĐ3 lần 1 — chấm lại trên mẫu MỚI (listing_gate_v2_protocol.json):
     # "dòng sông", "bao quanh bởi sông", "cách biển <tên> 100m", "bãi tắm"; "đất ở khu dân cư" là NẰM Ở, không phải
@@ -50,7 +50,7 @@ CLAIMS: list[tuple[str, str, str, list[str]]] = [
         r"duong bao bien", r"(nhin|huong|mat) ra (bai )?bien\b", r"\bgio bien\b"]),
     ("flat", "Bằng phẳng", "Flat", [r"bang phang", r"dat phang", r"khong (bi )?doc", r"mat bang phang"]),
     ("no_landslide", "Không sạt lở", "No landslides", [r"khong (bi |lo )?sat lo", r"chua (tung )?sat lo"]),
-    # Lần 7 (27/10/2026) theo lỗi lần 6 (NHÃN NGƯỜI, 20 tin Facebook — nay là tập phát triển): "quy hoạch đất ở" là vùng
+    # Lần 7 (27/10/2026) theo lỗi lần 6 (nhãn Claude, ghi nhầm là nhãn người tới 8/11/2026; 20 tin Facebook — nay là tập phát triển): "quy hoạch đất ở" là vùng
     # QUY HOẠCH, chưa phải đất ở; "chưa thổ cư" là PHỦ ĐỊNH. Loại cả ba ngữ cảnh: quy hoạch, phủ định, chuyển đổi tương lai.
     ("residential", "Đất ở / thổ cư", "Residential land", [
         r"(?<!len )(?<!lam )(?<!chua )(?<!chua co )(?<!khong co )(?<!khong phai )(?<!quy hoach )(?<!quy hoach la )(?<!qh )tho cu",

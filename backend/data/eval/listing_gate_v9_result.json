@@ -30,9 +30,12 @@
  "no_claim_but_extracted": [
   2
  ],
- "labeler": "Chủ dự án (người), gửi 30 dòng mã A–H/0 ngày 29/10/2026, kèm các quyết định ở chỗ quy tắc chưa nói rõ",
- "data_note": "30 bài bán đất MỚI trên 4 trang Facebook công khai của môi giới (Đắk Lắk, Quảng Nam, Tây Ninh, An Giang + dự phòng): 20 bài đầu theo thứ tự trên trang + 10 bài có chữ 'quy hoạch'/'QH'/'ONT'/'ODT'; thu SAU khi khoá luật sửa lần 9; NHÃN NGƯỜI do chủ dự án tự gán; 30 tin lần 8 là tập phát triển",
- "data_note_en": "30 NEW land-sale posts from 4 public Facebook broker pages (Đắk Lắk, Quảng Nam, Tây Ninh, An Giang + backups): first 20 in page order + 10 containing 'quy hoạch'/'QH'/'ONT'/'ODT'; collected AFTER the run-9 rule fix was frozen; HUMAN labels by the owner; the run-8 posts are the development set",
+ "labeler": "Claude (AI) — một phiên chat khác phiên viết luật; chủ dự án chuyển tin sang và gửi lại 30 dòng mã (đính chính 8/11/2026)",
+ "labeler_kind": "claude",
+ "labeler_as_recorded": "Chủ dự án (người), gửi 30 dòng mã A–H/0 ngày 29/10/2026, kèm các quyết định ở chỗ quy tắc chưa nói rõ",
+ "provenance_correction": "ĐÍNH CHÍNH 8/11/2026: bộ nhãn này do Claude gán — một phiên chat Claude KHÁC phiên viết luật; chủ dự án chuyển tin sang phiên đó rồi gửi lại kết quả — KHÔNG phải nhãn người. Đối chiếu: 100/100 tin lần 6–9 trùng đúng từng mã với câu trả lời của phiên đó, kể cả các quyết định ở chỗ quy tắc chưa nói rõ (gần nguyên văn). Phiên gán không được xem nhãn AI phụ, nên độ khớp với nhãn AI phụ là Claude so với Claude, không phải bằng chứng độc lập. Ghi cũ giữ ở trường labeler_as_recorded.",
+ "data_note": "30 bài bán đất MỚI trên 4 trang Facebook công khai của môi giới (Đắk Lắk, Quảng Nam, Tây Ninh, An Giang + dự phòng): 20 bài đầu theo thứ tự trên trang + 10 bài có chữ 'quy hoạch'/'QH'/'ONT'/'ODT'; thu SAU khi khoá luật sửa lần 9; NHÃN DO CLAUDE GÁN (phiên chat khác; ghi nhầm là nhãn người tới 8/11/2026); 30 tin lần 8 là tập phát triển",
+ "data_note_en": "30 NEW land-sale posts from 4 public Facebook broker pages (Đắk Lắk, Quảng Nam, Tây Ninh, An Giang + backups): first 20 in page order + 10 containing 'quy hoạch'/'QH'/'ONT'/'ODT'; collected AFTER the run-9 rule fix was frozen; labels by CLAUDE (a separate chat session; misrecorded as human labels until 8 Nov 2026); the run-8 posts are the development set",
  "per_listing": [
   {
    "id": 1,
@@ -303,7 +306,6 @@
    ]
   }
  ],
- "labeler_kind": "human",
  "ai_vs_human": {
   "listings_exact_match": 30,
   "n": 30,
@@ -313,7 +315,7 @@
   "tp": 22,
   "fp": 0,
   "fn": 0,
-  "note": "Nhãn AI (Claude, khoá trước khi người gán) so với nhãn người, gộp mọi loại câu"
+  "note": "Nhãn AI phụ (phiên Claude viết luật, khoá trước) so với nhãn chấm cổng (phiên Claude khác) — Claude so với Claude, gộp mọi loại câu"
  },
  "fixes_exercised": {
   "quy_hoach_ont": {

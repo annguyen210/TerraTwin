@@ -1,7 +1,10 @@
 {
  "protocol": "terratwin.listing_gate/6",
  "role": "primary — nhãn dùng chấm cổng",
- "labeler": "Chủ dự án (người), gửi 20 dòng mã A–H/0 trong phiên làm việc 26/10/2026",
+ "labeler": "Claude (AI) — một phiên chat khác phiên viết luật; chủ dự án chuyển tin sang và gửi lại 20 dòng mã (đính chính 8/11/2026)",
+ "labeler_kind": "claude",
+ "labeler_as_recorded": "Chủ dự án (người), gửi 20 dòng mã A–H/0 trong phiên làm việc 26/10/2026",
+ "provenance_correction": "ĐÍNH CHÍNH 8/11/2026: bộ nhãn này do Claude gán — một phiên chat Claude KHÁC phiên viết luật; chủ dự án chuyển tin sang phiên đó rồi gửi lại kết quả — KHÔNG phải nhãn người. Đối chiếu: 100/100 tin lần 6–9 trùng đúng từng mã với câu trả lời của phiên đó, kể cả các quyết định ở chỗ quy tắc chưa nói rõ (gần nguyên văn). Phiên gán không được xem nhãn AI phụ, nên độ khớp với nhãn AI phụ là Claude so với Claude, không phải bằng chứng độc lập. Ghi cũ giữ ở trường labeler_as_recorded.",
  "labelled_before_scoring": true,
  "saw_ai_labels": false,
  "guideline": "Người gán nhận bảng 8 loại câu + label_rules lần 3 + 5 nguyên tắc chung + 4 ví dụ tự đặt (chi tiết hơn bản 'bảng + nguyên tắc chung' ghi trong giao thức). Một ví dụ loại trừ trong bản hướng dẫn ('cách cầu Kênh X') TRÙNG tình huống tin 14 — tin 14 ở loại gần sông không còn độc lập; lỗi của người soạn hướng dẫn (Claude).",

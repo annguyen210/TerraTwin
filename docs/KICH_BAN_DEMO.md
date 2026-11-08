@@ -48,9 +48,10 @@ chụp 6–12 ngày nên lọt đợt ngập ngắn. Tất cả có trên `/mo-h
 
 **3. Kiểm tin rao "F1 0,98" nghĩa là gì?**
 Đó là độ đúng của việc **nhận ra câu khẳng định** trong tin (câu nào nói "không ngập", câu nào nói "thổ cư"…) trên 30
-tin rao Facebook thật, nhãn do người gán, chấm một lần sau khi khoá luật. Nó không phải độ đúng của phán quyết Khớp/Mâu
-thuẫn — phán quyết dựa trên radar và địa hình ở câu 2. Giới hạn đã công khai: chủ dự án tự gán nhãn; 0/5 chỗ sửa
-luật lần 9 có trong mẫu mới nên chưa được kiểm; các lần trước có lần trượt, cũng công bố.
+tin rao Facebook thật, **nhãn do Claude gán** (một phiên chat khác phiên viết luật), chấm một lần sau khi khoá luật. Nó
+không phải độ đúng của phán quyết Khớp/Mâu thuẫn — phán quyết dựa trên radar và địa hình ở câu 2. Giới hạn đã công khai:
+chưa có nhãn người — nhãn lần 6–9 ghi nhầm là "chủ dự án tự gán" tới 8/11/2026, đã đính chính; 0/5 chỗ sửa luật lần 9 có
+trong mẫu mới nên chưa được kiểm; các lần trước có lần trượt, cũng công bố.
 
 **4. Sao không kiểm được thổ cư, quy hoạch?**
 Cần dữ liệu địa chính, không công khai qua mạng. TerraTwin trả lời "Không đủ dữ liệu" thay vì đoán, và ghi rõ người

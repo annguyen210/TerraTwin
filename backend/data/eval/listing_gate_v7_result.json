@@ -28,9 +28,12 @@
  "passed": true,
  "no_claim_listings": 11,
  "no_claim_but_extracted": [],
- "labeler": "Chủ dự án (người), gửi 20 dòng mã A–H/0 ngày 27/10/2026, kèm các quyết định ở chỗ quy tắc chưa nói rõ",
- "data_note": "20 bài bán đất MỚI trên trang Facebook công khai của môi giới (Vĩnh Long, Thanh Hóa, Long An, Đồng Nai + dự phòng), thu SAU khi khoá luật sửa lần 7; NHÃN NGƯỜI do chủ dự án tự gán; 20 tin lần 6 là tập phát triển",
- "data_note_en": "20 NEW land-sale posts from public Facebook broker pages (Vĩnh Long, Thanh Hóa, Long An, Đồng Nai + backups), collected AFTER the run-7 rule fix was frozen; HUMAN labels by the owner; the run-6 posts are the development set",
+ "labeler": "Claude (AI) — một phiên chat khác phiên viết luật; chủ dự án chuyển tin sang và gửi lại 20 dòng mã (đính chính 8/11/2026)",
+ "labeler_kind": "claude",
+ "labeler_as_recorded": "Chủ dự án (người), gửi 20 dòng mã A–H/0 ngày 27/10/2026, kèm các quyết định ở chỗ quy tắc chưa nói rõ",
+ "provenance_correction": "ĐÍNH CHÍNH 8/11/2026: bộ nhãn này do Claude gán — một phiên chat Claude KHÁC phiên viết luật; chủ dự án chuyển tin sang phiên đó rồi gửi lại kết quả — KHÔNG phải nhãn người. Đối chiếu: 100/100 tin lần 6–9 trùng đúng từng mã với câu trả lời của phiên đó, kể cả các quyết định ở chỗ quy tắc chưa nói rõ (gần nguyên văn). Phiên gán không được xem nhãn AI phụ, nên độ khớp với nhãn AI phụ là Claude so với Claude, không phải bằng chứng độc lập. Ghi cũ giữ ở trường labeler_as_recorded.",
+ "data_note": "20 bài bán đất MỚI trên trang Facebook công khai của môi giới (Vĩnh Long, Thanh Hóa, Long An, Đồng Nai + dự phòng), thu SAU khi khoá luật sửa lần 7; NHÃN DO CLAUDE GÁN (phiên chat khác; ghi nhầm là nhãn người tới 8/11/2026); 20 tin lần 6 là tập phát triển",
+ "data_note_en": "20 NEW land-sale posts from public Facebook broker pages (Vĩnh Long, Thanh Hóa, Long An, Đồng Nai + backups), collected AFTER the run-7 rule fix was frozen; labels by CLAUDE (a separate chat session; misrecorded as human labels until 8 Nov 2026); the run-6 posts are the development set",
  "per_listing": [
   {
    "id": 1,
@@ -191,7 +194,6 @@
    "pred": []
   }
  ],
- "labeler_kind": "human",
  "ai_vs_human": {
   "listings_exact_match": 20,
   "n": 20,
@@ -201,6 +203,6 @@
   "tp": 11,
   "fp": 0,
   "fn": 0,
-  "note": "Nhãn AI (Claude, khoá trước khi người gán) so với nhãn người, gộp mọi loại câu"
+  "note": "Nhãn AI phụ (phiên Claude viết luật, khoá trước) so với nhãn chấm cổng (phiên Claude khác) — Claude so với Claude, gộp mọi loại câu"
  }
 }

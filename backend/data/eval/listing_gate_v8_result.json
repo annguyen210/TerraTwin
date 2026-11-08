@@ -64,9 +64,12 @@
  "passed": true,
  "no_claim_listings": 2,
  "no_claim_but_extracted": [],
- "labeler": "Chủ dự án (người), gửi 30 dòng mã A–H/0 ngày 27/10/2026, kèm các quyết định ở chỗ quy tắc chưa nói rõ",
- "data_note": "30 bài bán đất trên trang Facebook công khai của môi giới, CHỌN THEO TỪ CHỦ ĐỀ (biển, sông, ngập, phẳng/dốc, sạt lở, nước — 5 bài/nhóm) để đo 6 loại câu chưa từng chấm trên nhãn người; luật GIỮ NGUYÊN lần 7; NHÃN NGƯỜI do chủ dự án tự gán",
- "data_note_en": "30 land-sale posts from public Facebook broker pages, SELECTED BY TOPIC WORD (sea, river, flood, flat/slope, landslide, water — 5 per group) to measure the 6 claim types never scored on human labels; rules UNCHANGED from run 7; HUMAN labels by the owner",
+ "labeler": "Claude (AI) — một phiên chat khác phiên viết luật; chủ dự án chuyển tin sang và gửi lại 30 dòng mã (đính chính 8/11/2026)",
+ "labeler_kind": "claude",
+ "labeler_as_recorded": "Chủ dự án (người), gửi 30 dòng mã A–H/0 ngày 27/10/2026, kèm các quyết định ở chỗ quy tắc chưa nói rõ",
+ "provenance_correction": "ĐÍNH CHÍNH 8/11/2026: bộ nhãn này do Claude gán — một phiên chat Claude KHÁC phiên viết luật; chủ dự án chuyển tin sang phiên đó rồi gửi lại kết quả — KHÔNG phải nhãn người. Đối chiếu: 100/100 tin lần 6–9 trùng đúng từng mã với câu trả lời của phiên đó, kể cả các quyết định ở chỗ quy tắc chưa nói rõ (gần nguyên văn). Phiên gán không được xem nhãn AI phụ, nên độ khớp với nhãn AI phụ là Claude so với Claude, không phải bằng chứng độc lập. Ghi cũ giữ ở trường labeler_as_recorded.",
+ "data_note": "30 bài bán đất trên trang Facebook công khai của môi giới, CHỌN THEO TỪ CHỦ ĐỀ (biển, sông, ngập, phẳng/dốc, sạt lở, nước — 5 bài/nhóm) để đo 6 loại câu chưa từng chấm trên nhãn người; luật GIỮ NGUYÊN lần 7; NHÃN DO CLAUDE GÁN (phiên chat khác; ghi nhầm là nhãn người tới 8/11/2026)",
+ "data_note_en": "30 land-sale posts from public Facebook broker pages, SELECTED BY TOPIC WORD (sea, river, flood, flat/slope, landslide, water — 5 per group) to measure the 6 claim types never scored on human labels; rules UNCHANGED from run 7; labels by CLAUDE (a separate chat session; misrecorded as human labels until 8 Nov 2026)",
  "per_listing": [
   {
    "id": 1,
@@ -405,7 +408,6 @@
   "no_landslide",
   "fresh_water"
  ],
- "labeler_kind": "human",
  "ai_vs_human": {
   "listings_exact_match": 30,
   "n": 30,
@@ -415,6 +417,6 @@
   "tp": 41,
   "fp": 0,
   "fn": 0,
-  "note": "Nhãn AI (Claude, khoá trước khi người gán) so với nhãn người, gộp mọi loại câu"
+  "note": "Nhãn AI phụ (phiên Claude viết luật, khoá trước) so với nhãn chấm cổng (phiên Claude khác) — Claude so với Claude, gộp mọi loại câu"
  }
 }
