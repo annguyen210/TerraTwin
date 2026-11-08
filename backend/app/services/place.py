@@ -122,6 +122,22 @@ def _from_photon(q: str) -> list | None:
     return out
 
 
+def _label(it: dict) -> str:
+    """Nhãn ngắn từ một kết quả Nominatim (jsonv2 + addressdetails): "Tên · huyện/phường · tỉnh".
+
+    8/11/2026: hàm này bị gọi nhưng CHƯA TỪNG được định nghĩa — ở máy phát triển Nominatim bị chặn nên nhánh này không
+    chạy; trên Render Nominatim trả kết quả và mọi truy vấn rơi xuống tới đây ("Phú Khương, Bến Tre") thành lỗi 500."""
+    a = it.get("address") or {}
+    name = it.get("name") or (it.get("display_name") or "").split(",")[0].strip()
+    # MỘT cấp địa phương gần nhất + LUÔN giữ tỉnh — cắt theo số phần tử từng làm mất tỉnh khi có nhiều cấp (review #6),
+    # mà tỉnh là thứ phân biệt hai nơi trùng tên.
+    local = next((a[k] for k in ("suburb", "quarter", "village", "town", "city_district", "county", "city")
+                  if a.get(k) and a[k] != name), None)
+    tinh = next((a[k] for k in ("state", "province") if a.get(k) and a[k] not in (name, local)), None)
+    phu = [x for x in (local, tinh) if x]
+    return name + (" · " + " · ".join(phu) if phu else "")
+
+
 def _from_nominatim(q: str) -> list | None:
     """Giữ lại làm nguồn cuối. Bị chặn từ máy phát triển nhưng có thể chạy được
     ở nơi khác, và nó phủ dày nhất trong ba nguồn khi hoạt động."""
