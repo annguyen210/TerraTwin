@@ -129,12 +129,13 @@ def _label(it: dict) -> str:
     chạy; trên Render Nominatim trả kết quả và mọi truy vấn rơi xuống tới đây ("Phú Khương, Bến Tre") thành lỗi 500."""
     a = it.get("address") or {}
     name = it.get("name") or (it.get("display_name") or "").split(",")[0].strip()
-    phu: list[str] = []
-    for k in ("suburb", "quarter", "village", "town", "city_district", "county", "city", "state", "province"):
-        v = a.get(k)
-        if v and v != name and v not in phu:
-            phu.append(v)
-    return name + (" · " + " · ".join(phu[:2]) if phu else "")
+    # MỘT cấp địa phương gần nhất + LUÔN giữ tỉnh — cắt theo số phần tử từng làm mất tỉnh khi có nhiều cấp (review #6),
+    # mà tỉnh là thứ phân biệt hai nơi trùng tên.
+    local = next((a[k] for k in ("suburb", "quarter", "village", "town", "city_district", "county", "city")
+                  if a.get(k) and a[k] != name), None)
+    tinh = next((a[k] for k in ("state", "province") if a.get(k) and a[k] not in (name, local)), None)
+    phu = [x for x in (local, tinh) if x]
+    return name + (" · " + " · ".join(phu) if phu else "")
 
 
 def _from_nominatim(q: str) -> list | None:

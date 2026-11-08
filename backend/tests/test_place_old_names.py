@@ -58,6 +58,13 @@ def test_nominatim_co_nhan_khong_loi(monkeypatch):
     assert out[0]["label"] == "Phú Khương · Bến Tre · Vĩnh Long" and out[0]["source"] == "nominatim"
 
 
+def test_nominatim_nhieu_cap_van_giu_tinh():
+    """Review #6: có nhiều cấp địa phương thì nhãn vẫn phải giữ TỈNH (phân biệt nơi trùng tên)."""
+    it = {"name": "Phú Khương", "address": {"quarter": "Khu phố 3", "suburb": "Phú Khương", "city_district": "TP Bến Tre",
+                                            "county": "Bến Tre", "city": "Bến Tre", "state": "Vĩnh Long"}}
+    assert place._label(it) == "Phú Khương · Khu phố 3 · Vĩnh Long"
+
+
 def test_context_terms_bo_tien_to_va_map_tinh_moi():
     assert place._context_terms("Tỉnh Bến Tre") == ["ben tre", "vinh long"]
     assert place._context_terms("TP Châu Đốc") == ["chau doc"]
