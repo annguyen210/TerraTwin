@@ -63,6 +63,39 @@ def test_nhan_nguoi_khong_doc_lap_ghi_ro_trong_ket_qua(tmp_path, monkeypatch):
     assert res["passed"] is None          # 1 tin có câu đích < 8 → CHƯA KẾT LUẬN
 
 
+def _strata_mod():
+    spec = importlib.util.spec_from_file_location("listing_gate_strata", os.path.join(HERE, "..", "..", "ops", "listing_gate_strata.py"))
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
+
+def test_lan_10_f1_tung_tang_tinh_lai_duoc_tu_tep_cong_khai():
+    """Review Qodo PR #8: số phụ 'F1 riêng tầng A/B' phải tính lại được từ per_listing + nhật ký chọn mẫu (khớp mã băm khoá
+    7/11), KHÔNG chạy lại bộ tách câu — và khớp tệp đã công bố."""
+    m = _strata_mod()
+    got = m.strata("10")
+    saved = json.load(open(os.path.join(m.EVAL, "listing_gate_v10_strata.json"), encoding="utf-8"))
+    assert got == saved
+    a, b = got["strata"]["A"], got["strata"]["B"]
+    assert a["n"] + b["n"] == 29 and a["target_listings"] + b["target_listings"] == 6
+    res = json.load(open(os.path.join(m.EVAL, "listing_gate_v10_result.json"), encoding="utf-8"))
+    for t in ("tp", "fp", "fn"):           # cộng hai tầng = tổng của lần chấm một lần
+        for row in res["per_type"]:
+            assert sum(r[t] for s in (a, b) for r in s["per_type"] if r["type"] == row["type"]) == row[t]
+
+
+def test_nhat_ky_chon_mau_lech_ma_bam_thi_dung(tmp_path):
+    import shutil
+    m = _strata_mod()
+    for f in ("listing_gate_v10_result.json", "listing_gate_v10_hashes.json", "listing_gate_v10_selection.json"):
+        shutil.copy(os.path.join(m.EVAL, f), tmp_path / f)
+    p = tmp_path / "listing_gate_v10_selection.json"
+    p.write_bytes(p.read_bytes() + b" ")
+    with pytest.raises(SystemExit):
+        m.strata("10", str(tmp_path))
+
+
 def test_tep_nhan_lan_4_den_9_deu_xac_dinh_duoc_nguoi_gan():
     """Tệp nhãn lần 4–5 không có labeler_kind → mặc định 'claude' (REPRODUCE.md §13); lần 6–9 tự khai 'claude'."""
     g = _gate()

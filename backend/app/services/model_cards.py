@@ -719,14 +719,14 @@ def cards() -> list[dict]:
                          "khớp 28/29 tin — nên KHÔNG độc lập. Chỉ 6 tin có câu đích (2 'không ngập', 6 'cao ráo'), dưới ngưỡng 8 của giao thức: "
                          "CHƯA KẾT LUẬN, không tính đạt hay trượt. Số thật vẫn công bố: máy SÓT cả 2 câu 'không ngập' (F1 0); 'cao ráo' 0,92 "
                          "(6 đúng, 1 bắt thừa). Mọi loại F1 0,60: gần biển sót 2/3, gần sông sót 1/2, thổ cư sót 2/12; 8 tin không khẳng định gì, "
-                         "máy không bắt nhầm tin nào. Không vá luật theo mẫu này; lỗi 'không ngập' sửa ở lần sau và chấm trên tin mới, với người "
+                         "máy không bắt nhầm tin nào. Theo tầng chọn mẫu (listing_gate_v10_strata.json): tầng A — 15 bài đầu mỗi trang, không lọc chữ — KHÔNG có câu đích nào (tin rao thường hiếm khi hứa 'không ngập'/'cao ráo'), F1 mọi loại 0,46; tầng B — 14 bài có gốc chữ 'ngập/lụt/khô ráo/cao/trũng' — chứa cả 6 tin có câu đích, F1 đích 0,46, mọi loại 0,70. Không vá luật theo mẫu này; lỗi 'không ngập' sửa ở lần sau và chấm trên tin mới, với người "
                          "gán chưa thấy câu trả lời nào.",
                          "Run 10 (9 Nov 2026; 29 NEW Facebook posts from 5 flood-prone areas: Huế, Quảng Trị, former Hải Dương, former Tiền Giang, "
                          "former Sóc Trăng; rules unchanged since run 9): the first HUMAN labels, but the labeller (the owner) saw Claude's answers "
                          "before labelling — 28/29 posts match — so they are NOT independent. Only 6 posts carry a target claim (2 'no flooding', "
                          "6 'high ground'), below the protocol's minimum of 8: INCONCLUSIVE, neither pass nor fail. The real numbers are still "
                          "published: the rules MISS both 'no flooding' claims (F1 0); 'high ground' 0.92 (6 correct, 1 false). All types F1 0.60: "
-                         "near sea missed 2/3, near river 1/2, residential 2/12; 8 posts claim nothing and none was falsely flagged. Rules are not "
+                         "near sea missed 2/3, near river 1/2, residential 2/12; 8 posts claim nothing and none was falsely flagged. By sampling stratum (listing_gate_v10_strata.json): stratum A — first 15 posts per page, no word filter — has NO target claim at all (ordinary ads rarely promise 'no flooding'/'high ground'), all-types F1 0.46; stratum B — 14 posts containing 'ngập/lụt/khô ráo/cao/trũng' — holds all 6 target posts, target F1 0.46, all types 0.70. Rules are not "
                          "patched on this sample; the 'no flooding' miss is fixed in a later run and scored on new posts, labelled by someone who "
                          "has seen no answers.") if v == "10" else
                       tr("Lần 9 (nhãn Claude, ghi nhầm là nhãn người tới 8/11/2026; 30 tin Facebook MỚI ở Đắk Lắk, Hội An, Tây Ninh, Châu Đốc: 20 bài đầu mỗi trang + 10 bài có "
