@@ -1,0 +1,75 @@
+{
+ "protocol": "terratwin.listing_gate/11",
+ "date": "2026-11-09",
+ "what": "Luật SỬA theo lỗi lần 10 ('ko/k/hông bao giờ ngập', 'không lụt', 'Full thổ', 'Cách KDL Biển … 4Km') + hai lỗi đã biết từ lần 9 ('miếng đất ở <địa danh>', 'tc 60m'). Kiểm lại trên MỌI tập phát triển (lần 1–10, nhãn đã công bố) TRƯỚC khi thu tin lần 11: không lần nào giảm.",
+ "macro_f1_all_types": {
+  "1": {
+   "before": 1.0,
+   "after": 1.0
+  },
+  "2": {
+   "before": 1.0,
+   "after": 1.0
+  },
+  "3": {
+   "before": 0.99,
+   "after": 0.99
+  },
+  "4": {
+   "before": 1.0,
+   "after": 1.0
+  },
+  "5": {
+   "before": 0.95,
+   "after": 0.95
+  },
+  "6": {
+   "before": 1.0,
+   "after": 1.0
+  },
+  "7": {
+   "before": 0.97,
+   "after": 0.97
+  },
+  "8": {
+   "before": 1.0,
+   "after": 1.0
+  },
+  "9": {
+   "before": 0.98,
+   "after": 1.0
+  },
+  "10": {
+   "before": 0.6,
+   "after": 0.88
+  }
+ },
+ "run10_per_type_after": {
+  "no_flood": [
+   2,
+   0,
+   0
+  ],
+  "high_ground": [
+   6,
+   1,
+   0
+  ],
+  "near_river": [
+   1,
+   0,
+   1
+  ],
+  "near_sea": [
+   2,
+   0,
+   1
+  ],
+  "residential": [
+   12,
+   0,
+   0
+  ]
+ },
+ "note": "Lần 10 là TẬP PHÁT TRIỂN từ đây: số 'after' của lần 10 là luật đã nhìn thấy lỗi của chính mẫu đó — KHÔNG phải số kiểm định. Số kiểm định là lần 11, trên tin mới."
+}

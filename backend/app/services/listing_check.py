@@ -20,7 +20,12 @@ from app.services.reqlang import tr
 CLAIMS: list[tuple[str, str, str, list[str]]] = [
     ("no_flood", "Không ngập", "Never floods", [
         r"khong (bao gio |he |bi |lo )*ngap", r"chua (tung|bao gio) (bi )?ngap", r"khong (bi )?ung ngap",
-        r"kho rao quanh nam", r"khong lo (bi )?ngap", r"ngap (lut )?(la )?khong (co|bao gio)"]),
+        r"kho rao quanh nam", r"khong lo (bi )?ngap", r"ngap (lut )?(la )?khong (co|bao gio)",
+        # Lần 11 (9/11/2026) theo lỗi lần 10 (nhãn người không độc lập — nay là tập phát triển): máy SÓT 2/2 câu "không ngập"
+        # vì chỉ nhận chữ "không" + "ngập". Hai KIỂU nói: phủ định viết tắt/khẩu ngữ ("ko/k/hông/chẳng bao giờ ngập") và
+        # "lụt" thay "ngập" ("không lụt", "chưa từng lụt"). Không thêm "không úng" trơn — bỏ dấu trùng "không ưng (ý)".
+        r"\b(ko|k|kg|hong|chang|cha)\b (bao gio |he |bi |lo |co |tung )*(ngap|lut)\b",
+        r"\bkhong (bao gio |he |bi |lo |co |tung )*lut\b", r"\bchua (tung|bao gio) (bi )?lut\b"]),
     # Lần 5 (26/10/2026) theo lỗi lần 4 (tin Facebook của môi giới, dùng làm TẬP PHÁT TRIỂN) — hai KIỂU nói, không phải
     # vá ba câu: đất ngang/bằng mặt đường (= đã san bằng, không trũng); thời gian ra biển xen chữ ("ra biển và Đồi Rồng
     # chỉ 3 phút") hoặc số đứng TRƯỚC ("5 phút ra biển"). Mẫu thời gian chỉ nhận PHÚT — "đường ra biển rộng 12m" không tính.
@@ -47,6 +52,8 @@ CLAIMS: list[tuple[str, str, str, list[str]]] = [
         # Lần 9: "ra biển và các dự án Novaworld, Safari chỉ 7km" — cho phép dấu phẩy, tối đa 45 ký tự tới con số.
         r"\b(di|ra|xuong|toi|den) (bai )?(bien|bai tam)\b[^.;]{0,45}?\d+ ?(p|ph|phut|km)\b",
         r"\b\d+ ?(p|ph|phut|km)\b (di |chay |lai xe |xe may )?(ra|den|toi|xuong) (bai )?(bien|bai tam)\b",
+        # Lần 11 theo lỗi lần 10: "Cách KDL Biển Cửa Việt 4Km" — khoảng cách tới khu du lịch biển / bãi tắm có tên.
+        r"\bcach (khu du lich |kdl |khu nghi duong )?(bai )?(bien|bai tam)\b[^.;]{0,30}?\d+ ?(km|m|p|phut)\b",
         r"duong bao bien", r"(nhin|huong|mat) ra (bai )?bien\b", r"\bgio bien\b"]),
     ("flat", "Bằng phẳng", "Flat", [r"bang phang", r"dat phang", r"khong (bi )?doc", r"mat bang phang"]),
     ("no_landslide", "Không sạt lở", "No landslides", [r"khong (bi |lo )?sat lo", r"chua (tung )?sat lo"]),
@@ -54,13 +61,16 @@ CLAIMS: list[tuple[str, str, str, list[str]]] = [
     # QUY HOẠCH, chưa phải đất ở; "chưa thổ cư" là PHỦ ĐỊNH. Loại cả ba ngữ cảnh: quy hoạch, phủ định, chuyển đổi tương lai.
     ("residential", "Đất ở / thổ cư", "Residential land", [
         r"(?<!len )(?<!lam )(?<!chua )(?<!chua co )(?<!khong co )(?<!khong phai )(?<!quy hoach )(?<!quy hoach la )(?<!qh )tho cu",
-        r"(?<!quy hoach )(?<!quy hoach la )(?<!qh )(?<!len )(?<!chuyen )(?<!chua co )(?<!khong phai )"
+        # Lần 11 theo lỗi đã biết từ lần 9: "miếng/mảnh đất ở Vĩnh Châu" — "ở" chỉ NƠI CHỐN, không phải loại đất ở.
+        r"(?<!quy hoach )(?<!quy hoach la )(?<!qh )(?<!len )(?<!chuyen )(?<!chua co )(?<!khong phai )(?<!mieng )(?<!manh )"
         r"dat o\b(?! (khu|tai|gan|ngay|trong|thon|xom|xa|phuong|quan|huyen|duong|pho|ap|to|day|"
         r"vi tri|cho|noi|mat|sau|cuoi|dau|canh|giua|ven|nong thon|thanh pho|trung tam))",
         # Lần 9 theo lỗi lần 8: "quy hoạch đất ở ONT", "QH full ONT" là QUY HOẠCH, chưa phải đã có đất ở.
         r"(?<!quy hoach )(?<!quy hoach dat o )(?<!quy hoach la )(?<!quy hoach full )(?<!qh )(?<!qh full )(?<!qh dat o )"
         r"\b(odt|ont)\b",
         r"da (duoc )?lenh? tho\b", r"\b(full|100%?) ?tc\b", r"\btc 100",
+        # Lần 11: "Full thổ" (lỗi lần 10, 2 tin) và "tc 60m" (lỗi đã biết từ lần 9) — thổ cư viết gọn kèm "full" / diện tích.
+        r"\bfull tho\b", r"\btc \d+ ?(m|m2)\b",
         # Lần 9: "Tho 150+ cây lâu năm", "thổ 100%" — "thổ" kèm số/"hết". Loại tên riêng có "Thọ" đứng sau
         # (Phước Lộc Thọ, Phúc Thọ, Trường Thọ, Đông Thọ, Vĩnh Thọ…) — sau khi bỏ dấu "thọ" và "thổ" trùng nhau.
         r"(?<!loc )(?<!phuc )(?<!truong )(?<!dong )(?<!vinh )(?<!xuan )(?<!hoa )(?<!an )(?<!phu )(?<!chua )\btho (\d|het\b)"]),
