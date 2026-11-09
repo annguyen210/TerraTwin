@@ -1,0 +1,297 @@
+{
+ "protocol": "terratwin.listing_gate/10",
+ "collected": "2026-11-07",
+ "collector": "Claude (claude-opus-5-5) qua Chrome của chủ dự án — chỉ đọc: mở thẳng địa chỉ trang, không dùng ô tìm kiếm, không tham gia/theo dõi/thích/bình luận/nhắn tin; chỉ bấm 'Xem thêm'",
+ "method": "collect.js (≤ 30 lần cuộn, giữ thứ tự xuất hiện; bản thu gọn và mở rộng của cùng bài tính là một). Tầng A: 3 bài bán đất đầu mỗi trang chính. Tầng B: đọc tiếp, bài bán đất có gốc chữ 'ngập'/'lụt'/'khô ráo'/'cao'/'trũng' (hoặc 'ngap'/'lut'/'kho rao' không dấu), tối đa 3/trang theo thứ tự; trang thiếu → trang dự phòng của vùng đó (chỉ tầng B). Bài chữ bị cắt không mở hết được thì bỏ. Phân loại 'bài bán đất' bằng đọc (bỏ bán nhà/căn hộ/dãy trọ, cho thuê, quảng cáo chung).",
+ "anonymization": "topic.anonymize (SĐT kể cả chữ số kiểu toán học, email, đường dẫn) + tên người đăng/liên hệ thay '[tên]' + bỏ chữ giao diện 'Ẩn bớt' + soát không còn dãy ≥ 8 chữ số. Địa chỉ văn phòng công ty giữ nguyên.",
+ "shuffle_seed": 20261107,
+ "total": 29,
+ "by_stratum": {
+  "A": 15,
+  "B": 14
+ },
+ "shortfall": "Hải Dương thiếu 1 tin tầng B (trang chính 2/3, trang dự phòng 0) → tổng 29, không đọc trang ngoài danh sách.",
+ "pages": [
+  {
+   "n": 1,
+   "region": "Huế",
+   "url": "https://www.facebook.com/bdsminhphong/",
+   "viewable": true,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 70,
+   "note": "Trang đã đổi tên thành 'Công Ty 819' (thiết kế xây dựng): bài 0–43 là thiết kế/thi công/thông báo/cho thuê; bài bán đất cũ bắt đầu từ vị trí 45.",
+   "read_log": "Tầng A = 3 bài bán đất đầu (bản thu gọn + mở rộng tính một): 45/47 Nguyễn Tất Thành, 46/48 Kiệt 33 An Dương Vương, 49/51 Võ Nguyên Giáp. Bỏ: 44 (quảng cáo chung 'còn nắm nhiều lô', không lô cụ thể), 42/43 cho thuê nhà, 50/52 bán nhà C4, 53/54 bán nhà 3 tầng, 58/61 bán dãy trọ, 65 bán nhà. Tầng B đọc tiếp sau 51, bài bán đất có gốc chữ B: 55 (không), 56/59 (không), 57/60 (không), 62/63 (không), 64/69 Nguyễn Khoa Chiêm (CÓ: 'lụt','cao') → lấy; 66, 67 bị cắt, bấm 'Xem thêm' không mở được (đã rời DOM) → bỏ; 68 (không). Tầng B trang này 1/3 → 2 suất lấy ở trang dự phòng Huế."
+  },
+  {
+   "n": 2,
+   "region": "Quảng Trị (Đông Hà)",
+   "url": "https://www.facebook.com/nhadatgiaredonghaquangtri/",
+   "viewable": true,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 39,
+   "read_log": "Tầng A = 3 bài bán đất đầu: 0 (dự án lô đất biển 'nhận giữ chỗ', có diện tích/giá/pháp lý cụ thể → tính bán đất), 1 Dãy 2 đường Quốc phòng – biển Gio Hải, 2/4 Kiệt Lý Nam Đế. Tầng B: KHÔNG bài nào trong 39 bài có gốc chữ B ('ngập','lụt','khô ráo','cao','trũng','ngap','lut','kho rao') → 3 suất B lấy ở trang dự phòng Quảng Trị."
+  },
+  {
+   "n": 3,
+   "region": "Hải Phòng (Hải Dương cũ)",
+   "url": "https://www.facebook.com/vuanuong88/",
+   "viewable": true,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 85,
+   "read_log": "Trang chủ yếu BÁN NHÀ (loại theo giao thức). Tầng A = 3 bài bán đất đầu: 23/24 mảnh đất mặt phố Bà Triệu, 25/27 liền kề Lê Văn Hưu (lô 66 m², bìa hồng, không mô tả nhà → tính đất), 26/28 lô đất ngõ 60 Chi Lăng. Bỏ trước đó: 0–22 bán nhà/căn hộ (7 = nhiều căn nhà 4 tầng). Tầng B sau 28, bài bán đất có gốc chữ B: 65 lô liền kề KĐT Đại An ('cao' trong 'dân trí cao') → lấy; 71 bán nhà 3 tầng → bỏ; 73 liền kề 131 Nguyễn Viết Xuân ('cao' trong 'dân trí cao') → lấy; 79, 83 bán nhà → bỏ. Tầng B trang này 2/3 → 1 suất lấy ở trang dự phòng Kinh Môn."
+  },
+  {
+   "n": 4,
+   "region": "Đồng Tháp (Tiền Giang cũ, Mỹ Tho)",
+   "url": "https://www.facebook.com/nhadatMTTG/",
+   "viewable": true,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 97,
+   "read_log": "Tầng A = 3 bài bán đất đầu: 0 2 nền đất ấp 1 Trung An, 2/7 vài nền F0 Tân Mỹ Chánh, 11/15/16 đất mặt tiền đường nhựa 90C. Bỏ: 1/6, 3/8, 4/9, 5/10 bán nhà. Tầng B sau 16, bài bán đất có gốc chữ B theo thứ tự: 22 vài nền mặt tiền Một Quang ('cao'), 58 đất 2 mặt tiền đường 30/4 ('cao'), 77 1100 m² đất vườn nghỉ dưỡng ('cao') → đủ 3; 67, 78 bán nhà → bỏ."
+  },
+  {
+   "n": 5,
+   "region": "Cần Thơ (Sóc Trăng cũ)",
+   "url": "https://www.facebook.com/nhadatsoctranginfo/",
+   "viewable": true,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 102,
+   "read_log": "Tầng A = 3 bài bán đất đầu: 1 nền đường số 14 khu 5A, 2 mặt tiền QL1A Thạnh Phú (7×40 m, thổ cư 150 m², không mô tả nhà → đất), 4/6 mặt tiền QL1A Mỹ Xuyên (100 m² thổ cư → đất). Bỏ: 0 bán nhà. Tầng B sau 6, bài bán đất có gốc chữ B theo thứ tự: 7/11 đất hẻm 96 Chông Chác, 15/18 nền hẻm ô tô Trần Hưng Đạo, 21/22 mặt tiền Đoàn Thị Điểm → đủ 3 (các bài sau như 33/36 'đất nền cao ráo hẻm 1098', 37, 51, 98 KHÔNG lấy vì đã đủ 3/trang)."
+  },
+  {
+   "n": "1b",
+   "region": "Huế",
+   "url": "https://www.facebook.com/muabandathues/",
+   "viewable": true,
+   "backup_of": 1,
+   "scrolls_when_stopped": 17,
+   "posts_seen_in_order": 62,
+   "read_log": "Trang dự phòng Huế, chỉ lấy 2 suất tầng B còn thiếu của trang 1 (không lấy tầng A ở đây). Bài bán đất có gốc chữ B theo thứ tự từ đầu trang: 8/10 lô đất 2 mặt tiền kiệt Thích Tịnh Khiết ('ngập','lụt','cao') → lấy; 32/36 đất Vỹ Dạ kiệt Cao Xuân Dục ('cao' — có cả trong tên đường) → lấy; đủ 2 → dừng cuộn ở lần 17. Bài 41 (bán đất Hương An, có 'ngập lụt') nằm sau → KHÔNG lấy."
+  },
+  {
+   "n": "2b",
+   "region": "Quảng Trị",
+   "url": "https://www.facebook.com/nhadatquangtrithienanland/",
+   "viewable": true,
+   "backup_of": 2,
+   "scrolls_when_stopped": 7,
+   "posts_seen_in_order": 19,
+   "read_log": "Trang dự phòng Quảng Trị, chỉ lấy 3 suất tầng B (trang 2 không có bài nào có gốc chữ B). Bài bán đất có gốc chữ B theo thứ tự từ đầu trang: 0 6M Bắc Sông Hiếu, 1 bán đất mặt tiền quốc phòng biển Cửa Tùng, 2 lô đất KĐT Võ Thị Sáu — cả ba có 'cao' (trong câu quảng cáo 'sinh lợi cao') → đủ 3, dừng cuộn."
+  },
+  {
+   "n": "3b",
+   "region": "Hải Phòng (Hải Dương cũ, Kinh Môn)",
+   "url": "https://www.facebook.com/muabannhadatkinhmonhaiduong/",
+   "viewable": true,
+   "backup_of": 3,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 58,
+   "read_log": "Trang dự phòng Hải Dương, cần 1 suất tầng B: 58 bài trong 30 lần cuộn, chỉ bài 51 có gốc chữ B ('cao') nhưng là bài viết chung về thị trường bất động sản, không phải bài bán đất → 0 tin. Hải Dương THIẾU 1 tin tầng B."
+  }
+ ],
+ "taken": [
+  {
+   "id": 1,
+   "page": "2b",
+   "region": "Quảng Trị",
+   "page_pos": 0,
+   "stratum": "B"
+  },
+  {
+   "id": 2,
+   "page": 1,
+   "region": "Huế",
+   "page_pos": 47,
+   "stratum": "A"
+  },
+  {
+   "id": 3,
+   "page": 4,
+   "region": "Đồng Tháp (Tiền Giang cũ, Mỹ Tho)",
+   "page_pos": 7,
+   "stratum": "A"
+  },
+  {
+   "id": 4,
+   "page": 3,
+   "region": "Hải Phòng (Hải Dương cũ)",
+   "page_pos": 27,
+   "stratum": "A"
+  },
+  {
+   "id": 5,
+   "page": 5,
+   "region": "Cần Thơ (Sóc Trăng cũ)",
+   "page_pos": 6,
+   "stratum": "A"
+  },
+  {
+   "id": 6,
+   "page": 3,
+   "region": "Hải Phòng (Hải Dương cũ)",
+   "page_pos": 73,
+   "stratum": "B"
+  },
+  {
+   "id": 7,
+   "page": 3,
+   "region": "Hải Phòng (Hải Dương cũ)",
+   "page_pos": 65,
+   "stratum": "B"
+  },
+  {
+   "id": 8,
+   "page": 4,
+   "region": "Đồng Tháp (Tiền Giang cũ, Mỹ Tho)",
+   "page_pos": 58,
+   "stratum": "B"
+  },
+  {
+   "id": 9,
+   "page": 2,
+   "region": "Quảng Trị (Đông Hà)",
+   "page_pos": 1,
+   "stratum": "A"
+  },
+  {
+   "id": 10,
+   "page": "1b",
+   "region": "Huế",
+   "page_pos": 36,
+   "stratum": "B"
+  },
+  {
+   "id": 11,
+   "page": 5,
+   "region": "Cần Thơ (Sóc Trăng cũ)",
+   "page_pos": 22,
+   "stratum": "B"
+  },
+  {
+   "id": 12,
+   "page": "1b",
+   "region": "Huế",
+   "page_pos": 10,
+   "stratum": "B"
+  },
+  {
+   "id": 13,
+   "page": 5,
+   "region": "Cần Thơ (Sóc Trăng cũ)",
+   "page_pos": 18,
+   "stratum": "B"
+  },
+  {
+   "id": 14,
+   "page": 1,
+   "region": "Huế",
+   "page_pos": 69,
+   "stratum": "B"
+  },
+  {
+   "id": 15,
+   "page": 4,
+   "region": "Đồng Tháp (Tiền Giang cũ, Mỹ Tho)",
+   "page_pos": 22,
+   "stratum": "B"
+  },
+  {
+   "id": 16,
+   "page": "2b",
+   "region": "Quảng Trị",
+   "page_pos": 2,
+   "stratum": "B"
+  },
+  {
+   "id": 17,
+   "page": "2b",
+   "region": "Quảng Trị",
+   "page_pos": 1,
+   "stratum": "B"
+  },
+  {
+   "id": 18,
+   "page": 4,
+   "region": "Đồng Tháp (Tiền Giang cũ, Mỹ Tho)",
+   "page_pos": 77,
+   "stratum": "B"
+  },
+  {
+   "id": 19,
+   "page": 1,
+   "region": "Huế",
+   "page_pos": 51,
+   "stratum": "A"
+  },
+  {
+   "id": 20,
+   "page": 2,
+   "region": "Quảng Trị (Đông Hà)",
+   "page_pos": 4,
+   "stratum": "A"
+  },
+  {
+   "id": 21,
+   "page": 3,
+   "region": "Hải Phòng (Hải Dương cũ)",
+   "page_pos": 24,
+   "stratum": "A"
+  },
+  {
+   "id": 22,
+   "page": 3,
+   "region": "Hải Phòng (Hải Dương cũ)",
+   "page_pos": 28,
+   "stratum": "A"
+  },
+  {
+   "id": 23,
+   "page": 5,
+   "region": "Cần Thơ (Sóc Trăng cũ)",
+   "page_pos": 2,
+   "stratum": "A"
+  },
+  {
+   "id": 24,
+   "page": 2,
+   "region": "Quảng Trị (Đông Hà)",
+   "page_pos": 0,
+   "stratum": "A"
+  },
+  {
+   "id": 25,
+   "page": 1,
+   "region": "Huế",
+   "page_pos": 48,
+   "stratum": "A"
+  },
+  {
+   "id": 26,
+   "page": 4,
+   "region": "Đồng Tháp (Tiền Giang cũ, Mỹ Tho)",
+   "page_pos": 16,
+   "stratum": "A"
+  },
+  {
+   "id": 27,
+   "page": 4,
+   "region": "Đồng Tháp (Tiền Giang cũ, Mỹ Tho)",
+   "page_pos": 0,
+   "stratum": "A"
+  },
+  {
+   "id": 28,
+   "page": 5,
+   "region": "Cần Thơ (Sóc Trăng cũ)",
+   "page_pos": 11,
+   "stratum": "B"
+  },
+  {
+   "id": 29,
+   "page": 5,
+   "region": "Cần Thơ (Sóc Trăng cũ)",
+   "page_pos": 1,
+   "stratum": "A"
+  }
+ ]
+}

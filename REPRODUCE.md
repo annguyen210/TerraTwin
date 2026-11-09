@@ -591,10 +591,13 @@ python ops/listing_gate_fb.py <tin_lan6.json> --run 6    # in thêm độ khớp
 
 | 8 — **NHÃN CLAUDE** (ghi nhầm là nhãn người tới 8/11/2026), luật giữ nguyên lần 7. 30 tin CHỌN THEO TỪ CHỦ ĐỀ (biển, sông, ngập, phẳng/dốc, sạt lở, nước) để đo 6 loại chưa chấm trên nhãn người; giao thức f3aa050 + phụ lục 1–2 | f3aa050 → 6d6cd08 (mã băm) → ea70425 → c678ceb | **0,95** trên 4/6 loại đích (ĐẠT) | không ngập + không sạt lở: 0 tin → CHƯA ĐO. Mọi loại 0,78: bắt nhầm "QH … ONT", sót "cao thoáng", "Tho 150" |
 | 9 — **NHÃN CLAUDE** (ghi nhầm là nhãn người tới 8/11/2026), luật SỬA theo lỗi lần 8 (lần 8 thành tập phát triển; kiểm lại lần 1–8: lần 8 0,78 → 1,00, không lần nào giảm). 30 tin mới: Đắk Lắk, Hội An, Tây Ninh (dự phòng), Châu Đốc — 20 bài đầu + 10 bài có "quy hoạch/QH/ONT/ODT" | 7c16e8b → 22adb88 (mã băm) → a4b8fbc → 65aaacb → chấm ở commit sau | **0,98** (ĐẠT) | thổ cư 0,95 (bắt nhầm "miếng đất ở Vĩnh Châu", sót "tc 60m"), gần sông 1,0. **0/5 kiểu câu đã sửa có trong mẫu mới — chỗ sửa CHƯA được kiểm trên tin mới.** Nhãn chấm cổng do một phiên Claude khác gán → độ khớp 30/30 với nhãn AI phụ là Claude so với Claude, không chứng minh độc lập |
+| 10 — **NHÃN NGƯỜI, KHÔNG ĐỘC LẬP** (chủ dự án tự gán 9/11/2026 SAU KHI đã xem câu trả lời của Claude — lệch giao thức, ghi trong tệp nhãn), luật giữ nguyên lần 9. 29 tin mới ở 5 vùng hay ngập: Huế 6, Tiền Giang cũ 6, Sóc Trăng cũ 6, Hải Dương cũ 5, Quảng Trị 6 — 3 bài đầu mỗi trang + bài có gốc chữ 'ngập/lụt/khô ráo/cao/trũng' từ HƯỚNG DẪN | a942e7b → b85a7c9 (mã băm) → 61fdc1e (khoá nhãn người) → chấm ở commit sau | **0,46** trên 2 loại đích — **CHƯA KẾT LUẬN** (6 tin có câu đích, cần ≥ 8) | **sót cả 2 câu "không ngập"** (F1 0); cao ráo 0,92 (6 đúng, 1 thừa); mọi loại 0,60 (gần biển sót 2/3, gần sông 1/2, thổ cư 2/12); 8 tin không khẳng định gì, 0 bắt nhầm. Theo tầng: A (15 bài đầu, không lọc chữ) 0 tin có câu đích, mọi loại 0,46; B (14 bài có gốc chữ ngập/cao…) cả 6 tin, đích 0,46, mọi loại 0,70. Nhãn Claude khoá 7/11 (mã băm khớp) khớp nhãn người 28/29 tin — người gán đã thấy nhãn Claude nên **không phải bằng chứng độc lập** |
 
 ```bash
 python ops/listing_gate_fb.py <tin_lan7.json> --run 7
 python ops/listing_gate_fb.py <tin_lan9.json> --run 9    # in thêm fixes_exercised: chỗ sửa nào có trong mẫu mới
+python ops/listing_gate_fb.py <tin_lan10.json> --run 10  # chỉ chấm khi tệp nhãn khai labeler_kind 'human'; ghi labeler_independent
+python ops/listing_gate_strata.py --run 10                # F1 riêng tầng A/B từ per_listing + nhật ký chọn mẫu (khớp mã băm), không chấm lại
 ```
 
 Đọc kết quả: luật từ khoá gần như **không bắt nhầm** (độ chính xác 1,0 mọi loại ở lần 2) nhưng **sót cách nói vòng** ("gió
