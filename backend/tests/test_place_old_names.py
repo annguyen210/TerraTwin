@@ -44,6 +44,34 @@ def test_noi_sau_dau_phay_khong_khop_thi_dua_moi_noi_trung_ten(nguon):
     assert len(r["results"]) == 3 and "chọn đúng nơi" in r["message"]
 
 
+def test_chi_nominatim_biet_ten_thi_van_tim_ra(nguon, monkeypatch):
+    """Review Qodo PR #7: hai nguồn nhanh không có "Tên" → phải hỏi Nominatim theo tên rồi mới lọc theo nơi."""
+    calls = []
+
+    def nom(q):
+        calls.append(q)
+        if q == "Phú Mỹ":
+            return [{"label": "Phú Mỹ · Huyện Mỏ Cày Nam · Tỉnh Vĩnh Long", "lat": 10.1, "lon": 106.3,
+                     "kind": "village", "source": "nominatim"},
+                    {"label": "Phú Mỹ · Thị xã Phú Mỹ · Hồ Chí Minh", "lat": 10.6, "lon": 107.0,
+                     "kind": "town", "source": "nominatim"}]
+        return []                     # câu đầy đủ "Phú Mỹ, Bến Tre": chỉ có POI, đã bị lọc
+    monkeypatch.setattr(place, "_from_nominatim", nom)
+    monkeypatch.setattr(place, "_SOURCES", (place._from_open_meteo, place._from_photon, nom))
+    r = place.search("Phú Mỹ, Bến Tre")
+    assert [x["label"] for x in r["results"]] == ["Phú Mỹ · Huyện Mỏ Cày Nam · Tỉnh Vĩnh Long"]
+    assert calls == ["Phú Mỹ, Bến Tre", "Phú Mỹ"]
+
+
+def test_nguon_nhanh_da_khop_thi_khong_hoi_nominatim_theo_ten(nguon, monkeypatch):
+    calls = []
+    nom = lambda q: calls.append(q) or []        # noqa: E731
+    monkeypatch.setattr(place, "_from_nominatim", nom)
+    monkeypatch.setattr(place, "_SOURCES", (place._from_open_meteo, place._from_photon, nom))
+    place.search("Phú Khương, Bến Tre")
+    assert calls == ["Phú Khương, Bến Tre"]      # chỉ câu đầy đủ; tên riêng đã khớp ở Photon
+
+
 def test_khop_nguyen_tu_khong_khop_chuoi_con():
     """"Quận 1" không được khớp "Quận 11" (góp ý review PR #5)."""
     assert place._matches_component("1", "Bến Thành · Quận 1 · Hồ Chí Minh")

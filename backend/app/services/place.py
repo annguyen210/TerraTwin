@@ -217,13 +217,18 @@ def _by_name_then_context(q: str) -> tuple[list, list, str]:
     if len(name) < 2:
         return [], [], name
     seen, hits = set(), []
-    for lay in (_from_open_meteo, _from_photon):
+    terms = _context_terms(ctx)
+    good: list = []
+    # Nominatim chậm (tối thiểu 1,1 s/lượt) nên chỉ hỏi khi hai nguồn nhanh không có nơi khớp — nhưng PHẢI hỏi: nơi chỉ
+    # Nominatim biết mà bỏ qua thì thành "Không tìm thấy" (review Qodo PR #7).
+    for lay in (_from_open_meteo, _from_photon, _from_nominatim):
+        if lay is _from_nominatim and good:
+            break
         for h in lay(name) or []:
             if h["label"] not in seen:
                 seen.add(h["label"])
                 hits.append(h)
-    terms = _context_terms(ctx)
-    good = [h for h in hits if any(_matches_component(t, h["label"]) for t in terms)]
+        good = [h for h in hits if any(_matches_component(t, h["label"]) for t in terms)]
     return good, hits, name
 
 
