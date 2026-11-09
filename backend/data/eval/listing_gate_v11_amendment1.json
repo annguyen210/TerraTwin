@@ -1,0 +1,39 @@
+{
+ "protocol": "terratwin.listing_gate/11",
+ "amendment": 1,
+ "registered": "2026-11-09",
+ "registered_before_labelling": true,
+ "before_reading_extra_pages": true,
+ "why": "Sau trang chính + trang dự phòng của 6 vùng chỉ thu được 19 tin (tầng A 12, tầng B 7) so với tối đa 36: trang dự phòng Thái Bình và Chương Mỹ báo 'không xem được nội dung này', trang dự phòng Kiên Giang chỉ hiện 1 bài quảng cáo, trang chính Kiên Giang/Chương Mỹ chỉ hiện 7 và 4 bài, trang dự phòng Quảng Ngãi/Hà Tĩnh không có bài bán đất nào chứa gốc chữ. Quyết định thêm trang dựa trên SỐ TIN THIẾU từng vùng, không dựa trên nội dung hay nhãn — chưa ai gán nhãn tin nào, không có nhãn AI.",
+ "rule": "Vùng nào chưa đủ 4 tin tầng B: đọc tiếp TỐI ĐA 2 trang đủ điều kiện KẾ TIẾP theo đúng thứ tự kết quả tìm kiếm đã dùng để chọn trang (cùng điều kiện loại trừ: website trong tên, nhóm, chợ, trang cá nhân, trang đã dùng ở lần 4–10), CHỈ cho tầng B, cùng bộ lọc gốc chữ, ≤ 30 lần cuộn/trang, dừng khi vùng đủ 4. Tầng A không đổi (12 tin). Bạc Liêu đã đủ — không đọc thêm. Không đọc trang ngoài danh sách dưới đây.",
+ "need_B": {
+  "Quảng Ngãi": 2,
+  "Hà Tĩnh": 3,
+  "Hưng Yên (Thái Bình cũ)": 4,
+  "An Giang (Kiên Giang cũ)": 4,
+  "Hà Nội (Chương Mỹ)": 4
+ },
+ "extra_pages": {
+  "Quảng Ngãi": [
+   "https://www.facebook.com/giaiphapnhaquangngai/",
+   "https://www.facebook.com/muadatotaiquangngai/"
+  ],
+  "Hà Tĩnh": [
+   "https://www.facebook.com/NhadatNgheTinh24h/",
+   "https://www.facebook.com/tamsenht/"
+  ],
+  "Hưng Yên (Thái Bình cũ)": [
+   "https://www.facebook.com/nhadatnguyenbien/",
+   "https://www.facebook.com/NHADEPTHAIBINH0961143555/"
+  ],
+  "An Giang (Kiên Giang cũ)": [
+   "https://www.facebook.com/nhadatrachgiaKG/",
+   "https://www.facebook.com/DatNenThanhSang/"
+  ],
+  "Hà Nội (Chương Mỹ)": [
+   "https://www.facebook.com/muabandatdaiyenchuongmy/",
+   "https://www.facebook.com/muabandatthuyhuongchuongmy/"
+  ]
+ },
+ "order_note": "Thứ tự lấy từ kết quả tìm kiếm ngày 9/11/2026 đã dùng ở giao thức. Bỏ qua: chuyenbannhadatquangngai, NhadatthanhphoHaTinh, nhadatkiengiang7979, muabandathoachinhchuongmy (đã dùng ở lần trước); groups/datchuongmy (nhóm); trang /people/ (không có tên trang cố định); 'Siêu thị nhà đất Thái Bình - sieuthinhadathaibinh.com' (website trong tên)."
+}
