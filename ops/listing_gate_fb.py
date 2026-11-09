@@ -109,6 +109,12 @@ def main() -> None:
     if kind == "claude":
         note_vi += "; NHÃN DO CLAUDE GÁN — không phải nhãn người"
         note_en += "; labels by CLAUDE — not human labels"
+    # 9/11/2026: nhãn người lần 10 do chủ dự án gán SAU KHI đã xem nhãn Claude — vẫn là người, nhưng không độc lập; kết quả
+    # phải tự nói điều đó, không để ai đọc "nhãn người" rồi hiểu là một người độc lập xác nhận máy.
+    independent = lab.get("independent", True) is not False
+    if kind == "human" and not independent:
+        note_vi += "; NHÃN NGƯỜI KHÔNG ĐỘC LẬP — người gán đã xem nhãn Claude trước khi gán"
+        note_en += "; human labels NOT independent — the labeler saw Claude's labels before labelling"
     tin ={t["id"]: t["text"].strip() for t in json.load(open(sys.argv[1], encoding="utf-8"))}
     gold, per = [], []
     for row in lab["labels"]:
@@ -128,7 +134,7 @@ def main() -> None:
            "per_type": s["per_type"], "macro_f1": primary, "threshold_macro_f1": THRESHOLD,
            "passed": primary is not None and primary >= THRESHOLD,
            "no_claim_listings": sum(1 for p in per if not p["gold"]), "no_claim_but_extracted": false_alarm,
-           "labeler": lab["labeler"], "labeler_kind": kind,
+           "labeler": lab["labeler"], "labeler_kind": kind, "labeler_independent": independent,
            "data_note": note_vi, "data_note_en": note_en,
            "per_listing": per}
     if run in TARGETS:
@@ -153,7 +159,9 @@ def main() -> None:
         res["ai_vs_human"] = {"listings_exact_match": sum(ai[i] == hum[i] for i in hum), "n": len(hum),
                               "precision": round(p, 2), "recall": round(r, 2), "f1": round(2 * p * r / max(1e-9, p + r), 2),
                               "tp": tp, "fp": fp, "fn": fn,
-                              "note": ("Nhãn AI (Claude, khoá trước khi người gán) so với nhãn người, gộp mọi loại câu" if kind == "human" else
+                              "note": ("Nhãn AI (Claude, khoá trước) so với nhãn người — người gán ĐÃ XEM nhãn Claude trước khi gán, "
+                                       "nên độ khớp KHÔNG phải bằng chứng độc lập; gộp mọi loại câu" if kind == "human" and not independent else
+                                       "Nhãn AI (Claude, khoá trước khi người gán) so với nhãn người, gộp mọi loại câu" if kind == "human" else
                                        "Nhãn AI phụ (phiên Claude viết luật, khoá trước) so với nhãn chấm cổng (phiên Claude khác) — "
                                        "Claude so với Claude, gộp mọi loại câu")}
     if run in FIX_FAMILIES:

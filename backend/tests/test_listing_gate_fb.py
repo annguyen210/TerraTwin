@@ -43,6 +43,26 @@ def test_lan_10_nhan_claude_khong_ghi_tep_ket_qua(tmp_path, monkeypatch):
     assert not (tmp_path / g.RUNS["10"][1]).exists()
 
 
+def test_nhan_nguoi_khong_doc_lap_ghi_ro_trong_ket_qua(tmp_path, monkeypatch):
+    """9/11/2026: người gán đã xem nhãn Claude → vẫn chấm (là người), nhưng kết quả phải ghi KHÔNG ĐỘC LẬP."""
+    import hashlib
+    g = _gate()
+    texts = {1: "Đất cao ráo, không ngập, sổ hồng thổ cư 100%", 2: "Lô đất vuông vức, đường ô tô"}
+    lab = {"protocol": "terratwin.listing_gate/10", "labeler": "Chủ dự án", "labeler_kind": "human", "independent": False,
+           "labels": [{"id": i, "region": "x", "sha256": hashlib.sha256(t.encode("utf-8")).hexdigest(),
+                       "claims": ["high_ground", "no_flood", "residential"] if i == 1 else []} for i, t in texts.items()]}
+    (tmp_path / g.RUNS["10"][0]).write_text(json.dumps(lab, ensure_ascii=False), encoding="utf-8")
+    tin = tmp_path / "tin.json"
+    tin.write_text(json.dumps([{"id": i, "source": "x", "text": t} for i, t in texts.items()], ensure_ascii=False), encoding="utf-8")
+    monkeypatch.setattr(g, "EVAL", str(tmp_path))
+    monkeypatch.setattr("sys.argv", ["listing_gate_fb.py", str(tin), "--run", "10"])
+    g.main()
+    res = json.loads((tmp_path / g.RUNS["10"][1]).read_text(encoding="utf-8"))
+    assert res["labeler_kind"] == "human" and res["labeler_independent"] is False
+    assert "KHÔNG ĐỘC LẬP" in res["data_note"] and "NOT independent" in res["data_note_en"]
+    assert res["passed"] is None          # 1 tin có câu đích < 8 → CHƯA KẾT LUẬN
+
+
 def test_tep_nhan_lan_4_den_9_deu_xac_dinh_duoc_nguoi_gan():
     """Tệp nhãn lần 4–5 không có labeler_kind → mặc định 'claude' (REPRODUCE.md §13); lần 6–9 tự khai 'claude'."""
     g = _gate()
