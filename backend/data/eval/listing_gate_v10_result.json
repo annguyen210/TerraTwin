@@ -1,0 +1,346 @@
+{
+ "protocol": "terratwin.listing_gate/10",
+ "source": "facebook_public_pages",
+ "n": 29,
+ "enough": true,
+ "per_type": [
+  {
+   "type": "no_flood",
+   "precision": 0.0,
+   "recall": 0.0,
+   "f1": 0.0,
+   "tp": 0,
+   "fp": 0,
+   "fn": 2
+  },
+  {
+   "type": "high_ground",
+   "precision": 0.86,
+   "recall": 1.0,
+   "f1": 0.92,
+   "tp": 6,
+   "fp": 1,
+   "fn": 0
+  },
+  {
+   "type": "near_river",
+   "precision": 1.0,
+   "recall": 0.5,
+   "f1": 0.67,
+   "tp": 1,
+   "fp": 0,
+   "fn": 1
+  },
+  {
+   "type": "near_sea",
+   "precision": 1.0,
+   "recall": 0.33,
+   "f1": 0.5,
+   "tp": 1,
+   "fp": 0,
+   "fn": 2
+  },
+  {
+   "type": "residential",
+   "precision": 1.0,
+   "recall": 0.83,
+   "f1": 0.91,
+   "tp": 10,
+   "fp": 0,
+   "fn": 2
+  }
+ ],
+ "macro_f1": 0.46,
+ "threshold_macro_f1": 0.8,
+ "passed": null,
+ "no_claim_listings": 8,
+ "no_claim_but_extracted": [],
+ "labeler": "Chủ dự án TerraTwin (người) — tự gán SAU KHI đã xem câu trả lời của Claude cho chính 29 tin này",
+ "labeler_kind": "human",
+ "labeler_independent": false,
+ "data_note": "Bài bán đất MỚI trên 5 trang Facebook công khai của môi giới ở vùng hay ngập chưa dùng (Huế, Quảng Trị – Đông Hà, Hải Phòng – Hải Dương cũ, Đồng Tháp – Tiền Giang cũ, Cần Thơ – Sóc Trăng cũ + dự phòng): 3 bài đầu mỗi trang theo thứ tự + tối đa 3 bài/trang có gốc chữ lấy từ HƯỚNG DẪN gán mã A/B ('ngập', 'lụt', 'khô ráo', 'cao', 'trũng') — KHÔNG lọc bằng luật của bộ tách câu; luật giữ nguyên như lần 9; giao thức đăng ký đo trên nhãn người; lần 1–9 là tập phát triển; NHÃN NGƯỜI KHÔNG ĐỘC LẬP — người gán đã xem nhãn Claude trước khi gán",
+ "data_note_en": "NEW land-sale posts from 5 public Facebook broker pages in flood-prone regions not used before (Huế, Quảng Trị – Đông Hà, Hải Phòng – former Hải Dương, Đồng Tháp – former Tiền Giang, Cần Thơ – former Sóc Trăng + backups): first 3 per page in page order + up to 3 per page containing word stems taken from the A/B labelling GUIDELINE ('ngập', 'lụt', 'khô ráo', 'cao', 'trũng') — NOT filtered with the extractor's own rules; rules unchanged since run 9; protocol registered to score on human labels; runs 1–9 are the development set; human labels NOT independent — the labeler saw Claude's labels before labelling",
+ "per_listing": [
+  {
+   "id": 1,
+   "region": "Quảng Trị",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 2,
+   "region": "Huế",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 3,
+   "region": "Đồng Tháp (Tiền Giang cũ, Mỹ Tho)",
+   "gold": [
+    "residential"
+   ],
+   "pred": []
+  },
+  {
+   "id": 4,
+   "region": "Hải Phòng (Hải Dương cũ)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 5,
+   "region": "Cần Thơ (Sóc Trăng cũ)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 6,
+   "region": "Hải Phòng (Hải Dương cũ)",
+   "gold": [
+    "near_river"
+   ],
+   "pred": []
+  },
+  {
+   "id": 7,
+   "region": "Hải Phòng (Hải Dương cũ)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 8,
+   "region": "Đồng Tháp (Tiền Giang cũ, Mỹ Tho)",
+   "gold": [
+    "residential"
+   ],
+   "pred": []
+  },
+  {
+   "id": 9,
+   "region": "Quảng Trị (Đông Hà)",
+   "gold": [
+    "near_sea"
+   ],
+   "pred": []
+  },
+  {
+   "id": 10,
+   "region": "Huế",
+   "gold": [
+    "high_ground"
+   ],
+   "pred": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 11,
+   "region": "Cần Thơ (Sóc Trăng cũ)",
+   "gold": [
+    "high_ground",
+    "residential"
+   ],
+   "pred": [
+    "high_ground",
+    "residential"
+   ]
+  },
+  {
+   "id": 12,
+   "region": "Huế",
+   "gold": [
+    "high_ground",
+    "no_flood"
+   ],
+   "pred": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 13,
+   "region": "Cần Thơ (Sóc Trăng cũ)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "high_ground",
+    "residential"
+   ]
+  },
+  {
+   "id": 14,
+   "region": "Huế",
+   "gold": [
+    "high_ground",
+    "no_flood"
+   ],
+   "pred": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 15,
+   "region": "Đồng Tháp (Tiền Giang cũ, Mỹ Tho)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 16,
+   "region": "Quảng Trị",
+   "gold": [
+    "near_river"
+   ],
+   "pred": [
+    "near_river"
+   ]
+  },
+  {
+   "id": 17,
+   "region": "Quảng Trị",
+   "gold": [
+    "near_sea"
+   ],
+   "pred": [
+    "near_sea"
+   ]
+  },
+  {
+   "id": 18,
+   "region": "Đồng Tháp (Tiền Giang cũ, Mỹ Tho)",
+   "gold": [
+    "high_ground",
+    "residential"
+   ],
+   "pred": [
+    "high_ground",
+    "residential"
+   ]
+  },
+  {
+   "id": 19,
+   "region": "Huế",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 20,
+   "region": "Quảng Trị (Đông Hà)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 21,
+   "region": "Hải Phòng (Hải Dương cũ)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 22,
+   "region": "Hải Phòng (Hải Dương cũ)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 23,
+   "region": "Cần Thơ (Sóc Trăng cũ)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 24,
+   "region": "Quảng Trị (Đông Hà)",
+   "gold": [
+    "near_sea"
+   ],
+   "pred": []
+  },
+  {
+   "id": 25,
+   "region": "Huế",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 26,
+   "region": "Đồng Tháp (Tiền Giang cũ, Mỹ Tho)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 27,
+   "region": "Đồng Tháp (Tiền Giang cũ, Mỹ Tho)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 28,
+   "region": "Cần Thơ (Sóc Trăng cũ)",
+   "gold": [
+    "high_ground"
+   ],
+   "pred": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 29,
+   "region": "Cần Thơ (Sóc Trăng cũ)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  }
+ ],
+ "target_types": [
+  "no_flood",
+  "high_ground"
+ ],
+ "macro_f1_all_types": 0.6,
+ "target_positives": {
+  "no_flood": 2,
+  "high_ground": 6
+ },
+ "few_samples": [
+  "no_flood"
+ ],
+ "target_listings": 6,
+ "min_target_listings": 8,
+ "verdict": "CHƯA KẾT LUẬN — chỉ 6 tin có câu không ngập / cao ráo theo nhãn chấm cổng (cần ≥ 8)",
+ "ai_vs_human": {
+  "listings_exact_match": 28,
+  "n": 29,
+  "precision": 0.96,
+  "recall": 1.0,
+  "f1": 0.98,
+  "tp": 25,
+  "fp": 1,
+  "fn": 0,
+  "note": "Nhãn AI (Claude, khoá trước) so với nhãn người — người gán ĐÃ XEM nhãn Claude trước khi gán, nên độ khớp KHÔNG phải bằng chứng độc lập; gộp mọi loại câu"
+ }
+}
