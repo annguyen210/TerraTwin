@@ -57,6 +57,16 @@ RUNS = {   # lần → (tệp nhãn, tệp kết quả, mô tả dữ liệu VI,
            "per page containing word stems taken from the A/B labelling GUIDELINE ('ngập', 'lụt', 'khô ráo', 'cao', 'trũng') — NOT filtered "
            "with the extractor's own rules; rules unchanged since run 9; protocol registered to score on human labels; runs 1–9 are the "
            "development set"),
+    "11": ("listing_gate_v11_labels.json", "listing_gate_v11_result.json",
+           "Bài bán đất MỚI trên 6 trang Facebook công khai của môi giới ở vùng hay ngập chưa dùng (Quảng Ngãi, Hà Tĩnh, Hưng Yên – Thái "
+           "Bình cũ, Cà Mau – Bạc Liêu cũ, An Giang – Kiên Giang cũ, Hà Nội – Chương Mỹ + dự phòng): 2 bài đầu mỗi trang + tối đa 4 bài/trang "
+           "có gốc chữ từ HƯỚNG DẪN gán mã A/B ('ngập', 'lụt', 'khô ráo', 'cao', 'trũng'); luật SỬA theo lỗi lần 10, khoá trước khi thu "
+           "mẫu; người gán chưa thấy đáp án nào, không có nhãn AI phụ; lần 1–10 là tập phát triển",
+           "NEW land-sale posts from 6 public Facebook broker pages in flood-prone regions not used before (Quảng Ngãi, Hà Tĩnh, Hưng Yên – "
+           "former Thái Bình, Cà Mau – former Bạc Liêu, An Giang – former Kiên Giang, Hà Nội – Chương Mỹ + backups): first 2 per page + up "
+           "to 4 per page containing word stems from the A/B labelling GUIDELINE ('ngập', 'lụt', 'khô ráo', 'cao', 'trũng'); rules FIXED "
+           "after run 10's errors and frozen before sampling; the labeller saw no answers, no secondary AI labels; runs 1–10 are the "
+           "development set"),
 }
 # Lần 9: chỗ sửa nào ĐƯỢC KIỂM — đếm tin mới có đúng kiểu câu đã sửa (trên chữ đã bỏ dấu) và máy đúng/sai ở loại đó.
 FIX_FAMILIES = {"9": {
@@ -69,13 +79,15 @@ FIX_FAMILIES = {"9": {
 # Lần 8: F1 CHÍNH chỉ tính 6 loại đích (listing_gate_v8_protocol.json "target_types"); F1 mọi loại vẫn ghi làm số phụ.
 TARGETS = {"8": ["no_flood", "near_river", "near_sea", "flat", "no_landslide", "fresh_water"],
            # Lần 10 (đăng ký 7/11/2026): đo "không ngập" và "cao ráo" — lần 9 chỉ đo được gần sông + thổ cư.
-           "10": ["no_flood", "high_ground"]}
+           "10": ["no_flood", "high_ground"],
+           # Lần 11 (đăng ký 9/11/2026): đo lại hai loại đó với người gán chưa thấy đáp án nào.
+           "11": ["no_flood", "high_ground"]}
 # Lần 10: cần ≥ 8 tin có câu đích (mã A hoặc B theo nhãn chấm cổng); thiếu thì CHƯA KẾT LUẬN — không tính đạt, không tính trượt.
-MIN_TARGET_LISTINGS = {"10": 8}
+MIN_TARGET_LISTINGS = {"10": 8, "11": 8}
 # Lần 4–5 nhãn do Claude gán (REPRODUCE.md §13) — tệp nhãn cũ không có labeler_kind nên khai thay ở đây.
 DEFAULT_KIND = {"4": "claude", "5": "claude"}
 # Giao thức đã đăng ký chấm trên NHÃN NGƯỜI (listing_gate_v10_protocol.json "labelers") — nhãn khác thì KHÔNG chấm.
-HUMAN_REQUIRED = {"10"}
+HUMAN_REQUIRED = {"10", "11"}
 THRESHOLD = 0.80
 
 
