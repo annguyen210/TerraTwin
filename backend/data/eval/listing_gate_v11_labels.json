@@ -1,0 +1,220 @@
+{
+ "protocol": "terratwin.listing_gate/11",
+ "role": "primary — nhãn dùng chấm cổng",
+ "labeler": "Chủ dự án TerraTwin (người) — tự gán, không dùng AI",
+ "labeler_kind": "human",
+ "independent": true,
+ "independence_note": "Lần 11 KHÔNG có nhãn AI phụ: không phiên Claude nào gán 25 tin này và không câu trả lời AI nào hiện trong chat trước khi người gán gửi phiếu. Người gán khai không dán tin vào AI, không hỏi ai. Không có cách đối chiếu độc lập nào ngoài lời khai — ghi rõ.",
+ "labeler_attestation": "Hỏi 10/11/2026, sau khi nhận phiếu và TRƯỚC khi khoá: 'Phiếu 25 tin lần 11 vừa dán được làm thế nào?' — trả lời: 'Tự gán, không dùng AI' (tự đọc và gán, không dán tin vào Claude/ChatGPT/AI nào, không hỏi ai).",
+ "received": {
+  "date": "2026-11-10",
+  "sheet_sha256": "3e2b01b003127fbfda7b6d7a1c753674a5dfb94077b922d268d11de52145021b",
+  "sheet_note": "phiếu 25 dòng 'số: mã (lý do)' dán vào phiên chat Claude Code; 4 câu đầu phiếu trả lời qua câu hỏi trong chat; bản nguyên văn giữ ngoài kho (D:/tt-scratch/gd3fb11_nguoi)"
+ },
+ "labelled_before_scoring": true,
+ "ai_labels_seen_by_labeler": false,
+ "guideline": {
+  "task": "Với mỗi tin: người bán đang khẳng định điều gì về CHÍNH lô đất đang bán? Chọn các mã phù hợp; không có thì ghi 0.",
+  "codes": {
+   "A không ngập": "Tính: không ngập, chưa từng ngập, không lo ngập, khô ráo quanh năm.",
+   "B cao ráo": "Tính: đất cao, cao ráo, nền cao, không trũng, cao hơn mặt đường/khu vực. Không tính: 'đất đẹp', 'thoáng mát'.",
+   "C gần sông": "Tính: gần/ven/giáp/sát/view/mặt tiền/cách X m tới sông, kênh, rạch. Không tính: hồ, suối, ao; tên đường hay địa danh có chữ 'Sông', 'Kênh'.",
+   "D gần biển": "Tính: gần/ven/view/cách X km/'ra biển N phút' tới biển, bãi biển. Không tính: gần cảng, gần sân bay.",
+   "E bằng phẳng": "Tính: bằng phẳng, đất phẳng, không dốc. Không tính: vuông vức, vuông vắn, nở hậu (hình dáng).",
+   "F không sạt lở": "Tính: không sạt lở, chưa từng sạt lở.",
+   "G đất ở / thổ cư": "Tính: lô ĐÃ CÓ (toàn bộ hoặc một phần) đất ở/thổ cư/ODT/ONT. Không tính: 'có thể lên thổ cư', 'hỗ trợ lên thổ cư' (chưa có); 'nằm trong khu dân cư' (vị trí).",
+   "H nước ngọt": "Tính: nước ngọt, giếng ngọt, không nhiễm mặn."
+  },
+  "principles": [
+   "Chỉ tính điều tin khẳng định, không tính điều mình đoán.",
+   "Phải nói về chính lô đất đang bán, không phải nơi khác.",
+   "Câu phủ định thì không tính.",
+   "Viết khác chữ vẫn tính nếu cùng ý (viết tắt, không dấu, in hoa, chữ in đậm).",
+   "Chỗ quy tắc không nói rõ thì người gán tự quyết theo cách một người mua đất đọc tin sẽ hiểu."
+  ],
+  "examples": [
+   "'Đất cao ráo, không bao giờ ngập, cách sông Hậu 200m, sổ hồng thổ cư 100%' → A B C G",
+   "'Lô đất vuông vức, nở hậu, đường ô tô, giá rẻ' → 0",
+   "'Đất vườn 1.000m², hỗ trợ lên thổ cư, view hồ sen' → 0",
+   "'Nền đã có 60m² ONT, cách biển 2km' → D G"
+  ],
+  "note": "Y nội dung bản đã gửi ở lần 6, chỉ bỏ ví dụ cụ thể 'cách cầu Kênh X' (lần 6 trùng một tin); không thêm quy tắc nào về 'quy hoạch đất ở' — người gán tự quyết như lần 6."
+ },
+ "labeler_decisions": [
+  "Tin 10 → H: tin nói đã có nước sạch",
+  "Tin 12 → B: tin nói khu vực cao ráo"
+ ],
+ "labels": [
+  {
+   "id": 1,
+   "region": "Hà Tĩnh (trang Nghệ An – Hà Tĩnh; bài ở Nghệ An)",
+   "sha256": "cb443ed69dfca6e707c2f0bdac431b2472df9b8815e50b4e6b19c102080b8295",
+   "claims": []
+  },
+  {
+   "id": 2,
+   "region": "Hà Tĩnh (trang Nghệ An – Hà Tĩnh; bài ở Nghệ An)",
+   "sha256": "46af8e7f7d91b1e5c449d19780b31ef0e5e6d6ae1ddea97453b8106480f2a95a",
+   "claims": []
+  },
+  {
+   "id": 3,
+   "region": "Hà Tĩnh (trang Nghệ An – Hà Tĩnh; bài ở Nghệ An)",
+   "sha256": "fcc7fb8f320269e9c586ca53426ed70591e9c6fbc61d1f80ef16378e79239cb5",
+   "claims": []
+  },
+  {
+   "id": 4,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "sha256": "25d4ab9174590e12bbc1a4fff5ab80078424bdfccc7e515c2f7e47ef563fa409",
+   "claims": [
+    "high_ground",
+    "residential"
+   ]
+  },
+  {
+   "id": 5,
+   "region": "Hà Tĩnh",
+   "sha256": "99092770c6100a221ef575df69e70b72f56546218da3612f9abcd2a626381f9f",
+   "claims": []
+  },
+  {
+   "id": 6,
+   "region": "Hưng Yên (Thái Bình cũ)",
+   "sha256": "540470a778c25bc387bcdaf30d3fe1ce199511d30bd06fe872729418e668c7d2",
+   "claims": []
+  },
+  {
+   "id": 7,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "sha256": "45a8dbcb7cf437758df5845496079d6fbea2fd5f1044ed14f7e1ad025644d160",
+   "claims": []
+  },
+  {
+   "id": 8,
+   "region": "Quảng Ngãi",
+   "sha256": "19b8036c7d0797ef0ff41d5cb0e62be18e43626db8a8516efe7debb627cafae9",
+   "claims": []
+  },
+  {
+   "id": 9,
+   "region": "An Giang (Kiên Giang cũ, Rạch Giá)",
+   "sha256": "c331efafd75eb6628ac33ef659e9ec3f292569a64c4c3516d181cf801e747d56",
+   "claims": []
+  },
+  {
+   "id": 10,
+   "region": "Hà Nội (Chương Mỹ)",
+   "sha256": "b993013aa47c4f66012503a11a3c88872df7c0746230aa95c8b7797269397363",
+   "claims": [
+    "fresh_water"
+   ]
+  },
+  {
+   "id": 11,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "sha256": "09da37aba3c04a2e47bea23866013144414e03b93c38e1dd8a0714fdccd3c04a",
+   "claims": [
+    "near_river",
+    "residential"
+   ]
+  },
+  {
+   "id": 12,
+   "region": "Quảng Ngãi",
+   "sha256": "fa9fc00a5df57f0f8979e798ca063f7b0be994c0312b712f984a5660e612e7fe",
+   "claims": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 13,
+   "region": "Hà Nội (Chương Mỹ)",
+   "sha256": "f4f582b700ab1aa3fb00f29276ddedb1d14973444770cd26e082a258c0612d3d",
+   "claims": []
+  },
+  {
+   "id": 14,
+   "region": "Hưng Yên (Thái Bình cũ)",
+   "sha256": "5db047fb9e0443e443df29da16a3748129c470a2b8ec34741c31ac514223c536",
+   "claims": []
+  },
+  {
+   "id": 15,
+   "region": "Hà Nội (Chương Mỹ)",
+   "sha256": "9ffbccbf1e566e2d69e87e1fa7f862dca66d3a07d79a7e79b66d3e85699e415e",
+   "claims": []
+  },
+  {
+   "id": 16,
+   "region": "Quảng Ngãi",
+   "sha256": "a7e33ad23c10cdc1653c93c8b5d7587855b9f8c6fafbbe6c12d1e772a3cfd42f",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 17,
+   "region": "Hà Nội (Chương Mỹ)",
+   "sha256": "21ad8326557c158d1db5c12407345a9de1990bdbcbeed703bc7966da9874c583",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 18,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "sha256": "31779cc1a51b8f97f4139ff02b3e761b1fc984a808b785326f4120adadc8a23b",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 19,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "sha256": "c1f2b0b6e2e30aa9ae047a039019b1b2b1ca0e27d34f1c55e32067dda1804e7a",
+   "claims": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 20,
+   "region": "Hà Tĩnh",
+   "sha256": "2e6634891c7609063bd30fcbbef71d1bc66efc4ca1fbf702b12281ce608bd86d",
+   "claims": []
+  },
+  {
+   "id": 21,
+   "region": "Quảng Ngãi",
+   "sha256": "c905ddde60533588736ec5d5b38f1315a3848153f672a24e714d7a5d4e4f4dfe",
+   "claims": []
+  },
+  {
+   "id": 22,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "sha256": "435620728a498680b3e37f7c28a38661ef9c0eb8afe26e7ae5afcebc913e1b52",
+   "claims": []
+  },
+  {
+   "id": 23,
+   "region": "An Giang (Kiên Giang cũ, Rạch Giá)",
+   "sha256": "bff608bb873a701d4baba2916497320e7d273bbecd3b32de026257ddb6cda6f9",
+   "claims": [
+    "near_river",
+    "residential"
+   ]
+  },
+  {
+   "id": 24,
+   "region": "Quảng Ngãi",
+   "sha256": "716fa314677ccc7c8d94db989ab6d30dfe514f15c26fd72870a83de97f67059d",
+   "claims": []
+  },
+  {
+   "id": 25,
+   "region": "Hà Tĩnh",
+   "sha256": "481123fd9a9eebae9e63d9c83300498e9c248db233aba5aa2047cf5bde1f3728",
+   "claims": []
+  }
+ ]
+}
