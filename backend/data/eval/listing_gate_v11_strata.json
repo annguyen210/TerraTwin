@@ -1,0 +1,114 @@
+{
+ "protocol": "terratwin.listing_gate/11",
+ "source_result": "listing_gate_v11_result.json",
+ "source_selection": "listing_gate_v11_selection.json",
+ "selection_sha256": "ec8be9bf1ae0ecaa66c291c4616202248f2398a3ce7617eb47d37d142655840b",
+ "method": "ghép per_listing (gold/pred) của tệp kết quả với tầng trong nhật ký chọn mẫu — không chạy lại bộ tách câu",
+ "labeler_kind": "human",
+ "labeler_independent": true,
+ "strata": {
+  "A": {
+   "n": 12,
+   "ids": [
+    6,
+    7,
+    9,
+    10,
+    14,
+    15,
+    16,
+    20,
+    22,
+    23,
+    24,
+    25
+   ],
+   "target_listings": 0,
+   "macro_f1_targets": null,
+   "macro_f1_all_types": 0.67,
+   "per_type": [
+    {
+     "type": "near_river",
+     "precision": 1.0,
+     "recall": 1.0,
+     "f1": 1.0,
+     "tp": 1,
+     "fp": 0,
+     "fn": 0
+    },
+    {
+     "type": "residential",
+     "precision": 1.0,
+     "recall": 1.0,
+     "f1": 1.0,
+     "tp": 2,
+     "fp": 0,
+     "fn": 0
+    },
+    {
+     "type": "fresh_water",
+     "precision": 0.0,
+     "recall": 0.0,
+     "f1": 0.0,
+     "tp": 0,
+     "fp": 0,
+     "fn": 1
+    }
+   ],
+   "no_claim_listings": 9,
+   "no_claim_but_extracted": []
+  },
+  "B": {
+   "n": 13,
+   "ids": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    8,
+    11,
+    12,
+    13,
+    17,
+    18,
+    19,
+    21
+   ],
+   "target_listings": 3,
+   "macro_f1_targets": 1.0,
+   "macro_f1_all_types": 1.0,
+   "per_type": [
+    {
+     "type": "high_ground",
+     "precision": 1.0,
+     "recall": 1.0,
+     "f1": 1.0,
+     "tp": 3,
+     "fp": 0,
+     "fn": 0
+    },
+    {
+     "type": "near_river",
+     "precision": 1.0,
+     "recall": 1.0,
+     "f1": 1.0,
+     "tp": 1,
+     "fp": 0,
+     "fn": 0
+    },
+    {
+     "type": "residential",
+     "precision": 1.0,
+     "recall": 1.0,
+     "f1": 1.0,
+     "tp": 4,
+     "fp": 0,
+     "fn": 0
+    }
+   ],
+   "no_claim_listings": 7,
+   "no_claim_but_extracted": []
+  }
+ }
+}

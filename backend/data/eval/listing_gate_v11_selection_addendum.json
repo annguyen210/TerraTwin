@@ -1,0 +1,18 @@
+{
+ "protocol": "terratwin.listing_gate/11",
+ "addendum_to": "listing_gate_v11_selection.json",
+ "date": "2026-11-10",
+ "why": "Review Qodo PR #9: nhật ký chọn mẫu đã khoá (mã băm 509c8f8) dừng ở trang x6a của Chương Mỹ và ghi 'còn thiếu 2 → đọc x6b', nhưng KHÔNG ghi lượt đọc x6b. Lượt đọc đó CÓ diễn ra trước khi khoá mã băm; quên đưa vào nhật ký. Không sửa tệp đã khoá (sẽ lệch mã băm) — bổ sung ở đây.",
+ "page": {
+  "n": "x6b",
+  "region": "Hà Nội (Chương Mỹ)",
+  "url": "https://www.facebook.com/muabandatthuyhuongchuongmy/",
+  "viewable": true,
+  "amendment": 1,
+  "scrolls_when_stopped": 7,
+  "posts_seen_in_order": 0,
+  "read_log": "Phụ lục 1, còn thiếu 2 suất B. Trang mở được (tên trang, 112 người theo dõi, thông tin liên hệ hiện ra) nhưng KHÔNG hiện bài viết nào trong 7 lần cuộn (dừng vì 6 lần liền không thêm bài) → 0 tin. Chương Mỹ THIẾU 2 tin B — đúng như số trong 'shortfall' của nhật ký đã khoá."
+ },
+ "effect": "Không đổi 25 tin đã khoá, không đổi nhãn hay kết quả chấm; chỉ làm đầy đủ nhật ký đọc trang.",
+ "locked_selection_sha256": "ec8be9bf1ae0ecaa66c291c4616202248f2398a3ce7617eb47d37d142655840b"
+}

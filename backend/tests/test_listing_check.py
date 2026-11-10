@@ -106,6 +106,44 @@ def test_loi_lan_8(text, typ, want):
     assert (typ in {c["type"] for c in lc.extract(text)}) is want
 
 
+@pytest.mark.parametrize("text,typ,want", [
+    # Lần 11 (9/11/2026): lỗi lần 10 (nhãn người không độc lập — nay là tập phát triển) + hai lỗi đã biết từ lần 9.
+    ("Khu vực cao ráo ko bao giờ ngập lụt", "no_flood", True),
+    ("Khu này cao ráo, không lụt", "no_flood", True),
+    ("Đất k ngập, xây ở ngay", "no_flood", True),
+    ("Hông bao giờ ngập nha", "no_flood", True),
+    ("Chưa từng lụt dù mưa lớn", "no_flood", True),
+    ("Không ưng ý thì thôi", "no_flood", False),
+    ("Mùa mưa ngập nhẹ", "no_flood", False),
+    ("Diện tích 5x20 Full thổ", "residential", True),
+    ("Nở hậu, tc 60m, sổ sẵn", "residential", True),
+    ("Bán miếng đất ở Vĩnh Châu giá rẻ", "residential", False),
+    ("Cách KDL Biển Cửa Việt 4Km", "near_sea", True),
+    ("Biển số xe 75A, cách chợ 4km", "near_sea", False),
+])
+def test_loi_lan_10(text, typ, want):
+    from app.services import listing_check as lc
+    assert (typ in {c["type"] for c in lc.extract(text)}) is want
+
+
+@pytest.mark.parametrize("text,typ,want", [
+    # Sau lần 11 (10/11/2026) theo review PR #9 — sửa cho LẦN SAU, không chấm lại lần 11.
+    ("Không cam kết ko ngập", "no_flood", False),
+    ("Không đảm bảo không lụt, khách tự xem", "no_flood", False),
+    ("Không cam kết thổ cư", "residential", False),
+    ("Khu vực cao ráo ko bao giờ ngập lụt", "no_flood", True),
+    ("Cách KDL Biển Cửa Việt, đường vào rộng 4m", "near_sea", False),
+    ("Cách KDL Biển Cửa Việt 4Km", "near_sea", True),
+    ("Cách bãi tắm 4ph", "near_sea", True),
+    ("Mảnh đất ở 60m², còn lại đất trồng cây lâu năm", "residential", True),
+    ("Bán mảnh đất ở đô thị sổ riêng", "residential", True),
+    ("Bán miếng đất ở Vĩnh Châu giá rẻ", "residential", False),
+])
+def test_loi_review_pr9(text, typ, want):
+    from app.services import listing_check as lc
+    assert (typ in {c["type"] for c in lc.extract(text)}) is want
+
+
 def test_tin_mau_trang_dau_tach_du_5_loai_va_thua_mau_duoc_ham_nong():
     """Luồng chính trang đầu (29/10/2026): tin mẫu frontend/lib/demo.ts phải ra đủ 5 câu để minh hoạ Khớp/Mâu thuẫn/
     Không đủ dữ liệu; thửa mẫu phải là DEMO_PLOTS[0] (radar + U-Net hâm mỗi 6 giờ) và nằm trong ô mặc định Keep warm."""

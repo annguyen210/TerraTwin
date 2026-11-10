@@ -1,0 +1,109 @@
+{
+ "id": "terratwin.listing_gate/11",
+ "registered": "2026-11-09",
+ "registered_before_sampling": true,
+ "rules_frozen_before_sampling": true,
+ "purpose": "Đo lại 'không ngập' (no_flood) và 'cao ráo' (high_ground) trên NHÃN NGƯỜI, lần này với người gán CHƯA THẤY đáp án nào. Lần 10 (nhãn người KHÔNG độc lập — người gán đã xem nhãn Claude) CHƯA KẾT LUẬN: chỉ 6 tin có câu đích (< 8) và máy sót 2/2 câu 'không ngập'. Lần 1–10 là TẬP PHÁT TRIỂN.",
+ "rules_change": "SỬA luật theo lỗi lần 10 + 2 lỗi đã biết từ lần 9, kiểm lại trên lần 1–10 (listing_gate_v11_devcheck.json: không lần nào giảm), KHOÁ trước khi mở trang Facebook nào: services/listing_check.py ở commit ef8504a, SHA-256 bản trong kho (dòng LF) e95c391852adbaf43d0781c13d3ab348011ef2c69a6b41362bb8821d3c5a1edf. Sửa: phủ định viết tắt/khẩu ngữ + 'lụt' cho không ngập; 'Full thổ', 'tc 60m'; bỏ bắt nhầm 'miếng/mảnh đất ở <địa danh>'; 'Cách KDL Biển … 4Km'.",
+ "data": {
+  "source": "Trang Facebook CÔNG KHAI của môi giới đất ở 6 vùng hay ngập CHƯA dùng ở lần 4–10. Trang chọn THEO TÊN TRANG trong kết quả tìm kiếm web (chế độ tìm sâu, chỉ tên miền facebook.com; 'facebook.com trang nhà đất <vùng> mua bán đất fanpage'), CHƯA đọc bài nào: lấy 2 trang đủ điều kiện ĐẦU TIÊN theo thứ tự kết quả — trang đầu là trang chính, trang sau là dự phòng. Bỏ: trang có website trong tên, nhóm, chợ, trang cá nhân, và TRANG ĐÃ CÓ trong giao thức/nhật ký chọn mẫu lần 4–10 (chuyenbannhadatquangngai, NhadatthanhphoHaTinh, muabandathoachinhchuongmy bị bỏ vì lý do này).",
+  "pages": [
+   {
+    "region": "Quảng Ngãi",
+    "url": "https://www.facebook.com/nhadatquangngaipt/",
+    "backup": {
+     "region": "Quảng Ngãi",
+     "url": "https://www.facebook.com/timnhaoquangngai/"
+    }
+   },
+   {
+    "region": "Hà Tĩnh",
+    "url": "https://www.facebook.com/nhavuonhatinh/",
+    "backup": {
+     "region": "Hà Tĩnh",
+     "url": "https://www.facebook.com/datsen.com.vn/"
+    }
+   },
+   {
+    "region": "Hưng Yên (Thái Bình cũ)",
+    "url": "https://www.facebook.com/bdsthaibinhdotcom/",
+    "backup": {
+     "region": "Hưng Yên (Thái Bình cũ)",
+     "url": "https://www.facebook.com/nhadatbatdongsanthaibinh/"
+    }
+   },
+   {
+    "region": "Cà Mau (Bạc Liêu cũ)",
+    "url": "https://www.facebook.com/nhadatbaclieu9494/",
+    "backup": {
+     "region": "Cà Mau (Bạc Liêu cũ)",
+     "url": "https://www.facebook.com/BuithanhphongBacLieu/"
+    }
+   },
+   {
+    "region": "An Giang (Kiên Giang cũ, Rạch Giá)",
+    "url": "https://www.facebook.com/chuyenmucnhadatkiengiang/",
+    "backup": {
+     "region": "An Giang (Kiên Giang cũ)",
+     "url": "https://www.facebook.com/61560498275944/"
+    }
+   },
+   {
+    "region": "Hà Nội (Chương Mỹ)",
+    "url": "https://www.facebook.com/muabandatngochoachuongmy/",
+    "backup": {
+     "region": "Hà Nội (Chương Mỹ)",
+     "url": "https://www.facebook.com/muabandatdongphuchuongmy/"
+    }
+   }
+  ],
+  "selection": {
+   "stratum_A_natural": "Mỗi trang chính 2 bài BÁN ĐẤT ĐẦU TIÊN theo thứ tự hiện trên trang (bỏ cho thuê, bán nhà/căn hộ/kiot/dãy trọ, cần mua, đấu giá, bài giới thiệu chung, bài trùng — như lần 4–10). 6 trang × 2 = 12 tin. Không lọc theo chữ.",
+   "stratum_B_topic": "Đọc tiếp CÙNG trang sau các bài tầng A: lấy bài bán đất có chứa ít nhất một GỐC CHỮ lấy từ hướng dẫn gán mã A/B (KHÔNG lấy từ luật của bộ tách câu): 'ngập', 'lụt', 'khô ráo', 'cao', 'trũng' (NFKC + chữ thường, chuỗi có dấu), hoặc viết không dấu 'ngap', 'lut', 'kho rao' (đứng thành từ riêng). Tối đa 4 bài/trang theo thứ tự trên trang (lần 10: 3/trang chỉ được 6 tin có câu đích). Lọc bằng máy (hàm chuỗi con đơn giản), không chọn tay. Trang chính thiếu → đọc trang dự phòng CÙNG vùng (chỉ cho tầng B), không đọc trang ngoài danh sách.",
+   "reading": "≤ 30 lần cuộn mỗi trang (collect.js như lần 8–10), giữ thứ tự xuất hiện; bài chữ bị cắt không mở hết được thì bỏ.",
+   "target": "Đích: ≥ 8 tin có câu 'không ngập' hoặc 'cao ráo' (mã A hoặc B) theo NHÃN NGƯỜI. Không bảo đảm được trước; thiếu thì CHƯA KẾT LUẬN, ghi số thật, không thu thêm sau khi người gán đã nhận tin."
+  },
+  "anonymization": "SĐT (kể cả chữ số kiểu toán học), email, đường dẫn, tên người đăng/liên hệ → [số điện thoại]/[email]/[đường dẫn]/[tên]; soát không còn dãy ≥ 8 chữ số. Văn bản tin giữ NGOÀI kho (D:/tt-scratch/gd3fb11); chỉ commit MÃ BĂM từng tin + nhật ký chọn mẫu trước khi người gán nhận tin.",
+  "shuffle": "Trộn thứ tự bằng random.Random(20261109) trước khi đánh số 1..N — người gán không biết tin nào thuộc trang/vùng/tầng nào."
+ },
+ "labelers": {
+  "primary": "NGƯỜI GÁN (người): chủ dự án hoặc người chủ dự án nhờ — CHƯA từng thấy nhãn, gợi ý hay kết quả máy cho các tin này. Nhận chữ các tin (đã trộn, đã ẩn danh, KHÔNG kèm vùng, tầng, nhãn) cùng hướng dẫn 'guideline' y nguyên lần 9–10. Không dán tin vào TerraTwin hay công cụ AI nào, không hỏi ai trước khi gán xong. Phiếu trả lời có 4 câu khai: tên, ngày, đã xem câu trả lời của AI chưa, có dán tin vào AI không — ghi nguyên vào tệp nhãn. Nhãn dùng chấm cổng.",
+  "secondary": "KHÔNG có nhãn AI phụ ở lần 11. Lần 9–10 nhãn của Claude nằm trong phiên chat mà chủ dự án đọc được; lần 10 người gán thấy nhãn Claude và khớp 28/29. Bỏ hẳn nhãn AI để không còn đường lộ đáp án; độ khớp AI–người không đo lần này.",
+  "claude_role": "Claude chỉ thu tin, ẩn danh, chạy chấm — không gán nhãn, không bình luận nội dung từng tin với người gán trước khi nhãn người đã khoá."
+ },
+ "guideline": {
+  "task": "Với mỗi tin: người bán đang khẳng định điều gì về CHÍNH lô đất đang bán? Chọn các mã phù hợp; không có thì ghi 0.",
+  "codes": {
+   "A không ngập": "Tính: không ngập, chưa từng ngập, không lo ngập, khô ráo quanh năm.",
+   "B cao ráo": "Tính: đất cao, cao ráo, nền cao, không trũng, cao hơn mặt đường/khu vực. Không tính: 'đất đẹp', 'thoáng mát'.",
+   "C gần sông": "Tính: gần/ven/giáp/sát/view/mặt tiền/cách X m tới sông, kênh, rạch. Không tính: hồ, suối, ao; tên đường hay địa danh có chữ 'Sông', 'Kênh'.",
+   "D gần biển": "Tính: gần/ven/view/cách X km/'ra biển N phút' tới biển, bãi biển. Không tính: gần cảng, gần sân bay.",
+   "E bằng phẳng": "Tính: bằng phẳng, đất phẳng, không dốc. Không tính: vuông vức, vuông vắn, nở hậu (hình dáng).",
+   "F không sạt lở": "Tính: không sạt lở, chưa từng sạt lở.",
+   "G đất ở / thổ cư": "Tính: lô ĐÃ CÓ (toàn bộ hoặc một phần) đất ở/thổ cư/ODT/ONT. Không tính: 'có thể lên thổ cư', 'hỗ trợ lên thổ cư' (chưa có); 'nằm trong khu dân cư' (vị trí).",
+   "H nước ngọt": "Tính: nước ngọt, giếng ngọt, không nhiễm mặn."
+  },
+  "principles": [
+   "Chỉ tính điều tin khẳng định, không tính điều mình đoán.",
+   "Phải nói về chính lô đất đang bán, không phải nơi khác.",
+   "Câu phủ định thì không tính.",
+   "Viết khác chữ vẫn tính nếu cùng ý (viết tắt, không dấu, in hoa, chữ in đậm).",
+   "Chỗ quy tắc không nói rõ thì người gán tự quyết theo cách một người mua đất đọc tin sẽ hiểu."
+  ],
+  "examples": [
+   "'Đất cao ráo, không bao giờ ngập, cách sông Hậu 200m, sổ hồng thổ cư 100%' → A B C G",
+   "'Lô đất vuông vức, nở hậu, đường ô tô, giá rẻ' → 0",
+   "'Đất vườn 1.000m², hỗ trợ lên thổ cư, view hồ sen' → 0",
+   "'Nền đã có 60m² ONT, cách biển 2km' → D G"
+  ],
+  "note": "Y nội dung bản đã gửi ở lần 6, chỉ bỏ ví dụ cụ thể 'cách cầu Kênh X' (lần 6 trùng một tin); không thêm quy tắc nào về 'quy hoạch đất ở' — người gán tự quyết như lần 6."
+ },
+ "target_types": [
+  "no_flood",
+  "high_ground"
+ ],
+ "metric": "CHÍNH: F1 trung bình (macro) của bộ tách câu trên NHÃN NGƯỜI cho HAI loại đích no_flood + high_ground (loại nào có ít nhất một tin đúng/thừa/sót). PHỤ: F1 mọi loại; F1 từng loại kèm đúng/thừa/sót; số tin có câu đích; F1 riêng tầng A và tầng B (ops/listing_gate_strata.py); số tin 'không khẳng định gì' mà máy vẫn bắt.",
+ "threshold": "ĐẠT khi F1 chính ≥ 0,80 VÀ có ≥ 8 tin mang câu đích (A hoặc B theo nhãn người). Dưới 8 tin: CHƯA KẾT LUẬN (ghi số thật, không tính đạt hay trượt). Trượt thì công bố, không chấm lại mẫu này; lỗi mới chỉ sửa ở lần sau và chấm trên tin mới.",
+ "one_shot": "Chấm đúng một lần sau khi commit nhãn người; không sửa nhãn, luật hay mẫu sau khi thấy kết quả.",
+ "script": "ops/listing_gate_fb.py <tin.json> --run 11 (TARGETS['11'] = no_flood, high_ground; MIN_TARGET_LISTINGS['11'] = 8; HUMAN_REQUIRED gồm '11' — khoá cùng commit này)"
+}

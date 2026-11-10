@@ -1,0 +1,261 @@
+{
+ "protocol": "terratwin.listing_gate/11",
+ "source": "facebook_public_pages",
+ "n": 25,
+ "enough": true,
+ "per_type": [
+  {
+   "type": "high_ground",
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 3,
+   "fp": 0,
+   "fn": 0
+  },
+  {
+   "type": "near_river",
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 2,
+   "fp": 0,
+   "fn": 0
+  },
+  {
+   "type": "residential",
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "tp": 6,
+   "fp": 0,
+   "fn": 0
+  },
+  {
+   "type": "fresh_water",
+   "precision": 0.0,
+   "recall": 0.0,
+   "f1": 0.0,
+   "tp": 0,
+   "fp": 0,
+   "fn": 1
+  }
+ ],
+ "macro_f1": 1.0,
+ "threshold_macro_f1": 0.8,
+ "passed": null,
+ "no_claim_listings": 16,
+ "no_claim_but_extracted": [],
+ "labeler": "Chủ dự án TerraTwin (người) — tự gán, không dùng AI",
+ "labeler_kind": "human",
+ "labeler_independent": true,
+ "data_note": "Bài bán đất MỚI trên 6 trang Facebook công khai của môi giới ở vùng hay ngập chưa dùng (Quảng Ngãi, Hà Tĩnh, Hưng Yên – Thái Bình cũ, Cà Mau – Bạc Liêu cũ, An Giang – Kiên Giang cũ, Hà Nội – Chương Mỹ + dự phòng): 2 bài đầu mỗi trang + tối đa 4 bài/trang có gốc chữ từ HƯỚNG DẪN gán mã A/B ('ngập', 'lụt', 'khô ráo', 'cao', 'trũng'); luật SỬA theo lỗi lần 10, khoá trước khi thu mẫu; người gán chưa thấy đáp án nào, không có nhãn AI phụ; lần 1–10 là tập phát triển",
+ "data_note_en": "NEW land-sale posts from 6 public Facebook broker pages in flood-prone regions not used before (Quảng Ngãi, Hà Tĩnh, Hưng Yên – former Thái Bình, Cà Mau – former Bạc Liêu, An Giang – former Kiên Giang, Hà Nội – Chương Mỹ + backups): first 2 per page + up to 4 per page containing word stems from the A/B labelling GUIDELINE ('ngập', 'lụt', 'khô ráo', 'cao', 'trũng'); rules FIXED after run 10's errors and frozen before sampling; the labeller saw no answers, no secondary AI labels; runs 1–10 are the development set",
+ "per_listing": [
+  {
+   "id": 1,
+   "region": "Hà Tĩnh (trang Nghệ An – Hà Tĩnh; bài ở Nghệ An)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 2,
+   "region": "Hà Tĩnh (trang Nghệ An – Hà Tĩnh; bài ở Nghệ An)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 3,
+   "region": "Hà Tĩnh (trang Nghệ An – Hà Tĩnh; bài ở Nghệ An)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 4,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "gold": [
+    "high_ground",
+    "residential"
+   ],
+   "pred": [
+    "high_ground",
+    "residential"
+   ]
+  },
+  {
+   "id": 5,
+   "region": "Hà Tĩnh",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 6,
+   "region": "Hưng Yên (Thái Bình cũ)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 7,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 8,
+   "region": "Quảng Ngãi",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 9,
+   "region": "An Giang (Kiên Giang cũ, Rạch Giá)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 10,
+   "region": "Hà Nội (Chương Mỹ)",
+   "gold": [
+    "fresh_water"
+   ],
+   "pred": []
+  },
+  {
+   "id": 11,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "gold": [
+    "near_river",
+    "residential"
+   ],
+   "pred": [
+    "near_river",
+    "residential"
+   ]
+  },
+  {
+   "id": 12,
+   "region": "Quảng Ngãi",
+   "gold": [
+    "high_ground"
+   ],
+   "pred": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 13,
+   "region": "Hà Nội (Chương Mỹ)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 14,
+   "region": "Hưng Yên (Thái Bình cũ)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 15,
+   "region": "Hà Nội (Chương Mỹ)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 16,
+   "region": "Quảng Ngãi",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 17,
+   "region": "Hà Nội (Chương Mỹ)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 18,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 19,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "gold": [
+    "high_ground"
+   ],
+   "pred": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 20,
+   "region": "Hà Tĩnh",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 21,
+   "region": "Quảng Ngãi",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 22,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 23,
+   "region": "An Giang (Kiên Giang cũ, Rạch Giá)",
+   "gold": [
+    "near_river",
+    "residential"
+   ],
+   "pred": [
+    "near_river",
+    "residential"
+   ]
+  },
+  {
+   "id": 24,
+   "region": "Quảng Ngãi",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 25,
+   "region": "Hà Tĩnh",
+   "gold": [],
+   "pred": []
+  }
+ ],
+ "target_types": [
+  "no_flood",
+  "high_ground"
+ ],
+ "macro_f1_all_types": 0.75,
+ "target_positives": {
+  "no_flood": 0,
+  "high_ground": 3
+ },
+ "few_samples": [
+  "no_flood"
+ ],
+ "target_listings": 3,
+ "min_target_listings": 8,
+ "verdict": "CHƯA KẾT LUẬN — chỉ 3 tin có câu không ngập / cao ráo theo nhãn chấm cổng (cần ≥ 8)"
+}
