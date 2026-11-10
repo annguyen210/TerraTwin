@@ -1,0 +1,52 @@
+{
+ "date": "2026-11-10",
+ "after_run": "11",
+ "what": "Sửa luật SAU lần 11 theo review PR #9 (Qodo, CodeAnt): bỏ câu miễn trừ ('không cam kết/đảm bảo/chắc …') trước khi dò; 'Cách KDL Biển …' không vượt dấu phẩy, không lấy số sau 'đường/rộng/lộ giới/ngang/mặt tiền/diện tích', nhận '4ph'; nhận lại 'miếng/mảnh đất ở' khi ngay sau là diện tích/loại đất ở. Lần 11 KHÔNG chấm lại — các chỗ sửa này chấm ở lần sau trên tin mới.",
+ "macro_f1_all_types": {
+  "1": {
+   "before": 1.0,
+   "after": 1.0
+  },
+  "2": {
+   "before": 1.0,
+   "after": 1.0
+  },
+  "3": {
+   "before": 0.99,
+   "after": 0.99
+  },
+  "4": {
+   "before": 1.0,
+   "after": 1.0
+  },
+  "5": {
+   "before": 0.95,
+   "after": 0.95
+  },
+  "6": {
+   "before": 1.0,
+   "after": 1.0
+  },
+  "7": {
+   "before": 0.97,
+   "after": 0.97
+  },
+  "8": {
+   "before": 1.0,
+   "after": 1.0
+  },
+  "9": {
+   "before": 1.0,
+   "after": 1.0
+  },
+  "10": {
+   "before": 0.88,
+   "after": 0.88
+  },
+  "11": {
+   "before": 0.75,
+   "after": 0.75
+  }
+ },
+ "note": "Lần 1–11 là tập phát triển; không lần nào đổi điểm (các kiểu câu vừa sửa không có trong 11 mẫu)."
+}

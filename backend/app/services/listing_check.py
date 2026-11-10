@@ -53,7 +53,10 @@ CLAIMS: list[tuple[str, str, str, list[str]]] = [
         r"\b(di|ra|xuong|toi|den) (bai )?(bien|bai tam)\b[^.;]{0,45}?\d+ ?(p|ph|phut|km)\b",
         r"\b\d+ ?(p|ph|phut|km)\b (di |chay |lai xe |xe may )?(ra|den|toi|xuong) (bai )?(bien|bai tam)\b",
         # Lần 11 theo lỗi lần 10: "Cách KDL Biển Cửa Việt 4Km" — khoảng cách tới khu du lịch biển / bãi tắm có tên.
-        r"\bcach (khu du lich |kdl |khu nghi duong )?(bai )?(bien|bai tam)\b[^.;]{0,30}?\d+ ?(km|m|p|phut)\b",
+        # Sau lần 11 (review PR #9): không vượt dấu phẩy và không lấy số đi sau "đường/rộng/lộ giới/ngang/mặt tiền/diện tích"
+        # ("Cách KDL Biển X, đường vào rộng 4m" là bề rộng đường, không phải khoảng cách); nhận cả "4ph" như các mẫu bên cạnh.
+        r"\bcach (khu du lich |kdl |khu nghi duong )?(bai )?(bien|bai tam)\b"
+        r"(?:(?!duong|rong|lo gioi|ngang|mat tien|dien tich)[^.,;]){0,30}?\d+ ?(km|m|p|ph|phut)\b",
         r"duong bao bien", r"(nhin|huong|mat) ra (bai )?bien\b", r"\bgio bien\b"]),
     ("flat", "Bằng phẳng", "Flat", [r"bang phang", r"dat phang", r"khong (bi )?doc", r"mat bang phang"]),
     ("no_landslide", "Không sạt lở", "No landslides", [r"khong (bi |lo )?sat lo", r"chua (tung )?sat lo"]),
@@ -71,6 +74,9 @@ CLAIMS: list[tuple[str, str, str, list[str]]] = [
         r"da (duoc )?lenh? tho\b", r"\b(full|100%?) ?tc\b", r"\btc 100",
         # Lần 11: "Full thổ" (lỗi lần 10, 2 tin) và "tc 60m" (lỗi đã biết từ lần 9) — thổ cư viết gọn kèm "full" / diện tích.
         r"\bfull tho\b", r"\btc \d+ ?(m|m2)\b",
+        # Sau lần 11 (review PR #9): lookbehind "miếng/mảnh" ở trên chặn cả "Mảnh đất ở 60m²", "mảnh đất ở đô thị" — nhận lại
+        # khi ngay sau là diện tích / loại đất ở, không phải địa danh.
+        r"\b(mieng|manh) dat o (\d|do thi|nong thon|lau dai|odt|ont|100)",
         # Lần 9: "Tho 150+ cây lâu năm", "thổ 100%" — "thổ" kèm số/"hết". Loại tên riêng có "Thọ" đứng sau
         # (Phước Lộc Thọ, Phúc Thọ, Trường Thọ, Đông Thọ, Vĩnh Thọ…) — sau khi bỏ dấu "thọ" và "thổ" trùng nhau.
         r"(?<!loc )(?<!phuc )(?<!truong )(?<!dong )(?<!vinh )(?<!xuan )(?<!hoa )(?<!an )(?<!phu )(?<!chua )\btho (\d|het\b)"]),
@@ -81,6 +87,15 @@ CLAIMS: list[tuple[str, str, str, list[str]]] = [
 def fold(s: str) -> str:
     s = unicodedata.normalize("NFD", s.lower()).replace("đ", "d")
     return "".join(ch for ch in s if unicodedata.category(ch) != "Mn")
+
+
+# Sau lần 11 (review PR #9): câu MIỄN TRỪ không phải lời hứa — "không cam kết ko ngập", "không đảm bảo không lụt", "chưa
+# chắc thổ cư". Xoá cụm miễn trừ (tới dấu ngắt gần nhất) trên chữ đã bỏ dấu TRƯỚC khi dò loại câu.
+_DISCLAIM = re.compile(r"\b(khong|ko|k|chua)\s+(cam ket|dam bao|bao dam|chac chan|chac|hua hen|hua)\b[^.,;]{0,40}")
+
+
+def _strip_disclaimers(f: str) -> str:
+    return _DISCLAIM.sub(" ", f)
 
 
 def sentences(text: str) -> list[str]:
@@ -103,8 +118,8 @@ def extract(text: str) -> list[dict]:
     sông" trích "Đất cao ráo" vì cả câu bị trích cho mọi loại). Mẫu vắt qua dấu phẩy thì trích cả câu."""
     out, seen = [], set()
     for s in sentences(text[:5000]):
-        f = fold(s)
-        cl = [(c, fold(c)) for c in clauses(s)]
+        f = _strip_disclaimers(fold(s))
+        cl = [(c, _strip_disclaimers(fold(c))) for c in clauses(s)]
         for typ, _vi, _en, pats in CLAIMS:
             if not any(re.search(p, f) for p in pats):
                 continue

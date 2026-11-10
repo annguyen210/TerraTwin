@@ -601,6 +601,8 @@ python ops/listing_gate_fb.py <tin_lan10.json> --run 10  # chỉ chấm khi tệ
 python ops/listing_gate_strata.py --run 10                # F1 riêng tầng A/B từ per_listing + nhật ký chọn mẫu (khớp mã băm), không chấm lại
 python ops/listing_gate_fb.py <tin_lan11.json> --run 11  # nhãn người độc lập, không có nhãn AI phụ
 python ops/listing_gate_strata.py --run 11
+# Sau lần 11 (review PR #9): sửa luật cho lần sau — listing_gate_post11_devcheck.json (lần 1–11 không đổi điểm);
+# bổ sung lượt đọc trang x6b bị sót trong nhật ký đã khoá: listing_gate_v11_selection_addendum.json
 ```
 
 Đọc kết quả: luật từ khoá gần như **không bắt nhầm** (độ chính xác 1,0 mọi loại ở lần 2) nhưng **sót cách nói vòng** ("gió
