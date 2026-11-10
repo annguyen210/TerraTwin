@@ -1,0 +1,406 @@
+{
+ "protocol": "terratwin.listing_gate/11",
+ "amendments": [
+  1
+ ],
+ "collected": "2026-11-09",
+ "collector": "Claude (claude-opus-5-5) qua Chrome của chủ dự án — chỉ đọc: mở thẳng địa chỉ trang, không dùng ô tìm kiếm Facebook, không tham gia/theo dõi/thích/bình luận/nhắn tin; chỉ bấm 'Xem thêm'",
+ "method": "collect.js (≤ 30 lần cuộn, giữ thứ tự xuất hiện; bản thu gọn và mở rộng của cùng bài tính là một; ở các trang phụ lục 1 dừng sớm khi 6 lần cuộn liền không thêm bài; có kiểm khung nhìn ≠ 0 — 3 lượt đọc đầu bị khung nhìn 0×0 do cửa sổ Chrome thu nhỏ đã bỏ và đọc lại). Tầng A: 2 bài bán đất đầu mỗi trang chính. Tầng B: bài bán đất có gốc chữ 'ngập'/'lụt'/'khô ráo'/'cao'/'trũng' (hoặc 'ngap'/'lut'/'kho rao'), tối đa 4/vùng theo thứ tự; thiếu → trang dự phòng → tối đa 2 trang phụ lục 1. 'Bài bán đất' phân loại bằng đọc (bỏ bán nhà/biệt thự/căn hộ/nhà trọ, cho thuê, đấu giá, tin thị trường, tuyển dụng, quảng cáo chung).",
+ "anonymization": "topic.anonymize (SĐT kể cả chữ số kiểu toán học, email, đường dẫn) + tên người đăng/liên hệ → '[tên]' + dãy ≥ 8 chữ số còn sót → '[số điện thoại]'. Văn bản đã chuẩn hoá NFKC (chữ in đậm kiểu toán học → chữ thường).",
+ "shuffle_seed": 20261109,
+ "total": 25,
+ "by_stratum": {
+  "A": 12,
+  "B": 13
+ },
+ "by_region": {
+  "Hà Tĩnh": {
+   "A": 2,
+   "B": 4
+  },
+  "Cà Mau (Bạc Liêu cũ)": {
+   "A": 2,
+   "B": 4
+  },
+  "Hưng Yên (Thái Bình cũ)": {
+   "A": 2,
+   "B": 0
+  },
+  "Quảng Ngãi": {
+   "A": 2,
+   "B": 3
+  },
+  "An Giang (Kiên Giang cũ, Rạch Giá)": {
+   "A": 2,
+   "B": 0
+  },
+  "Hà Nội (Chương Mỹ)": {
+   "A": 2,
+   "B": 2
+  }
+ },
+ "shortfall": "Tầng B: 13/24. Thái Bình 0 và Kiên Giang 0 (trang dự phòng/phụ lục không xem được, chỉ quảng cáo hoặc chỉ bán nhà), Quảng Ngãi 3, Chương Mỹ 2. Không đọc trang ngoài danh sách giao thức + phụ lục 1.",
+ "pages": [
+  {
+   "n": 1,
+   "region": "Quảng Ngãi",
+   "url": "https://www.facebook.com/nhadatquangngaipt/",
+   "viewable": true,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 40,
+   "read_log": "68 khối chữ / 30 lần cuộn → 40 bài sau khi gộp bản thu gọn–mở rộng. Tầng A: bài 1 (lô đất), bài 3 (bán đất lô góc, tặng kèm nhà cấp 4) — bài 2 là biệt thự, bỏ. Tầng B (đọc tiếp sau bài 3, có gốc chữ): bài 8 'cao' (bán đất có xưởng), bài 17 'cao' là bán nhà 3 tầng → bỏ, bài 31 'cao' (đất hẻm). Chỉ 2 tin tầng B → đọc trang dự phòng cho 2 suất còn lại."
+  },
+  {
+   "n": "1b",
+   "region": "Quảng Ngãi",
+   "url": "https://www.facebook.com/timnhaoquangngai/",
+   "viewable": true,
+   "backup_of": 1,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 38,
+   "read_log": "Trang dự phòng Quảng Ngãi, cần 2 suất tầng B: 38 bài trong 30 lần cuộn, không bài nào có gốc chữ 'ngập/lụt/khô ráo/cao/trũng' (hay 'ngap/lut/kho rao') → 0 tin. Quảng Ngãi THIẾU 2 tin tầng B."
+  },
+  {
+   "n": 2,
+   "region": "Hà Tĩnh",
+   "url": "https://www.facebook.com/nhavuonhatinh/",
+   "viewable": true,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 58,
+   "read_log": "58 bài sau khi gộp. Tầng A: bài 1 là cho thuê → bỏ; bài 2 (đất thương mại dịch vụ), bài 3 (gần 2000m2 đất). Tầng B (đọc tiếp sau bài 3): chỉ bài 13 có gốc chữ ('cao' — cầu vượt cao tốc) và là bài bán đất. Thiếu 3 suất → trang dự phòng."
+  },
+  {
+   "n": "2b",
+   "region": "Hà Tĩnh",
+   "url": "https://www.facebook.com/datsen.com.vn/",
+   "viewable": true,
+   "backup_of": 2,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 59,
+   "read_log": "Trang dự phòng Hà Tĩnh, cần 3 suất tầng B: 63 khối / 59 bài; có gốc chữ chỉ bài 51 ('cao' — giới thiệu chung vùng đất QH Bàu Rạ nhìn từ trên cao, không phải bài bán một lô) và bài 55 (tuyển dụng) → 0 tin. Hà Tĩnh THIẾU 3 tin tầng B."
+  },
+  {
+   "n": 3,
+   "region": "Hưng Yên (Thái Bình cũ)",
+   "url": "https://www.facebook.com/bdsthaibinhdotcom/",
+   "viewable": true,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 64,
+   "read_log": "107 khối / 64 bài, đa số là tin thị trường, dự án, tuyển dụng, chung cư (bài cũ 2021–2022). Tầng A: bài 1 (thuế), 2 (căn hộ) bỏ; bài 3 (bán lô đất Trái Diêm 3), bài 9 (bán lô đất LK3-30). Tầng B (sau bài 9): bài có gốc chữ đều không phải bài bán đất (12 tin đấu giá, 27/34/36/63 tin thị trường, 47 website, 57 chung cư) → 0 tin; đọc trang dự phòng cho 4 suất."
+  },
+  {
+   "n": "3b",
+   "region": "Hưng Yên (Thái Bình cũ)",
+   "url": "https://www.facebook.com/nhadatbatdongsanthaibinh/",
+   "viewable": false,
+   "backup_of": 3,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 0,
+   "read_log": "Trang dự phòng Thái Bình: Facebook báo 'Bạn hiện không xem được nội dung này' (chủ trang giới hạn hoặc đã xoá) → 0 tin. Thái Bình THIẾU 4 tin tầng B; không đọc trang ngoài danh sách."
+  },
+  {
+   "n": 4,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "url": "https://www.facebook.com/nhadatbaclieu9494/",
+   "viewable": true,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 54,
+   "read_log": "93 khối / 54 bài ('nền' = đất nền). Tầng A: bài 1 là nhà → bỏ; bài 2, 3 (nền). Tầng B (sau bài 3), có gốc chữ, là bài bán đất/nền, theo thứ tự: 10, 11, 12, 19 (bài 17 nhà trọ, 20 nhà → bỏ). Đủ 4 suất. Lưu ý: 'cao' khớp cả tên đường 'Cao Văn Lầu' (bài 10, 19) — giao thức cố ý để 'cao' rộng."
+  },
+  {
+   "n": 5,
+   "region": "An Giang (Kiên Giang cũ, Rạch Giá)",
+   "url": "https://www.facebook.com/chuyenmucnhadatkiengiang/",
+   "viewable": true,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 7,
+   "read_log": "Trang chỉ hiện 7 bài trong 30 lần cuộn. Tầng A: bài 1 biệt thự → bỏ; bài 2 (bán đất tặng nhà); bài 3 nhà → bỏ; bài 4 (11 nền). Tầng B (sau bài 4): 5 nhà, 6 khuyến mãi mua nhà, 7 biệt thự → 0; đọc trang dự phòng cho 4 suất."
+  },
+  {
+   "n": "5b",
+   "region": "An Giang (Kiên Giang cũ)",
+   "url": "https://www.facebook.com/61560498275944",
+   "viewable": true,
+   "backup_of": 5,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 1,
+   "read_log": "Trang dự phòng Kiên Giang (mở ra dạng profile.php?id=61560498275944): chỉ 1 bài trong 30 lần cuộn, là bài quảng cáo dịch vụ đăng tin, không phải bài bán đất → 0 tin. Kiên Giang THIẾU 4 tin tầng B."
+  },
+  {
+   "n": 6,
+   "region": "Hà Nội (Chương Mỹ)",
+   "url": "https://www.facebook.com/muabandatngochoachuongmy/",
+   "viewable": true,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 4,
+   "read_log": "Trang chỉ hiện 4 bài trong 30 lần cuộn, đều là bán đất. Tầng A: bài 1, 2. Tầng B (sau bài 2): bài 3, 4 không có gốc chữ → 0; đọc trang dự phòng cho 4 suất."
+  },
+  {
+   "n": "6b",
+   "region": "Hà Nội (Chương Mỹ)",
+   "url": "https://www.facebook.com/muabandatdongphuchuongmy/",
+   "viewable": false,
+   "backup_of": 6,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 0,
+   "read_log": "Trang dự phòng Chương Mỹ: Facebook báo 'Bạn hiện không xem được nội dung này' → 0 tin. Chương Mỹ THIẾU 4 tin tầng B."
+  },
+  {
+   "n": "x1a",
+   "region": "Quảng Ngãi",
+   "url": "https://www.facebook.com/giaiphapnhaquangngai/",
+   "viewable": true,
+   "amendment": 1,
+   "scrolls_when_stopped": 15,
+   "posts_seen_in_order": 17,
+   "read_log": "Phụ lục 1, cần 2 suất B. 17 bài, dừng ở lần cuộn 15 vì 6 lần liền không thêm bài; không bài nào có gốc chữ → 0. (Lượt đọc đầu bị khung nhìn 0×0 do cửa sổ Chrome thu nhỏ, chỉ thấy 2 bài — bỏ, đọc lại.)"
+  },
+  {
+   "n": "x1b",
+   "region": "Quảng Ngãi",
+   "url": "https://www.facebook.com/muadatotaiquangngai/",
+   "viewable": true,
+   "amendment": 1,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 56,
+   "read_log": "Phụ lục 1, còn 2 suất B. 56 bài; có gốc chữ chỉ bài 48 ('cao' — khu dân trí cao), là bài bán đất → lấy. Quảng Ngãi vẫn THIẾU 1 tin B. (Lượt đọc đầu bị khung nhìn 0×0 — bỏ, đọc lại.)"
+  },
+  {
+   "n": "x2a",
+   "region": "Hà Tĩnh",
+   "url": "https://www.facebook.com/NhadatNgheTinh24h/",
+   "viewable": true,
+   "amendment": 1,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 54,
+   "read_log": "Phụ lục 1, cần 3 suất B. Trang 'Nhà Đất 24h' (mua bán Nghệ An – Hà Tĩnh). 54 bài; có gốc chữ: 15, 23, 27 (đều 'cao' — trường cao đẳng, dân trí cao), đều là bài bán đất, đều ở Nghệ An (TP Vinh, Nghi Thu, Nghi Phú) → lấy 3, Hà Tĩnh đủ. Không đọc trang x2b. (Lượt đọc đầu bị khung nhìn 0×0 — bỏ, đọc lại.)"
+  },
+  {
+   "n": "x3a",
+   "region": "Hưng Yên (Thái Bình cũ)",
+   "url": "https://www.facebook.com/nhadatnguyenbien/",
+   "viewable": true,
+   "amendment": 1,
+   "scrolls_when_stopped": 30,
+   "posts_seen_in_order": 65,
+   "read_log": "Phụ lục 1, cần 4 suất B. 65 bài; có gốc chữ: 9, 32, 51, 58 — đều là bán NHÀ 3 tầng → bỏ. 0 tin."
+  },
+  {
+   "n": "x3b",
+   "region": "Hưng Yên (Thái Bình cũ)",
+   "url": "https://www.facebook.com/NHADEPTHAIBINH0961143555/",
+   "viewable": false,
+   "amendment": 1,
+   "scrolls_when_stopped": 7,
+   "posts_seen_in_order": 0,
+   "read_log": "Facebook báo 'Bạn hiện không xem được nội dung này' → 0 tin. Thái Bình THIẾU 4 tin B."
+  },
+  {
+   "n": "x5a",
+   "region": "An Giang (Kiên Giang cũ)",
+   "url": "https://www.facebook.com/nhadatrachgiaKG/",
+   "viewable": true,
+   "amendment": 1,
+   "scrolls_when_stopped": 15,
+   "posts_seen_in_order": 29,
+   "read_log": "Phụ lục 1, cần 4 suất B. 29 bài; có gốc chữ chỉ bài 23 ('Cao Thắng' — tên hẻm) là bán NHÀ → bỏ. 0 tin."
+  },
+  {
+   "n": "x5b",
+   "region": "An Giang (Kiên Giang cũ)",
+   "url": "https://www.facebook.com/DatNenThanhSang/",
+   "viewable": false,
+   "amendment": 1,
+   "scrolls_when_stopped": 7,
+   "posts_seen_in_order": 0,
+   "read_log": "Facebook báo 'Bạn hiện không xem được nội dung này' → 0 tin. Kiên Giang THIẾU 4 tin B."
+  },
+  {
+   "n": "x6a",
+   "region": "Hà Nội (Chương Mỹ)",
+   "url": "https://www.facebook.com/muabandatdaiyenchuongmy/",
+   "viewable": true,
+   "amendment": 1,
+   "scrolls_when_stopped": 9,
+   "posts_seen_in_order": 5,
+   "read_log": "Phụ lục 1, cần 4 suất B. 5 bài (dừng lần cuộn 9, không thêm bài). Có gốc chữ: bài 3, 5 ('cao' — dân trí cao), đều bán đất → lấy 2. Còn thiếu 2 → đọc x6b."
+  }
+ ],
+ "taken": [
+  {
+   "id": 1,
+   "page": "x2a",
+   "region": "Hà Tĩnh (trang Nghệ An – Hà Tĩnh; bài ở Nghệ An)",
+   "page_pos": 27,
+   "stratum": "B"
+  },
+  {
+   "id": 2,
+   "page": "x2a",
+   "region": "Hà Tĩnh (trang Nghệ An – Hà Tĩnh; bài ở Nghệ An)",
+   "page_pos": 15,
+   "stratum": "B"
+  },
+  {
+   "id": 3,
+   "page": "x2a",
+   "region": "Hà Tĩnh (trang Nghệ An – Hà Tĩnh; bài ở Nghệ An)",
+   "page_pos": 23,
+   "stratum": "B"
+  },
+  {
+   "id": 4,
+   "page": 4,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "page_pos": 11,
+   "stratum": "B"
+  },
+  {
+   "id": 5,
+   "page": 2,
+   "region": "Hà Tĩnh",
+   "page_pos": 13,
+   "stratum": "B"
+  },
+  {
+   "id": 6,
+   "page": 3,
+   "region": "Hưng Yên (Thái Bình cũ)",
+   "page_pos": 9,
+   "stratum": "A"
+  },
+  {
+   "id": 7,
+   "page": 4,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "page_pos": 3,
+   "stratum": "A"
+  },
+  {
+   "id": 8,
+   "page": 1,
+   "region": "Quảng Ngãi",
+   "page_pos": 8,
+   "stratum": "B"
+  },
+  {
+   "id": 9,
+   "page": 5,
+   "region": "An Giang (Kiên Giang cũ, Rạch Giá)",
+   "page_pos": 4,
+   "stratum": "A"
+  },
+  {
+   "id": 10,
+   "page": 6,
+   "region": "Hà Nội (Chương Mỹ)",
+   "page_pos": 1,
+   "stratum": "A"
+  },
+  {
+   "id": 11,
+   "page": 4,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "page_pos": 19,
+   "stratum": "B"
+  },
+  {
+   "id": 12,
+   "page": 1,
+   "region": "Quảng Ngãi",
+   "page_pos": 31,
+   "stratum": "B"
+  },
+  {
+   "id": 13,
+   "page": "x6a",
+   "region": "Hà Nội (Chương Mỹ)",
+   "page_pos": 3,
+   "stratum": "B"
+  },
+  {
+   "id": 14,
+   "page": 3,
+   "region": "Hưng Yên (Thái Bình cũ)",
+   "page_pos": 3,
+   "stratum": "A"
+  },
+  {
+   "id": 15,
+   "page": 6,
+   "region": "Hà Nội (Chương Mỹ)",
+   "page_pos": 2,
+   "stratum": "A"
+  },
+  {
+   "id": 16,
+   "page": 1,
+   "region": "Quảng Ngãi",
+   "page_pos": 1,
+   "stratum": "A"
+  },
+  {
+   "id": 17,
+   "page": "x6a",
+   "region": "Hà Nội (Chương Mỹ)",
+   "page_pos": 5,
+   "stratum": "B"
+  },
+  {
+   "id": 18,
+   "page": 4,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "page_pos": 10,
+   "stratum": "B"
+  },
+  {
+   "id": 19,
+   "page": 4,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "page_pos": 12,
+   "stratum": "B"
+  },
+  {
+   "id": 20,
+   "page": 2,
+   "region": "Hà Tĩnh",
+   "page_pos": 2,
+   "stratum": "A"
+  },
+  {
+   "id": 21,
+   "page": "x1b",
+   "region": "Quảng Ngãi",
+   "page_pos": 48,
+   "stratum": "B"
+  },
+  {
+   "id": 22,
+   "page": 4,
+   "region": "Cà Mau (Bạc Liêu cũ)",
+   "page_pos": 2,
+   "stratum": "A"
+  },
+  {
+   "id": 23,
+   "page": 5,
+   "region": "An Giang (Kiên Giang cũ, Rạch Giá)",
+   "page_pos": 2,
+   "stratum": "A"
+  },
+  {
+   "id": 24,
+   "page": 1,
+   "region": "Quảng Ngãi",
+   "page_pos": 3,
+   "stratum": "A"
+  },
+  {
+   "id": 25,
+   "page": 2,
+   "region": "Hà Tĩnh",
+   "page_pos": 3,
+   "stratum": "A"
+  }
+ ]
+}

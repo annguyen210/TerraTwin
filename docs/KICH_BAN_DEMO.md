@@ -58,6 +58,11 @@ khớp 28/29 tin, nên **không độc lập**. 29 tin ở 5 vùng hay ngập; c
 → **CHƯA KẾT LUẬN**. Số thật vẫn nói: máy **sót cả 2 câu "không ngập"**, "cao ráo" F1 0,92. Nếu bị hỏi: "Đây là chỗ yếu
 chúng tôi tự công bố; lần sau sửa luật, chấm trên tin mới, người gán chưa thấy câu trả lời nào."
 
+**Lần 11 (10/11/2026), lần đầu có nhãn người ĐỘC LẬP** — không có nhãn AI nào cho 25 tin này, người gán không dùng AI. Luật đã
+sửa theo lỗi lần 10. Máy khớp người **24/25 tin, không bắt nhầm tin nào**; "cao ráo" 3/3. Nhưng chỉ 3 tin có câu đích (không tin
+nào nói "không ngập") → vẫn **CHƯA KẾT LUẬN**. Nếu bị hỏi: "Tin rao thật rất ít khi hứa 'không ngập'; chúng tôi không gom thêm cho
+đủ sau khi đã thấy dữ liệu — số thật là vậy."
+
 **4. Sao không kiểm được thổ cư, quy hoạch?**
 Cần dữ liệu địa chính, không công khai qua mạng. TerraTwin trả lời "Không đủ dữ liệu" thay vì đoán, và ghi rõ người
 mua phải hỏi văn phòng đăng ký đất đai.
