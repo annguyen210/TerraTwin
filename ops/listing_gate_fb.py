@@ -67,6 +67,17 @@ RUNS = {   # lần → (tệp nhãn, tệp kết quả, mô tả dữ liệu VI,
            "to 4 per page containing word stems from the A/B labelling GUIDELINE ('ngập', 'lụt', 'khô ráo', 'cao', 'trũng'); rules FIXED "
            "after run 10's errors and frozen before sampling; the labeller saw no answers, no secondary AI labels; runs 1–10 are the "
            "development set"),
+    "12": ("listing_gate_v12_labels.json", "listing_gate_v12_result.json",
+           "Bài bán đất MỚI trên trang Facebook công khai của môi giới ở vùng NGẬP HẰNG NĂM chưa dùng (Huế, Đà Nẵng – Quảng Nam cũ, Quảng "
+           "Trị – Quảng Bình cũ, Cần Thơ, Vĩnh Long, An Giang, Đồng Tháp + dự phòng): 1 bài đầu mỗi trang chính + MỌI bài có gốc chữ HẸP "
+           "('ngập', 'lụt', 'lũ', 'cao ráo', 'nền cao', 'khô ráo', 'trũng'… — bỏ 'cao' đứng riêng; KHÔNG lấy từ luật của bộ tách câu); "
+           "đọc thêm trang Huế tới khi có ≥ 6 bài có chữ ngập/lụt; luật GIỮ NGUYÊN từ ab2bc61; người gán chưa thấy đáp án nào, không có "
+           "nhãn AI phụ; lần 1–11 là tập phát triển",
+           "NEW land-sale posts from public Facebook broker pages in regions that flood EVERY YEAR, not used before (Huế, Đà Nẵng – former "
+           "Quảng Nam, Quảng Trị – former Quảng Bình, Cần Thơ, Vĩnh Long, An Giang, Đồng Tháp + backups): first post per main page + EVERY "
+           "post containing NARROW word stems ('ngập', 'lụt', 'lũ', 'cao ráo', 'nền cao', 'khô ráo', 'trũng'… — bare 'cao' dropped; NOT taken "
+           "from the extractor's rules); extra Huế pages read until ≥ 6 posts mention ngập/lụt; rules UNCHANGED since ab2bc61; the labeller "
+           "saw no answers, no secondary AI labels; runs 1–11 are the development set"),
 }
 # Lần 9: chỗ sửa nào ĐƯỢC KIỂM — đếm tin mới có đúng kiểu câu đã sửa (trên chữ đã bỏ dấu) và máy đúng/sai ở loại đó.
 FIX_FAMILIES = {"9": {
@@ -81,13 +92,17 @@ TARGETS = {"8": ["no_flood", "near_river", "near_sea", "flat", "no_landslide", "
            # Lần 10 (đăng ký 7/11/2026): đo "không ngập" và "cao ráo" — lần 9 chỉ đo được gần sông + thổ cư.
            "10": ["no_flood", "high_ground"],
            # Lần 11 (đăng ký 9/11/2026): đo lại hai loại đó với người gán chưa thấy đáp án nào.
-           "11": ["no_flood", "high_ground"]}
+           "11": ["no_flood", "high_ground"],
+           # Lần 12 (đăng ký 12/11/2026): như lần 11, chọn tin ở vùng ngập hằng năm để đủ số tin mà kết luận.
+           "12": ["no_flood", "high_ground"]}
 # Lần 10: cần ≥ 8 tin có câu đích (mã A hoặc B theo nhãn chấm cổng); thiếu thì CHƯA KẾT LUẬN — không tính đạt, không tính trượt.
-MIN_TARGET_LISTINGS = {"10": 8, "11": 8}
+MIN_TARGET_LISTINGS = {"10": 8, "11": 8, "12": 8}
+# Lần 12: thêm số tin tối thiểu cho TỪNG loại — 'không ngập' phải có ≥ 3 tin, không để F1 chung che một loại chưa đo được.
+MIN_TYPE_LISTINGS = {"12": {"no_flood": 3}}
 # Lần 4–5 nhãn do Claude gán (REPRODUCE.md §13) — tệp nhãn cũ không có labeler_kind nên khai thay ở đây.
 DEFAULT_KIND = {"4": "claude", "5": "claude"}
 # Giao thức đã đăng ký chấm trên NHÃN NGƯỜI (listing_gate_v10_protocol.json "labelers") — nhãn khác thì KHÔNG chấm.
-HUMAN_REQUIRED = {"10", "11"}
+HUMAN_REQUIRED = {"10", "11", "12"}
 THRESHOLD = 0.80
 
 
@@ -157,10 +172,19 @@ def main() -> None:
         if run in MIN_TARGET_LISTINGS:
             n_t = sum(any(t in g["claims"] for t in TARGETS[run]) for g in gold)
             res["target_listings"], res["min_target_listings"] = n_t, MIN_TARGET_LISTINGS[run]
+            short = []
             if n_t < MIN_TARGET_LISTINGS[run]:
+                short.append(f"chỉ {n_t} tin có câu không ngập / cao ráo theo nhãn chấm cổng (cần ≥ {MIN_TARGET_LISTINGS[run]})")
+            for t, need in MIN_TYPE_LISTINGS.get(run, {}).items():
+                got = res["target_positives"][t]
+                res.setdefault("min_type_listings", {})[t] = {"need": need, "got": got}
+                if got < need:
+                    short.append(f"chỉ {got} tin có câu {t} (cần ≥ {need})")
+            if short:
                 res["passed"] = None
-                res["verdict"] = (f"CHƯA KẾT LUẬN — chỉ {n_t} tin có câu không ngập / cao ráo theo nhãn chấm cổng "
-                                  f"(cần ≥ {MIN_TARGET_LISTINGS[run]})")
+                res["verdict"] = "CHƯA KẾT LUẬN — " + "; ".join(short)
+            else:
+                res["verdict"] = "ĐẠT" if res["passed"] else "TRƯỢT"
     # Lần 6: nhãn AI phụ (khoá trước) chỉ để đo độ khớp với nhãn chấm cổng — tên khoá ai_vs_human giữ cho tương thích.
     ai_path = os.path.join(EVAL, LABELS.replace("_labels.json", "_ai_labels.json"))
     if os.path.exists(ai_path):

@@ -1,0 +1,276 @@
+{
+ "protocol": "terratwin.listing_gate/12",
+ "searched": "2026-11-12",
+ "tool": "WebSearch chế độ 'extended', chỉ tên miền facebook.com — như lần 11",
+ "rule": "Chọn THEO TÊN TRANG, chưa đọc bài nào. Theo thứ tự kết quả: bỏ trang có website trong tên, nhóm, chợ/rao vặt, trang cá nhân hoặc địa chỉ /people/ /p/ (không có tên trang cố định), trang toàn quốc không gắn vùng, trang của một dự án/chung cư, trang không phải nhà đất, và trang đã dùng ở lần 4–11. Trang đủ điều kiện đầu tiên là trang chính, các trang sau là dự phòng.",
+ "searches": [
+  {
+   "region": "Huế",
+   "query": "facebook.com trang nhà đất Huế mua bán đất fanpage",
+   "results_in_order": [
+    {
+     "page": "batdongsangiareohue",
+     "name": "Bất động sản Huế",
+     "decision": "chọn"
+    },
+    {
+     "page": "muabannhadathhuekiet",
+     "name": "Mua Bán Nhà Đất Huế",
+     "decision": "chọn"
+    },
+    {
+     "page": "nhadatqtland",
+     "name": "Mua Bán Nhà Đất Huế - QT Land",
+     "decision": "chọn"
+    },
+    {
+     "page": "nhadatPhuocThinhLand",
+     "name": "Nhà Đất Huế - Phước Thịnh Land",
+     "decision": "chọn"
+    },
+    {
+     "page": "nhadatvuahue",
+     "name": "Nhà Đất Vua Huế",
+     "decision": "chọn"
+    },
+    {
+     "page": "NhaDatTrongDat",
+     "name": "Nhà Đất Huế 247 - Mua Bán, Ký Gửi Nhà Đất",
+     "decision": "chọn"
+    },
+    {
+     "page": "nhadatphohue.hoangthithuyngan",
+     "name": "BĐS. Giá rẻ HP LAND",
+     "decision": "chọn"
+    },
+    {
+     "page": "nhadathuent",
+     "name": "Nhà Đất Huế NT",
+     "decision": "chọn"
+    },
+    {
+     "page": "HueLand.Hue",
+     "name": "Huế Land - Chuyên Bất Động Sản Huế",
+     "decision": "chọn"
+    },
+    {
+     "page": "Batdongsanhue25",
+     "name": "Bất Động Sản Huế",
+     "decision": "chọn"
+    }
+   ]
+  },
+  {
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "query": "facebook.com trang nhà đất Quảng Nam Hội An Điện Bàn mua bán đất fanpage",
+   "results_in_order": [
+    {
+     "page": "nhadathoiancom",
+     "name": "Nhà Đất Hội An",
+     "decision": "chọn"
+    },
+    {
+     "page": "Batdongsan.DuyXuyenQuangNam",
+     "name": "Bất Động Sản ĐIỆN BÀN - HỘI AN",
+     "decision": "chọn"
+    },
+    {
+     "page": "nhadadanangquangnam",
+     "name": "Nhà Đất Đà Nẵng TTLand",
+     "decision": "chọn"
+    },
+    {
+     "page": "Datnenhoian24h",
+     "name": "Đất Nền Hội An",
+     "decision": "chọn"
+    },
+    {
+     "page": "DatDienBanQuangNam",
+     "name": "Đất Điện Bàn - Quảng Nam - Minh Ánh Land",
+     "decision": "thừa (đã đủ 2 chính + 2 dự phòng)"
+    }
+   ]
+  },
+  {
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "query": "facebook.com trang nhà đất Quảng Bình Lệ Thủy mua bán đất fanpage",
+   "results_in_order": [
+    {
+     "page": "bdslethuy",
+     "name": "Nhà Đất Lệ Thủy",
+     "decision": "chọn"
+    },
+    {
+     "page": "nhadatcuongphatqb",
+     "name": "Dịch vụ mua bán nhà đất số 1 Quảng Bình",
+     "decision": "bỏ: đã dùng ở lần trước"
+    },
+    {
+     "page": "baomuabannhadat",
+     "name": "Báo Mua bán Nhà đất",
+     "decision": "bỏ: trang toàn quốc, không gắn vùng"
+    },
+    {
+     "page": "nha.at.huy.hung.2025",
+     "name": "Nhà Đất Huy Hùng",
+     "decision": "chọn"
+    },
+    {
+     "page": "Thuviennhadat.c0m",
+     "name": "Mua bán nhà đất, bất động sản",
+     "decision": "bỏ: trang toàn quốc, website trong địa chỉ"
+    },
+    {
+     "page": "AloNhadat.official",
+     "name": "Alo Nhà Đất",
+     "decision": "bỏ: trang toàn quốc"
+    },
+    {
+     "page": "p/Trung-tâm-Dịch-vụ-đấu-giá…",
+     "name": "Trung tâm Dịch vụ đấu giá tài sản",
+     "decision": "bỏ: đấu giá, không phải môi giới"
+    },
+    {
+     "page": "muabanchothuenhadat24h",
+     "name": "Batdongsan386.com",
+     "decision": "bỏ: website trong tên"
+    }
+   ]
+  },
+  {
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "query": "facebook.com trang nhà đất Đồng Hới Quảng Bình mua bán đất fanpage (lượt 2: tìm trang dự phòng)",
+   "results_in_order": [
+    {
+     "page": "muabandatdonghoiquangbinh",
+     "name": "Mua bán đất Đồng Hới Quảng Bình",
+     "decision": "chọn"
+    },
+    {
+     "page": "nhadatquangbinh0232.3607.333",
+     "name": "Mua bán Bất động sản Quảng Bình",
+     "decision": "chọn"
+    }
+   ]
+  },
+  {
+   "region": "Cần Thơ (Hậu Giang cũ)",
+   "query": "facebook.com trang nhà đất Cần Thơ Hậu Giang mua bán đất fanpage",
+   "results_in_order": [
+    {
+     "page": "nhadatanhquang",
+     "name": "Nhà Đất Ánh Quang",
+     "decision": "chọn"
+    },
+    {
+     "page": "NhaDatMatTien9339",
+     "name": "Nhà Đất Cần Thơ - Hậu Giang",
+     "decision": "chọn"
+    },
+    {
+     "page": "bdsphuocduyen",
+     "name": "CTY Bất Động Sản Phước Duyên",
+     "decision": "chọn"
+    }
+   ]
+  },
+  {
+   "region": "Vĩnh Long",
+   "query": "facebook.com trang nhà đất Vĩnh Long mua bán đất fanpage",
+   "results_in_order": [
+    {
+     "page": "muanhadatvinhlong",
+     "name": "Mua Bán Nhà Đất Vĩnh Long",
+     "decision": "chọn"
+    },
+    {
+     "page": "vinhlongnhadat0907390539",
+     "name": "Vĩnh Long Nhà Đất",
+     "decision": "chọn"
+    },
+    {
+     "page": "caunoinhadat.com.vinhlong",
+     "name": "Nhà Đất Vĩnh Long",
+     "decision": "chọn"
+    }
+   ]
+  },
+  {
+   "region": "An Giang (Long Xuyên)",
+   "query": "facebook.com trang nhà đất An Giang Long Xuyên mua bán đất fanpage",
+   "results_in_order": [
+    {
+     "page": "nhadepangianglongxuyen",
+     "name": "Nhà Đẹp Long Xuyên - An Giang",
+     "decision": "chọn"
+    },
+    {
+     "page": "canhtoanland",
+     "name": "Nhà Đất Long Xuyên An Giang",
+     "decision": "chọn"
+    },
+    {
+     "page": "huutam.nhadat",
+     "name": "hữu tâm - cho thuê và mua/bán nhà đất",
+     "decision": "chọn"
+    }
+   ]
+  },
+  {
+   "region": "Đồng Tháp",
+   "query": "facebook.com trang nhà đất Đồng Tháp Cao Lãnh mua bán đất fanpage",
+   "results_in_order": [
+    {
+     "page": "ThienDuongAmThucHongKong1990",
+     "name": "Mua Bán Nhà Đất Tam Nông- Đồng Tháp",
+     "decision": "chọn"
+    },
+    {
+     "page": "people/Mua-Bán-Bất-Động-Sản-Đồng-Tháp/100063883758744",
+     "name": "Mua Bán Bất Động Sản Đồng Tháp",
+     "decision": "bỏ: địa chỉ /people/ (không có tên trang cố định)"
+    },
+    {
+     "page": "bdscaolanh0898089816",
+     "name": "Chung Cư nhà ở xã hội Cao Lãnh Đồng Tháp",
+     "decision": "bỏ: trang một dự án/chung cư"
+    },
+    {
+     "page": "p/Mua-bán-nhà-đất-Đồng-Tháp-100063517774284",
+     "name": "Mua bán nhà đất Đồng Tháp",
+     "decision": "bỏ: địa chỉ /p/ (không có tên trang cố định)"
+    },
+    {
+     "page": "mebatdongsan.com.vn",
+     "name": "Mua Bán Nhà Đất Trần Hảo",
+     "decision": "chọn"
+    },
+    {
+     "page": "dongthap.kvn.vn",
+     "name": "Rao vặt Đồng Tháp",
+     "decision": "bỏ: chợ rao vặt"
+    },
+    {
+     "page": "61553460723477",
+     "name": "Phương Nam Lotus Garden Tp Cao Lãnh Đồng Tháp",
+     "decision": "bỏ: trang một dự án"
+    },
+    {
+     "page": "marketplace/item/…",
+     "name": "Property For Sale",
+     "decision": "bỏ: chợ"
+    },
+    {
+     "page": "thegioiphukiendongthap",
+     "name": "Thế Giới Phụ Kiện Đồng Tháp",
+     "decision": "bỏ: không phải nhà đất"
+    },
+    {
+     "page": "caolanhward",
+     "name": "Trang thông tin Phường Cao Lãnh",
+     "decision": "bỏ: không phải nhà đất"
+    }
+   ]
+  }
+ ]
+}
