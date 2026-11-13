@@ -1,0 +1,484 @@
+{
+ "protocol": "terratwin.listing_gate/12",
+ "source": "facebook_public_pages",
+ "n": 42,
+ "enough": true,
+ "per_type": [
+  {
+   "type": "no_flood",
+   "precision": 1.0,
+   "recall": 0.8,
+   "f1": 0.89,
+   "tp": 12,
+   "fp": 0,
+   "fn": 3
+  },
+  {
+   "type": "high_ground",
+   "precision": 0.94,
+   "recall": 0.79,
+   "f1": 0.86,
+   "tp": 15,
+   "fp": 1,
+   "fn": 4
+  },
+  {
+   "type": "near_river",
+   "precision": 1.0,
+   "recall": 0.6,
+   "f1": 0.75,
+   "tp": 3,
+   "fp": 0,
+   "fn": 2
+  },
+  {
+   "type": "residential",
+   "precision": 1.0,
+   "recall": 0.9,
+   "f1": 0.95,
+   "tp": 9,
+   "fp": 0,
+   "fn": 1
+  }
+ ],
+ "macro_f1": 0.88,
+ "threshold_macro_f1": 0.8,
+ "passed": true,
+ "no_claim_listings": 7,
+ "no_claim_but_extracted": [
+  7
+ ],
+ "labeler": "Chủ dự án TerraTwin (người) — tự gán, không dùng AI",
+ "labeler_kind": "human",
+ "labeler_independent": true,
+ "data_note": "Bài bán đất MỚI trên trang Facebook công khai của môi giới ở vùng NGẬP HẰNG NĂM chưa dùng (Huế, Đà Nẵng – Quảng Nam cũ, Quảng Trị – Quảng Bình cũ, Cần Thơ, Vĩnh Long, An Giang, Đồng Tháp + dự phòng): 1 bài đầu mỗi trang chính + MỌI bài có gốc chữ HẸP ('ngập', 'lụt', 'lũ', 'cao ráo', 'nền cao', 'khô ráo', 'trũng'… — bỏ 'cao' đứng riêng; KHÔNG lấy từ luật của bộ tách câu); đọc thêm trang Huế tới khi có ≥ 6 bài có chữ ngập/lụt; luật GIỮ NGUYÊN từ ab2bc61; người gán chưa thấy đáp án nào, không có nhãn AI phụ; lần 1–11 là tập phát triển",
+ "data_note_en": "NEW land-sale posts from public Facebook broker pages in regions that flood EVERY YEAR, not used before (Huế, Đà Nẵng – former Quảng Nam, Quảng Trị – former Quảng Bình, Cần Thơ, Vĩnh Long, An Giang, Đồng Tháp + backups): first post per main page + EVERY post containing NARROW word stems ('ngập', 'lụt', 'lũ', 'cao ráo', 'nền cao', 'khô ráo', 'trũng'… — bare 'cao' dropped; NOT taken from the extractor's rules); extra Huế pages read until ≥ 6 posts mention ngập/lụt; rules UNCHANGED since ab2bc61; the labeller saw no answers, no secondary AI labels; runs 1–11 are the development set",
+ "per_listing": [
+  {
+   "id": 1,
+   "region": "Huế",
+   "gold": [
+    "high_ground"
+   ],
+   "pred": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 2,
+   "region": "Huế",
+   "gold": [
+    "no_flood"
+   ],
+   "pred": []
+  },
+  {
+   "id": 3,
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 4,
+   "region": "Huế",
+   "gold": [
+    "near_river",
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 5,
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 6,
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "gold": [
+    "no_flood"
+   ],
+   "pred": [
+    "no_flood"
+   ]
+  },
+  {
+   "id": 7,
+   "region": "Huế",
+   "gold": [],
+   "pred": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 8,
+   "region": "Huế",
+   "gold": [
+    "high_ground"
+   ],
+   "pred": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 9,
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 10,
+   "region": "Huế",
+   "gold": [
+    "high_ground"
+   ],
+   "pred": []
+  },
+  {
+   "id": 11,
+   "region": "Đồng Tháp",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 12,
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "gold": [
+    "no_flood"
+   ],
+   "pred": [
+    "no_flood"
+   ]
+  },
+  {
+   "id": 13,
+   "region": "Cần Thơ (Hậu Giang cũ)",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 14,
+   "region": "Huế",
+   "gold": [
+    "high_ground"
+   ],
+   "pred": []
+  },
+  {
+   "id": 15,
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "gold": [
+    "no_flood"
+   ],
+   "pred": [
+    "no_flood"
+   ]
+  },
+  {
+   "id": 16,
+   "region": "Huế",
+   "gold": [
+    "no_flood"
+   ],
+   "pred": [
+    "no_flood"
+   ]
+  },
+  {
+   "id": 17,
+   "region": "Vĩnh Long",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 18,
+   "region": "Huế",
+   "gold": [
+    "high_ground",
+    "near_river",
+    "no_flood"
+   ],
+   "pred": [
+    "high_ground",
+    "near_river",
+    "no_flood"
+   ]
+  },
+  {
+   "id": 19,
+   "region": "Huế",
+   "gold": [
+    "high_ground"
+   ],
+   "pred": []
+  },
+  {
+   "id": 20,
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "gold": [
+    "no_flood"
+   ],
+   "pred": [
+    "no_flood"
+   ]
+  },
+  {
+   "id": 21,
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "gold": [
+    "no_flood"
+   ],
+   "pred": [
+    "no_flood"
+   ]
+  },
+  {
+   "id": 22,
+   "region": "Huế",
+   "gold": [
+    "high_ground",
+    "near_river"
+   ],
+   "pred": [
+    "near_river"
+   ]
+  },
+  {
+   "id": 23,
+   "region": "Huế",
+   "gold": [
+    "high_ground",
+    "no_flood"
+   ],
+   "pred": [
+    "high_ground",
+    "no_flood"
+   ]
+  },
+  {
+   "id": 24,
+   "region": "Huế",
+   "gold": [
+    "high_ground",
+    "near_river",
+    "no_flood"
+   ],
+   "pred": [
+    "high_ground",
+    "no_flood"
+   ]
+  },
+  {
+   "id": 25,
+   "region": "Huế",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 26,
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "gold": [
+    "no_flood",
+    "residential"
+   ],
+   "pred": [
+    "no_flood",
+    "residential"
+   ]
+  },
+  {
+   "id": 27,
+   "region": "Vĩnh Long",
+   "gold": [
+    "high_ground"
+   ],
+   "pred": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 28,
+   "region": "Cần Thơ (Hậu Giang cũ)",
+   "gold": [
+    "high_ground",
+    "residential"
+   ],
+   "pred": [
+    "high_ground",
+    "residential"
+   ]
+  },
+  {
+   "id": 29,
+   "region": "Cần Thơ (Hậu Giang cũ)",
+   "gold": [
+    "high_ground",
+    "residential"
+   ],
+   "pred": [
+    "high_ground",
+    "residential"
+   ]
+  },
+  {
+   "id": 30,
+   "region": "Huế",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 31,
+   "region": "Huế",
+   "gold": [
+    "high_ground"
+   ],
+   "pred": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 32,
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "gold": [
+    "no_flood",
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 33,
+   "region": "Huế",
+   "gold": [
+    "high_ground",
+    "near_river"
+   ],
+   "pred": [
+    "high_ground",
+    "near_river"
+   ]
+  },
+  {
+   "id": 34,
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "gold": [
+    "no_flood"
+   ],
+   "pred": [
+    "no_flood"
+   ]
+  },
+  {
+   "id": 35,
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "gold": [],
+   "pred": []
+  },
+  {
+   "id": 36,
+   "region": "Vĩnh Long",
+   "gold": [
+    "residential"
+   ],
+   "pred": [
+    "residential"
+   ]
+  },
+  {
+   "id": 37,
+   "region": "Huế",
+   "gold": [
+    "high_ground"
+   ],
+   "pred": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 38,
+   "region": "Huế",
+   "gold": [
+    "high_ground",
+    "no_flood"
+   ],
+   "pred": [
+    "high_ground",
+    "no_flood"
+   ]
+  },
+  {
+   "id": 39,
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "gold": [
+    "no_flood"
+   ],
+   "pred": []
+  },
+  {
+   "id": 40,
+   "region": "Đồng Tháp",
+   "gold": [
+    "high_ground",
+    "residential"
+   ],
+   "pred": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 41,
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "gold": [
+    "high_ground"
+   ],
+   "pred": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 42,
+   "region": "Huế",
+   "gold": [
+    "high_ground"
+   ],
+   "pred": [
+    "high_ground"
+   ]
+  }
+ ],
+ "target_types": [
+  "no_flood",
+  "high_ground"
+ ],
+ "macro_f1_all_types": 0.86,
+ "target_positives": {
+  "no_flood": 15,
+  "high_ground": 19
+ },
+ "few_samples": [],
+ "target_listings": 30,
+ "min_target_listings": 8,
+ "min_type_listings": {
+  "no_flood": {
+   "need": 3,
+   "got": 15
+  }
+ },
+ "verdict": "ĐẠT"
+}

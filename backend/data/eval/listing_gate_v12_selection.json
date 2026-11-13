@@ -1,0 +1,614 @@
+{
+ "protocol": "terratwin.listing_gate/12",
+ "collected": "2026-11-12/13",
+ "collector": "Claude (claude-opus-5-5) qua Chrome của chủ dự án — chỉ đọc: mở thẳng địa chỉ trang, không dùng ô tìm kiếm Facebook, không tham gia/theo dõi/thích/bình luận/nhắn tin; chỉ bấm 'Xem thêm'",
+ "method": "collect.js: ≤ 40 lần cuộn mỗi trang, dừng sớm khi 6 lần cuộn liền không thêm bài; giữ thứ tự xuất hiện; bản thu gọn và mở rộng của cùng bài tính là một; bài chữ bị cắt không mở hết được thì bỏ. Kiểm khung nhìn ≠ 0 trước khi đọc (lần 11 từng bị khung 0×0). Gốc chữ: Văn bản bài chuẩn hoá NFKC + chữ thường. Khớp khi chứa ít nhất một gốc chữ dưới đây (chuỗi con; mục ghi 'đứng thành từ' thì so cả từ). Gốc chữ lấy từ hướng dẫn gán mã A/B và chủ đề ngập — KHÔNG lấy từ luật của listing_check. Máy lọc bằng hàm chuỗi đơn giản, không chọn tay. BỎ gốc 'cao' đứng riêng (lần 10–11 khớp nhầm phần lớn).",
+ "anonymization": "topic.anonymize (SĐT kể cả chữ số kiểu toán học, email, đường dẫn) + tên người liên hệ → '[tên]' + dãy ≥ 8 chữ số còn sót → '[số điện thoại]'. Văn bản đã chuẩn hoá NFKC.",
+ "reading_order": [
+  "H1",
+  "H2",
+  "H3",
+  "H4",
+  "D1",
+  "D1b",
+  "D1c",
+  "D2",
+  "Q1",
+  "Q2",
+  "M1",
+  "M1b",
+  "M2",
+  "M3",
+  "M4",
+  "M4b"
+ ],
+ "shuffle_seed": 20261112,
+ "total": 42,
+ "by_stratum": {
+  "A": 11,
+  "B": 31
+ },
+ "flood_word_B": 20,
+ "hue_flood_quota": {
+  "need": 6,
+  "got_after_main_pages": 20,
+  "extra_hue_pages_read": 0,
+  "note": "Đếm bằng máy trên chữ sau 12 trang chính + dự phòng đã đọc: đã ≥ 6 → không đọc H5–H10 (theo giao thức)."
+ },
+ "cap_40_B_reached": false,
+ "shortfall": "A: 11/12 — An Giang (nhadepangianglongxuyen) xem được, 129 bài nhưng chỉ bán nhà/bài chung, không bài bán đất nào; trang xem được và ≥ 20 bài nên không đọc dự phòng (đúng giao thức). Đà Nẵng D1 chỉ 3 bài, 2 trang dự phòng: 5 bài và không xem được. Cần Thơ M1 và Đồng Tháp M4 không xem được → dự phòng 1 thay hẳn.",
+ "by_region": {
+  "Huế": {
+   "A": 4,
+   "B": 16
+  },
+  "Quảng Trị (Quảng Bình cũ)": {
+   "A": 2,
+   "B": 5
+  },
+  "Đà Nẵng (Quảng Nam cũ)": {
+   "A": 2,
+   "B": 5
+  },
+  "Đồng Tháp": {
+   "A": 1,
+   "B": 1
+  },
+  "Cần Thơ (Hậu Giang cũ)": {
+   "A": 1,
+   "B": 2
+  },
+  "Vĩnh Long": {
+   "A": 1,
+   "B": 2
+  }
+ },
+ "pages": [
+  {
+   "n": "H1",
+   "region": "Huế",
+   "url": "https://www.facebook.com/batdongsangiareohue/",
+   "viewable": true,
+   "scrolls_when_stopped": 40,
+   "posts_seen_in_order": 80,
+   "read_log": "80 bài trong 40 lần cuộn (bài cũ, có bài Tết 2022). Tầng A: bài 0 (lô đất 203 m² đường Duy Tân, 'tặng ngay biệt thự' — tính bán đất như tiền lệ lần 11 'bán đất tặng kèm nhà'). Tầng B: 10 bài khớp gốc chữ (17, 19, 22, 24, 31, 39, 46, 51, 61, 62) đều là bán NHÀ / biệt thự / nhà vườn (51 tiêu đề 'NHÀ MẶT TIỀN') → bỏ hết theo giao thức. 0 tin B. Ghi chú: 6/10 bài bán nhà đó có chữ ngập/lụt ('cao ráo không sợ ngập lụt') nhưng không tính vì không phải bài bán đất.",
+   "flood_word_B": 0
+  },
+  {
+   "n": "H2",
+   "region": "Huế",
+   "url": "https://www.facebook.com/muabannhadathhuekiet/",
+   "viewable": true,
+   "scrolls_when_stopped": 40,
+   "posts_seen_in_order": 79,
+   "read_log": "79 bài trong 40 lần cuộn (nhiều bài cũ 2018–2022). Tầng A: bài 3/7 (bản thu gọn + mở rộng của cùng bài: bán đất 196 m² Triều Tây) — bỏ trước đó 0 cho thuê nhà, 1/2/6 tin thị trường. Tầng B: 9 bài khớp gốc chữ — lấy 47, 50, 53, 57 (bán lô đất, đều khớp nhóm chữ ngập/lụt); bỏ 18, 43, 61, 66 (bán nhà), 52 (cho thuê lô đất).",
+   "flood_word_B": 4
+  },
+  {
+   "n": "H3",
+   "region": "Huế",
+   "url": "https://www.facebook.com/nhadatqtland/",
+   "viewable": true,
+   "scrolls_when_stopped": 35,
+   "posts_seen_in_order": 104,
+   "read_log": "104 bài, dừng ở lần cuộn 35 (6 lần liền không thêm bài). Tầng A: bài 0/1 (bản thu gọn + mở rộng: bán đất kiệt Xuân Diệu 116 m²). Tầng B: khớp gốc chữ 5 (= bản mở rộng của 2), 13, 19/24, 52, 57, 72/74, 90, 98 → lấy 5, 24, 52, 57, 74, 90, 98 (bán đất; 52 và 57 khớp nhóm chữ ngập/lụt); bỏ 13 (bán nhà).",
+   "flood_word_B": 2
+  },
+  {
+   "n": "H4",
+   "region": "Huế",
+   "url": "https://www.facebook.com/nhadatPhuocThinhLand/",
+   "viewable": true,
+   "scrolls_when_stopped": 40,
+   "posts_seen_in_order": 98,
+   "read_log": "98 bài trong 40 lần cuộn. Tầng A: bài 1 (lô đất 162 m² kiệt 7m) — bỏ bài 0 (500 m² đất CÓ SẴN nhà 5 phòng ngủ + 7 căn hộ mini đang cho thuê → bán nhà/cơ sở, không phải bán đất). Tầng B: khớp gốc chữ 1 (đã vào tầng A), 5, 28, 62, 74, 76, 77, 80, 83 → lấy 62 (lô đất tặng nhà cấp 4 — tiền lệ lần 11), 74, 77, 80 (đất mặt tiền tặng kiot đang cho thuê), 83 (2 lô cụ thể); bỏ 5 (nhà 3 tầng), 28 (căn hộ chung cư), 76 (nhà 4 tầng). 62, 74, 80, 83 khớp nhóm chữ ngập/lụt. Ghi chú: bài 77 cùng lô với bài 1 (162 m², kiệt 7m) nhưng chữ khác — giữ cả hai (không phải bài trùng chữ).",
+   "flood_word_B": 4
+  },
+  {
+   "n": "D1",
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "url": "https://www.facebook.com/nhadathoiancom/",
+   "viewable": true,
+   "scrolls_when_stopped": 13,
+   "posts_seen_in_order": 3,
+   "read_log": "Chỉ 3 bài, dừng ở lần cuộn 13 (6 lần liền không thêm bài). Tầng A: bài 0 (lô 3 mặt tiền 1102 m² Cửa Đại). Bài 1 biệt thự, bài 2 bán đất — không bài nào khớp gốc chữ → 0 tin B. < 20 bài → đọc trang dự phòng kế tiếp của vùng (nhadadanangquangnam) chỉ cho tầng B.",
+   "flood_word_B": 0
+  },
+  {
+   "n": "D1b",
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "url": "https://www.facebook.com/nhadadanangquangnam/",
+   "viewable": true,
+   "backup_of": "D1",
+   "scrolls_when_stopped": 10,
+   "posts_seen_in_order": 5,
+   "read_log": "Dự phòng 1 của D1 (chỉ tầng B). Chỉ 5 bài (dự án FLC Kon Tum, khu đô thị Điện An), dừng ở lần cuộn 10; không bài nào khớp gốc chữ → 0 tin. Vùng D1 mới đọc 3 + 5 = 8 bài < 20 → đọc dự phòng 2 (Datnenhoian24h).",
+   "flood_word_B": 0
+  },
+  {
+   "n": "D1c",
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "url": "https://www.facebook.com/Datnenhoian24h/",
+   "viewable": false,
+   "backup_of": "D1",
+   "scrolls_when_stopped": 0,
+   "posts_seen_in_order": 0,
+   "read_log": "Dự phòng 2 của D1: Facebook báo không xem được nội dung → 0 tin. Hết dự phòng của vùng; D2 (Batdongsan.DuyXuyenQuangNam) không còn trang dự phòng.",
+   "flood_word_B": 0
+  },
+  {
+   "n": "D2",
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "url": "https://www.facebook.com/Batdongsan.DuyXuyenQuangNam/",
+   "viewable": true,
+   "scrolls_when_stopped": 40,
+   "posts_seen_in_order": 114,
+   "read_log": "114 bài trong 40 lần cuộn. Tầng A: bài 0/1 (thu gọn + mở rộng: lô đất mặt tiền chợ Điện Nam Trung 113 m²). Tầng B: khớp gốc chữ 10/12 (cùng bài), 13, 20, 22, 33, 44 → lấy 12, 13 (tiêu đề 'NHÀ VÀ ĐẤT' nhưng nội dung là lô 6x25 'cho vợ chồng trẻ mua đất làm nhà', không mô tả nhà → tính đất), 20, 22, 44 — đều khớp nhóm chữ ngập/lụt ('không lụt'); bỏ 33 (tin thị trường, chỉ nhắc 'vài lô… ai cần inbox', không nêu lô cụ thể). Ghi chú: 13, 20, 22 có thể cùng một lô 6x25 Duy Trung nhưng chữ khác — giữ cả ba (không phải bài trùng chữ).",
+   "flood_word_B": 5
+  },
+  {
+   "n": "Q1",
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "url": "https://www.facebook.com/bdslethuy/",
+   "viewable": true,
+   "scrolls_when_stopped": 40,
+   "posts_seen_in_order": 114,
+   "read_log": "114 bài trong 40 lần cuộn. Tầng A: bài 1/5 (thu gọn + mở rộng: lô đất mặt tiền Võ Nguyên Giáp 150 m²) — bỏ bài 0 (tin của ban quản lý dự án). Tầng B: khớp gốc chữ 67, 69/71 (cùng bài), 81/84 (cùng bài) → lấy 67, 71, 84 (bán đất, đều khớp nhóm chữ ngập/lụt).",
+   "flood_word_B": 3
+  },
+  {
+   "n": "Q2",
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "url": "https://www.facebook.com/nha.at.huy.hung.2025/",
+   "viewable": true,
+   "scrolls_when_stopped": 40,
+   "posts_seen_in_order": 95,
+   "read_log": "95 bài trong 40 lần cuộn; trang chủ yếu là bài khoe 'chốt lô', chuyện phiếm. Tầng A: bài 6 ('2mt đường Nguyễn Đăng Giai, giá 1670tr' — tin rao một lô, không mô tả nhà → tính bán đất); bỏ 0–5 (chuyện phiếm, khoe đã bán). Tầng B: khớp gốc chữ 38/40 (cùng bài), 68, 78 → lấy 68 (1 lô 8x16 dự án Tây Hữu Nghị), 78 (đất dự án Nam Cao Thắng 10x16, có giá — khớp nhóm chữ ngập/lụt); bỏ 40 ('tài chính thấp đất cao ráo, ai có nhu cầu' — quảng cáo chung, không nêu lô).",
+   "flood_word_B": 1
+  },
+  {
+   "n": "M1",
+   "region": "Cần Thơ (Hậu Giang cũ)",
+   "url": "https://www.facebook.com/nhadatanhquang/",
+   "viewable": false,
+   "scrolls_when_stopped": 0,
+   "posts_seen_in_order": 0,
+   "read_log": "Trang chính Cần Thơ: Facebook báo không xem được nội dung → 0 tin. Trang dự phòng 1 (NhaDatMatTien9339) thay hẳn (cả tầng A lẫn B).",
+   "flood_word_B": 0
+  },
+  {
+   "n": "M1b",
+   "region": "Cần Thơ (Hậu Giang cũ)",
+   "url": "https://www.facebook.com/NhaDatMatTien9339/",
+   "viewable": true,
+   "backup_of": "M1",
+   "replaces_main": true,
+   "scrolls_when_stopped": 40,
+   "posts_seen_in_order": 118,
+   "read_log": "Dự phòng 1, thay hẳn trang chính M1 (không xem được) — lấy cả tầng A và B. 118 bài trong 40 lần cuộn, đa số bán NHÀ phố/biệt thự Ninh Kiều. Tầng A: bài 2/4/5 (cùng bài: mặt tiền Lê Văn Thuấn 145,8 m², thổ cư 100%, không mô tả nhà → tính bán đất như tiền lệ lần 10) — bỏ 0 (nhà 1 trệt 1 lầu), 1 (biệt thự). Tầng B: khớp gốc chữ 28/30 (cùng bài), 48 → lấy 30 và 48 (nền trống Trần Nam Phú, 'nền trống, cao ráo'). Ghi chú: 48 gần trùng chữ với 30 (30 có thêm lô 93,5 m²) — giữ cả hai (không phải bài trùng chữ).",
+   "flood_word_B": 0
+  },
+  {
+   "n": "M2",
+   "region": "Vĩnh Long",
+   "url": "https://www.facebook.com/muanhadatvinhlong/",
+   "viewable": true,
+   "scrolls_when_stopped": 40,
+   "posts_seen_in_order": 106,
+   "read_log": "106 bài trong 40 lần cuộn, đa số bán NHÀ. Tầng A: bài 7/13 (thu gọn + mở rộng: nền 158,7 m² đường Tiến Thành, P3) — bỏ 0–6 (bán nhà / mặt bằng kinh doanh có nhà). Tầng B: khớp gốc chữ 9/15, 10, 14, 31, 48, 81, 92 → lấy 14 (nền thổ cư P8 — khớp 'lũ' trong 'khu vượt lũ'), 92 (nền đất P4); bỏ 9/15, 10, 31, 48, 81 (bán nhà). SĐT viết lẫn chữ ('0782l11349', 'O782lll349') đã thay tay bằng [số điện thoại] vì bộ ẩn danh không bắt dạng này.",
+   "flood_word_B": 1
+  },
+  {
+   "n": "M3",
+   "region": "An Giang (Long Xuyên)",
+   "url": "https://www.facebook.com/nhadepangianglongxuyen/",
+   "viewable": true,
+   "scrolls_when_stopped": 40,
+   "posts_seen_in_order": 129,
+   "read_log": "129 bài trong 40 lần cuộn; trang chỉ đăng bán NHÀ / biệt thự và bài giới thiệu chung (hashtag, 'siêu phẩm', không nêu lô). Không bài bán đất nào (lọc máy: có 'nền'/'lô đất'/'bán đất'/'đất nền'/'thổ cư' mà không có 'trệt'/'lầu'/'phòng ngủ'/'PN'/'biệt thự'/'căn hộ' → 0 bài) → 0 tin tầng A. Không bài nào khớp gốc chữ → 0 tin tầng B. Trang xem được và ≥ 20 bài nên theo giao thức KHÔNG đọc dự phòng.",
+   "flood_word_B": 0
+  },
+  {
+   "n": "M4",
+   "region": "Đồng Tháp",
+   "url": "https://www.facebook.com/ThienDuongAmThucHongKong1990/",
+   "viewable": false,
+   "scrolls_when_stopped": 0,
+   "posts_seen_in_order": 0,
+   "read_log": "Trang chính Đồng Tháp: Facebook báo không xem được nội dung → 0 tin. Trang dự phòng 1 (mebatdongsan.com.vn) thay hẳn (cả tầng A lẫn B).",
+   "flood_word_B": 0
+  },
+  {
+   "n": "M4b",
+   "region": "Đồng Tháp",
+   "url": "https://www.facebook.com/mebatdongsan.com.vn",
+   "viewable": true,
+   "backup_of": "M4",
+   "replaces_main": true,
+   "scrolls_when_stopped": 40,
+   "posts_seen_in_order": 86,
+   "read_log": "Dự phòng 1, thay hẳn trang chính M4 (không xem được) — lấy cả tầng A và B. 86 bài trong 40 lần cuộn, đa số bán nền ở Lấp Vò, Lai Vung. Tầng A: bài 0 (nền đường số 12, Lấp Vò, 110 m² thổ cư). Tầng B: khớp gốc chữ chỉ bài 12 ('đất cao bằng lộ') → lấy.",
+   "flood_word_B": 0
+  }
+ ],
+ "taken": [
+  {
+   "id": 1,
+   "page": "H4",
+   "region": "Huế",
+   "page_pos": 1,
+   "stratum": "A",
+   "flood_word": false,
+   "height_word": true
+  },
+  {
+   "id": 2,
+   "page": "H4",
+   "region": "Huế",
+   "page_pos": 83,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": false
+  },
+  {
+   "id": 3,
+   "page": "Q2",
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "page_pos": 6,
+   "stratum": "A",
+   "flood_word": false,
+   "height_word": false
+  },
+  {
+   "id": 4,
+   "page": "H2",
+   "region": "Huế",
+   "page_pos": 3,
+   "stratum": "A",
+   "flood_word": false,
+   "height_word": false
+  },
+  {
+   "id": 5,
+   "page": "D2",
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "page_pos": 1,
+   "stratum": "A",
+   "flood_word": false,
+   "height_word": false
+  },
+  {
+   "id": 6,
+   "page": "D2",
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "page_pos": 22,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": false
+  },
+  {
+   "id": 7,
+   "page": "H3",
+   "region": "Huế",
+   "page_pos": 90,
+   "stratum": "B",
+   "flood_word": false,
+   "height_word": true
+  },
+  {
+   "id": 8,
+   "page": "H3",
+   "region": "Huế",
+   "page_pos": 24,
+   "stratum": "B",
+   "flood_word": false,
+   "height_word": true
+  },
+  {
+   "id": 9,
+   "page": "D1",
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "page_pos": 0,
+   "stratum": "A",
+   "flood_word": false,
+   "height_word": false
+  },
+  {
+   "id": 10,
+   "page": "H2",
+   "region": "Huế",
+   "page_pos": 53,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": false
+  },
+  {
+   "id": 11,
+   "page": "M4b",
+   "region": "Đồng Tháp",
+   "page_pos": 0,
+   "stratum": "A",
+   "flood_word": false,
+   "height_word": false
+  },
+  {
+   "id": 12,
+   "page": "Q1",
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "page_pos": 71,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": false
+  },
+  {
+   "id": 13,
+   "page": "M1b",
+   "region": "Cần Thơ (Hậu Giang cũ)",
+   "page_pos": 5,
+   "stratum": "A",
+   "flood_word": false,
+   "height_word": false
+  },
+  {
+   "id": 14,
+   "page": "H2",
+   "region": "Huế",
+   "page_pos": 57,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": false
+  },
+  {
+   "id": 15,
+   "page": "Q2",
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "page_pos": 78,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": false
+  },
+  {
+   "id": 16,
+   "page": "H4",
+   "region": "Huế",
+   "page_pos": 80,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": false
+  },
+  {
+   "id": 17,
+   "page": "M2",
+   "region": "Vĩnh Long",
+   "page_pos": 14,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": false
+  },
+  {
+   "id": 18,
+   "page": "H3",
+   "region": "Huế",
+   "page_pos": 57,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": true
+  },
+  {
+   "id": 19,
+   "page": "H2",
+   "region": "Huế",
+   "page_pos": 50,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": false
+  },
+  {
+   "id": 20,
+   "page": "Q1",
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "page_pos": 67,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": false
+  },
+  {
+   "id": 21,
+   "page": "D2",
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "page_pos": 13,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": false
+  },
+  {
+   "id": 22,
+   "page": "H2",
+   "region": "Huế",
+   "page_pos": 47,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": false
+  },
+  {
+   "id": 23,
+   "page": "H3",
+   "region": "Huế",
+   "page_pos": 52,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": true
+  },
+  {
+   "id": 24,
+   "page": "H4",
+   "region": "Huế",
+   "page_pos": 74,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": true
+  },
+  {
+   "id": 25,
+   "page": "H1",
+   "region": "Huế",
+   "page_pos": 0,
+   "stratum": "A",
+   "flood_word": false,
+   "height_word": false
+  },
+  {
+   "id": 26,
+   "page": "D2",
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "page_pos": 44,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": false
+  },
+  {
+   "id": 27,
+   "page": "M2",
+   "region": "Vĩnh Long",
+   "page_pos": 92,
+   "stratum": "B",
+   "flood_word": false,
+   "height_word": true
+  },
+  {
+   "id": 28,
+   "page": "M1b",
+   "region": "Cần Thơ (Hậu Giang cũ)",
+   "page_pos": 30,
+   "stratum": "B",
+   "flood_word": false,
+   "height_word": true
+  },
+  {
+   "id": 29,
+   "page": "M1b",
+   "region": "Cần Thơ (Hậu Giang cũ)",
+   "page_pos": 48,
+   "stratum": "B",
+   "flood_word": false,
+   "height_word": true
+  },
+  {
+   "id": 30,
+   "page": "H3",
+   "region": "Huế",
+   "page_pos": 1,
+   "stratum": "A",
+   "flood_word": false,
+   "height_word": false
+  },
+  {
+   "id": 31,
+   "page": "H4",
+   "region": "Huế",
+   "page_pos": 77,
+   "stratum": "B",
+   "flood_word": false,
+   "height_word": true
+  },
+  {
+   "id": 32,
+   "page": "Q1",
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "page_pos": 84,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": false
+  },
+  {
+   "id": 33,
+   "page": "H3",
+   "region": "Huế",
+   "page_pos": 74,
+   "stratum": "B",
+   "flood_word": false,
+   "height_word": true
+  },
+  {
+   "id": 34,
+   "page": "D2",
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "page_pos": 12,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": false
+  },
+  {
+   "id": 35,
+   "page": "Q1",
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "page_pos": 5,
+   "stratum": "A",
+   "flood_word": false,
+   "height_word": false
+  },
+  {
+   "id": 36,
+   "page": "M2",
+   "region": "Vĩnh Long",
+   "page_pos": 13,
+   "stratum": "A",
+   "flood_word": false,
+   "height_word": false
+  },
+  {
+   "id": 37,
+   "page": "H3",
+   "region": "Huế",
+   "page_pos": 5,
+   "stratum": "B",
+   "flood_word": false,
+   "height_word": true
+  },
+  {
+   "id": 38,
+   "page": "H4",
+   "region": "Huế",
+   "page_pos": 62,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": true
+  },
+  {
+   "id": 39,
+   "page": "D2",
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "page_pos": 20,
+   "stratum": "B",
+   "flood_word": true,
+   "height_word": false
+  },
+  {
+   "id": 40,
+   "page": "M4b",
+   "region": "Đồng Tháp",
+   "page_pos": 12,
+   "stratum": "B",
+   "flood_word": false,
+   "height_word": true
+  },
+  {
+   "id": 41,
+   "page": "Q2",
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "page_pos": 68,
+   "stratum": "B",
+   "flood_word": false,
+   "height_word": true
+  },
+  {
+   "id": 42,
+   "page": "H3",
+   "region": "Huế",
+   "page_pos": 98,
+   "stratum": "B",
+   "flood_word": false,
+   "height_word": true
+  }
+ ]
+}

@@ -1,0 +1,213 @@
+{
+ "id": "terratwin.listing_gate/12",
+ "registered": "2026-11-12",
+ "registered_before_sampling": true,
+ "rules_frozen_before_sampling": true,
+ "approved_by_owner": "Chủ dự án nhắn 'làm lần 12' ngày 12/11/2026 sau khi đọc đề xuất (vùng ngập hằng năm, lọc gốc chữ hẹp, dừng theo số bài có chữ ngập/lụt).",
+ "purpose": "Đo 'không ngập' (no_flood) và 'cao ráo' (high_ground) trên NHÃN NGƯỜI độc lập với đủ tin để KẾT LUẬN. Lần 10 (người gán đã xem nhãn Claude) và lần 11 (độc lập, khớp 24/25, 0 bắt nhầm) đều CHƯA KẾT LUẬN vì chỉ 6 và 3 tin có câu đích. Nguyên nhân ở cách chọn tin: gốc chữ 'cao' đứng riêng chiếm suất bằng 'dân trí cao', 'cao tốc', tên đường; và vùng đọc ít khi nói chuyện ngập. Lần 1–11 là TẬP PHÁT TRIỂN.",
+ "design_evidence": "Trên 27 tin tầng B lần 10–11 (nhãn đã khoá): bộ gốc chữ hẹp dưới đây khớp 10 tin, 9 tin có câu đích, không sót tin đích nào; tầng A 0/27 tin có câu đích. Bài có 'ngập/lụt' chỉ thấy ở 2 trang Huế (khoảng 3/132 bài) và cả 2 bài đã chọn đều là câu 'không ngập'; 0 bài trong khoảng 950 bài ở các vùng khác.",
+ "rules_change": "KHÔNG sửa luật. Khoá services/listing_check.py đúng bản trên main ab2bc61 (commit cuối chạm tệp: cf34c32, 10/11/2026), SHA-256 bản trong kho 451b1bb67fc727b3d9d3b2cbf17c350f59a6ec204d1ab4eae0b4e6f537f3dcb0. Bản này có 3 chỗ sửa sau review PR #9 (miễn trừ, bề rộng đường, mảnh đất ở) CHƯA từng chấm trên tin mới — lần 12 là lần đầu kiểm chúng.",
+ "data": {
+  "source": "Trang Facebook CÔNG KHAI của môi giới đất ở vùng ngập hằng năm, CHƯA dùng ở lần 4–11. Chọn theo tên trang trong kết quả tìm kiếm web (listing_gate_v12_page_search.json), chưa đọc bài nào.",
+  "pages_in_reading_order": [
+   {
+    "slot": "H1",
+    "region": "Huế",
+    "url": "https://www.facebook.com/batdongsangiareohue/",
+    "backups": []
+   },
+   {
+    "slot": "H2",
+    "region": "Huế",
+    "url": "https://www.facebook.com/muabannhadathhuekiet/",
+    "backups": []
+   },
+   {
+    "slot": "H3",
+    "region": "Huế",
+    "url": "https://www.facebook.com/nhadatqtland/",
+    "backups": []
+   },
+   {
+    "slot": "H4",
+    "region": "Huế",
+    "url": "https://www.facebook.com/nhadatPhuocThinhLand/",
+    "backups": []
+   },
+   {
+    "slot": "D1",
+    "region": "Đà Nẵng (Quảng Nam cũ)",
+    "url": "https://www.facebook.com/nhadathoiancom/",
+    "backups": [
+     "https://www.facebook.com/nhadadanangquangnam/",
+     "https://www.facebook.com/Datnenhoian24h/"
+    ]
+   },
+   {
+    "slot": "D2",
+    "region": "Đà Nẵng (Quảng Nam cũ)",
+    "url": "https://www.facebook.com/Batdongsan.DuyXuyenQuangNam/",
+    "backups": [
+     "https://www.facebook.com/nhadadanangquangnam/",
+     "https://www.facebook.com/Datnenhoian24h/"
+    ]
+   },
+   {
+    "slot": "Q1",
+    "region": "Quảng Trị (Quảng Bình cũ)",
+    "url": "https://www.facebook.com/bdslethuy/",
+    "backups": [
+     "https://www.facebook.com/muabandatdonghoiquangbinh/",
+     "https://www.facebook.com/nhadatquangbinh0232.3607.333/"
+    ]
+   },
+   {
+    "slot": "Q2",
+    "region": "Quảng Trị (Quảng Bình cũ)",
+    "url": "https://www.facebook.com/nha.at.huy.hung.2025/",
+    "backups": [
+     "https://www.facebook.com/muabandatdonghoiquangbinh/",
+     "https://www.facebook.com/nhadatquangbinh0232.3607.333/"
+    ]
+   },
+   {
+    "slot": "M1",
+    "region": "Cần Thơ (Hậu Giang cũ)",
+    "url": "https://www.facebook.com/nhadatanhquang/",
+    "backups": [
+     "https://www.facebook.com/NhaDatMatTien9339/",
+     "https://www.facebook.com/bdsphuocduyen/"
+    ]
+   },
+   {
+    "slot": "M2",
+    "region": "Vĩnh Long",
+    "url": "https://www.facebook.com/muanhadatvinhlong/",
+    "backups": [
+     "https://www.facebook.com/vinhlongnhadat0907390539/",
+     "https://www.facebook.com/caunoinhadat.com.vinhlong/"
+    ]
+   },
+   {
+    "slot": "M3",
+    "region": "An Giang (Long Xuyên)",
+    "url": "https://www.facebook.com/nhadepangianglongxuyen/",
+    "backups": [
+     "https://www.facebook.com/canhtoanland/",
+     "https://www.facebook.com/huutam.nhadat/"
+    ]
+   },
+   {
+    "slot": "M4",
+    "region": "Đồng Tháp",
+    "url": "https://www.facebook.com/ThienDuongAmThucHongKong1990/",
+    "backups": [
+     "https://www.facebook.com/mebatdongsan.com.vn/"
+    ]
+   }
+  ],
+  "hue_extra_pages_in_order": [
+   {
+    "slot": "H5",
+    "url": "https://www.facebook.com/nhadatvuahue/"
+   },
+   {
+    "slot": "H6",
+    "url": "https://www.facebook.com/NhaDatTrongDat/"
+   },
+   {
+    "slot": "H7",
+    "url": "https://www.facebook.com/nhadatphohue.hoangthithuyngan/"
+   },
+   {
+    "slot": "H8",
+    "url": "https://www.facebook.com/nhadathuent/"
+   },
+   {
+    "slot": "H9",
+    "url": "https://www.facebook.com/HueLand.Hue/"
+   },
+   {
+    "slot": "H10",
+    "url": "https://www.facebook.com/Batdongsanhue25/"
+   }
+  ],
+  "selection": {
+   "post_kind": "'Bài bán đất' như lần 4–11: bỏ cho thuê, bán nhà/căn hộ/biệt thự/kiot/dãy trọ, cần mua, đấu giá, tin thị trường, tuyển dụng, quảng cáo chung không nêu lô cụ thể, bài trùng. Phân loại bằng đọc; chỉ áp cho bài đã qua bước lọc.",
+   "stratum_A_natural": "Mỗi trang ở 'pages_in_reading_order' (12 trang): 1 bài bán đất ĐẦU TIÊN theo thứ tự hiện trên trang. Không lọc chữ.",
+   "stratum_B_topic": {
+    "match": "Văn bản bài chuẩn hoá NFKC + chữ thường. Khớp khi chứa ít nhất một gốc chữ dưới đây (chuỗi con; mục ghi 'đứng thành từ' thì so cả từ). Gốc chữ lấy từ hướng dẫn gán mã A/B và chủ đề ngập — KHÔNG lấy từ luật của listing_check. Máy lọc bằng hàm chuỗi đơn giản, không chọn tay. BỎ gốc 'cao' đứng riêng (lần 10–11 khớp nhầm phần lớn).",
+    "stems_flood": [
+     "ngập",
+     "lụt",
+     "lũ (đứng thành từ)",
+     "triều cường",
+     "nước nổi",
+     "đọng nước",
+     "ngap (đứng thành từ)",
+     "lut (đứng thành từ)"
+    ],
+    "stems_height": [
+     "khô ráo",
+     "cao ráo",
+     "nền cao",
+     "đất cao",
+     "cao hơn",
+     "trũng",
+     "kho rao",
+     "cao rao",
+     "nen cao"
+    ],
+    "take": "LẤY HẾT bài bán đất khớp trên mỗi trang đã đọc (không giới hạn số bài mỗi trang), trừ bài đã lấy vào tầng A."
+   },
+   "reading": "collect.js: ≤ 40 lần cuộn mỗi trang, dừng sớm khi 6 lần cuộn liền không thêm bài; giữ thứ tự xuất hiện; bản thu gọn và mở rộng của cùng bài tính là một; bài chữ bị cắt không mở hết được thì bỏ. Kiểm khung nhìn ≠ 0 trước khi đọc (lần 11 từng bị khung 0×0).",
+   "backup_rule": "Trang chính không xem được, hoặc đọc xong có < 20 bài → đọc trang dự phòng KẾ TIẾP cùng vùng (theo thứ tự). Trang chính không xem được thì trang dự phòng thay hẳn (cả tầng A lẫn B); trang chính xem được mà < 20 bài thì vẫn lấy tầng A, B ở trang chính, trang dự phòng chỉ cho tầng B. Dừng dự phòng khi trang đã đọc của vùng đạt ≥ 20 bài. Quy tắc đếm — không dựa vào nội dung bài.",
+   "hue_flood_quota": "Sau khi đọc xong 12 trang chính (và dự phòng phát sinh): đếm số tin tầng B có gốc chữ trong 'stems_flood' (mọi vùng). Nếu < 6 → đọc lần lượt H5, H6, … H10 (chỉ tầng B), dừng sau trang làm số đếm đạt ≥ 6 (lấy hết bài khớp trên trang đó) hoặc hết H10. Đếm theo CHỮ, không theo nhãn hay kết quả máy.",
+   "cap": "Trần 40 tin tầng B: chạm 40 thì dừng đọc ngay tại bài đó, ghi lại.",
+   "target": "Đích: ≥ 8 tin có câu 'không ngập' hoặc 'cao ráo' theo NHÃN NGƯỜI, trong đó ≥ 3 tin 'không ngập'. Không thu thêm sau khi người gán đã nhận tin."
+  },
+  "anonymization": "SĐT (kể cả chữ số kiểu toán học), email, đường dẫn, tên người đăng/liên hệ → [số điện thoại]/[email]/[đường dẫn]/[tên]; soát không còn dãy ≥ 8 chữ số. Văn bản tin giữ NGOÀI kho (D:/tt-scratch/gd3fb12); chỉ commit MÃ BĂM từng tin + nhật ký chọn mẫu trước khi người gán nhận tin.",
+  "shuffle": "Trộn thứ tự bằng random.Random(20261112) trước khi đánh số 1..N — người gán không biết tin nào thuộc trang/vùng/tầng nào."
+ },
+ "labelers": {
+  "primary": "NGƯỜI GÁN (người): chủ dự án hoặc người chủ dự án nhờ — CHƯA từng thấy nhãn, gợi ý hay kết quả máy cho các tin này. Nhận chữ các tin (đã trộn, đã ẩn danh, KHÔNG kèm vùng, tầng, nhãn) cùng hướng dẫn 'guideline' y nguyên lần 9–10. Không dán tin vào TerraTwin hay công cụ AI nào, không hỏi ai trước khi gán xong. Phiếu trả lời có 4 câu khai: tên, ngày, đã xem câu trả lời của AI chưa, có dán tin vào AI không — ghi nguyên vào tệp nhãn. Nhãn dùng chấm cổng.",
+  "secondary": "KHÔNG có nhãn AI phụ (như lần 11).",
+  "claude_role": "Claude chỉ thu tin, ẩn danh, chạy chấm — không gán nhãn, không bình luận nội dung từng tin với người gán trước khi nhãn người đã khoá."
+ },
+ "guideline": {
+  "task": "Với mỗi tin: người bán đang khẳng định điều gì về CHÍNH lô đất đang bán? Chọn các mã phù hợp; không có thì ghi 0.",
+  "codes": {
+   "A không ngập": "Tính: không ngập, chưa từng ngập, không lo ngập, khô ráo quanh năm.",
+   "B cao ráo": "Tính: đất cao, cao ráo, nền cao, không trũng, cao hơn mặt đường/khu vực. Không tính: 'đất đẹp', 'thoáng mát'.",
+   "C gần sông": "Tính: gần/ven/giáp/sát/view/mặt tiền/cách X m tới sông, kênh, rạch. Không tính: hồ, suối, ao; tên đường hay địa danh có chữ 'Sông', 'Kênh'.",
+   "D gần biển": "Tính: gần/ven/view/cách X km/'ra biển N phút' tới biển, bãi biển. Không tính: gần cảng, gần sân bay.",
+   "E bằng phẳng": "Tính: bằng phẳng, đất phẳng, không dốc. Không tính: vuông vức, vuông vắn, nở hậu (hình dáng).",
+   "F không sạt lở": "Tính: không sạt lở, chưa từng sạt lở.",
+   "G đất ở / thổ cư": "Tính: lô ĐÃ CÓ (toàn bộ hoặc một phần) đất ở/thổ cư/ODT/ONT. Không tính: 'có thể lên thổ cư', 'hỗ trợ lên thổ cư' (chưa có); 'nằm trong khu dân cư' (vị trí).",
+   "H nước ngọt": "Tính: nước ngọt, giếng ngọt, không nhiễm mặn."
+  },
+  "principles": [
+   "Chỉ tính điều tin khẳng định, không tính điều mình đoán.",
+   "Phải nói về chính lô đất đang bán, không phải nơi khác.",
+   "Câu phủ định thì không tính.",
+   "Viết khác chữ vẫn tính nếu cùng ý (viết tắt, không dấu, in hoa, chữ in đậm).",
+   "Chỗ quy tắc không nói rõ thì người gán tự quyết theo cách một người mua đất đọc tin sẽ hiểu."
+  ],
+  "examples": [
+   "'Đất cao ráo, không bao giờ ngập, cách sông Hậu 200m, sổ hồng thổ cư 100%' → A B C G",
+   "'Lô đất vuông vức, nở hậu, đường ô tô, giá rẻ' → 0",
+   "'Đất vườn 1.000m², hỗ trợ lên thổ cư, view hồ sen' → 0",
+   "'Nền đã có 60m² ONT, cách biển 2km' → D G"
+  ],
+  "note": "Y nội dung bản đã gửi ở lần 6, chỉ bỏ ví dụ cụ thể 'cách cầu Kênh X' (lần 6 trùng một tin); không thêm quy tắc nào về 'quy hoạch đất ở' — người gán tự quyết như lần 6."
+ },
+ "target_types": [
+  "no_flood",
+  "high_ground"
+ ],
+ "metric": "CHÍNH: F1 trung bình (macro) của bộ tách câu trên NHÃN NGƯỜI cho HAI loại đích no_flood + high_ground (loại nào có ít nhất một tin đúng/thừa/sót). PHỤ: F1 mọi loại; F1 từng loại kèm đúng/thừa/sót; số tin có câu đích; F1 riêng tầng A và tầng B (ops/listing_gate_strata.py); số tin 'không khẳng định gì' mà máy vẫn bắt. THÊM: số tin có gốc chữ ngập/lụt và độ đúng của máy trên nhóm đó.",
+ "threshold": "ĐẠT khi F1 chính ≥ 0,80 VÀ có ≥ 8 tin mang câu đích (A hoặc B theo nhãn người) VÀ trong đó ≥ 3 tin 'không ngập' (mã A). Thiếu một trong hai số đếm: CHƯA KẾT LUẬN (ghi số thật). Đủ số đếm mà F1 < 0,80: TRƯỢT, công bố, không chấm lại mẫu này.",
+ "limits_declared_before": "Tầng B chỉ đo trên bài CÓ các gốc chữ trên — cách nói không dùng những chữ đó chỉ được đo ở tầng A (12 tin). Vùng chọn theo dữ liệu lần 10–11 (tập phát triển). Kết quả nói về tin rao ở vùng ngập hằng năm, không phải mọi tin rao.",
+ "one_shot": "Chấm đúng một lần sau khi commit nhãn người; không sửa nhãn, luật hay mẫu sau khi thấy kết quả.",
+ "script": "ops/listing_gate_fb.py <tin.json> --run 12 (TARGETS['12'] = no_flood, high_ground; MIN_TARGET_LISTINGS['12'] = 8; MIN_TYPE_LISTINGS['12'] = {no_flood: 3}; HUMAN_REQUIRED gồm '12' — khoá cùng commit này) + ops/listing_gate_strata.py --run 12"
+}

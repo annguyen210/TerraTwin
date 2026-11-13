@@ -46,12 +46,15 @@ radar của đúng thửa, công bố tỉ lệ sai, ký số kết quả. (Bả
 Phần thật sự độc lập — bản đồ từ vệ tinh khác Sentinel-1 — chỉ 6/16. Sai nhiều ở đô thị, rừng rậm, sườn dốc; chu kỳ
 chụp 6–12 ngày nên lọt đợt ngập ngắn. Tất cả có trên `/mo-hinh`.
 
-**3. Kiểm tin rao "F1 0,98" nghĩa là gì?**
-Đó là độ đúng của việc **nhận ra câu khẳng định** trong tin (câu nào nói "không ngập", câu nào nói "thổ cư"…) trên 30
-tin rao Facebook thật, **nhãn do Claude gán** (một phiên chat khác phiên viết luật), chấm một lần sau khi khoá luật. Nó
-không phải độ đúng của phán quyết Khớp/Mâu thuẫn — phán quyết dựa trên radar và địa hình ở câu 2. Giới hạn đã công khai:
-nhãn lần 6–9 ghi nhầm là "chủ dự án tự gán" tới 8/11/2026, đã đính chính; 0/5 chỗ sửa luật lần 9 có trong mẫu mới nên
-chưa được kiểm; các lần trước có lần trượt, cũng công bố.
+**3. Kiểm tin rao "F1 0,88" nghĩa là gì?**
+Đó là độ đúng của việc **nhận ra câu khẳng định** "không ngập" và "cao ráo" trong tin, trên 42 tin rao Facebook thật ở vùng
+ngập hằng năm (Huế, Quảng Nam cũ, Quảng Bình cũ, miền Tây), **nhãn người độc lập** (lần 12, 13/11/2026): chủ dự án tự gán,
+không có câu trả lời AI nào để lộ; luật khoá trước khi thu tin; chấm đúng một lần. 30 tin có câu đích, 15 tin "không ngập".
+"Không ngập" F1 0,89 (12 đúng, 0 bắt nhầm, 3 sót), "cao ráo" 0,86 (15 đúng, 1 bắt nhầm, 4 sót). Nó **không phải** độ đúng
+của phán quyết Khớp/Mâu thuẫn — phán quyết dựa trên radar và địa hình ở câu 2. Nếu bị hỏi chỗ yếu: "Máy ít bắt nhầm nhưng
+còn sót cách nói vòng như 'nói không với ngập lụt', 'cao lụt'; mẫu chọn theo chữ ngập/cao ráo nên chỉ đo câu có những chữ
+đó." Số cũ 0,98 (lần 9) chấm trên **nhãn Claude**, không phải nhãn người — đừng dùng làm con số chính. Các lần trước có lần
+trượt, lần chưa kết luận, đều công bố trên `/mo-hinh`.
 
 **Lần 10 (9/11/2026), lần đầu có nhãn người** — nhưng người gán (chủ dự án) đã xem câu trả lời của Claude trước khi gán,
 khớp 28/29 tin, nên **không độc lập**. 29 tin ở 5 vùng hay ngập; chỉ 6 tin có câu "không ngập"/"cao ráo", dưới ngưỡng 8
@@ -62,6 +65,10 @@ chúng tôi tự công bố; lần sau sửa luật, chấm trên tin mới, ng�
 sửa theo lỗi lần 10. Máy khớp người **24/25 tin, không bắt nhầm tin nào**; "cao ráo" 3/3. Nhưng chỉ 3 tin có câu đích (không tin
 nào nói "không ngập") → vẫn **CHƯA KẾT LUẬN**. Nếu bị hỏi: "Tin rao thật rất ít khi hứa 'không ngập'; chúng tôi không gom thêm cho
 đủ sau khi đã thấy dữ liệu — số thật là vậy."
+
+**Lần 12 (13/11/2026), ĐẠT trên nhãn người độc lập** — không gom thêm vào mẫu cũ: đăng ký giao thức MỚI trước khi mở trang nào,
+chọn vùng ngập hằng năm và lọc bằng gốc chữ hẹp ("ngập", "lụt", "cao ráo"… — bỏ "cao" đứng riêng), luật máy giữ nguyên. 42 tin,
+30 tin có câu đích, 15 "không ngập" → đủ cả hai ngưỡng → **F1 0,88, ĐẠT**. Khớp từng mã 31/42 tin.
 
 **4. Sao không kiểm được thổ cư, quy hoạch?**
 Cần dữ liệu địa chính, không công khai qua mạng. TerraTwin trả lời "Không đủ dữ liệu" thay vì đoán, và ghi rõ người

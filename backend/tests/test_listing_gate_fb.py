@@ -63,6 +63,47 @@ def test_nhan_nguoi_khong_doc_lap_ghi_ro_trong_ket_qua(tmp_path, monkeypatch):
     assert res["passed"] is None          # 1 tin có câu đích < 8 → CHƯA KẾT LUẬN
 
 
+def _run12(tmp_path, monkeypatch, n_no_flood: int, n_high: int):
+    """Lần 12 với n_no_flood tin 'không ngập' + n_high tin chỉ 'cao ráo' (máy đọc đúng cả) → tệp kết quả."""
+    import hashlib
+    g = _gate()
+    texts = {}
+    for i in range(n_no_flood):
+        texts[len(texts) + 1] = (f"Bán lô đất số {i}, khu này không bao giờ ngập", ["no_flood"])
+    for i in range(n_high):
+        texts[len(texts) + 1] = (f"Bán nền số {i}, đất cao ráo", ["high_ground"])
+    lab = {"protocol": "terratwin.listing_gate/12", "labeler": "Chủ dự án", "labeler_kind": "human",
+           "labels": [{"id": i, "region": "x", "sha256": hashlib.sha256(t.encode("utf-8")).hexdigest(), "claims": c}
+                      for i, (t, c) in texts.items()]}
+    (tmp_path / g.RUNS["12"][0]).write_text(json.dumps(lab, ensure_ascii=False), encoding="utf-8")
+    tin = tmp_path / "tin.json"
+    tin.write_text(json.dumps([{"id": i, "source": "x", "text": t} for i, (t, _) in texts.items()], ensure_ascii=False),
+                   encoding="utf-8")
+    monkeypatch.setattr(g, "EVAL", str(tmp_path))
+    monkeypatch.setattr("sys.argv", ["listing_gate_fb.py", str(tin), "--run", "12"])
+    g.main()
+    return json.loads((tmp_path / g.RUNS["12"][1]).read_text(encoding="utf-8"))
+
+
+def test_lan_12_du_8_tin_nhung_thieu_khong_ngap_thi_chua_ket_luan(tmp_path, monkeypatch):
+    """Giao thức lần 12: ≥ 8 tin có câu đích VÀ ≥ 3 tin 'không ngập' — 10 tin cao ráo + 2 tin không ngập vẫn CHƯA KẾT LUẬN."""
+    res = _run12(tmp_path, monkeypatch, n_no_flood=2, n_high=10)
+    assert res["target_listings"] == 12 and res["passed"] is None
+    assert res["min_type_listings"]["no_flood"] == {"need": 3, "got": 2}
+    assert res["verdict"].startswith("CHƯA KẾT LUẬN") and "no_flood" in res["verdict"]
+
+
+def test_lan_12_du_ca_hai_so_dem_thi_co_ket_luan(tmp_path, monkeypatch):
+    res = _run12(tmp_path, monkeypatch, n_no_flood=3, n_high=5)
+    assert res["target_listings"] == 8 and res["passed"] is not None
+    assert res["verdict"] in ("ĐẠT", "TRƯỢT") and res["verdict"] == ("ĐẠT" if res["passed"] else "TRƯỢT")
+
+
+def test_lan_12_nhan_claude_thi_khong_cham():
+    with pytest.raises(SystemExit):
+        _gate().require_human("12", "claude")
+
+
 def _strata_mod():
     spec = importlib.util.spec_from_file_location("listing_gate_strata", os.path.join(HERE, "..", "..", "ops", "listing_gate_strata.py"))
     m = importlib.util.module_from_spec(spec)

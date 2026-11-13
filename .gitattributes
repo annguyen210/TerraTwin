@@ -6,3 +6,4 @@ backend/data/eval/listing_gate_v9_ai_labels.json -text
 backend/data/eval/listing_gate_v9_selection.json -text
 backend/data/eval/listing_gate_v10_ai_labels.json -text
 backend/data/eval/listing_gate_v10_selection.json -text
+backend/data/eval/listing_gate_v12_selection.json -text
