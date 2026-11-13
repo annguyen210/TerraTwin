@@ -1,0 +1,390 @@
+{
+ "protocol": "terratwin.listing_gate/12",
+ "role": "primary — nhãn dùng chấm cổng",
+ "labeler": "Chủ dự án TerraTwin (người) — tự gán, không dùng AI",
+ "labeler_kind": "human",
+ "independent": true,
+ "independence_note": "Lần 12 KHÔNG có nhãn AI phụ: không phiên Claude nào gán 42 tin này và không câu trả lời AI nào hiện trong chat trước khi người gán gửi phiếu. Trong lúc thu tin, phiên Claude có nhắc trong chat vài cụm chữ nguyên văn của bài đăng (vd 'không lụt', 'không ngập lụt', 'đất cao bằng lộ') khi báo tiến độ — là chữ của người đăng, không kèm mã hay đánh giá. Người gán khai không xem câu trả lời của AI, không dán tin vào AI, không hỏi ai. Không có cách đối chiếu độc lập nào ngoài lời khai — ghi rõ.",
+ "labeler_attestation": "Hỏi 13/11/2026, sau khi nhận phiếu và TRƯỚC khi khoá (4 câu đầu phiếu để trống nên hỏi trong chat): ai gán → 'Tôi tự gán'; đã xem câu trả lời của Claude/AI cho các tin này chưa → 'Không'; có dán tin (hoặc nhờ giải thích chữ như 'cao lụt', 'mương') vào Claude/ChatGPT/TerraTwin/AI nào không → 'Không'. Ngày gán: 13/11/2026.",
+ "received": {
+  "date": "2026-11-13",
+  "sheet_sha256": "1a1e1bf323b1e5368f5be491ebc09840169cacec134a10e06e5eb05d1d8a3318",
+  "sheet_note": "phiếu 42 dòng 'số: mã (lý do)' dán vào phiên chat Claude Code; 4 câu khai trả lời qua câu hỏi trong chat; bản nguyên văn giữ ngoài kho (D:/tt-scratch/gd3fb12_nguoi/phieu.txt)"
+ },
+ "labelled_before_scoring": true,
+ "ai_labels_seen_by_labeler": false,
+ "guideline": {
+  "task": "Với mỗi tin: người bán đang khẳng định điều gì về CHÍNH lô đất đang bán? Chọn các mã phù hợp; không có thì ghi 0.",
+  "codes": {
+   "A không ngập": "Tính: không ngập, chưa từng ngập, không lo ngập, khô ráo quanh năm.",
+   "B cao ráo": "Tính: đất cao, cao ráo, nền cao, không trũng, cao hơn mặt đường/khu vực. Không tính: 'đất đẹp', 'thoáng mát'.",
+   "C gần sông": "Tính: gần/ven/giáp/sát/view/mặt tiền/cách X m tới sông, kênh, rạch. Không tính: hồ, suối, ao; tên đường hay địa danh có chữ 'Sông', 'Kênh'.",
+   "D gần biển": "Tính: gần/ven/view/cách X km/'ra biển N phút' tới biển, bãi biển. Không tính: gần cảng, gần sân bay.",
+   "E bằng phẳng": "Tính: bằng phẳng, đất phẳng, không dốc. Không tính: vuông vức, vuông vắn, nở hậu (hình dáng).",
+   "F không sạt lở": "Tính: không sạt lở, chưa từng sạt lở.",
+   "G đất ở / thổ cư": "Tính: lô ĐÃ CÓ (toàn bộ hoặc một phần) đất ở/thổ cư/ODT/ONT. Không tính: 'có thể lên thổ cư', 'hỗ trợ lên thổ cư' (chưa có); 'nằm trong khu dân cư' (vị trí).",
+   "H nước ngọt": "Tính: nước ngọt, giếng ngọt, không nhiễm mặn."
+  },
+  "principles": [
+   "Chỉ tính điều tin khẳng định, không tính điều mình đoán.",
+   "Phải nói về chính lô đất đang bán, không phải nơi khác.",
+   "Câu phủ định thì không tính.",
+   "Viết khác chữ vẫn tính nếu cùng ý (viết tắt, không dấu, in hoa, chữ in đậm).",
+   "Chỗ quy tắc không nói rõ thì người gán tự quyết theo cách một người mua đất đọc tin sẽ hiểu."
+  ],
+  "examples": [
+   "'Đất cao ráo, không bao giờ ngập, cách sông Hậu 200m, sổ hồng thổ cư 100%' → A B C G",
+   "'Lô đất vuông vức, nở hậu, đường ô tô, giá rẻ' → 0",
+   "'Đất vườn 1.000m², hỗ trợ lên thổ cư, view hồ sen' → 0",
+   "'Nền đã có 60m² ONT, cách biển 2km' → D G"
+  ],
+  "note": "Y nội dung bản đã gửi ở lần 6, chỉ bỏ ví dụ cụ thể 'cách cầu Kênh X' (lần 6 trùng một tin); không thêm quy tắc nào về 'quy hoạch đất ở' — người gán tự quyết như lần 6."
+ },
+ "labeler_decisions": [
+  "Tin 4 → C G: mương thủy lợi được hiểu là kênh",
+  "Tin 10 → B: hiểu “cao lụt” là cao ráo",
+  "Tin 14 → B: hiểu “cao lụt” là cao ráo",
+  "Tin 19 → B: hiểu “cao lụt” là cao ráo",
+  "Tin 22 → B C: “ít bị ngập” không khẳng định là không ngập",
+  "Tin 24 → A B C: mương nước sát lô được tính là kênh",
+  "Tin 39 → A: hiểu câu “lụt lội thì tránh vẫn ok” là nói về lô đang bán"
+ ],
+ "labels": [
+  {
+   "id": 1,
+   "region": "Huế",
+   "sha256": "ad29937ba357cd0dd6687e4383060739cee4c20aa8f24f727f7144123b922ee1",
+   "claims": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 2,
+   "region": "Huế",
+   "sha256": "004903685d76f6cec02d294e5d09663580eec10ea72d22c0f035eba3b53060dc",
+   "claims": [
+    "no_flood"
+   ]
+  },
+  {
+   "id": 3,
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "sha256": "1a9c1c8af2014c2e4db99d19d92409b9626312d447ec1ed9d461aab34542663a",
+   "claims": []
+  },
+  {
+   "id": 4,
+   "region": "Huế",
+   "sha256": "caef16cc671da4b25905e41c1f34d83e6e2fe07dfb67f4b668390a0fe9541b32",
+   "claims": [
+    "near_river",
+    "residential"
+   ]
+  },
+  {
+   "id": 5,
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "sha256": "3c9a468ce84e15a45bda400fd11e39df64d2f32a6563da6719d45fb7e5431ad8",
+   "claims": []
+  },
+  {
+   "id": 6,
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "sha256": "5c132d525ccf84e4bc2ee6477339a39767d4c65574617a2facbcc1927cce39de",
+   "claims": [
+    "no_flood"
+   ]
+  },
+  {
+   "id": 7,
+   "region": "Huế",
+   "sha256": "cfbf22e8356d57f22a43277f51dfc329553444b61eaea8e592a6cbc84a465b4b",
+   "claims": []
+  },
+  {
+   "id": 8,
+   "region": "Huế",
+   "sha256": "d387ead42d8bb9b615345c9c412d9da6c03fb5fb9b5b88e5cb7f4559ffa72a91",
+   "claims": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 9,
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "sha256": "61cad0ceec37f406c7ca4bbe57b276b0b4087bfbdd524581c885442c8bd95f0b",
+   "claims": []
+  },
+  {
+   "id": 10,
+   "region": "Huế",
+   "sha256": "3acbdd580d76136fcb57659151592bedea91389f176ab45296c7cbc7d1c8c92b",
+   "claims": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 11,
+   "region": "Đồng Tháp",
+   "sha256": "fde8c1ac26256b37e881a1931bb2323f486553915de53f03a170654f5ff7603d",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 12,
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "sha256": "19d244757b8e0d19b5462641a547cee4e0c6b74ecf15e04bb26e93d0ff3fc174",
+   "claims": [
+    "no_flood"
+   ]
+  },
+  {
+   "id": 13,
+   "region": "Cần Thơ (Hậu Giang cũ)",
+   "sha256": "382ebd65914eda89f1331d85d7127a22b50f25da57682913df817d6e874d78ee",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 14,
+   "region": "Huế",
+   "sha256": "0f9e0bf426cfe74d992b00e1ac852ae069275364f658aa3568d9c7a45043d666",
+   "claims": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 15,
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "sha256": "c5c1335768c0c27906680706fafcbfe332286ca523c299425ff7cf4d8eae1a38",
+   "claims": [
+    "no_flood"
+   ]
+  },
+  {
+   "id": 16,
+   "region": "Huế",
+   "sha256": "becdb43ffb31221bc40ac1ce26489b85ab5a90f9cd76cfc765c8ba6206df3abe",
+   "claims": [
+    "no_flood"
+   ]
+  },
+  {
+   "id": 17,
+   "region": "Vĩnh Long",
+   "sha256": "fdb4724e3552ef035e52f3208c8c9500cb1168e29ff0ddce6ea90fc3faebcab7",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 18,
+   "region": "Huế",
+   "sha256": "48786b05e27781560425be137eea0e59525958410ef66251569f381c5843dc5c",
+   "claims": [
+    "high_ground",
+    "near_river",
+    "no_flood"
+   ]
+  },
+  {
+   "id": 19,
+   "region": "Huế",
+   "sha256": "f3b3faf3bfdf875ffa154ca99c8246c0609b2886b818c86d050c9bd51f9ec293",
+   "claims": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 20,
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "sha256": "9bf5ff6effef3930b81c1a69e289e4ebcfd5999bdde7850b63ed536e8cc7b056",
+   "claims": [
+    "no_flood"
+   ]
+  },
+  {
+   "id": 21,
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "sha256": "ab0dba6892621890e3a35ca6c8cf09507ef5d5ff91de73f95f2afd719ccc6037",
+   "claims": [
+    "no_flood"
+   ]
+  },
+  {
+   "id": 22,
+   "region": "Huế",
+   "sha256": "eedde3684889d7a8e590031e34d0c1e001bc572ac0efec2034d38c8e14caf322",
+   "claims": [
+    "high_ground",
+    "near_river"
+   ]
+  },
+  {
+   "id": 23,
+   "region": "Huế",
+   "sha256": "48b612b3bea936c43eabdad2e2cd29aaa0e6b310940f39349cea06c64c143f4e",
+   "claims": [
+    "high_ground",
+    "no_flood"
+   ]
+  },
+  {
+   "id": 24,
+   "region": "Huế",
+   "sha256": "59eba94a053a45be3e6bd81e33d72ef9d565e7fb1407bfcd597da788d67b0b61",
+   "claims": [
+    "high_ground",
+    "near_river",
+    "no_flood"
+   ]
+  },
+  {
+   "id": 25,
+   "region": "Huế",
+   "sha256": "a688f0747dfc932504a556458dcb8d7ab6060108a524e14aa3b763581a437e34",
+   "claims": []
+  },
+  {
+   "id": 26,
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "sha256": "b8d1356d3ecf83773b288712e7e9ea5b2ede3755e816fa9e51af2f24d59ca133",
+   "claims": [
+    "no_flood",
+    "residential"
+   ]
+  },
+  {
+   "id": 27,
+   "region": "Vĩnh Long",
+   "sha256": "39f164c63a1a6e2a281c8f8f66e30d52c64adee763444d44f7953e6f06fc11f0",
+   "claims": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 28,
+   "region": "Cần Thơ (Hậu Giang cũ)",
+   "sha256": "12704e9bb17f677cf411f711bb5379ed1fc1b1206b2326854f586db0d983b109",
+   "claims": [
+    "high_ground",
+    "residential"
+   ]
+  },
+  {
+   "id": 29,
+   "region": "Cần Thơ (Hậu Giang cũ)",
+   "sha256": "9d316dce02b07c8bac8adf6e0fd9c72e1da0ee0c2a876747e9a596e98173562a",
+   "claims": [
+    "high_ground",
+    "residential"
+   ]
+  },
+  {
+   "id": 30,
+   "region": "Huế",
+   "sha256": "3bfb8fef06f6328d1fdfb2f87ac4746ed32824b8b60386e9291268f0d59409a8",
+   "claims": []
+  },
+  {
+   "id": 31,
+   "region": "Huế",
+   "sha256": "f54d1e52e158a7500e02657a09b84243bd9eb876b2d883213ab7ffb158aa6dde",
+   "claims": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 32,
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "sha256": "227f7de4c3469999e2b25ff5f68d5461e143d179822d53e2224feb14c081fadf",
+   "claims": [
+    "no_flood",
+    "residential"
+   ]
+  },
+  {
+   "id": 33,
+   "region": "Huế",
+   "sha256": "f59bf9ff6d90a0cf25423957b4bc4ad1639bfbab9bc9da5b81b41cc07dfb163e",
+   "claims": [
+    "high_ground",
+    "near_river"
+   ]
+  },
+  {
+   "id": 34,
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "sha256": "f03e8f36d97614c95d74f13d59b6fea711524141b21f59919b778d2909c08381",
+   "claims": [
+    "no_flood"
+   ]
+  },
+  {
+   "id": 35,
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "sha256": "29b15ad85d1be08ca4a753ec7ff6f24c4985d6aaf3888f6a8421cb3030fbfc4e",
+   "claims": []
+  },
+  {
+   "id": 36,
+   "region": "Vĩnh Long",
+   "sha256": "4f97ebc49cb0b5395511eac2f60a3be80b4c1ce6861fef4ec9dd00777b5fdfee",
+   "claims": [
+    "residential"
+   ]
+  },
+  {
+   "id": 37,
+   "region": "Huế",
+   "sha256": "c1909d98372b61ebb8ede713264f148a9d76cf64e4efb08fde016fbc3496709f",
+   "claims": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 38,
+   "region": "Huế",
+   "sha256": "0599d09e0b687c687bd2436d3ccfb6e55536c2f43008129b09fd7eccf589f88d",
+   "claims": [
+    "high_ground",
+    "no_flood"
+   ]
+  },
+  {
+   "id": 39,
+   "region": "Đà Nẵng (Quảng Nam cũ)",
+   "sha256": "e239789f9e30fde90221c1455527d2eab79c18526f152e426167b5401f65e4c6",
+   "claims": [
+    "no_flood"
+   ]
+  },
+  {
+   "id": 40,
+   "region": "Đồng Tháp",
+   "sha256": "0b933bd360e89ec29c023628a54c7d3ae13932f4ed7541a049ede5a7d6d320a7",
+   "claims": [
+    "high_ground",
+    "residential"
+   ]
+  },
+  {
+   "id": 41,
+   "region": "Quảng Trị (Quảng Bình cũ)",
+   "sha256": "a85a7715e18d593766f67a030f49c54dc50abfedbb44a5383651f91041254871",
+   "claims": [
+    "high_ground"
+   ]
+  },
+  {
+   "id": 42,
+   "region": "Huế",
+   "sha256": "93cd499d998d763bf79df57537c0a35fc77e85d204b71328877db3455d591d68",
+   "claims": [
+    "high_ground"
+   ]
+  }
+ ]
+}
