@@ -118,11 +118,12 @@ const STEPS: { icon: LucideIcon; vi: string; en: string }[] = [
 // Ba con số chấm MỘT lần, khoá trong repo (backend/data/eval/water_unosat_result.json,
 // listing_gate_v9_result.json, listing_gate_v10_result.json, listing_gate_v11_result.json) + cơ chế ký — đổi số ở đây phải đổi từ tệp kết quả, không làm tròn đẹp.
 // 9/11/2026: lần 10 (nhãn người, KHÔNG độc lập) CHƯA KẾT LUẬN, máy sót 2/2 câu "không ngập". 10/11: lần 11 nhãn người ĐỘC LẬP —
-// khớp 24/25, 0 bắt nhầm, nhưng 3 < 8 tin có câu đích → vẫn CHƯA KẾT LUẬN; ghi ngay cạnh 0,98, không giấu.
+// khớp 24/25, 0 bắt nhầm, nhưng 3 < 8 tin có câu đích → vẫn CHƯA KẾT LUẬN. 13/11: lần 12 nhãn người ĐỘC LẬP, 42 tin vùng ngập hằng năm,
+// 30 tin có câu đích (15 'không ngập') → ĐẠT F1 0,88 (listing_gate_v12_result.json) — thay 0,98 của nhãn Claude làm con số chính.
 const PROOF: { b: string; vi: string; en: string }[] = [
   { b: "60/80", vi: "điểm ngập trên bản đồ UNOSAT (10 trận 2020–2025) radar thấy đợt nước", en: "flooded points on UNOSAT maps (10 floods 2020–2025) where radar saw the water" },
   { b: "0/73", vi: "điểm khô (cách vùng nước ≥ 500 m) bị báo nhầm là có đợt nước", en: "dry points (≥ 500 m from water) falsely flagged with a water event" },
-  { b: "0,98", vi: "F1 nhận câu khẳng định trên 30 tin rao Facebook thật, nhãn Claude (lần 9). Lần 11, nhãn người độc lập: khớp 24/25 tin, không bắt nhầm — nhưng mới 3 tin có câu cao ráo, chưa kết luận", en: "F1 for spotting claims in 30 real Facebook ads, Claude labels (run 9). Run 11, independent human labels: 24/25 posts match, no false alarm — but only 3 high-ground posts, inconclusive" },
+  { b: "0,88", vi: "F1 nhận câu \"không ngập\", \"cao ráo\" trên 42 tin rao Facebook thật ở vùng ngập hằng năm, nhãn người độc lập (lần 12). Máy ít bắt nhầm (1 tin) nhưng còn sót cách nói vòng", en: "F1 for spotting \"no flooding\" and \"high ground\" claims in 42 real Facebook ads from areas that flood every year, independent human labels (run 12). Few false alarms (1 post), but indirect phrasings are still missed" },
   { b: "Ed25519", vi: "chữ ký số + sổ minh bạch + neo Bitcoin: sửa một chữ là lộ", en: "signature + transparency log + Bitcoin anchor: one changed letter shows" },
 ];
 

@@ -606,7 +606,8 @@ def cards() -> list[dict]:
                                      ("8", _load("eval", "listing_gate_v8_result.json")),
                                      ("9", _load("eval", "listing_gate_v9_result.json")),
                                      ("10", _load("eval", "listing_gate_v10_result.json")),
-                                     ("11", _load("eval", "listing_gate_v11_result.json"))) if r]
+                                     ("11", _load("eval", "listing_gate_v11_result.json")),
+                                     ("12", _load("eval", "listing_gate_v12_result.json"))) if r]
     base = {
         "id": "listing_rules", "kind": tr("quy tắc NLP", "NLP rules"),
         "name": tr("Tách câu khẳng định trong tin đăng bán đất", "Claim extraction from land listings"),
@@ -657,10 +658,12 @@ def cards() -> list[dict]:
                                 f"gate run {v} INCONCLUSIVE — only {last.get('target_listings')} posts with target claims, needs ≥ {last.get('min_target_listings')}"
                                 + (" · human labels, NOT independent" if not_indep else " · independent human labels" if indep_human else " · human labels" if avh else "")
                                 + " · keyword rules still live, accuracy published") if undecided else
-                            (tr(f"cổng lần {v} đạt · luật từ khoá đang chạy" + (" · nhãn AI, người duyệt" if rv else "") + (" · nhãn người" if human else "")
+                            (tr(f"cổng lần {v} đạt · luật từ khoá đang chạy" + (" · nhãn AI, người duyệt" if rv else "")
+                                + (" · nhãn người độc lập" if indep_human else " · nhãn người" if human else "")
                                 + (" · nhãn Claude, không phải nhãn người" if by_claude else "") + tgt_vi,
                                 f"gate run {v} passed · keyword rules live" + (" · AI labels, human-reviewed" if rv else "")
-                                + (" · human labels" if human else "") + (" · Claude labels, not human labels" if by_claude else "") + tgt_en) if last.get("passed")
+                                + (" · independent human labels" if indep_human else " · human labels" if human else "")
+                                + (" · Claude labels, not human labels" if by_claude else "") + tgt_en) if last.get("passed")
                              else tr(f"cổng lần {v} trượt" + (" trên nhãn người" if human else "") + (" trên nhãn Claude" if by_claude else "")
                                      + " · vẫn chạy luật từ khoá (không có bộ thay thế), độ chính xác công khai",
                                      f"gate run {v} failed" + (" on human labels" if human else "") + (" on Claude labels" if by_claude else "")
@@ -686,25 +689,26 @@ def cards() -> list[dict]:
                           f"{avh['listings_exact_match']}/{avh['n']} tin. Các lần trước: ",
                           f"Run {v}: HUMAN LABELS — the owner labelled {avh['n']} posts without seeing machine labels; AI labels frozen beforehand "
                           f"match the human labels on {avh['listings_exact_match']}/{avh['n']} posts. Earlier runs: "))) if avh else
-                       tr(f"Lần {v}: NHÃN NGƯỜI ĐỘC LẬP (lần đầu) — chủ dự án tự gán {last['n']} tin; KHÔNG có nhãn AI nào cho các tin này nên "
-                          f"không còn đáp án để lộ; người gán khai không dùng AI, không hỏi ai. Máy khớp nhãn người đúng từng mã {exact}/{last['n']} "
-                          "tin. Các lần trước: ",
-                          f"Run {v}: INDEPENDENT HUMAN LABELS (first time) — the owner labelled {last['n']} posts; there were NO AI labels for these "
-                          f"posts, so no answers could leak; the labeller states no AI and no help was used. The rules match the human labels "
-                          f"exactly on {exact}/{last['n']} posts. Earlier runs: ") if indep_human else
+                       tr(f"Lần {v}: NHÃN NGƯỜI ĐỘC LẬP" + (" (lần đầu)" if v == "11" else "") + f" — chủ dự án tự gán {last['n']} tin; KHÔNG "
+                          "có nhãn AI nào cho các tin này nên không còn đáp án để lộ; người gán khai không xem câu trả lời của AI, không dán tin vào AI, "
+                          f"không hỏi ai. Máy khớp nhãn người đúng từng mã {exact}/{last['n']} tin. Các lần trước: ",
+                          f"Run {v}: INDEPENDENT HUMAN LABELS" + (" (first time)" if v == "11" else "") + f" — the owner labelled {last['n']} posts; "
+                          "there were NO AI labels for these posts, so no answers could leak; the labeller states they saw no AI answers, pasted no "
+                          f"post into any AI and asked no one. The rules match the human labels exactly on {exact}/{last['n']} posts. Earlier "
+                          "runs: ") if indep_human else
                        tr(f"Lần {v}: nhãn do Claude gán — một phiên chat khác phiên viết luật, chủ dự án chuyển tin sang — KHÔNG phải nhãn người "
                           f"(tới 8/11/2026 ghi nhầm là 'chủ dự án tự gán'). Độ khớp {agree} tin với nhãn AI phụ là Claude so với Claude. Các lần trước: ",
                           f"Run {v}: labels by Claude — a chat session separate from the one that wrote the rules, fed the posts by the owner — "
                           f"NOT human labels (misrecorded as 'labelled by the owner' until 8 Nov 2026). The {agree} agreement with the secondary AI "
                           "labels is Claude against Claude. Earlier runs: ") if by_claude else "")
                      + tr("lần 1–5 nhãn do Claude (AI) gán theo uỷ quyền chủ dự án, commit TRƯỚC khi chấm — KHÔNG phải nhãn người; lần 6–9 "
-                          "cũng do Claude gán (phiên chat khác; ghi nhầm là nhãn người tới 8/11/2026); lần 10 nhãn người KHÔNG độc lập; lần 11 nhãn người "
-                          "độc lập; ngưỡng F1 trung bình ≥ 0,80; "
+                          "cũng do Claude gán (phiên chat khác; ghi nhầm là nhãn người tới 8/11/2026); lần 10 nhãn người KHÔNG độc lập; lần 11 và 12 "
+                          "nhãn người độc lập; ngưỡng F1 trung bình ≥ 0,80; "
                         + " · ".join(f"lần {k}: F1 {r.get('macro_f1')}" + (" (chưa kết luận)" if r.get("passed") is None and r.get("verdict") else "")
                                      for k, r in runs),
                         "runs 1–5 labelled by Claude (AI) on the owner's authority, committed BEFORE scoring — NOT human labels; runs 6–9 "
                         "were also labelled by Claude (a separate chat session; misrecorded as human labels until 8 Nov 2026); run 10 human labels NOT "
-                        "independent; run 11 independent human labels; threshold macro F1 ≥ 0.80; "
+                        "independent; runs 11 and 12 independent human labels; threshold macro F1 ≥ 0.80; "
                         + " · ".join(f"run {k}: F1 {r.get('macro_f1')}" + (" (inconclusive)" if r.get("passed") is None and r.get("verdict") else "")
                                      for k, r in runs)) + reviewed,
             "metrics": [{"label": tr(f"{names.get(r['type'], r['type'])} — chính xác / độ phủ (đúng · thừa · sót)"
@@ -722,12 +726,38 @@ def cards() -> list[dict]:
                                         "Posts with target claims per the gate labels (needed before any verdict)"),
                             "value": last["target_listings"], "threshold": f"≥ {last.get('min_target_listings')}",
                             "passed": last["target_listings"] >= (last.get("min_target_listings") or 0)}] if "target_listings" in last else [])
+                       # Lần 12 (13/11/2026): giao thức thêm số tin tối thiểu cho TỪNG loại ('không ngập' ≥ 3).
+                       + [{"label": tr(f"Số tin có câu '{names.get(t, t)}' theo nhãn chấm cổng (giao thức cần đủ mới kết luận)",
+                                       f"Posts with a '{t}' claim per the gate labels (needed before any verdict)"),
+                           "value": m["got"], "threshold": f"≥ {m['need']}", "passed": m["got"] >= m["need"]}
+                          for t, m in (last.get("min_type_listings") or {}).items()]
                        + ([{"label": tr("F1 trung bình MỌI loại (số phụ, không phải ngưỡng cổng)", "Macro F1 over ALL types (secondary, not the gate)"),
                             "value": last["macro_f1_all_types"], "threshold": "—", "passed": None}] if "macro_f1_all_types" in last else [])
                        + ([{"label": tr("Chỗ sửa luật được kiểm trên tin MỚI (số kiểu câu đã sửa có xuất hiện trong mẫu)",
                                         "Rule fixes exercised on NEW posts (fixed phrasings that occur in the sample)"),
                             "value": f"{n_fix_tested}/{len(fixes)}", "threshold": "—", "passed": None}] if fixes else []),
-            "limits": tr("Lần 11 (10/11/2026; 25 tin Facebook MỚI ở 6 vùng hay ngập: Quảng Ngãi, Hà Tĩnh – Nghệ An, Thái Bình cũ, Bạc Liêu cũ, "
+            "limits": tr("Lần 12 (13/11/2026; 42 tin Facebook MỚI ở vùng NGẬP HẰNG NĂM: Huế 20, Đà Nẵng – Quảng Nam cũ 7, Quảng Trị – Quảng "
+                         "Bình cũ 7, Cần Thơ 3, Vĩnh Long 3, Đồng Tháp 2; luật GIỮ NGUYÊN từ ab2bc61, khoá trước khi thu mẫu): ĐẠT trên nhãn người "
+                         "độc lập — F1 chính 0,88 ('không ngập' 0,89: 12 đúng, 0 thừa, 3 sót; 'cao ráo' 0,86: 15 đúng, 1 thừa, 4 sót); 30 tin có "
+                         "câu đích (cần ≥ 8), 15 tin 'không ngập' (cần ≥ 3). Máy ít bắt nhầm nhưng còn SÓT: cách nói vòng 'nơi không biết "
+                         "đến ngập lụt là gì', 'nói không với ngập lụt', 'lụt lội thì tránh vẫn ok'; 'cao lụt' (người gán hiểu là cao ráo) 3 tin và 'rất cao ít bị ngập lụt'; bắt nhầm 1 tin 'nhà cửa xung quanh cao ráo' (nói về xung quanh, không phải "
+                         "lô đang bán). Mọi loại F1 0,86: gần sông sót 2 'mương' (người gán tính là kênh), thổ cư sót 'có 90m2 thổ'. Khớp từng mã "
+                         "31/42 tin. GIỚI HẠN: tầng B (31 tin) chọn bằng gốc chữ ngập/lụt/cao ráo… nên chỉ đo câu CÓ những chữ đó; tầng A (11 bài "
+                         "đầu, không lọc chữ) chỉ có 1 tin có câu đích. Vùng chọn theo dữ liệu lần 10–11 (tập phát triển). Kết quả nói về tin rao ở "
+                         "vùng ngập hằng năm, không phải mọi tin rao. Không vá luật theo mẫu này; lỗi mới sửa ở lần sau và chấm trên tin mới.",
+                         "Run 12 (13 Nov 2026; 42 NEW Facebook posts from areas that flood EVERY YEAR: Huế 20, Đà Nẵng – former Quảng Nam 7, Quảng "
+                         "Trị – former Quảng Bình 7, Cần Thơ 3, Vĩnh Long 3, Đồng Tháp 2; rules UNCHANGED since ab2bc61, frozen before sampling): "
+                         "PASSED on independent human labels — primary F1 0.88 ('no flooding' 0.89: 12 correct, 0 false, 3 missed; 'high ground' "
+                         "0.86: 15 correct, 1 false, 4 missed); 30 posts carry a target claim (needs ≥ 8), 15 'no flooding' (needs ≥ 3). The rules "
+                         "rarely flag wrongly but still MISS: indirect phrasings ('a place that has never known flooding', 'say no to "
+                         "flooding', 'floods are avoidable here'), 'cao lụt' (the labeller read it as high ground) in 3 posts and "
+                         "'very high, rarely flooded'; one false 'high ground' on 'the houses around are high and dry' (the surroundings, not the "
+                         "lot). All types F1 0.86: near river missed 2 'mương' ditches (the labeller counted them as canals), residential missed "
+                         "'có 90m2 thổ'. Exact match 31/42 posts. LIMITS: stratum B (31 posts) was selected by the word stems ngập/lụt/cao ráo… so "
+                         "it only measures claims that USE those words; stratum A (first 11 posts, no word filter) has only 1 target post. Regions "
+                         "were chosen from runs 10–11 data (development set). The result is about listings in areas that flood every year, not all "
+                         "listings. Rules are not patched on this sample; new errors are fixed in a later run and scored on new posts.") if v == "12" else
+                      tr("Lần 11 (10/11/2026; 25 tin Facebook MỚI ở 6 vùng hay ngập: Quảng Ngãi, Hà Tĩnh – Nghệ An, Thái Bình cũ, Bạc Liêu cũ, "
                          "Kiên Giang cũ, Chương Mỹ; luật SỬA theo lỗi lần 10, khoá trước khi thu mẫu): lần đầu có NHÃN NGƯỜI ĐỘC LẬP — không có nhãn "
                          "AI nào, người gán khai không dùng AI. Máy khớp người đúng từng mã 24/25 tin và không bắt nhầm tin nào (16 tin không khẳng "
                          "định gì): 'cao ráo' 3/3, gần sông 2/2, thổ cư 6/6; sót 1 câu 'đã có nước sạch' mà người gán xếp vào nước ngọt. NHƯNG chỉ "
