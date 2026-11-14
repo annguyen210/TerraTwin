@@ -74,6 +74,25 @@ def _unosat_metrics() -> list[dict]:
     ]
 
 
+def _press_metrics() -> list[dict]:
+    """Đối chiếu PHỤ với báo chí (water_press_protocol.json) — KHÔNG phải xác nhận thực địa, không tính vào cổng 30 đợt."""
+    p = _load("eval", "water_press_result.json")
+    if not p:
+        return []
+    c, n = p.get("counts") or {}, p.get("n_events")
+    return [
+        {"label": tr(f"Đối chiếu báo chí ({n} đợt radar, 4 thửa vùng ngập): báo ghi ngập đúng xã/huyện — KHÔNG phải xác nhận thực địa",
+                     f"Press cross-check ({n} radar events, 4 flood-zone plots): news reports flooding in the same commune/district — NOT a field check"),
+         "value": tr(f"{p.get('matched_commune_or_district')}/{n} ({c.get('commune')} xã, {c.get('district')} huyện) · "
+                     f"{c.get('province')} chỉ cấp tỉnh · {c.get('not_found')} không tìm thấy",
+                     f"{p.get('matched_commune_or_district')}/{n} ({c.get('commune')} commune, {c.get('district')} district) · "
+                     f"{c.get('province')} province only · {c.get('not_found')} not found"),
+         "threshold": tr("báo riêng", "reported"), "passed": None},
+        {"label": tr("  · nguồn nói khu đó KHÔNG ngập đúng lúc radar báo nước", "  · sources saying the area did NOT flood when radar saw water"),
+         "value": f"{c.get('contradicts')}/{n}", "threshold": tr("báo riêng", "reported"), "passed": None},
+    ]
+
+
 def cards() -> list[dict]:
     out: list[dict] = []
 
@@ -180,15 +199,18 @@ def cards() -> list[dict]:
             "metrics": [{"label": c.get("case"), "value": tr(f"{c.get('n_events')} đợt", f"{c.get('n_events')} events"),
                          "threshold": ", ".join(x.get("label", "") for x in c.get("checks") or []) or tr("0 đợt", "0 events"),
                          "passed": all(x.get("pass") for x in c.get("checks") or []) if c.get("checks") else c.get("n_events") == 0}
-                        for c in g.get("cases", [])] + _unosat_metrics() + [_field_metric()],
+                        for c in g.get("cases", [])] + _unosat_metrics() + _press_metrics() + [_field_metric()],
             "limits": tr("Đô thị, rừng rậm, sườn dốc, mặt rất phẳng có thể sai; chu kỳ 6–12 ngày lọt đợt ngập ngắn. Đối chiếu UNOSAT: "
                          "khớp cao với bản đồ cũng làm từ Sentinel-1, nhưng chỉ bắt 6/16 điểm ngập trên bản đồ từ cảm biến khác (SAOCOM băng L "
                          "thấy cả nước dưới tán cây; RADARSAT chụp ngày khác) — lịch sử nước dễ BỎ SÓT ngập ngắn hoặc dưới tán, hiếm khi báo bừa "
-                         "(0/73 điểm khô).",
+                         "(0/73 điểm khô). Đối chiếu báo chí 14/11/2026 chỉ là kiểm phụ: báo chỉ đưa tin trận lớn, khớp huyện không chứng "
+                         "minh đúng thửa ngập, tiêu chí ghi trước nhưng không khoá mã băm, và một người xếp mức.",
                          "Urban areas, dense forest, steep slopes, very smooth surfaces mislead; the 6–12 day revisit misses short floods. UNOSAT "
                          "check: high agreement with maps also made from Sentinel-1, but only 6/16 flooded points on maps from other sensors "
                          "(L-band SAOCOM sees water under canopy; RADARSAT imaged on other days) — water history tends to MISS short or "
-                         "under-canopy flooding, and rarely raises false alarms (0/73 dry points)."),
+                         "under-canopy flooding, and rarely raises false alarms (0/73 dry points). The 14/11/2026 press cross-check is "
+                         "secondary only: news covers big floods, a district match does not prove the plot flooded, criteria were written "
+                         "first but not hash-locked, and one person graded it."),
             "not_for": tr("Không phải số liệu ngập chính thức.", "Not official flood records."),
             "code": f"{REPO}/backend/app/services/water_history.py",
         })
