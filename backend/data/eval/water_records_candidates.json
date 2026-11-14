@@ -1,0 +1,494 @@
+{
+ "protocol": "terratwin.water_records/1",
+ "protocol_commit": "619012f",
+ "generated": "2026-11-14",
+ "generator": "D:/tt-scratch/gate_records/gen_candidates.py (seed 20261114, ranh huyện/tỉnh gbHumanitarian 2020 ở commit c9cbe26)",
+ "sha256_candidates_list": "de92246b09a2815202dfdee7d81ffe5891e622dc7de3ad5c80c9ae66a63728b8",
+ "discarded_first_run": {
+  "sha256": "d402a79c32ac5c8b986d7921a65acbee79434c8f68448a7342c7ad2f45b199aa",
+  "why": "lần sinh đầu dùng lớp tỉnh 2008 (Wikipedia) sai ranh — Khoái Châu bị gán 'Hà Nội' — nên tỉnh→huyện sai; bỏ và sinh lại với lớp tỉnh OCHA 2020 TRƯỚC khi gọi radar cho bất kỳ điểm nào."
+ },
+ "radar_called": false,
+ "candidates": [
+  {
+   "i": 1,
+   "region": "Bắc",
+   "province": "Hà Nội",
+   "district_adm2": "Dong Da",
+   "lat": 21.02448,
+   "lon": 105.79881
+  },
+  {
+   "i": 2,
+   "region": "Trung",
+   "province": "Quảng Bình",
+   "district_adm2": "Minh Hoa",
+   "lat": 17.75182,
+   "lon": 105.94343
+  },
+  {
+   "i": 3,
+   "region": "Nam",
+   "province": "Long An",
+   "district_adm2": "Tan Tru",
+   "lat": 10.58904,
+   "lon": 106.4579
+  },
+  {
+   "i": 4,
+   "region": "Bắc",
+   "province": "Nam Định",
+   "district_adm2": "Nam Định",
+   "lat": 20.44068,
+   "lon": 106.16507
+  },
+  {
+   "i": 5,
+   "region": "Trung",
+   "province": "Nghệ An",
+   "district_adm2": "Yen Thanh",
+   "lat": 19.04083,
+   "lon": 105.35158
+  },
+  {
+   "i": 6,
+   "region": "Nam",
+   "province": "Cần Thơ",
+   "district_adm2": "Co Do",
+   "lat": 10.15718,
+   "lon": 105.49547
+  },
+  {
+   "i": 7,
+   "region": "Bắc",
+   "province": "Nam Định",
+   "district_adm2": "Hai Hau",
+   "lat": 20.16894,
+   "lon": 106.29806
+  },
+  {
+   "i": 8,
+   "region": "Trung",
+   "province": "Hà Tĩnh",
+   "district_adm2": "Ky Anh",
+   "lat": 17.96854,
+   "lon": 106.15415
+  },
+  {
+   "i": 9,
+   "region": "Nam",
+   "province": "Cần Thơ",
+   "district_adm2": "Co Do",
+   "lat": 10.13107,
+   "lon": 105.4455
+  },
+  {
+   "i": 10,
+   "region": "Bắc",
+   "province": "Bắc Giang",
+   "district_adm2": "Tan Yen",
+   "lat": 21.44443,
+   "lon": 106.11994
+  },
+  {
+   "i": 11,
+   "region": "Trung",
+   "province": "Thừa Thiên Huế",
+   "district_adm2": "Nam Dong",
+   "lat": 16.18428,
+   "lon": 107.63873
+  },
+  {
+   "i": 12,
+   "region": "Nam",
+   "province": "Đồng Tháp",
+   "district_adm2": "Tan Hong",
+   "lat": 10.81382,
+   "lon": 105.48943
+  },
+  {
+   "i": 13,
+   "region": "Bắc",
+   "province": "Thái Bình",
+   "district_adm2": "Hung Ha",
+   "lat": 20.59501,
+   "lon": 106.27694
+  },
+  {
+   "i": 14,
+   "region": "Trung",
+   "province": "Quảng Ngãi",
+   "district_adm2": "Ly Son",
+   "lat": 15.38997,
+   "lon": 109.12714
+  },
+  {
+   "i": 15,
+   "region": "Nam",
+   "province": "Long An",
+   "district_adm2": "Tan Thanh",
+   "lat": 10.61197,
+   "lon": 106.04733
+  },
+  {
+   "i": 16,
+   "region": "Bắc",
+   "province": "Nam Định",
+   "district_adm2": "Nam Truc",
+   "lat": 20.30979,
+   "lon": 106.22197
+  },
+  {
+   "i": 17,
+   "region": "Trung",
+   "province": "Hà Tĩnh",
+   "district_adm2": "Cam Xuyen",
+   "lat": 18.17118,
+   "lon": 105.9068
+  },
+  {
+   "i": 18,
+   "region": "Nam",
+   "province": "An Giang",
+   "district_adm2": "Chau Doc",
+   "lat": 10.67879,
+   "lon": 105.11843
+  },
+  {
+   "i": 19,
+   "region": "Bắc",
+   "province": "Hải Dương",
+   "district_adm2": "Thanh Ha",
+   "lat": 20.94131,
+   "lon": 106.44998
+  },
+  {
+   "i": 20,
+   "region": "Trung",
+   "province": "Quảng Trị",
+   "district_adm2": "Gio Linh",
+   "lat": 16.83173,
+   "lon": 106.83527
+  },
+  {
+   "i": 21,
+   "region": "Nam",
+   "province": "Cần Thơ",
+   "district_adm2": "Co Do",
+   "lat": 10.1201,
+   "lon": 105.46079
+  },
+  {
+   "i": 22,
+   "region": "Bắc",
+   "province": "Ninh Bình",
+   "district_adm2": "Yen Mo",
+   "lat": 20.13621,
+   "lon": 106.03017
+  },
+  {
+   "i": 23,
+   "region": "Trung",
+   "province": "Nghệ An",
+   "district_adm2": "Quy Hop",
+   "lat": 19.25949,
+   "lon": 105.04457
+  },
+  {
+   "i": 24,
+   "region": "Nam",
+   "province": "Cần Thơ",
+   "district_adm2": "Binh Thuy",
+   "lat": 10.07998,
+   "lon": 105.74932
+  },
+  {
+   "i": 25,
+   "region": "Bắc",
+   "province": "Ninh Bình",
+   "district_adm2": "Gia Vien",
+   "lat": 20.33182,
+   "lon": 105.90785
+  },
+  {
+   "i": 26,
+   "region": "Trung",
+   "province": "Quảng Trị",
+   "district_adm2": "Da Krong",
+   "lat": 16.39597,
+   "lon": 107.03931
+  },
+  {
+   "i": 27,
+   "region": "Nam",
+   "province": "Đồng Tháp",
+   "district_adm2": "Thap Muoi",
+   "lat": 10.64571,
+   "lon": 105.71467
+  },
+  {
+   "i": 28,
+   "region": "Bắc",
+   "province": "Thái Bình",
+   "district_adm2": "Dong Hung",
+   "lat": 20.55836,
+   "lon": 106.36786
+  },
+  {
+   "i": 29,
+   "region": "Trung",
+   "province": "Quảng Bình",
+   "district_adm2": "Le Thuy",
+   "lat": 17.19332,
+   "lon": 106.71544
+  },
+  {
+   "i": 30,
+   "region": "Nam",
+   "province": "Đồng Tháp",
+   "district_adm2": "Thap Muoi",
+   "lat": 10.60778,
+   "lon": 105.71352
+  },
+  {
+   "i": 31,
+   "region": "Bắc",
+   "province": "Nam Định",
+   "district_adm2": "Y Yen",
+   "lat": 20.30072,
+   "lon": 106.01066
+  },
+  {
+   "i": 32,
+   "region": "Trung",
+   "province": "Hà Tĩnh",
+   "district_adm2": "Hong Linh",
+   "lat": 18.54812,
+   "lon": 105.7135
+  },
+  {
+   "i": 33,
+   "region": "Nam",
+   "province": "Long An",
+   "district_adm2": "Tan Hung",
+   "lat": 10.68724,
+   "lon": 105.75937
+  },
+  {
+   "i": 34,
+   "region": "Bắc",
+   "province": "Hải Dương",
+   "district_adm2": "Tu Ky",
+   "lat": 20.85528,
+   "lon": 106.3914
+  },
+  {
+   "i": 35,
+   "region": "Trung",
+   "province": "Phú Yên",
+   "district_adm2": "Dong Hoa",
+   "lat": 12.93243,
+   "lon": 109.37844
+  },
+  {
+   "i": 36,
+   "region": "Nam",
+   "province": "Long An",
+   "district_adm2": "Can Duoc",
+   "lat": 10.50588,
+   "lon": 106.73822
+  },
+  {
+   "i": 37,
+   "region": "Bắc",
+   "province": "Bắc Giang",
+   "district_adm2": "Bac Giang",
+   "lat": 21.27215,
+   "lon": 106.15483
+  },
+  {
+   "i": 38,
+   "region": "Trung",
+   "province": "Nghệ An",
+   "district_adm2": "Nam Dan",
+   "lat": 18.61576,
+   "lon": 105.53844
+  },
+  {
+   "i": 39,
+   "region": "Nam",
+   "province": "Long An",
+   "district_adm2": "Can Duoc",
+   "lat": 10.57566,
+   "lon": 106.55028
+  },
+  {
+   "i": 40,
+   "region": "Bắc",
+   "province": "Hà Nội",
+   "district_adm2": "Long Bien",
+   "lat": 21.02818,
+   "lon": 105.87564
+  },
+  {
+   "i": 41,
+   "region": "Trung",
+   "province": "Quảng Trị",
+   "district_adm2": "Vinh Linh",
+   "lat": 17.03735,
+   "lon": 106.88889
+  },
+  {
+   "i": 42,
+   "region": "Nam",
+   "province": "Đồng Tháp",
+   "district_adm2": "Huyen Hong Ngu",
+   "lat": 10.88193,
+   "lon": 105.23487
+  },
+  {
+   "i": 43,
+   "region": "Bắc",
+   "province": "Hà Nội",
+   "district_adm2": "Ba Vi",
+   "lat": 21.02622,
+   "lon": 105.45906
+  },
+  {
+   "i": 44,
+   "region": "Trung",
+   "province": "Nghệ An",
+   "district_adm2": "Thai Hoa",
+   "lat": 19.27062,
+   "lon": 105.42376
+  },
+  {
+   "i": 45,
+   "region": "Nam",
+   "province": "Long An",
+   "district_adm2": "Tan An",
+   "lat": 10.56302,
+   "lon": 106.4039
+  },
+  {
+   "i": 46,
+   "region": "Bắc",
+   "province": "Hà Nội",
+   "district_adm2": "Ba Dinh",
+   "lat": 21.01925,
+   "lon": 105.81519
+  },
+  {
+   "i": 47,
+   "region": "Trung",
+   "province": "Nghệ An",
+   "district_adm2": "Quynh Luu",
+   "lat": 19.17814,
+   "lon": 105.53726
+  },
+  {
+   "i": 48,
+   "region": "Nam",
+   "province": "Đồng Tháp",
+   "district_adm2": "Tan Hong",
+   "lat": 10.90633,
+   "lon": 105.51524
+  },
+  {
+   "i": 49,
+   "region": "Bắc",
+   "province": "Nam Định",
+   "district_adm2": "Nam Định",
+   "lat": 20.43636,
+   "lon": 106.19058
+  },
+  {
+   "i": 50,
+   "region": "Trung",
+   "province": "Quảng Ngãi",
+   "district_adm2": "Minh Long",
+   "lat": 14.89212,
+   "lon": 108.69893
+  },
+  {
+   "i": 51,
+   "region": "Nam",
+   "province": "Cần Thơ",
+   "district_adm2": "Thoi Lai",
+   "lat": 10.05201,
+   "lon": 105.55924
+  },
+  {
+   "i": 52,
+   "region": "Bắc",
+   "province": "Hải Dương",
+   "district_adm2": "Chi Linh",
+   "lat": 21.12291,
+   "lon": 106.3088
+  },
+  {
+   "i": 53,
+   "region": "Trung",
+   "province": "Quảng Nam",
+   "district_adm2": "Nam Giang",
+   "lat": 15.65545,
+   "lon": 107.30375
+  },
+  {
+   "i": 54,
+   "region": "Nam",
+   "province": "An Giang",
+   "district_adm2": "Cho Moi",
+   "lat": 10.43483,
+   "lon": 105.55935
+  },
+  {
+   "i": 55,
+   "region": "Bắc",
+   "province": "Hải Dương",
+   "district_adm2": "Binh Giang",
+   "lat": 20.86831,
+   "lon": 106.17074
+  },
+  {
+   "i": 56,
+   "region": "Trung",
+   "province": "Quảng Nam",
+   "district_adm2": "Tien Phuoc",
+   "lat": 15.41644,
+   "lon": 108.29159
+  },
+  {
+   "i": 57,
+   "region": "Nam",
+   "province": "An Giang",
+   "district_adm2": "Tan Chau",
+   "lat": 10.72926,
+   "lon": 105.14463
+  },
+  {
+   "i": 58,
+   "region": "Bắc",
+   "province": "Bắc Giang",
+   "district_adm2": "Viet Yen",
+   "lat": 21.20664,
+   "lon": 106.10656
+  },
+  {
+   "i": 59,
+   "region": "Trung",
+   "province": "Bình Định",
+   "district_adm2": "Tuy Phuoc",
+   "lat": 13.86855,
+   "lon": 109.15023
+  },
+  {
+   "i": 60,
+   "region": "Nam",
+   "province": "Đồng Tháp",
+   "district_adm2": "Lai Vung",
+   "lat": 10.22219,
+   "lon": 105.67488
+  }
+ ]
+}
