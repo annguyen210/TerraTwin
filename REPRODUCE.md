@@ -304,6 +304,17 @@ cd backend && python ../ops/water_field_gate.py            # đủ cỡ mẫu �
 Tiến độ công khai: `GET /api/water/field-check` và dòng cuối thẻ "Lịch sử nước" ở `/mo-hinh`. Test:
 `backend/tests/test_field_truth.py`.
 
+### 7g. Sổ lũ công khai + đối chiếu báo chí (14/11/2026) — bằng chứng độc lập, KHÔNG phải xác nhận thực địa
+
+- `backend/data/flood_reports.json`: mỗi bài báo/tài liệu đã MỞ để kiểm ngày đăng và địa danh; chỉ ghi nơi bài nói rõ là ngập
+  (không ghi nơi chỉ sơ tán, nước sông lên, sạt lở, ngầm tràn). Xã/phường mới sau 7/2025 chỉ quy về huyện cũ khi chắc nằm trọn.
+- `backend/app/services/flood_reports.py`: định vị huyện cũ bằng ranh 2020 (`data/admin/vnm_adm2_2020.json`, geoBoundaries gbHumanitarian
+  ADM2 + tỉnh ADM1 cùng nguồn — lớp tỉnh 2008 của Wikipedia sai ranh nên không dùng; giản lược ~100 m), khớp khi khoảng ngập của bài giao với [ngày bắt đầu đợt − 12, + 3]. Mức huyện > tỉnh. Lớp diễn giải:
+  không thêm/bớt đợt; gắn `press` vào từng đợt của lịch sử nước và thêm một câu vào kiểm tin rao "không ngập".
+- `backend/data/eval/water_press_{protocol,result}.json`: đối chiếu 24 đợt ở 4 thửa (1 xã, 9 huyện, 4 tỉnh, 10 không thấy,
+  0 trái) — tiêu chí ghi trước nhưng KHÔNG khoá mã băm; dòng riêng trên thẻ mô hình lịch sử nước.
+- Kiểm: `cd backend; pytest tests/test_flood_reports.py tests/test_water_press.py`.
+
 ## 7f. Tổ hợp dự báo mưa best_match + ECMWF AIFS — CỔNG ĐẠT 18/10/2026 (đã bật)
 
 Kế hoạch tổng GĐ5 mục 3. Đăng ký trước [`backend/data/eval/aifs_blend_protocol.json`](backend/data/eval/aifs_blend_protocol.json)

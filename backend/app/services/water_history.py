@@ -263,6 +263,8 @@ def _annotate(r: dict, lat: float | None = None, lon: float | None = None) -> di
             r["canopy"] = None if r["urban"] else canopy(lat, lon)
             r["cropland"] = cropland(lat, lon) if r.get("n_events") else None
             r.update(seasons(lat, lon, r))
+            from app.services import flood_reports       # sổ lũ công khai: sau mùa lũ để giữ nhãn mùa trên từng đợt
+            r.update(flood_reports.annotate(r, lat, lon))
             r["plain"] = plain(r)
     return r
 
