@@ -9,11 +9,28 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Waves } from "lucide-react";
 import { getToken, waterConfirm, waterConfirmations, waterPoll, waterScene, waterStart, waterStatus, waterUnet, type WaterUnet,
-         type WaterAnswer, type WaterConfirmCount, type WaterHistoryResult, type WaterScene } from "@/lib/api";
+         type PressMatch, type WaterAnswer, type WaterConfirmCount, type WaterHistoryResult, type WaterScene } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 const COVER_COLOR: Record<string, string> = { "≥50%": "#1d5e87", "25–50%": "#3d8fc4", "10–25%": "#8cc3e6" };
 const OUT_COLOR = "#9aa86b";      // đợt NGOÀI mùa lũ (thường nước tưới / nuôi trồng) — tô khác màu đợt trong mùa lũ
+
+// Sổ lũ công khai (14/11/2026): bài báo ghi ngập đúng huyện cũ / tỉnh trùng đợt radar — bằng chứng độc lập, không phải xác nhận thực địa
+function PressLine({ m }: { m?: PressMatch | null }) {
+  const { t } = useLang();
+  if (!m || !m.reports.length) return null;
+  const rp = m.reports[0];
+  const where = rp.via || rp.area;
+  return (
+    <span className={`wh-press ${m.level}`}>
+      {"📰 "}{m.level === "district"
+        ? t(`Báo ghi ngập cùng huyện cũ${where ? ` (${where})` : ""}:`, `News reports flooding in the same former district${where ? ` (${where})` : ""}:`)
+        : t("Báo chỉ ghi tỉnh ngập, chưa nêu huyện:", "News only reports the province flooding, not the district:")}{" "}
+      <a href={rp.url} target="_blank" rel="noopener noreferrer">{rp.publisher} {rp.published}</a>{" — "}{rp.summary}
+      {m.n_reports > 1 && t(` · thêm ${m.n_reports - 1} bài`, ` · ${m.n_reports - 1} more`)}
+    </span>
+  );
+}
 
 function Chart({ r }: { r: WaterHistoryResult }) {
   const { t } = useLang();
@@ -293,6 +310,9 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
       {r && r.available && (
         <>
           {r.plain && <p className={`wh-plain wh-plain-${r.plain.level}`}>{r.plain.text}</p>}
+          {r.press && r.events.length > 0 && (
+            <p className={`wh-press-sum${r.press.n_district ? " has" : ""}`}>{"📰 "}{r.press.text} <small>{r.press.limits}</small></p>
+          )}
           {/* câu lời thường đã nói "không kết luận được vì nhà cửa/tán cây" thì không lặp lại ô ghi chú cùng ý */}
           {r.urban && r.plain?.level !== "blind" && <p className="wh-surface" role="note"><b>{t("Khu đô thị — radar không thấy được ngập giữa nhà cửa.", "Urban area — radar can't see flooding between buildings.")}</b> {r.urban.note}</p>}
           {r.canopy && r.plain?.level !== "blind" && <p className="wh-surface" role="note"><b>{t("Tán cây dày — radar không thấy được nước dưới tán.", "Dense canopy — radar can't see water beneath it.")}</b> {r.canopy.note}</p>}
@@ -326,6 +346,7 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
                     ? t(`VV phân vị ${e.flag_pct} thấp nhất ${e.min_flag_db} dB (ngưỡng −18; trung vị ${e.min_p50_db})`,
                         `lowest VV p${e.flag_pct} ${e.min_flag_db} dB (threshold −18; median ${e.min_p50_db})`)
                     : t(`VV trung vị thấp nhất ${e.min_p50_db} dB`, `lowest median VV ${e.min_p50_db} dB`)}</span>
+                  <PressLine m={e.press} />
                   {onScene && <button type="button" className="wh-off" onClick={() => setFocus({ date: wettestOfEvent(r, e.dates ?? [e.start]), n: Date.now() })}>
                     {t("Xem ảnh radar trên bản đồ", "Show radar image on the map")}</button>}
                   <ConfirmEvent lat={lat} lon={lon} start={e.start} count={counts[e.start]} onSaved={saved} />

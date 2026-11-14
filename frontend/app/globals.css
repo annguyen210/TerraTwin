@@ -5265,6 +5265,13 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .doc-btn.ghost { background: transparent; color: var(--terra); border: 1px solid var(--terra); }
 
 .wh-list li .wh-off { margin-left: 8px; }
+/* Sổ lũ công khai (14/11/2026): tin báo trùng đợt radar */
+.wh-list li .wh-press { display: block; margin: 3px 0 0; font-size: .84rem; line-height: 1.45; color: var(--dim); }
+.wh-list li .wh-press.district { color: var(--text); }
+.wh-list li .wh-press a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.wh-press-sum { margin: 0; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); font-size: .88rem; line-height: 1.45; }
+.wh-press-sum.has { border-color: rgba(61, 143, 196, .55); background: rgba(61, 143, 196, .1); }
+.wh-press-sum small { display: block; margin-top: 2px; color: var(--dim); font-size: .78rem; }
 
 .wh-prog.ind > span { width: 32%; animation: wh-ind 1.3s ease-in-out infinite; }
 @keyframes wh-ind { 0% { transform: translateX(-100%); } 100% { transform: translateX(320%); } }

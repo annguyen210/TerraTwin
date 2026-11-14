@@ -2743,7 +2743,13 @@ export type FocRun = { date: string; chosen?: string; status: "accepted" | "reje
                        pass_thresholds?: Record<string, number>; n?: Record<string, number> };
 // ---------- Lịch sử nước nhìn xuyên mây (radar Sentinel-1) ----------
 export type WaterEvent = { start: string; end: string; n_scenes: number; dates: string[]; peak_cover: string; min_p50_db: number;
-  flag_pct?: number; min_flag_db?: number; flag_date?: string; season?: "in" | "out" };
+  flag_pct?: number; min_flag_db?: number; flag_date?: string; season?: "in" | "out"; press?: PressMatch | null };
+// Sổ lũ công khai (14/11/2026) — backend flood_reports: bài báo ghi ngập đúng huyện cũ / tỉnh trùng đợt radar
+export type PressReport = { id: string; publisher: string; published: string; url: string; summary: string;
+  area: string | null; via?: string | null };
+export type PressMatch = { level: "district" | "province"; reports: PressReport[]; n_reports: number };
+export type PressSummary = { n_district: number; n_province: number; n_events: number; province: string;
+  registry_size: number; text: string; limits: string };
 export type WaterHistoryResult = { available: boolean; message?: string; n_scenes: number; first: string; last: string;
   track: { orbit: string; relative_orbit: number; collection: string }; events: WaterEvent[]; n_events: number;
   baseline_db: Record<string, number>; series: [string, number, number][]; method: string; limits: string; computed: string;
@@ -2755,7 +2761,8 @@ export type WaterHistoryResult = { available: boolean; message?: string; n_scene
   n_in?: number; n_out?: number; out_note?: string | null; out_kind?: "irrigation" | "weather" | null;
   flood_season?: { months: number[]; core: number[]; text: string; window?: string; source?: string; rule_v?: number };
   // Một câu lời thường (việc b, 2/11/2026) — backend water_history.plain
-  plain?: { level: "water" | "dry" | "blind" | "water_body"; count: number; text: string; short: string } | null };
+  plain?: { level: "water" | "dry" | "blind" | "water_body"; count: number; text: string; short: string } | null;
+  press?: PressSummary };
 export type WaterJob = { state: "queued" | "running" | "done" | "error"; job_id?: string; id?: string;
   progress?: { done: number; total: number }; result?: WaterHistoryResult; message?: string;
   elapsed_s?: number; queued_s?: number };
