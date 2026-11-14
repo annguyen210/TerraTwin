@@ -1,0 +1,91 @@
+{
+ "protocol": "terratwin.water_records/1",
+ "scored_at": "2026-11-14",
+ "labels_commit": "f8d2939",
+ "key_sha256_ok": true,
+ "n_radar": 20,
+ "n_placebo": 20,
+ "radar": {
+  "positive": 0,
+  "rate": 0.0,
+  "wilson95": [
+   0.0,
+   0.161
+  ],
+  "levels": {
+   "commune": 0,
+   "district": 0,
+   "province": 3,
+   "not_found": 17,
+   "contradicts": 0
+  }
+ },
+ "placebo": {
+  "positive": 1,
+  "rate": 0.05,
+  "wilson95": [
+   0.009,
+   0.236
+  ],
+  "levels": {
+   "commune": 0,
+   "district": 1,
+   "province": 2,
+   "not_found": 17,
+   "contradicts": 0
+  }
+ },
+ "difference": -0.05,
+ "fisher_one_sided_p": 1.0,
+ "thresholds": {
+  "p_lt": 0.05,
+  "difference_ge": 0.2
+ },
+ "passed": false,
+ "verdict": "TRƯỢT",
+ "key": {
+  "R01": "placebo",
+  "R02": "placebo",
+  "R03": "placebo",
+  "R04": "radar",
+  "R05": "radar",
+  "R06": "placebo",
+  "R07": "placebo",
+  "R08": "placebo",
+  "R09": "placebo",
+  "R10": "radar",
+  "R11": "radar",
+  "R12": "radar",
+  "R13": "radar",
+  "R14": "radar",
+  "R15": "placebo",
+  "R16": "placebo",
+  "R17": "placebo",
+  "R18": "radar",
+  "R19": "radar",
+  "R20": "radar",
+  "R21": "placebo",
+  "R22": "placebo",
+  "R23": "radar",
+  "R24": "radar",
+  "R25": "radar",
+  "R26": "radar",
+  "R27": "placebo",
+  "R28": "radar",
+  "R29": "radar",
+  "R30": "placebo",
+  "R31": "radar",
+  "R32": "radar",
+  "R33": "placebo",
+  "R34": "placebo",
+  "R35": "radar",
+  "R36": "placebo",
+  "R37": "placebo",
+  "R38": "radar",
+  "R39": "placebo",
+  "R40": "placebo"
+ },
+ "positive_items": {
+  "R07": "placebo"
+ }
+}

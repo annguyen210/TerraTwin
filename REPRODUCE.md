@@ -315,6 +315,17 @@ Tiến độ công khai: `GET /api/water/field-check` và dòng cuối thẻ "L�
   0 trái) — tiêu chí ghi trước nhưng KHÔNG khoá mã băm; dòng riêng trên thẻ mô hình lịch sử nước.
 - Kiểm: `cd backend; pytest tests/test_flood_reports.py tests/test_water_press.py`.
 
+### 7h. Cổng hồ sơ công khai có đối chứng (cổng thực địa chính từ 14/11/2026) — TRƯỢT
+
+Chủ dự án quyết đổi cổng kiểm thực địa từ xác nhận người dùng sang hồ sơ công khai. Trình tự, mỗi bước commit trước bước sau:
+giao thức `water_records_protocol.json` (619012f) → 60 điểm ngẫu nhiên seed 20261114 trong 20 tỉnh (`_candidates`, b50f11d)
+→ radar máy chủ chính thức, 10 thửa dùng được → 20 ngày radar + 20 ngày đối chứng (cùng thửa, cùng ngày-tháng, năm khác,
+radar không thấy nước ±30 ngày) trộn, mã băm khoá (`_items`, 282cd7f) → tra báo Q1/Q2 cố định → khoá nhãn (`_labels`, f8d2939)
+→ mở khoá `_key.json` (giữ nguyên byte, khớp mã băm) → chấm một lần (`_result.json`).
+Kết quả: báo nêu đúng huyện 0/20 ngày radar, 1/20 ngày đối chứng (p = 1,0) → TRƯỢT. Đọc đúng: báo hầu như không đưa tin ngập
+cấp huyện cho ruộng ngẫu nhiên mùa mưa, nên cách đo này không xác nhận được radar; không có nguồn nào nói trái.
+Kiểm: `cd backend; pytest tests/test_water_records.py`.
+
 ## 7f. Tổ hợp dự báo mưa best_match + ECMWF AIFS — CỔNG ĐẠT 18/10/2026 (đã bật)
 
 Kế hoạch tổng GĐ5 mục 3. Đăng ký trước [`backend/data/eval/aifs_blend_protocol.json`](backend/data/eval/aifs_blend_protocol.json)
