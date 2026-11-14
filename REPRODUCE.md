@@ -308,8 +308,8 @@ Tiến độ công khai: `GET /api/water/field-check` và dòng cuối thẻ "L�
 
 - `backend/data/flood_reports.json`: mỗi bài báo/tài liệu đã MỞ để kiểm ngày đăng và địa danh; chỉ ghi nơi bài nói rõ là ngập
   (không ghi nơi chỉ sơ tán, nước sông lên, sạt lở, ngầm tràn). Xã/phường mới sau 7/2025 chỉ quy về huyện cũ khi chắc nằm trọn.
-- `backend/app/services/flood_reports.py`: định vị huyện cũ bằng ranh 2020 (`data/admin/vnm_adm2_2020.json`, geoBoundaries,
-  giản lược ~100 m), khớp khi khoảng ngập của bài giao với [ngày bắt đầu đợt − 12, + 3]. Mức huyện > tỉnh. Lớp diễn giải:
+- `backend/app/services/flood_reports.py`: định vị huyện cũ bằng ranh 2020 (`data/admin/vnm_adm2_2020.json`, geoBoundaries gbHumanitarian
+  ADM2 + tỉnh ADM1 cùng nguồn — lớp tỉnh 2008 của Wikipedia sai ranh nên không dùng; giản lược ~100 m), khớp khi khoảng ngập của bài giao với [ngày bắt đầu đợt − 12, + 3]. Mức huyện > tỉnh. Lớp diễn giải:
   không thêm/bớt đợt; gắn `press` vào từng đợt của lịch sử nước và thêm một câu vào kiểm tin rao "không ngập".
 - `backend/data/eval/water_press_{protocol,result}.json`: đối chiếu 24 đợt ở 4 thửa (1 xã, 9 huyện, 4 tỉnh, 10 không thấy,
   0 trái) — tiêu chí ghi trước nhưng KHÔNG khoá mã băm; dòng riêng trên thẻ mô hình lịch sử nước.

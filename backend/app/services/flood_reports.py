@@ -2,8 +2,8 @@
 hoặc tỉnh của thửa. Việc 14/11/2026 — người dùng cần thấy bằng chứng độc lập, không chỉ "máy nói có nước".
 
 Lớp DIỄN GIẢI như mùa lũ: không thêm/bớt đợt, không đổi phép đo, KHÔNG phải xác nhận thực địa (field_truth). Mỗi bài trong
-sổ đã được mở để kiểm ngày đăng và địa danh; chỉ ghi nơi bài nói rõ là ngập. Ranh huyện cũ: geoBoundaries VNM ADM2 2020
-(OCHA ROAP, Chính phủ VN; CC BY 3.0 IGO), giản lược ~100 m — thửa sát ranh huyện có thể bị xếp sang huyện bên cạnh.
+sổ đã được mở để kiểm ngày đăng và địa danh; chỉ ghi nơi bài nói rõ là ngập. Ranh huyện + tỉnh cũ: geoBoundaries gbHumanitarian VNM
+ADM2/ADM1 2020 (Chính phủ VN qua HDX; CC BY 3.0 IGO), giản lược ~100 m — thửa sát ranh huyện có thể bị xếp sang huyện bên cạnh.
 Cửa sổ ngày như phép đối chiếu báo chí (water_press_protocol.json): khoảng ngập của bài giao với [S−12, S+3] ngày."""
 from __future__ import annotations
 

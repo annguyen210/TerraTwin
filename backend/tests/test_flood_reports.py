@@ -31,6 +31,14 @@ def test_dinh_vi_huyen_cu():
         loc = fr.locate(la, lo)
         assert loc["district_key"] == d and loc["province"] == p
     assert fr.locate(13.75, 100.5) is None                                             # Bangkok: ngoài sổ
+    assert fr.locate(20.77592, 105.97731)["province"] == "Hưng Yên"                    # Khoái Châu (lớp tỉnh 2008 gán nhầm Hà Nội)
+
+
+def test_moi_huyen_thuoc_dung_mot_trong_63_tinh():
+    u = json.load(open(os.path.join(DATA, "admin", "vnm_adm2_2020.json"), encoding="utf-8"))["units"]
+    assert len(u) == 708 and len({x["province"] for x in u}) == 63
+    got = {(x["name"], x["province"]) for x in u}
+    assert {("Kim Bang", "Hà Nam"), ("Pho Yen", "Thái Nguyên"), ("Cho Gao", "Tiền Giang"), ("Binh Giang", "Hải Dương")} <= got
 
 
 def test_duong_no_khop_huyen_va_cua_so_ngay():
