@@ -1,0 +1,297 @@
+{
+ "protocol": "terratwin.water_records/1",
+ "items_commit": "282cd7f",
+ "labelled": "2026-11-14",
+ "labeller": "Claude (tự giữ mù: chưa mở key.json)",
+ "sha256_key_expected": "cb60c136fa254728eeb98aff224b9a69c2748c04d6a6bfd1444728b022796e4f",
+ "rule_notes": [
+  "Chỉ dùng bài xuất hiện trong kết quả Q1/Q2 của chính mục đó; mở tối đa 3 bài/mục.",
+  "province và not_found chỉ phân biệt khi có bài trong cửa sổ được mở kiểm; cả hai đều KHÔNG tính dương.",
+  "R22 dùng chung tra cứu với R08 (cùng huyện, cùng ngày). Q1 của R30/R21 và R37/R33 trùng câu nên dùng chung kết quả Q1; Q2 riêng."
+ ],
+ "counts": {
+  "commune": 0,
+  "district": 1,
+  "province": 5,
+  "not_found": 34,
+  "contradicts": 0
+ },
+ "labels": {
+  "R01": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q2: vov 1239849 đăng 22/10/2025 (ngoài cửa sổ), không nêu Tân Hồng",
+   "sources": []
+  },
+  "R02": {
+   "level": "province",
+   "queries": "Q1+Q2",
+   "note": "VietnamPlus 15/8/2026: ngập cục bộ phường Bình Thủy (Cần Thơ), không nêu Cờ Đỏ",
+   "sources": [
+    {
+     "url": "https://www.vietnamplus.vn/trieu-cuong-vuot-bao-dong-i-ket-hop-mua-lon-gay-ngap-cuc-bo-tai-can-tho-post1130431.vnp",
+     "published": "2026-08-15",
+     "where": "phường Bình Thủy"
+    }
+   ]
+  },
+  "R03": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q2: PLO 26/9/2024 ngập nội ô (ngoài cửa sổ)",
+   "sources": []
+  },
+  "R04": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q1: bài Tứ Kỳ ngập là bão Yagi 9/2024 (ngoài cửa sổ); Q2 không có tin Hải Dương 7/2025",
+   "sources": []
+  },
+  "R05": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q2: VTC 30/5/2020 ngập Ninh Kiều/Bình Thủy (ngoài cửa sổ)",
+   "sources": []
+  },
+  "R06": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q2: PLO 24/10/2024 ngập Mộc Hóa, Tân Hưng, Tân Thạnh (ngoài cửa sổ, không Tân Trụ)",
+   "sources": []
+  },
+  "R07": {
+   "level": "district",
+   "queries": "Q1",
+   "note": "Thanh tra 27/9/2023: đợt mưa làm ngập úng vùng trũng, tập trung tại Anh Sơn, Thanh Chương, Đô Lương, Nam Đàn, Vinh…",
+   "sources": [
+    {
+     "url": "https://thanhtra.com.vn/an-sinh-AFA9C5670/mua-lon-keo-dai-ngay-ngap-lut-nhieu-huyen-mien-nui-trung-du-BBE31D98.html",
+     "published": "2023-09-27",
+     "where": "huyện Nam Đàn"
+    }
+   ]
+  },
+  "R08": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q1/Q2: bài Cần Thơ ngập đều ngoài cửa sổ (PLO 26/9/2024, VNS ~26/9/2024) hoặc chỉ dự báo triều",
+   "sources": []
+  },
+  "R09": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q2: chỉ có công văn ứng phó mưa dông 30/7/2025, không tả ngập; tin ngập khác ngoài cửa sổ",
+   "sources": []
+  },
+  "R10": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q1: VNS 11/10/2017 (ngoài cửa sổ, Ninh Kiều); Q2: không bài nào mở kiểm được trong cửa sổ nêu Cờ Đỏ",
+   "sources": []
+  },
+  "R11": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q1: VNS 26/8/2023 chỉ Hồng Ngự, ngoài cửa sổ; Q2 không có tin VN",
+   "sources": []
+  },
+  "R12": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q2: SGGP 8/12/2018 (ngoài cửa sổ, Ninh Kiều/Bình Thủy)",
+   "sources": []
+  },
+  "R13": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q1: bài Tứ Kỳ báo động III là 14/9/2024 (Yagi); Q2: tin ngập Hải Phòng (Hải Dương cũ) 24/8/2026 sau bão Narra — ngoài cửa sổ, không nêu Tứ Kỳ",
+   "sources": []
+  },
+  "R14": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q1: VOV 7/9/2026 chỉ cảnh báo mực nước (ngoài cửa sổ, không nêu Tân Hồng); Q2 không có tin ngập Đồng Tháp trong cửa sổ",
+   "sources": []
+  },
+  "R15": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q2: Pháp luật VN 20/8/2026 (Con Cuông, Quỳnh Văn…) — năm khác; không có bài 8/2022 nêu Nam Đàn",
+   "sources": []
+  },
+  "R16": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q2: Pháp luật VN 20/10/2017 (Kiến Xương, Hưng Hà, Vũ Thư) — ngoài cửa sổ, không Đông Hưng",
+   "sources": []
+  },
+  "R17": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q1: bài Hồng Ngự/Tân Hồng ngập là lũ cũ (27/8, nhiều năm trước); Q2 không có tin Đồng Tháp 8/2021",
+   "sources": []
+  },
+  "R18": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q1/Q2: tin Nam Định ngập là bão số 1 (16–17/7/2017) — ngoài cửa sổ; không có tin trong 21/6–6/7/2017",
+   "sources": []
+  },
+  "R19": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q1: tin ngập là bão Wipha 22–24/7/2025 (ngoài cửa sổ); Q2: tin 9/7 là Thái Nguyên, không Thái Bình",
+   "sources": []
+  },
+  "R20": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q1/Q2: tin ngập Long An/Tây Ninh 2024–2025 hoặc chỉ nguy cơ; không có bài 9/2026 nêu Tân Trụ",
+   "sources": []
+  },
+  "R21": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q1: DTi 4/7/2020 chỉ chuẩn bị ứng phó; Q2 không có tin ngập Nam Định 1–16/7/2020",
+   "sources": []
+  },
+  "R22": {
+   "level": "not_found",
+   "queries": "Q1+Q2 (dùng chung R08)",
+   "note": "Cùng huyện + cùng ngày với R08 → cùng kết quả tra",
+   "sources": []
+  },
+  "R23": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q2: mưa 19/7/2022 và bão Mulan 8/2022 — ngoài cửa sổ",
+   "sources": []
+  },
+  "R24": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q2: chỉ báo cáo tiến độ sản xuất 25/7/2023 và dự báo mưa 8/2023 — không tả ngập trong cửa sổ",
+   "sources": []
+  },
+  "R25": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q1/Q2: chỉ có gió lốc (1–2/8/2023) và ngập phố nội ô chưa mở kiểm; không bài nào nêu Cờ Đỏ",
+   "sources": []
+  },
+  "R26": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q1: tin Tuy Phước ngập là 30/12/2018, 30/11/2021, cuối 12/2022–1/2023 — ngoài cửa sổ; Q2: Pháp luật VN 6/11/2024 (năm khác)",
+   "sources": []
+  },
+  "R27": {
+   "level": "province",
+   "queries": "Q1+Q2",
+   "note": "VOH 27/11/2024: ngập 14 điểm ở Bình Định (An Trung, An Quang, An Nghĩa), không nêu Tuy Phước; tin Tuy Phước ngập 16/12/2024 ngoài cửa sổ",
+   "sources": [
+    {
+     "url": "https://voh.com.vn/xa-hoi/mua-lon-lu-quet-sat-lo-gay-nhieu-thiet-hai-o-thua-thien-hue-quang-ngai-quang-nam-va-binh-dinh-566493.html",
+     "published": "2024-11-27",
+     "where": "Bình Định (An Lão)"
+    }
+   ]
+  },
+  "R28": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q2: không có bài 2017 nêu Tân Hồng; tin Đồng Tháp ngập trong kết quả là năm khác",
+   "sources": []
+  },
+  "R29": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q1/Q2: tin Thái Bình ngập là 19–21/7/2018 (ngoài cửa sổ) và 20/10/2017; bản báo in Thái Bình không mở được (chứng chỉ hết hạn)",
+   "sources": []
+  },
+  "R30": {
+   "level": "not_found",
+   "queries": "Q1(dùng chung R21)+Q2",
+   "note": "Q2: bão số 2 đổ bộ Hải Phòng–Nam Định là năm 2019 (SGGP post523271), DTi 4/7/2020 chỉ chuẩn bị",
+   "sources": []
+  },
+  "R31": {
+   "level": "province",
+   "queries": "Q1+Q2",
+   "note": "SGGP 19/8/2018: mưa lũ sau bão Bebinca, Nghệ An có nhà ngập, không nêu Nam Đàn; DTi 17/8/2018 chỉ Kỳ Sơn, Thái Hòa…",
+   "sources": [
+    {
+     "url": "https://www.sggp.org.vn/mua-lu-sau-bao-hang-ngan-nha-dan-bi-ngap-sau-post489029.html",
+     "published": "2018-08-19",
+     "where": "Nghệ An"
+    }
+   ]
+  },
+  "R32": {
+   "level": "not_found",
+   "queries": "Q1+Q2 (Q2 dùng chung R29)",
+   "note": "Như R29: tin Thái Bình ngập 19–21/7/2018 ngoài cửa sổ",
+   "sources": []
+  },
+  "R33": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q1/Q2: tin Hải Dương ngập đều là bão Yagi 9/2024; không có tin 26/6–11/7/2020",
+   "sources": []
+  },
+  "R34": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q1/Q2: tin Thái Bình ngập là 7/2018, 9/2018–2020, 10/2020 — ngoài cửa sổ",
+   "sources": []
+  },
+  "R35": {
+   "level": "province",
+   "queries": "Q1",
+   "note": "Tuổi Trẻ 27/9/2021 + ADINet 23/9/2021 (bão Dianmu): Nghệ An ngập, nêu Quỳnh Lưu, Nghĩa Đàn — không nêu Nam Đàn",
+   "sources": [
+    {
+     "url": "https://news.tuoitre.vn/news/society/20210927/flood-kills-1-person-swamps-nearly-3400-houses-in-northcentral-vietnam/63293.html",
+     "published": "2021-09-27",
+     "where": "Nghệ An (Quỳnh Lưu)"
+    }
+   ]
+  },
+  "R36": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q1/Q2: chỉ có tin sạt lở và ảnh MODIS chung vùng Đồng Tháp Mười; không bài nào nêu Tân Hồng ngập trong cửa sổ",
+   "sources": []
+  },
+  "R37": {
+   "level": "not_found",
+   "queries": "Q1(dùng chung R33)+Q2",
+   "note": "Q2: tin ngập 7/2020 là Hưng Yên/miền núi phía Bắc; tin Hải Dương là 2024–2025",
+   "sources": []
+  },
+  "R38": {
+   "level": "province",
+   "queries": "Q1+Q2",
+   "note": "SGGP 13/9/2025: 11–12/9 nhiều tuyến đường, chợ ven sông Hậu (Ninh Kiều) ngập — không nêu Cờ Đỏ",
+   "sources": [
+    {
+     "url": "https://www.sggp.org.vn/lu-o-dbscl-vuot-bao-dong-3-dau-nguon-soi-dong-muu-sinh-cuoi-nguon-chat-vat-ung-pho-ngap-post812815.html",
+     "published": "2025-09-13",
+     "where": "Cần Thơ (Ninh Kiều)"
+    }
+   ]
+  },
+  "R39": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q1/Q2: tin Thái Bình ngập là 7/2018 hoặc 9/2019–2020 — ngoài cửa sổ",
+   "sources": []
+  },
+  "R40": {
+   "level": "not_found",
+   "queries": "Q1+Q2",
+   "note": "Q2: tin 'phía Tây Hải Phòng (Hải Dương cũ) ngập' là 8/2026 (bão số 4) — năm khác",
+   "sources": []
+  }
+ }
+}

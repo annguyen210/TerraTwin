@@ -1,0 +1,52 @@
+{
+ "id": "terratwin.water_records/1",
+ "registered": "2026-11-14",
+ "registered_before_sampling": true,
+ "decision": "Chủ dự án quyết 14/11/2026: cổng kiểm thực địa chính đổi từ 'xác nhận của người dùng' (water_field_protocol.json — người quen nhớ không chắc) sang ĐỐI CHIẾU HỒ SƠ CÔNG KHAI có đối chứng. Xác nhận người dùng vẫn mở, thành phần cộng thêm, không bắt buộc.",
+ "question": "Khi radar nói 'nước phủ thửa ngày S', báo chí / tài liệu công khai có ghi NGẬP ở đúng huyện cũ của thửa quanh ngày S THƯỜNG HƠN so với một ngày đối chứng cùng thửa, cùng mùa, mà radar KHÔNG thấy nước không?",
+ "why_placebo": "Ở vùng hay ngập, gần như tháng mưa nào cũng có tin ngập; so với ngày đối chứng mới tách được thông tin radar khỏi 'mùa nào cũng ngập'.",
+ "seen_before_registration": "Phép đối chiếu phụ 14/11 (water_press_result.json: 10/24 khớp xã/huyện trên 4 thửa tự chọn, KHÔNG có đối chứng) đã được xem trước khi đặt ngưỡng. 4 huyện của 4 thửa đó bị loại khỏi khung mẫu.",
+ "frame": {
+  "regions": {
+   "Bắc": ["Hà Nội", "Hải Dương", "Bắc Giang", "Thái Bình", "Nam Định", "Ninh Bình"],
+   "Trung": ["Thanh Hóa", "Nghệ An", "Hà Tĩnh", "Quảng Bình", "Quảng Trị", "Thừa Thiên Huế", "Quảng Nam", "Quảng Ngãi", "Bình Định", "Phú Yên"],
+   "Nam": ["An Giang", "Đồng Tháp", "Cần Thơ", "Long An"]
+  },
+  "excluded_districts": ["Cẩm Giàng (Hải Dương)", "Bố Trạch (Quảng Bình)", "Quảng Điền (Thừa Thiên Huế)", "Phú Vang (Thừa Thiên Huế)"],
+  "boundaries": "huyện cũ = geoBoundaries VNM ADM2 2020 (backend/data/admin/vnm_adm2_2020.json); tỉnh cũ = ADM1."
+ },
+ "sampling": {
+  "seed": 20261114,
+  "candidates": "Sinh 60 điểm ứng viên theo thứ tự vòng Bắc → Trung → Nam: mỗi lượt chọn ngẫu nhiên một tỉnh trong vùng, một huyện trong tỉnh (trừ 4 huyện loại), một điểm ngẫu nhiên đều trong ranh huyện (lấy mẫu loại bỏ trong hộp bao). Danh sách ứng viên + mã băm commit TRƯỚC khi gọi radar.",
+  "usable_plot": "Đọc lịch sử nước trên máy chủ chính thức (/api/water/history, phương pháp đang chạy, không sửa). Dùng được khi: available; không urban, không canopy, không water_surface; có ≥ 1 đợt 'tính là ngập' (trong mùa lũ nếu có lớp mùa lũ, còn không thì mọi đợt). Duyệt ứng viên theo thứ tự, giữ tối đa 4 thửa mỗi vùng, dừng khi đủ 12 thửa hoặc hết ứng viên.",
+  "radar_items": "Mỗi thửa lấy ngẫu nhiên tối đa 3 đợt 'tính là ngập' (ngày bắt đầu S); lấy tới khi đủ 20 mục radar (thiếu thì dùng hết).",
+  "placebo_items": "Mỗi mục radar có đúng 1 mục đối chứng: cùng thửa, cùng ngày-tháng ở một năm khác 2017–2026 chọn ngẫu nhiên, sao cho trong ±30 ngày quanh ngày đó radar KHÔNG có đợt nào, ngày đó ≥ cảnh đầu tiên + 12 ngày và ≤ hôm nay − 3 ngày. Không có năm hợp lệ → bỏ cả cặp, rút đợt khác.",
+  "blinding": "Trộn mục radar + đối chứng theo seed, đánh số R01…; danh sách tra cứu chỉ có mã, huyện, tỉnh, ngày. Khoá phân loại (mục nào là radar) ghi riêng, commit MÃ BĂM trước khi tra, chỉ mở sau khi đã commit nhãn. Người tra (Claude) tự giữ mù — ghi rõ giới hạn này."
+ },
+ "search": {
+  "queries": ["Q1: \"{huyện} {tỉnh} ngập lụt tháng {M}/{YYYY}\"", "Q2 (chỉ khi Q1 không có nguồn đạt): \"{tỉnh} mưa lũ ngập {D}/{M}/{YYYY}\""],
+  "allowed_sources": "báo chính thống, trang cơ quan nhà nước, ReliefWeb/OCHA/IFRC/AHA Centre, Copernicus EMS, UNOSAT. Không dùng mạng xã hội, diễn đàn, nguồn không ghi ngày.",
+  "verification": "Chỉ dùng bài xuất hiện trong kết quả của Q1/Q2; mở tối đa 3 bài mỗi mục để kiểm ngày đăng + địa danh; không dựa vào bản tóm tắt của công cụ tìm kiếm.",
+  "window": "khoảng ngập bài mô tả giao với [ngày − 12, ngày + 3]."
+ },
+ "levels": {
+  "commune": "bài nêu ngập ở xã/phường chứa điểm",
+  "district": "bài nêu ngập ở huyện cũ chứa điểm (hoặc xã mới chắc chắn nằm trọn trong huyện cũ đó)",
+  "province": "bài chỉ nêu tỉnh — KHÔNG tính dương",
+  "not_found": "không có nguồn đạt — KHÔNG tính dương",
+  "contradicts": "bài nói rõ huyện đó KHÔNG ngập trong cửa sổ — ghi riêng"
+ },
+ "scoring": {
+  "positive": "commune hoặc district",
+  "metrics": "P_radar, P_đối_chứng (tỉ lệ dương), Wilson 95%; kiểm định Fisher chính xác một phía (radar > đối chứng).",
+  "pass": "p < 0,05 VÀ P_radar − P_đối_chứng ≥ 0,20",
+  "fail": "không đạt một trong hai → TRƯỢT, công bố trên thẻ mô hình",
+  "inconclusive": "< 15 mục radar → CHƯA KẾT LUẬN",
+  "once": "chấm đúng MỘT lần sau khi nhãn đã commit; không sửa nhãn sau khi mở khoá."
+ },
+ "limits": [
+  "Báo chí nêu huyện/xã, không chứng minh chính thửa bị ngập; đây là kiểm mức huyện.",
+  "Báo thiên về trận lớn; đợt ngập nhỏ, nước ruộng theo vụ thường không lên báo.",
+  "Một người (Claude) tra và xếp mức; giữ mù do chính người tra tự giữ."
+ ]
+}
