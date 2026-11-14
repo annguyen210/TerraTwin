@@ -67,6 +67,8 @@ Tra trên **WIPO Global Brand Database** (branddb.wipo.int — có dữ liệu C
    `TERRATWIN_OPENMETEO_API_KEY` gói trả phí; (b) ảnh nền độ phân giải cao là **Esri World Imagery** (ảnh Vantor/Maxar,
    dòng "Ảnh nền: … chụp ngày …" dưới thửa) → đọc điều khoản dùng thương mại của Esri (thường cần tài khoản/khoá ArcGIS
    Location Platform) hoặc đổi nhà cung cấp; (c) bản đồ vùng ngập UNOSAT dùng để KIỂM (CC BY-SA) — không phân phối lại đa giác.
+   (d) ranh huyện cũ 2020 `backend/data/admin/vnm_adm2_2020.json` = geoBoundaries VNM ADM2 (OCHA ROAP, Chính phủ VN;
+   CC BY 3.0 IGO — được phân phối lại, phải ghi nguồn); sổ lũ `flood_reports.json` chỉ lưu đường dẫn + tóm tắt tự viết, không chép bài báo.
 
 ## 4. Phần mã đã sẵn sàng (không cần làm thêm)
 

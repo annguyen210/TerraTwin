@@ -206,6 +206,12 @@ def judge(typ: str, ev: dict) -> tuple[str, str, str]:
     if crop and typ in ("no_flood", "high_ground") and v == "contradicted":
         months = sorted({e["start"][5:7] for e in ((ev.get("water") or {}).get("events") or [])})
         msg += " " + crop["note"] + (tr(f" Tháng các đợt: {', '.join(months)}.", f" Event months: {', '.join(months)}.") if months else "")
+    if typ == "no_flood" and v == "contradicted" and ev.get("water"):
+        from app.services import flood_reports        # sổ lũ công khai: bằng chứng độc lập kèm radar (14/11/2026)
+        w = ev["water"]
+        extra = flood_reports.evidence(w.get("events") or [], season_only="n_in" in w)
+        if extra:
+            msg, src = msg + extra, src + tr(" · báo chí", " · news")
     if u and typ in ("no_flood", "high_ground") and v == "consistent":
         return "insufficient", u["note"] + tr(f" (Phần đo được: {msg})", f" (What was measured: {msg})"), "ESA WorldCover / Sentinel-1"
     if u and typ in ("no_flood", "high_ground") and v == "insufficient" and not ev.get("water"):

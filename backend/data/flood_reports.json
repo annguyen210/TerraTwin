@@ -1,0 +1,552 @@
+{
+ "id": "terratwin.flood_reports/1",
+ "updated": "2026-11-14",
+ "rule": "Chỉ ghi nơi bài báo/tài liệu NÓI RÕ là ngập (không ghi nơi chỉ sơ tán, nước sông lên, sạt lở, ngầm tràn). Mỗi bài đã được mở để kiểm ngày đăng và địa danh. Chỉ lưu đường dẫn, ngày, tóm tắt ngắn do TerraTwin viết.",
+ "match": "Một đợt radar bắt đầu ngày S khớp bài khi khoảng ngập của bài giao với [S−12 ngày, S+3 ngày]. Mức: xã/phường (thửa nằm trong vòng tròn tâm xã), huyện (ranh huyện cũ 2020), tỉnh (tỉnh cũ).",
+ "reports": [
+  {
+   "id": "vietnamnews-417032",
+   "publisher": "Việt Nam News",
+   "published": "2017-11-07",
+   "url": "https://vietnamnews.vn/society/417032/historic-flood-hits-hue-killing-9.html",
+   "flood_from": "2017-11-04",
+   "flood_to": "2017-11-07",
+   "provinces": [
+    "Thừa Thiên Huế"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Quảng Điền",
+     "province": "Thừa Thiên Huế"
+    }
+   ],
+   "summary": {
+    "vi": "Lũ lịch sử ở Huế sau bão Damrey; dân Quảng Điền đi lại bằng bè trong lũ.",
+    "en": "Historic flood in Huế after Typhoon Damrey; Quảng Điền residents travelled by raft."
+   }
+  },
+  {
+   "id": "vietnamnews-417241",
+   "publisher": "Việt Nam News",
+   "published": "2017-11-10",
+   "url": "https://vietnamnews.vn/society/417241/inundation-continues-in-hue-s-lowland-areas.html",
+   "flood_from": "2017-11-04",
+   "flood_to": "2017-11-10",
+   "provinces": [
+    "Thừa Thiên Huế"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Quảng Điền",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Phong Điền",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Hương Trà",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Phú Vang",
+     "province": "Thừa Thiên Huế"
+    }
+   ],
+   "summary": {
+    "vi": "Vùng trũng Huế còn ngập: toàn huyện Quảng Điền ngập; học sinh xã vùng trũng Phong Điền, Quảng Điền, Hương Trà, Phú Vang nghỉ học vì lũ.",
+    "en": "Huế lowlands still flooded: all of Quảng Điền under water; lowland pupils in Phong Điền, Quảng Điền, Hương Trà, Phú Vang kept home by floods."
+   }
+  },
+  {
+   "id": "thanhtra-EB2BDE00",
+   "publisher": "Thanh tra",
+   "published": "2020-10-11",
+   "url": "https://thanhtra.com.vn/an-sinh-AFA9C5670/mua-lu-lam-hon-53-ngan-ngoi-nha-bi-ngap-nuoc-tiep-tuc-dang-cao-EB2BDE00.html",
+   "flood_from": "2020-10-09",
+   "flood_to": "2020-10-11",
+   "provinces": [
+    "Thừa Thiên Huế"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Quảng Điền",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Hương Trà",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Phong Điền",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Phú Vang",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Hương Thủy",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Huế",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Phú Lộc",
+     "province": "Thừa Thiên Huế"
+    }
+   ],
+   "summary": {
+    "vi": "Hơn 53.000 nhà ở Thừa Thiên Huế ngập: Quảng Điền 16.228, Hương Trà 11.279, Phong Điền 8.736, Phú Vang 8.287, Hương Thủy 4.156, TP Huế 2.560, Phú Lộc 2.033.",
+    "en": "Over 53,000 homes flooded in Thừa Thiên Huế: Quảng Điền 16,228, Hương Trà 11,279, Phong Điền 8,736, Phú Vang 8,287, Hương Thủy 4,156, Huế city 2,560, Phú Lộc 2,033."
+   }
+  },
+  {
+   "id": "sggp-571322",
+   "publisher": "SGGP",
+   "published": "2020-10-12",
+   "url": "https://www.sggp.org.vn/lu-vay-xuan-tuy-post571322.html",
+   "flood_from": "2020-10-10",
+   "flood_to": "2020-10-12",
+   "provinces": [
+    "Thừa Thiên Huế"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Quảng Điền",
+     "province": "Thừa Thiên Huế"
+    }
+   ],
+   "summary": {
+    "vi": "Lũ vây thôn Xuân Tùy (xã Quảng Phú, Quảng Điền); ngày 10/10 nước vượt đỉnh lũ năm 1999.",
+    "en": "Flood surrounds Xuân Tùy village (Quảng Phú, Quảng Điền); on 10/10 water topped the 1999 peak."
+   }
+  },
+  {
+   "id": "vov-786826",
+   "publisher": "VOV",
+   "published": "2020-10-17",
+   "url": "https://vov.vn/xa-hoi/quang-binh-quang-tri-cang-minh-chong-lu-gan-chuc-nghin-nha-dan-bi-ngap-nang-786826.vov",
+   "flood_from": "2020-10-15",
+   "flood_to": "2020-10-17",
+   "provinces": [
+    "Quảng Bình",
+    "Quảng Trị"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Lệ Thủy",
+     "province": "Quảng Bình"
+    },
+    {
+     "level": "district",
+     "name": "Quảng Ninh",
+     "province": "Quảng Bình"
+    },
+    {
+     "level": "district",
+     "name": "Minh Hóa",
+     "province": "Quảng Bình"
+    },
+    {
+     "level": "district",
+     "name": "Bố Trạch",
+     "province": "Quảng Bình"
+    },
+    {
+     "level": "district",
+     "name": "Gio Linh",
+     "province": "Quảng Trị"
+    },
+    {
+     "level": "district",
+     "name": "Cam Lộ",
+     "province": "Quảng Trị"
+    },
+    {
+     "level": "district",
+     "name": "Đa Krông",
+     "province": "Quảng Trị"
+    },
+    {
+     "level": "district",
+     "name": "Hải Lăng",
+     "province": "Quảng Trị"
+    },
+    {
+     "level": "district",
+     "name": "Minh Hóa",
+     "province": "Quảng Bình",
+     "via": "xã Tân Hóa"
+    }
+   ],
+   "summary": {
+    "vi": "Gần chục nghìn nhà dân Quảng Bình, Quảng Trị ngập nặng; nhà ở Lệ Thủy, Quảng Ninh, Minh Hóa, Bố Trạch ngập sâu.",
+    "en": "Nearly ten thousand homes badly flooded in Quảng Bình and Quảng Trị; deep flooding in Lệ Thủy, Quảng Ninh, Minh Hóa, Bố Trạch."
+   }
+  },
+  {
+   "id": "sggp-572182",
+   "publisher": "SGGP",
+   "published": "2020-10-19",
+   "url": "https://www.sggp.org.vn/quang-binh-giai-cuu-20-nguoi-trong-xe-khach-bi-lu-cuon-troi-100000-ngoi-nha-ngap-sau-post572182.html",
+   "flood_from": "2020-10-18",
+   "flood_to": "2020-10-19",
+   "provinces": [
+    "Quảng Bình"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Bố Trạch",
+     "province": "Quảng Bình"
+    }
+   ],
+   "summary": {
+    "vi": "Quảng Bình: 100.000 nhà ngập sâu; cứu 20 người trên xe khách bị lũ cuốn ở Việt Trung (Bố Trạch).",
+    "en": "Quảng Bình: 100,000 homes deeply flooded; 20 rescued from a bus swept away at Việt Trung (Bố Trạch)."
+   }
+  },
+  {
+   "id": "vtcnews-ar580161",
+   "publisher": "VTC News",
+   "published": "2020-11-11",
+   "url": "https://vtcnews.vn/lu-len-nhanh-nhieu-noi-chim-trong-bien-nuoc-hue-cho-hoc-sinh-nghi-hoc-ar580161.html",
+   "flood_from": "2020-11-11",
+   "flood_to": "2020-11-11",
+   "provinces": [
+    "Thừa Thiên Huế"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Huế",
+     "province": "Thừa Thiên Huế"
+    }
+   ],
+   "summary": {
+    "vi": "Lũ lên nhanh, nước sông Hương tràn lên khu Đập Đá (TP Huế), chia cắt đường Lê Lợi – Nguyễn Sinh Cung.",
+    "en": "Fast-rising flood: the Hương River spilled onto Đập Đá (Huế city), cutting Lê Lợi – Nguyễn Sinh Cung."
+   }
+  },
+  {
+   "id": "baophapluat-417494",
+   "publisher": "Pháp luật Việt Nam",
+   "published": "2021-10-17",
+   "url": "https://baophapluat.vn/thua-thien-hue-ngap-nhieu-vung-thuy-dien-tang-luu-luong-xa-nuoc-post417494.html",
+   "flood_from": "2021-10-16",
+   "flood_to": "2021-10-17",
+   "provinces": [
+    "Thừa Thiên Huế"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Phong Điền",
+     "province": "Thừa Thiên Huế"
+    }
+   ],
+   "summary": {
+    "vi": "Thừa Thiên Huế ngập nhiều vùng khi thủy điện tăng xả; nhiều tuyến đường ở Phong Điền ngập.",
+    "en": "Many areas of Thừa Thiên Huế flooded as dams raised releases; many roads in Phong Điền under water."
+   }
+  },
+  {
+   "id": "vnexpress-4375276",
+   "publisher": "VnExpress",
+   "published": "2021-10-22",
+   "url": "https://vnexpress.net/mien-trung-mua-lon-4375276.html",
+   "flood_from": "2021-10-22",
+   "flood_to": "2021-10-22",
+   "provinces": [
+    "Thừa Thiên Huế"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Quảng Điền",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Phong Điền",
+     "province": "Thừa Thiên Huế"
+    }
+   ],
+   "summary": {
+    "vi": "Miền Trung mưa lớn; vùng trũng Quảng Điền, Phong Điền đang ngập úng do mưa những ngày trước.",
+    "en": "Heavy rain in central Vietnam; low-lying Quảng Điền and Phong Điền waterlogged from earlier rain."
+   }
+  },
+  {
+   "id": "sggp-709325",
+   "publisher": "SGGP",
+   "published": "2023-10-11",
+   "url": "https://www.sggp.org.vn/mua-lon-gay-ngap-lut-cuc-bo-tai-thua-thien-hue-post709325.html",
+   "flood_from": "2023-10-11",
+   "flood_to": "2023-10-11",
+   "provinces": [
+    "Thừa Thiên Huế"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Huế",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Phong Điền",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Quảng Điền",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Hương Trà",
+     "province": "Thừa Thiên Huế"
+    }
+   ],
+   "summary": {
+    "vi": "Mưa lớn gây ngập cục bộ: TP Huế đường ngập 0,2–0,4 m; tỉnh lộ 4 đoạn tràn Thủ Lễ (Quảng Điền) ngập 0,6 m; đường ở Hương Trà ngập 0,3–0,4 m.",
+    "en": "Heavy rain caused local flooding: Huế city streets 0.2–0.4 m; provincial road 4 at Thủ Lễ (Quảng Điền) 0.6 m; Hương Trà roads 0.3–0.4 m."
+   }
+  },
+  {
+   "id": "sggp-759686",
+   "publisher": "SGGP",
+   "published": "2024-09-19",
+   "url": "https://www.sggp.org.vn/nhieu-dia-phuong-bi-ngap-lut-do-mua-bao-post759686.html",
+   "flood_from": "2024-09-19",
+   "flood_to": "2024-09-19",
+   "provinces": [
+    "Thừa Thiên Huế",
+    "Thanh Hóa",
+    "Hà Tĩnh"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Huế",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Đông Sơn",
+     "province": "Thanh Hóa"
+    },
+    {
+     "level": "district",
+     "name": "Quảng Xương",
+     "province": "Thanh Hóa"
+    },
+    {
+     "level": "district",
+     "name": "Nông Cống",
+     "province": "Thanh Hóa"
+    },
+    {
+     "level": "district",
+     "name": "Triệu Sơn",
+     "province": "Thanh Hóa"
+    }
+   ],
+   "summary": {
+    "vi": "Mưa bão Soulik: sáng 19/9 nhiều vùng trũng TP Huế ngập úng; ngập ở Thanh Hóa (Đông Sơn, Quảng Xương, Nông Cống, Triệu Sơn) và khu Vũng Áng (Hà Tĩnh).",
+    "en": "Storm Soulik rain: low-lying parts of Huế city flooded on the morning of 19/9; flooding in Thanh Hóa (Đông Sơn, Quảng Xương, Nông Cống, Triệu Sơn) and Vũng Áng (Hà Tĩnh)."
+   }
+  },
+  {
+   "id": "vietnamnews-1663415",
+   "publisher": "Việt Nam News",
+   "published": "2024-09-21",
+   "url": "https://vietnamnews.vn/environment/1663415/central-region-provinces-flooded-and-cut-off-after-tropical-storm-soulik.html",
+   "flood_from": "2024-09-19",
+   "flood_to": "2024-09-21",
+   "provinces": [
+    "Quảng Bình"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Minh Hóa",
+     "province": "Quảng Bình"
+    },
+    {
+     "level": "district",
+     "name": "Minh Hóa",
+     "province": "Quảng Bình",
+     "via": "xã Tân Hóa"
+    }
+   ],
+   "summary": {
+    "vi": "Sau bão Soulik, 538 hộ ở Minh Hóa (Quảng Bình) bị ngập sâu 0,5–2 m.",
+    "en": "After Storm Soulik, 538 households in Minh Hóa (Quảng Bình) flooded 0.5–2 m deep."
+   }
+  },
+  {
+   "id": "vietnamnews-1728268",
+   "publisher": "Việt Nam News",
+   "published": "2025-10-27",
+   "url": "https://vietnamnews.vn/society/1728268/record-flooding-hits-hue-city-as-bo-river-rises-above-alert-level-3.html",
+   "flood_from": "2025-10-27",
+   "flood_to": "2025-10-27",
+   "provinces": [
+    "Thừa Thiên Huế"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Huế",
+     "province": "Thừa Thiên Huế",
+     "via": "phường Thủy Xuân"
+    },
+    {
+     "level": "district",
+     "name": "Huế",
+     "province": "Thừa Thiên Huế",
+     "via": "phường Thuận Hóa"
+    }
+   ],
+   "summary": {
+    "vi": "Lũ kỷ lục ở Huế: sông Bồ vượt báo động 3; nhiều tuyến phố ở Thủy Xuân, Thuận Hóa, Kim Trà ngập.",
+    "en": "Record flooding in Huế: Bồ River above alert level 3; streets in Thủy Xuân, Thuận Hóa, Kim Trà under water."
+   }
+  },
+  {
+   "id": "vtcnews-ar984376",
+   "publisher": "VTC News",
+   "published": "2025-10-31",
+   "url": "https://vtcnews.vn/lu-lich-su-o-hue-lam-12-nguoi-chet-mat-tich-hon-13-000-nha-con-ngap-sau-ar984376.html",
+   "flood_from": "2025-10-27",
+   "flood_to": "2025-10-31",
+   "provinces": [
+    "Thừa Thiên Huế"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Quảng Điền",
+     "province": "Thừa Thiên Huế",
+     "via": "xã Quảng Điền"
+    },
+    {
+     "level": "district",
+     "name": "Phú Vang",
+     "province": "Thừa Thiên Huế",
+     "via": "phường Dương Nỗ, xã Phú Hồ"
+    }
+   ],
+   "summary": {
+    "vi": "Lũ lịch sử ở Huế: 12 người chết, mất tích, hơn 13.000 nhà còn ngập sâu; nơi bị ảnh hưởng nặng gồm Quảng Điền, Hóa Châu, Dương Nỗ, Phú Hồ.",
+    "en": "Historic flood in Huế: 12 dead or missing, over 13,000 homes still deeply flooded; hardest hit include Quảng Điền, Hóa Châu, Dương Nỗ, Phú Hồ."
+   }
+  },
+  {
+   "id": "vtcnews-ar984830",
+   "publisher": "VTC News",
+   "published": "2025-11-03",
+   "url": "https://vtcnews.vn/nuoc-song-dang-vuot-xa-bao-dong-3-tp-hue-tiep-tuc-chim-trong-bien-nuoc-ar984830.html",
+   "flood_from": "2025-11-02",
+   "flood_to": "2025-11-03",
+   "provinces": [
+    "Thừa Thiên Huế"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Phú Vang",
+     "province": "Thừa Thiên Huế",
+     "via": "phường Dương Nỗ"
+    }
+   ],
+   "summary": {
+    "vi": "Sông vượt xa báo động 3; quốc lộ 49 qua Dương Nỗ ngập trên 40 cm, đường liên thôn ngập 0,8–1,5 m.",
+    "en": "Rivers far above alert level 3; highway 49 through Dương Nỗ under 40+ cm, village roads 0.8–1.5 m."
+   }
+  },
+  {
+   "id": "tienphong-post1793069",
+   "publisher": "Tiền Phong",
+   "published": "2025-11-03",
+   "url": "https://tienphong.vn/mua-lu-lon-khien-giao-thong-tai-hue-te-liet-nhieu-khu-vuc-duong-ngap-sau-post1793069.html",
+   "flood_from": "2025-11-03",
+   "flood_to": "2025-11-03",
+   "provinces": [
+    "Thừa Thiên Huế"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Phú Vang",
+     "province": "Thừa Thiên Huế",
+     "via": "phường Dương Nỗ, xã Phú Hồ"
+    },
+    {
+     "level": "district",
+     "name": "Hương Thủy",
+     "province": "Thừa Thiên Huế",
+     "via": "phường Thanh Thủy, phường Hương Thủy"
+    },
+    {
+     "level": "district",
+     "name": "Huế",
+     "province": "Thừa Thiên Huế",
+     "via": "phường Kim Long"
+    },
+    {
+     "level": "district",
+     "name": "Hương Trà",
+     "province": "Thừa Thiên Huế",
+     "via": "phường Hương Trà"
+    }
+   ],
+   "summary": {
+    "vi": "Mưa lũ làm giao thông Huế tê liệt: đường qua Thanh Thủy, Dương Nỗ, Phú Hồ, Kim Long, Hóa Châu, Hương Trà, Hương Thủy ngập 0,5 đến hơn 1 m.",
+    "en": "Floods paralysed Huế traffic: roads through Thanh Thủy, Dương Nỗ, Phú Hồ, Kim Long, Hóa Châu, Hương Trà, Hương Thủy under 0.5 to over 1 m."
+   }
+  },
+  {
+   "id": "tienphong-post1883329",
+   "publisher": "Tiền Phong",
+   "published": "2026-10-08",
+   "url": "https://tienphong.vn/hue-mua-trang-troi-lu-song-huong-vuot-bao-dong-1-post1883329.tpo",
+   "flood_from": "2026-10-08",
+   "flood_to": "2026-10-08",
+   "provinces": [
+    "Thừa Thiên Huế"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Hương Thủy",
+     "province": "Thừa Thiên Huế",
+     "via": "phường Phú Bài"
+    }
+   ],
+   "summary": {
+    "vi": "Huế mưa lớn, sông Hương vượt báo động 1; cống Ông Đủ (phường Phú Bài) ngập nặng, ảnh hưởng 34 hộ.",
+    "en": "Heavy rain in Huế, Hương River above alert level 1; the Ông Đủ culvert area (Phú Bài ward) badly flooded, 34 households affected."
+   }
+  }
+ ]
+}
