@@ -100,8 +100,8 @@ export default function PlotPassportPage() {
             /api/passport (10 năm khí tượng; toạ độ mới trên Render có khi > 2 phút) xong mới bắt đầu đọc radar. */}
         {valid && invited && (
           <p className="pp-invite" role="note">{t(
-            "Bạn được mời xác nhận: radar ghi nhận các đợt nước ở thửa này. Nếu bạn biết ruộng/đất ở đây, hãy đăng nhập (góc trên — tạo tài khoản miễn phí) rồi bấm Có / Không / Không chắc cho từng đợt. Chỉ trả lời điều bạn thật sự biết.",
-            "You were invited to confirm: radar recorded water events at this plot. If you know this land, log in (top corner — free account) and tap Yes / No / Not sure for each event. Only answer what you actually know.")}</p>
+            "Bạn được mời xác nhận: radar ghi nhận các đợt nước ở thửa này. Nếu bạn biết ruộng/đất ở đây, bấm Có ngập / Không / Không rõ ở từng đợt trong khối Lịch sử nước bên dưới (lần đầu tạo tài khoản miễn phí ngay tại chỗ). Chỉ trả lời điều bạn thật sự nhớ; không nhớ thì chọn Không rõ.",
+            "You were invited to confirm: radar recorded water events at this plot. If you know this land, tap Flooded / No / Not sure on each event in the Water history below (the first time, create a free account right there). Only answer what you actually remember; if unsure, choose Not sure.")}</p>
         )}
         {valid && (
           <>

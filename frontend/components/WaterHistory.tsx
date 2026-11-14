@@ -8,8 +8,8 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Waves } from "lucide-react";
-import { getToken, waterConfirm, waterConfirmations, waterPoll, waterScene, waterStart, waterStatus, waterUnet, type WaterUnet,
-         type PressMatch, type WaterAnswer, type WaterConfirmCount, type WaterHistoryResult, type WaterScene } from "@/lib/api";
+import { getToken, login, register, setToken, waterConfirm, waterConfirmations, waterPoll, waterScene, waterStart, waterStatus, waterUnet, type WaterUnet,
+         type LoginError, type PressMatch, type WaterAnswer, type WaterConfirmCount, type WaterHistoryResult, type WaterScene } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 const COVER_COLOR: Record<string, string> = { "≥50%": "#1d5e87", "25–50%": "#3d8fc4", "10–25%": "#8cc3e6" };
@@ -152,36 +152,85 @@ function MapScrubber({ r, lat, lon, onScene, focus }: { r: WaterHistoryResult; l
 
 /** "Ruộng bạn có ngập đợt này không?" — sự thật mặt đất cho TỪNG đợt radar. Chỉ người đăng nhập trả lời (một người một
  *  câu mỗi đợt, bấm lại là sửa); ai cũng thấy SỐ ĐẾM. Câu "Có" ở đợt ngoài mùa lũ thành ca kiểm thật cho lớp mùa lũ sau. */
+// Người được mời (link ?xac-nhan=1) thường bỏ cuộc ở bước "tìm nút đăng nhập ở góc trên" (14/11/2026). Ô này hiện NGAY dưới đợt
+// vừa bấm: tạo tài khoản miễn phí (hoặc đăng nhập) rồi gửi luôn câu trả lời đang chờ. Vẫn là tài khoản thật, mỗi người một
+// tài khoản — luật đếm của cổng thực địa không đổi.
+function InlineAuth({ onDone, onCancel }: { onDone: () => void; onCancel: () => void }) {
+  const { t } = useLang();
+  const [mode, setMode] = useState<"register" | "login">("register");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpNeeded, setOtpNeeded] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true); setErr(null);
+    try {
+      const r = mode === "login"
+        ? await login(email.trim(), password, otpNeeded ? otp.trim() : undefined)
+        : await register(email.trim(), password, email.trim().split("@")[0]);
+      setToken(r.access_token);
+      onDone();
+    } catch (x) {
+      if ((x as LoginError).otpRequired) setOtpNeeded(true);
+      setErr((x as Error).message);
+    } finally { setBusy(false); }
+  }
+  return (
+    <form className="wh-auth" onSubmit={submit}>
+      <small>{mode === "register"
+        ? t("Lần đầu trả lời: tạo tài khoản miễn phí bằng email (mỗi người một tài khoản). Câu trả lời của bạn được gửi ngay sau đó.",
+            "First answer: create a free account with your email (one account per person). Your answer is sent right after.")
+        : t("Đăng nhập để gửi câu trả lời.", "Log in to send your answer.")}</small>
+      <input type="email" required autoComplete="email" placeholder="email@vidu.vn" value={email} onChange={(e) => setEmail(e.target.value)}
+             aria-label={t("Email", "Email")} />
+      <input type="password" required minLength={mode === "register" ? 8 : 1} autoComplete={mode === "register" ? "new-password" : "current-password"}
+             placeholder={mode === "register" ? t("Mật khẩu (ít nhất 8 ký tự)", "Password (8+ characters)") : t("Mật khẩu", "Password")}
+             value={password} onChange={(e) => setPassword(e.target.value)} aria-label={t("Mật khẩu", "Password")} />
+      {otpNeeded && <input inputMode="numeric" placeholder={t("Mã 6 số", "6-digit code")} value={otp} onChange={(e) => setOtp(e.target.value)}
+                           aria-label={t("Mã hai lớp", "Two-factor code")} />}
+      <span className="wh-auth-row">
+        <button type="submit" className="bat-btn" disabled={busy}>
+          {mode === "register" ? t("Tạo tài khoản và gửi", "Create account and send") : t("Đăng nhập và gửi", "Log in and send")}</button>
+        <button type="button" className="bat-btn ghost" onClick={() => { setMode(mode === "register" ? "login" : "register"); setErr(null); }}>
+          {mode === "register" ? t("Đã có tài khoản? Đăng nhập", "Have an account? Log in") : t("Chưa có tài khoản? Tạo mới", "No account? Create one")}</button>
+        <button type="button" className="bat-btn ghost" onClick={onCancel}>{t("Thôi", "Cancel")}</button>
+      </span>
+      {err && <small className="bat-err">{err}</small>}
+    </form>
+  );
+}
+
 function ConfirmEvent({ lat, lon, start, count, onSaved }: { lat: number; lon: number; start: string;
   count?: WaterConfirmCount; onSaved: (start: string, a: WaterAnswer, msg: string) => void }) {
   const { t } = useLang();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [pending, setPending] = useState<WaterAnswer | null>(null);   // đã bấm khi chưa đăng nhập → chờ tạo tài khoản
   const logged = typeof window !== "undefined" && !!getToken();
   const n = count ? count.yes + count.no + count.unsure : 0;
   const tally = n > 0 ? t(`${n} người đã trả lời: ${count!.yes} có ngập · ${count!.no} không`, `${n} answered: ${count!.yes} flooded · ${count!.no} not`)
                       : null;
   async function send(a: WaterAnswer) {
+    if (!getToken()) { setPending(a); return; }
     setBusy(true); setErr(null);
-    try { const r = await waterConfirm(lat, lon, start, a); onSaved(start, a, r.message); }
+    try { const r = await waterConfirm(lat, lon, start, a); setPending(null); onSaved(start, a, r.message); }
     catch (e) { setErr((e as Error).message); }
     finally { setBusy(false); }
   }
   const opts: [WaterAnswer, string][] = [["yes", t("Có ngập", "Flooded")], ["no", t("Không", "No")], ["unsure", t("Không rõ", "Not sure")]];
-  if (!logged && !tally) return null;              // chưa đăng nhập: lời mời nằm MỘT lần trên danh sách
   return (
     <div className="wh-confirm">
-      {logged && (
-        <>
-          <span>{t("Ruộng có ngập đợt này không?", "Was the field flooded this time?")}</span>
-          {opts.map(([a, label]) => (
-            <button key={a} type="button" disabled={busy} aria-pressed={count?.mine === a}
-                    className={`wh-cf${count?.mine === a ? " on" : ""}`} onClick={() => send(a)}>{label}</button>
-          ))}
-        </>
-      )}
+      <span>{t("Ruộng có ngập đợt này không?", "Was the field flooded this time?")}</span>
+      {opts.map(([a, label]) => (
+        <button key={a} type="button" disabled={busy} aria-pressed={count?.mine === a || pending === a}
+                className={`wh-cf${count?.mine === a || pending === a ? " on" : ""}`} onClick={() => send(a)}>{label}</button>
+      ))}
       {tally && <small>{tally}</small>}
       {err && <small className="bat-err">{err}</small>}
+      {pending && !logged && <InlineAuth onDone={() => send(pending)} onCancel={() => setPending(null)} />}
     </div>
   );
 }
@@ -237,6 +286,14 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
   }
 
   const [counts, setCounts] = useState<Record<string, WaterConfirmCount>>({});
+  const [, setAuthTick] = useState(0);
+  const [invite, setInvite] = useState(false);                 // mở bằng link mời ?xac-nhan=1
+  useEffect(() => {
+    setInvite(new URLSearchParams(window.location.search).has("xac-nhan"));
+    const f = () => setAuthTick((n) => n + 1);
+    window.addEventListener("tt-auth", f);
+    return () => window.removeEventListener("tt-auth", f);
+  }, []);
   const [thanks, setThanks] = useState<string | null>(null);
   useEffect(() => {                                            // có lịch sử (≥ 1 đợt) → đọc số xác nhận của thửa
     setCounts({}); setThanks(null);
@@ -310,7 +367,7 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
       {r && r.available && (
         <>
           {r.plain && <p className={`wh-plain wh-plain-${r.plain.level}`}>{r.plain.text}</p>}
-          {r.press && r.events.length > 0 && (
+          {r.press && r.events.length > 0 && !invite && (
             <p className={`wh-press-sum${r.press.n_district ? " has" : ""}`}>{"📰 "}{r.press.text} <small>{r.press.limits}</small></p>
           )}
           {/* câu lời thường đã nói "không kết luận được vì nhà cửa/tán cây" thì không lặp lại ô ghi chú cùng ý */}
@@ -332,8 +389,8 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
             <p className="wh-cf-note">{getToken()
               ? t("Bạn biết ruộng này? Bấm trả lời từng đợt bên dưới — mỗi câu là sự thật mặt đất để kiểm radar và lớp mùa lũ.",
                   "Know this field? Answer each event below — every answer is ground truth for checking the radar and the flood-season layer.")
-              : t("Bạn biết ruộng này? Đăng nhập (góc trên) để xác nhận từng đợt có ngập thật không — mỗi câu là sự thật mặt đất để kiểm radar.",
-                  "Know this field? Log in (top corner) to confirm whether each event really flooded — every answer is ground truth for the radar.")}</p>
+              : t("Bạn biết ruộng này? Bấm Có ngập / Không / Không rõ ở từng đợt bên dưới. Lần đầu chỉ cần email và mật khẩu để tạo tài khoản miễn phí, ngay tại chỗ.",
+                  "Know this field? Tap Flooded / No / Not sure on each event below. The first time, just an email and password to create a free account, right here.")}</p>
           )}
           {r.events.length > 0 && <InviteConfirm lat={lat} lon={lon} />}
           {r.events.length > 0 && (
@@ -346,7 +403,7 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
                     ? t(`VV phân vị ${e.flag_pct} thấp nhất ${e.min_flag_db} dB (ngưỡng −18; trung vị ${e.min_p50_db})`,
                         `lowest VV p${e.flag_pct} ${e.min_flag_db} dB (threshold −18; median ${e.min_p50_db})`)
                     : t(`VV trung vị thấp nhất ${e.min_p50_db} dB`, `lowest median VV ${e.min_p50_db} dB`)}</span>
-                  <PressLine m={e.press} />
+                  {!invite && <PressLine m={e.press} />}
                   {onScene && <button type="button" className="wh-off" onClick={() => setFocus({ date: wettestOfEvent(r, e.dates ?? [e.start]), n: Date.now() })}>
                     {t("Xem ảnh radar trên bản đồ", "Show radar image on the map")}</button>}
                   <ConfirmEvent lat={lat} lon={lon} start={e.start} count={counts[e.start]} onSaved={saved} />
