@@ -1,0 +1,395 @@
+{
+ "protocol": "terratwin.water_press/1",
+ "checked_at": "2026-11-14",
+ "counts_toward_field_gate": false,
+ "entered_as_field_confirmations": false,
+ "plots": {
+  "tue_tinh": {
+   "lat": 20.9716,
+   "lon": 106.2834,
+   "place": "xã Tuệ Tĩnh (huyện Cẩm Giàng cũ, Hải Dương cũ → Hải Phòng)",
+   "district": "Cẩm Giàng"
+  },
+  "hoan_lao": {
+   "lat": 17.6118,
+   "lon": 106.5026,
+   "place": "Hoàn Lão (huyện Bố Trạch cũ, Quảng Bình cũ → Quảng Trị)",
+   "district": "Bố Trạch"
+  },
+  "dan_dien": {
+   "lat": 16.5751,
+   "lon": 107.4952,
+   "place": "xã Đan Điền (huyện Quảng Điền cũ, Huế)",
+   "district": "Quảng Điền"
+  },
+  "duong_no": {
+   "lat": 16.52,
+   "lon": 107.59,
+   "place": "phường Dương Nỗ (xã Phú Dương cũ, huyện Phú Vang; TP Huế từ 7/2021)",
+   "district": "Phú Vang (đến 6/2021) · TP Huế cũ (7/2021–6/2025)"
+  }
+ },
+ "counts": {
+  "commune": 1,
+  "district": 9,
+  "province": 4,
+  "not_found": 10,
+  "contradicts": 0
+ },
+ "n_events": 24,
+ "matched_commune_or_district": 10,
+ "per_plot": {
+  "tue_tinh": {
+   "events": 5,
+   "matched": 0
+  },
+  "hoan_lao": {
+   "events": 5,
+   "matched": 1
+  },
+  "dan_dien": {
+   "events": 7,
+   "matched": 4
+  },
+  "duong_no": {
+   "events": 7,
+   "matched": 5
+  }
+ },
+ "rows": [
+  {
+   "plot": "tue_tinh",
+   "event_start": "2017-07-27",
+   "level": "not_found",
+   "sources": []
+  },
+  {
+   "plot": "tue_tinh",
+   "event_start": "2018-07-22",
+   "level": "not_found",
+   "sources": [
+    {
+     "publisher": "VTV",
+     "date": "2018-07-20",
+     "url": "https://english.vtv.vn/news/thousands-of-hectares-of-paddy-rice-submerged-20180720215648547.htm",
+     "note": "tin lúa ngập ở miền Bắc; trang nay lỗi 404, không kiểm được có nêu Hải Dương",
+     "counted": false
+    }
+   ]
+  },
+  {
+   "plot": "tue_tinh",
+   "event_start": "2024-07-26",
+   "level": "not_found",
+   "sources": []
+  },
+  {
+   "plot": "tue_tinh",
+   "event_start": "2024-09-12",
+   "level": "not_found",
+   "sources": [
+    {
+     "publisher": "Đại biểu Nhân dân",
+     "date": "2024-09-08",
+     "url": "https://daibieunhandan.vn/hai-duong-tap-trung-cao-do-khac-phuc-hau-qua-sau-bao-yagi-10345776.html",
+     "note": "chỉ cảnh báo nguy cơ ngập úng ở Hải Dương sau bão Yagi; không nêu Cẩm Giàng",
+     "counted": false
+    }
+   ]
+  },
+  {
+   "plot": "tue_tinh",
+   "event_start": "2025-10-01",
+   "level": "not_found",
+   "sources": []
+  },
+  {
+   "plot": "hoan_lao",
+   "event_start": "2019-10-16",
+   "level": "not_found",
+   "sources": []
+  },
+  {
+   "plot": "hoan_lao",
+   "event_start": "2020-10-28",
+   "level": "district",
+   "sources": [
+    {
+     "publisher": "VOV",
+     "date": "2020-10-17",
+     "url": "https://vov.vn/xa-hoi/quang-binh-quang-tri-cang-minh-chong-lu-gan-chuc-nghin-nha-dan-bi-ngap-nang-786826.vov",
+     "note": "nhà dân ở Bố Trạch và các huyện khác ngập sâu",
+     "counted": true
+    },
+    {
+     "publisher": "SGGP",
+     "date": "2020-10-19",
+     "url": "https://www.sggp.org.vn/quang-binh-giai-cuu-20-nguoi-trong-xe-khach-bi-lu-cuon-troi-100000-ngoi-nha-ngap-sau-post572182.html",
+     "note": "cứu xe khách bị lũ cuốn ở Việt Trung (Bố Trạch)",
+     "counted": true
+    }
+   ]
+  },
+  {
+   "plot": "hoan_lao",
+   "event_start": "2024-09-19",
+   "level": "province",
+   "sources": [
+    {
+     "publisher": "Việt Nam News",
+     "date": "2024-09-21",
+     "url": "https://vietnamnews.vn/environment/1663415/central-region-provinces-flooded-and-cut-off-after-tropical-storm-soulik.html",
+     "note": "Quảng Bình ngập sau bão Soulik; Bố Trạch chỉ được nêu là nước sông lên, không nêu là ngập",
+     "counted": true
+    }
+   ]
+  },
+  {
+   "plot": "hoan_lao",
+   "event_start": "2026-05-31",
+   "level": "not_found",
+   "sources": []
+  },
+  {
+   "plot": "hoan_lao",
+   "event_start": "2026-10-10",
+   "level": "not_found",
+   "sources": [
+    {
+     "publisher": "Việt Nam News",
+     "date": "2026-09-19",
+     "url": "https://vietnamnews.vn/society/1800111/rising-river-levels-in-quang-tri-prompt-warnings-of-flash-floods-landslides.html",
+     "note": "lũ Quảng Trị giữa tháng 9/2026, ngoài cửa sổ; không nêu Bố Trạch",
+     "counted": false
+    }
+   ]
+  },
+  {
+   "plot": "dan_dien",
+   "event_start": "2017-11-07",
+   "level": "district",
+   "sources": [
+    {
+     "publisher": "Việt Nam News",
+     "date": "2017-11-07",
+     "url": "https://vietnamnews.vn/society/417032/historic-flood-hits-hue-killing-9.html",
+     "note": "dân Quảng Điền đi lại bằng bè trong lũ",
+     "counted": true
+    },
+    {
+     "publisher": "Việt Nam News",
+     "date": "2017-11-10",
+     "url": "https://vietnamnews.vn/society/417241/inundation-continues-in-hue-s-lowland-areas.html",
+     "note": "toàn huyện Quảng Điền ngập, có thể kéo dài 10 ngày; học sinh các xã vùng trũng Phú Vang không đến trường vì lũ",
+     "counted": true
+    }
+   ]
+  },
+  {
+   "plot": "dan_dien",
+   "event_start": "2020-10-10",
+   "level": "district",
+   "sources": [
+    {
+     "publisher": "SGGP",
+     "date": "2020-10-12",
+     "url": "https://www.sggp.org.vn/lu-vay-xuan-tuy-post571322.html",
+     "note": "lũ vây thôn Xuân Tùy (xã Quảng Phú, Quảng Điền); ngày 10/10 nước vượt đỉnh lũ 1999",
+     "counted": true,
+     "described_from": "2020-10-10"
+    }
+   ]
+  },
+  {
+   "plot": "dan_dien",
+   "event_start": "2020-11-09",
+   "level": "province",
+   "sources": [
+    {
+     "publisher": "VTC News",
+     "date": "2020-11-11",
+     "url": "https://vtcnews.vn/lu-len-nhanh-nhieu-noi-chim-trong-bien-nuoc-hue-cho-hoc-sinh-nghi-hoc-ar580161.html",
+     "note": "Quảng Điền chỉ có trong câu CẢNH BÁO; ngập thật được nêu ở Đập Đá, TP Huế",
+     "counted": true
+    }
+   ]
+  },
+  {
+   "plot": "dan_dien",
+   "event_start": "2021-10-17",
+   "level": "province",
+   "sources": [
+    {
+     "publisher": "Pháp luật Việt Nam",
+     "date": "2021-10-17",
+     "url": "https://baophapluat.vn/thua-thien-hue-ngap-nhieu-vung-thuy-dien-tang-luu-luong-xa-nuoc-post417494.html",
+     "note": "Thừa Thiên Huế ngập nhiều vùng; chỉ nêu Phong Điền, Hương Trà",
+     "counted": true
+    },
+    {
+     "publisher": "VnExpress",
+     "date": "2021-10-22",
+     "url": "https://vnexpress.net/mien-trung-mua-lon-4375276.html",
+     "note": "nêu Quảng Điền đang ngập úng nhưng ra muộn 2 ngày so với cửa sổ, không rõ ngập từ ngày nào — KHÔNG tính",
+     "counted": false
+    }
+   ]
+  },
+  {
+   "plot": "dan_dien",
+   "event_start": "2023-10-19",
+   "level": "district",
+   "sources": [
+    {
+     "publisher": "SGGP",
+     "date": "2023-10-11",
+     "url": "https://www.sggp.org.vn/mua-lon-gay-ngap-lut-cuc-bo-tai-thua-thien-hue-post709325.html",
+     "note": "TP Huế ngập úng cục bộ; tỉnh lộ 4 đoạn tràn Thủ Lễ (xã Quảng Phước, Quảng Điền) ngập 0,6 m",
+     "counted": true
+    }
+   ]
+  },
+  {
+   "plot": "dan_dien",
+   "event_start": "2025-11-01",
+   "level": "district",
+   "sources": [
+    {
+     "publisher": "VTC News",
+     "date": "2025-10-31",
+     "url": "https://vtcnews.vn/lu-lich-su-o-hue-lam-12-nguoi-chet-mat-tich-hon-13-000-nha-con-ngap-sau-ar984376.html",
+     "note": "xã Quảng Điền (mới) và phường Dương Nỗ có tên trong các nơi bị ảnh hưởng nặng bởi trận lũ cuối tháng 10/2025",
+     "counted": true,
+     "described_from": "2025-10-27"
+    }
+   ]
+  },
+  {
+   "plot": "dan_dien",
+   "event_start": "2026-01-30",
+   "level": "not_found",
+   "sources": []
+  },
+  {
+   "plot": "duong_no",
+   "event_start": "2017-11-19",
+   "level": "district",
+   "sources": [
+    {
+     "publisher": "Việt Nam News",
+     "date": "2017-11-10",
+     "url": "https://vietnamnews.vn/society/417241/inundation-continues-in-hue-s-lowland-areas.html",
+     "note": "toàn huyện Quảng Điền ngập, có thể kéo dài 10 ngày; học sinh các xã vùng trũng Phú Vang không đến trường vì lũ",
+     "counted": true
+    }
+   ]
+  },
+  {
+   "plot": "duong_no",
+   "event_start": "2020-10-10",
+   "level": "district",
+   "sources": [
+    {
+     "publisher": "Thanh tra",
+     "date": "2020-10-11",
+     "url": "https://thanhtra.com.vn/an-sinh-AFA9C5670/mua-lu-lam-hon-53-ngan-ngoi-nha-bi-ngap-nuoc-tiep-tuc-dang-cao-EB2BDE00.html",
+     "note": "huyện Phú Vang có 8.287 nhà ngập",
+     "counted": true
+    }
+   ]
+  },
+  {
+   "plot": "duong_no",
+   "event_start": "2021-10-17",
+   "level": "province",
+   "sources": [
+    {
+     "publisher": "Pháp luật Việt Nam",
+     "date": "2021-10-17",
+     "url": "https://baophapluat.vn/thua-thien-hue-ngap-nhieu-vung-thuy-dien-tang-luu-luong-xa-nuoc-post417494.html",
+     "note": "Thừa Thiên Huế ngập nhiều vùng; chỉ nêu Phong Điền, Hương Trà",
+     "counted": true
+    }
+   ]
+  },
+  {
+   "plot": "duong_no",
+   "event_start": "2023-10-19",
+   "level": "district",
+   "sources": [
+    {
+     "publisher": "SGGP",
+     "date": "2023-10-11",
+     "url": "https://www.sggp.org.vn/mua-lon-gay-ngap-lut-cuc-bo-tai-thua-thien-hue-post709325.html",
+     "note": "TP Huế ngập úng cục bộ; tỉnh lộ 4 đoạn tràn Thủ Lễ (xã Quảng Phước, Quảng Điền) ngập 0,6 m",
+     "counted": true
+    }
+   ]
+  },
+  {
+   "plot": "duong_no",
+   "event_start": "2024-09-19",
+   "level": "district",
+   "sources": [
+    {
+     "publisher": "SGGP",
+     "date": "2024-09-19",
+     "url": "https://www.sggp.org.vn/nhieu-dia-phuong-bi-ngap-lut-do-mua-bao-post759686.html",
+     "note": "sáng 19/9 nhiều vùng trũng ở TP Huế ngập úng cục bộ",
+     "counted": true
+    }
+   ]
+  },
+  {
+   "plot": "duong_no",
+   "event_start": "2025-10-26",
+   "level": "commune",
+   "sources": [
+    {
+     "publisher": "VTC News",
+     "date": "2025-10-31",
+     "url": "https://vtcnews.vn/lu-lich-su-o-hue-lam-12-nguoi-chet-mat-tich-hon-13-000-nha-con-ngap-sau-ar984376.html",
+     "note": "xã Quảng Điền (mới) và phường Dương Nỗ có tên trong các nơi bị ảnh hưởng nặng bởi trận lũ cuối tháng 10/2025",
+     "counted": true,
+     "described_from": "2025-10-27"
+    },
+    {
+     "publisher": "VTC News",
+     "date": "2025-11-03",
+     "url": "https://vtcnews.vn/nuoc-song-dang-vuot-xa-bao-dong-3-tp-hue-tiep-tuc-chim-trong-bien-nuoc-ar984830.html",
+     "note": "đường liên thôn ở phường Dương Nỗ còn ngập 0,8–1,5 m — ngoài cửa sổ, chỉ ghi thêm",
+     "counted": false
+    }
+   ]
+  },
+  {
+   "plot": "duong_no",
+   "event_start": "2026-10-28",
+   "level": "not_found",
+   "sources": []
+  }
+ ],
+ "excluded_sources": [
+  {
+   "url": "https://www.vietnamplus.vn/thua-thien-hue-hon-8100-ngoi-nha-bi-ngap-va-3-nguoi-chet-do-lu-lut-post421171.vnp",
+   "why": "đăng 16/12/2016 — tóm tắt tìm kiếm gán nhầm sang 11/2017"
+  },
+  {
+   "url": "https://lsvn.vn/mua-lu-khien-24-520-ngoi-nha-bi-ngap-tai-thua-thien-hue-a76074.html",
+   "why": "đăng 05/01/2021 — không thuộc cửa sổ nào"
+  },
+  {
+   "url": "https://nongnghiepmoitruong.vn/ron-lu-thieu-duong-chim-trong-bien-nuoc-d769914.html",
+   "why": "nói về Thiệu Dương (Thanh Hoá), không phải Dương Nỗ"
+  },
+  {
+   "url": "https://tienphong.vn/mua-lu-lon-khien-giao-thong-tai-hue-te-liet-nhieu-khu-vuc-duong-ngap-sau-post1793069.html",
+   "why": "đăng 03/11/2025, tả ngập ngày 3/11 — ngoài cửa sổ đợt 26/10/2025"
+  },
+  {
+   "url": "https://tienphong.vn/hue-mua-trang-troi-lu-song-huong-vuot-bao-dong-1-post1883329.tpo",
+   "why": "đăng 08/10/2026 — ngoài cửa sổ đợt 28/10/2026, không nêu Dương Nỗ"
+  }
+ ],
+ "attribution": "Nguồn: các báo ghi ở từng dòng; chỉ lưu đường dẫn, ngày và tóm tắt ngắn do TerraTwin viết, không chép nội dung bài."
+}

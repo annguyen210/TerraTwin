@@ -1,0 +1,24 @@
+{
+ "id": "terratwin.water_press/1",
+ "written": "2026-11-14",
+ "registered_before_scoring": false,
+ "registration_note": "Tiêu chí dưới đây được ghi vào tệp cục bộ TRƯỚC khi tìm nguồn (14/11/2026), nhưng KHÔNG commit và KHÔNG khoá mã băm trước khi tìm — kém chặt hơn giao thức UNOSAT (water_unosat_protocol.json). Ghi rõ để người đọc tự cân nhắc.",
+ "purpose": "Đối chiếu PHỤ, độc lập về nguồn: radar nói 'nước phủ thửa ngày X' — báo chính thống / tài liệu LHQ có ghi ngập ở đúng khu đó quanh ngày X không? KHÔNG phải kiểm thực địa bằng xác nhận người dùng (water_field_protocol.json), KHÔNG nhập vào bảng xác nhận, KHÔNG tính vào cổng 30 đợt / 10 người / 3 ô.",
+ "plots": "4 thửa ở vùng từng ngập, chọn để mời người địa phương xác nhận (trang Chặng cuối, Bước 4); 24 đợt đọc từ API chính thức /api/water/history ngày 14/11/2026.",
+ "sources_allowed": "báo chính thống, trang cơ quan nhà nước, ReliefWeb/OCHA/IFRC, Copernicus EMS, UNOSAT. Không dùng mạng xã hội, diễn đàn, nguồn không ghi ngày.",
+ "window": "nguồn mô tả cảnh ngập trong khoảng 12 ngày TRƯỚC tới 3 ngày SAU ngày bắt đầu đợt radar (radar chụp lại 6–12 ngày một lần). Bài đăng muộn hơn vẫn tính nếu ghi rõ trận ngập bắt đầu trong khoảng đó (trường described_from).",
+ "levels": {
+  "commune": "KHỚP XÃ — nguồn nêu ngập ở đúng xã/phường của thửa (hoặc thôn trong xã)",
+  "district": "KHỚP HUYỆN — nguồn nêu ngập ở huyện/thị xã/TP cấp huyện chứa thửa vào thời điểm đó",
+  "province": "CHỈ TỈNH — nguồn chỉ nêu tỉnh; KHÔNG tính là khớp",
+  "not_found": "KHÔNG TÌM THẤY — không có nguồn đủ điều kiện; KHÔNG có nghĩa là không ngập",
+  "contradicts": "TRÁI — nguồn nói rõ khu đó KHÔNG ngập trong cửa sổ"
+ },
+ "search_budget": "tối đa 2 lượt tìm mỗi đợt; mọi nguồn tính KHỚP phải mở bài kiểm ngày đăng + tên địa danh (không dựa vào bản tóm tắt của công cụ tìm kiếm).",
+ "amendment_2026_11_14": "Giữa chừng, tra ngược toạ độ (Photon/OSM + BigDataCloud) cho thấy thửa 16.52, 107.59 KHÔNG ở Hương Thuỷ như ghi nhầm lúc chọn mà ở phường Dương Nỗ (xã Phú Dương cũ, huyện Phú Vang; thuộc TP Huế từ 7/2021). Mọi lượt tìm theo tên cũ bị BỎ, tìm lại theo tên đúng. Đợt trước 7/2021: huyện = Phú Vang; 7/2021–6/2025: TP Huế cũ (cấp huyện); sau 7/2025 Huế là TP trực thuộc TƯ nên 'Huế ngập' chỉ tính CHỈ TỈNH. Thửa 16.5751, 107.4952 nằm ở xã Đan Điền mới (huyện Quảng Điền cũ); tin nêu xã Quảng Điền mới (một phần huyện cũ) tính KHỚP HUYỆN.",
+ "limits": [
+  "Khớp huyện không chứng minh đúng thửa bị ngập.",
+  "Báo chí thiên về trận lớn; nước ruộng theo vụ và ngập ngắn không lên báo.",
+  "Một người (Claude) tìm và xếp mức; không có người thứ hai chấm độc lập."
+ ]
+}
