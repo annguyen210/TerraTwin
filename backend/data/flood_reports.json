@@ -547,6 +547,540 @@
     "vi": "Huế mưa lớn, sông Hương vượt báo động 1; cống Ông Đủ (phường Phú Bài) ngập nặng, ảnh hưởng 34 hộ.",
     "en": "Heavy rain in Huế, Hương River above alert level 1; the Ông Đủ culvert area (Phú Bài ward) badly flooded, 34 households affected."
    }
+  },
+  {
+   "id": "thanhtra-BBE31D98",
+   "publisher": "Thanh tra",
+   "published": "2023-09-27",
+   "url": "https://thanhtra.com.vn/an-sinh-AFA9C5670/mua-lon-keo-dai-ngay-ngap-lut-nhieu-huyen-mien-nui-trung-du-BBE31D98.html",
+   "flood_from": "2023-09-27",
+   "flood_to": "2023-09-27",
+   "provinces": [
+    "Nghệ An"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Anh Sơn",
+     "province": "Nghệ An"
+    },
+    {
+     "level": "district",
+     "name": "Thanh Chương",
+     "province": "Nghệ An"
+    },
+    {
+     "level": "district",
+     "name": "Đô Lương",
+     "province": "Nghệ An"
+    },
+    {
+     "level": "district",
+     "name": "Nam Đàn",
+     "province": "Nghệ An"
+    },
+    {
+     "level": "district",
+     "name": "Vinh",
+     "province": "Nghệ An"
+    },
+    {
+     "level": "district",
+     "name": "Nghi Lộc",
+     "province": "Nghệ An"
+    },
+    {
+     "level": "district",
+     "name": "Hưng Nguyên",
+     "province": "Nghệ An"
+    },
+    {
+     "level": "district",
+     "name": "Diễn Châu",
+     "province": "Nghệ An"
+    },
+    {
+     "level": "district",
+     "name": "Quỳnh Lưu",
+     "province": "Nghệ An"
+    },
+    {
+     "level": "district",
+     "name": "Hoàng Mai",
+     "province": "Nghệ An"
+    }
+   ],
+   "summary": {
+    "vi": "Mưa lớn kéo dài gây ngập úng vùng trũng, đô thị, ven sông ở Nghệ An, tập trung tại Anh Sơn, Thanh Chương, Đô Lương, Nam Đàn, Vinh, Nghi Lộc, Hưng Nguyên, Diễn Châu, Quỳnh Lưu, Hoàng Mai.",
+    "en": "Prolonged heavy rain flooded low-lying, urban and riverside areas of Nghệ An, mainly Anh Sơn, Thanh Chương, Đô Lương, Nam Đàn, Vinh, Nghi Lộc, Hưng Nguyên, Diễn Châu, Quỳnh Lưu, Hoàng Mai."
+   }
+  },
+  {
+   "id": "baohatinh-post238307",
+   "publisher": "Báo Hà Tĩnh",
+   "published": "2022-10-01",
+   "url": "https://baohatinh.vn/nguoi-dan-nghe-an-thiet-hai-vi-mua-lu-post238307.html",
+   "flood_from": "2022-10-01",
+   "flood_to": "2022-10-01",
+   "provinces": [
+    "Nghệ An"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Quỳnh Lưu",
+     "province": "Nghệ An"
+    },
+    {
+     "level": "district",
+     "name": "Đô Lương",
+     "province": "Nghệ An"
+    },
+    {
+     "level": "district",
+     "name": "Thanh Chương",
+     "province": "Nghệ An"
+    },
+    {
+     "level": "district",
+     "name": "Con Cuông",
+     "province": "Nghệ An"
+    },
+    {
+     "level": "district",
+     "name": "Nam Đàn",
+     "province": "Nghệ An"
+    }
+   ],
+   "summary": {
+    "vi": "Sau bão Noru, hơn 17.400 nhà ở Nghệ An ngập 0,3–2 m; ngập lụt tiếp diễn ở Quỳnh Lưu, Đô Lương, Thanh Chương, Con Cuông, Nam Đàn.",
+    "en": "After Typhoon Noru, over 17,400 homes in Nghệ An flooded 0.3–2 m; flooding continued in Quỳnh Lưu, Đô Lương, Thanh Chương, Con Cuông, Nam Đàn."
+   }
+  },
+  {
+   "id": "adinet-20210923-dianmu",
+   "publisher": "AHA Centre (ADINet)",
+   "published": "2021-09-23",
+   "url": "https://adinet.ahacentre.org/report/viet-nam-flooding-landslide-wind-and-storm-in-northern-and-central-viet-nam-tc-dianmu-20210923",
+   "flood_from": "2021-09-23",
+   "flood_to": "2021-09-23",
+   "provinces": [
+    "Nghệ An"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Quỳnh Lưu",
+     "province": "Nghệ An"
+    },
+    {
+     "level": "district",
+     "name": "Nghĩa Đàn",
+     "province": "Nghệ An"
+    }
+   ],
+   "summary": {
+    "vi": "Bão Dianmu: 2.725 nhà ở Nghệ An ngập, 298 nhà ngập trên 70 cm phải di dời (Quỳnh Lưu 266, Nghĩa Đàn 32).",
+    "en": "Storm Dianmu: 2,725 homes flooded in Nghệ An, 298 over 70 cm deep and evacuated (Quỳnh Lưu 266, Nghĩa Đàn 32)."
+   }
+  },
+  {
+   "id": "tuoitre-20210927-63293",
+   "publisher": "Tuổi Trẻ News",
+   "published": "2021-09-27",
+   "url": "https://news.tuoitre.vn/news/society/20210927/flood-kills-1-person-swamps-nearly-3400-houses-in-northcentral-vietnam/63293.html",
+   "flood_from": "2021-09-27",
+   "flood_to": "2021-09-27",
+   "provinces": [
+    "Nghệ An"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Quỳnh Lưu",
+     "province": "Nghệ An"
+    }
+   ],
+   "summary": {
+    "vi": "Lũ ở Bắc Trung Bộ: Quỳnh Lưu (Nghệ An) bị nặng nhất, hơn 3.380 nhà ngập.",
+    "en": "North-central floods: Quỳnh Lưu (Nghệ An) worst hit, over 3,380 homes swamped."
+   }
+  },
+  {
+   "id": "baophapluat-20260820-nghean",
+   "publisher": "Pháp luật Việt Nam",
+   "published": "2026-08-20",
+   "url": "https://baophapluat.vn/them-nhieu-thiet-hai-tai-nghe-an-do-mua-lon.html",
+   "flood_from": "2026-08-20",
+   "flood_to": "2026-08-20",
+   "provinces": [
+    "Nghệ An"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Con Cuông",
+     "province": "Nghệ An",
+     "via": "xã Con Cuông"
+    },
+    {
+     "level": "district",
+     "name": "Nghĩa Đàn",
+     "province": "Nghệ An",
+     "via": "xã Nghĩa Mai"
+    },
+    {
+     "level": "district",
+     "name": "Quỳnh Lưu",
+     "province": "Nghệ An",
+     "via": "xã Quỳnh Văn, xã Quỳnh Anh"
+    },
+    {
+     "level": "district",
+     "name": "Hưng Nguyên",
+     "province": "Nghệ An",
+     "via": "xã Hưng Nguyên Nam"
+    }
+   ],
+   "summary": {
+    "vi": "Mưa lớn ở Nghệ An: nhiều nhà ngập dưới 1 m ở các xã Con Cuông, Nghĩa Mai, Quỳnh Văn, Quỳnh Anh, Hưng Nguyên Nam.",
+    "en": "Heavy rain in Nghệ An: many homes flooded under 1 m in Con Cuông, Nghĩa Mai, Quỳnh Văn, Quỳnh Anh, Hưng Nguyên Nam communes."
+   }
+  },
+  {
+   "id": "vietnamplus-post1130431",
+   "publisher": "VietnamPlus",
+   "published": "2026-08-15",
+   "url": "https://www.vietnamplus.vn/trieu-cuong-vuot-bao-dong-i-ket-hop-mua-lon-gay-ngap-cuc-bo-tai-can-tho-post1130431.vnp",
+   "flood_from": "2026-08-15",
+   "flood_to": "2026-08-15",
+   "provinces": [
+    "Cần Thơ"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Bình Thủy",
+     "province": "Cần Thơ",
+     "via": "phường Bình Thủy"
+    }
+   ],
+   "summary": {
+    "vi": "Triều cường vượt báo động 1 cộng mưa 52 mm gây ngập cục bộ chợ Bình Thủy (Cần Thơ), sâu 0,1–0,15 m.",
+    "en": "A tide above alert level 1 plus 52 mm of rain flooded Bình Thủy market (Cần Thơ) 0.1–0.15 m deep."
+   }
+  },
+  {
+   "id": "vtcnews-ar549125",
+   "publisher": "VTC News",
+   "published": "2020-05-30",
+   "url": "https://vtcnews.vn/sau-mua-lon-nhieu-tuyen-duong-ngap-sau-nguoi-can-tho-bi-bom-dat-xe-ar549125.html",
+   "flood_from": "2020-05-30",
+   "flood_to": "2020-05-30",
+   "provinces": [
+    "Cần Thơ"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Ninh Kiều",
+     "province": "Cần Thơ"
+    },
+    {
+     "level": "district",
+     "name": "Bình Thủy",
+     "province": "Cần Thơ"
+    }
+   ],
+   "summary": {
+    "vi": "Sau mưa lớn, nhiều tuyến đường ở Ninh Kiều, Bình Thủy (Cần Thơ) ngập sâu.",
+    "en": "After heavy rain, many streets in Ninh Kiều and Bình Thủy (Cần Thơ) deeply flooded."
+   }
+  },
+  {
+   "id": "vietnamnews-405378",
+   "publisher": "Việt Nam News",
+   "published": "2017-10-11",
+   "url": "https://vietnamnews.vn/environment/405378/high-tides-damage-20-m-anti-flood-barrier-in-can-tho.html",
+   "flood_from": "2017-10-11",
+   "flood_to": "2017-10-11",
+   "provinces": [
+    "Cần Thơ"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Ninh Kiều",
+     "province": "Cần Thơ"
+    }
+   ],
+   "summary": {
+    "vi": "Triều cường làm hỏng 20 m kè chống ngập ở cồn Khương (Ninh Kiều); nhiều đường trung tâm Cần Thơ ngập sâu.",
+    "en": "High tides damaged 20 m of anti-flood barrier on Khương Islet (Ninh Kiều); many central Cần Thơ roads deeply flooded."
+   }
+  },
+  {
+   "id": "sggp-post812815",
+   "publisher": "SGGP",
+   "published": "2025-09-13",
+   "url": "https://www.sggp.org.vn/lu-o-dbscl-vuot-bao-dong-3-dau-nguon-soi-dong-muu-sinh-cuoi-nguon-chat-vat-ung-pho-ngap-post812815.html",
+   "flood_from": "2025-09-11",
+   "flood_to": "2025-09-12",
+   "provinces": [
+    "Cần Thơ"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Ninh Kiều",
+     "province": "Cần Thơ",
+     "via": "bến Ninh Kiều"
+    }
+   ],
+   "summary": {
+    "vi": "Lũ ĐBSCL vượt báo động 3: ngày 11–12/9 nhiều tuyến đường, chợ ven sông Hậu ở Cần Thơ ngập; nước tràn qua kè bến Ninh Kiều.",
+    "en": "Mekong floods above alert level 3: on 11–12/9 many roads and riverside markets on the Hậu in Cần Thơ flooded; water overtopped the Ninh Kiều wharf."
+   }
+  },
+  {
+   "id": "tuoitre-plo-post816542",
+   "publisher": "Tuổi Trẻ (PLO)",
+   "published": "2024-10-24",
+   "url": "https://tuoitre.vn/plo/long-an-gan-2000-ha-lua-bi-ngap-ung-do-mua-lu-post816542.html",
+   "flood_from": "2024-10-24",
+   "flood_to": "2024-10-24",
+   "provinces": [
+    "Long An"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Kiến Tường",
+     "province": "Long An"
+    },
+    {
+     "level": "district",
+     "name": "Mộc Hóa",
+     "province": "Long An"
+    },
+    {
+     "level": "district",
+     "name": "Tân Hưng",
+     "province": "Long An"
+    },
+    {
+     "level": "district",
+     "name": "Tân Thạnh",
+     "province": "Long An"
+    }
+   ],
+   "summary": {
+    "vi": "Long An: gần 2.000 ha lúa ngập úng do mưa lũ ở Kiến Tường, Mộc Hóa, Tân Hưng, Tân Thạnh.",
+    "en": "Long An: nearly 2,000 ha of rice waterlogged by rain and floods in Kiến Tường, Mộc Hóa, Tân Hưng, Tân Thạnh."
+   }
+  },
+  {
+   "id": "vov-post1239849",
+   "publisher": "VOV",
+   "published": "2025-10-22",
+   "url": "https://vov.vn/kinh-te/mua-to-gay-ngap-tren-dien-rong-nong-dan-dong-thap-nguy-co-bi-thiet-hai-nang-post1239849.vov",
+   "flood_from": "2025-10-21",
+   "flood_to": "2025-10-22",
+   "provinces": [
+    "Tiền Giang"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Chợ Gạo",
+     "province": "Tiền Giang",
+     "via": "xã Tân Thuận Bình, Mỹ Tịnh An, Lương Hòa Lạc"
+    }
+   ],
+   "summary": {
+    "vi": "Đêm 21/10 mưa 40–50 mm cộng triều cường gây ngập vườn cây ăn trái, rau màu ở Tân Thuận Bình, Mỹ Tịnh An, Lương Hòa Lạc (Chợ Gạo cũ).",
+    "en": "On the night of 21/10, 40–50 mm of rain plus a high tide flooded orchards and vegetables in Tân Thuận Bình, Mỹ Tịnh An, Lương Hòa Lạc (former Chợ Gạo)."
+   }
+  },
+  {
+   "id": "mekongasean-33428",
+   "publisher": "Mekong ASEAN",
+   "published": "2024-09-15",
+   "url": "https://mekongasean.vn/hai-duong-tap-trung-khac-phuc-hau-qua-bao-so-3-33428.html",
+   "flood_from": "2024-09-15",
+   "flood_to": "2024-09-15",
+   "provinces": [
+    "Hải Dương"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Tứ Kỳ",
+     "province": "Hải Dương",
+     "via": "xã Minh Đức, Quang Khải, Bình Lãng, Chí Minh, Quang Trung"
+    }
+   ],
+   "summary": {
+    "vi": "Sau bão Yagi, lúa ở Tứ Kỳ ngập trắng, tập trung ở các xã Minh Đức, Quang Khải, Bình Lãng, Chí Minh, Quang Trung.",
+    "en": "After Typhoon Yagi, rice in Tứ Kỳ was fully submerged, mainly in Minh Đức, Quang Khải, Bình Lãng, Chí Minh, Quang Trung communes."
+   }
+  },
+  {
+   "id": "baophapluat-post260599",
+   "publisher": "Pháp luật Việt Nam",
+   "published": "2017-10-20",
+   "url": "https://baophapluat.vn/thai-binh-de-mat-mua-sau-dot-mua-lu-lon-post260599.html",
+   "flood_from": "2017-10-20",
+   "flood_to": "2017-10-20",
+   "provinces": [
+    "Thái Bình"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Kiến Xương",
+     "province": "Thái Bình"
+    },
+    {
+     "level": "district",
+     "name": "Hưng Hà",
+     "province": "Thái Bình"
+    },
+    {
+     "level": "district",
+     "name": "Vũ Thư",
+     "province": "Thái Bình"
+    }
+   ],
+   "summary": {
+    "vi": "Thái Bình sau đợt mưa lũ lớn: khoảng 2.000 ha lúa ở Kiến Xương bị ngập, hơn 2.000 ha ở Vũ Thư và cây vụ đông ở Hưng Hà úng nước.",
+    "en": "Thái Bình after heavy rain and floods: about 2,000 ha of rice submerged in Kiến Xương, over 2,000 ha in Vũ Thư and winter crops in Hưng Hà waterlogged."
+   }
+  },
+  {
+   "id": "sggp-post676053",
+   "publisher": "SGGP",
+   "published": "2023-01-17",
+   "url": "https://www.sggp.org.vn/nong-dan-vung-lu-cap-tap-san-xuat-lai-vu-mua-post676053.html",
+   "flood_from": "2022-12-25",
+   "flood_to": "2023-01-05",
+   "provinces": [
+    "Bình Định"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Tuy Phước",
+     "province": "Bình Định",
+     "via": "xã Phước Thắng"
+    }
+   ],
+   "summary": {
+    "vi": "Nông dân vùng lũ Tuy Phước (thôn Lạc Điền, xã Phước Thắng) khôi phục ruộng sau đợt lũ cuối 12/2022 – đầu 1/2023.",
+    "en": "Farmers in flood-hit Tuy Phước (Lạc Điền, Phước Thắng) restore fields after the late-12/2022 – early-1/2023 floods."
+   }
+  },
+  {
+   "id": "daibieunhandan-i277880",
+   "publisher": "Đại biểu Nhân dân",
+   "published": "2021-11-30",
+   "url": "https://daibieunhandan.vn/dia-phuong/Lu-lon-tai-Binh-dinh-hon-16500-can-nha-bi-ngap-giao-thong-chia-cat-i277880",
+   "flood_from": "2021-11-30",
+   "flood_to": "2021-11-30",
+   "provinces": [
+    "Bình Định"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Tuy Phước",
+     "province": "Bình Định"
+    }
+   ],
+   "summary": {
+    "vi": "Lũ lớn ở Bình Định: hơn 16.500 nhà ngập, nhiều nhất là Tuy Phước với gần 11.000 nhà.",
+    "en": "Major flood in Bình Định: over 16,500 homes flooded, most in Tuy Phước with nearly 11,000."
+   }
+  },
+  {
+   "id": "vov-858115",
+   "publisher": "VOV",
+   "published": "2018-12-30",
+   "url": "https://vov.vn/xa-hoi/mua-lon-o-binh-dinh-gan-4200-hec-ta-lua-vua-gieo-sa-bi-hu-hong-858115.vov",
+   "flood_from": "2018-12-28",
+   "flood_to": "2018-12-30",
+   "provinces": [
+    "Bình Định"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Tuy Phước",
+     "province": "Bình Định"
+    }
+   ],
+   "summary": {
+    "vi": "Mưa lớn từ 28/12 làm gần 4.200 ha lúa mới gieo ở Bình Định ngập, hơn 3.700 ha ở Tuy Phước.",
+    "en": "Heavy rain from 28/12 flooded nearly 4,200 ha of newly sown rice in Bình Định, over 3,700 ha in Tuy Phước."
+   }
+  },
+  {
+   "id": "sggp-post773340",
+   "publisher": "SGGP",
+   "published": "2024-12-16",
+   "url": "https://www.sggp.org.vn/binh-dinh-ngap-lut-trieu-cuong-co-lap-nhieu-xa-hang-ngan-hoc-sinh-phai-nghi-hoc-post773340.html",
+   "flood_from": "2024-12-16",
+   "flood_to": "2024-12-16",
+   "provinces": [
+    "Bình Định"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Tuy Phước",
+     "province": "Bình Định",
+     "via": "xã Phước Thắng, Phước Hòa, Phước Sơn, Phước Thuận"
+    }
+   ],
+   "summary": {
+    "vi": "Ngập lụt và triều cường cô lập nhiều xã ở Tuy Phước (Phước Thắng, Phước Hòa, Phước Sơn, Phước Thuận); hàng ngàn học sinh nghỉ học.",
+    "en": "Floods and high tides isolated several Tuy Phước communes (Phước Thắng, Phước Hòa, Phước Sơn, Phước Thuận); thousands of pupils kept home."
+   }
+  },
+  {
+   "id": "baophapluat-post531034",
+   "publisher": "Pháp luật Việt Nam",
+   "published": "2024-11-06",
+   "url": "https://baophapluat.vn/mua-lon-gay-ngap-lut-nhieu-tuyen-duong-o-binh-dinh-post531034.html",
+   "flood_from": "2024-11-06",
+   "flood_to": "2024-11-06",
+   "provinces": [
+    "Bình Định"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Hoài Ân",
+     "province": "Bình Định",
+     "via": "xã Đak Mang, Ân Hảo Đông"
+    },
+    {
+     "level": "district",
+     "name": "Vĩnh Thạnh",
+     "province": "Bình Định",
+     "via": "xã Vĩnh Kim, Vĩnh Sơn"
+    },
+    {
+     "level": "district",
+     "name": "An Lão",
+     "province": "Bình Định",
+     "via": "xã An Toàn"
+    }
+   ],
+   "summary": {
+    "vi": "Mưa lớn gây ngập nhiều tuyến đường ở Bình Định: Đak Mang, Ân Hảo Đông (Hoài Ân), Vĩnh Kim, Vĩnh Sơn (Vĩnh Thạnh), An Toàn (An Lão).",
+    "en": "Heavy rain flooded many roads in Bình Định: Đak Mang, Ân Hảo Đông (Hoài Ân), Vĩnh Kim, Vĩnh Sơn (Vĩnh Thạnh), An Toàn (An Lão)."
+   }
   }
  ]
 }
