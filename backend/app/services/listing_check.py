@@ -212,7 +212,8 @@ def judge(typ: str, ev: dict) -> tuple[str, str, str]:
         extra = flood_reports.evidence(w.get("events") or [], season_only="n_in" in w)
         if extra:
             msg, src = msg + extra, src + tr(" · báo chí", " · news")
-    if u and typ in ("no_flood", "high_ground") and v == "consistent":
+    radar_zero = typ == "no_flood" and v == "insufficient" and bool(ev.get("water")) and not (ev["water"].get("events") or [])
+    if u and typ in ("no_flood", "high_ground") and (v == "consistent" or radar_zero):
         return "insufficient", u["note"] + tr(f" (Phần đo được: {msg})", f" (What was measured: {msg})"), "ESA WorldCover / Sentinel-1"
     if u and typ in ("no_flood", "high_ground") and v == "insufficient" and not ev.get("water"):
         return "insufficient", u["note"], "ESA WorldCover"
@@ -242,8 +243,14 @@ def _judge(typ: str, ev: dict) -> tuple[str, str, str]:
             dates = ", ".join(e["start"] for e in w["events"][-3:])
             return "contradicted", tr(f"Radar ghi nhận nước phủ {w['n_events']} đợt từ {w['first'][:4]} (gần nhất: {dates}).",
                                       f"Radar recorded water {w['n_events']} times since {w['first'][:4]} (latest: {dates})."), "Sentinel-1 RTC"
-        return "consistent", tr(f"Không thấy đợt nước phủ nào trong {w['n_scenes']} cảnh radar từ {w['first'][:4]}.",
-                                f"No water events in {w['n_scenes']} radar scenes since {w['first'][:4]}."), "Sentinel-1 RTC"
+        # 15/11/2026: KHÔNG chấm "khớp" nữa — hai phép kiểm hồ sơ công khai có đối chứng (water_records v1, v2) đều trượt,
+        # và radar chụp lại 6–12 ngày một lần: "0 đợt" không đủ chứng minh đất không ngập.
+        return "insufficient", tr(f"Radar không thấy đợt nước phủ nào trong {w['n_scenes']} cảnh từ {w['first'][:4]}, nhưng như vậy CHƯA ĐỦ để "
+                                  "khẳng định đất không ngập: radar chụp lại 6–12 ngày một lần nên có thể lọt đợt ngập ngắn hoặc nông. "
+                                  "Hỏi thêm hàng xóm hoặc cán bộ xã trước khi tin câu này.",
+                                  f"Radar saw no water events in {w['n_scenes']} scenes since {w['first'][:4]}, but that is NOT ENOUGH to confirm "
+                                  "the land never floods: radar revisits every 6–12 days and can miss short or shallow floods. "
+                                  "Ask neighbours or the commune office before trusting this claim."), "Sentinel-1 RTC"
     if typ == "high_ground":
         if not terr:
             return "insufficient", tr("Không lấy được địa hình lúc này.", "Terrain unavailable right now."), "DEM"

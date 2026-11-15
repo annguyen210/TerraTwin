@@ -143,6 +143,12 @@ cảnh) và quỹ đạo khác (S1A) không lệch. Cà Mau không có ảnh S1D
 không phải lỗi cả vệ tinh hay cả lượt chụp; chưa xác định được cơ chế. Bộ phát hiện không đổi (đổi phải qua cổng
 đăng ký trước).
 
+**"Radar không thấy nước thì sao TerraTwin không nói 'khớp, đất không ngập'?"** — Từ 15/11/2026 câu "không ngập" ở thửa
+radar 0 đợt được chấm **Chưa đủ để khẳng định**, kèm lời khuyên hỏi hàng xóm, cán bộ xã. Lý do có số: hai phép kiểm hồ sơ
+công khai có đối chứng, đăng ký trước, đều TRƯỢT (v1: báo nêu đúng huyện 0/20 ngày radar so với 1/20 ngày đối chứng; v2: ở
+ruộng ngẫu nhiên trong huyện có tin ngập, radar thấy nước 3/30 lần so với 3/60 ngày đối chứng). Radar chụp lại 6–12 ngày
+một lần nên giỏi bắt NGẬP CÓ THẬT (UNOSAT: 75% điểm ngập, 0% báo nhầm) hơn là chứng minh KHÔNG ngập.
+
 ## Sau mỗi lần tập
 
 - Điền cột "Kết quả thật"; nếu kết quả khác kịch bản (ví dụ radar không thấy đợt 9/2024) thì **sửa lời nói theo dữ
