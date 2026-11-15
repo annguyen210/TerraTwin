@@ -41,5 +41,5 @@ def test_the_mo_hinh_hien_ket_qua_cong():
     m = c["metrics"][i]
     assert m["passed"] is res["passed"] and res["verdict"] in m["value"]
     assert m["value"].startswith(f"{res['radar']['positive']}/20 ngày radar")
-    assert c["metrics"][-1]["label"].startswith("Kiểm thực địa") and i == len(c["metrics"]) - 2
+    assert c["metrics"][-1]["label"].startswith("Kiểm thực địa") and i < len(c["metrics"]) - 1      # trước dòng người dùng (v2 có thể chen giữa)
     assert "TRƯỢT" in c["limits"] or res["passed"]

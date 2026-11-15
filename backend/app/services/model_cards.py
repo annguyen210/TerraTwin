@@ -90,6 +90,22 @@ def _records_metric() -> dict | None:
             "threshold": tr("Fisher p < 0,05 và chênh ≥ 0,20", "Fisher p < 0.05 and difference ≥ 0.20"), "passed": r["passed"]}
 
 
+def _records_v2_metric() -> dict | None:
+    """Cổng hồ sơ công khai v2 (water_records_v2_protocol.json, 14/11/2026): chiều NGƯỢC — trận báo đã ghi rõ huyện ngập →
+    ruộng ngẫu nhiên trong huyện → radar có thấy nước quanh ngày đó thường hơn cùng thời điểm năm khác không. Máy chấm."""
+    r = _load("eval", "water_records_v2_result.json")
+    if not r:
+        return None
+    rp, ct = r["reported"], r["control"]
+    p = str(r["fisher_one_sided_p"]).replace(".", ",")
+    en = {"ĐẠT": "PASSED", "TRƯỢT": "FAILED"}.get(r["verdict"], "INCONCLUSIVE")
+    return {"label": tr("Kiểm hồ sơ công khai v2 (tin báo → radar): radar thấy nước khi báo ghi huyện ngập, so với cùng thời điểm năm khác",
+                        "Public-records check v2 (news → radar): radar sees water when news reports the district flooded, vs the same dates in other years"),
+            "value": tr(f"{rp['wet']}/{rp['n']} cửa sổ có tin báo · {ct['wet']}/{ct['n']} cửa sổ đối chứng (p = {p}) — {r['verdict']}",
+                        f"{rp['wet']}/{rp['n']} news windows · {ct['wet']}/{ct['n']} control windows (p = {r['fisher_one_sided_p']}) — {en}"),
+            "threshold": tr("Fisher p < 0,05 và chênh ≥ 0,20", "Fisher p < 0.05 and difference ≥ 0.20"), "passed": r["passed"]}
+
+
 def _press_metrics() -> list[dict]:
     """Đối chiếu PHỤ với báo chí (water_press_protocol.json) — KHÔNG phải xác nhận thực địa, không tính vào cổng 30 đợt."""
     p = _load("eval", "water_press_result.json")
@@ -215,18 +231,18 @@ def cards() -> list[dict]:
             "metrics": [{"label": c.get("case"), "value": tr(f"{c.get('n_events')} đợt", f"{c.get('n_events')} events"),
                          "threshold": ", ".join(x.get("label", "") for x in c.get("checks") or []) or tr("0 đợt", "0 events"),
                          "passed": all(x.get("pass") for x in c.get("checks") or []) if c.get("checks") else c.get("n_events") == 0}
-                        for c in g.get("cases", [])] + _unosat_metrics() + _press_metrics() + [m for m in [_records_metric()] if m] + [_field_metric()],
+                        for c in g.get("cases", [])] + _unosat_metrics() + _press_metrics() + [m for m in [_records_metric(), _records_v2_metric()] if m] + [_field_metric()],
             "limits": tr("Đô thị, rừng rậm, sườn dốc, mặt rất phẳng có thể sai; chu kỳ 6–12 ngày lọt đợt ngập ngắn. Đối chiếu UNOSAT: "
                          "khớp cao với bản đồ cũng làm từ Sentinel-1, nhưng chỉ bắt 6/16 điểm ngập trên bản đồ từ cảm biến khác (SAOCOM băng L "
                          "thấy cả nước dưới tán cây; RADARSAT chụp ngày khác) — lịch sử nước dễ BỎ SÓT ngập ngắn hoặc dưới tán, hiếm khi báo bừa "
                          "(0/73 điểm khô). Đối chiếu báo chí 14/11/2026 chỉ là kiểm phụ: báo chỉ đưa tin trận lớn, khớp huyện không chứng "
-                         "minh đúng thửa ngập, tiêu chí ghi trước nhưng không khoá mã băm, một người xếp mức, và 4 thửa đó tự chọn ở vùng hay ngập. Phép kiểm NGẪU NHIÊN có đối chứng 14/11 (10 thửa ở 20 tỉnh, 40 mục giữ mù) TRƯỢT: báo nêu đúng huyện ở 0/20 ngày radar và 1/20 ngày đối chứng — báo hầu như không đưa tin ngập cấp huyện cho ruộng ngẫu nhiên mùa mưa, nên cách đo này không xác nhận được radar (cũng không có nguồn nào nói trái).",
+                         "minh đúng thửa ngập, tiêu chí ghi trước nhưng không khoá mã băm, một người xếp mức, và 4 thửa đó tự chọn ở vùng hay ngập. Phép kiểm NGẪU NHIÊN có đối chứng 14/11 (10 thửa ở 20 tỉnh, 40 mục giữ mù) TRƯỢT: báo nêu đúng huyện ở 0/20 ngày radar và 1/20 ngày đối chứng — báo hầu như không đưa tin ngập cấp huyện cho ruộng ngẫu nhiên mùa mưa, nên cách đo này không xác nhận được radar (cũng không có nguồn nào nói trái). Cổng v2 chiều ngược (14–15/11) cũng TRƯỢT: ở ruộng ngẫu nhiên trong huyện có tin ngập, radar chỉ thấy nước 3/30 lần, ngang ngày đối chứng (3/60). Tin báo cấp huyện không có nghĩa là ruộng đó ngập, nhưng cũng là lời nhắc: radar \"0 đợt\" KHÔNG chứng minh đất không ngập.",
                          "Urban areas, dense forest, steep slopes, very smooth surfaces mislead; the 6–12 day revisit misses short floods. UNOSAT "
                          "check: high agreement with maps also made from Sentinel-1, but only 6/16 flooded points on maps from other sensors "
                          "(L-band SAOCOM sees water under canopy; RADARSAT imaged on other days) — water history tends to MISS short or "
                          "under-canopy flooding, and rarely raises false alarms (0/73 dry points). The 14/11/2026 press cross-check is "
                          "secondary only: news covers big floods, a district match does not prove the plot flooded, criteria were written "
-                         "first but not hash-locked, one person graded it, and those 4 plots were hand-picked in flood-prone areas. The RANDOMISED controlled check of 14/11 (10 plots in 20 provinces, 40 blinded items) FAILED: news named the district for 0/20 radar dates and 1/20 control dates — district-level flood news is almost absent for random paddies in the rainy season, so this method cannot confirm the radar (nor did any source contradict it)."),
+                         "first but not hash-locked, one person graded it, and those 4 plots were hand-picked in flood-prone areas. The RANDOMISED controlled check of 14/11 (10 plots in 20 provinces, 40 blinded items) FAILED: news named the district for 0/20 radar dates and 1/20 control dates — district-level flood news is almost absent for random paddies in the rainy season, so this method cannot confirm the radar (nor did any source contradict it). The reverse v2 check (14–15/11) also FAILED: at random paddies in districts with flood news, radar saw water 3/30 times, no more than on control dates (3/60). District-level news does not mean that paddy flooded, but it is a reminder: radar \"0 events\" does NOT prove the land never floods."),
             "not_for": tr("Không phải số liệu ngập chính thức.", "Not official flood records."),
             "code": f"{REPO}/backend/app/services/water_history.py",
         })

@@ -1,0 +1,387 @@
+{
+ "id": "terratwin.water_records/2",
+ "registered": "2026-11-14",
+ "registered_before_sampling": true,
+ "why": "v1 (tin báo cho từng ngày radar) TRƯỢT vì báo hầu như không đưa tin ngập cấp huyện cho ruộng ngẫu nhiên. v2 đi CHIỀU NGƯỢC: bắt đầu từ trận mà báo đã ghi rõ huyện ngập, rồi xem radar ở ruộng ngẫu nhiên trong huyện đó có thấy nước quanh ngày đó THƯỜNG HƠN cùng thời điểm các năm khác không. Kết quả do máy tính — không có nhãn tay.",
+ "frame": {
+  "source": "backend/data/flood_reports.json ở commit f0a92a2 (35 bài, mỗi bài đã mở kiểm).",
+  "exclusions": [
+   "17 bài gốc (tìm quanh ngày radar của 4 thửa đối chiếu 14/11) — loại hết vì tìm ra NHỜ ngày radar.",
+   "Bài có khoảng ngập giao cửa sổ một mục RADAR của v1 ở CÙNG TỈNH — loại (4 cặp)."
+  ],
+  "merge": "Cùng huyện, hai khoảng cách nhau < 15 ngày → một trận.",
+  "events": [
+   {
+    "province": "Bình Định",
+    "district": "An Lão",
+    "from": "2024-11-06",
+    "to": "2024-11-06",
+    "reports": [
+     "baophapluat-post531034"
+    ]
+   },
+   {
+    "province": "Bình Định",
+    "district": "Hoài Ân",
+    "from": "2024-11-06",
+    "to": "2024-11-06",
+    "reports": [
+     "baophapluat-post531034"
+    ]
+   },
+   {
+    "province": "Bình Định",
+    "district": "Tuy Phước",
+    "from": "2018-12-28",
+    "to": "2018-12-30",
+    "reports": [
+     "vov-858115"
+    ]
+   },
+   {
+    "province": "Bình Định",
+    "district": "Tuy Phước",
+    "from": "2021-11-30",
+    "to": "2021-11-30",
+    "reports": [
+     "daibieunhandan-i277880"
+    ]
+   },
+   {
+    "province": "Bình Định",
+    "district": "Tuy Phước",
+    "from": "2022-12-25",
+    "to": "2023-01-05",
+    "reports": [
+     "sggp-post676053"
+    ]
+   },
+   {
+    "province": "Bình Định",
+    "district": "Tuy Phước",
+    "from": "2024-12-16",
+    "to": "2024-12-16",
+    "reports": [
+     "sggp-post773340"
+    ]
+   },
+   {
+    "province": "Bình Định",
+    "district": "Vĩnh Thạnh",
+    "from": "2024-11-06",
+    "to": "2024-11-06",
+    "reports": [
+     "baophapluat-post531034"
+    ]
+   },
+   {
+    "province": "Cần Thơ",
+    "district": "Bình Thủy",
+    "from": "2020-05-30",
+    "to": "2020-05-30",
+    "reports": [
+     "vtcnews-ar549125"
+    ]
+   },
+   {
+    "province": "Cần Thơ",
+    "district": "Bình Thủy",
+    "from": "2026-08-15",
+    "to": "2026-08-15",
+    "reports": [
+     "vietnamplus-post1130431"
+    ]
+   },
+   {
+    "province": "Cần Thơ",
+    "district": "Ninh Kiều",
+    "from": "2017-10-11",
+    "to": "2017-10-11",
+    "reports": [
+     "vietnamnews-405378"
+    ]
+   },
+   {
+    "province": "Cần Thơ",
+    "district": "Ninh Kiều",
+    "from": "2020-05-30",
+    "to": "2020-05-30",
+    "reports": [
+     "vtcnews-ar549125"
+    ]
+   },
+   {
+    "province": "Hải Dương",
+    "district": "Tứ Kỳ",
+    "from": "2024-09-15",
+    "to": "2024-09-15",
+    "reports": [
+     "mekongasean-33428"
+    ]
+   },
+   {
+    "province": "Long An",
+    "district": "Kiến Tường",
+    "from": "2024-10-24",
+    "to": "2024-10-24",
+    "reports": [
+     "tuoitre-plo-post816542"
+    ]
+   },
+   {
+    "province": "Long An",
+    "district": "Mộc Hóa",
+    "from": "2024-10-24",
+    "to": "2024-10-24",
+    "reports": [
+     "tuoitre-plo-post816542"
+    ]
+   },
+   {
+    "province": "Long An",
+    "district": "Tân Hưng",
+    "from": "2024-10-24",
+    "to": "2024-10-24",
+    "reports": [
+     "tuoitre-plo-post816542"
+    ]
+   },
+   {
+    "province": "Long An",
+    "district": "Tân Thạnh",
+    "from": "2024-10-24",
+    "to": "2024-10-24",
+    "reports": [
+     "tuoitre-plo-post816542"
+    ]
+   },
+   {
+    "province": "Nghệ An",
+    "district": "Anh Sơn",
+    "from": "2023-09-27",
+    "to": "2023-09-27",
+    "reports": [
+     "thanhtra-BBE31D98"
+    ]
+   },
+   {
+    "province": "Nghệ An",
+    "district": "Con Cuông",
+    "from": "2022-10-01",
+    "to": "2022-10-01",
+    "reports": [
+     "baohatinh-post238307"
+    ]
+   },
+   {
+    "province": "Nghệ An",
+    "district": "Con Cuông",
+    "from": "2026-08-20",
+    "to": "2026-08-20",
+    "reports": [
+     "baophapluat-20260820-nghean"
+    ]
+   },
+   {
+    "province": "Nghệ An",
+    "district": "Diễn Châu",
+    "from": "2023-09-27",
+    "to": "2023-09-27",
+    "reports": [
+     "thanhtra-BBE31D98"
+    ]
+   },
+   {
+    "province": "Nghệ An",
+    "district": "Đô Lương",
+    "from": "2022-10-01",
+    "to": "2022-10-01",
+    "reports": [
+     "baohatinh-post238307"
+    ]
+   },
+   {
+    "province": "Nghệ An",
+    "district": "Đô Lương",
+    "from": "2023-09-27",
+    "to": "2023-09-27",
+    "reports": [
+     "thanhtra-BBE31D98"
+    ]
+   },
+   {
+    "province": "Nghệ An",
+    "district": "Hoàng Mai",
+    "from": "2023-09-27",
+    "to": "2023-09-27",
+    "reports": [
+     "thanhtra-BBE31D98"
+    ]
+   },
+   {
+    "province": "Nghệ An",
+    "district": "Hưng Nguyên",
+    "from": "2023-09-27",
+    "to": "2023-09-27",
+    "reports": [
+     "thanhtra-BBE31D98"
+    ]
+   },
+   {
+    "province": "Nghệ An",
+    "district": "Hưng Nguyên",
+    "from": "2026-08-20",
+    "to": "2026-08-20",
+    "reports": [
+     "baophapluat-20260820-nghean"
+    ]
+   },
+   {
+    "province": "Nghệ An",
+    "district": "Nam Đàn",
+    "from": "2022-10-01",
+    "to": "2022-10-01",
+    "reports": [
+     "baohatinh-post238307"
+    ]
+   },
+   {
+    "province": "Nghệ An",
+    "district": "Nam Đàn",
+    "from": "2023-09-27",
+    "to": "2023-09-27",
+    "reports": [
+     "thanhtra-BBE31D98"
+    ]
+   },
+   {
+    "province": "Nghệ An",
+    "district": "Nghĩa Đàn",
+    "from": "2026-08-20",
+    "to": "2026-08-20",
+    "reports": [
+     "baophapluat-20260820-nghean"
+    ]
+   },
+   {
+    "province": "Nghệ An",
+    "district": "Nghi Lộc",
+    "from": "2023-09-27",
+    "to": "2023-09-27",
+    "reports": [
+     "thanhtra-BBE31D98"
+    ]
+   },
+   {
+    "province": "Nghệ An",
+    "district": "Quỳnh Lưu",
+    "from": "2022-10-01",
+    "to": "2022-10-01",
+    "reports": [
+     "baohatinh-post238307"
+    ]
+   },
+   {
+    "province": "Nghệ An",
+    "district": "Quỳnh Lưu",
+    "from": "2023-09-27",
+    "to": "2023-09-27",
+    "reports": [
+     "thanhtra-BBE31D98"
+    ]
+   },
+   {
+    "province": "Nghệ An",
+    "district": "Quỳnh Lưu",
+    "from": "2026-08-20",
+    "to": "2026-08-20",
+    "reports": [
+     "baophapluat-20260820-nghean"
+    ]
+   },
+   {
+    "province": "Nghệ An",
+    "district": "Thanh Chương",
+    "from": "2022-10-01",
+    "to": "2022-10-01",
+    "reports": [
+     "baohatinh-post238307"
+    ]
+   },
+   {
+    "province": "Nghệ An",
+    "district": "Thanh Chương",
+    "from": "2023-09-27",
+    "to": "2023-09-27",
+    "reports": [
+     "thanhtra-BBE31D98"
+    ]
+   },
+   {
+    "province": "Nghệ An",
+    "district": "Vinh",
+    "from": "2023-09-27",
+    "to": "2023-09-27",
+    "reports": [
+     "thanhtra-BBE31D98"
+    ]
+   },
+   {
+    "province": "Thái Bình",
+    "district": "Hưng Hà",
+    "from": "2017-10-20",
+    "to": "2017-10-20",
+    "reports": [
+     "baophapluat-post260599"
+    ]
+   },
+   {
+    "province": "Thái Bình",
+    "district": "Kiến Xương",
+    "from": "2017-10-20",
+    "to": "2017-10-20",
+    "reports": [
+     "baophapluat-post260599"
+    ]
+   },
+   {
+    "province": "Thái Bình",
+    "district": "Vũ Thư",
+    "from": "2017-10-20",
+    "to": "2017-10-20",
+    "reports": [
+     "baophapluat-post260599"
+    ]
+   },
+   {
+    "province": "Tiền Giang",
+    "district": "Chợ Gạo",
+    "from": "2025-10-21",
+    "to": "2025-10-22",
+    "reports": [
+     "vov-post1239849"
+    ]
+   }
+  ],
+  "n_events": 39
+ },
+ "sampling": {
+  "seed": 20261115,
+  "points": "Mỗi trận sinh tối đa 3 điểm ngẫu nhiên đều trong ranh huyện cũ (geoBoundaries 2020), lấy điểm DÙNG ĐƯỢC đầu tiên. Danh sách điểm + mã băm commit TRƯỚC khi gọi radar.",
+  "usable": "Lịch sử nước máy chủ chính thức: available; không urban, không canopy, không water_surface; cảnh đầu ≤ ngày đầu trận − 12; cảnh cuối ≥ ngày cuối trận + 12. KHÔNG xét thửa có đợt nào hay không.",
+  "controls": "Mỗi điểm 2 cửa sổ đối chứng: cùng ngày-tháng ở năm khác 2017–2026 (chọn ngẫu nhiên), nằm trọn trong [cảnh đầu + 12, cảnh cuối], và sổ lũ (f0a92a2) KHÔNG có bài nào cho huyện đó giao [cửa sổ − 30, + 30] ngày. Thiếu năm hợp lệ thì dùng số có được (≥ 1), không có thì bỏ điểm."
+ },
+ "outcome": "Radar DƯƠNG ở một cửa sổ khi có ít nhất một đợt nước (mọi đợt, không xét mùa) mà [bắt đầu, kết thúc] giao [ngày đầu − 3, ngày cuối + 12] (radar chụp lại 6–12 ngày một lần).",
+ "scoring": {
+  "metrics": "P_trận (tỉ lệ dương ở cửa sổ có tin báo) và P_đối_chứng; Wilson 95%; Fisher chính xác một phía; phụ: đếm cặp trên cùng điểm.",
+  "pass": "p < 0,05 VÀ P_trận − P_đối_chứng ≥ 0,20",
+  "fail": "không đạt → TRƯỢT, công bố",
+  "inconclusive": "< 15 điểm dùng được → CHƯA KẾT LUẬN",
+  "once": "chấm một lần, máy tính; không đổi luật sau khi thấy kết quả."
+ },
+ "limits": [
+  "Sổ lũ chưa đủ: năm đối chứng có thể có ngập không lên báo → nghiêng về KHÔNG đạt (bảo thủ).",
+  "Phần lớn trận ở Nghệ An (một bài nêu 10 huyện); huyện miền núi hay bị loại vì tán cây.",
+  "Kiểm độ nhạy cấp huyện: radar ở một ruộng ngẫu nhiên không bắt buộc phải ướt dù huyện có ngập."
+ ]
+}
