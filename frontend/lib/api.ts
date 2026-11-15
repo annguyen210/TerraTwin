@@ -459,6 +459,7 @@ export function setToken(t: string | null) {
   if (typeof window === "undefined") return;
   if (t) localStorage.setItem(TOKEN_KEY, t);
   else localStorage.removeItem(TOKEN_KEY);
+  window.dispatchEvent(new Event("tt-auth"));     // đăng nhập ngay trong trang (vd. xác nhận đợt nước) → thanh trên cập nhật theo
 }
 
 function authHeaders(): Record<string, string> {

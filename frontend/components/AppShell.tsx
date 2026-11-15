@@ -47,7 +47,11 @@ export default function AppShell({ children, user: userProp, onAuth, extra, wide
   const [ownUser, setOwnUser] = useState<AuthUser | null>(null);
   const controlled = userProp !== undefined;
   useEffect(() => {
-    if (!controlled && getToken()) fetchMe().then(setOwnUser).catch(() => setOwnUser(null));
+    if (controlled) return;
+    const load = () => { if (getToken()) fetchMe().then(setOwnUser).catch(() => setOwnUser(null)); else setOwnUser(null); };
+    load();
+    window.addEventListener("tt-auth", load);
+    return () => window.removeEventListener("tt-auth", load);
   }, [controlled]);
   const user = controlled ? userProp : ownUser;
   const setUser = (u: AuthUser | null) => { if (onAuth) onAuth(u); if (!controlled) setOwnUser(u); };

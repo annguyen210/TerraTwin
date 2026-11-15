@@ -5299,6 +5299,11 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 /* Xác nhận từng đợt nước — "ruộng có ngập đợt này không" (17/10/2026) */
 .wh-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 6px; font-size: .8rem; color: var(--dim); }
 .wh-list li .wh-confirm span { margin-left: 0; }
+/* Tạo tài khoản / đăng nhập ngay dưới đợt vừa bấm (14/11/2026) */
+.wh-auth { display: grid; gap: 6px; margin-top: 6px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); max-width: 420px; }
+.wh-auth input { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg, transparent); color: var(--text); }
+.wh-auth-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.wh-list li .wh-auth small, .wh-list li .wh-auth span { margin-left: 0; }
 .wh-cf { font: inherit; font-size: .78rem; padding: 2px 10px; border-radius: 99px; border: 1px solid var(--line-2);
   background: transparent; color: var(--text); cursor: pointer; }
 .wh-cf:hover:not(:disabled) { border-color: var(--terra); }

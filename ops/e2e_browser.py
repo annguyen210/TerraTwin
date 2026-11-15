@@ -337,7 +337,7 @@ with sync_playwright() as p:
         return f"không lớp phủ che · lịch sử nước {state_txt}"
     try_hue()
 
-    @step("Thửa Quảng Điền: lịch sử nước có đợt + lời mời xác nhận (khách không thấy nút); ô tìm kiếm đọc link Google Maps")
+    @step("Thửa Quảng Điền: lịch sử nước có đợt + lời mời xác nhận (khách thấy nút, bấm hiện ô tạo tài khoản); ô tìm kiếm đọc link Google Maps")
     def confirm_and_maplink():
         # 17–18/10/2026: xác nhận từng đợt nước (chỉ người đăng nhập bấm được) + đọc link "địa điểm" Google Maps (lỗi cũ ra
         # toạ độ (1, 1)). CHỈ ĐỌC: không bấm xác nhận, không chọn thửa.
@@ -347,7 +347,13 @@ with sync_playwright() as p:
         pg.locator("section.wh .wh-list li").first.wait_for(timeout=180_000)      # thửa mẫu đã hâm nóng (warm-demo)
         n = pg.locator("section.wh .wh-list li").count()
         assert pg.locator("section.wh p.wh-cf-note").count() == 1, "thiếu lời mời xác nhận từng đợt"
-        assert pg.locator("section.wh .wh-cf").count() == 0, "khách chưa đăng nhập không được thấy nút xác nhận"
+        # 14/11/2026: khách THẤY nút ngay (người được mời hay bỏ cuộc ở bước tìm nút đăng nhập); bấm → hiện ô tạo tài khoản
+        # tại chỗ, CHƯA gửi gì. Không điền ô (không tạo tài khoản, không ghi xác nhận).
+        assert pg.locator("section.wh .wh-cf").count() == 3 * n, "khách phải thấy 3 nút trả lời ở mỗi đợt"
+        assert pg.locator("section.wh form.wh-auth").count() == 0, "ô tạo tài khoản không được hiện trước khi bấm"
+        pg.locator("section.wh .wh-cf").first.click()
+        pg.locator("section.wh form.wh-auth").first.wait_for(timeout=10_000)
+        assert pg.locator("section.wh form.wh-auth input[type=email]").count() == 1, "bấm khi chưa đăng nhập phải hiện ô email"
         assert pg.get_by_role("button", name=re.compile("Mời người ở đó xác nhận")).count() == 1, "thiếu nút mời xác nhận"
         pg.goto(WEB + "/", wait_until="domcontentloaded", timeout=120_000)
         q = pg.locator("input.start-q").first
