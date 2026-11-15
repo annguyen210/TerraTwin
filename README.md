@@ -33,7 +33,10 @@ không phá rừng sau 31/12/2020. Đây là nhu cầu BẮT BUỘC có hạn ch
 | Mùa lũ v2 (mưa cực đoan P97) | dương tính ≥ 75%, 0 bắt nhầm | Noru không có cảnh; Cà Mau 05/04/2025 bắt nhầm | trượt, không bật — §7c |
 | Mùa lũ v3 (lưu lượng sông GloFAS, R-a/R-b) | ≥ 4 trận ở ≥ 2 vùng, ≥ 75%, 0 bắt nhầm | 0/3 (chỉ 3/12 trận đủ điều kiện) | trượt, không bật — §7d |
 | **Tổ hợp dự báo mưa best_match + ECMWF AIFS** | FAR giảm VÀ POD không giảm (128 ngày-sự kiện, 9 điểm, 2025) | POD 0,289 → **0,477**; FAR 0,439 → **0,322** | **đạt, đã bật** (a6950c1 → c85de86); gộp 50 đợt riêng: 17 → 22, cả hai < nửa — §7f |
-| Kiểm thực địa bộ phát hiện đợt nước (xác nhận người dùng) | ≥ 30 đợt, ≥ 10 người, ≥ 3 ô 1°; cận dưới Wilson ≥ 0,60 | **chờ dữ liệu** (0/30 đợt, 0 người, 0 vùng — kiểm 13/11/2026) | đăng ký trước khi có câu trả lời nào (2c307bd) — §7e |
+| Kiểm thực địa bộ phát hiện đợt nước (xác nhận người dùng) | ≥ 30 đợt, ≥ 10 người, ≥ 3 ô 1°; cận dưới Wilson ≥ 0,60 | **chờ dữ liệu** (0/30 đợt, 0 người, 0 vùng — kiểm 15/11/2026; từ 14/11 khách bấm trả lời là tạo tài khoản tại chỗ) | đăng ký trước khi có câu trả lời nào (2c307bd) — §7e; từ 14/11 là phần cộng thêm, không bắt buộc |
+| Đối chiếu báo chí 24 đợt ở 4 thửa tự chọn (kiểm phụ) | báo nêu ngập đúng xã/huyện | 10/24 khớp xã/huyện, 0 trái | chỉ là kiểm phụ (thửa tự chọn, không khoá mã băm) — §7g |
+| **Cổng hồ sơ công khai v1** (cổng thực địa chính từ 14/11): báo nêu đúng huyện ở ngày radar vs ngày đối chứng | Fisher p < 0,05 và chênh ≥ 0,20 | 0/20 ngày radar · 1/20 ngày đối chứng (p = 1,0) | **TRƯỢT** — đăng ký trước 619012f, giữ mù, chấm một lần — §7h |
+| **Cổng hồ sơ công khai v2** (chiều ngược: tin báo → radar ở ruộng ngẫu nhiên trong huyện) | Fisher p < 0,05 và chênh ≥ 0,20 | 3/30 cửa sổ có tin báo · 3/60 đối chứng (p = 0,32) | **TRƯỢT** — đăng ký trước 371437a, máy chấm; vì vậy kiểm tin rao không còn chấm "không ngập" là Khớp khi radar 0 đợt — §7i |
 | **Sàng lọc v3** (v2 + mô hình rừng/vườn cho ca tán dày) | như v1, mỗi nhóm ≥25 ô | **đang gán nhãn** | 240 ô mới (seed 20261007), sự thật = 2 người giải đoán ảnh 2020 độc lập ở `/gan-nhan`; giao thức + mẫu commit trước nhãn (0fdd138) |
 
 ## Hồ sơ đất cho người mua đất — kế hoạch tổng (cập nhật 9/10/2026)
@@ -43,7 +46,7 @@ mật mã, ai cũng kiểm lại được.** Không điểm rủi ro hộp đen;
 
 | Năng lực | Cái người dùng thấy | Bằng chứng / cổng | Mã |
 |---|---|---|---|
-| Lịch sử nước nhìn xuyên mây | "Nước đã phủ N đợt từ 2017" + kéo thanh theo năm: ảnh radar và mặt nước hiện lên bản đồ | Cổng GĐ2: thấy đúng tuần lũ Huế 10/2020, miền Trung 10/2025; đất cao 0 đợt (`REPRODUCE.md` §7) | `services/water_history.py` |
+| Lịch sử nước nhìn xuyên mây | "Nước đã phủ N đợt từ 2017" + kéo thanh theo năm: ảnh radar và mặt nước hiện lên bản đồ; mỗi đợt kèm **bài báo ghi ngập đúng huyện cũ** nếu sổ lũ công khai có (35 bài đã mở kiểm, `data/flood_reports.json`) | Cổng GĐ2: thấy đúng tuần lũ Huế 10/2020, miền Trung 10/2025; đất cao 0 đợt (`REPRODUCE.md` §7) | `services/water_history.py` |
 | Kiểm chứng tin đăng bán đất | Từng câu "không ngập", "cao ráo", "gần sông"… → Khớp / Mâu thuẫn / Không đủ dữ liệu; đưa kết quả vào hồ sơ ký số (không lưu nguyên văn) | Luật từ khoá có/không dấu; cổng GĐ3 **đạt lần 12 trên nhãn người độc lập**, F1 0,88 trên 42 tin Facebook (`ops/listing_gate_fb.py --run 12`) | `services/listing_check.py` |
 | Mỗi câu bấm ra bằng chứng | Tóm tắt dễ hiểu trên hồ sơ; bấm câu → số liệu gốc, nguồn, ngày đo, cách tái lập | LLM chỉ viết lại từ bằng chứng của câu; câu có số lạ bị loại cả câu (`tests/test_gd4_evidence.py`) | `services/narrative.py` |
 | Không ai lùi ngày được, kể cả TerraTwin | Trang hồ sơ: "Đã neo vào Bitcoin, khối #…" | Sổ Merkle RFC 6962 + nhân chứng GitHub + **OpenTimestamps** 2 lần/ngày; script kiểm độc lập `ops/verify_dossier.py` | `services/anchor.py`, `ops/ots_anchor.py` |
