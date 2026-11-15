@@ -1081,6 +1081,431 @@
     "vi": "Mưa lớn gây ngập nhiều tuyến đường ở Bình Định: Đak Mang, Ân Hảo Đông (Hoài Ân), Vĩnh Kim, Vĩnh Sơn (Vĩnh Thạnh), An Toàn (An Lão).",
     "en": "Heavy rain flooded many roads in Bình Định: Đak Mang, Ân Hảo Đông (Hoài Ân), Vĩnh Kim, Vĩnh Sơn (Vĩnh Thạnh), An Toàn (An Lão)."
    }
+  },
+  {
+   "id": "vietnamnews-1663578",
+   "publisher": "Việt Nam News",
+   "published": "2024-09-24",
+   "url": "https://vietnamnews.vn/environment/1663578/prolonged-flooding-continues-to-disrupt-lives-of-thousands-in-ha-noi-s-suburban-district.html",
+   "flood_from": "2024-09-24",
+   "flood_to": "2024-09-24",
+   "provinces": [
+    "Hà Nội"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Mỹ Đức",
+     "province": "Hà Nội",
+     "via": "xã An Phú, Hợp Thanh"
+    }
+   ],
+   "summary": {
+    "vi": "Sau bão Yagi, nhiều xã vùng trũng ở Mỹ Đức (Hà Nội) vẫn ngập nặng, như thôn Đồng Chiêm (An Phú), Phú Hiền (Hợp Thanh).",
+    "en": "After Typhoon Yagi, low-lying communes of Mỹ Đức (Hà Nội) remained heavily flooded, e.g. Đồng Chiêm (An Phú) and Phú Hiền (Hợp Thanh)."
+   }
+  },
+  {
+   "id": "nguoiquansat-159290",
+   "publisher": "Người Quan Sát",
+   "published": "2024-09-19",
+   "url": "https://nguoiquansat.vn/nuoc-khong-rut-ron-lu-o-chuong-my-hoa-canh-nuoc-noi-mien-tay-159290.html",
+   "flood_from": "2024-09-19",
+   "flood_to": "2024-09-19",
+   "provinces": [
+    "Hà Nội"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Chương Mỹ",
+     "province": "Hà Nội",
+     "via": "xã Nam Phương Tiến, Tân Tiến"
+    }
+   ],
+   "summary": {
+    "vi": "Rốn lũ Chương Mỹ (Hà Nội) nước rút rất chậm sau bão Yagi; thôn Nhân Lý, Nam Hài (Nam Phương Tiến) và một phần Tân Tiến còn ngập.",
+    "en": "Chương Mỹ (Hà Nội) floodwater receded very slowly after Typhoon Yagi; Nhân Lý, Nam Hài (Nam Phương Tiến) and parts of Tân Tiến still flooded."
+   }
+  },
+  {
+   "id": "vietnamnews-1662700",
+   "publisher": "Việt Nam News",
+   "published": "2024-09-10",
+   "url": "https://vietnamnews.vn/society/1662700/pm-calls-for-swift-action-in-flood-hit-bac-giang.html",
+   "flood_from": "2024-09-10",
+   "flood_to": "2024-09-10",
+   "provinces": [
+    "Bắc Giang"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Việt Yên",
+     "province": "Bắc Giang",
+     "via": "xã Vân Hà"
+    }
+   ],
+   "summary": {
+    "vi": "Lũ sau bão Yagi ở Bắc Giang: xã Vân Hà (Việt Yên) bị nước lũ cô lập khoảng 9.000 người.",
+    "en": "Floods after Typhoon Yagi in Bắc Giang: Vân Hà commune (Việt Yên) cut off by floodwater, about 9,000 people isolated."
+   }
+  },
+  {
+   "id": "nongnghiepmoitruong-d399169",
+   "publisher": "Nông nghiệp và Môi trường",
+   "published": "2024-09-09",
+   "url": "https://nongnghiepmoitruong.vn/dam-bao-an-toan-cho-gan-3000-ho-dan-bi-ngap-sau-tai-thanh-pho-thai-nguyen-d399169.html",
+   "flood_from": "2024-09-09",
+   "flood_to": "2024-09-09",
+   "provinces": [
+    "Thái Nguyên"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Thái Nguyên",
+     "province": "Thái Nguyên",
+     "via": "phường Đồng Bẩm"
+    }
+   ],
+   "summary": {
+    "vi": "Lũ sông Cầu: khoảng 3.000 hộ ở 22 phường, xã của TP Thái Nguyên bị ngập; quốc lộ 1B qua cầu Bến Tượng (Đồng Bẩm) ngập.",
+    "en": "Cầu River flood: about 3,000 households in 22 wards/communes of Thái Nguyên city flooded; highway 1B at Bến Tượng bridge (Đồng Bẩm) under water."
+   }
+  },
+  {
+   "id": "vnexpress-4945686",
+   "publisher": "VnExpress",
+   "published": "2025-09-30",
+   "url": "https://vnexpress.net/yen-bai-ngap-2-m-4945686.html",
+   "flood_from": "2025-09-30",
+   "flood_to": "2025-09-30",
+   "provinces": [
+    "Yên Bái"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Yên Bái",
+     "province": "Yên Bái",
+     "via": "phường Yên Bái (Hồng Hà cũ)"
+    }
+   ],
+   "summary": {
+    "vi": "Bão Bualoi: phường Yên Bái (Lào Cai) ngập 1–2 m, hơn 1.700 nhà ngập; cả phường Hồng Hà cũ còn ngập sâu.",
+    "en": "Typhoon Bualoi: Yên Bái ward (Lào Cai) under 1–2 m, over 1,700 homes flooded; the whole former Hồng Hà ward still deeply flooded."
+   }
+  },
+  {
+   "id": "tuoitre-103251120123034379",
+   "publisher": "Tuổi Trẻ News",
+   "published": "2025-11-20",
+   "url": "https://news.tuoitre.vn/tens-of-thousands-of-homes-in-vietnams-dak-lak-submerged-in-worst-flooding-in-over-30-years-103251120123034379.htm",
+   "flood_from": "2025-11-20",
+   "flood_to": "2025-11-20",
+   "provinces": [
+    "Phú Yên",
+    "Thừa Thiên Huế"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Đồng Xuân",
+     "province": "Phú Yên",
+     "via": "xã Đồng Xuân"
+    },
+    {
+     "level": "district",
+     "name": "Tuy An",
+     "province": "Phú Yên",
+     "via": "xã Tuy An Bắc"
+    },
+    {
+     "level": "district",
+     "name": "Quảng Điền",
+     "province": "Thừa Thiên Huế",
+     "via": "xã Quảng Điền"
+    },
+    {
+     "level": "district",
+     "name": "Hương Trà",
+     "province": "Thừa Thiên Huế",
+     "via": "phường Hương Trà"
+    }
+   ],
+   "summary": {
+    "vi": "Lũ lớn nhất hơn 30 năm ở Đắk Lắk (Phú Yên cũ): Đồng Xuân, Tuy An Bắc ngập sâu, bị chia cắt; ở Huế, xã Quảng Điền, phường Hương Trà ngập 20–30 cm.",
+    "en": "Worst flood in 30+ years in Đắk Lắk (former Phú Yên): Đồng Xuân and Tuy An Bắc deeply flooded and cut off; in Huế, Quảng Điền and Hương Trà flooded 20–30 cm."
+   }
+  },
+  {
+   "id": "thanhtra-39B07238",
+   "publisher": "Thanh tra",
+   "published": "2020-10-10",
+   "url": "https://thanhtra.com.vn/moi-truong-9DBF44B9E/nuoc-lu-dang-cao-tro-lai-39B07238.html",
+   "flood_from": "2020-10-09",
+   "flood_to": "2020-10-10",
+   "provinces": [
+    "Quảng Nam"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Đại Lộc",
+     "province": "Quảng Nam"
+    },
+    {
+     "level": "district",
+     "name": "Duy Xuyên",
+     "province": "Quảng Nam"
+    },
+    {
+     "level": "district",
+     "name": "Nông Sơn",
+     "province": "Quảng Nam"
+    },
+    {
+     "level": "district",
+     "name": "Điện Bàn",
+     "province": "Quảng Nam"
+    },
+    {
+     "level": "district",
+     "name": "Hội An",
+     "province": "Quảng Nam"
+    }
+   ],
+   "summary": {
+    "vi": "Nước lũ dâng cao trở lại ở Quảng Nam: Đại Lộc, Duy Xuyên, Nông Sơn, thị xã Điện Bàn, TP Hội An bị ngập lụt trở lại.",
+    "en": "Floodwater rose again in Quảng Nam: Đại Lộc, Duy Xuyên, Nông Sơn, Điện Bàn town and Hội An city flooded again."
+   }
+  },
+  {
+   "id": "vtcnews-ar707271",
+   "publisher": "VTC News",
+   "published": "2022-10-14",
+   "url": "https://vtcnews.vn/nha-dan-ngap-ngang-nguoi-xe-co-chim-noi-la-liet-tren-pho-da-nang-ar707271.html",
+   "flood_from": "2022-10-14",
+   "flood_to": "2022-10-14",
+   "provinces": [
+    "Đà Nẵng"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Hải Châu",
+     "province": "Đà Nẵng"
+    },
+    {
+     "level": "district",
+     "name": "Liên Chiểu",
+     "province": "Đà Nẵng",
+     "via": "khu Hòa Khánh"
+    }
+   ],
+   "summary": {
+    "vi": "Mưa lớn kéo dài: đường phố Hải Châu ngập, nhà dân ở Hòa Khánh (Liên Chiểu) ngập sâu ngang người.",
+    "en": "Prolonged heavy rain: Hải Châu streets flooded, homes in Hòa Khánh (Liên Chiểu) flooded chest-deep."
+   }
+  },
+  {
+   "id": "baohatinh-post200688",
+   "publisher": "Báo Hà Tĩnh",
+   "published": "2020-10-24",
+   "url": "https://baohatinh.vn/tong-quan-ve-tran-lu-lich-su-o-ha-tinh-post200688.html",
+   "flood_from": "2020-10-15",
+   "flood_to": "2020-10-21",
+   "provinces": [
+    "Hà Tĩnh"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Cẩm Xuyên",
+     "province": "Hà Tĩnh"
+    },
+    {
+     "level": "district",
+     "name": "Thạch Hà",
+     "province": "Hà Tĩnh"
+    },
+    {
+     "level": "district",
+     "name": "Hà Tĩnh",
+     "province": "Hà Tĩnh"
+    },
+    {
+     "level": "district",
+     "name": "Can Lộc",
+     "province": "Hà Tĩnh"
+    },
+    {
+     "level": "district",
+     "name": "Lộc Hà",
+     "province": "Hà Tĩnh"
+    }
+   ],
+   "summary": {
+    "vi": "Lũ lịch sử 15–21/10/2020 ở Hà Tĩnh: lúc cao nhất 118 xã của 11 huyện bị ngập lụt, nhiều nhất Cẩm Xuyên, Thạch Hà, TP Hà Tĩnh, Can Lộc, Lộc Hà.",
+    "en": "Historic flood 15–21/10/2020 in Hà Tĩnh: at its peak 118 communes in 11 districts flooded, most in Cẩm Xuyên, Thạch Hà, Hà Tĩnh city, Can Lộc, Lộc Hà."
+   }
+  },
+  {
+   "id": "vtcnews-ar987756",
+   "publisher": "VTC News",
+   "published": "2025-11-17",
+   "url": "https://vtcnews.vn/nhieu-noi-tai-khanh-hoa-ngap-sau-nguoi-dan-leo-len-mai-nha-cau-cuu-ar987756.html",
+   "flood_from": "2025-11-17",
+   "flood_to": "2025-11-17",
+   "provinces": [
+    "Khánh Hòa",
+    "Ninh Thuận"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Cam Ranh",
+     "province": "Khánh Hòa",
+     "via": "phường Ba Ngòi"
+    },
+    {
+     "level": "district",
+     "name": "Thuận Bắc",
+     "province": "Ninh Thuận",
+     "via": "xã Thuận Bắc (KCN Du Long)"
+    }
+   ],
+   "summary": {
+    "vi": "Nhiều nơi ở Khánh Hòa ngập sâu: dân phường Ba Ngòi leo lên mái nhà cầu cứu; KCN Du Long (Thuận Bắc) nước lên gần 1 m.",
+    "en": "Deep flooding across Khánh Hòa: Ba Ngòi residents climbed onto roofs; Du Long industrial park (Thuận Bắc) water nearly 1 m."
+   }
+  },
+  {
+   "id": "adinet-20231113-central",
+   "publisher": "AHA Centre (ADINet)",
+   "published": "2023-11-18",
+   "url": "https://adinet.ahacentre.org/report/viet-nam-storms-strong-winds-flooding-and-landslides-in-central-region-20231113",
+   "flood_from": "2023-11-13",
+   "flood_to": "2023-11-17",
+   "provinces": [
+    "Thừa Thiên Huế"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Huế",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Phong Điền",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Quảng Điền",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Hương Trà",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Hương Thủy",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Phú Vang",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Phú Lộc",
+     "province": "Thừa Thiên Huế"
+    },
+    {
+     "level": "district",
+     "name": "Nam Đông",
+     "province": "Thừa Thiên Huế"
+    }
+   ],
+   "summary": {
+    "vi": "Mưa lũ 13–17/11/2023: 36 phường, xã của TP Huế và Phong Điền, Quảng Điền, Hương Trà, Hương Thủy, Phú Vang, Phú Lộc, Nam Đông ngập 0,3–0,8 m.",
+    "en": "Floods 13–17/11/2023: 36 wards/communes of Huế city and Phong Điền, Quảng Điền, Hương Trà, Hương Thủy, Phú Vang, Phú Lộc, Nam Đông flooded 0.3–0.8 m."
+   }
+  },
+  {
+   "id": "baolaocai-post389856",
+   "publisher": "Báo Lào Cai",
+   "published": "2024-09-09",
+   "url": "https://baolaocai.vn/bao-yen-nhieu-khu-vuc-tiep-tuc-ngap-sau-co-lap-hoan-toan-post389856.html",
+   "flood_from": "2024-09-09",
+   "flood_to": "2024-09-09",
+   "provinces": [
+    "Lào Cai"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Bảo Yên",
+     "province": "Lào Cai",
+     "via": "thị trấn Phố Ràng"
+    }
+   ],
+   "summary": {
+    "vi": "Bảo Yên (Lào Cai): thị trấn Phố Ràng ngập sâu, nhiều tuyến phố bị cô lập; 677 ha lúa, hoa màu bị ngập.",
+    "en": "Bảo Yên (Lào Cai): Phố Ràng town deeply flooded, many streets cut off; 677 ha of rice and crops flooded."
+   }
+  },
+  {
+   "id": "baolaocai-post389792",
+   "publisher": "Báo Lào Cai",
+   "published": "2024-09-09",
+   "url": "https://baolaocai.vn/bao-thang-lu-tren-song-hong-vuot-dinh-ke-gay-ngap-mot-so-tuyen-pho-tai-thi-tran-pho-lu-post389792.html",
+   "flood_from": "2024-09-09",
+   "flood_to": "2024-09-09",
+   "provinces": [
+    "Lào Cai"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Bảo Thắng",
+     "province": "Lào Cai",
+     "via": "thị trấn Phố Lu"
+    }
+   ],
+   "summary": {
+    "vi": "Lũ sông Hồng vượt đỉnh kè, tràn vào phố và nhà dân ở trung tâm thị trấn Phố Lu (Bảo Thắng).",
+    "en": "The Red River flood topped the embankment and entered streets and homes in central Phố Lu (Bảo Thắng)."
+   }
+  },
+  {
+   "id": "sggp-post713930",
+   "publisher": "SGGP",
+   "published": "2023-11-13",
+   "url": "https://www.sggp.org.vn/quang-ngai-cac-khu-vuc-trung-thap-ngap-cuc-bo-1-tau-ca-bi-chim-post713930.html",
+   "flood_from": "2023-11-13",
+   "flood_to": "2023-11-13",
+   "provinces": [
+    "Quảng Ngãi"
+   ],
+   "areas": [
+    {
+     "level": "district",
+     "name": "Ba Tơ",
+     "province": "Quảng Ngãi",
+     "via": "xã Ba Vì (thôn Giá Vực)"
+    }
+   ],
+   "summary": {
+    "vi": "Quảng Ngãi mưa lớn: vùng trũng ngập cục bộ, thôn Giá Vực (xã Ba Vì, Ba Tơ) ngập.",
+    "en": "Heavy rain in Quảng Ngãi: local flooding in low areas, Giá Vực village (Ba Vì, Ba Tơ) flooded."
+   }
   }
  ]
 }
