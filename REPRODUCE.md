@@ -326,6 +326,16 @@ Kết quả: báo nêu đúng huyện 0/20 ngày radar, 1/20 ngày đối chứn
 cấp huyện cho ruộng ngẫu nhiên mùa mưa, nên cách đo này không xác nhận được radar; không có nguồn nào nói trái.
 Kiểm: `cd backend; pytest tests/test_water_records.py`.
 
+### 7i. Cổng hồ sơ công khai v2 — chiều ngược: tin báo → radar — TRƯỢT (15/11/2026)
+
+Giao thức `water_records_v2_protocol.json` (371437a): 39 trận (huyện, khoảng ngập) từ sổ lũ f0a92a2, LOẠI 17 bài gốc (tìm quanh
+ngày radar) và bài trùng mục radar v1 cùng tỉnh. Mỗi trận 3 điểm ngẫu nhiên trong ranh huyện (`_candidates`, c60cdb5), lấy
+điểm dùng được đầu tiên (không urban/canopy/mặt nước, radar phủ trận). Dương = có đợt nước giao [đầu − 3, cuối + 12]; đối chứng
+= cùng ngày-tháng 2 năm khác không có tin ngập ±30 ngày. Máy chấm (`_points`, `_result`).
+Kết quả: 30 điểm dùng được; radar thấy nước 3/30 cửa sổ có tin báo, 3/60 cửa sổ đối chứng (p = 0,32) → TRƯỢT. Đọc đúng: tin
+báo cấp huyện không có nghĩa là ruộng ngẫu nhiên đó ngập, nên phép đo này yếu — nhưng cũng nhắc rằng radar "0 đợt" KHÔNG chứng
+minh đất không ngập. Kiểm: `cd backend; pytest tests/test_water_records_v2.py`.
+
 ## 7f. Tổ hợp dự báo mưa best_match + ECMWF AIFS — CỔNG ĐẠT 18/10/2026 (đã bật)
 
 Kế hoạch tổng GĐ5 mục 3. Đăng ký trước [`backend/data/eval/aifs_blend_protocol.json`](backend/data/eval/aifs_blend_protocol.json)

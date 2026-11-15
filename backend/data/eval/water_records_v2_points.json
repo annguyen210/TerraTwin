@@ -1,0 +1,812 @@
+[
+ {
+  "k": 1,
+  "province": "Bình Định",
+  "district": "An Lão",
+  "from": "2024-11-06",
+  "to": "2024-11-06",
+  "point": [
+   14.58872,
+   108.8932
+  ],
+  "candidate": 2,
+  "first": "2017-01-06",
+  "last": "2026-11-10",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2020-11-06",
+    "to": "2020-11-06",
+    "wet": false
+   },
+   {
+    "from": "2018-11-06",
+    "to": "2018-11-06",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 3,
+  "province": "Bình Định",
+  "district": "Tuy Phước",
+  "from": "2018-12-28",
+  "to": "2018-12-30",
+  "point": [
+   13.81493,
+   109.12988
+  ],
+  "candidate": 2,
+  "first": "2017-01-06",
+  "last": "2026-11-10",
+  "reported_wet": true,
+  "controls": [
+   {
+    "from": "2023-12-28",
+    "to": "2023-12-30",
+    "wet": false
+   },
+   {
+    "from": "2020-12-28",
+    "to": "2020-12-30",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 4,
+  "province": "Bình Định",
+  "district": "Tuy Phước",
+  "from": "2021-11-30",
+  "to": "2021-11-30",
+  "point": [
+   13.91789,
+   109.21066
+  ],
+  "candidate": 1,
+  "first": "2017-01-06",
+  "last": "2026-11-10",
+  "reported_wet": true,
+  "controls": [
+   {
+    "from": "2025-11-30",
+    "to": "2025-11-30",
+    "wet": false
+   },
+   {
+    "from": "2020-11-30",
+    "to": "2020-11-30",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 5,
+  "province": "Bình Định",
+  "district": "Tuy Phước",
+  "from": "2022-12-25",
+  "to": "2023-01-05",
+  "point": [
+   13.90693,
+   109.19336
+  ],
+  "candidate": 2,
+  "first": "2017-01-06",
+  "last": "2026-11-10",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2025-12-25",
+    "to": "2026-01-05",
+    "wet": false
+   },
+   {
+    "from": "2017-12-25",
+    "to": "2018-01-05",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 6,
+  "province": "Bình Định",
+  "district": "Tuy Phước",
+  "from": "2024-12-16",
+  "to": "2024-12-16",
+  "point": [
+   13.86171,
+   109.14914
+  ],
+  "candidate": 2,
+  "first": "2017-01-06",
+  "last": "2026-11-10",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2025-12-16",
+    "to": "2025-12-16",
+    "wet": false
+   },
+   {
+    "from": "2019-12-16",
+    "to": "2019-12-16",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 8,
+  "province": "Cần Thơ",
+  "district": "Bình Thủy",
+  "from": "2020-05-30",
+  "to": "2020-05-30",
+  "point": [
+   10.07776,
+   105.72284
+  ],
+  "candidate": 2,
+  "first": "2017-01-05",
+  "last": "2026-11-03",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2017-05-30",
+    "to": "2017-05-30",
+    "wet": false
+   },
+   {
+    "from": "2023-05-30",
+    "to": "2023-05-30",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 9,
+  "province": "Cần Thơ",
+  "district": "Bình Thủy",
+  "from": "2026-08-15",
+  "to": "2026-08-15",
+  "point": [
+   10.09021,
+   105.72254
+  ],
+  "candidate": 3,
+  "first": "2017-01-05",
+  "last": "2026-11-03",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2025-08-15",
+    "to": "2025-08-15",
+    "wet": false
+   },
+   {
+    "from": "2020-08-15",
+    "to": "2020-08-15",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 10,
+  "province": "Cần Thơ",
+  "district": "Ninh Kiều",
+  "from": "2017-10-11",
+  "to": "2017-10-11",
+  "point": [
+   9.99899,
+   105.7321
+  ],
+  "candidate": 3,
+  "first": "2017-01-05",
+  "last": "2026-11-03",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2024-10-11",
+    "to": "2024-10-11",
+    "wet": false
+   },
+   {
+    "from": "2022-10-11",
+    "to": "2022-10-11",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 12,
+  "province": "Hải Dương",
+  "district": "Tứ Kỳ",
+  "from": "2024-09-15",
+  "to": "2024-09-15",
+  "point": [
+   20.84149,
+   106.44214
+  ],
+  "candidate": 1,
+  "first": "2017-01-04",
+  "last": "2026-10-27",
+  "reported_wet": true,
+  "controls": [
+   {
+    "from": "2022-09-15",
+    "to": "2022-09-15",
+    "wet": false
+   },
+   {
+    "from": "2021-09-15",
+    "to": "2021-09-15",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 13,
+  "province": "Long An",
+  "district": "Kiến Tường",
+  "from": "2024-10-24",
+  "to": "2024-10-24",
+  "point": [
+   10.72547,
+   105.86356
+  ],
+  "candidate": 1,
+  "first": "2017-01-05",
+  "last": "2026-11-09",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2017-10-24",
+    "to": "2017-10-24",
+    "wet": true
+   },
+   {
+    "from": "2020-10-24",
+    "to": "2020-10-24",
+    "wet": true
+   }
+  ]
+ },
+ {
+  "k": 14,
+  "province": "Long An",
+  "district": "Mộc Hóa",
+  "from": "2024-10-24",
+  "to": "2024-10-24",
+  "point": [
+   10.69484,
+   105.94631
+  ],
+  "candidate": 1,
+  "first": "2017-01-05",
+  "last": "2026-11-09",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2023-10-24",
+    "to": "2023-10-24",
+    "wet": false
+   },
+   {
+    "from": "2026-10-24",
+    "to": "2026-10-24",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 15,
+  "province": "Long An",
+  "district": "Tân Hưng",
+  "from": "2024-10-24",
+  "to": "2024-10-24",
+  "point": [
+   10.90073,
+   105.58455
+  ],
+  "candidate": 1,
+  "first": "2017-01-05",
+  "last": "2026-11-09",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2025-10-24",
+    "to": "2025-10-24",
+    "wet": false
+   },
+   {
+    "from": "2018-10-24",
+    "to": "2018-10-24",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 16,
+  "province": "Long An",
+  "district": "Tân Thạnh",
+  "from": "2024-10-24",
+  "to": "2024-10-24",
+  "point": [
+   10.54589,
+   105.92924
+  ],
+  "candidate": 2,
+  "first": "2017-01-05",
+  "last": "2026-11-09",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2025-10-24",
+    "to": "2025-10-24",
+    "wet": false
+   },
+   {
+    "from": "2020-10-24",
+    "to": "2020-10-24",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 20,
+  "province": "Nghệ An",
+  "district": "Diễn Châu",
+  "from": "2023-09-27",
+  "to": "2023-09-27",
+  "point": [
+   18.90201,
+   105.52057
+  ],
+  "candidate": 1,
+  "first": "2017-01-04",
+  "last": "2026-11-02",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2019-09-27",
+    "to": "2019-09-27",
+    "wet": false
+   },
+   {
+    "from": "2020-09-27",
+    "to": "2020-09-27",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 21,
+  "province": "Nghệ An",
+  "district": "Đô Lương",
+  "from": "2022-10-01",
+  "to": "2022-10-01",
+  "point": [
+   18.96364,
+   105.24635
+  ],
+  "candidate": 1,
+  "first": "2017-01-04",
+  "last": "2026-11-02",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2017-10-01",
+    "to": "2017-10-01",
+    "wet": false
+   },
+   {
+    "from": "2026-10-01",
+    "to": "2026-10-01",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 22,
+  "province": "Nghệ An",
+  "district": "Đô Lương",
+  "from": "2023-09-27",
+  "to": "2023-09-27",
+  "point": [
+   18.81125,
+   105.46006
+  ],
+  "candidate": 2,
+  "first": "2017-01-04",
+  "last": "2026-11-02",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2020-09-27",
+    "to": "2020-09-27",
+    "wet": false
+   },
+   {
+    "from": "2026-09-27",
+    "to": "2026-09-27",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 23,
+  "province": "Nghệ An",
+  "district": "Hoàng Mai",
+  "from": "2023-09-27",
+  "to": "2023-09-27",
+  "point": [
+   19.22747,
+   105.72307
+  ],
+  "candidate": 3,
+  "first": "2017-01-04",
+  "last": "2026-10-27",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2025-09-27",
+    "to": "2025-09-27",
+    "wet": false
+   },
+   {
+    "from": "2019-09-27",
+    "to": "2019-09-27",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 24,
+  "province": "Nghệ An",
+  "district": "Hưng Nguyên",
+  "from": "2023-09-27",
+  "to": "2023-09-27",
+  "point": [
+   18.59489,
+   105.65552
+  ],
+  "candidate": 1,
+  "first": "2017-01-04",
+  "last": "2026-11-02",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2020-09-27",
+    "to": "2020-09-27",
+    "wet": false
+   },
+   {
+    "from": "2019-09-27",
+    "to": "2019-09-27",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 25,
+  "province": "Nghệ An",
+  "district": "Hưng Nguyên",
+  "from": "2026-08-20",
+  "to": "2026-08-20",
+  "point": [
+   18.62779,
+   105.64562
+  ],
+  "candidate": 1,
+  "first": "2017-01-04",
+  "last": "2026-11-02",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2020-08-20",
+    "to": "2020-08-20",
+    "wet": false
+   },
+   {
+    "from": "2025-08-20",
+    "to": "2025-08-20",
+    "wet": true
+   }
+  ]
+ },
+ {
+  "k": 26,
+  "province": "Nghệ An",
+  "district": "Nam Đàn",
+  "from": "2022-10-01",
+  "to": "2022-10-01",
+  "point": [
+   18.71188,
+   105.504
+  ],
+  "candidate": 1,
+  "first": "2017-01-04",
+  "last": "2026-11-02",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2025-10-01",
+    "to": "2025-10-01",
+    "wet": false
+   },
+   {
+    "from": "2017-10-01",
+    "to": "2017-10-01",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 27,
+  "province": "Nghệ An",
+  "district": "Nam Đàn",
+  "from": "2023-09-27",
+  "to": "2023-09-27",
+  "point": [
+   18.67038,
+   105.52483
+  ],
+  "candidate": 2,
+  "first": "2017-01-04",
+  "last": "2026-11-02",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2019-09-27",
+    "to": "2019-09-27",
+    "wet": false
+   },
+   {
+    "from": "2021-09-27",
+    "to": "2021-09-27",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 28,
+  "province": "Nghệ An",
+  "district": "Nghĩa Đàn",
+  "from": "2026-08-20",
+  "to": "2026-08-20",
+  "point": [
+   19.34695,
+   105.3841
+  ],
+  "candidate": 1,
+  "first": "2017-01-04",
+  "last": "2026-10-27",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2018-08-20",
+    "to": "2018-08-20",
+    "wet": false
+   },
+   {
+    "from": "2020-08-20",
+    "to": "2020-08-20",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 29,
+  "province": "Nghệ An",
+  "district": "Nghi Lộc",
+  "from": "2023-09-27",
+  "to": "2023-09-27",
+  "point": [
+   18.79269,
+   105.6505
+  ],
+  "candidate": 1,
+  "first": "2017-01-04",
+  "last": "2026-11-02",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2025-09-27",
+    "to": "2025-09-27",
+    "wet": false
+   },
+   {
+    "from": "2020-09-27",
+    "to": "2020-09-27",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 30,
+  "province": "Nghệ An",
+  "district": "Quỳnh Lưu",
+  "from": "2022-10-01",
+  "to": "2022-10-01",
+  "point": [
+   19.12682,
+   105.67126
+  ],
+  "candidate": 3,
+  "first": "2017-01-04",
+  "last": "2026-10-27",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2020-10-01",
+    "to": "2020-10-01",
+    "wet": false
+   },
+   {
+    "from": "2025-10-01",
+    "to": "2025-10-01",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 31,
+  "province": "Nghệ An",
+  "district": "Quỳnh Lưu",
+  "from": "2023-09-27",
+  "to": "2023-09-27",
+  "point": [
+   19.18145,
+   105.52614
+  ],
+  "candidate": 1,
+  "first": "2017-01-04",
+  "last": "2026-10-27",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2017-09-27",
+    "to": "2017-09-27",
+    "wet": false
+   },
+   {
+    "from": "2020-09-27",
+    "to": "2020-09-27",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 34,
+  "province": "Nghệ An",
+  "district": "Thanh Chương",
+  "from": "2023-09-27",
+  "to": "2023-09-27",
+  "point": [
+   18.77821,
+   105.14157
+  ],
+  "candidate": 1,
+  "first": "2017-01-04",
+  "last": "2026-11-02",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2018-09-27",
+    "to": "2018-09-27",
+    "wet": false
+   },
+   {
+    "from": "2026-09-27",
+    "to": "2026-09-27",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 35,
+  "province": "Nghệ An",
+  "district": "Vinh",
+  "from": "2023-09-27",
+  "to": "2023-09-27",
+  "point": [
+   18.6794,
+   105.64308
+  ],
+  "candidate": 2,
+  "first": "2017-01-04",
+  "last": "2026-11-02",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2022-09-27",
+    "to": "2022-09-27",
+    "wet": false
+   },
+   {
+    "from": "2021-09-27",
+    "to": "2021-09-27",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 36,
+  "province": "Thái Bình",
+  "district": "Hưng Hà",
+  "from": "2017-10-20",
+  "to": "2017-10-20",
+  "point": [
+   20.65308,
+   106.13522
+  ],
+  "candidate": 1,
+  "first": "2017-01-04",
+  "last": "2026-10-27",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2024-10-20",
+    "to": "2024-10-20",
+    "wet": false
+   },
+   {
+    "from": "2025-10-20",
+    "to": "2025-10-20",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 37,
+  "province": "Thái Bình",
+  "district": "Kiến Xương",
+  "from": "2017-10-20",
+  "to": "2017-10-20",
+  "point": [
+   20.38333,
+   106.44185
+  ],
+  "candidate": 1,
+  "first": "2017-01-04",
+  "last": "2026-10-27",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2021-10-20",
+    "to": "2021-10-20",
+    "wet": false
+   },
+   {
+    "from": "2025-10-20",
+    "to": "2025-10-20",
+    "wet": false
+   }
+  ]
+ },
+ {
+  "k": 39,
+  "province": "Tiền Giang",
+  "district": "Chợ Gạo",
+  "from": "2025-10-21",
+  "to": "2025-10-22",
+  "point": [
+   10.38987,
+   106.54165
+  ],
+  "candidate": 1,
+  "first": "2017-01-05",
+  "last": "2026-11-09",
+  "reported_wet": false,
+  "controls": [
+   {
+    "from": "2023-10-21",
+    "to": "2023-10-22",
+    "wet": false
+   },
+   {
+    "from": "2018-10-21",
+    "to": "2018-10-22",
+    "wet": false
+   }
+  ]
+ }
+]

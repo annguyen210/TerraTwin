@@ -1,0 +1,88 @@
+{
+ "protocol": "terratwin.water_records/2",
+ "protocol_commit": "371437a",
+ "candidates_commit": "c60cdb5",
+ "scored_at": "2026-11-15",
+ "n_events": 39,
+ "n_points": 30,
+ "reported": {
+  "wet": 3,
+  "n": 30,
+  "rate": 0.1,
+  "wilson95": [
+   0.035,
+   0.256
+  ]
+ },
+ "control": {
+  "wet": 3,
+  "n": 60,
+  "rate": 0.05,
+  "wilson95": [
+   0.017,
+   0.137
+  ]
+ },
+ "difference": 0.05,
+ "fisher_one_sided_p": 0.3157,
+ "paired_per_point": {
+  "rep_wet_ctrl_dry": 3,
+  "rep_dry_ctrl_wet": 2,
+  "both_wet": 0,
+  "both_dry": 25
+ },
+ "thresholds": {
+  "p_lt": 0.05,
+  "difference_ge": 0.2
+ },
+ "passed": false,
+ "verdict": "TRƯỢT",
+ "by_province": {
+  "Bình Định": {
+   "points": 5,
+   "reported_wet": 2,
+   "control_wet": 0,
+   "control_n": 10
+  },
+  "Cần Thơ": {
+   "points": 3,
+   "reported_wet": 0,
+   "control_wet": 0,
+   "control_n": 6
+  },
+  "Hải Dương": {
+   "points": 1,
+   "reported_wet": 1,
+   "control_wet": 0,
+   "control_n": 2
+  },
+  "Long An": {
+   "points": 4,
+   "reported_wet": 0,
+   "control_wet": 2,
+   "control_n": 8
+  },
+  "Nghệ An": {
+   "points": 14,
+   "reported_wet": 0,
+   "control_wet": 1,
+   "control_n": 28
+  },
+  "Thái Bình": {
+   "points": 2,
+   "reported_wet": 0,
+   "control_wet": 0,
+   "control_n": 4
+  },
+  "Tiền Giang": {
+   "points": 1,
+   "reported_wet": 0,
+   "control_wet": 0,
+   "control_n": 2
+  }
+ },
+ "run_notes": [
+  "Hạn mức ẩn danh 20 thửa mới/giờ trả 429: runner CHỜ rồi thử lại, không bỏ điểm (sửa giữa chừng, trước khi chấm).",
+  "Tác vụ nền bị Claude Code dừng 2 lần vì máy thiếu RAM; chạy lại tiếp từ bộ đệm radar, cùng thứ tự điểm."
+ ]
+}
