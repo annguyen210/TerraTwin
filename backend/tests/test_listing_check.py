@@ -172,7 +172,11 @@ def test_doi_chieu_khong_ngap_voi_lich_su_nuoc_radar():
     v, msg, src = lc.judge("no_flood", wet)
     assert v == "contradicted" and "3 đợt" in msg and "2025-11-01" in msg and "Sentinel-1" in src
     dry = {"water": {"n_events": 0, "first": "2017-01-11", "n_scenes": 300, "events": []}}
-    assert lc.judge("no_flood", dry)[0] == "consistent"
+    v, msg, _ = lc.judge("no_flood", dry)                       # 15/11/2026: radar 0 đợt KHÔNG còn là "khớp"
+    assert v == "insufficient" and "CHƯA ĐỦ" in msg and "hàng xóm" in msg
+    urb = {**dry, "urban": {"built_pct": 80.0, "note": "Khu đô thị — radar không thấy ngập giữa nhà cửa."}}
+    v, msg, _ = lc.judge("no_flood", urb)                       # đô thị: lời giải thích đô thị vẫn đứng trước
+    assert v == "insufficient" and msg.startswith("Khu đô thị")
     assert lc.judge("no_flood", {"water": None})[0] == "insufficient"       # chưa đọc radar → không đoán
 
 
