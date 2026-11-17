@@ -1,0 +1,131 @@
+name: Restore backup to new DB
+
+# KHÔI PHỤC BẢN SAO LƯU MỚI NHẤT VÀO MỘT CSDL TRỐNG (17/11/2026). Dùng khi CSDL đang chạy không đọc được nữa — lần đầu:
+# dự án Neon `lucky-smoke` hết 5 GB truyền dữ liệu miễn phí của tháng 11 vào ngày 16 (ops/RESTORE.md mục 7), Neon chặn
+# kết nối nên KHÔNG chép thẳng từ nó được (migrate-neon.yml cần đọc nguồn). Chỉ còn đường: bản sao lưu đã mã hoá trong
+# repo riêng tư → dự án Neon miễn phí MỚI (hạn mức tính theo từng dự án).
+#
+# Chủ dự án làm trước (Claude không được dán chuỗi kết nối có mật khẩu):
+#   1. Neon → New project: Postgres 18, AWS US West 2 (Oregon). Connect → chọn Direct (host KHÔNG có "-pooler").
+#   2. GitHub → Settings → Secrets → Actions → New secret TERRATWIN_RESTORE_URL = chuỗi kết nối đó.
+# Rồi chạy workflow này (Actions → Restore backup to new DB → Run workflow). XANH thì mới đổi TERRATWIN_DATABASE_URL trên
+# Render và secret TERRATWIN_NEON_URL (cho sao lưu hằng ngày) sang chuỗi mới.
+#
+# An toàn: đích phải TRỐNG (0 bảng public) — không bao giờ ghi đè một CSDL đang có dữ liệu. Nạp trong MỘT transaction
+# (--single-transaction): lỗi ở bất kỳ dòng nào thì đích quay về trống, chạy lại được. Cùng bản đó cũng được nạp vào
+# Postgres tạm trên máy CI; số hàng MỌI bảng ở đích phải khớp đúng bản nạp tạm. Chỉ in tên bảng và số hàng.
+
+on:
+  workflow_dispatch: {}
+
+concurrency:
+  group: db-backup          # không chạy chồng lên sao lưu hằng ngày
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  restore:
+    runs-on: ubuntu-24.04
+    env:
+      PG_CLIENT_MAJOR: "18"
+    services:
+      drill:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: drill
+          POSTGRES_DB: drill
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Kiểm secret bắt buộc
+        run: |
+          fail=0
+          [ -n "${{ secrets.TERRATWIN_RESTORE_URL }}" ] || { echo "::error::Thiếu secret TERRATWIN_RESTORE_URL (chuỗi kết nối Direct của dự án Neon MỚI)."; fail=1; }
+          [ -n "${{ secrets.TERRATWIN_BACKUP_PASSPHRASE }}" ] || { echo "::error::Thiếu TERRATWIN_BACKUP_PASSPHRASE — không giải mã được bản sao lưu."; fail=1; }
+          [ -n "${{ secrets.TERRATWIN_BACKUP_REPO }}" ] || { echo "::error::Thiếu TERRATWIN_BACKUP_REPO."; fail=1; }
+          if [ -z "${{ secrets.TERRATWIN_BACKUP_DEPLOY_KEY }}" ] && [ -z "${{ secrets.TERRATWIN_BACKUP_REPO_PAT }}" ]; then
+            echo "::error::Thiếu TERRATWIN_BACKUP_DEPLOY_KEY lẫn TERRATWIN_BACKUP_REPO_PAT — không đọc được repo sao lưu."; fail=1
+          fi
+          [ "$fail" = "0" ]
+
+      - name: Cài psql ${{ env.PG_CLIENT_MAJOR }} (kho PGDG)
+        run: bash ops/install-pg-client.sh "$PG_CLIENT_MAJOR"
+
+      - name: Đích phải trống
+        env:
+          DST: ${{ secrets.TERRATWIN_RESTORE_URL }}
+        run: |
+          . ops/pg-redact.sh
+          if ! n=$(psql "${DST/postgresql+psycopg:/postgresql:}" -X -tAc "SELECT count(*) FROM pg_tables WHERE schemaname = 'public'" 2>"$RUNNER_TEMP/dst.err"); then
+            echo "::error::Không kết nối được CSDL đích (TERRATWIN_RESTORE_URL). Lỗi (đã lọc):"; pg_err_redacted "$RUNNER_TEMP/dst.err"; exit 1
+          fi
+          v=$(psql "${DST/postgresql+psycopg:/postgresql:}" -X -tAc "SELECT current_setting('server_version_num')::int / 10000")
+          echo "Đích: PostgreSQL $v, $n bảng public"
+          [ "$n" = "0" ] || { echo "::error::CSDL đích đã có $n bảng — workflow này chỉ khôi phục vào CSDL TRỐNG, không ghi đè."; exit 1; }
+          [ "$v" -ge 17 ] || { echo "::error::Đích là PostgreSQL $v — tạo dự án Neon Postgres 18 (bản sao lưu dump từ 18)."; exit 1; }
+
+      - name: Lấy bản sao lưu mới nhất từ repo RIÊNG TƯ
+        env:
+          DEPLOY_KEY: ${{ secrets.TERRATWIN_BACKUP_DEPLOY_KEY }}
+        run: |
+          if [ -n "$DEPLOY_KEY" ]; then
+            mkdir -p ~/.ssh && chmod 700 ~/.ssh
+            printf '%s\n' "$DEPLOY_KEY" | tr -d '\r' > ~/.ssh/backup_key && chmod 600 ~/.ssh/backup_key
+            for i in 1 2 3; do
+              ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null && grep -q github.com ~/.ssh/known_hosts && break
+              sleep 5
+            done
+            git config --global core.sshCommand "ssh -i ~/.ssh/backup_key -o IdentitiesOnly=yes"
+            REMOTE="git@github.com:${{ secrets.TERRATWIN_BACKUP_REPO }}.git"
+          else
+            REMOTE="https://x-access-token:${{ secrets.TERRATWIN_BACKUP_REPO_PAT }}@github.com/${{ secrets.TERRATWIN_BACKUP_REPO }}.git"
+          fi
+          git clone -q --branch main --single-branch --depth 1 "$REMOTE" ../backups-wt
+          LATEST="$({ ls -1t ../backups-wt/daily/*.sql.gz* 2>/dev/null || true; } | head -1)"
+          [ -n "$LATEST" ] || { echo "::error::Repo sao lưu không có bản nào trong daily/."; exit 1; }
+          echo "::notice::Khôi phục bản: $(basename "$LATEST")"
+          echo "LATEST=$LATEST" >> "$GITHUB_ENV"
+
+      - name: Nạp vào Postgres tạm trên máy CI (để đối chiếu)
+        env:
+          PASS: ${{ secrets.TERRATWIN_BACKUP_PASSPHRASE }}
+        run: |
+          dump() {
+            if [[ "$LATEST" == *.gpg ]]; then
+              gpg --batch --yes --quiet --pinentry-mode loopback --passphrase-fd 3 3<<< "$PASS" --decrypt "$LATEST" | gunzip -c
+            else gunzip -c "$LATEST"; fi
+          }
+          dump | psql postgresql://postgres:drill@localhost:5432/drill -X -q -v ON_ERROR_STOP=1 --single-transaction >/dev/null
+          bash ops/restore-drill.sh count postgresql://postgres:drill@localhost:5432/drill > "$RUNNER_TEMP/drill.tsv"
+          echo "Bản tạm: $(wc -l < "$RUNNER_TEMP/drill.tsv") bảng, $(awk -F'\t' '{s+=$2} END {print s+0}' "$RUNNER_TEMP/drill.tsv") hàng"
+
+      - name: Nạp vào CSDL MỚI (một transaction)
+        env:
+          PASS: ${{ secrets.TERRATWIN_BACKUP_PASSPHRASE }}
+          DST: ${{ secrets.TERRATWIN_RESTORE_URL }}
+        run: |
+          . ops/pg-redact.sh
+          dump() {
+            if [[ "$LATEST" == *.gpg ]]; then
+              gpg --batch --yes --quiet --pinentry-mode loopback --passphrase-fd 3 3<<< "$PASS" --decrypt "$LATEST" | gunzip -c
+            else gunzip -c "$LATEST"; fi
+          }
+          if ! dump | psql "${DST/postgresql+psycopg:/postgresql:}" -X -q -v ON_ERROR_STOP=1 --single-transaction >/dev/null 2>"$RUNNER_TEMP/load.err"; then
+            echo "::error::Nạp vào CSDL mới thất bại — transaction đã huỷ, đích vẫn trống. Lỗi (đã lọc):"; pg_err_redacted "$RUNNER_TEMP/load.err"; exit 1
+          fi
+
+      - name: Đối chiếu số hàng MỌI bảng (đích = bản tạm)
+        env:
+          DST: ${{ secrets.TERRATWIN_RESTORE_URL }}
+        run: |
+          bash ops/restore-drill.sh count "$DST" > "$RUNNER_TEMP/dst.tsv"
+          if diff -u "$RUNNER_TEMP/drill.tsv" "$RUNNER_TEMP/dst.tsv"; then
+            echo "::notice::✅ KHỚP — $(wc -l < "$RUNNER_TEMP/dst.tsv") bảng, $(awk -F'\t' '{s+=$2} END {print s+0}' "$RUNNER_TEMP/dst.tsv") hàng, bản $(basename "$LATEST"). Giờ đổi TERRATWIN_DATABASE_URL (Render) và TERRATWIN_NEON_URL (GitHub) sang chuỗi mới."
+          else
+            echo "::error::❌ LỆCH số hàng giữa CSDL mới và bản nạp tạm — CHƯA đổi Render sang CSDL mới."; exit 1
+          fi

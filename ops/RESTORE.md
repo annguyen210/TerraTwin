@@ -175,3 +175,22 @@ trùng khoá chính dù bảng đủ dòng.
 
 **Kết quả lần chạy thật:** _chưa chạy._ Bảng đối chiếu của lần chạy thành công
 được chép vào đây, kèm ngày và mã lần chạy.
+
+## 7. Neon hết hạn mức truyền dữ liệu (16/11/2026)
+
+Gói Neon miễn phí cho mỗi dự án **5 GB truyền dữ liệu ra mỗi tháng** (ngoài 100 giờ tính toán, 1 GB lưu trữ). Tháng
+11/2026 dự án `lucky-smoke` dùng 5,62 GB vào ngày 16 → Neon chặn kết nối, API khởi động thì thoát với
+`psycopg.OperationalError … Network is unreachable` (lỗi IPv6 chỉ là lần thử cuối psycopg in ra; lần thử IPv4 cũng hỏng)
+và Render khởi động lại liên tục ("Exited with status 3"). Giờ tính toán lúc đó mới 16,5/100, lưu trữ 98 MB.
+
+Nhận ra: Neon console hiện thanh đỏ "Limit reached — You've used all of your monthly network transfer allowance";
+xem số ở trang dự án → khung **Usage** (Network transfer). Hạn mức tự đặt lại đầu tháng sau.
+
+Nguyên nhân: mỗi lần mở thửa API kéo nguyên khối JSON trong `kv_cache` (thời tiết, OSM… tới 0,5–2 MB) từ Neon, lần sau
+lại kéo y như vậy; sao lưu hằng ngày cũng kéo cả bảng. Bản vá (`backend/app/services/cache_store.py`): nhớ đệm trong
+tiến trình (biến môi trường `TERRATWIN_CACHE_MEMO_MB`, mặc định 12) + nén zlib khối > 1 KB khi ghi (đo trên CSDL thử:
+84 MB → 29 MB). Giá trị cũ chưa nén vẫn đọc được và tự được nén lại khi hết hạn và ghi lại.
+
+Cách 0 đồng nếu cần chạy lại ngay mà chưa sang tháng: tạo dự án Neon miễn phí MỚI (hạn mức tính theo dự án), khôi
+phục bản sao lưu gần nhất vào đó theo mục 2, rồi đổi `TERRATWIN_DATABASE_URL` trên Render và secret
+`TERRATWIN_NEON_URL` trên GitHub. Dự án cũ đang bị chặn nên KHÔNG chép thẳng từ nó được.

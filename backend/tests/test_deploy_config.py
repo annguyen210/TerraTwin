@@ -119,7 +119,7 @@ def test_keepwarm_khong_co_lich_tu_dong():
 def test_sao_luu_va_chuyen_csdl_dung_pg_client_pgdg():
     """CSDL là PostgreSQL 18; postgresql-client mặc định của Ubuntu 24.04 là 16
     → pg_dump dừng "server version mismatch"."""
-    for wf in ("backup.yml", "migrate-neon.yml"):
+    for wf in ("backup.yml", "migrate-neon.yml", "restore-new-db.yml"):
         y = _code(_doc(f".github/workflows/{wf}"))
         assert "ops/install-pg-client.sh" in y, f"{wf} phải cài client từ kho PGDG"
         assert not re.search(r"apt-get install[^\n]*postgresql-client\s*$", y, re.M), (
@@ -131,6 +131,16 @@ def test_chuyen_csdl_chi_chay_tay_va_khong_upload_ban_dump():
     y = _code(_doc(".github/workflows/migrate-neon.yml"))
     assert "workflow_dispatch" in y and "schedule:" not in y and "push:" not in y
     assert "upload-artifact" not in y
+
+
+def test_khoi_phuc_csdl_moi_chi_chay_tay_chi_vao_dich_trong():
+    """17/11/2026 — Neon hết hạn mức, khôi phục bản sao lưu sang dự án mới: chỉ chạy tay, không upload bản dump (repo
+    công khai), đích phải trống, nạp trong một transaction, đối chiếu số hàng với bản nạp tạm."""
+    y = _code(_doc(".github/workflows/restore-new-db.yml"))
+    assert "workflow_dispatch" in y and "schedule:" not in y and "push:" not in y
+    assert "upload-artifact" not in y
+    assert "pg_tables WHERE schemaname = 'public'" in y and '[ "$n" = "0" ]' in y
+    assert y.count("--single-transaction") == 2 and "diff -u" in y
 
 
 def test_render_kiem_song_bang_endpoint_nhe():
