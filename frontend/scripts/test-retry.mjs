@@ -29,4 +29,17 @@ s = seq(503); r = await getRetry("u", undefined, { fetchFn: s.fn, sleep }); asse
 const abort = Object.assign(new Error("aborted"), { name: "AbortError" });
 s = seq(abort); await assert.rejects(getRetry("u", undefined, { fetchFn: s.fn, sleep }), /aborted/); assert.equal(s.calls.length, 1);
 
+// 5) timeoutMs: lần thử TREO (máy chủ đang thức dậy) bị cắt và thử lại; hết lượt thì báo bằng câu dễ hiểu
+const hang = (calls) => async (u, init) => { calls.push(u); return new Promise((_, rej) =>
+  init.signal.addEventListener("abort", () => rej(Object.assign(new Error("aborted"), { name: "AbortError" })))); };
+let n = []; let k = 0;
+const hangThenOk = async (u, init) => (k++ === 0 ? hang(n)(u, init) : new Response("{}", { status: 200 }));
+r = await getRetry("u", undefined, { fetchFn: hangThenOk, sleep, timeoutMs: 20 }); assert.equal(r.status, 200); assert.equal(k, 2);
+n = []; await assert.rejects(getRetry("u", undefined, { fetchFn: hang(n), sleep, timeoutMs: 20 }), (e) => e instanceof NetworkError);
+assert.equal(n.length, RETRY_MS.length + 1);
+// người gọi tự huỷ trong lúc có timeoutMs → vẫn ném AbortError ngay, không thử lại
+const ac = new AbortController(); n = [];
+const p = getRetry("u", { signal: ac.signal }, { fetchFn: hang(n), sleep, timeoutMs: 5000 }); ac.abort();
+await assert.rejects(p, (e) => e.name === "AbortError"); assert.equal(n.length, 1);
+
 console.log("OK — đọc có thử lại: mạng hỏng / 502–504 thử lại 2 lần, lỗi thật không che, huỷ không lặp.");

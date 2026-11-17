@@ -103,12 +103,14 @@ def link_for(alert_id: int) -> str:
 def question(a: Alert, db: Session) -> dict:
     """Nội dung câu hỏi cho một cảnh báo — viết bằng tiếng người, không thuật ngữ."""
     ngay = a.created_at.strftime("%d/%m")
+    from app.modules.registry import module_label
     ten = (hazard.name_unit(a.module_id)[0] if hazard.supports(a.module_id)
-           else a.module_id)
+           else module_label(a.module_id))
     plot = db.get(Plot, a.plot_id) if a.plot_id is not None else None
     o_dau = f" thửa {plot.name}" if plot is not None else ""
     # Bỏ tiền tố "Cảnh báo " để câu hỏi đọc xuôi tiếng Việt.
     viec = ten.replace("Cảnh báo ", "").strip() or "hiện tượng này"
+    viec = viec[:1].lower() + viec[1:]                  # "báo Ngập úng…" → "báo ngập úng…"
     return {
         "alert_id": a.id,
         "module_id": a.module_id,

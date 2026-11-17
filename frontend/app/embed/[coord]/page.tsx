@@ -72,6 +72,11 @@ export default function EmbedPage() {
     : d.alerts.some((a) => a.risk_level === "warning") ? "warning" : "safe";
   const [riskLabel, riskColor] = RISK[topRisk];
   const g = d.terrascore.grade;
+  // Kiểm 18/11/2026: vòng xanh "89/100 hạng A" đứng cạnh "Rủi ro 7 ngày tới: Cảnh báo" — hai tín hiệu ngược nhau. TerraScore
+  // gộp 5 hiểm hoạ (một cảnh báo chỉ trừ 11 điểm, vẫn hạng A). Có cảnh báo thì CẢNH BÁO dẫn đầu, nêu tên, tô vòng theo
+  // màu cảnh báo; điểm lùi xuống thành dòng giải thích, không còn "hạng A" màu xanh đứng riêng.
+  const flagged = d.alerts.filter((a) => a.risk_level === topRisk).map((a) => a.name);
+  const ring = topRisk === "safe" ? (GRADE[g] ?? "#567") : riskColor;
 
   return (
     <a href={full} target="_blank" rel="noopener" style={{ textDecoration: "none", color: "inherit", display: "block", height: "100%" }}>
@@ -84,17 +89,24 @@ export default function EmbedPage() {
           {hazardScope(vi)}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 54, height: 54, borderRadius: "50%", border: `3px solid ${GRADE[g] ?? "#567"}`,
-            color: GRADE[g] ?? "#567", display: "flex", flexDirection: "column",
+          <div style={{ width: 54, height: 54, borderRadius: "50%", border: `3px solid ${ring}`,
+            color: ring, display: "flex", flexDirection: "column",
             alignItems: "center", justifyContent: "center", fontWeight: 800, flexShrink: 0 }}>
             <span style={{ fontSize: 18, lineHeight: 1 }}>{d.terrascore.score}</span>
             <span style={{ fontSize: 9 }}>/100</span>
           </div>
-          <div>
-            <div style={{ fontWeight: 700, color: GRADE[g] ?? "#567" }}>TerraScore hạng {g}</div>
-            <div style={{ fontSize: 13 }}>Rủi ro 7 ngày tới:{" "}
-              <b style={{ color: riskColor }}>{riskLabel}</b></div>
-          </div>
+          {topRisk === "safe" ? (
+            <div>
+              <div style={{ fontWeight: 700, color: ring }}>TerraScore hạng {g}</div>
+              <div style={{ fontSize: 13 }}>Rủi ro 7 ngày tới:{" "}
+                <b style={{ color: riskColor }}>{riskLabel}</b></div>
+            </div>
+          ) : (
+            <div>
+              <div style={{ fontWeight: 700, color: riskColor }}>{riskLabel} 7 ngày tới{flagged.length ? `: ${flagged.slice(0, 2).join(", ")}` : ""}</div>
+              <div style={{ fontSize: 12, color: "#66716a" }}>TerraScore {d.terrascore.score}/100 gộp 5 hiểm hoạ — vẫn còn {flagged.length || 1} mối cần theo dõi</div>
+            </div>
+          )}
         </div>
         {floods && (
           <div style={{ fontSize: 13, fontWeight: 600, color: (flood?.n_events ?? 0) > 0 ? "#1F5F8B" : "#33403a" }}>

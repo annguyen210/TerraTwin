@@ -46,3 +46,13 @@ def list_modules() -> list:
 
 def get_module(module_id: str) -> TwinModule | None:
     return _MODULES.get(module_id)
+
+
+def module_label(module_id: str) -> str:
+    """Tên mô-đun theo ngôn ngữ đang dùng, để ghép vào câu cho người đọc. Kiểm 18/11/2026: ghép thẳng mã mô-đun làm chữ
+    tiếng Anh lọt ra giao diện tiếng Việt ("Chấm cảnh báo drought…", "chúng tôi báo urban thửa…"). Không rõ mã thì trả mã."""
+    from app.services.reqlang import cur_lang
+    m = _MODULES.get(module_id)
+    if m is None:
+        return module_id
+    return (getattr(m, "name_en", None) or m.name) if cur_lang() == "en" else m.name

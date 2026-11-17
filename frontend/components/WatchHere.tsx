@@ -62,7 +62,7 @@ export default function WatchHere({ user, coord, onOpen }: {
       {!pub && !err && <p className="pj-note">{t("Đang đọc mưa và ảnh radar mới của toạ độ này…", "Reading rain and new radar images for this spot…")}</p>}
       {pub && (
         <div className={`pj ${pub.changed ? "pj-changed" : "pj-calm"}`}>
-          <p className="pj-sum"><b>{pub.changed ? t("Có thay đổi", "Changes") : t("Yên", "Quiet")}</b> · {pub.summary}</p>
+          <p className="pj-sum"><b>{pub.changed ? t("Có thay đổi", "Changes") : t("Yên", "Quiet")}</b> · {pub.summary_short ?? pub.summary}</p>
           {pub.events.length > 0 && (
             <ul className="pj-list">
               {pub.events.slice(0, 8).map((e, i) => (

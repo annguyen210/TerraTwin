@@ -119,6 +119,7 @@ export default function Scorecard({ data, onClose }: {
   const selfFetch = data === undefined;
   const [fetched, setFetched] = useState<SC | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
   const [rel, setRel] = useState<ReliabilityResult | null>(null);
   const [tl, setTl] = useState<ScorecardBucket[] | null>(null);   // H2
   const [guard, setGuard] = useState<GuardStats | null>(null);    // A2
@@ -144,11 +145,12 @@ export default function Scorecard({ data, onClose }: {
   useEffect(() => {
     if (!selfFetch) return;
     let live = true;
+    setErr(null);
     getScorecard(90)
       .then((d) => live && setFetched(d))
       .catch((e) => live && setErr(e.message));
     return () => { live = false; };
-  }, [selfFetch, lang]);
+  }, [selfFetch, lang, attempt]);
 
   useEffect(() => {
     let live = true;
@@ -174,7 +176,8 @@ export default function Scorecard({ data, onClose }: {
         )}
       </div>
 
-      {err && <p className="sc-err">{t("Chưa tải được sổ điểm:", "Couldn't load the scorecard:")} {err}</p>}
+      {err && <p className="sc-err">{t("Chưa tải được sổ điểm:", "Couldn't load the scorecard:")} {err}{" "}
+        {selfFetch && <button type="button" className="bat-btn ghost" onClick={() => setAttempt((a) => a + 1)}>{t("Thử lại", "Retry")}</button>}</p>}
       {!sc && !err && <p className="sc-load">{t("Đang tải sổ điểm…", "Loading scorecard…")}</p>}
 
       {sc && (

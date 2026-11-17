@@ -658,11 +658,32 @@ export default function AdminPage() {
   const { t } = useLang();
   const [user, setUser] = useState<AuthUser | null | undefined>(undefined);
   const [tab, setTab] = useState<Tab>("users");
+  // Kiểm 18/11/2026: /api/auth/me chậm lúc máy chủ thức dậy thì trang coi như ĐĂNG XUẤT và hiện hộp đăng nhập dù vẫn đang
+  // đăng nhập. Chỉ 401 mới là hết phiên (authed() đã xoá token) — còn token thì là máy chủ chưa sẵn sàng: thử lại.
+  const [meTry, setMeTry] = useState(0);          // lần thử đang chạy (>0 = máy chủ chưa trả lời, đang thử lại)
+  const [meFail, setMeFail] = useState(false);
+  const [reload, setReload] = useState(0);
 
   useEffect(() => {
-    if (!getToken()) { setUser(null); return; }
-    fetchMe().then(setUser).catch(() => setUser(null));
-  }, []);
+    let live = true;
+    setMeFail(false); setMeTry(0);
+    (async () => {
+      const WAIT = [3000, 6000, 10000];
+      for (let i = 0; i <= WAIT.length; i++) {
+        if (!getToken()) { if (live) setUser(null); return; }
+        try { const u = await fetchMe(25_000); if (live) { setUser(u); setMeTry(0); } return; }
+        catch {
+          if (!getToken()) { if (live) setUser(null); return; }           // 401: phiên hết thật
+          if (i === WAIT.length) break;
+          if (live) setMeTry(i + 1);
+          await new Promise((r) => setTimeout(r, WAIT[i]));
+          if (!live) return;
+        }
+      }
+      if (live) { setMeTry(0); setMeFail(true); }
+    })();
+    return () => { live = false; };
+  }, [reload]);
 
   const isAdmin = user?.role === "admin";
   const isCoop = user?.role === "coop" || isAdmin;
@@ -687,7 +708,19 @@ export default function AdminPage() {
       <main className="doc-body" style={{ maxWidth: 900 }}>
         <h1>{t("Quản trị", "Admin")}</h1>
 
-        {user === undefined && <p className="ws-hint">Đang tải…</p>}
+        {user === undefined && !meFail && (
+          <p className="ws-hint">{meTry > 0
+            ? t(`Máy chủ đang thức dậy — đang thử lại (lần ${meTry + 1}/4). Bạn vẫn đang đăng nhập.`,
+                `The server is waking up — retrying (attempt ${meTry + 1}/4). You are still signed in.`)
+            : t("Đang tải…", "Loading…")}</p>
+        )}
+        {user === undefined && meFail && (
+          <p className="bat-err" role="status">
+            {t("Chưa đọc được tài khoản — máy chủ chưa trả lời. Bạn vẫn đang đăng nhập; thử lại sau ít giây. ",
+               "Couldn't read your account — the server hasn't answered. You are still signed in; try again in a few seconds. ")}
+            <button type="button" className="bat-btn ghost" onClick={() => setReload((x) => x + 1)}>{t("Thử lại", "Retry")}</button>
+          </p>
+        )}
         {user === null && (
           <div className="adm-note">
             <b>{t("Chưa đăng nhập.", "Not signed in.")}</b>{" "}
