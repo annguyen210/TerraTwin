@@ -112,6 +112,14 @@ export default function StatusPage() {
                         : t("⚠️ chưa có — hồ sơ đầu tiên sẽ tự sinh khoá trong CSDL", "⚠️ none yet — the first dossier will auto-generate a key in the database")}</td>
                   </tr>
                 )}
+                {h.llm && (
+                  <tr>
+                    <td>{t("Trợ lý LLM", "LLM assistant")}</td>
+                    <td>{h.llm.available
+                      ? t(`✅ bật · ${h.llm.provider} · ${h.llm.model}`, `✅ on · ${h.llm.provider} · ${h.llm.model}`)
+                      : t("tắt — trợ lý trả lời theo luật viết sẵn, mọi con số do mô hình đo", "off — rule-based assistant; every number comes from the measured models")}</td>
+                  </tr>
+                )}
                 {h.field_photos && (
                   <tr>
                     <td>{t("Ảnh thực địa trong CSDL", "Field photos in the database")}</td>

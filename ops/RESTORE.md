@@ -194,3 +194,14 @@ tiến trình (biến môi trường `TERRATWIN_CACHE_MEMO_MB`, mặc định 12
 Cách 0 đồng nếu cần chạy lại ngay mà chưa sang tháng: tạo dự án Neon miễn phí MỚI (hạn mức tính theo dự án), khôi
 phục bản sao lưu gần nhất vào đó theo mục 2, rồi đổi `TERRATWIN_DATABASE_URL` trên Render và secret
 `TERRATWIN_NEON_URL` trên GitHub. Dự án cũ đang bị chặn nên KHÔNG chép thẳng từ nó được.
+
+## 8. Render không tự triển khai dù CI xanh (18/11/2026)
+
+`render.yaml` đặt `autoDeployTrigger: checksPass` cho cả api và web: Render chỉ tự triển khai khi MỌI check trên commit
+đầu `main` đều xanh. Workflow chạy tay (`workflow_dispatch`, ví dụ **Database backup**, **Restore backup to new DB**)
+cũng gắn check-run vào đúng commit đó. Ngày 18/11 một lượt sao lưu chạy tay ĐỎ (secret sai mật khẩu) trên `478b51a`
+→ CI và e2e xanh hết mà Render vẫn đứng ở bản cũ `c910312`.
+
+Nhận ra: Render → terratwin-api → Events không có "Deploy started" cho commit mới; GitHub → commit đó có một check đỏ
+không phải CI. Cách xử lý: Render → **Manual Deploy → Deploy latest commit** (chủ dự án bấm). Tránh lặp lại: sửa
+xong lỗi rồi mới chạy tay workflow trên `main`, hoặc chạy lại cho xanh trước lần gộp kế tiếp.
