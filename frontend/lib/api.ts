@@ -522,8 +522,10 @@ export function twoFaDisable(password: string, code: string) {
     { method: "POST", body: JSON.stringify({ password, code }) }, "Không tắt được xác thực hai lớp");
 }
 
-export function fetchMe() {
-  return authed<AuthUser>("/api/auth/me", { method: "GET" }, "Không lấy được tài khoản");
+export function fetchMe(timeoutMs?: number) {
+  // timeoutMs: máy chủ đang thức dậy thì /api/auth/me có thể treo cả phút (kiểm 18/11/2026) — cắt để người gọi thử lại.
+  return authed<AuthUser>("/api/auth/me",
+    { method: "GET", ...(timeoutMs ? { signal: AbortSignal.timeout(timeoutMs) } : {}) }, "Không lấy được tài khoản");
 }
 
 export function listPlots() {
@@ -820,8 +822,8 @@ export function ackAlert(id: number) {
     "Không đánh dấu được");
 }
 
-async function getJson<T>(path: string, err: string): Promise<T> {
-  const r = await getRetry(`${BASE}${path}`, { headers: authHeaders() }, { lang: curLang() });
+async function getJson<T>(path: string, err: string, timeoutMs?: number): Promise<T> {
+  const r = await getRetry(`${BASE}${path}`, { headers: authHeaders() }, { lang: curLang(), timeoutMs });
   if (!r.ok) throw new Error(await errMessage(r, err));
   return r.json();
 }
@@ -2095,8 +2097,9 @@ export type Scorecard = ScorecardRates & {
 };
 
 export function getScorecard(days = 90) {
+  // 25 s mỗi lần × 3 lần (kiểm 18/11/2026): máy chủ vừa thức dậy thì lần đầu có thể treo — cắt và thử lại thay vì kẹt "Đang tải".
   return getJson<Scorecard>(`/api/scorecard?days=${days}&lang=${curLang()}`,
-    "Không tải được sổ điểm");
+    "Không tải được sổ điểm", 25_000);
 }
 
 // M4 — bản tin sáng.
@@ -2893,7 +2896,7 @@ export type JournalEvent = {
 };
 export type PlotJournal = {
   plot_id: number; since: string; first_open: boolean; fast: boolean; changed: boolean; n_significant: number;
-  summary: string | null; events: JournalEvent[]; rule: string;
+  summary: string | null; summary_short?: string | null; events: JournalEvent[]; rule: string;
   context: { rain_total_mm?: number | null; rain_ok?: boolean; radar_ok?: boolean };
 };
 export function getPlotJournal(plotId: number, fast = false) {
@@ -2903,7 +2906,7 @@ export function getPlotJournal(plotId: number, fast = false) {
 export type LiveSample = { name: string; lat: number | null; lon: number | null; rain_total_mm: number | null;
   n_significant: number; significant: { text?: string }[]; rain_ok: boolean; radar_ok: boolean };
 export type PublicJournal = {
-  lat: number; lon: number; since: string; days: number; changed: boolean; n_significant: number; summary: string;
+  lat: number; lon: number; since: string; days: number; changed: boolean; n_significant: number; summary: string; summary_short?: string;
   events: JournalEvent[]; rule: string; context: { rain_total_mm?: number | null; rain_ok?: boolean; radar_ok?: boolean };
   samples: { at: string; days: number; n_days: number; branch: string; plots: LiveSample[] } | null;
 };

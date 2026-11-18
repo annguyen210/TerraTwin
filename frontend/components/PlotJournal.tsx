@@ -87,7 +87,7 @@ export default function PlotJournal({ plotId, compact = false }: { plotId: numbe
 
   return (
     <section className={`pj ${j.changed ? "pj-changed" : "pj-calm"}`} aria-live="polite">
-      <p className="pj-sum"><b>{j.changed ? t("Có thay đổi", "Changes") : t("Yên", "Quiet")}</b> · {j.summary ??
+      <p className="pj-sum"><b>{j.changed ? t("Có thay đổi", "Changes") : t("Yên", "Quiet")}</b> · {j.summary_short ?? j.summary ??
         t(`${j.n_significant} thay đổi`, `${j.n_significant} change(s)`)}</p>
       {sig.length > 0 && <ul className="pj-list">{sig.map(row)}</ul>}
       {!compact && ctx.length > 0 && (

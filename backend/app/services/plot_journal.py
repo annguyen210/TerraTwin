@@ -176,6 +176,7 @@ def _ev(at: str, kind: str, significant: bool, text: str, source: str, **extra) 
 
 def _db_events(db: Session, user_id: int, plot, since: datetime) -> list[dict]:
     from app.db import Alert, Device, FieldPhoto, Observation, SensorReading
+    from app.modules.registry import module_label
     from app.services import iot
     out: list[dict] = []
 
@@ -188,8 +189,8 @@ def _db_events(db: Session, user_id: int, plot, since: datetime) -> list[dict]:
         lab = {"hit": tr("ĐÚNG", "CORRECT"), "false_alarm": tr("báo nhầm", "false alarm"),
                "miss": tr("BỎ SÓT", "MISSED"), "expired": tr("hết hạn, không chấm được", "expired, ungradable")}
         out.append(_ev(_iso(a.verified_at), "graded", a.outcome != "expired",
-                       tr(f"Chấm cảnh báo {a.module_id} ngày {a.created_at.date()}: {lab.get(a.outcome, a.outcome)}",
-                          f"Graded {a.module_id} alert of {a.created_at.date()}: {lab.get(a.outcome, a.outcome)}"),
+                       tr(f"Chấm cảnh báo «{module_label(a.module_id)}» ngày {a.created_at.date()}: {lab.get(a.outcome, a.outcome)}",
+                          f"Graded «{module_label(a.module_id)}» alert of {a.created_at.date()}: {lab.get(a.outcome, a.outcome)}"),
                        tr("Sổ điểm tự chấm", "Self-graded scorecard"), outcome=a.outcome))
 
     obs = db.execute(select(Observation).where(Observation.user_id == user_id, Observation.created_at >= since)).scalars().all()
@@ -198,8 +199,8 @@ def _db_events(db: Session, user_id: int, plot, since: datetime) -> list[dict]:
             continue
         occurred = o.outcome == "occurred"
         out.append(_ev(_iso(o.created_at), "answer", True,
-                       tr(f"Bạn báo {o.module_id} ngày {o.observed_on}: {'có xảy ra' if occurred else 'không xảy ra'}",
-                          f"You reported {o.module_id} on {o.observed_on}: {'happened' if occurred else 'did not happen'}"),
+                       tr(f"Bạn báo «{module_label(o.module_id)}» ngày {o.observed_on}: {'có xảy ra' if occurred else 'không xảy ra'}",
+                          f"You reported «{module_label(o.module_id)}» on {o.observed_on}: {'happened' if occurred else 'did not happen'}"),
                        tr("Câu trả lời của bạn", "Your answer"), module_id=o.module_id, observed_on=o.observed_on,
                        occurred=occurred))
 
@@ -306,6 +307,7 @@ def journal(db: Session, user_id: int, plot, since: datetime | None = None, fast
         "plot_id": plot.id, "since": _iso(since), "first_open": seen is None, "fast": fast,
         "changed": bool(sig), "n_significant": len(sig),
         "summary": summary(since, sig, ctx) if not fast else None,
+        "summary_short": summary(since, sig, ctx, with_events=False) if not fast else None,
         "events": events, "context": ctx,
         "rule": tr("Chỉ báo khi có thay đổi thật: mưa ≥ 50 mm/ngày, radar thấy nước, cảnh báo mới hoặc kết quả chấm, "
                    "câu trả lời/ảnh của bạn, cảm biến vượt ngưỡng nhắc. Còn lại là bối cảnh.",
@@ -314,7 +316,9 @@ def journal(db: Session, user_id: int, plot, since: datetime | None = None, fast
     }
 
 
-def summary(since: datetime, sig: list[dict], ctx: dict) -> str:
+def summary(since: datetime, sig: list[dict], ctx: dict, with_events: bool = True) -> str:
+    """with_events=False cho chỗ hiện tóm tắt NGAY TRÊN danh sách sự kiện (PlotJournal, WatchHere): kiểm 18/11/2026 thấy
+    "Chấm cảnh báo … BỎ SÓT" hiện hai lần liền — một trong câu tóm tắt, một trong danh sách. Bản đó chỉ đếm."""
     when = since.strftime("%d/%m %H:%M")
     bits: list[str] = []
     if ctx.get("rain_total_mm") is not None:
@@ -324,6 +328,9 @@ def summary(since: datetime, sig: list[dict], ctx: dict) -> str:
         bits.append(tr(f"ảnh radar mới ngày {s['date']} " + ("thấy nước" if s["water"] else "không thấy nước" if s["judged"] else "chưa so nền"),
                        f"new radar image {s['date']} " + ("shows water" if s["water"] else "no water" if s["judged"] else "no baseline yet")))
     head = [e["text"] for e in sig if e["kind"] != "rain"][:3]
+    if not with_events and head:
+        n = sum(1 for e in sig if e["kind"] != "rain")
+        head = [tr(f"{n} thay đổi (xem dưới)", f"{n} change(s) (see below)")]
     if not sig:
         return tr(f"Từ {when}: không có thay đổi đáng kể" + (f" ({', '.join(bits)})." if bits else "."),
                   f"Since {when}: no significant change" + (f" ({', '.join(bits)})." if bits else "."))
@@ -378,7 +385,8 @@ def public_journal(lat: float, lon: float, days: int = 7) -> dict:
     events.sort(key=lambda e: e["at"], reverse=True)
     sig = [e for e in events if e["significant"]]
     return {"lat": lat, "lon": lon, "since": _iso(since), "days": days, "changed": bool(sig), "n_significant": len(sig),
-            "summary": summary(since, sig, ctx), "events": events, "context": ctx,
+            "summary": summary(since, sig, ctx), "summary_short": summary(since, sig, ctx, with_events=False),
+            "events": events, "context": ctx,
             "rule": tr("Chỉ nguồn công khai: mưa ≥ 50 mm/ngày (Open-Meteo), radar Sentinel-1 thấy nước. Lưu thửa để thêm "
                        "câu trả lời, ảnh, cảm biến và báo đẩy.",
                        "Public sources only: rain ≥ 50 mm/day (Open-Meteo), Sentinel-1 radar sees water. Save the plot to add "
