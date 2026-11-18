@@ -11,7 +11,7 @@ const LLM_NAME: Record<string, string> = { anthropic: "Anthropic (Claude)", gemi
 export default function PrivacyPage() {
   const { t } = useLang();
   // Kiểm 18/11/2026 (chuẩn bị bật LLM): nói đúng tên nhà cung cấp ĐANG được cấu hình trên máy chủ, không ghi cứng.
-  const [llm, setLlm] = useState<{ available: boolean; provider: string | null } | null>(null);
+  const [llm, setLlm] = useState<{ available: boolean; provider: string | null; vision?: boolean } | null>(null);
   useEffect(() => { getHealth().then((h) => setLlm(h.llm ?? null)).catch(() => setLlm(null)); }, []);
   const who = llm?.available && llm.provider ? (LLM_NAME[llm.provider] ?? llm.provider) : null;
   return (
@@ -73,8 +73,8 @@ export default function PrivacyPage() {
         </p>
         <p>
           {who
-            ? t(`Trợ lý LLM đang BẬT, nhà cung cấp: ${who}. Khi bạn hỏi trợ lý, dùng ô "nếu… thì sao", hay đọc câu chuyện của thửa, câu hỏi bạn gõ và số đo của thửa đang xem được gửi tới nhà cung cấp đó để soạn câu trả lời. KHÔNG gửi email, mật khẩu hay tên tài khoản. Ảnh sổ đỏ chỉ được gửi khi bạn chủ động bấm đọc bằng AI (xem mục trên).`,
-                `The LLM assistant is ON, provider: ${who}. When you ask the assistant, use the "what if" box or read a plot's story, the question you type and the measurements of the plot in view are sent to that provider to write the answer. Your email, password and account name are NOT sent. A land-certificate photo is sent only when you choose AI reading (see above).`)
+            ? t(`Trợ lý LLM đang BẬT, nhà cung cấp: ${who}. Khi bạn hỏi trợ lý, dùng ô "nếu… thì sao", hay đọc câu chuyện của thửa, câu hỏi bạn gõ và số đo của thửa đang xem được gửi tới nhà cung cấp đó để soạn câu trả lời. KHÔNG gửi email, mật khẩu hay tên tài khoản. ${llm?.vision ? "Ảnh sổ đỏ chỉ được gửi khi bạn chủ động bấm đọc bằng AI (xem mục trên)." : "Đọc ảnh sổ đỏ bằng AI đang TẮT: ảnh sổ không được gửi tới nhà cung cấp này."}`,
+                `The LLM assistant is ON, provider: ${who}. When you ask the assistant, use the "what if" box or read a plot's story, the question you type and the measurements of the plot in view are sent to that provider to write the answer. Your email, password and account name are NOT sent. ${llm?.vision ? "A land-certificate photo is sent only when you choose AI reading (see above)." : "AI reading of land-certificate photos is OFF: no certificate photo is sent to this provider."}`)
             : t("Trợ lý LLM đang TẮT: trợ lý trả lời theo luật viết sẵn trên máy chủ của TerraTwin, không gửi câu hỏi ra ngoài. Nếu sau này bật, trang này sẽ ghi tên nhà cung cấp, và chỉ câu hỏi bạn gõ cùng số đo của thửa được gửi đi — không gửi email, mật khẩu hay tên tài khoản. Trạng thái hiện tại xem ở ",
                 "The LLM assistant is OFF: it answers with rules written on TerraTwin's own server and sends no question outside. If it is turned on later, this page will name the provider, and only the question you type plus the plot's measurements are sent — never your email, password or account name. Current status: ")}
           {!who && <Link href="/status">/status</Link>}{!who && "."}

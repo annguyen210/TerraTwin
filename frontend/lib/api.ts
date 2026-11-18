@@ -1710,7 +1710,7 @@ export type HealthStatus = {
   database?: { kind: string; provider: string | null; message: string | null };
   // Khoá ký Hồ sơ đất số: "env" (an toàn) / "auto-db" (tự sinh, nằm trong CSDL) / "none".
   signing?: { source: "env" | "auto-db" | "none"; key_id?: string; message: string | null } | null;
-  llm?: { available: boolean; provider: string | null; model: string | null };
+  llm?: { available: boolean; provider: string | null; model: string | null; vision?: boolean };
   field_photos?: { count: number; bytes: number; avg_kb: number | null; max_mb: number;
                    used_pct: number | null; per_user_limit: number } | null;
 };

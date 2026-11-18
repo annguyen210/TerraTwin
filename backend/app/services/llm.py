@@ -115,11 +115,18 @@ def info() -> dict:
         "model": model,
         "base_url": base,
         "key_source": "đã cấu hình" if key else ("máy chủ cục bộ" if base else None),
+        "vision": vision_available(),
     }
 
 
 def available() -> bool:
     return _detect()[0] is not None
+
+
+def vision_available() -> bool:
+    """Đọc ẢNH (sổ đỏ) bằng LLM. TERRATWIN_LLM_VISION=off tắt riêng phần này (18/11/2026): nhà cung cấp miễn phí như Groq
+    không có mô hình đọc ảnh, và chủ dự án có thể không muốn ảnh sổ đỏ (tên chủ, số giấy tờ) đi lên gói miễn phí."""
+    return available() and (_env("TERRATWIN_LLM_VISION") or "on").strip().lower() not in ("off", "0", "false", "no", "tat", "tắt")
 
 
 def _post(url: str, payload: dict, headers: dict) -> dict | None:
