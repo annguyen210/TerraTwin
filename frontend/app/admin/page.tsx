@@ -417,7 +417,7 @@ function GoldTab() {
       {text.trim().length >= 10 && !labelled && <p className="ws-hint">Tích các loại câu tin này khẳng định — hoặc tích “Tin này không khẳng định loại nào”.</p>}
       {v && (
         <>
-          <h4 style={{ marginTop: 16 }}>Đã có {v.score.n}/20 tin {v.score.enough ? "— đủ để chấm cổng" : ""}</h4>
+          <h4 style={{ marginTop: 16 }}>Đã có {v.score.n}/20 tin {v.score.enough ? "— đủ số lượng tối thiểu" : ""}</h4>
           {v.score.per_type.length > 0 && (
             <table className="ws-table">
               <thead><tr><th>Loại câu</th><th>Chính xác</th><th>Độ phủ</th><th>F1</th><th>Đúng / thừa / sót</th></tr></thead>
@@ -426,6 +426,10 @@ function GoldTab() {
             </table>
           )}
           {v.score.macro_f1 != null && <p>F1 trung bình: <b>{v.score.macro_f1}</b>{v.score.enough ? "" : " (chưa đủ 20 tin — chỉ để xem)"}</p>}
+          {/* Kiểm 18/11/2026: bảng này từng đọc như "F1 1, đủ để chấm cổng" mà không nói ai gán nhãn. */}
+          <p className="adm-note adm-warn" role="note">Nhãn lần 6–9 trong tập này do Claude gán, không phải nhãn người (đính chính <code>00c9560</code>, 08/11/2026);
+            F1 ở đây đo trên chính tập đã dùng để chỉnh bộ tách câu nên luôn cao — chỉ để xem, không dùng để chấm cổng.
+            Số chính thức của cổng GĐ3: <b>F1 0,88 trên 42 tin mới, nhãn người độc lập</b> (lần 12, PR #10, chấm trên tập khoá trong <code>backend/data/eval</code>).</p>
           <ul>{v.items.slice().reverse().map((g) => (
             <li key={g.id} style={{ marginBottom: 6 }}><small>{g.text.slice(0, 160)}{g.text.length > 160 ? "…" : ""}</small><br />
               <b>{g.claims.length ? g.claims.map(name).join(", ") : "không câu khẳng định nào"}</b>{g.source_note ? ` · ${g.source_note}` : ""}{" "}
