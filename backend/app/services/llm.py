@@ -46,7 +46,9 @@ KNOWN_BASES = {
 
 _DEFAULT_MODEL = {
     "openai": "gpt-4o-mini",
-    "gemini": "gemini-2.0-flash",
+    # 18/11/2026: gemini-2.0-flash đã TẮT từ 1/6/2026 (aistudio.google.com/docs/deprecations); 3.8-flash là bản Flash
+    # ổn định hiện hành, nhận cả ảnh (đọc sổ đỏ). claude-haiku-4-5-20251001 vẫn là mã hiện hành.
+    "gemini": "gemini-3.8-flash",
     "anthropic": "claude-haiku-4-5-20251001",
 }
 

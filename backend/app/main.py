@@ -603,6 +603,12 @@ async def live() -> dict:
     return {"ok": True}
 
 
+def _llm_status() -> dict:
+    from app.services import llm
+    i = llm.info()
+    return {"available": bool(i.get("available")), "provider": i.get("provider"), "model": i.get("model")}
+
+
 @app.get("/api/health")
 def health(request: Request) -> dict:
     """Sức khoẻ máy chủ VÀ tình trạng hạn mức nguồn dữ liệu.
@@ -690,6 +696,9 @@ def health(request: Request) -> dict:
             "process": _process_stats(),
             "weather_data_plan": _openmeteo_plan(),
             "signing": signing_info,
+            # Kiểm 18/11/2026 (chuẩn bị bật LLM): đặt khoá xong phải kiểm được ngay mà không cần đăng nhập — chỉ trạng thái,
+            # nhà cung cấp, mô hình; KHÔNG bao giờ trả khoá.
+            "llm": _llm_status(),
             "field_photos": photos,
             # Đếm lời gọi ra ngoài từ lúc tiến trình này khởi động + tỉ lệ
             # trúng cache — chẩn đoán "đang gọi thừa ở đâu" thay vì đoán. Có 6
