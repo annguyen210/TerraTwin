@@ -114,6 +114,16 @@ jobs:
           . ops/pg-redact.sh
           ERR="$RUNNER_TEMP/src.err"
           tables=0
+          # 18/11/2026: secret dán từ khung chat bị gãy dòng ("ep-crim" / "son-block…") → psql không nối được, còn lỗi
+          # thì bị bộ lọc ẩn hết. URL Postgres không bao giờ chứa khoảng trắng: bỏ mọi khoảng trắng/xuống dòng, bỏ ngoặc
+          # bao, bỏ "-pooler" (pg_dump cần kết nối thẳng). Chuỗi đã sửa được che trong log như secret; chỉ in chẩn đoán.
+          if [ -n "$NEON_URL" ]; then
+            raw="$NEON_URL"
+            NEON_URL="$(printf '%s' "$raw" | tr -d '[:space:]' | sed -E "s/^[\"']+//; s/[\"']+$//; s/-pooler\././")"
+            echo "::add-mask::$NEON_URL"
+            [ "$NEON_URL" = "$raw" ] || echo "::warning::TERRATWIN_NEON_URL đã được làm sạch trước khi dùng:$(printf '%s' "$raw" | grep -q '[[:space:]]' && echo ' có khoảng trắng/xuống dòng (đã bỏ);')$(printf '%s' "$raw" | grep -q -- '-pooler\.' && echo ' có -pooler (đã bỏ);') — nên dán lại secret thành một dòng liền, không có -pooler."
+            case "$NEON_URL" in postgres://*|postgresql://*) ;; *) echo "::error::TERRATWIN_NEON_URL không bắt đầu bằng postgresql:// — dán nhầm chuỗi?"; exit 1 ;; esac
+          fi
           if [ -n "$NEON_URL" ]; then
             # LỖI KẾT NỐI ≠ "0 bảng". Nuốt lỗi thành 0 thì từ 1/10 tới 9/10 workflow
             # lặng lẽ sao lưu Render — bản cũ đứng yên — và ra một bản XANH thiếu
@@ -121,6 +131,8 @@ jobs:
             if ! tables=$(psql "$NEON_URL" -X -tAc                  "SELECT count(*) FROM pg_tables WHERE schemaname = 'public'" 2>"$ERR"); then
               echo "::error::Không truy vấn được Neon (TERRATWIN_NEON_URL) — KHÔNG rơi về Render. Lỗi (đã lọc):"
               pg_err_redacted "$ERR"
+              # Bộ lọc trên chỉ giữ dòng có ERROR/FATAL/could not… — 18/11 nó ra TRẮNG. In thêm dòng đầu, đã che URL và tên trong ngoặc.
+              echo "Dòng đầu lỗi psql (đã che): $(head -c 300 "$ERR" | tr '\n' ' ' | sed -E 's#postgres(ql)?(\+psycopg)?://[^[:space:]]*#postgresql://…#g; s/"[^"]*"/"…"/g')"
               exit 1
             fi
           fi
@@ -134,6 +146,8 @@ jobs:
             exit 1
           fi
           echo "src=$src" >> "$GITHUB_OUTPUT"
+          echo "::add-mask::$url"
+          echo "SRC_DB_URL=$url" >> "$GITHUB_ENV"     # các bước sau dùng đúng chuỗi đã làm sạch
           if ! srv=$(psql "$url" -X -tAc "SELECT current_setting('server_version_num')::int / 10000" 2>"$ERR"); then
             echo "::error::Không truy vấn được CSDL nguồn ($src). Lỗi (đã lọc):"
             pg_err_redacted "$ERR"
@@ -194,12 +208,12 @@ jobs:
 
       - name: Đếm số hàng từng bảng TRƯỚC khi sao lưu (cho diễn tập)
         env:
-          TERRATWIN_DATABASE_URL: ${{ steps.src.outputs.src == 'neon' && secrets.TERRATWIN_NEON_URL || secrets.TERRATWIN_DB_EXTERNAL_URL }}
+          TERRATWIN_DATABASE_URL: ${{ env.SRC_DB_URL }}
         run: bash ops/restore-drill.sh count "$TERRATWIN_DATABASE_URL" > "$RUNNER_TEMP/before.tsv"
 
       - name: Sao lưu + mã hoá (ops/backup.sh)
         env:
-          TERRATWIN_DATABASE_URL: ${{ steps.src.outputs.src == 'neon' && secrets.TERRATWIN_NEON_URL || secrets.TERRATWIN_DB_EXTERNAL_URL }}
+          TERRATWIN_DATABASE_URL: ${{ env.SRC_DB_URL }}
           TERRATWIN_BACKUP_PASSPHRASE: ${{ secrets.TERRATWIN_BACKUP_PASSPHRASE }}
           TERRATWIN_BACKUP_DIR: ${{ github.workspace }}/../backups-wt
         run: bash ops/backup.sh
@@ -222,7 +236,7 @@ jobs:
       # diễn tập trượt không được làm mất bản sao lưu hôm nay, nhưng làm cả lượt chạy ĐỎ.
       - name: Diễn tập khôi phục vào Postgres tạm — so số hàng MỌI bảng (ops/restore-drill.sh)
         env:
-          TERRATWIN_DATABASE_URL: ${{ steps.src.outputs.src == 'neon' && secrets.TERRATWIN_NEON_URL || secrets.TERRATWIN_DB_EXTERNAL_URL }}
+          TERRATWIN_DATABASE_URL: ${{ env.SRC_DB_URL }}
           TERRATWIN_SCRATCH_URL: postgresql://postgres:drill@localhost:5432/drill
           TERRATWIN_BACKUP_PASSPHRASE: ${{ secrets.TERRATWIN_BACKUP_PASSPHRASE }}
           TERRATWIN_BACKUP_DIR: ${{ github.workspace }}/../backups-wt
