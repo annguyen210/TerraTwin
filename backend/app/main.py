@@ -607,7 +607,7 @@ def _llm_status() -> dict:
     from app.services import llm
     i = llm.info()
     return {"available": bool(i.get("available")), "provider": i.get("provider"), "model": i.get("model"),
-            "vision": bool(i.get("vision"))}
+            "vision": bool(i.get("vision")), "last_call": i.get("last_call")}
 
 
 @app.get("/api/health")
