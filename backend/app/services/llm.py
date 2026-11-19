@@ -24,11 +24,32 @@ tự lùi về rule-based — trợ lý mất chữ còn hơn cả trang web s�
 from __future__ import annotations
 
 import json
+import logging
 import os
 import urllib.error
 import urllib.request
 
 TIMEOUT = 30.0
+
+# Kiểm 19/11/2026: bật Groq (openai/gpt-oss-120b) xong, trợ lý vẫn trả lời theo luật — _post nuốt mọi lỗi nên không ai biết
+# vì sao. Giữ lại kết quả lần gọi GẦN NHẤT (giờ, thành/bại, lỗi rút gọn; KHÔNG BAO GIỜ có khoá) để /api/health hiện ra.
+_LAST: dict = {}
+log = logging.getLogger("terratwin.llm")
+
+
+def _note(ok: bool, error: str | None = None) -> None:
+    from datetime import datetime, timezone
+    _LAST.clear()
+    _LAST.update({"at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "ok": ok, "error": error})
+    if not ok:
+        log.warning("LLM call failed: %s", error)
+
+
+def _reasoning(model: str | None) -> bool:
+    """Mô hình "suy luận" (gpt-oss, o-series, R1…): token suy nghĩ tính chung với max_tokens — 600 token có thể hết trước
+    khi viết được chữ trả lời nào, nội dung rỗng → trợ lý lặng lẽ rơi về luật viết sẵn."""
+    m = (model or "").lower().split("/")[-1]
+    return "gpt-oss" in m or m.startswith(("o1", "o3", "o4")) or "deepseek-r1" in m
 
 # Gốc URL mặc định cho các nhà cung cấp openai-compatible phổ biến,
 # để người dùng chỉ cần dán khóa mà không phải tra URL.
@@ -116,6 +137,7 @@ def info() -> dict:
         "base_url": base,
         "key_source": "đã cấu hình" if key else ("máy chủ cục bộ" if base else None),
         "vision": vision_available(),
+        "last_call": dict(_LAST) or None,
     }
 
 
@@ -136,7 +158,15 @@ def _post(url: str, payload: dict, headers: dict) -> dict | None:
             headers={"content-type": "application/json", **headers})
         with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
             return json.loads(r.read().decode("utf-8"))
-    except Exception:
+    except urllib.error.HTTPError as e:
+        try:
+            body = e.read().decode("utf-8", "replace")[:240]
+        except Exception:
+            body = ""
+        _note(False, f"HTTP {e.code}: {body}")
+        return None
+    except Exception as e:
+        _note(False, f"{type(e).__name__}: {str(e)[:160]}")
         return None
 
 
@@ -160,10 +190,13 @@ def complete(prompt: str, system: str | None = None,
     if provider == "openai":
         msgs = ([{"role": "system", "content": system}] if system else []) + \
                [{"role": "user", "content": prompt}]
-        d = _post(f"{base}/chat/completions",
-                  {"model": model, "messages": msgs, "max_tokens": max_tokens},
-                  {"Authorization": f"Bearer {key}"} if key else {})
+        payload: dict = {"model": model, "messages": msgs, "max_tokens": max_tokens}
+        if _reasoning(model):
+            payload.update({"max_tokens": max(max_tokens * 4, 2400), "reasoning_effort": "low"})
+        d = _post(f"{base}/chat/completions", payload, {"Authorization": f"Bearer {key}"} if key else {})
         text = _dig(d, "choices", 0, "message", "content")
+        if d is not None and not (text or "").strip():
+            _note(False, f"trả lời rỗng (finish_reason={_dig(d, 'choices', 0, 'finish_reason')})")
 
     elif provider == "gemini":
         body: dict = {
@@ -187,6 +220,7 @@ def complete(prompt: str, system: str | None = None,
         text = _dig(d, "content", 0, "text")
 
     if isinstance(text, str) and text.strip():
+        _note(True)
         return text.strip()
     return None
 
@@ -226,5 +260,6 @@ def complete_vision(prompt: str, image_b64: str, media_type: str = "image/jpeg",
                   {"x-api-key": key, "anthropic-version": "2023-06-01"})
         text = _dig(d, "content", 0, "text")
     if isinstance(text, str) and text.strip():
+        _note(True)
         return text.strip()
     return None

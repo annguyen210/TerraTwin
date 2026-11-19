@@ -11,7 +11,8 @@ def test_health_bao_llm_khong_lo_khoa(monkeypatch):
     monkeypatch.setenv("TERRATWIN_LLM_PROVIDER", "anthropic")
     monkeypatch.setenv("TERRATWIN_LLM_API_KEY", "sk-thu-khong-duoc-lo-123")
     h = TestClient(app).get("/api/health").json()
-    assert h["llm"] == {"available": True, "provider": "anthropic", "model": llm._DEFAULT_MODEL["anthropic"], "vision": True}
+    l = h["llm"]
+    assert (l["available"], l["provider"], l["model"], l["vision"]) == (True, "anthropic", llm._DEFAULT_MODEL["anthropic"], True)
     assert "sk-thu-khong-duoc-lo-123" not in str(h)
 
 
@@ -44,3 +45,63 @@ def test_groq_mien_phi_tat_doc_anh(monkeypatch):
     assert i["base_url"] == "https://api.groq.com/openai/v1"
     h = TestClient(app).get("/api/health").json()["llm"]
     assert h["available"] is True and h["vision"] is False and "gsk-thu" not in str(h)
+
+
+def _fake_urlopen(resp_json, seen):
+    import io
+    import json as _j
+
+    class R(io.BytesIO):
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+
+    def f(req, timeout=None):
+        seen.append(_j.loads(req.data.decode()))
+        return R(_j.dumps(resp_json).encode())
+    return f
+
+
+def test_groq_gpt_oss_gui_reasoning_low_va_du_token(monkeypatch):
+    """19/11/2026: gpt-oss-120b là mô hình suy luận — 600 token có thể hết trước khi viết trả lời. Gửi reasoning_effort=low
+    và nâng max_tokens; trả lời có chữ thì lần gọi gần nhất ghi ok."""
+    from app.services import llm
+    monkeypatch.setenv("TERRATWIN_LLM_API_KEY", "gsk-thu")
+    monkeypatch.setenv("TERRATWIN_LLM_BASE_URL", "https://api.groq.com/openai/v1")
+    monkeypatch.setenv("TERRATWIN_LLM_MODEL", "openai/gpt-oss-120b")
+    seen: list = []
+    monkeypatch.setattr(llm.urllib.request, "urlopen",
+                        _fake_urlopen({"choices": [{"message": {"content": "Thửa này ngập 5 đợt."}, "finish_reason": "stop"}]}, seen))
+    assert llm.complete("hỏi", system="hệ thống", max_tokens=600) == "Thửa này ngập 5 đợt."
+    assert seen[0]["reasoning_effort"] == "low" and seen[0]["max_tokens"] >= 2400
+    assert llm.info()["last_call"]["ok"] is True
+
+
+def test_tra_loi_rong_va_loi_http_duoc_ghi_lai(monkeypatch):
+    from app.services import llm
+    monkeypatch.setenv("TERRATWIN_LLM_API_KEY", "gsk-thu")
+    monkeypatch.setenv("TERRATWIN_LLM_BASE_URL", "https://api.groq.com/openai/v1")
+    monkeypatch.setenv("TERRATWIN_LLM_MODEL", "openai/gpt-oss-120b")
+    monkeypatch.setattr(llm.urllib.request, "urlopen",
+                        _fake_urlopen({"choices": [{"message": {"content": ""}, "finish_reason": "length"}]}, []))
+    assert llm.complete("hỏi") is None
+    last = llm.info()["last_call"]
+    assert last["ok"] is False and "length" in last["error"]
+
+    import urllib.error
+
+    def boom(req, timeout=None):
+        raise urllib.error.HTTPError(req.full_url, 401, "Unauthorized", {}, None)
+    monkeypatch.setattr(llm.urllib.request, "urlopen", boom)
+    assert llm.complete("hỏi") is None
+    assert llm.info()["last_call"]["error"].startswith("HTTP 401") and "gsk-thu" not in str(llm.info())
+
+
+def test_mo_hinh_thuong_khong_bi_them_tham_so(monkeypatch):
+    from app.services import llm
+    monkeypatch.setenv("TERRATWIN_LLM_API_KEY", "k")
+    monkeypatch.setenv("TERRATWIN_LLM_MODEL", "llama-3.3-70b-versatile")
+    seen: list = []
+    monkeypatch.setattr(llm.urllib.request, "urlopen",
+                        _fake_urlopen({"choices": [{"message": {"content": "ok"}}]}, seen))
+    llm.complete("hỏi", max_tokens=600)
+    assert "reasoning_effort" not in seen[0] and seen[0]["max_tokens"] == 600

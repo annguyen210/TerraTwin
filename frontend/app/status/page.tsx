@@ -118,7 +118,10 @@ export default function StatusPage() {
                     <td>{h.llm.available
                       ? t(`✅ bật · ${h.llm.provider} · ${h.llm.model} · đọc ảnh sổ: ${h.llm.vision ? "bật" : "tắt"}`,
                           `✅ on · ${h.llm.provider} · ${h.llm.model} · document photo reading: ${h.llm.vision ? "on" : "off"}`)
-                      : t("tắt — trợ lý trả lời theo luật viết sẵn, mọi con số do mô hình đo", "off — rule-based assistant; every number comes from the measured models")}</td>
+                      : t("tắt — trợ lý trả lời theo luật viết sẵn, mọi con số do mô hình đo", "off — rule-based assistant; every number comes from the measured models")}
+                      {h.llm.available && h.llm.last_call && (h.llm.last_call.ok
+                        ? t(" · lần gọi gần nhất: ✅", " · last call: ✅")
+                        : t(` · ⚠️ lần gọi gần nhất lỗi: ${h.llm.last_call.error ?? ""}`, ` · ⚠️ last call failed: ${h.llm.last_call.error ?? ""}`))}</td>
                   </tr>
                 )}
                 {h.field_photos && (
