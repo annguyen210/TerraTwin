@@ -105,3 +105,19 @@ def test_mo_hinh_thuong_khong_bi_them_tham_so(monkeypatch):
                         _fake_urlopen({"choices": [{"message": {"content": "ok"}}]}, seen))
     llm.complete("hỏi", max_tokens=600)
     assert "reasoning_effort" not in seen[0] and seen[0]["max_tokens"] == 600
+
+
+def test_gui_user_agent_rieng(monkeypatch):
+    """19/11/2026: Groq/Cloudflare chặn User-Agent mặc định 'Python-urllib' (HTTP 403, error code 1010)."""
+    from app.services import llm
+    monkeypatch.setenv("TERRATWIN_LLM_API_KEY", "gsk-thu")
+    monkeypatch.setenv("TERRATWIN_LLM_BASE_URL", "https://api.groq.com/openai/v1")
+    monkeypatch.setenv("TERRATWIN_LLM_MODEL", "openai/gpt-oss-120b")
+    got = {}
+
+    def f(req, timeout=None):
+        got["ua"] = req.get_header("User-agent")
+        raise OSError("dừng ở đây")
+    monkeypatch.setattr(llm.urllib.request, "urlopen", f)
+    llm.complete("hỏi")
+    assert got["ua"] and "TerraTwin" in got["ua"] and "Python-urllib" not in got["ua"]

@@ -30,6 +30,7 @@ import urllib.error
 import urllib.request
 
 TIMEOUT = 30.0
+UA = "TerraTwin/1.0 (+https://terratwin-web.vercel.app)"
 
 # Kiểm 19/11/2026: bật Groq (openai/gpt-oss-120b) xong, trợ lý vẫn trả lời theo luật — _post nuốt mọi lỗi nên không ai biết
 # vì sao. Giữ lại kết quả lần gọi GẦN NHẤT (giờ, thành/bại, lỗi rút gọn; KHÔNG BAO GIỜ có khoá) để /api/health hiện ra.
@@ -155,7 +156,9 @@ def _post(url: str, payload: dict, headers: dict) -> dict | None:
     try:
         req = urllib.request.Request(
             url, data=json.dumps(payload).encode("utf-8"),
-            headers={"content-type": "application/json", **headers})
+            # 19/11/2026: Groq (sau Cloudflare) trả "HTTP 403: error code: 1010" cho User-Agent mặc định "Python-urllib/…"
+            # — chặn theo chữ ký trình duyệt. Tự xưng rõ tên ứng dụng thì qua.
+            headers={"content-type": "application/json", "user-agent": UA, **headers})
         with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
             return json.loads(r.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
