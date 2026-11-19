@@ -121,3 +121,20 @@ def test_gui_user_agent_rieng(monkeypatch):
     monkeypatch.setattr(llm.urllib.request, "urlopen", f)
     llm.complete("hỏi")
     assert got["ua"] and "TerraTwin" in got["ua"] and "Python-urllib" not in got["ua"]
+
+
+def test_doc_anh_dung_mo_hinh_rieng(monkeypatch):
+    """19/11/2026 'bật đọc ảnh': trợ lý chữ giữ gpt-oss-120b, ảnh sổ đỏ gửi tới mô hình đọc ảnh riêng."""
+    from app.services import llm
+    monkeypatch.setenv("TERRATWIN_LLM_API_KEY", "gsk-thu")
+    monkeypatch.setenv("TERRATWIN_LLM_BASE_URL", "https://api.groq.com/openai/v1")
+    monkeypatch.setenv("TERRATWIN_LLM_MODEL", "openai/gpt-oss-120b")
+    monkeypatch.setenv("TERRATWIN_LLM_VISION", "on")
+    monkeypatch.setenv("TERRATWIN_LLM_VISION_MODEL", "qwen/qwen3.8-27b")
+    seen: list = []
+    monkeypatch.setattr(llm.urllib.request, "urlopen",
+                        _fake_urlopen({"choices": [{"message": {"content": '{"so_thua": "12"}'}}]}, seen))
+    assert llm.complete_vision("đọc sổ", "AAAA") is not None
+    assert seen[0]["model"] == "qwen/qwen3.8-27b"
+    i = llm.info()
+    assert i["model"] == "openai/gpt-oss-120b" and i["vision"] is True and i["vision_model"] == "qwen/qwen3.8-27b"

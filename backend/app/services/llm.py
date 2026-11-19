@@ -138,12 +138,18 @@ def info() -> dict:
         "base_url": base,
         "key_source": "đã cấu hình" if key else ("máy chủ cục bộ" if base else None),
         "vision": vision_available(),
+        "vision_model": (vision_model() or model) if vision_available() else None,
         "last_call": dict(_LAST) or None,
     }
 
 
 def available() -> bool:
     return _detect()[0] is not None
+
+
+def vision_model() -> str | None:
+    """Mô hình đọc ảnh, nếu khác mô hình trợ lý (TERRATWIN_LLM_VISION_MODEL, vd qwen/qwen3.8-27b trên Groq)."""
+    return _env("TERRATWIN_LLM_VISION_MODEL")
 
 
 def vision_available() -> bool:
@@ -236,6 +242,8 @@ def complete_vision(prompt: str, image_b64: str, media_type: str = "image/jpeg",
     provider, key, base, model = _detect()
     if provider is None:
         return None
+    # 19/11/2026: mô hình trợ lý (vd Groq openai/gpt-oss-120b) chỉ đọc chữ — đọc ảnh dùng mô hình RIÊNG nếu có đặt.
+    model = vision_model() or model
     if provider == "openai":
         msgs = ([{"role": "system", "content": system}] if system else []) + [{
             "role": "user", "content": [
