@@ -40,6 +40,7 @@ sau 13 ngày. Chấm sớm hơn sẽ nhận về dữ liệu rỗng và kết lu
 """
 from __future__ import annotations
 
+import threading
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
@@ -338,6 +339,12 @@ def retry_due_misses(db: Session) -> dict:
             "pending": len(remaining)}
 
 
+# Kiểm 18/11/2026: /hom-nay của ann953201 hiện HAI dòng "Chấm cảnh báo hạn ngày 2026-11-09: BỎ SÓT" — hai lượt quét chạy
+# cùng lúc (cron radar + quét tay/thử lại) cùng thấy "chưa ghi" rồi cùng ghi, vì kiểm trùng và commit cách nhau cả lượt.
+# Khoá trong tiến trình + commit NGAY sau khi ghi một hàng: lượt sau chắc chắn thấy hàng của lượt trước.
+_MISS_LOCK = threading.Lock()
+
+
 def _record_misses(db: Session, p: Plot, module_id: str, rows, series,
                    start: datetime, now: datetime) -> int:
     """Ghi lại các đợt vượt ngưỡng nguy hiểm không có cảnh báo tương ứng.
@@ -350,6 +357,10 @@ def _record_misses(db: Session, p: Plot, module_id: str, rows, series,
     run_peak = 0.0
 
     def close(run_start: datetime, run_peak: float) -> int:
+        with _MISS_LOCK:
+            return _close(run_start, run_peak)
+
+    def _close(run_start: datetime, run_peak: float) -> int:
         # Đã từng báo gì cho thửa+mô-đun này quanh đợt đó chưa? Nới ±3 ngày:
         # báo trước hai ngày rồi hiểm họa mới tới vẫn là báo trúng.
         lo = run_start - timedelta(days=10)
@@ -386,6 +397,7 @@ def _record_misses(db: Session, p: Plot, module_id: str, rows, series,
                          f"{hazard.WARNING:.0f}, không có cảnh báo nào trong "
                          f"khoảng −10/+3 ngày. Nguồn: Open-Meteo Archive (ERA5)."),
         ))
+        db.commit()
         return 1
 
     for r, s in zip(rows, series):

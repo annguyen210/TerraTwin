@@ -184,8 +184,13 @@ def _db_events(db: Session, user_id: int, plot, since: datetime) -> list[dict]:
                                             Alert.created_at >= since)).scalars():
         out.append(_ev(_iso(a.created_at), "alert", True, a.headline, "TerraTwin radar",
                        module_id=a.module_id, risk_level=a.risk_level))
+    graded_seen: set = set()      # kiểm 18/11/2026: hàng "bỏ sót" ghi trùng trong CSDL → chỉ hiện một dòng
     for a in db.execute(select(Alert).where(Alert.plot_id == plot.id, Alert.verified_at.is_not(None),
                                             Alert.verified_at >= since)).scalars():
+        k = (a.module_id, a.created_at.date(), a.outcome)
+        if k in graded_seen:
+            continue
+        graded_seen.add(k)
         lab = {"hit": tr("ĐÚNG", "CORRECT"), "false_alarm": tr("báo nhầm", "false alarm"),
                "miss": tr("BỎ SÓT", "MISSED"), "expired": tr("hết hạn, không chấm được", "expired, ungradable")}
         out.append(_ev(_iso(a.verified_at), "graded", a.outcome != "expired",

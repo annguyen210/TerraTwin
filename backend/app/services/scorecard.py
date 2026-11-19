@@ -119,9 +119,13 @@ def _deduped_counts(db: Session, since: datetime, until: datetime | None = None,
 
     counts: Counter = Counter()
     groups: dict = defaultdict(list)
+    retro_seen: set = set()       # kiểm 18/11/2026: hai lượt quét chạy cùng lúc từng ghi trùng một lần bỏ sót
     for outcome, plot_id, mid, created, retro in db.execute(q).all():
         if retro:
-            counts[outcome] += 1
+            k = (plot_id, mid, created.date())
+            if k not in retro_seen:
+                retro_seen.add(k)
+                counts[outcome] += 1
         else:
             groups[(plot_id, mid)].append((created, outcome))
     for items in groups.values():

@@ -263,11 +263,11 @@ def landdoc_extract(body: LandDocExtractIn, lang: str = "vi", user: User = Depen
     except (binascii.Error, ValueError):
         raise HTTPException(422, reqlang.tr("Ảnh không phải base64 hợp lệ.", "Image is not valid base64."))
     sha = hashlib.sha256(raw).hexdigest()
-    if not llm.available():
+    if not llm.vision_available():
         raise HTTPException(503, {"message": reqlang.tr(
-            "Máy chủ chưa cấu hình AI đọc ảnh (khoá LLM đa phương thức). Nhập tay các trường trên sổ — phần đối chiếu "
-            "vẫn chạy đầy đủ.", "AI document reading is not configured (multimodal LLM key). Enter the certificate "
-            "fields by hand — the cross-check still runs in full."), "image_sha256": sha})
+            "AI đọc ảnh sổ đang tắt trên máy chủ này — ảnh không được gửi đi đâu. Nhập tay các trường trên sổ — phần "
+            "đối chiếu vẫn chạy đầy đủ.", "AI document reading is off on this server — the photo is not sent anywhere. "
+            "Enter the certificate fields by hand — the cross-check still runs in full."), "image_sha256": sha})
     got = landdoc.extract(body.data_b64, body.media_type)
     if got is None:
         raise HTTPException(502, {"message": reqlang.tr("AI không đọc được ảnh này — chụp lại rõ hơn hoặc nhập tay.",
