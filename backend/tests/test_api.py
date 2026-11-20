@@ -59,7 +59,12 @@ def test_scan_structure():
     # không phải không có. "Chưa xong" và "không có" là hai chuyện khác nhau.
     assert len(d["modules"]) == total
     cho = [m for m in d["modules"] if m["status"] == "pending"]
-    assert {m["id"] for m in cho} == set(d["skipped_heavy"])
+    # Mục nặng luôn "đang kiểm tra"; mục nhẹ cũng có thể "đang kiểm tra" khi NGUỒN DỮ LIỆU trả lời chậm quá hạn chót
+    # (services/scan.py, late_ids). CI 20/11/2026 trượt vì đòi hai tập BẰNG NHAU: mạng chậm làm 'urban' (mục nhẹ) chờ.
+    assert set(d["skipped_heavy"]) <= {m["id"] for m in cho}
+    for m in cho:
+        if m["id"] not in d["skipped_heavy"]:
+            assert "chậm" in m["headline"] or "slowly" in m["headline"], m
     assert len(d["modules"]) >= 14
     # cảnh báo chỉ gồm module dữ liệu thật
     assert all(m["is_real"] for m in d["alerts"])
