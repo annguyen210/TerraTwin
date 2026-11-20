@@ -155,6 +155,20 @@ class GoldIn(BaseModel):
     source_note: str = Field(default="", max_length=200)
 
 
+_CLAUDE_ROUNDS = range(6, 10)     # GĐ3 lần 6–9: nhãn do một phiên Claude khác gán (đính chính 00c9560, 08/11/2026)
+
+
+def gold_note(note: str | None) -> str:
+    """Nguồn nhãn ĐÚNG lúc đọc ra (kiểm 20/11/2026): 100 tin lần 6–9 lưu "nhãn người (chủ dự án…)" từ trước đính chính.
+    Không sửa CSDL, không đụng nội dung tin — chỉ thay đoạn "nhãn người (…)" của các dòng ghi rõ "lần 6–9"."""
+    import re
+    note = note or ""
+    m = re.search(r"lần\s*(\d+)", note)
+    if not m or int(m.group(1)) not in _CLAUDE_ROUNDS or "nhãn người" not in note:
+        return note
+    return re.sub(r"nhãn người(\s*\([^)]*\))?", "nhãn Claude (đính chính 00c9560)", note, count=1)
+
+
 @router.get("/api/admin/listing-gold")
 def admin_listing_gold(admin: User = Depends(auth.require_admin), db: Session = Depends(get_session)) -> dict:
     """Tập vàng cổng GĐ3 + điểm hiện tại của bộ tách câu trên tập đó (đúng cách tính ops/listing_gate.py)."""
@@ -162,7 +176,8 @@ def admin_listing_gold(admin: User = Depends(auth.require_admin), db: Session = 
     from app.db import ListingGold
     from app.services import listing_check as lc, listing_gold
     rows = db.execute(select(ListingGold).order_by(ListingGold.created_at)).scalars().all()
-    gold = [{"id": r.id, "text": r.text, "claims": _json.loads(r.claims_json or "[]"), "source_note": r.source_note} for r in rows]
+    gold = [{"id": r.id, "text": r.text, "claims": _json.loads(r.claims_json or "[]"),
+             "source_note": gold_note(r.source_note)} for r in rows]
     return {"items": gold, "score": listing_gold.score(gold),
             "claim_types": [{"id": t, "vi": vi, "en": en} for t, vi, en, _ in lc.CLAIMS]}
 
