@@ -606,7 +606,7 @@ async def live() -> dict:
 def _llm_status() -> dict:
     from app.services import llm
     i = llm.info()
-    return {"available": bool(i.get("available")), "provider": i.get("provider"), "model": i.get("model"),
+    return {"available": bool(i.get("available")), "provider": i.get("provider"), "vendor": i.get("vendor"), "model": i.get("model"),
             "vision": bool(i.get("vision")), "vision_model": i.get("vision_model"), "last_call": i.get("last_call")}
 
 

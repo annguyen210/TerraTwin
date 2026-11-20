@@ -138,3 +138,20 @@ def test_doc_anh_dung_mo_hinh_rieng(monkeypatch):
     assert seen[0]["model"] == "qwen/qwen3.8-27b"
     i = llm.info()
     assert i["model"] == "openai/gpt-oss-120b" and i["vision"] is True and i["vision_model"] == "qwen/qwen3.8-27b"
+
+
+def test_ten_nha_cung_cap_that(monkeypatch):
+    """20/11/2026: /privacy phải ghi đích danh "Groq", không chỉ "OpenAI-compatible"."""
+    from app.main import app
+    from app.services import llm
+    for k in ("TERRATWIN_LLM_PROVIDER", "ANTHROPIC_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY", "OPENAI_API_KEY"):
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setenv("TERRATWIN_LLM_API_KEY", "gsk-thu")
+    monkeypatch.setenv("TERRATWIN_LLM_BASE_URL", "https://api.groq.com/openai/v1")
+    assert llm.vendor() == "Groq"
+    assert TestClient(app).get("/api/health").json()["llm"]["vendor"] == "Groq"
+    monkeypatch.setenv("TERRATWIN_LLM_BASE_URL", "https://llm.vi-du.vn/v1")
+    assert llm.vendor() == "llm.vi-du.vn"
+    monkeypatch.delenv("TERRATWIN_LLM_API_KEY")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "k")
+    assert llm.vendor() == "Anthropic (Claude)"
