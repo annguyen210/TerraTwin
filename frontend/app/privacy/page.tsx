@@ -11,9 +11,10 @@ const LLM_NAME: Record<string, string> = { anthropic: "Anthropic (Claude)", gemi
 export default function PrivacyPage() {
   const { t } = useLang();
   // Kiểm 18/11/2026 (chuẩn bị bật LLM): nói đúng tên nhà cung cấp ĐANG được cấu hình trên máy chủ, không ghi cứng.
-  const [llm, setLlm] = useState<{ available: boolean; provider: string | null; vision?: boolean } | null>(null);
+  const [llm, setLlm] = useState<{ available: boolean; provider: string | null; vendor?: string | null; vision?: boolean } | null>(null);
   useEffect(() => { getHealth().then((h) => setLlm(h.llm ?? null)).catch(() => setLlm(null)); }, []);
-  const who = llm?.available && llm.provider ? (LLM_NAME[llm.provider] ?? llm.provider) : null;
+  // 20/11/2026: máy chủ trả tên nhà cung cấp thật (vd "Groq") — trước chỉ ghi "OpenAI-compatible".
+  const who = llm?.available && llm.provider ? (llm.vendor || LLM_NAME[llm.provider] || llm.provider) : null;
   return (
     <AppShell>
 

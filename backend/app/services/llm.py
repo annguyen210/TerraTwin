@@ -137,6 +137,7 @@ def info() -> dict:
         "model": model,
         "base_url": base,
         "key_source": "đã cấu hình" if key else ("máy chủ cục bộ" if base else None),
+        "vendor": vendor(),
         "vision": vision_available(),
         "vision_model": (vision_model() or model) if vision_available() else None,
         "last_call": dict(_LAST) or None,
@@ -145,6 +146,29 @@ def info() -> dict:
 
 def available() -> bool:
     return _detect()[0] is not None
+
+
+_VENDOR_BY_HOST = {"api.openai.com": "OpenAI", "api.deepseek.com": "DeepSeek", "api.groq.com": "Groq",
+                   "api.together.xyz": "Together AI", "openrouter.ai": "OpenRouter", "api.x.ai": "xAI",
+                   "api.mistral.ai": "Mistral AI", "dashscope.aliyuncs.com": "Alibaba Cloud (Qwen)",
+                   "api.cerebras.ai": "Cerebras"}
+
+
+def vendor() -> str | None:
+    """Tên nhà cung cấp THẬT để ghi trên /privacy (20/11/2026: trước chỉ ghi "OpenAI-compatible" dù đang gửi tới Groq).
+    Suy từ giao thức + máy chủ của base URL; không rõ thì trả tên máy chủ — không bao giờ để trống khi đang bật."""
+    from urllib.parse import urlparse
+    provider, _, base, _ = _detect()
+    if provider is None:
+        return None
+    if provider == "gemini":
+        return "Google (Gemini)"
+    if provider == "anthropic":
+        return "Anthropic (Claude)"
+    host = (urlparse(base or "").hostname or "").lower()
+    if host in ("localhost", "127.0.0.1", "::1"):
+        return "máy chủ cục bộ (không gửi ra ngoài)"
+    return _VENDOR_BY_HOST.get(host) or host or "OpenAI"
 
 
 def vision_model() -> str | None:

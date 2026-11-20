@@ -116,8 +116,8 @@ export default function StatusPage() {
                   <tr>
                     <td>{t("Trợ lý LLM", "LLM assistant")}</td>
                     <td>{h.llm.available
-                      ? t(`✅ bật · ${h.llm.provider} · ${h.llm.model} · đọc ảnh sổ: ${h.llm.vision ? `bật (${h.llm.vision_model ?? h.llm.model})` : "tắt"}`,
-                          `✅ on · ${h.llm.provider} · ${h.llm.model} · document photo reading: ${h.llm.vision ? `on (${h.llm.vision_model ?? h.llm.model})` : "off"}`)
+                      ? t(`✅ bật · ${h.llm.vendor ?? h.llm.provider} · ${h.llm.model} · đọc ảnh sổ: ${h.llm.vision ? `bật (${h.llm.vision_model ?? h.llm.model})` : "tắt"}`,
+                          `✅ on · ${h.llm.vendor ?? h.llm.provider} · ${h.llm.model} · document photo reading: ${h.llm.vision ? `on (${h.llm.vision_model ?? h.llm.model})` : "off"}`)
                       : t("tắt — trợ lý trả lời theo luật viết sẵn, mọi con số do mô hình đo", "off — rule-based assistant; every number comes from the measured models")}
                       {h.llm.available && h.llm.last_call && (h.llm.last_call.ok
                         ? t(" · lần gọi gần nhất: ✅", " · last call: ✅")
