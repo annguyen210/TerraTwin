@@ -18,6 +18,7 @@ from app import auth
 from app.db import Alert, Dossier, DossierMonitor, EudrSet, Lot, Plot, User, get_session
 from app.services import reqlang, translog
 from app.services.reqlang import tr
+from app.services.textfix import alert_text
 
 router = APIRouter(tags=["today"])
 
@@ -152,7 +153,7 @@ def today(lang: str = "vi", user: User | None = Depends(auth.optional_user), db:
     for a in db.execute(select(Alert).where(Alert.user_id == user.id, Alert.acknowledged == 0, Alert.retro == 0)
                         .order_by(Alert.created_at.desc()).limit(5)).scalars().all():
         items.append({"kind": "alert", "priority": "urgent" if a.risk_level == "danger" else "info", "link": "/",
-                      "title": a.headline, "body": tr("Cảnh báo tham khảo — bản tin chính thức: nchmf.gov.vn.",
+                      "title": alert_text(a.headline), "body": tr("Cảnh báo tham khảo — bản tin chính thức: nchmf.gov.vn.",
                                                       "Reference alert — official bulletins: nchmf.gov.vn.")})
     # 6) Thiết bị IoT: im lặng quá lâu / đất khô dưới ngưỡng (tự động hoá).
     from app.routes_iot import today_items as _iot_items

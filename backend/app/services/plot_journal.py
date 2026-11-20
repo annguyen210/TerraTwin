@@ -25,6 +25,7 @@ from sqlalchemy.orm import Session
 
 from app.services import cache_store
 from app.services.reqlang import tr
+from app.services.textfix import alert_text
 
 RAIN_HEAVY_MM = 50.0        # mưa rất to: > 50 mm/24 giờ (phân cấp mưa của KTTV)
 RAIN_CONTEXT_MM = 16.0      # mưa to: hiện làm bối cảnh, không bật cờ
@@ -182,7 +183,7 @@ def _db_events(db: Session, user_id: int, plot, since: datetime) -> list[dict]:
 
     for a in db.execute(select(Alert).where(Alert.plot_id == plot.id, Alert.retro == 0,
                                             Alert.created_at >= since)).scalars():
-        out.append(_ev(_iso(a.created_at), "alert", True, a.headline, "TerraTwin radar",
+        out.append(_ev(_iso(a.created_at), "alert", True, alert_text(a.headline), "TerraTwin radar",
                        module_id=a.module_id, risk_level=a.risk_level))
     graded_seen: set = set()      # kiểm 18/11/2026: hàng "bỏ sót" ghi trùng trong CSDL → chỉ hiện một dòng
     for a in db.execute(select(Alert).where(Alert.plot_id == plot.id, Alert.verified_at.is_not(None),

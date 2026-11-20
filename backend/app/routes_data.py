@@ -22,6 +22,7 @@ from app.db import (Alert, Dataset, Event, Job, NotifyChannel, Plot, Twin, User,
                     get_session)
 from app.schemas import VN_LAT_MAX, VN_LAT_MIN, VN_LON_MAX, VN_LON_MIN, Location
 from app.services import jobs_db, notify, radar, reqlang, twin as twin_svc
+from app.services.textfix import alert_text
 
 router = APIRouter(tags=["data"])
 
@@ -66,7 +67,7 @@ class AlertOut(BaseModel):
 def _alert_out(a: Alert) -> AlertOut:
     return AlertOut(
         id=a.id, plot_id=a.plot_id, module_id=a.module_id,
-        risk_level=a.risk_level, headline=a.headline,
+        risk_level=a.risk_level, headline=alert_text(a.headline),
         recommendation=a.recommendation, created_at=a.created_at,
         acknowledged=bool(a.acknowledged), outcome=a.outcome,
         observed_peak=a.observed_peak, verify_source=a.verify_source or "",

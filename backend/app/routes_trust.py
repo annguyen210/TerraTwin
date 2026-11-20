@@ -33,6 +33,7 @@ router = APIRouter(tags=["trust"])
 # dội. Sổ điểm đổi theo NGÀY, không theo giây → cache trong bộ nhớ 5 phút. Các
 # endpoint verify sẽ xoá cache để số liệu cập nhật ngay sau khi chấm.
 import time as _time
+from app.services.textfix import alert_text
 _SC_CACHE: dict = {}
 _SC_TTL = 300.0
 
@@ -185,7 +186,7 @@ def plot_timeline(plot_id: int, days: int = 90, limit: int = 30,
         "at": a.created_at.isoformat(timespec="seconds"),
         "module_id": a.module_id,
         "risk_level": a.risk_level,
-        "headline": a.headline,
+        "headline": alert_text(a.headline),
         "recommendation": a.recommendation,
         # was_warned = False nghĩa là hàng hồi cứu: chuyện đã xảy ra thật mà
         # phần mềm im lặng. Nói thẳng ra chứ không lặng lẽ bỏ khỏi danh sách.
