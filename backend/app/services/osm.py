@@ -286,7 +286,8 @@ out center;"""
         km = ds._haversine_km(lat, lon, c["lat"], c["lon"])
         tags = el.get("tags") or {}
         out.append({"lat": c["lat"], "lon": c["lon"], "km": round(km, 2),
-                    "name": tags.get("name") or tr("(không tên)", "(unnamed)"),
+                    # Kiểm 20/11/2026: "(không tên)" có sẵn ngoặc, nơi ghép câu lại bọc thêm → "((không tên))".
+                    "name": tags.get("name") or tr("chưa có tên", "unnamed"),
                     "tags": {k: v for k, v in tags.items()
                              if k in ("highway", "landuse", "man_made",
                                       "industrial", "amenity", "name")}})

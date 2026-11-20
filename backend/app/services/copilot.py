@@ -49,10 +49,16 @@ def _system() -> str:
     return tr(
         "Bạn là trợ lý nông nghiệp/đất đai của TerraTwin. Trả lời NGẮN GỌN, rõ ràng "
         "bằng tiếng Việt, CHỈ dựa trên dữ liệu được cung cấp. Tuyệt đối không bịa "
-        "thêm số liệu. Nếu dữ liệu không đủ để trả lời, hãy nói thẳng là chưa đủ.",
+        "thêm số liệu. Nếu dữ liệu không đủ để trả lời, hãy nói thẳng là chưa đủ. "
+        "Hỏi thửa ĐÃ TỪNG NGẬP chưa thì trả lời bằng số đợt nước RADAR Sentinel-1 thấy phủ thửa; "
+        "số đợt chỉ số thời tiết ERA5 vượt ngưỡng là ĐIỀU KIỆN có thể gây ngập, không phải lần ngập — "
+        "nếu nêu thì nói riêng và gọi đúng tên. Radar không thấy nước thì không được kết luận là không ngập.",
         "You are TerraTwin's land/farming assistant. Answer BRIEFLY and clearly "
         "in English, based ONLY on the data provided. Never invent numbers. If "
-        "the data isn't enough to answer, say so plainly.",
+        "the data isn't enough to answer, say so plainly. "
+        "If asked whether the plot HAS FLOODED, answer with the number of water episodes Sentinel-1 RADAR saw over "
+        "the plot; ERA5 weather-index exceedances are CONDITIONS that can cause flooding, not floods — mention them "
+        "separately and by their proper name. Radar seeing no water does not prove the plot never floods.",
     )
 
 
@@ -193,11 +199,24 @@ def _history_facts(loc: Location, routes: list[str]) -> str:
     sử là phần bổ sung, dữ liệu 7 ngày tới mới là phần chính.
     """
     try:
-        from app.services import passport
+        from app.services import passport, water_history
+        lines = []
+        # Kiểm 20/11/2026: "Thửa này từng ngập chưa?" → trợ lý trả "15 đợt lũ/ngập" = số đợt CHỈ SỐ MƯA ERA5. Ngập quan sát
+        # được là radar (chỉ đọc bộ nhớ đệm), đưa lên ĐẦU và gọi đúng tên; ERA5 gọi là chỉ số thời tiết.
+        if "flood" in routes:
+            ws = water_history.summary(loc.lat, loc.lon)
+            if ws.get("available"):
+                y0 = (ws.get("first") or "")[:4]
+                lines.append(tr(
+                    f"- Nước phủ thửa đo bằng radar Sentinel-1 (quan sát thật): {ws['n_events']} đợt từ {y0}"
+                    + (f", gần nhất {ws['last_event']}" if ws.get("last_event") else "")
+                    + ("" if ws["n_events"] else " — radar chụp 6–12 ngày/lần nên chưa đủ để khẳng định không ngập") + ".",
+                    f"- Water over the plot seen by Sentinel-1 radar (observed): {ws['n_events']} episode(s) since {y0}"
+                    + (f", latest {ws['last_event']}" if ws.get("last_event") else "")
+                    + ("" if ws["n_events"] else " — radar revisits every 6–12 days, so this does not rule out flooding") + "."))
         h = passport.history(loc.lat, loc.lon, years=10)
         if not h:
-            return ""
-        lines = []
+            return "\n".join(lines)
         for r in routes:
             row = h.get(r)
             if not row or not row.get("events"):
@@ -207,9 +226,10 @@ def _history_facts(loc: Location, routes: list[str]) -> str:
             latest = (tr(f", gần nhất {row['latest']}", f", most recent {row['latest']}")
                       if row.get("latest") else "")
             lines.append(tr(
-                f"- {_haz_label(r)}: {row['events']} đợt vượt ngưỡng trong 10 năm{when}{latest}.",
-                f"- {_haz_label(r)}: {row['events']} threshold-exceeding episodes in "
-                f"10 years{when}{latest}.",
+                f"- {row.get('name') or _haz_label(r)} (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): "
+                f"{row['events']} đợt vượt ngưỡng trong 10 năm{when}{latest}.",
+                f"- {row.get('name') or _haz_label(r)} (ERA5 weather index — a condition, NOT observed occurrences): "
+                f"{row['events']} threshold-exceeding episodes in 10 years{when}{latest}.",
             ))
         return "\n".join(lines)
     except Exception:
@@ -247,8 +267,8 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
     facts_txt = "\n".join(facts)
 
     hist = _history_facts(loc, routes)
-    hist_block = ((NL + tr("Lịch sử 10 năm tại đây (đo từ ERA5, kiểm chứng được):",
-                           "10-year history here (measured from ERA5, verifiable):")
+    hist_block = ((NL + tr("Lịch sử tại đây (radar Sentinel-1 = nước quan sát được; ERA5 = chỉ số thời tiết 10 năm):",
+                           "History here (Sentinel-1 radar = observed water; ERA5 = 10-year weather index):")
                    + NL + hist) if hist else "")
 
     cites, know_txt = _knowledge(question, loc)

@@ -193,7 +193,7 @@ export default function MyLand({
             <p className="ml-brief-sub">
               <Sprout size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t("Bạn đã góp", "You've contributed")} <b>{contribution.observations_contributed}</b> {t("quan sát", "observations")}
               {contribution.alerts_verified > 0 && (
-                <> · {t("cảnh báo của bạn đã được xác minh", "your alerts have been verified")} <b>{contribution.alerts_verified}</b> {t("lần", "times")}
+                <> · {t("cảnh báo của bạn đã được chấm lại bằng số đo", "your alerts have been re-checked against measurements")} <b>{contribution.alerts_verified}</b> {t("lần", "times")}
                   {contribution.alerts_hit > 0 && t(` (đúng ${contribution.alerts_hit} lần)`, ` (${contribution.alerts_hit} correct)`)}</>
               )}
             </p>
