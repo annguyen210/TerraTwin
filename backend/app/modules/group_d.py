@@ -332,7 +332,7 @@ class MiningModule(TwinModule):
         else:
             what = near[0] if near else sites[0]
             head = tr(f"{'Có' if near else 'Gần nhất'} khu khai thác/công nghiệp "
-                      f"cách {what['km']} km ({what['name']}) — độ dốc {slope}°, "
+                      f"cách {str(what['km']).replace('.', ',')} km ({what['name']}) — độ dốc {slope}°, "
                       f"mưa dự báo 7 ngày tới {rain} mm",
                       f"{'A' if near else 'Nearest'} mining/industrial site "
                       f"{what['km']} km away ({what['name']}) — slope {slope}°, "

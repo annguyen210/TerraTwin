@@ -44,7 +44,7 @@ _TTL = 30 * 86400
 # đếm ĐỢT): khoá cache đổi theo nên bản cũ tự hết hiệu lực, không cần đụng CSDL.
 # v2 = chuyển từ đếm cửa sổ trượt sang đếm đợt (_group_events).
 # v3 = thêm khối "method" (giải thích đếm đợt + không so chéo mô-đun).
-_CACHE_V = 3
+_CACHE_V = 4      # 4 (20/11/2026): ERA5 không còn gọi là "lần ngập lụt"; thêm số radar vào dòng đầu
 
 # Cửa sổ hiểm hoạ trượt theo NGÀY, nên một đợt kéo dài sinh ra hàng loạt cửa sổ
 # vượt ngưỡng liên tiếp cho CÙNG một đợt. Hai lần vượt cách nhau ≤ ngần này ngày
@@ -75,10 +75,22 @@ def _group_events(exceed: list[tuple[str, float]],
     return [{"peak_date": max(g, key=lambda t: t[1])[0],
              "peak_value": round(max(t[1] for t in g), 1)} for g in groups]
 
-_TEN = {"flood": "ngập lụt", "landslide": "sạt lở",
-        "drought": "hạn thiếu nước", "wildfire": "cháy"}
-_TEN_EN = {"flood": "flooding", "landslide": "landslides",
-           "drought": "drought", "wildfire": "wildfire"}
+# Kiểm 20/11/2026: đây là đợt CHỈ SỐ THỜI TIẾT ERA5 vượt ngưỡng chung cả nước — điều kiện có thể gây hại, KHÔNG phải số
+# lần sự việc đo được tại thửa. Trước gọi là "ngập lụt" nên dòng đầu trang ghi "15 lần ngập lụt" ngay trên dòng "vệ tinh
+# thấy nước phủ thửa 5 lần". Ngập QUAN SÁT ĐƯỢC lấy từ radar Sentinel-1 (water_history), không lấy từ đây.
+_TEN = {"flood": "mưa lớn dễ gây ngập", "landslide": "mưa lớn dễ gây sạt lở",
+        "drought": "khô hạn", "wildfire": "thời tiết dễ cháy"}
+_TEN_EN = {"flood": "flood-prone heavy rain", "landslide": "landslide-prone heavy rain",
+           "drought": "dry spells", "wildfire": "fire-prone weather"}
+_KHONG_PHAI = {"flood": ("lần ngập", "flood"), "landslide": ("lần sạt lở", "landslide"),
+               "drought": ("đợt hạn", "drought"), "wildfire": ("vụ cháy", "fire")}
+
+
+def _not_observed(mid: str) -> str:
+    from app.services.reqlang import tr
+    vi, en = _KHONG_PHAI[mid]
+    return tr(f"chỉ số thời tiết ERA5, không phải {vi} đo được tại thửa",
+              f"ERA5 weather index, not an observed {en} at the plot")
 
 
 def _ten(mid: str) -> str:
@@ -214,8 +226,8 @@ def history(lat: float, lon: float, years: int = 10) -> dict | None:
             out[mid] = {
                 "name": _ten(mid), "events": 0, "peak_month": None, "latest": None,
                 "worst_value": round(nang_nhat[0], 1), "worst_date": nang_nhat[1],
-                "national_threshold": muc_chung,
-                "note": tr(f"Mười năm qua thửa này chưa lần nào {_TEN[mid]} vượt "
+                "national_threshold": muc_chung, "basis": "era5_weather_index",
+                "note": tr(f"Mười năm qua thửa này chưa đợt {_TEN[mid]} nào vượt "
                            f"ngưỡng chung cả nước. Mức nặng nhất là "
                            f"{nang_nhat[0]:.0f} ngày {nang_nhat[1]}.",
                            f"In 10 years this plot has never had {_TEN_EN[mid]} exceed "
@@ -237,12 +249,13 @@ def history(lat: float, lon: float, years: int = 10) -> dict | None:
             "worst_value": round(nang_nhat[0], 1),
             "worst_date": nang_nhat[1],
             "national_threshold": muc_chung,
+            "basis": "era5_weather_index",
             "note": tr(f"Mười năm qua thửa này có {len(events)} đợt {_TEN[mid]} vượt "
-                       f"ngưỡng chung cả nước. Tháng {int(top)} nhiều nhất "
+                       f"ngưỡng chung cả nước ({_not_observed(mid)}). Tháng {int(top)} nhiều nhất "
                        f"({dem} đợt). Nặng nhất ngày {nang_nhat[1]}. "
                        f"Gần nhất {latest}.",
                        f"In 10 years this plot had {len(events)} {_TEN_EN[mid]} "
-                       f"episode(s) exceeding the national threshold. Month {int(top)} "
+                       f"episode(s) exceeding the national threshold ({_not_observed(mid)}). Month {int(top)} "
                        f"most ({dem} episode(s)). Most severe on {nang_nhat[1]}. "
                        f"Latest {latest}."),
         }
@@ -271,33 +284,53 @@ def build(lat: float, lon: float) -> dict:
 
     tr = reqlang.tr
     diem = []
+    # Ngập QUAN SÁT ĐƯỢC (radar Sentinel-1) đứng TRƯỚC chỉ số thời tiết — chỉ đọc bộ nhớ đệm, không tốn hạn mức radar.
+    try:
+        from app.services import water_history
+        ws = water_history.summary(lat, lon)
+    except Exception:
+        ws = {}
+    if ws.get("available"):
+        y0 = (ws.get("first") or "")[:4]
+        if ws.get("n_events"):
+            diem.append(tr(f"radar Sentinel-1 thấy nước phủ thửa {ws['n_events']} lần từ {y0}"
+                           + (f", gần nhất {ws['last_event']}" if ws.get("last_event") else ""),
+                           f"Sentinel-1 radar saw water over the plot {ws['n_events']} time(s) since {y0}"
+                           + (f", latest {ws['last_event']}" if ws.get("last_event") else "")))
+        else:
+            diem.append(tr(f"radar Sentinel-1 chưa thấy nước phủ thửa từ {y0} (chưa đủ để khẳng định không ngập)",
+                           f"Sentinel-1 radar has not seen water over the plot since {y0} (not enough to rule out flooding)"))
     if dh:
         diem.append(tr(f"cao {dh['elevation_m']} m, thấp hơn {dh['lower_than_pct']}% "
                        f"đất trong bán kính {dh['radius_km']:.0f} km",
                        f"{dh['elevation_m']} m elevation, lower than {dh['lower_than_pct']}% "
                        f"of land within {dh['radius_km']:.0f} km"))
     if ls:
-        nhieu = max(ls.values(), key=lambda v: v["events"])
+        mid, nhieu = max(ls.items(), key=lambda kv: kv[1]["events"])
         if nhieu["events"]:
-            diem.append(tr(f"{nhieu['events']} lần {nhieu['name']} chạm ngưỡng nguy "
-                           f"hiểm trong 10 năm, nhiều nhất tháng {nhieu['peak_month']}",
-                           f"{nhieu['events']} {nhieu['name']} episode(s) hit the danger "
-                           f"threshold in 10 years, most in month {nhieu['peak_month']}"))
+            diem.append(tr(f"{nhieu['events']} đợt {nhieu['name']} vượt ngưỡng trong 10 năm, nhiều nhất "
+                           f"tháng {nhieu['peak_month']} ({_not_observed(mid)})",
+                           f"{nhieu['events']} episode(s) of {nhieu['name']} above the threshold in 10 years, most in "
+                           f"month {nhieu['peak_month']} ({_not_observed(mid)})"))
 
     out = {
         "available": True,
         "terrain": dh,
         "history": ls,
+        # Kiểm 20/11/2026: archive-api hết lượt → history null → ô "10 năm" biến mất không lời nào. Nói rõ lý do.
+        "history_note": None if ls else tr(
+            "Chưa lấy được 10 năm thời tiết của thửa này (nguồn ERA5 Open-Meteo đang hết lượt hoặc bận) — thử lại sau ít giờ.",
+            "Couldn't load 10 years of weather for this plot (the ERA5 Open-Meteo source is over quota or busy) — try again in a few hours."),
         "headline": " · ".join(diem) if diem else None,
         "why_unique": tr(
             "Ba con số trên là của RIÊNG thửa này, không phải của tỉnh hay của "
             "vùng. Một ứng dụng dự báo biết trời sắp mưa bao nhiêu, nhưng không "
-            "biết thửa của bạn nằm cao hay trũng so với xung quanh, và không "
-            "biết mười năm qua đã có bao nhiêu lần nước lên tới đây.",
+            "biết thửa của bạn nằm cao hay trũng so với xung quanh, mười năm qua "
+            "có bao nhiêu đợt mưa lớn vượt ngưỡng ở đây, và radar đã thấy nước phủ thửa mấy lần.",
             "The three numbers above are for THIS plot, not the province or region. "
             "A forecast app knows how much rain is coming, but not whether your plot "
-            "sits high or low relative to its surroundings, nor how many times in 10 "
-            "years water has reached here."),
+            "sits high or low relative to its surroundings, how many heavy-rain episodes crossed the "
+            "threshold here in 10 years, or how many times radar saw water over the plot."),
         "caveat": tr(
             "Cao độ lấy từ mô hình số độ cao ~90 m, nên bờ ruộng và mương nhỏ "
             "không hiện ra. Số lần trong lịch sử đếm theo ngưỡng đã hiệu chuẩn "

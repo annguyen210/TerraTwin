@@ -89,9 +89,12 @@ export default function Passport({ lat, lon }: { lat: number; lon: number }) {
               <span className="ps-ic">{ICON[id] ?? "•"}</span>
               <div>
                 <b>
-                  {tr(`${h.events} lần ${h.name}`, `${h.events} ${h.name} episode(s)`)}
+                  {tr(`${h.events} đợt ${h.name}`, `${h.events} episode(s) of ${h.name}`)}
                 </b>{" "}
                 {tr("vượt ngưỡng chung cả nước trong 10 năm", "exceeding the national threshold in 10 years")}
+                {/* Kiểm 20/11/2026: đây là CHỈ SỐ THỜI TIẾT ERA5, không phải lần ngập đo được — ngập quan sát là radar ở khối Lịch sử nước. */}
+                <span className="ps-sub">{tr("chỉ số thời tiết ERA5 — điều kiện có thể gây hại, không phải số lần đo được tại thửa",
+                                             "ERA5 weather index — a condition that can cause harm, not observed occurrences at the plot")}</span>
                 {h.peak_month && (
                   <>
                     {" "}· {tr("nhiều nhất", "most in")} <b>{tr(`tháng ${h.peak_month}`, `month ${h.peak_month}`)}</b>
@@ -106,6 +109,8 @@ export default function Passport({ lat, lon }: { lat: number; lon: number }) {
           ))}
         </ul>
       )}
+
+      {!d.history && d.history_note && <p className="ps-sub" role="status">{d.history_note}</p>}
 
       <p className="ps-why">{d.why_unique}</p>
 

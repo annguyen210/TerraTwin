@@ -1303,7 +1303,7 @@ export type PassportHazard = {
   name: string; events: number; peak_month: number | null;
   peak_month_events?: number; latest: string | null;
   worst_value: number; worst_date: string | null;
-  national_threshold: number; note: string;
+  national_threshold: number; note: string; basis?: string;
 };
 
 export type Passport = {
@@ -1315,6 +1315,7 @@ export type Passport = {
     slope_deg: number | null; meaning: string;
   } | null;
   history?: Record<string, PassportHazard> | null;
+  history_note?: string | null;
   headline?: string | null;
   why_unique: string;
   caveat: string;
