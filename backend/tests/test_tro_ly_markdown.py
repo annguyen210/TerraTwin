@@ -11,3 +11,9 @@ def test_bo_markdown_thua():
 
 def test_loi_dan_cam_markdown():
     assert "markdown" in copilot._system().lower()
+
+
+def test_loi_dan_khong_bao_viet_thuong():
+    """21/11/2026: "Viết chữ thường" trong tiếng Việt nghĩa là KHÔNG VIẾT HOA — LLM trả "radar sentinel‑1", "era5"."""
+    s = copilot._system()
+    assert "chữ thường" not in s and "viết hoa đúng chính tả" in s
