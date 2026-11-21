@@ -897,6 +897,9 @@ export type AutoBoundaryResult = {
   scene?: string;
   scene_date?: string;
   outline_rows?: [number, number, number][];
+  // P1-3: khi không tách được ranh — vì sao + bước tiếp theo (vẽ tay / đi bộ GPS)
+  why?: string;
+  next_steps?: string[];
 };
 export function autoBoundary(lat: number, lon: number, bufferM = 500) {
   return postJson<AutoBoundaryResult>(`/api/auto-boundary?${_lp(`buffer_m=${bufferM}`)}`, { lat, lon },
