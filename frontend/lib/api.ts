@@ -2778,6 +2778,8 @@ export type PressMatch = { level: "district" | "province"; reports: PressReport[
 export type PressSummary = { n_district: number; n_province: number; n_events: number; province: string;
   registry_size: number; text: string; limits: string };
 export type WaterHistoryResult = { available: boolean; message?: string; n_scenes: number; first: string; last: string;
+  // P2-1: ba gạch đầu dòng lời thường (đã từng có nước mấy lần · lần nặng nhất · nên hỏi ai)
+  plain_points?: string[] | null;
   track: { orbit: string; relative_orbit: number; collection: string }; events: WaterEvent[]; n_events: number;
   baseline_db: Record<string, number>; series: [string, number, number][]; method: string; limits: string; computed: string;
   water_surface?: { share: string; pct: number; baseline_db: number; note: string } | null;

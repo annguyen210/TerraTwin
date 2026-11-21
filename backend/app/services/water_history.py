@@ -279,7 +279,64 @@ def _annotate(r: dict, lat: float | None = None, lon: float | None = None) -> di
             from app.services import flood_reports       # sổ lũ công khai: sau mùa lũ để giữ nhãn mùa trên từng đợt
             r.update(flood_reports.annotate(r, lat, lon))
             r["plain"] = plain(r)
+            r["plain_points"] = plain_points(r)
     return r
+
+
+def _pct(s) -> float:
+    try:
+        return float(str(s).replace("%", "").replace(",", ".").strip())
+    except ValueError:
+        return -1.0
+
+
+def plain_points(r: dict) -> list[str] | None:
+    """BA GẠCH ĐẦU DÒNG lời thường cho người mua (kiểm A–Z 21/11/2026, P2-1): đã từng có nước phủ mấy lần · lần nào nặng
+    nhất · nghĩa là gì với người mua và nên hỏi ai. Chỉ diễn đạt lại các trường đã có (đợt, phủ bao nhiêu thửa, mùa lũ,
+    đô thị/tán cây) — KHÔNG thêm phép đo, giữ nguyên số liệu. Phần kỹ thuật (dB, phân vị, ngưỡng) để giao diện thu gọn."""
+    if not r.get("available"):
+        return None
+    ev = r.get("events") or []
+    seasonal = "n_in" in r
+    counted = [e for e in ev if not seasonal or e.get("season") == "in"]
+    y0 = (r.get("first") or "")[:4]
+    blind = r.get("urban") or r.get("canopy")
+    if r.get("water_surface"):
+        return [tr("Điểm đang chọn có mặt nước thường xuyên (ao, sông, kênh) — chưa tách được nước ngập khỏi mặt nước sẵn có.",
+                   "The selected point has permanent water (pond, river, canal) — flooding can't be separated from standing water."),
+                tr("Dời ô ngắm vào đúng giữa phần đất của thửa rồi xem lại.", "Move the crosshair onto the land of the plot and check again."),
+                tr("Hỏi người bán và hàng xóm: mùa mưa nước lên tới đâu, mấy ngày thì rút.",
+                   "Ask the seller and neighbours: how high the water rises in the rainy season, and how long until it drains.")]
+    if counted:
+        last = max(e["start"] for e in counted)
+        worst = max(counted, key=lambda e: (_pct(e.get("peak_cover")), e.get("n_scenes", 0)))
+        return [
+            tr(f"Đã từng có nước phủ thửa: {len(counted)} lần từ {y0}{' (trong mùa mưa lũ)' if seasonal else ''}, gần nhất "
+               f"{_vn_date(last)}.",
+               f"Water has covered this plot {len(counted)} time{'s' if len(counted) > 1 else ''} since {y0}"
+               f"{' (in the rainy flood season)' if seasonal else ''}, most recently {_vn_date(last)}."),
+            tr(f"Lần nặng nhất: {_vn_date(worst['start'])} — nước phủ {worst.get('peak_cover')} thửa, thấy trên "
+               f"{worst.get('n_scenes', 1)} ảnh radar.",
+               f"Worst time: {_vn_date(worst['start'])} — water covered {worst.get('peak_cover')} of the plot, seen on "
+               f"{worst.get('n_scenes', 1)} radar image(s)."),
+            tr("Với người mua: đất này có lịch sử ngập. Hỏi người bán và hàng xóm về các đợt này (nước lên cao bao nhiêu, "
+               "mấy ngày thì rút); hỏi UBND xã về lịch sử ngập và kế hoạch đê, kênh trước khi đặt cọc.",
+               "For a buyer: this land has a flooding history. Ask the seller and neighbours about these events (how high, "
+               "how long until it drained); ask the commune office about flood history and dyke/canal plans before paying "
+               "a deposit."),
+        ]
+    if blind:
+        return [tr("Vệ tinh KHÔNG kết luận được thửa này có ngập hay không — nhà cửa hoặc tán cây dày che mất mặt nước.",
+                   "Satellites CANNOT tell whether this plot floods — buildings or dense trees hide the water."),
+                tr("\"Chưa thấy đợt nào\" ở đây KHÔNG có nghĩa là không ngập.", "\"No events seen\" here does NOT mean it never floods."),
+                tr("Hỏi người dân quanh đó hoặc UBND xã về các lần ngập trước đây.",
+                   "Ask nearby residents or the commune office about past flooding.")]
+    return [tr(f"Chưa thấy nước phủ thửa trong {r.get('n_scenes')} ảnh radar từ {y0}.",
+               f"No water seen over the plot in {r.get('n_scenes')} radar images since {y0}."),
+            tr("Ảnh chụp cách nhau 6–12 ngày nên lũ rút trong vài ngày có thể lọt — chưa thấy không có nghĩa là chắc chắn không ngập.",
+               "Images are 6–12 days apart, so a flood that drains within days can be missed — none seen is not a guarantee."),
+            tr("Vẫn nên hỏi hàng xóm về ngập ngắn ngày sau mưa lớn trước khi đặt cọc.",
+               "Still ask neighbours about short floods after heavy rain before paying a deposit.")]
 
 
 def _vn_date(iso: str) -> str:

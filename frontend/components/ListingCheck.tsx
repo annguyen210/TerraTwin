@@ -103,6 +103,20 @@ export default function ListingCheck({ lat, lon }: { lat: number; lon: number })
           {r.headline && <p className={`lc-head lc-head-${r.headline.level}`} role="status">{r.headline.text}</p>}
           <p className="wh-sum">{t(`${r.counts.contradicted || 0} mâu thuẫn · ${r.counts.consistent || 0} khớp · ${r.counts.insufficient || 0} không đủ dữ liệu`,
                                    `${r.counts.contradicted || 0} contradicted · ${r.counts.consistent || 0} consistent · ${r.counts.insufficient || 0} not enough data`)}</p>
+          {/* P2-1 (kiểm A–Z 21/11/2026): lời thường trước — nên làm gì tiếp với từng nhóm câu; chi tiết số đo ở danh sách dưới. */}
+          {(() => {
+            const nhom = (v: string) => r.claims.filter((c) => c.verdict === v).map((c) => c.label);
+            const bad = nhom("contradicted"), na = nhom("insufficient"), ok = nhom("consistent");
+            return (
+              <ul className="wh-points lc-points">
+                {bad.length > 0 && <li>{t(`Hỏi lại người bán về: ${bad.join(", ")} — số đo nói khác lời rao.`,
+                                          `Ask the seller again about: ${bad.join(", ")} — the measurements say otherwise.`)}</li>}
+                {na.length > 0 && <li>{t(`Tự kiểm thêm: ${na.join(", ")} — vệ tinh không trả lời được, cần xem giấy tờ hoặc hỏi địa phương.`,
+                                         `Check yourself: ${na.join(", ")} — satellites can't answer this; see the papers or ask locally.`)}</li>}
+                {ok.length > 0 && <li>{t(`Khớp với số đo: ${ok.join(", ")}.`, `Consistent with measurements: ${ok.join(", ")}.`)}</li>}
+              </ul>
+            );
+          })()}
           <ul className="lc-list">
             {r.claims.map((c, i) => (
               <li key={i} className={V[c.verdict].cls}>
