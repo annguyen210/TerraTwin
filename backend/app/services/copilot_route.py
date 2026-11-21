@@ -58,19 +58,79 @@ _MUA = ("mua kho", "mua mua", "mua toi", "thang toi", "thang sau", "nam toi", "n
 
 
 _HIEN_TRANG = ("khong co dau hieu ngap", "chua co dau hieu ngap", "khong bi ngap", "chua bi ngap", "khong ngap",
-               "no sign of flooding", "no signs of flooding", "not flooded", "not currently flooded")
+               "no sign of flooding", "no signs of flooding", "not flooded", "not currently flooded", "isn t flooded",
+               "no flooding")
+_LUC_NAY = ("hien tai", "hien nay", "currently", "right now", "at present")
+# Vế chỉ có "hiện tại" mà không mang ý cảnh báo/số nào ("trong thời gian hiện tại và dự báo ngắn hạn") là phần đi kèm
+# của câu khẳng định hiện trạng — bỏ cùng. Vế có ý cảnh báo thì GIỮ.
+_CANH = ("nguy co", "canh bao", "nguy hiem", "cao", "risk", "warning", "danger", "high")
+_NOI = {"vi vay", "do do", "vi the", "nhu vay", "tuy nhien", "nhung", "va", "nen", "so", "therefore", "thus", "hence",
+        "however", "but", "and"}
+_CAU = re.compile(r"[.!?]+(?=\s|$)|\n+")
+_VE = re.compile(r"\s*[,;]\s*|\s+(?=(?:nhưng|tuy nhiên|but|however)\s)", re.I)
+_DAU_NOI = re.compile(r"^(?:nhưng|tuy nhiên|và|but|however|and)\s+", re.I)
+_DAU_DONG = re.compile(r"^(\s*(?:[-•*+]\s+|\d+[.)]\s+)?)(.*?)([.!?…]*)(\s*)$", re.S)
+
+
+def _co(words: list[str], keys) -> bool:
+    return any(_has(words, k) for k in keys)
 
 
 def claims_present_dry(answer: str) -> bool:
     """Câu trả lời khẳng định HIỆN TRẠNG không ngập (kiểm 21/11/2026: "Vì vậy hiện tại đất này không có dấu hiệu ngập" đặt
     ngay sau câu radar 5 đợt) — trong khi chỉ số chỉ là dự báo 7 ngày. Xét từng câu: có "hiện tại"/"currently"/"now" và
-    một cụm phủ định ngập trong CÙNG câu."""
-    for cau in re.split(r"[.!?\n]+", fold(answer)):
-        w = " ".join(re.findall(r"[a-z0-9]+", cau))
-        if any(k in w for k in ("hien tai", "hien nay", "currently", "right now", "at present")) and \
-                any(p in w for p in _HIEN_TRANG):
+    một cụm phủ định ngập trong CÙNG câu (so theo TỪ — "thiên tai" không phải "hiện tại")."""
+    for cau in _CAU.split(answer):
+        w = _words(cau)
+        if _co(w, _LUC_NAY) and _co(w, _HIEN_TRANG):
             return True
     return False
+
+
+def strip_present_dry(sentence: str, fallback: str = "") -> str:
+    """Bỏ ĐÚNG vế "hiện tại không ngập" trong một câu, giữ các vế còn lại — nhất là vế cảnh báo ("…, nhưng 7 ngày tới nguy
+    cơ ngập cao") — kèm dấu gạch đầu dòng và dấu câu cuối. Không còn gì đáng giữ (chỉ còn từ nối) → `fallback`, vẫn giữ
+    dấu gạch đầu dòng."""
+    m = _DAU_DONG.match(sentence)
+    dau, than, cuoi, trang = m.groups()
+
+    def bo(v: str) -> bool:
+        w = _words(v)
+        if not w or " ".join(w) in _NOI or _co(w, _HIEN_TRANG):
+            return True
+        return _co(w, _LUC_NAY) and not _co(w, _CANH) and not re.search(r"\d", v)
+
+    giu = [v.strip() for v in _VE.split(than) if not bo(v)]
+    if not giu:
+        return f"{dau}{fallback}{trang}" if fallback else ""
+    giu[0] = _DAU_NOI.sub("", giu[0])
+    giu[0] = giu[0][:1].upper() + giu[0][1:]
+    return f"{dau}{', '.join(giu)}{cuoi or ''}{trang}"
+
+
+_THIEU = ("khong du de", "chua du de", "khong du du lieu", "chua du du lieu", "khong the ket luan", "chua the ket luan",
+          "khong the khang dinh", "chua the khang dinh", "khong the xac dinh", "chua the xac dinh", "not enough to",
+          "not enough data", "insufficient", "cannot confirm", "cannot conclude", "cannot determine", "can t confirm",
+          "can t say", "unable to confirm", "unable to determine")
+_DANG_NGAP = ("dang ngap", "dang bi ngap", "currently flooded", "flooded now", "flooded right now")
+
+
+def doubts_past_water(sentence: str) -> bool:
+    """Câu nói "không đủ để khẳng định đã ngập hay chưa" (kiểm 21/11/2026, 1/8 lần trên 9bba22d) — sai khi radar ĐÃ thấy
+    nước phủ thửa. Câu về HIỆN TRẠNG ("không thể kết luận hiện tại ruộng đang ngập") thì đúng, không đụng."""
+    w = _words(sentence)
+    return _co(w, _THIEU) and _co(w, ("ngap", "flood", "flooded", "flooding")) and not _co(w, _DANG_NGAP)
+
+
+_CAY = ("trong lua", "trong cay", "trong rau", "trong ngo", "trong ca phe", "trong duoc", "cay trong", "nang suat",
+        "thu hoach", "mua vu", "crop", "crops", "grow", "growing", "plant", "planting", "cultivate", "cultivation",
+        "yield", "harvest")
+
+
+def asks_crop(question: str) -> bool:
+    """Câu hỏi về trồng cây / mùa vụ / năng suất (không tính "solar plant")."""
+    w = _words(question)
+    return _co(w, _CAY) and not _co(w, ("solar", "mat troi"))
 
 
 def asks_long_range(question: str) -> bool:
