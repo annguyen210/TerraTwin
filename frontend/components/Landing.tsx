@@ -207,11 +207,11 @@ export default function Landing({
           <p className="eu-eyebrow">{t("Vì sao tin được", "Why you can trust it")}</p>
           <h2 className="lp3-h2">{t("Chấm bằng dữ liệu người khác làm ra — kể cả chỗ còn yếu", "Scored against data made by others — weak spots included")}</h2>
           <div className="lp3-stats">{PROOF.map((x) => <div key={x.b}><b>{x.b}</b><span>{t(x.vi, x.en)}</span></div>)}</div>
-          <p className="lp3-note">{t("Bản đồ UNOSAT từ vệ tinh khác Sentinel-1 chỉ khớp 6/16 điểm ngập; nhãn tin rao lần 6–9 do một phiên Claude khác gán, không phải chủ dự án — tới 8/11/2026 ghi nhầm là nhãn người. Đầy đủ ở ", "UNOSAT maps from satellites other than Sentinel-1 match only 6/16 flooded points; the run 6–9 ad labels came from a separate Claude session, not the project owner — misrecorded as human labels until 8 Nov 2026. Full details in the ")}<Link href="/mo-hinh">{t("thẻ mô hình", "model cards")}</Link>.</p>
+          <p className="lp3-note">{t("Bản đồ UNOSAT từ vệ tinh khác Sentinel-1 chỉ khớp 6/16 điểm ngập; nhãn tin rao lần 6–9 do AI gán, không phải nhãn người — tới 8/11/2026 ghi nhầm là nhãn người. Đầy đủ ở ", "UNOSAT maps from satellites other than Sentinel-1 match only 6/16 flooded points; the run 6–9 ad labels were made by AI, not by people — misrecorded as human labels until 8 Nov 2026. Full details in the ")}<Link href="/mo-hinh">{t("thẻ mô hình", "model cards")}</Link>.</p>
         </section>
 
         <section className="lp3-sec">
-          <p className="eu-eyebrow">{t("Câu giám khảo sẽ hỏi", "The question judges will ask")}</p>
+          <p className="eu-eyebrow">{t("Câu người ta hay hỏi", "The question people often ask")}</p>
           <h2 className="lp3-h2">{t("Sao không chụp ảnh gửi ChatGPT là xong?", "Why not just send a photo to ChatGPT?")}</h2>
           <div className="lp3-vs-wrap">
             <table className="lp3-vs">

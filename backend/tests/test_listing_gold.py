@@ -179,10 +179,10 @@ def test_the_mo_hinh_lan_9_noi_ro_cho_sua_chua_kiem_va_nhan_la_cua_claude(monkey
     real = model_cards._load
     monkeypatch.setattr(model_cards, "_load", lambda *p: None if p in (("eval", "listing_gate_v10_result.json"), ("eval", "listing_gate_v11_result.json"), ("eval", "listing_gate_v12_result.json")) else real(*p))
     c = next(x for x in model_cards.cards() if x["id"] == "listing_rules")
-    assert "lần 9 đạt" in c["status_label"] and "nhãn Claude, không phải nhãn người" in c["status_label"]
+    assert "lần 9 đạt" in c["status_label"] and "nhãn AI, không phải nhãn người" in c["status_label"]
     assert " · nhãn người" not in c["status_label"] and "chủ dự án tự gán 30" not in c["split"]
-    assert c["split"].startswith("Lần 9: nhãn do Claude gán") and "KHÔNG phải nhãn người" in c["split"] and "30/30" in c["split"]
-    assert "lần 6–9" in c["split"] and "nhãn Claude" in c["limits"]
+    assert c["split"].startswith("Lần 9: nhãn do AI gán") and "KHÔNG phải nhãn người" in c["split"] and "30/30" in c["split"]
+    assert "lần 6–9" in c["split"] and "nhãn AI" in c["limits"]
     assert any(m["value"] == "0/5" for m in c["metrics"]) and "CHƯA được kiểm" in c["limits"]
 
 
@@ -238,3 +238,20 @@ def test_the_mo_hinh_lan_12_dat_tren_nhan_nguoi_doc_lap():
     assert any(m["value"] == 30 and m["threshold"] == "≥ 8" and m["passed"] is True for m in c["metrics"])
     assert any(m["value"] == 15 and m["threshold"] == "≥ 3" and m["passed"] is True for m in c["metrics"])
     assert "lần 11 và 12 nhãn người độc lập" in c["split"] and "chỉ đo câu CÓ những chữ đó" in c["limits"]
+
+
+def test_the_mo_hinh_cong_khai_khong_ghi_ten_hang_ai():
+    """Kiểm A–Z 21/11/2026, P0-3: trang công khai /mo-hinh ghi "nhãn AI, không phải nhãn người" — ý trung thực giữ nguyên, không
+    ghi tên hãng ("Claude") hay chữ của bài dự thi. /admin (routes_admin.gold_note) không thuộc phạm vi này."""
+    import json
+    from app.services import model_cards, reqlang
+    try:
+        for lang in ("vi", "en"):
+            reqlang.set_lang(lang)
+            txt = json.dumps(model_cards.cards(), ensure_ascii=False)
+            # "cannot be judged" (tiếng Anh thường) là đúng — chỉ chặn chữ của bài dự thi
+            for w in ("Claude", "giám khảo", "cuộc thi", "the judges", "competition"):
+                assert w.lower() not in txt.lower(), (lang, w)
+            assert ("nhãn AI" if lang == "vi" else "AI labels") in txt
+    finally:
+        reqlang.set_lang("vi")

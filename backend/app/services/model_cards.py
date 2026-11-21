@@ -714,13 +714,13 @@ def cards() -> list[dict]:
                                 + " · keyword rules still live, accuracy published") if undecided else
                             (tr(f"cổng lần {v} đạt · luật từ khoá đang chạy" + (" · nhãn AI, người duyệt" if rv else "")
                                 + (" · nhãn người độc lập" if indep_human else " · nhãn người" if human else "")
-                                + (" · nhãn Claude, không phải nhãn người" if by_claude else "") + tgt_vi,
+                                + (" · nhãn AI, không phải nhãn người" if by_claude else "") + tgt_vi,
                                 f"gate run {v} passed · keyword rules live" + (" · AI labels, human-reviewed" if rv else "")
                                 + (" · independent human labels" if indep_human else " · human labels" if human else "")
-                                + (" · Claude labels, not human labels" if by_claude else "") + tgt_en) if last.get("passed")
-                             else tr(f"cổng lần {v} trượt" + (" trên nhãn người" if human else "") + (" trên nhãn Claude" if by_claude else "")
+                                + (" · AI labels, not human labels" if by_claude else "") + tgt_en) if last.get("passed")
+                             else tr(f"cổng lần {v} trượt" + (" trên nhãn người" if human else "") + (" trên nhãn AI" if by_claude else "")
                                      + " · vẫn chạy luật từ khoá (không có bộ thay thế), độ chính xác công khai",
-                                     f"gate run {v} failed" + (" on human labels" if human else "") + (" on Claude labels" if by_claude else "")
+                                     f"gate run {v} failed" + (" on human labels" if human else "") + (" on AI labels" if by_claude else "")
                                      + " · keyword rules still live (no replacement), accuracy published"))),
             # Lần 4 (26/10/2026) đổi NGUỒN: trang Facebook công khai của môi giới — tệp kết quả tự mô tả dữ liệu của nó.
             "data": tr(last["data_note"], last.get("data_note_en", last["data_note"])) if last.get("data_note") else
@@ -728,11 +728,11 @@ def cards() -> list[dict]:
                        f"(CC BY-NC 4.0, {last.get('population')} tin đất trong shard)",
                        f"{last['n']} real LAND listings, seeded random sample registered in advance from the public tinixai/vietnam-real-estates "
                        f"set (CC BY-NC 4.0, {last.get('population')} land listings in the shard)"),
-            "split": ((tr(f"Lần {v}: NHÃN NGƯỜI KHÔNG ĐỘC LẬP — chủ dự án tự gán {avh['n']} tin SAU KHI đã xem câu trả lời của Claude cho chính "
-                          f"các tin này (lệch giao thức, ghi công khai); khớp từng mã {avh['listings_exact_match']}/{avh['n']} tin với nhãn Claude khoá "
+            "split": ((tr(f"Lần {v}: NHÃN NGƯỜI KHÔNG ĐỘC LẬP — chủ dự án tự gán {avh['n']} tin SAU KHI đã xem câu trả lời của AI cho chính "
+                          f"các tin này (lệch giao thức, ghi công khai); khớp từng mã {avh['listings_exact_match']}/{avh['n']} tin với nhãn AI khoá "
                           "trước bằng mã băm — độ khớp đó KHÔNG phải bằng chứng độc lập. Các lần trước: ",
-                          f"Run {v}: HUMAN LABELS, NOT INDEPENDENT — the owner labelled {avh['n']} posts AFTER seeing Claude's answers for these "
-                          f"same posts (a disclosed protocol deviation); {avh['listings_exact_match']}/{avh['n']} posts match the hash-frozen Claude "
+                          f"Run {v}: HUMAN LABELS, NOT INDEPENDENT — the owner labelled {avh['n']} posts AFTER seeing the AI's answers for these "
+                          f"same posts (a disclosed protocol deviation); {avh['listings_exact_match']}/{avh['n']} posts match the hash-frozen AI "
                           "labels exactly — that agreement is NOT independent evidence. Earlier runs: ") if not_indep else
                        (tr(f"Lần {v}: NHÃN NGƯỜI — chủ dự án tự gán {avh['n']} tin; nhãn AI phụ (kèm lý do) đã hiện trong phiên chat của người "
                           f"gán TRƯỚC khi gán, nên độ khớp {avh['listings_exact_match']}/{avh['n']} tin KHÔNG chứng minh được độc lập. Các lần trước: ",
@@ -750,18 +750,18 @@ def cards() -> list[dict]:
                           "there were NO AI labels for these posts, so no answers could leak; the labeller states they saw no AI answers, pasted no "
                           f"post into any AI and asked no one. The rules match the human labels exactly on {exact}/{last['n']} posts. Earlier "
                           "runs: ") if indep_human else
-                       tr(f"Lần {v}: nhãn do Claude gán — một phiên chat khác phiên viết luật, chủ dự án chuyển tin sang — KHÔNG phải nhãn người "
-                          f"(tới 8/11/2026 ghi nhầm là 'chủ dự án tự gán'). Độ khớp {agree} tin với nhãn AI phụ là Claude so với Claude. Các lần trước: ",
-                          f"Run {v}: labels by Claude — a chat session separate from the one that wrote the rules, fed the posts by the owner — "
+                       tr(f"Lần {v}: nhãn do AI gán — một phiên chat khác phiên viết luật, chủ dự án chuyển tin sang — KHÔNG phải nhãn người "
+                          f"(tới 8/11/2026 ghi nhầm là 'chủ dự án tự gán'). Độ khớp {agree} tin với nhãn AI phụ là AI so với AI. Các lần trước: ",
+                          f"Run {v}: labels by AI — a chat session separate from the one that wrote the rules, fed the posts by the owner — "
                           f"NOT human labels (misrecorded as 'labelled by the owner' until 8 Nov 2026). The {agree} agreement with the secondary AI "
-                          "labels is Claude against Claude. Earlier runs: ") if by_claude else "")
-                     + tr("lần 1–5 nhãn do Claude (AI) gán theo uỷ quyền chủ dự án, commit TRƯỚC khi chấm — KHÔNG phải nhãn người; lần 6–9 "
-                          "cũng do Claude gán (phiên chat khác; ghi nhầm là nhãn người tới 8/11/2026); lần 10 nhãn người KHÔNG độc lập; lần 11 và 12 "
+                          "labels is AI against AI. Earlier runs: ") if by_claude else "")
+                     + tr("lần 1–5 nhãn do AI gán theo uỷ quyền chủ dự án, commit TRƯỚC khi chấm — KHÔNG phải nhãn người; lần 6–9 "
+                          "cũng do AI gán (phiên chat khác; ghi nhầm là nhãn người tới 8/11/2026); lần 10 nhãn người KHÔNG độc lập; lần 11 và 12 "
                           "nhãn người độc lập; ngưỡng F1 trung bình ≥ 0,80; "
                         + " · ".join(f"lần {k}: F1 {r.get('macro_f1')}" + (" (chưa kết luận)" if r.get("passed") is None and r.get("verdict") else "")
                                      for k, r in runs),
-                        "runs 1–5 labelled by Claude (AI) on the owner's authority, committed BEFORE scoring — NOT human labels; runs 6–9 "
-                        "were also labelled by Claude (a separate chat session; misrecorded as human labels until 8 Nov 2026); run 10 human labels NOT "
+                        "runs 1–5 labelled by AI on the owner's authority, committed BEFORE scoring — NOT human labels; runs 6–9 "
+                        "were also labelled by AI (a separate chat session; misrecorded as human labels until 8 Nov 2026); run 10 human labels NOT "
                         "independent; runs 11 and 12 independent human labels; threshold macro F1 ≥ 0.80; "
                         + " · ".join(f"run {k}: F1 {r.get('macro_f1')}" + (" (inconclusive)" if r.get("passed") is None and r.get("verdict") else "")
                                      for k, r in runs)) + reviewed,
@@ -827,67 +827,67 @@ def cards() -> list[dict]:
                          "is NOT yet tested on new posts. Stratum A (first 12 posts, no word filter) has no target claim; stratum B got only 13/24 "
                          "because many Facebook pages were locked or only sold houses (amendment 1 recorded before reading extra pages).") if v == "11" else
                       tr("Lần 10 (9/11/2026; 29 tin Facebook MỚI ở 5 vùng hay ngập: Huế, Quảng Trị, Hải Dương cũ, Tiền Giang cũ, Sóc Trăng cũ; "
-                         "luật giữ nguyên lần 9): lần đầu có nhãn NGƯỜI, nhưng người gán (chủ dự án) đã xem câu trả lời của Claude trước khi gán — "
+                         "luật giữ nguyên lần 9): lần đầu có nhãn NGƯỜI, nhưng người gán (chủ dự án) đã xem câu trả lời của AI trước khi gán — "
                          "khớp 28/29 tin — nên KHÔNG độc lập. Chỉ 6 tin có câu đích (2 'không ngập', 6 'cao ráo'), dưới ngưỡng 8 của giao thức: "
                          "CHƯA KẾT LUẬN, không tính đạt hay trượt. Số thật vẫn công bố: máy SÓT cả 2 câu 'không ngập' (F1 0); 'cao ráo' 0,92 "
                          "(6 đúng, 1 bắt thừa). Mọi loại F1 0,60: gần biển sót 2/3, gần sông sót 1/2, thổ cư sót 2/12; 8 tin không khẳng định gì, "
                          "máy không bắt nhầm tin nào. Theo tầng chọn mẫu (listing_gate_v10_strata.json): tầng A — 15 bài đầu mỗi trang, không lọc chữ — KHÔNG có câu đích nào (tin rao thường hiếm khi hứa 'không ngập'/'cao ráo'), F1 mọi loại 0,46; tầng B — 14 bài có gốc chữ 'ngập/lụt/khô ráo/cao/trũng' — chứa cả 6 tin có câu đích, F1 đích 0,46, mọi loại 0,70. Không vá luật theo mẫu này; lỗi 'không ngập' sửa ở lần sau và chấm trên tin mới, với người "
                          "gán chưa thấy câu trả lời nào.",
                          "Run 10 (9 Nov 2026; 29 NEW Facebook posts from 5 flood-prone areas: Huế, Quảng Trị, former Hải Dương, former Tiền Giang, "
-                         "former Sóc Trăng; rules unchanged since run 9): the first HUMAN labels, but the labeller (the owner) saw Claude's answers "
+                         "former Sóc Trăng; rules unchanged since run 9): the first HUMAN labels, but the labeller (the owner) saw the AI's answers "
                          "before labelling — 28/29 posts match — so they are NOT independent. Only 6 posts carry a target claim (2 'no flooding', "
                          "6 'high ground'), below the protocol's minimum of 8: INCONCLUSIVE, neither pass nor fail. The real numbers are still "
                          "published: the rules MISS both 'no flooding' claims (F1 0); 'high ground' 0.92 (6 correct, 1 false). All types F1 0.60: "
                          "near sea missed 2/3, near river 1/2, residential 2/12; 8 posts claim nothing and none was falsely flagged. By sampling stratum (listing_gate_v10_strata.json): stratum A — first 15 posts per page, no word filter — has NO target claim at all (ordinary ads rarely promise 'no flooding'/'high ground'), all-types F1 0.46; stratum B — 14 posts containing 'ngập/lụt/khô ráo/cao/trũng' — holds all 6 target posts, target F1 0.46, all types 0.70. Rules are not "
                          "patched on this sample; the 'no flooding' miss is fixed in a later run and scored on new posts, labelled by someone who "
                          "has seen no answers.") if v == "10" else
-                      tr("Lần 9 (nhãn Claude, ghi nhầm là nhãn người tới 8/11/2026; 30 tin Facebook MỚI ở Đắk Lắk, Hội An, Tây Ninh, Châu Đốc: 20 bài đầu mỗi trang + 10 bài có "
+                      tr("Lần 9 (nhãn AI, ghi nhầm là nhãn người tới 8/11/2026; 30 tin Facebook MỚI ở Đắk Lắk, Hội An, Tây Ninh, Châu Đốc: 20 bài đầu mỗi trang + 10 bài có "
                          "'quy hoạch/QH/ONT/ODT'): luật SỬA theo lỗi lần 8 ('QH … ONT', 'cao thoáng', 'mặt bằng cao', 'Tho 150', 'bến đò', 'ra biển …, "
                          "chỉ 7km'), khoá trước khi thu mẫu; F1 0,98 — thổ cư 0,95 (bắt nhầm 'miếng đất ở Vĩnh Châu' — chữ 'ở' chỉ nơi chốn; sót 'tc 60m'), "
                          "gần sông 1,0 (2 tin). NHƯNG không tin nào chứa đúng kiểu câu đã sửa (0/5): tầng 'quy hoạch' thực tế là 'đường quy hoạch 12m' "
                          "và ODT thật — các chỗ sửa CHƯA được kiểm trên tin mới (chỉ kiểm trên tập phát triển: lần 8 0,78 → 1,00, lần 1–7 không giảm). "
-                         "Mẫu chỉ có câu thổ cư và gần sông. Nhãn chấm cổng do một phiên Claude khác gán, nên độ khớp 30/30 với nhãn AI phụ là Claude "
-                         "so với Claude — không chứng minh độc lập. Không vá theo mẫu này; hai lỗi mới sửa ở lần sau.",
-                         "Run 9 (Claude labels, misrecorded as human labels until 8 Nov 2026; 30 NEW Facebook posts from Đắk Lắk, Hội An, Tây Ninh, Châu Đốc: first 20 per page + 10 containing "
+                         "Mẫu chỉ có câu thổ cư và gần sông. Nhãn chấm cổng do một phiên AI khác gán, nên độ khớp 30/30 với nhãn AI phụ là AI "
+                         "so với AI — không chứng minh độc lập. Không vá theo mẫu này; hai lỗi mới sửa ở lần sau.",
+                         "Run 9 (AI labels, misrecorded as human labels until 8 Nov 2026; 30 NEW Facebook posts from Đắk Lắk, Hội An, Tây Ninh, Châu Đốc: first 20 per page + 10 containing "
                          "'quy hoạch/QH/ONT/ODT'): rules FIXED after run 8's errors ('QH … ONT', 'cao thoáng', 'mặt bằng cao', 'Tho 150', 'ferry "
                          "landing', 'to the sea …, only 7km'), frozen before sampling; F1 0.98 — residential 0.95 (false claim on 'land located in "
                          "Vĩnh Châu'; missed 'tc 60m'), near river 1.0 (2 posts). BUT no new post contains any fixed phrasing (0/5): the 'zoning' "
                          "stratum turned out to be 'planned 12m road' and real ODT — the fixes are NOT tested on new posts (only on the development "
                          "set: run 8 0.78 → 1.00, runs 1–7 unchanged). Only residential and near-river claims. The gate labels came from a separate "
-                         "Claude session, so the 30/30 agreement with the secondary AI labels is Claude against Claude — not proof of independence. Not patched "
+                         "AI session, so the 30/30 agreement with the secondary AI labels is AI against AI — not proof of independence. Not patched "
                          "on this sample; the two new errors are fixed in a later run.") if v == "9" else
-                      tr("Lần 8 (nhãn Claude, ghi nhầm là nhãn người tới 8/11/2026; 30 tin Facebook CHỌN THEO TỪ CHỦ ĐỀ — biển, sông, ngập, phẳng/dốc, sạt lở, nước — để đo 6 loại câu "
+                      tr("Lần 8 (nhãn AI, ghi nhầm là nhãn người tới 8/11/2026; 30 tin Facebook CHỌN THEO TỪ CHỦ ĐỀ — biển, sông, ngập, phẳng/dốc, sạt lở, nước — để đo 6 loại câu "
                          "chưa từng chấm trên nhãn người; luật giữ nguyên lần 7): đạt trên 4 loại đo được — gần biển 0,96 (12 tin), bằng phẳng 1,0 "
                          "(11), gần sông 0,86 (4), nước ngọt 1,0 (chỉ 1 tin, ít mẫu). 'Không ngập' và 'không sạt lở' KHÔNG có tin nào trong mẫu — "
                          "không thu được bài bán đất nào nhắc 'ngập/lụt/khô ráo' hay 'sạt/lở' dù đã thêm trang ở phụ lục 1–2 — nên VẪN CHƯA ĐO trên "
                          "nhãn người. Tính mọi loại thì F1 0,78: sót 'cao ráo' 2/2 (vd. 'cao thoáng'), bắt nhầm thổ cư 2 tin 'QH/quy hoạch … ONT' "
                          "(bản sửa lần 7 chưa chặn chữ ONT), sót 'Tho 150' viết không dấu. Chọn theo từ chủ đề nên độ phủ có thể cao hơn thực tế. "
-                         "Lần này nhãn AI phụ chỉ công khai MÃ BĂM tới khi nhãn chấm cổng đã khoá; khớp 30/30 — Claude so với Claude. Không vá luật theo mẫu này; sửa thì "
+                         "Lần này nhãn AI phụ chỉ công khai MÃ BĂM tới khi nhãn chấm cổng đã khoá; khớp 30/30 — AI so với AI. Không vá luật theo mẫu này; sửa thì "
                          "chấm trên tin mới.",
-                         "Run 8 (Claude labels, misrecorded as human labels until 8 Nov 2026; 30 Facebook posts SELECTED BY TOPIC WORD — sea, river, flood, flat/slope, landslide, water — to "
+                         "Run 8 (AI labels, misrecorded as human labels until 8 Nov 2026; 30 Facebook posts SELECTED BY TOPIC WORD — sea, river, flood, flat/slope, landslide, water — to "
                          "measure the 6 claim types never scored on human labels; rules unchanged from run 7): passes on the 4 measurable types — "
                          "near sea 0.96 (12 posts), flat 1.0 (11), near river 0.86 (4), fresh water 1.0 (only 1 post, few samples). 'No flooding' "
                          "and 'no landslides' have NO post in the sample — no land-sale post mentioning 'flood' or 'landslide' was found even after "
                          "the pages added in amendments 1–2 — so they are STILL NOT measured on human labels. Over all types macro F1 is 0.78: "
                          "high ground missed 2/2 (e.g. 'cao thoáng'), 2 false residential claims on 'zoned … ONT' (the run-7 fix does not cover "
                          "the ONT token), 'Tho 150' without diacritics missed. Topic-word selection may overstate recall. This time the secondary "
-                         "AI labels were published only as a HASH until the gate labels were frozen; agreement 30/30 — Claude against Claude. Rules are not patched on "
+                         "AI labels were published only as a HASH until the gate labels were frozen; agreement 30/30 — AI against AI. Rules are not patched on "
                          "this sample; a fix must be scored on new posts.") if v == "8" else
-                      tr("Lần 7 (nhãn Claude, ghi nhầm là nhãn người tới 8/11/2026; 20 tin Facebook mới ở Sóc Trăng, Long An, Đồng Nai, Thanh Hóa, Vĩnh Long): luật SỬA theo lỗi lần 6 "
+                      tr("Lần 7 (nhãn AI, ghi nhầm là nhãn người tới 8/11/2026; 20 tin Facebook mới ở Sóc Trăng, Long An, Đồng Nai, Thanh Hóa, Vĩnh Long): luật SỬA theo lỗi lần 6 "
                          "('quy hoạch đất ở', 'chưa thổ cư'), khoá trước khi thu mẫu; nhưng mẫu mới KHÔNG có câu 'quy hoạch đất ở' / 'chưa thổ cư' "
                          "nào — luật cũ cũng đạt 0,97 trên mẫu này, nên chỗ sửa CHƯA được kiểm. Sót 'thổ....' bị cắt chữ. Chỉ có câu thổ cư và "
-                         "cao ráo. Độ khớp 20/20 với nhãn AI phụ là Claude so với Claude (nhãn AI phụ còn công khai trên kho mã TRƯỚC khi gán ở cả "
+                         "cao ráo. Độ khớp 20/20 với nhãn AI phụ là AI so với AI (nhãn AI phụ còn công khai trên kho mã TRƯỚC khi gán ở cả "
                          "lần 6 và lần 7) — không chứng minh được độc lập.",
-                         "Run 7 (Claude labels, misrecorded as human labels until 8 Nov 2026; 20 new Facebook posts from Sóc Trăng, Long An, Đồng Nai, Thanh Hóa, Vĩnh Long): rules FIXED "
+                         "Run 7 (AI labels, misrecorded as human labels until 8 Nov 2026; 20 new Facebook posts from Sóc Trăng, Long An, Đồng Nai, Thanh Hóa, Vĩnh Long): rules FIXED "
                          "after run 6's errors ('zoned residential', 'not yet residential'), frozen before sampling; but the new sample has NO "
                          "such phrase — the old rules also score 0.97 on it, so the fix is NOT yet tested. Missed a truncated 'thổ....'. Only "
-                         "residential and high-ground claims. The 20/20 agreement with the secondary AI labels is Claude against Claude (the AI "
+                         "residential and high-ground claims. The 20/20 agreement with the secondary AI labels is AI against AI (the AI "
                          "labels were also public in the repo BEFORE labelling, in both run 6 and run 7) — it does not prove independence.") if v == "7" else
-                      tr("Lần 6 (nhãn Claude, ghi nhầm là nhãn người tới 8/11/2026): luật bắt NHẦM 5/11 tin không có thổ cư — coi 'quy hoạch đất ở' là đã có đất ở, kể cả khi tin ghi "
+                      tr("Lần 6 (nhãn AI, ghi nhầm là nhãn người tới 8/11/2026): luật bắt NHẦM 5/11 tin không có thổ cư — coi 'quy hoạch đất ở' là đã có đất ở, kể cả khi tin ghi "
                          "'chưa thổ cư'; bắt đúng 9/9 tin có thổ cư. Mẫu lệch vùng (Bến Tre 15, Nghệ An 4, Khánh Hòa 1: 3/4 trang chính không xem "
                          "được) và chỉ có câu thổ cư. Bản hướng dẫn gửi người gán có ví dụ 'cách cầu Kênh X' trùng tin 14. Không vá luật rồi chấm "
                          "lại mẫu này; sửa thì phải chấm trên tin mới.",
-                         "Run 6 (Claude labels, misrecorded as human labels until 8 Nov 2026): the rules raise 5 FALSE claims on 11 posts without residential land — they read 'zoned for "
+                         "Run 6 (AI labels, misrecorded as human labels until 8 Nov 2026): the rules raise 5 FALSE claims on 11 posts without residential land — they read 'zoned for "
                          "residential' as already residential, even when the post says 'not yet residential'; 9/9 residential posts caught. The "
                          "sample is skewed by region (Bến Tre 15, Nghệ An 4, Khánh Hòa 1: 3 of 4 main pages unavailable) and has only residential "
                          "claims. The labelling guide sent to the human had an example ('a bridge named Kênh X') matching post 14. Rules are not "
