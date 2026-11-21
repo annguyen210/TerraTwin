@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from app.schemas import Assessment, CopilotAnswer, KnowledgeCitation, Location
 from app.services import llm
+from app.services import reqlang
 from app.services.reqlang import tr
 
 # Số ghi chép thực địa tối đa nạp vào ngữ cảnh. Giữ nhỏ có chủ đích: nhồi 20
@@ -45,6 +46,19 @@ def _route(question: str) -> list[str]:
     return ["salinity", "drought", "flood"]
 
 
+# Kiểm 21/11/2026: ở chế độ tiếng Việt, gpt-oss-120b thỉnh thoảng chen "additionally". Thay các từ nối tiếng Anh hay gặp —
+# chỉ từ nối đứng riêng (…), không đụng tên riêng.
+_EN_NOI = {"additionally": "ngoài ra", "in addition": "ngoài ra", "however": "tuy nhiên", "therefore": "vì vậy",
+           "moreover": "hơn nữa", "furthermore": "hơn nữa", "overall": "nhìn chung", "meanwhile": "trong khi đó"}
+
+
+def _viet_hoa(text: str) -> str:
+    import re
+    for en, vi in _EN_NOI.items():
+        text = re.sub(r"(?i)\b" + re.escape(en) + r"\b", lambda m, vi=vi: vi.capitalize() if m.group(0)[0].isupper() else vi, text)
+    return text
+
+
 def _plain(text: str) -> str:
     """Kiểm 21/11/2026: LLM vẫn trả "**5 đợt**" dù đã dặn — khung trả lời in nguyên văn nên dấu ** lộ ra. Bỏ markdown thừa
     (**, __, tiêu đề #) trước khi trả; giao diện vẫn có lớp vẽ chữ đậm an toàn nếu sót."""
@@ -63,14 +77,16 @@ def _system() -> str:
         "số đợt chỉ số thời tiết ERA5 vượt ngưỡng là ĐIỀU KIỆN có thể gây ngập, không phải lần ngập — "
         "nếu nêu thì nói riêng và gọi đúng tên. Radar không thấy nước thì không được kết luận là không ngập. "
         "Viết văn bản thuần, không định dạng — KHÔNG dùng markdown (không **, __, #, bảng); viết hoa đúng chính tả "
-        "(đầu câu, tên riêng như Sentinel-1, ERA5).",
+        "(đầu câu, tên riêng như Sentinel-1, ERA5). CHỈ dùng tiếng Việt — không chen từ tiếng Anh nào "
+        "(trừ tên riêng, tên dữ liệu như Sentinel-1, ERA5, TerraScore).",
         "You are TerraTwin's land/farming assistant. Answer BRIEFLY and clearly "
         "in English, based ONLY on the data provided. Never invent numbers. If "
         "the data isn't enough to answer, say so plainly. "
         "If asked whether the plot HAS FLOODED, answer with the number of water episodes Sentinel-1 RADAR saw over "
         "the plot; ERA5 weather-index exceedances are CONDITIONS that can cause flooding, not floods — mention them "
         "separately and by their proper name. Radar seeing no water does not prove the plot never floods. "
-        "Write plain text, NO markdown (no **, __, #, tables).",
+        "Write plain text, NO markdown (no **, __, #, tables). Answer ONLY in English — even though some data "
+        "labels are in Vietnamese, translate them; keep proper names (Sentinel-1, ERA5) as they are.",
     )
 
 
@@ -302,6 +318,8 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
         from app.services import guard
         text, _ = guard.guard_llm(text, system + NL + prompt)
         text = _plain(text)
+        if reqlang.cur_lang() != "en":
+            text = _viet_hoa(text)
         return CopilotAnswer(answer=text, used_modules=routes,
                              llm=True, knowledge_used=cites)
 
