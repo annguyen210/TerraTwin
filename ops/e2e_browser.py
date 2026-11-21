@@ -320,6 +320,67 @@ with sync_playwright() as p:
         return f"tab {sel.strip()} · cao {hgt}px · khung 'ngoài phạm vi': {offsite} · đổi tab giữ chữ tin"
     try_now()
 
+    @step("Bước 4 kịch bản demo: tin mẫu → Hồ sơ đất số ký số → 'Bản gốc' → /kiem đạt → sửa 1 chữ số → 'ĐÃ BỊ SỬA'")
+    def demo_step4():
+        # Kiểm A–Z 21/11/2026, P2-3 (docs/KICH_BAN_DEMO.md 1:45–2:25). CHỈ chạy E2E cục bộ (CSDL mới tinh) — KHÔNG phát hành
+        # hồ sơ thử trên production (sổ minh bạch chỉ thêm, không xoá được).
+        ctx4 = browser.new_context(viewport={"width": 1366, "height": 860}, accept_downloads=True)
+        pg = watch(ctx4.new_page())
+        try:
+            pg.goto(WEB + "/", wait_until="networkidle", timeout=120_000)
+            pg.get_by_role("button", name=re.compile("Kiểm một tin đăng")).first.click()
+            pg.locator(".lc textarea").wait_for(timeout=60_000)
+            skip = pg.get_by_role("button", name="Bỏ qua")
+            if skip.count():
+                skip.first.click()
+            pg.get_by_role("button", name=re.compile("Đối chiếu với số đo")).click()
+            pg.locator(".lc .wh-sum").wait_for(timeout=180_000)
+            pg.get_by_role("button", name=re.compile("Đưa kết quả vào Hồ sơ đất số")).click()
+            pg.wait_for_url(re.compile(r"/h/\w+"), timeout=240_000)
+            did = re.search(r"/h/(\w+)", pg.url).group(1)
+            pg.get_by_text("Bản gốc — đã kiểm chứng").wait_for(timeout=90_000)
+            with pg.expect_download() as dl:
+                pg.get_by_role("button", name="Tải JSON đã ký").first.click()
+            goc = os.path.join(OUT, "ho-so-dat-goc.json")
+            dl.value.save_as(goc)
+            doc = json.load(open(goc, encoding="utf-8"))
+
+            def sua_mot_so(o):          # đổi đúng MỘT chữ số đầu tiên tìm thấy trong facts
+                if isinstance(o, dict):
+                    for k, v in o.items():
+                        if isinstance(v, bool):
+                            continue
+                        if isinstance(v, (int, float)):
+                            o[k] = v + 1
+                            return True
+                        if sua_mot_so(v):
+                            return True
+                elif isinstance(o, list):
+                    for x in o:
+                        if sua_mot_so(x):
+                            return True
+                return False
+            assert sua_mot_so(doc["facts"]), "facts không có số nào để sửa"
+            sua = os.path.join(OUT, "ho-so-dat-da-sua.json")
+            json.dump(doc, open(sua, "w", encoding="utf-8"), ensure_ascii=False)
+
+            pg.goto(WEB + "/kiem", wait_until="networkidle", timeout=120_000)
+            pg.set_input_files("#verify-file", goc)
+            pg.locator(".eu-checks li").first.wait_for(timeout=30_000)
+            goc_lines = pg.locator(".eu-checks li").all_inner_texts()
+            pg.goto(WEB + "/kiem", wait_until="networkidle", timeout=120_000)
+            pg.set_input_files("#verify-file", sua)
+            pg.locator(".eu-checks li").first.wait_for(timeout=30_000)
+            sua_txt = pg.locator("body").inner_text()
+            pg.screenshot(path=os.path.join(OUT, "19-kiem-da-sua.png"), full_page=False)
+        finally:
+            ctx4.close()
+        assert any("khớp mã băm" in x for x in goc_lines) and not any("ĐÃ BỊ SỬA" in x for x in goc_lines), goc_lines
+        assert "ĐÃ BỊ SỬA" in sua_txt, "tệp sửa 1 chữ số mà /kiem không báo"
+        return f"hồ sơ {did}: bản gốc ✓ · sửa 1 chữ số → ĐÃ BỊ SỬA"
+    if not READONLY:
+        demo_step4()
+
     @step("Máy chủ đang thức: 'Đối chiếu với số đo' hỏng 3 lần rồi thông → hiện 'đang đánh thức', ra kết quả demo, không báo lỗi")
     def wake_then_check():
         # Kiểm A–Z 21/11/2026, P0-2: API Render ngủ → lần bấm đầu báo "Không kết nối được máy chủ". Giả lập đúng kiểu
