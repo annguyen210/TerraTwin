@@ -17,7 +17,8 @@ _KEYS: dict[str, tuple[str, ...]] = {
               "inundation", "inundated"),
     "salinity": ("man", "nhiem man", "xam nhap man", "salt", "salty", "saline", "salinity"),
     "drought": ("han", "kho han", "han han", "thieu nuoc", "tuoi", "drought", "dry", "dryness", "irrigation"),
-    "wildfire": ("chay rung", "lua", "fire", "wildfire", "wildfires"),
+    # 21/11/2026: KHÔNG để "lua" đứng riêng — "lúa" và "lửa" bỏ dấu đều là "lua" ("Đất này trồng lúa được không?" → cháy).
+    "wildfire": ("chay rung", "lua rung", "dam chay", "nguy co chay", "fire", "wildfire", "wildfires"),
     "landslide": ("sat lo", "lo dat", "landslide", "landslides"),
     "solar": ("dien mat troi", "mat troi", "solar"),
 }
@@ -54,6 +55,22 @@ def route(question: str) -> list[str]:
 
 _MUA = ("mua kho", "mua mua", "mua toi", "thang toi", "thang sau", "nam toi", "nam sau", "ca mua", "lau dai",
         "season", "seasons", "seasonal", "next month", "next year", "long term", "long-term")
+
+
+_HIEN_TRANG = ("khong co dau hieu ngap", "chua co dau hieu ngap", "khong bi ngap", "chua bi ngap", "khong ngap",
+               "no sign of flooding", "no signs of flooding", "not flooded", "not currently flooded")
+
+
+def claims_present_dry(answer: str) -> bool:
+    """Câu trả lời khẳng định HIỆN TRẠNG không ngập (kiểm 21/11/2026: "Vì vậy hiện tại đất này không có dấu hiệu ngập" đặt
+    ngay sau câu radar 5 đợt) — trong khi chỉ số chỉ là dự báo 7 ngày. Xét từng câu: có "hiện tại"/"currently"/"now" và
+    một cụm phủ định ngập trong CÙNG câu."""
+    for cau in re.split(r"[.!?\n]+", fold(answer)):
+        w = " ".join(re.findall(r"[a-z0-9]+", cau))
+        if any(k in w for k in ("hien tai", "hien nay", "currently", "right now", "at present")) and \
+                any(p in w for p in _HIEN_TRANG):
+            return True
+    return False
 
 
 def asks_long_range(question: str) -> bool:
