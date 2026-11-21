@@ -34,8 +34,10 @@ class FeedbackIn(BaseModel):
     role: Literal["farmer", "coop", "exporter", "buyer", "broker", "other"]
     ease: int = Field(ge=1, le=5)
     trust: int = Field(ge=1, le=5)
+    # Kiểm A–Z 21/11/2026: BẮT BUỘC cả hai — bản cũ để hardest mặc định "none" và giao diện chọn sẵn would_use="yes",
+    # nên phiếu chỉ chấm điểm rồi gửi đã ghi "sẽ dùng" + "không có chỗ khó". Thiếu → 422, không điền hộ.
     would_use: Literal["yes", "maybe", "no"]
-    hardest: Literal["boundary", "screen", "dossier", "lot", "verify", "listing", "water", "none"] = "none"
+    hardest: Literal["boundary", "screen", "dossier", "lot", "verify", "listing", "water", "none"]
     minutes: int | None = Field(default=None, ge=0, le=600)
     region: str = Field(default="", max_length=80)
     comment: str = Field(default="", max_length=2000)

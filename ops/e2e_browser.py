@@ -461,6 +461,25 @@ with sync_playwright() as p:
         return f"thu gọn {peek}px · nửa {half}px · toàn {full}px"
     phone_workspace()
 
+    @step("Phiếu góp ý không chọn sẵn đáp án (chỉ chấm điểm → chưa gửi được)")
+    def feedback_no_preselect():
+        # Kiểm A–Z 21/11/2026: phiếu cũ chọn sẵn "sẽ dùng" + "không có chỗ khó". KHÔNG bấm gửi — chạy được cả production.
+        out = []
+        for path in ("/dung-thu", "/thi-diem"):
+            page.goto(WEB + path, wait_until="networkidle", timeout=120_000)
+            form = page.locator("form.pk-formgrid")
+            assert form.locator("input[name=would]:checked").count() == 0, f"{path}: 'có dùng' chọn sẵn"
+            assert form.locator("input[name=hardest]:checked").count() == 0, f"{path}: 'chỗ khó' chọn sẵn"
+            form.locator("input[name=ease]").nth(3).check()
+            form.locator("input[name=trust]").nth(4).check()
+            btn = form.get_by_role("button", name="Gửi góp ý")
+            assert btn.is_disabled(), f"{path}: nút gửi mở khi còn thiếu câu"
+            note = form.locator("p[role=status]").first.inner_text()
+            assert "có dùng không" in note and "chỗ khó nhất" in note, note
+            out.append(path)
+        return " · ".join(out)
+    feedback_no_preselect()
+
     @step("Ảnh điện thoại (390 px) không tràn ngang")
     def phone():
         m = browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True)
