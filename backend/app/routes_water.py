@@ -302,6 +302,18 @@ def climate_warm(authorization: str | None = Header(default=None), x_cron_key: s
                     calibration.climatology(mid, la, lo)
                 except Exception:       # một điểm lỗi không được chặn các điểm sau
                     pass
+        # P1-5: sổ điểm (90 ngày, hai ngôn ngữ) + bản đồ nhiệt lũ của thửa demo — để lần mở đầu sau khi máy chủ ngủ dậy
+        # đọc bản đã tính (dưới 5 giây) thay vì chờ 37–40 giây.
+        try:
+            from app.routes_trust import _SC_STALE, _SC_TTL, scorecard_payload
+            for lg in ("vi", "en"):
+                key = cache_store.make_key("scorecard", 90, lg)
+                cache_store.put(key, {"at": __import__("time").time(), "data": scorecard_payload(90, lg)}, int(_SC_STALE))
+            from app.services import heatmap
+            la, lo, _ = demo_plots.DEMO_PLOTS[0]
+            heatmap.build("flood", la, lo)
+        except Exception:
+            pass
 
     threading.Thread(target=_run, name="climate-warm", daemon=True).start()
     return {"queued_points": len(todo), "archive_cells": len(cells)}

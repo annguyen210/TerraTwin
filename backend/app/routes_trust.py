@@ -40,6 +40,24 @@ _SC_TTL = 300.0
 
 def _sc_clear() -> None:
     _SC_CACHE.clear()
+    from app.services import cache_store
+    cache_store.clear_prefix("scorecard")     # P1-5: bản lưu bền cũng phải xoá khi số liệu vừa đổi
+
+
+# P1-5: sổ điểm đổi theo NGÀY — giữ bản bền 7 ngày, coi là "mới" trong 5 phút; cũ hơn thì trả ngay bản cũ và tính lại ở nền.
+_SC_STALE = 7 * 86400
+
+
+def scorecard_payload(days: int, lang: str) -> dict:
+    """Tính sổ điểm bằng một phiên CSDL RIÊNG — chạy được cả ở luồng nền (phiên của request đã đóng)."""
+    from app.db import SessionLocal
+    from app.services import reqlang
+    reqlang.set_lang(lang)
+    with SessionLocal() as db:
+        s = scorecard.summary(db, days)
+        s["by_module"] = scorecard.by_module(db, days)
+        s["ground_truth"] = scorecard.ground_truth(db)
+    return s
 
 
 # ---------------------------------------------------------------------------
@@ -57,13 +75,15 @@ def get_scorecard(days: int = 90, lang: str = "vi",
     reqlang.set_lang(lang)
     days = max(7, min(days, 3650))
     now = _time.time()
-    ck = (days, reqlang.cur_lang())          # ngôn ngữ vào khoá cache
+    lg = reqlang.cur_lang()
+    ck = (days, lg)                          # ngôn ngữ vào khoá cache
     hit = _SC_CACHE.get(ck)
     if hit is not None and now - hit[0] < _SC_TTL:
         return hit[1]
-    s = scorecard.summary(db, days)
-    s["by_module"] = scorecard.by_module(db, days)
-    s["ground_truth"] = scorecard.ground_truth(db)
+    from app.services import cache_store
+    s, state = cache_store.swr(cache_store.make_key("scorecard", days, lg),
+                               lambda: scorecard_payload(days, lg), _SC_TTL, _SC_STALE)
+    reqlang.set_lang(lg)
     _SC_CACHE[ck] = (now, s)
     return s
 
