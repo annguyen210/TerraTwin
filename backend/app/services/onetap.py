@@ -47,6 +47,7 @@ from sqlalchemy.orm import Session
 from app.auth import _ALGO, _SECRET
 from app.db import Alert, Observation, Plot
 from app.services import hazard
+from app.services.textfix import alert_text
 
 # Đủ dài để người đi vắng cả tháng vẫn trả lời được, đủ ngắn để một liên kết rò
 # rỉ không sống mãi.
@@ -115,7 +116,7 @@ def question(a: Alert, db: Session) -> dict:
         "alert_id": a.id,
         "module_id": a.module_id,
         "asked_on": ngay,
-        "headline": a.headline,
+        "headline": alert_text(a.headline),
         "question": f"Ngày {ngay} chúng tôi báo {viec}{o_dau}. "
                     f"Thực tế có xảy ra không?",
         "options": [
