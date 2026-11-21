@@ -7,6 +7,8 @@ tự nhiên.
 """
 from __future__ import annotations
 
+import logging
+
 from app.schemas import Assessment, CopilotAnswer, KnowledgeCitation, Location
 from app.services import llm
 from app.services import reqlang
@@ -15,6 +17,7 @@ from app.services.reqlang import tr
 # Số ghi chép thực địa tối đa nạp vào ngữ cảnh. Giữ nhỏ có chủ đích: nhồi 20
 # mẩu kinh nghiệm vào prompt làm loãng chính dữ liệu đo được, mà dữ liệu đo
 # được mới là thứ kiểm chứng được.
+log = logging.getLogger("terratwin.copilot")
 _RAG_K = 3
 _RAG_MIN_SIMILARITY = 35.0
 NL = "\n"
@@ -71,7 +74,7 @@ def _han_che(text: str, question: str, assessed: dict, radar: dict | None = None
     Có mô-đun ước lượng mà câu trả lời không nói "ước lượng"/"estimate", hoặc câu hỏi về mùa/tháng/năm tới → tự thêm ghi chú."""
     import re
     from app.services.copilot_route import (_words, asks_crop, asks_long_range, claims_present_dry, doubts_past_water,
-                                            strip_present_dry)
+                                            soften_overclaim, strip_present_dry)
     # Kiểm PR #37/#38: lời dặn không đủ — LLM vẫn kết "hiện tại không có dấu hiệu ngập". Bỏ ĐÚNG vế đó, giữ vế cảnh báo;
     # không còn gì thì thay bằng câu dự báo dựng từ assessed["flood"]. Tách theo câu VÀ theo xuống dòng, GIỮ nguyên dấu
     # phân cách — trước đây " ".join làm gạch đầu dòng dính thành một đoạn, và dòng không có dấu chấm bị gộp rồi bị thay.
@@ -84,12 +87,21 @@ def _han_che(text: str, question: str, assessed: dict, radar: dict | None = None
             phan[i] = strip_present_dry(c, _cau_du_bao(assessed))
             sua = True
         elif n_radar and doubts_past_water(c):
+            # CHÈN câu radar lên trước, giữ câu gốc — bắt nhầm thì cũng không mất ý dè dặt của LLM.
             last = (radar or {}).get("last_event")
             phan[i] = tr(f"Thửa đã từng có nước phủ: radar Sentinel-1 thấy {n_radar} đợt"
-                         + (f", gần nhất {last}" if last else "") + ".",
+                         + (f", gần nhất {last}" if last else "") + ". ",
                          f"The plot has had water over it before: Sentinel-1 radar saw {n_radar} episode(s)"
-                         + (f", latest {last}" if last else "") + ".")
+                         + (f", latest {last}" if last else "") + ". ") + c
+        if phan[i] != c:
+            log.info("trợ lý: sửa câu | gốc=%r | sau=%r", c, phan[i])
     text = "".join(phan)
+    lu = assessed.get("flood")
+    if lu is not None and str(getattr(lu, "risk_level", "")) == "safe":
+        moi = soften_overclaim(text)
+        if moi != text:
+            log.info("trợ lý: hạ câu nói quá | gốc=%r | sau=%r", text, moi)
+            text = moi
     if sua:
         w = " ".join(_words(text))
         if not any(k in w for k in ("du bao", "7 ngay", "forecast", "7 day")):
@@ -139,7 +151,8 @@ def _system() -> str:
         "không khẳng định chắc chắn. Dữ liệu không có trong ngữ cảnh KHÔNG có nghĩa là không tồn tại — "
         "không được nói nguồn đó 'chưa có' hay 'không có dữ liệu'; chỉ nói câu trả lời này chưa xét tới. "
         "Chỉ số cảnh báo là DỰ BÁO 7 ngày, không phải quan sát hiện trạng: kết luận phải gắn với 'trong 7 ngày tới' và "
-        "ĐÚNG mức của dự báo (vd. 'trong 7 ngày tới ít nguy cơ ngập' hoặc 'trong 7 ngày tới nguy cơ ngập cao'), KHÔNG được "
+        "ĐÚNG mức của dự báo (vd. 'trong 7 ngày tới ít nguy cơ ngập' hoặc 'trong 7 ngày tới nguy cơ ngập cao'), dùng ĐÚNG "
+        "chữ của mức dự báo — 'ít nguy cơ' thì nói 'ít nguy cơ', không nâng thành 'không có nguy cơ'; KHÔNG được "
         "nói 'hiện tại không ngập' hay 'không có dấu hiệu ngập'. Radar đã thấy nước phủ thửa (số đợt lớn hơn 0) thì phải "
         "nói rõ thửa ĐÃ TỪNG có nước phủ — không được nói 'không đủ để khẳng định đã ngập hay chưa'. Không được kết luận "
         "đất 'phù hợp' để trồng một loại cây chỉ từ chỉ số hiểm hoạ 7 ngày — việc đó cần thổ nhưỡng, nước tưới, mùa vụ.",
@@ -157,6 +170,7 @@ def _system() -> str:
         "exist — never say a source is 'not available'; say this answer did not consider it. "
         "Alert indices are 7-DAY FORECASTS, not observations of the present: tie the conclusion to 'the next 7 days' and to "
         "the forecast's ACTUAL level (e.g. 'low flood risk over the next 7 days' or 'high flood risk over the next 7 days'), "
+        "using the forecast's OWN word — 'low risk' stays 'low risk', never upgraded to 'no risk'; "
         "NEVER 'the plot is currently not flooded' or 'no sign of flooding'. If radar saw water over the plot (more than 0 "
         "episodes), say clearly the plot HAS had water over it — never 'not enough to say whether it has flooded'. Never "
         "conclude the land is 'suitable' for a crop from 7-day hazard indices alone — that needs soil, irrigation, season.",

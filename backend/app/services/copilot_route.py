@@ -115,11 +115,38 @@ _THIEU = ("khong du de", "chua du de", "khong du du lieu", "chua du du lieu", "k
 _DANG_NGAP = ("dang ngap", "dang bi ngap", "currently flooded", "flooded now", "flooded right now")
 
 
+# Chỉ câu nói về QUÁ KHỨ mới mâu thuẫn với radar (kiểm PR #39: bản đầu bắt cả câu về 7 ngày tới, độ sâu, độ phù hợp cây).
+_QUA_KHU = ("da ngap", "da bi ngap", "tung ngap", "tung bi ngap", "ngap hay chua", "ngap chua", "has flooded",
+            "have flooded", "has been flooded", "ever flooded", "flooded before", "flooded in the past", "before")
+_KHONG_PHAI_QUA_KHU = ("7 ngay toi", "sap toi", "mua toi", "tuan toi", "thang toi", "nam toi", "se", "will", "next",
+                       "upcoming", "muc", "do sau", "sau bao nhieu", "phu hop", "thich hop", "trong lua", "trong cay",
+                       "depth", "deep", "how deep", "suitable", "grow", "plant")
+
+
 def doubts_past_water(sentence: str) -> bool:
-    """Câu nói "không đủ để khẳng định đã ngập hay chưa" (kiểm 21/11/2026, 1/8 lần trên 9bba22d) — sai khi radar ĐÃ thấy
-    nước phủ thửa. Câu về HIỆN TRẠNG ("không thể kết luận hiện tại ruộng đang ngập") thì đúng, không đụng."""
+    """Câu nói "không đủ để khẳng định ĐÃ ngập hay chưa" (kiểm 21/11/2026, 1/8 lần trên 9bba22d) — sai khi radar ĐÃ thấy
+    nước phủ thửa. Chỉ bắt câu về QUÁ KHỨ; câu về hiện trạng ("đang ngập"), 7 ngày/mùa tới, độ sâu, độ phù hợp cây trồng
+    là dè dặt ĐÚNG, không đụng."""
     w = _words(sentence)
-    return _co(w, _THIEU) and _co(w, ("ngap", "flood", "flooded", "flooding")) and not _co(w, _DANG_NGAP)
+    return (_co(w, _THIEU) and _co(w, _QUA_KHU) and not _co(w, _DANG_NGAP)
+            and not _co(w, _KHONG_PHAI_QUA_KHU))
+
+
+_NOI_QUA = re.compile(r"\b(không có|chẳng có) (nguy cơ|rủi ro) (bị )?ngập\b(?!\s*(?:cao|lớn|nghiêm trọng|nặng))", re.I)
+_NOI_QUA_EN = re.compile(r"\bno (flood risk|risk of flood(?:ing)?)\b(?!\s*(?:is\s+)?(?:high|severe|major))", re.I)
+
+
+def soften_overclaim(text: str) -> str:
+    """Dự báo "ít nguy cơ" mà câu trả lời nâng thành "không có nguy cơ ngập" (kiểm PR #39: "…ruộng lúa không có nguy cơ
+    ngập", chỉ số 7.9) → đổi về đúng chữ của dự báo. "không có nguy cơ ngập CAO" là đúng, giữ nguyên."""
+    def vi(m):
+        s = f"ít {m.group(2)} {m.group(3) or ''}ngập"
+        return s[:1].upper() + s[1:] if m.group(1)[:1].isupper() else s
+
+    def en(m):
+        s = "low flood risk" if m.group(1).lower() == "flood risk" else "a low risk of flooding"
+        return s[:1].upper() + s[1:] if m.group(0)[:1].isupper() else s
+    return _NOI_QUA_EN.sub(en, _NOI_QUA.sub(vi, text))
 
 
 _CAY = ("trong lua", "trong cay", "trong rau", "trong ngo", "trong ca phe", "trong duoc", "cay trong", "nang suat",
