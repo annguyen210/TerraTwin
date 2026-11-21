@@ -279,6 +279,22 @@ with sync_playwright() as p:
         return f"{n} thửa mẫu sống · {page.locator('.hn-biz .hn-tile').count()} lối tắt Doanh nghiệp{biz}"
     today()
 
+    @step("Trang công khai không mang chữ của bài dự thi; link 'thẻ mô hình' đủ tương phản")
+    def public_wording():
+        # Kiểm A–Z 21/11/2026, P0-3: "Câu giám khảo sẽ hỏi", "một phiên Claude khác gán"; link mặc định xanh đậm trên nền tối.
+        bad = []
+        for path in ("/", "/mo-hinh", "/dung-thu", "/thi-diem", "/kiem"):
+            page.goto(WEB + path, wait_until="networkidle", timeout=120_000)
+            page.wait_for_timeout(1500)
+            txt = page.locator("body").inner_text()
+            bad += [f"{path}: {w}" for w in ("giám khảo", "cuộc thi", "Claude") if w.lower() in txt.lower()]
+        page.goto(WEB + "/", wait_until="networkidle", timeout=120_000)
+        col = page.locator(".lp3-note a").first.evaluate("e => getComputedStyle(e).color")
+        assert not bad, bad
+        assert col not in ("rgb(0, 0, 238)", "rgb(85, 26, 139)"), f"link vẫn màu mặc định {col}"
+        return f"5 trang sạch · link {col}"
+    public_wording()
+
     @step("Trang đầu → 'Kiểm một tin đăng' mở thửa mẫu đúng tab Kiểm chứng, tab không bị ép")
     def try_now():
         page.goto(WEB + "/", wait_until="networkidle", timeout=120_000)
