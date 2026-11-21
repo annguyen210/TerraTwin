@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import RegisterSW from "@/components/RegisterSW";
+import WakeBanner from "@/components/WakeBanner";
 import { LangProvider } from "@/lib/i18n";
 
 const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "https://terratwin-web.vercel.app").replace(/\/$/, "");
@@ -68,6 +69,7 @@ export default function RootLayout({
         <LangProvider>
           {children}
           <RegisterSW />
+          <WakeBanner />
         </LangProvider>
       </body>
     </html>

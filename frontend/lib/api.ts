@@ -1,14 +1,28 @@
-import { getRetry, NetworkError, offlineMessage } from "./retry";
+import { computeRetry, getRetry, isComputePost, NetworkError, offlineMessage } from "./retry";
 const BASE = process.env.NEXT_PUBLIC_API ?? "http://localhost:8000";
 
 // Lệnh ghi (POST…) không thử lại (gửi lại có thể làm hai lần) nhưng lỗi mạng vẫn phải là câu người đọc hiểu — trước đây
 // ô "Danh mục thửa" hiện nguyên "Failed to fetch" tiếng Anh lúc máy chủ khởi động lại (góp ý dùng thử 7/11/2026).
+// POST CHỈ TÍNH TOÁN (retry.COMPUTE_POST) thì chờ máy chủ thức ~75 giây rồi mới báo (kiểm A–Z 21/11/2026, P0-2).
 async function apiFetch(input: string, init?: RequestInit): Promise<Response> {
+  if (init && isComputePost(input, init.method)) return computeRetry(input, init, { lang: curLang() });
   try {
     return await fetch(input, init);
   } catch (e) {
     if ((e as Error)?.name === "AbortError") throw e;
     throw new NetworkError(offlineMessage(curLang()));
+  }
+}
+
+// Đánh thức máy chủ ngay khi mở trang (kiểm A–Z 21/11/2026, P0-2): lúc người dùng đọc xong trang đầu và bấm nút đầu
+// tiên thì máy chủ đã thức. Gọi /api/live (async, không CSDL, không gọi ra ngoài) — nhẹ hơn /api/health mà vẫn đánh thức
+// như nhau. Nuốt mọi lỗi: đánh thức là việc phụ, không được làm hỏng trang.
+export async function wakeServer(): Promise<boolean> {
+  try {
+    const r = await getRetry(`${BASE}/api/live`, { cache: "no-store" }, { lang: curLang() });
+    return r.ok;
+  } catch {
+    return false;
   }
 }
 
