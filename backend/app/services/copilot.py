@@ -53,21 +53,56 @@ import re as _re
 _CJK = _re.compile(r"[぀-ヿ㐀-䶿一-鿿豈-﫿가-힯　-〿＀-￯]+")
 
 
-def _han_che(text: str, question: str, assessed: dict) -> str:
+def _cau_du_bao(assessed: dict) -> str:
+    """Câu dự báo ngập dựng TỪ dữ liệu thật của lượt này — KHÔNG viết cứng mức nguy cơ (kiểm 21/11/2026: câu cố định "ít
+    nguy cơ" sẽ đảo ngược cảnh báo khi có bão)."""
+    a = assessed.get("flood")
+    h = str(getattr(a, "headline", "") or "").strip().rstrip(".")
+    if h:
+        return tr(f"Theo dự báo 7 ngày tới: {h} — đây là dự báo, không phải quan sát hiện trạng của thửa.",
+                  f"Per the 7-day forecast: {h} — this is a forecast, not an observation of the plot now.")
+    return tr("TerraTwin không quan sát hiện trạng của thửa, chỉ có dự báo 7 ngày tới.",
+              "TerraTwin does not observe the plot's present state; it only has a 7-day forecast.")
+
+
+def _han_che(text: str, question: str, assessed: dict, radar: dict | None = None) -> str:
     """Lớp chặn bằng code (kiểm 21/11/2026): "Will this land get salty in the dry season?" → LLM khẳng định "not expected
     to become salty in the upcoming dry season" từ một số mặn is_real=False (ước lượng chưa hiệu chỉnh, chỉ 7 ngày).
     Có mô-đun ước lượng mà câu trả lời không nói "ước lượng"/"estimate", hoặc câu hỏi về mùa/tháng/năm tới → tự thêm ghi chú."""
     import re
-    from app.services.copilot_route import asks_long_range, claims_present_dry
-    # Kiểm PR #37 trên bản chính thức: lời dặn không đủ — 3/6 câu trả lời vẫn kết "hiện tại không có dấu hiệu ngập". THAY
-    # hẳn câu sai bằng câu đúng (dự báo 7 ngày), thay vì chỉ ghi chú bên dưới một câu sai vẫn còn nguyên.
-    cau = re.split(r"(?<=[.!?])\s+", text)
-    dung = tr("Theo dự báo, trong 7 ngày tới ít nguy cơ ngập — đây là dự báo, không phải quan sát hiện trạng của thửa.",
-              "Per the forecast, flood risk is low over the next 7 days — this is a forecast, not an observation of the plot now.")
-    if any(claims_present_dry(c) for c in cau):
-        text = " ".join(dung if claims_present_dry(c) else c for c in cau)
+    from app.services.copilot_route import (_words, asks_crop, asks_long_range, claims_present_dry, doubts_past_water,
+                                            strip_present_dry)
+    # Kiểm PR #37/#38: lời dặn không đủ — LLM vẫn kết "hiện tại không có dấu hiệu ngập". Bỏ ĐÚNG vế đó, giữ vế cảnh báo;
+    # không còn gì thì thay bằng câu dự báo dựng từ assessed["flood"]. Tách theo câu VÀ theo xuống dòng, GIỮ nguyên dấu
+    # phân cách — trước đây " ".join làm gạch đầu dòng dính thành một đoạn, và dòng không có dấu chấm bị gộp rồi bị thay.
+    n_radar = int((radar or {}).get("n_events") or 0)
+    sua = False
+    phan = re.split(r"(\n+|(?<=[.!?])[ \t]+)", text)
+    for i in range(0, len(phan), 2):
+        c = phan[i]
+        if claims_present_dry(c):
+            phan[i] = strip_present_dry(c, _cau_du_bao(assessed))
+            sua = True
+        elif n_radar and doubts_past_water(c):
+            last = (radar or {}).get("last_event")
+            phan[i] = tr(f"Thửa đã từng có nước phủ: radar Sentinel-1 thấy {n_radar} đợt"
+                         + (f", gần nhất {last}" if last else "") + ".",
+                         f"The plot has had water over it before: Sentinel-1 radar saw {n_radar} episode(s)"
+                         + (f", latest {last}" if last else "") + ".")
+    text = "".join(phan)
+    if sua:
+        w = " ".join(_words(text))
+        if not any(k in w for k in ("du bao", "7 ngay", "forecast", "7 day")):
+            text = text.rstrip() + "\n\n" + _cau_du_bao(assessed)
     low = text.lower()
     notes = []
+    if asks_crop(question) and any(k in " ".join(_words(text)) for k in ("phu hop", "thich hop", "suitable", "suited")):
+        notes.append(tr("Lưu ý: chỉ số hiểm hoạ 7 ngày không cho biết đất có hợp với cây trồng hay không — việc đó cần xét "
+                        "thổ nhưỡng, nước tưới và mùa vụ. Giai đoạn sinh trưởng của cây xem ở mô-đun Dự báo năng suất & "
+                        "thu hoạch (ảnh Sentinel-2, chạy riêng vì mất vài phút).",
+                        "Note: 7-day hazard indices do not tell whether the land suits a crop — that needs soil, irrigation "
+                        "and season. The crop's growth stage is in the Yield & harvest forecast module (Sentinel-2 imagery, "
+                        "run separately as it takes a few minutes)."))
     est = [a.module_name for a in assessed.values() if not a.is_real]
     if est and "ước lượng" not in low and "estimate" not in low:
         notes.append(tr(f"Lưu ý: số {', '.join(est)} là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
@@ -103,8 +138,11 @@ def _system() -> str:
         "không được suy ra cả mùa từ 7 ngày. Dòng ghi 'ƯỚC LƯỢNG chưa hiệu chỉnh' phải được gọi là ước lượng, "
         "không khẳng định chắc chắn. Dữ liệu không có trong ngữ cảnh KHÔNG có nghĩa là không tồn tại — "
         "không được nói nguồn đó 'chưa có' hay 'không có dữ liệu'; chỉ nói câu trả lời này chưa xét tới. "
-        "Chỉ số cảnh báo là DỰ BÁO 7 ngày, không phải quan sát hiện trạng: kết luận phải nói 'trong 7 ngày tới ít nguy cơ "
-        "ngập', KHÔNG được nói 'hiện tại không ngập' hay 'không có dấu hiệu ngập'.",
+        "Chỉ số cảnh báo là DỰ BÁO 7 ngày, không phải quan sát hiện trạng: kết luận phải gắn với 'trong 7 ngày tới' và "
+        "ĐÚNG mức của dự báo (vd. 'trong 7 ngày tới ít nguy cơ ngập' hoặc 'trong 7 ngày tới nguy cơ ngập cao'), KHÔNG được "
+        "nói 'hiện tại không ngập' hay 'không có dấu hiệu ngập'. Radar đã thấy nước phủ thửa (số đợt lớn hơn 0) thì phải "
+        "nói rõ thửa ĐÃ TỪNG có nước phủ — không được nói 'không đủ để khẳng định đã ngập hay chưa'. Không được kết luận "
+        "đất 'phù hợp' để trồng một loại cây chỉ từ chỉ số hiểm hoạ 7 ngày — việc đó cần thổ nhưỡng, nước tưới, mùa vụ.",
         "You are TerraTwin's land/farming assistant. Answer BRIEFLY and clearly "
         "in English, based ONLY on the data provided. Never invent numbers. If "
         "the data isn't enough to answer, say so plainly. "
@@ -117,8 +155,11 @@ def _system() -> str:
         "long-range forecast and do not extrapolate a whole season from 7 days. A line marked 'uncalibrated ESTIMATE' "
         "must be called an estimate, never stated as certain. Data missing from the context does NOT mean it does not "
         "exist — never say a source is 'not available'; say this answer did not consider it. "
-        "Alert indices are 7-DAY FORECASTS, not observations of the present: conclude 'low flood risk over the next 7 days', "
-        "NEVER 'the plot is currently not flooded' or 'no sign of flooding'.",
+        "Alert indices are 7-DAY FORECASTS, not observations of the present: tie the conclusion to 'the next 7 days' and to "
+        "the forecast's ACTUAL level (e.g. 'low flood risk over the next 7 days' or 'high flood risk over the next 7 days'), "
+        "NEVER 'the plot is currently not flooded' or 'no sign of flooding'. If radar saw water over the plot (more than 0 "
+        "episodes), say clearly the plot HAS had water over it — never 'not enough to say whether it has flooded'. Never "
+        "conclude the land is 'suitable' for a crop from 7-day hazard indices alone — that needs soil, irrigation, season.",
     )
 
 
@@ -360,7 +401,12 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
         text = _plain(text)
         if reqlang.cur_lang() != "en":
             text = _viet_hoa(text)
-        text = _han_che(text, question, assessed)
+        try:
+            from app.services import water_history
+            radar = water_history.summary(loc.lat, loc.lon)      # chỉ đọc bộ nhớ đệm
+        except Exception:
+            radar = None
+        text = _han_che(text, question, assessed, radar if (radar or {}).get("available") else None)
         return CopilotAnswer(answer=text, used_modules=routes,
                              llm=True, knowledge_used=cites)
 

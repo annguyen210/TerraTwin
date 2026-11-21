@@ -116,7 +116,8 @@ def test_cau_hien_trang_bi_thay_han():
          "Vì vậy, hiện tại không có dấu hiệu ngập, nhưng có tiền sử ngập.")
     out = copilot._han_che(s, "manh dat nay co bi ngap khong", {})
     assert "hiện tại không có dấu hiệu ngập" not in out
-    assert "Radar Sentinel-1 đã quan sát nước phủ thửa 5 đợt" in out and "không phải quan sát hiện trạng" in out
+    # chỉ bỏ vế "hiện tại không…", giữ vế "có tiền sử ngập" và dòng radar
+    assert "Radar Sentinel-1 đã quan sát nước phủ thửa 5 đợt" in out and out.endswith("Có tiền sử ngập.")
 
 
 def test_chu_han_duoc_hoi_lai(monkeypatch):
@@ -134,3 +135,82 @@ def test_chu_han_duoc_hoi_lai(monkeypatch):
     monkeypatch.setattr(llm, "complete", lambda *a, **k: next(tra))
     a = copilot.answer("Ruộng lúa này có bị ngập không?", Location(lat=20.9716, lon=106.2834))
     assert not copilot._CJK.search(a.answer) and "5 đợt nước phủ" in a.answer
+
+
+# ---- Kiểm PR #37/#38 trên 9bba22d: câu thay KHÔNG được đảo ngược cảnh báo khi có bão ----
+
+def _lu(level, headline):
+    return SimpleNamespace(is_real=True, module_name="Cảnh báo lũ/ngập sớm", headline=headline, risk_level=level,
+                           recommendation="Chuẩn bị bơm", score=82, status="ok", forecast=[], confidence=None)
+
+
+@pytest.mark.parametrize("lang,s,canh", [
+    ("vi", "Hiện tại thửa không bị ngập, nhưng trong 7 ngày tới có nguy cơ ngập cao do mưa lớn, nên chuẩn bị bơm và gia "
+           "cố bờ.", "Trong 7 ngày tới có nguy cơ ngập cao do mưa lớn, nên chuẩn bị bơm và gia cố bờ."),
+    ("vi", "Hiện tại chưa bị ngập; dự báo 7 ngày tới cảnh báo nguy hiểm, chỉ số 82.",
+           "Dự báo 7 ngày tới cảnh báo nguy hiểm, chỉ số 82."),
+    ("en", "The plot is not currently flooded, but the 7-day forecast shows a HIGH flood risk.",
+           "The 7-day forecast shows a HIGH flood risk."),
+])
+def test_canh_bao_khong_bi_dao_nguoc(lang, s, canh):
+    from app.services import copilot, reqlang
+    from app.services.copilot_route import claims_present_dry
+    reqlang.set_lang(lang)
+    try:
+        out = copilot._han_che(s, "Ruộng này có bị ngập không?", {"flood": _lu("danger", "Nguy hiểm — chỉ số ngập 82")})
+    finally:
+        reqlang.set_lang("vi")
+    assert "ít nguy cơ" not in out and "low flood risk" not in out.lower() and "risk is low" not in out.lower()
+    assert canh in out and not claims_present_dry(out)
+
+
+def test_cau_thay_dung_theo_du_bao_that():
+    from app.services import copilot, reqlang
+    reqlang.set_lang("vi")
+    out = copilot._han_che("Radar thấy 5 đợt. Vì vậy hiện tại chưa có dấu hiệu ngập.", "co bi ngap khong",
+                           {"flood": _lu("danger", "Nguy hiểm — chỉ số ngập 82")})
+    assert "Theo dự báo 7 ngày tới: Nguy hiểm — chỉ số ngập 82" in out and "ít nguy cơ" not in out
+    out = copilot._han_che("Hiện tại không ngập.", "co bi ngap khong", {})
+    assert "TerraTwin không quan sát hiện trạng" in out and "ít nguy cơ" not in out
+
+
+def test_giu_xuong_dong_va_dong_khong_dau_cham():
+    from app.services import copilot, reqlang
+    reqlang.set_lang("vi")
+    s = ("Rủi ro chính:\n- Radar Sentinel-1 thấy 5 đợt nước phủ thửa\n- Hiện tại không bị ngập\n- Hạn: độ ẩm đủ\n\n"
+         "Trong 7 ngày tới cần theo dõi.")
+    out = copilot._han_che(s, "Tóm tắt rủi ro", {"flood": _lu("warning", "Cảnh báo — chỉ số ngập 55")})
+    dong = out.split("\n")
+    assert dong[0] == "Rủi ro chính:" and dong[1] == "- Radar Sentinel-1 thấy 5 đợt nước phủ thửa"
+    assert dong[2] == "- Theo dự báo 7 ngày tới: Cảnh báo — chỉ số ngập 55 — đây là dự báo, không phải quan sát hiện trạng của thửa."
+    assert dong[3] == "- Hạn: độ ẩm đủ" and out.endswith("Trong 7 ngày tới cần theo dõi.")
+
+
+def test_radar_da_thay_nuoc_thi_khong_noi_khong_du():
+    from app.services import copilot, reqlang
+    reqlang.set_lang("vi")
+    s = ("Tuy nhiên dữ liệu hiện tại không đủ để khẳng định ruộng lúa đã ngập hay chưa. Vì radar chỉ ghi nhận 5 đợt, nên "
+         "không thể kết luận hiện tại ruộng đang ngập.")
+    radar = {"available": True, "n_events": 5, "last_event": "2025-10-01"}
+    out = copilot._han_che(s, "Ruộng lúa này có bị ngập không?", {}, radar)
+    assert "không đủ để khẳng định" not in out
+    assert "Thửa đã từng có nước phủ: radar Sentinel-1 thấy 5 đợt, gần nhất 2025-10-01." in out
+    assert "không thể kết luận hiện tại ruộng đang ngập" in out          # câu về HIỆN TRẠNG giữ nguyên
+    assert copilot._han_che(s, "q", {}, {"available": True, "n_events": 0}) == s
+
+
+def test_trong_lua_khong_ket_luan_phu_hop():
+    from app.services import copilot, reqlang
+    from app.services.copilot_route import asks_crop
+    reqlang.set_lang("vi")
+    out = copilot._han_che("Thửa đất này phù hợp để trồng lúa.", "Đất này trồng lúa được không?", {})
+    assert "không cho biết đất có hợp với cây trồng" in out
+    assert asks_crop("Can this land grow rice?") and not asks_crop("Can I build a solar plant here?")
+    assert not asks_crop("Trong 7 ngày tới có ngập không?")
+    s = copilot._system()
+    assert "nguy cơ ngập cao" in s and "ĐÃ TỪNG có nước phủ" in s and "'phù hợp' để trồng" in s
+
+
+def test_thien_tai_khong_phai_hien_tai():
+    from app.services.copilot_route import claims_present_dry
+    assert not claims_present_dry("Thiên tai không ngập được vùng cao này.")
