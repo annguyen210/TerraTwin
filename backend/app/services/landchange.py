@@ -125,7 +125,15 @@ def detect(lat: float, lon: float) -> dict:
     """So nhóm lớp phủ HIỆN NAY (mô hình trên ảnh mới) với WorldCover 2021."""
     st = landcover.status()
     if not st.get("available"):
-        return {"available": False, "reason": tr(
+        # P1-4: chỉ sang đường THAY THẾ đã đạt ngưỡng (AlphaEarth) thay vì để người gọi dừng ở "chưa bật".
+        alt = st.get("alternative") or {}
+        return {"available": False, "state": st.get("state", "not_enabled"),
+                "use_instead": alt.get("endpoint"), "use_instead_note": (tr(
+                    f"Dùng {alt['endpoint']} — loại đất AlphaEarth, đạt mIoU {alt.get('miou_test')} trên 4 tỉnh giữ lại "
+                    "(tham khảo, không vào hồ sơ ký).",
+                    f"Use {alt['endpoint']} — AlphaEarth land type, mIoU {alt.get('miou_test')} on 4 held-out provinces "
+                    "(reference only, not in signed dossiers).") if alt.get("endpoint") else None),
+                "reason": tr(
             "Mô hình học sâu lớp phủ chưa bật (chưa huấn luyện, hoặc điểm trên tập "
             "giữ lại dưới ngưỡng).", "The land-cover deep-learning model is not "
             "enabled (not trained yet, or its held-out score is below the bar)."),

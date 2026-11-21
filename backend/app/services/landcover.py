@@ -107,6 +107,13 @@ def status() -> dict:
                                   "endpoint": "/api/landcover/change", "date": aef.get("date")}
         if runs:
             last = runs[-1]
+            # Kiểm A–Z 21/11/2026, P1-4: "chưa có data/landcover.onnx" đọc như QUÊN chép tệp — thực ra mô hình đã huấn
+            # luyện và TRƯỢT ngưỡng đặt trước, nên CỐ Ý không đưa lên máy chủ. Nói đúng điều đó.
+            if last.get("miou_test") is not None and float(last["miou_test"]) < MIN_MIOU:
+                out["missing"] = [m for m in out["missing"] if "landcover.onnx" not in m] + [
+                    f"mô hình đã huấn luyện nhưng trượt ngưỡng (mIoU {last['miou_test']} < {MIN_MIOU}) — cố ý không đưa "
+                    "lên máy chủ"]
+                out["state"] = "trained_below_threshold"
             out.update({
                 "message": (f"Đã huấn luyện thật ngày {last.get('date')}: mIoU trên tỉnh mô "
                             f"hình chưa từng thấy = {last.get('miou_test')} — dưới ngưỡng "
