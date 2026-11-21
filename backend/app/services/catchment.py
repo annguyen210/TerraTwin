@@ -66,6 +66,16 @@ def _fan(lat: float, lon: float):
     return pts
 
 
+def rain7_thresholds(lat: float, lon: float) -> tuple[float, float] | None:
+    """(P90, P97) tổng mưa 7 ngày tại chỗ, 10 năm ERA5. None nếu không tải được khí hậu nền."""
+    from app.services import calibration
+    dist = calibration.climatology("rain7", lat, lon)
+    if not dist:
+        return None
+    q = lambda f: dist[min(len(dist) - 1, int(f * (len(dist) - 1)))]   # noqa: E731
+    return round(q(0.90), 1), round(q(0.97), 1)
+
+
 def upstream(lat: float, lon: float) -> dict | None:
     """Mưa dự báo ở phần đất cao hơn quanh thửa, cân theo độ dốc về phía thửa.
 
@@ -152,11 +162,19 @@ def upstream(lat: float, lon: float) -> dict | None:
     local_mm = sum(r["precip"] for r in local) if local else None
     extra = (weighted - local_mm) if local_mm is not None else None
 
-    if weighted >= 200 and (extra is None or extra > 20):
+    # Kiểm A–Z 21/11/2026, P1-1: ngưỡng CỐ ĐỊNH 200/100 mm báo NGUY HIỂM ở Quảng Điền (Huế) với 210 mm thượng nguồn,
+    # trong khi mô-đun Lũ (đã hiệu chuẩn) báo "ít nguy cơ" — ở Huế 7 ngày mưa ≥ 200 mm xảy ra 4,2% số tuần cả năm, 12,6%
+    # tháng 10–12 (ERA5 2015–2024, đo 21/11/2026). Nay ngưỡng theo khí hậu 10 năm TẠI CHỖ, cùng thang với mô-đun Lũ:
+    # cảnh báo ≥ P90, nguy hiểm ≥ P97 của tổng mưa 7 ngày — không thấp hơn 100/200 mm. Không tải được khí hậu nền thì
+    # giữ ngưỡng tuyệt đối và ghi rõ.
+    th = rain7_thresholds(lat, lon)
+    warn_mm, danger_mm = (max(100.0, th[0]), max(200.0, th[1])) if th else (100.0, 200.0)
+
+    if weighted >= danger_mm and (extra is None or extra > 20):
         level = "danger"
         verdict = tr("thượng nguồn đang mưa rất lớn và nước sẽ dồn về đây",
                      "upstream is getting very heavy rain and water will flow down here")
-    elif weighted >= 100 and (extra is None or extra > 10):
+    elif weighted >= warn_mm and (extra is None or extra > 10):
         level = "warning"
         verdict = tr("thượng nguồn mưa đáng kể, cần tính tới nước từ trên xuống",
                      "significant rain upstream — factor in water coming down")
@@ -184,6 +202,9 @@ def upstream(lat: float, lon: float) -> dict | None:
         "extra_vs_local_mm": round(extra, 1) if extra is not None else None,
         "steepest": {"km": top["km"], "drop_m": top["drop_m"],
                      "rain_7d_mm": top.get("rain_7d_mm")},
+        "calibrated": th is not None,
+        "warn_mm": round(warn_mm, 1),
+        "danger_mm": round(danger_mm, 1),
         "method": tr(
             f"Lấy mẫu {BEARINGS} hướng × {len(RADII_KM)} vòng "
             f"({', '.join(f'{r:.0f}' for r in RADII_KM)} km), giữ lại điểm cao "
@@ -192,7 +213,13 @@ def upstream(lat: float, lon: float) -> dict | None:
             f"Samples {BEARINGS} bearings × {len(RADII_KM)} rings "
             f"({', '.join(f'{r:.0f}' for r in RADII_KM)} km), keeps points at "
             f"least {MIN_DROP_M:.0f} m higher than the plot, weighted by slope "
-            "toward the plot (meters of drop per km)."),
+            "toward the plot (meters of drop per km).")
+        + (tr(f" Ngưỡng theo khí hậu 10 năm tại chỗ (ERA5): cảnh báo từ {warn_mm:.0f} mm, nguy hiểm từ {danger_mm:.0f} mm "
+              "mưa 7 ngày (P90/P97, không dưới 100/200 mm).",
+              f" Thresholds from this spot's 10-year climate (ERA5): warning from {warn_mm:.0f} mm, danger from "
+              f"{danger_mm:.0f} mm of 7-day rain (P90/P97, never below 100/200 mm).") if th else
+           tr(" Chưa tải được khí hậu nền — dùng ngưỡng tuyệt đối 100/200 mm mưa 7 ngày.",
+              " Baseline climate unavailable — using absolute thresholds of 100/200 mm of 7-day rain.")),
         "caveat": tr(
             "KHÔNG phải lưu vực được phân định đúng cách — là nan quạt lấy mẫu "
             "theo hướng dốc lên, giả định nước chảy thẳng xuống dốc. Bỏ qua "

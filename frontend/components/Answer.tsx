@@ -518,8 +518,8 @@ export default function Answer({
           <div>
             <b>{t("📶 Đang tiết kiệm dữ liệu", "📶 Data saver is on")}</b>
             <p>
-              {t(`${dangChay.length} mục cần ảnh vệ tinh (nặng nhất trong lượt quét) chưa tự tải — bật tiết kiệm dữ liệu thì TerraTwin chờ bạn chủ động bấm.`,
-                 `${dangChay.length} items need satellite imagery (the heaviest part of the scan) and haven't auto-loaded — with data saver on, TerraTwin waits for you to tap.`)}
+              {t(`${dangChay.length} mục nặng (ảnh vệ tinh hoặc nhiều điểm quanh thửa — phần nặng nhất của lượt quét) chưa tự tải — bật tiết kiệm dữ liệu thì TerraTwin chờ bạn chủ động bấm.`,
+                 `${dangChay.length} heavy items (satellite imagery or many points around the plot — the heaviest part of the scan) haven't auto-loaded — with data saver on, TerraTwin waits for you to tap.`)}
             </p>
             <button onClick={loadDeepNow} disabled={deepLoading}>
               {deepLoading ? t("Đang tải…", "Loading…") : t("Tải chi tiết đầy đủ", "Load full detail")}
@@ -533,8 +533,8 @@ export default function Answer({
           <div>
             <b>{t(`Đang kiểm tra thêm ${dangChay.length} mục`, `Still checking ${dangChay.length} more`)}</b>
             <p>
-              {t("Những mục này cần ảnh vệ tinh nên lâu hơn hẳn — chúng đang chạy nền, không phải thiếu dữ liệu. Mở ",
-                 "These need satellite imagery so they take longer — running in the background, not missing data. Open ")}
+              {t("Những mục này cần ảnh vệ tinh hoặc lấy mẫu nhiều điểm quanh thửa nên lâu hơn hẳn — chúng đang chạy nền, không phải thiếu dữ liệu. Mở ",
+                 "These need satellite imagery or sampling many points around the plot, so they take longer — running in the background, not missing data. Open ")}
               <i>{dangChay.slice(0, 3).map((m) => m.name.toLowerCase()).join(", ")}</i>
               {dangChay.length > 3 ? "…" : ""} {t("ở cột trái để xem từng cái.", "in the left column to see each.")}
             </p>

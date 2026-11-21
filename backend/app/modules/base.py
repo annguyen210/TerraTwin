@@ -37,6 +37,10 @@ class TwinModule(ABC):
     # điền — thay vì bắt cả bảng chờ tới hạn chót chung.
     slow_source: bool = False
 
+    # VÌ SAO mô-đun nặng chạy lâu — nhãn "Đang kiểm tra — mục này … nên lâu hơn" (kiểm A–Z 21/11/2026, P1-1: lũ thượng
+    # nguồn và vùng nguyên liệu từng ghi "cần ảnh vệ tinh" dù chỉ dùng cao độ + mưa / khí hậu).
+    slow_because: tuple[str, str] = ("cần ảnh vệ tinh", "needs satellite imagery")
+
     # Mô-đun này có mô tả một MỐI ĐE DOẠ không?
     #
     # `risk_level` chỉ là "mức trên thang của chính mô-đun đó". Với hiểm họa,

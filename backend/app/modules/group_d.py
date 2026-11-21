@@ -421,6 +421,7 @@ class SupplyChainModule(TwinModule):
     # chuẩn. Chạy song song rồi vẫn ~10 giây lượt đầu, nên không nhét vào lượt
     # quét toàn cảnh.
     heavy = True
+    slow_because = ("tính khí hậu 10 năm ở 25 điểm quanh vùng thu mua", "computes 10-year climate at 25 points across the sourcing area")
     data_sources = ["Open-Meteo: dự báo 7 ngày trên lưới vùng thu mua",
                     "Open-Meteo ERA5: lịch sử cả vụ cho hồ sơ truy xuất",
                     "OpenStreetMap: đường trục & chợ đầu mối"]

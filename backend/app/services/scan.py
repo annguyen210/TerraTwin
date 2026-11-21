@@ -107,8 +107,8 @@ def scan(loc: Location, include_heavy: bool = False,
             headline=(reqlang.tr("Đang kiểm tra — nguồn dữ liệu đang trả lời chậm",
                                  "Still checking — the data source is responding slowly")
                       if info.id in late_ids else
-                      reqlang.tr("Đang kiểm tra — mục này cần ảnh vệ tinh nên lâu hơn",
-                                 "Still checking — this needs satellite imagery, so it takes longer")),
+                      reqlang.tr(f"Đang kiểm tra — mục này {get_module(info.id).slow_because[0]} nên lâu hơn",
+                                 f"Still checking — this {get_module(info.id).slow_because[1]}, so it takes longer")),
             recommendation="", threat=info.threat,
         ))
 
@@ -129,6 +129,7 @@ def scan(loc: Location, include_heavy: bool = False,
     # vừa bỏ qua); điểm ghi rõ "chấm từ x/5 hiểm hoạ", lượt sâu chấm đủ.
     ts = terrascore.compute(loc, assessments=assessments,   # tái dùng, không assess lại
                             reassess=deadline is None)
+    ts = terrascore.with_other_threats(ts, alerts)
     if ts.grade == "—" and late_ids & set(terrascore._HAZARDS):
         ts.summary = reqlang.tr("Đang chờ nguồn thời tiết trả lời — điểm sẽ có khi lượt kiểm tra đầy đủ xong.",
                                 "Waiting for weather sources — the score appears when the full check finishes.")
