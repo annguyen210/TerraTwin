@@ -78,3 +78,31 @@ def test_loi_dan_7_ngay_va_khong_noi_chua_co():
     reqlang.set_lang("vi")
     s = copilot._system()
     assert "7 NGÀY TỚI" in s and "không được nói nguồn đó 'chưa có'" in s
+
+
+def test_lua_khong_phai_lua_chay():
+    """21/11/2026: "lúa" và "lửa" bỏ dấu đều là "lua" — câu về lúa không được kéo theo mô-đun cháy."""
+    assert "wildfire" not in route("Đất này trồng lúa được không?")
+    r = route("Ruộng lúa này có bị ngập không?")
+    assert "flood" in r and "wildfire" not in r
+    assert "wildfire" in route("Khu này có nguy cơ cháy rừng không?")
+
+
+def test_cau_ket_hien_trang_duoc_ghi_chu():
+    from app.services.copilot_route import claims_present_dry
+    assert claims_present_dry("Radar thấy 5 đợt. Vì vậy hiện tại đất này không có dấu hiệu ngập.")
+    assert claims_present_dry("Radar thấy 5 đợt. Hiện tại ruộng lúa không bị ngập.")
+    assert claims_present_dry("The plot is currently not flooded.")
+    assert not claims_present_dry("Trong 7 ngày tới ít nguy cơ ngập; radar đã thấy nước phủ thửa 5 đợt.")
+    assert not claims_present_dry("Hiện tại radar ghi nhận 5 đợt ngập.")
+
+
+def test_loi_dan_cau_ket_7_ngay():
+    from app.services import copilot, reqlang
+    reqlang.set_lang("vi")
+    assert "trong 7 ngày tới ít nguy cơ" in copilot._system() and "hiện tại không ngập" in copilot._system()
+    reqlang.set_lang("en")
+    try:
+        assert "next 7 days" in copilot._system()
+    finally:
+        reqlang.set_lang("vi")

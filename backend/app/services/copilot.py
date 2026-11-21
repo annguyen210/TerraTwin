@@ -52,9 +52,12 @@ def _han_che(text: str, question: str, assessed: dict) -> str:
     """Lớp chặn bằng code (kiểm 21/11/2026): "Will this land get salty in the dry season?" → LLM khẳng định "not expected
     to become salty in the upcoming dry season" từ một số mặn is_real=False (ước lượng chưa hiệu chỉnh, chỉ 7 ngày).
     Có mô-đun ước lượng mà câu trả lời không nói "ước lượng"/"estimate", hoặc câu hỏi về mùa/tháng/năm tới → tự thêm ghi chú."""
-    from app.services.copilot_route import asks_long_range
+    from app.services.copilot_route import asks_long_range, claims_present_dry
     low = text.lower()
     notes = []
+    if claims_present_dry(text):
+        notes.append(tr("Ghi chú: mức 'ít nguy cơ' là dự báo cho 7 ngày tới, không phải quan sát hiện trạng của thửa.",
+                        "Note: 'low risk' is the forecast for the next 7 days, not an observation of the plot right now."))
     est = [a.module_name for a in assessed.values() if not a.is_real]
     if est and "ước lượng" not in low and "estimate" not in low:
         notes.append(tr(f"Lưu ý: số {', '.join(est)} là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
@@ -89,7 +92,9 @@ def _system() -> str:
         "Dự báo chỉ có cho 7 NGÀY TỚI: hỏi về mùa, tháng hay năm tới thì nói rõ TerraTwin không có dự báo dài hạn, "
         "không được suy ra cả mùa từ 7 ngày. Dòng ghi 'ƯỚC LƯỢNG chưa hiệu chỉnh' phải được gọi là ước lượng, "
         "không khẳng định chắc chắn. Dữ liệu không có trong ngữ cảnh KHÔNG có nghĩa là không tồn tại — "
-        "không được nói nguồn đó 'chưa có' hay 'không có dữ liệu'; chỉ nói câu trả lời này chưa xét tới.",
+        "không được nói nguồn đó 'chưa có' hay 'không có dữ liệu'; chỉ nói câu trả lời này chưa xét tới. "
+        "Chỉ số cảnh báo là DỰ BÁO 7 ngày, không phải quan sát hiện trạng: kết luận phải nói 'trong 7 ngày tới ít nguy cơ "
+        "ngập', KHÔNG được nói 'hiện tại không ngập' hay 'không có dấu hiệu ngập'.",
         "You are TerraTwin's land/farming assistant. Answer BRIEFLY and clearly "
         "in English, based ONLY on the data provided. Never invent numbers. If "
         "the data isn't enough to answer, say so plainly. "
@@ -101,7 +106,9 @@ def _system() -> str:
         "Forecasts cover the NEXT 7 DAYS only: if asked about the season, coming months or year, say TerraTwin has no "
         "long-range forecast and do not extrapolate a whole season from 7 days. A line marked 'uncalibrated ESTIMATE' "
         "must be called an estimate, never stated as certain. Data missing from the context does NOT mean it does not "
-        "exist — never say a source is 'not available'; say this answer did not consider it.",
+        "exist — never say a source is 'not available'; say this answer did not consider it. "
+        "Alert indices are 7-DAY FORECASTS, not observations of the present: conclude 'low flood risk over the next 7 days', "
+        "NEVER 'the plot is currently not flooded' or 'no sign of flooding'.",
     )
 
 
