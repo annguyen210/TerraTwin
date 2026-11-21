@@ -47,6 +47,15 @@ const RISK_COLOR: Record<string, string> = {
   danger: "#C2412E", warning: "#B07A2E", safe: "#2E9E67",
 };
 
+// Giờ chấm hạng thửa (P1-6). Máy chủ trả giờ UTC không kèm múi giờ → thêm "Z" để trình duyệt không hiểu nhầm là giờ máy.
+function scoredWhen(at: string | null | undefined, lang: string): string {
+  if (!at) return lang === "en" ? "scored when saved (time unknown)" : "chấm lúc lưu (không rõ giờ)";
+  const d = new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(at) ? at : at + "Z");
+  if (Number.isNaN(d.getTime())) return "";
+  const s = d.toLocaleString(lang === "en" ? "en-GB" : "vi-VN", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  return lang === "en" ? `scored ${s}` : `chấm lúc ${s}`;
+}
+
 export default function MyLand({
   user,
   onOpen,
@@ -371,12 +380,14 @@ export default function MyLand({
                 </span>
                 <span className="ml-plot-info">
                   <span className="ml-plot-name">{p.name}</span>
-                  {p.grade && (
-                    <span className="ml-plot-meta">
-                      {t(`Hạng ${p.grade}${p.score != null ? ` (${p.score}/100)` : ""} — hiểm hoạ 7 ngày tới, không phải lịch sử ngập`,
-                         `Grade ${p.grade}${p.score != null ? ` (${p.score}/100)` : ""} — next-7-day hazards, not flood history`)}
-                    </span>
-                  )}
+                  {/* P1-6 (kiểm A–Z 21/11/2026): hạng là số CHẤM LÚC NÀO — trước đây số lúc lưu (có khi đã 2 tuần) ghi
+                      như số mới. Rà soát nền chấm lại; chưa có điểm thì nói "chưa chấm". */}
+                  <span className="ml-plot-meta">
+                    {p.grade && p.grade !== "—"
+                      ? t(`Hạng ${p.grade}${p.score != null ? ` (${p.score}/100)` : ""} — hiểm hoạ 7 ngày tới, không phải lịch sử ngập · ${scoredWhen(p.scored_at, "vi")}`,
+                          `Grade ${p.grade}${p.score != null ? ` (${p.score}/100)` : ""} — next-7-day hazards, not flood history · ${scoredWhen(p.scored_at, "en")}`)
+                      : t("Hạng: chưa chấm — lượt rà soát nền kế tiếp sẽ chấm", "Grade: not scored yet — the next background check will score it")}
+                  </span>
                   {floods && (
                     <span className={`ml-plot-meta fc-line${(floods.get(floodKey(p.lat, p.lon))?.n_events ?? 0) > 0 ? " has" : ""}`}>
                       🌊 {floodLine(floods.get(floodKey(p.lat, p.lon)), t)}

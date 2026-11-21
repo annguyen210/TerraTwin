@@ -92,6 +92,7 @@ class PlotOut(BaseModel):
     area_ha: float | None
     score: int | None
     grade: str | None
+    scored_at: datetime | None = None
     created_at: datetime
 
 
@@ -128,9 +129,13 @@ def _out(u: User) -> UserOut:
                    totp_enabled=bool(getattr(u, "totp_enabled", 0)))
 
 
+def _now_utc() -> datetime:
+    return datetime.now(timezone.utc)
+
+
 def _plot_out(p: Plot) -> PlotOut:
     return PlotOut(id=p.id, name=p.name, lat=p.lat, lon=p.lon, area_ha=p.area_ha,
-                   score=p.score, grade=p.grade, created_at=p.created_at)
+                   score=p.score, grade=p.grade, scored_at=p.scored_at, created_at=p.created_at)
 
 
 def _check_password_strength(pw: str) -> None:
@@ -444,11 +449,13 @@ def create_plot(body: PlotIn, user: User = Depends(auth.current_user),
         existing.area_ha = loc.area_ha
         existing.score = body.score
         existing.grade = body.grade
+        existing.scored_at = _now_utc() if body.score is not None else None
         db.commit()
         return _plot_out(existing)
 
     p = Plot(user_id=user.id, name=body.name, lat=loc.lat, lon=loc.lon,
-             area_ha=loc.area_ha, score=body.score, grade=body.grade)
+             area_ha=loc.area_ha, score=body.score, grade=body.grade,
+             scored_at=_now_utc() if body.score is not None else None)
     db.add(p)
     db.commit()
     db.refresh(p)

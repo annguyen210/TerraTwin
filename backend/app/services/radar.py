@@ -98,6 +98,12 @@ def sweep_user(user_id: int, db: Session, on_progress=None) -> dict:
             # Một thửa hỏng (mất mạng, nguồn dữ liệu lỗi) không được làm hỏng
             # cả lượt quét của những thửa còn lại.
             continue
+        # P1-6 (kiểm A–Z 21/11/2026): hạng trong danh sách thửa là số CHẤM LẠI ở lượt rà soát này, kèm giờ chấm — trước
+        # đây chỉ ghi một lần lúc lưu (2 thửa còn hạng ngày 08/11, 8/10 thửa luôn "—"). Chưa chấm được thì giữ số cũ
+        # cùng giờ cũ của nó, không xoá.
+        if result.terrascore.score is not None:
+            p.score, p.grade = result.terrascore.score, result.terrascore.grade
+            p.scored_at = datetime.now(timezone.utc)
         fsrc = _forecast_source(p.lat, p.lon) if result.alerts else None
         plot_new: list[Alert] = []
         for m in result.alerts:            # scan.alerts đã lọc chỉ dữ liệu thật

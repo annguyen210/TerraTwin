@@ -459,6 +459,8 @@ export type ServerPlot = {
   area_ha: number | null;
   score: number | null;
   grade: string | null;
+  // P1-6: giờ chấm hạng (rà soát nền chấm lại); null = chưa chấm
+  scored_at?: string | null;
   created_at: string;
 };
 
