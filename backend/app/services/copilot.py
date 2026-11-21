@@ -44,10 +44,17 @@ _EN_NOI = {"additionally": "ngoài ra", "in addition": "ngoài ra", "however": "
            "moreover": "hơn nữa", "furthermore": "hơn nữa", "overall": "nhìn chung", "meanwhile": "trong khi đó"}
 
 
+# Chữ LLM hay viết sai (kiểm PR #40 trên bản chính thức: "thổ hữu" ở 2/2 câu trồng lúa).
+_SAI_CHU = {"thổ hữu": "thổ nhưỡng"}
+
+
 def _viet_hoa(text: str) -> str:
     import re
     for en, vi in _EN_NOI.items():
         text = re.sub(r"(?i)\b" + re.escape(en) + r"\b", lambda m, vi=vi: vi.capitalize() if m.group(0)[0].isupper() else vi, text)
+    for sai, dung in _SAI_CHU.items():
+        text = re.sub(r"(?i)\b" + re.escape(sai) + r"\b",
+                      lambda m, d=dung: d.capitalize() if m.group(0)[0].isupper() else d, text)
     return text
 
 
@@ -74,7 +81,7 @@ def _han_che(text: str, question: str, assessed: dict, radar: dict | None = None
     Có mô-đun ước lượng mà câu trả lời không nói "ước lượng"/"estimate", hoặc câu hỏi về mùa/tháng/năm tới → tự thêm ghi chú."""
     import re
     from app.services.copilot_route import (_words, asks_crop, asks_long_range, claims_present_dry, doubts_past_water,
-                                            soften_overclaim, strip_present_dry)
+                                            present_to_forecast, soften_overclaim, strip_present_dry)
     # Kiểm PR #37/#38: lời dặn không đủ — LLM vẫn kết "hiện tại không có dấu hiệu ngập". Bỏ ĐÚNG vế đó, giữ vế cảnh báo;
     # không còn gì thì thay bằng câu dự báo dựng từ assessed["flood"]. Tách theo câu VÀ theo xuống dòng, GIỮ nguyên dấu
     # phân cách — trước đây " ".join làm gạch đầu dòng dính thành một đoạn, và dòng không có dấu chấm bị gộp rồi bị thay.
@@ -93,12 +100,14 @@ def _han_che(text: str, question: str, assessed: dict, radar: dict | None = None
                          + (f", gần nhất {last}" if last else "") + ". ",
                          f"The plot has had water over it before: Sentinel-1 radar saw {n_radar} episode(s)"
                          + (f", latest {last}" if last else "") + ". ") + c
+        phan[i] = present_to_forecast(phan[i])
         if phan[i] != c:
             log.info("trợ lý: sửa câu | gốc=%r | sau=%r", c, phan[i])
     text = "".join(phan)
-    lu = assessed.get("flood")
-    if lu is not None and str(getattr(lu, "risk_level", "")) == "safe":
-        moi = soften_overclaim(text)
+    an = [h for h in ("flood", "salinity", "drought")
+          if str(getattr(assessed.get(h), "risk_level", "")) == "safe"]
+    if an:
+        moi = soften_overclaim(text, an)
         if moi != text:
             log.info("trợ lý: hạ câu nói quá | gốc=%r | sau=%r", text, moi)
             text = moi

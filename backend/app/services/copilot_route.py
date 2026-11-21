@@ -132,21 +132,55 @@ def doubts_past_water(sentence: str) -> bool:
             and not _co(w, _KHONG_PHAI_QUA_KHU))
 
 
-_NOI_QUA = re.compile(r"\b(không có|chẳng có) (nguy cơ|rủi ro) (bị )?ngập\b(?!\s*(?:cao|lớn|nghiêm trọng|nặng))", re.I)
-_NOI_QUA_EN = re.compile(r"\bno (flood risk|risk of flood(?:ing)?)\b(?!\s*(?:is\s+)?(?:high|severe|major))", re.I)
+# Mỗi hiểm hoạ: cụm tiếng Việt / cụm tiếng Anh (sau "no … risk" hoặc "no risk of …").
+_HIEM = {
+    "flood": ("ngập", "flood(?:ing)?"),
+    "salinity": ("xâm nhập mặn|nhiễm mặn|mặn", "salinity(?: intrusion)?|salt(?:water)?(?: intrusion)?"),
+    "drought": ("khô hạn|hạn hán|thiếu nước|hạn", "drought"),
+}
+_TRU = r"(?!\s*(?:cao|lớn|nghiêm trọng|nặng|đáng|high|severe|major|significant|is\s+high))"
 
 
-def soften_overclaim(text: str) -> str:
-    """Dự báo "ít nguy cơ" mà câu trả lời nâng thành "không có nguy cơ ngập" (kiểm PR #39: "…ruộng lúa không có nguy cơ
-    ngập", chỉ số 7.9) → đổi về đúng chữ của dự báo. "không có nguy cơ ngập CAO" là đúng, giữ nguyên."""
-    def vi(m):
-        s = f"ít {m.group(2)} {m.group(3) or ''}ngập"
-        return s[:1].upper() + s[1:] if m.group(1)[:1].isupper() else s
+def soften_overclaim(text: str, hazards=("flood",)) -> str:
+    """Dự báo "ít nguy cơ" mà câu trả lời nâng thành "không có nguy cơ …" (kiểm PR #39: "…ruộng lúa không có nguy cơ
+    ngập", chỉ số 7.9; PR #40: "không có nguy cơ xâm nhập mặn" từ số mặn ước lượng) → đổi về đúng chữ của dự báo.
+    "không có nguy cơ ngập CAO" là đúng, giữ nguyên. Chỉ áp cho các hiểm hoạ có mức "safe" truyền vào."""
+    def hoa(goc, s):
+        return s[:1].upper() + s[1:] if goc[:1].isupper() else s
 
-    def en(m):
-        s = "low flood risk" if m.group(1).lower() == "flood risk" else "a low risk of flooding"
-        return s[:1].upper() + s[1:] if m.group(0)[:1].isupper() else s
-    return _NOI_QUA_EN.sub(en, _NOI_QUA.sub(vi, text))
+    for h in hazards:
+        vi_h, en_h = _HIEM[h]
+        text = re.sub(rf"\b(không có|chẳng có) (nguy cơ|rủi ro) (bị )?({vi_h})\b{_TRU}",
+                      lambda m: hoa(m.group(1), f"ít {m.group(2)} {m.group(3) or ''}{m.group(4)}"), text, flags=re.I)
+        text = re.sub(rf"\bno (risk of )({en_h})\b{_TRU}",
+                      lambda m: hoa(m.group(0), f"a low risk of {m.group(2)}"), text, flags=re.I)
+        text = re.sub(rf"\bno ({en_h}) risk\b{_TRU}",
+                      lambda m: hoa(m.group(0), f"low {m.group(1)} risk"), text, flags=re.I)
+    return text
+
+
+# "Vì vậy, hiện tại ít nguy cơ ngập" — mức nguy cơ là DỰ BÁO 7 ngày, không phải hiện trạng. Chỉ đổi "hiện tại" đứng ĐẦU
+# vế (đầu câu, sau dấu phẩy, sau "vì vậy/do đó/nên") — "dữ liệu hiện tại" (= dữ liệu đang có) giữ nguyên.
+_HIEM_VI = r"(?:bị\s+)?(?:ngập|lũ|xâm nhập mặn|nhiễm mặn|mặn|khô hạn|hạn|thiếu nước|sạt lở|cháy)"
+_HIEN_TAI_DU_BAO = re.compile(
+    r"(^|[,;:]\s*|\b(?:vì vậy|do đó|như vậy|vậy|nên)\s+)(hiện tại|hiện nay)(,?\s+)"
+    rf"(?=[^.!?\n]{{0,40}}?(?:\b(?:ít|không có|chưa có)\s+(?:nguy cơ|rủi ro)\s+{_HIEM_VI}"
+    rf"|\b(?:nguy cơ|rủi ro)\s+{_HIEM_VI}\s+(?:là\s+)?(?:thấp|ít)\b))", re.I)
+
+
+def present_to_forecast(sentence: str) -> str:
+    """Trong câu nói MỨC NGUY CƠ, đổi "hiện tại" đầu vế thành "trong 7 ngày tới" (câu đã có "7 ngày" thì bỏ hẳn chữ đó)."""
+    co_7 = "7 ngày" in sentence or "7 ngay" in fold(sentence)
+
+    def doi(m):
+        if co_7:
+            return m.group(1)
+        moi = "trong 7 ngày tới"
+        if m.group(2)[:1].isupper():
+            moi = moi.capitalize()
+        return m.group(1) + moi + m.group(3)
+    out = _HIEN_TAI_DU_BAO.sub(doi, sentence)
+    return out[:1].upper() + out[1:] if out != sentence and sentence[:1].isupper() else out
 
 
 _CAY = ("trong lua", "trong cay", "trong rau", "trong ngo", "trong ca phe", "trong duoc", "cay trong", "nang suat",
