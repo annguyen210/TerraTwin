@@ -49,6 +49,12 @@ def _runoff_mm(rain_mm: float, cn: float) -> float:
     return (rain_mm - ia) ** 2 / (rain_mm - ia + s)
 
 
+
+# P1-7 (kiểm A–Z 21/11/2026): mô-đun đô thị chỉ áp dụng từ 15% bề mặt xây dựng trong 1 km; chỉ cảnh báo khi nước chảy tràn
+# TĂNG THÊM (so với khi chưa đô thị hoá) từ 20 mm trở lên.
+URBAN_MIN_BUILT = 0.15
+URBAN_MIN_EXTRA_MM = 20.0
+
 class UrbanModule(TwinModule):
     """Đô thị hoá làm ngập nặng thêm bao nhiêu — đo được, không phán chung chung.
 
@@ -100,6 +106,21 @@ class UrbanModule(TwinModule):
                              "The Overpass API isn't responding (public service, "
                              "possibly overloaded). Try again in a few minutes."))
 
+        # Kiểm A–Z 21/11/2026, P1-7: ruộng lúa Quảng Điền (bê tông 9,3%), Trần Văn Thời (13,1%) nhận cảnh báo "ngập úng đô
+        # thị". Dưới URBAN_MIN_BUILT thì không phải đô thị — câu trả lời đúng là "không áp dụng", không phải một mức rủi ro.
+        if env["built_fraction"] < URBAN_MIN_BUILT:
+            return Assessment(
+                module_id=self.id, module_name=self.disp_name(), location=loc,
+                status="out_of_scope", risk_level="unknown", is_real=False,
+                headline=tr(f"Không áp dụng — vùng chưa đô thị hoá (bê tông {env['built_pct']}% trong 1 km)",
+                            f"Not applicable — not an urban area ({env['built_pct']}% built-up within 1 km)"),
+                detail=tr(f"Mô-đun này đo nước mưa chảy tràn tăng thêm do bê tông hoá. Dưới {URBAN_MIN_BUILT * 100:.0f}% bề mặt "
+                          "xây dựng thì phần chảy tràn tăng thêm không đáng kể; ngập ở đây do mưa và địa hình — xem mô-đun Lũ.",
+                          f"This module measures extra stormwater runoff caused by built-up surfaces. Below "
+                          f"{URBAN_MIN_BUILT * 100:.0f}% built-up the extra runoff is negligible; flooding here comes from rain and "
+                          "terrain — see the Flood module."),
+                recommendation="", data_sources=self.disp_data_sources())
+
         precip, has_rain = ds.forecast_precip_7d_total(loc.lat, loc.lon)
         rain = precip if has_rain else 0.0
         elev = ds.elevation_proxy(loc.lat, loc.lon)
@@ -119,6 +140,10 @@ class UrbanModule(TwinModule):
         score += max(0.0, 25.0 - elev * 1.5)     # nền thấp, thoát chậm
         score += min(30.0, extra * 1.2)          # phần chảy tràn tăng thêm
         lvl = "danger" if score >= 70 else "warning" if score >= 40 else "safe"
+        # Ngưỡng ĐỘ LỚN (P1-7): Đông Anh "chảy tràn 0 mm so với 0 mm", Phong Điền 2 mm, Bảo Lộc 11 mm — vẫn cảnh báo vì bê tông
+        # + nền thấp. Phần chảy tràn TĂNG THÊM dưới URBAN_MIN_EXTRA_MM thì không có gì để cảnh báo.
+        if extra < URBAN_MIN_EXTRA_MM:
+            lvl = "safe"
 
         if wc is not None:
             green_pct = round(wc["group_pct"].get("tree", 0.0) + wc["group_pct"].get("crop", 0.0), 1)

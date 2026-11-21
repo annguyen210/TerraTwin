@@ -176,7 +176,9 @@ export default function MyLand({
           <b><ShieldCheck size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" /> {t(`TerraTwin đang canh ${plots.length} thửa của bạn`, `TerraTwin is watching ${plots.length} of your plots`)}</b>
           <p className="ml-brief">
             <Sun size={16} strokeWidth={1.9} aria-hidden="true" className="ui-ic" />{" "}
-            {new Date().toLocaleDateString(dateFmt, { weekday: "long", day: "numeric", month: "numeric" })}
+            {/* P1-7: chỉ viết hoa CHỮ ĐẦU của ngày — trước đây .ml-brief dùng text-transform:capitalize nên "50 cảnh báo mới
+                cần xem" thành "50 Cảnh Báo Mới Cần Xem" (sai kiểu viết tiếng Việt). */}
+            {((d) => d.charAt(0).toUpperCase() + d.slice(1))(new Date().toLocaleDateString(dateFmt, { weekday: "long", day: "numeric", month: "numeric" }))}
             {" · "}
             {alerts.length ? (
               <b style={{ color: "var(--warn)" }}>{t(`${alerts.length} cảnh báo mới cần xem`, `${alerts.length} new alert(s) to review`)}</b>

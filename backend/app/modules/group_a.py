@@ -195,6 +195,23 @@ class AquacultureModule(TwinModule):
     HOT, VERY_HOT, COLD = 32.0, 33.5, 25.0
 
     def assess(self, loc: Location) -> Assessment:
+        # Kiểm A–Z 21/11/2026, P1-7: thửa ĐẤT ven sông/biển (Hội An, Hoàn Lão) nhận cảnh báo "sóng cao — gia cố lồng bè".
+        # Ao nuôi chỉ áp dụng khi quanh điểm (khung 100 m) có mặt nước ao/đầm; không đọc được WorldCover thì chạy như cũ.
+        from app.services import water_history
+        pond = water_history.pond(loc.lat, loc.lon)
+        if pond is not None and pond["water_pct"] < water_history.POND_PCT:
+            return Assessment(
+                module_id=self.id, module_name=self.disp_name(), location=loc,
+                status="out_of_scope", risk_level="unknown", is_real=False,
+                headline=tr(f"Không áp dụng — quanh điểm này không có ao/lồng bè (mặt nước {pond['water_pct']:g}% trong 100 m)",
+                            f"Not applicable — no pond or cage around this point ({pond['water_pct']:g}% water within 100 m)"),
+                detail=tr("Mô-đun này cảnh báo môi trường nước cho ao nuôi và lồng bè. Theo bản đồ phủ đất ESA WorldCover, khung "
+                          "100 m quanh điểm gần như không có mặt nước, nên đây không phải thửa nuôi trồng thuỷ sản. Nếu là ao "
+                          "mới đào sau 2021, hãy dời ô ngắm vào đúng mặt ao.",
+                          "This module warns about water conditions for ponds and cages. Per the ESA WorldCover land map, the "
+                          "100 m frame around this point has almost no water surface, so it is not an aquaculture plot. If the "
+                          "pond was dug after 2021, move the crosshair onto the pond itself."),
+                recommendation="", data_sources=self.disp_data_sources())
         marine = ds.marine_context(loc.lat, loc.lon)
         if marine is None:
             # PHÂN BIỆT "KHÔNG ÁP DỤNG" VỚI "THIẾU DỮ LIỆU".

@@ -125,7 +125,7 @@ def _khong_tra_do_thi_that(monkeypatch, request):
     if "do_thi_that" in request.keywords:
         return
     from app.services import water_history
-    for fn in ("urban", "canopy", "cropland"):
+    for fn in ("urban", "canopy", "cropland", "pond"):
         monkeypatch.setattr(water_history, fn, lambda lat, lon: None)
 
 
