@@ -30,24 +30,13 @@ def _know_head() -> str:
 
 
 def _route(question: str) -> list[str]:
-    q = (question or "").lower()
-    if any(k in q for k in ["mặn", "man"]):
-        return ["salinity"]
-    if any(k in q for k in ["lũ", "ngập", "lu ", "ngap", "flood"]):
-        return ["flood"]
-    if any(k in q for k in ["hạn", "han", "tưới", "tuoi", "nước", "nuoc"]):
-        return ["drought"]
-    if any(k in q for k in ["cháy", "chay", "lửa", "fire"]):
-        return ["wildfire"]
-    if any(k in q for k in ["mua đất", "mua dat", "đầu tư", "dau tu", "rủi ro", "rui ro"]):
-        return ["land_risk"]
-    if any(k in q for k in ["điện", "dien", "mặt trời", "mat troi", "solar"]):
-        return ["solar"]
-    return ["salinity", "drought", "flood"]
+    # Kiểm 21/11/2026: bản cũ so chuỗi con, dừng ở luật đầu tiên ("manh" → mặn) — nay so theo từ, xét mọi hiểm hoạ.
+    from app.services.copilot_route import route
+    return route(question)
 
 
 # Kiểm 21/11/2026: ở chế độ tiếng Việt, gpt-oss-120b thỉnh thoảng chen "additionally". Thay các từ nối tiếng Anh hay gặp —
-# chỉ từ nối đứng riêng (…), không đụng tên riêng.
+# chỉ từ nối đứng riêng (ranh giới từ), không đụng tên riêng.
 _EN_NOI = {"additionally": "ngoài ra", "in addition": "ngoài ra", "however": "tuy nhiên", "therefore": "vì vậy",
            "moreover": "hơn nữa", "furthermore": "hơn nữa", "overall": "nhìn chung", "meanwhile": "trong khi đó"}
 
@@ -57,6 +46,24 @@ def _viet_hoa(text: str) -> str:
     for en, vi in _EN_NOI.items():
         text = re.sub(r"(?i)\b" + re.escape(en) + r"\b", lambda m, vi=vi: vi.capitalize() if m.group(0)[0].isupper() else vi, text)
     return text
+
+
+def _han_che(text: str, question: str, assessed: dict) -> str:
+    """Lớp chặn bằng code (kiểm 21/11/2026): "Will this land get salty in the dry season?" → LLM khẳng định "not expected
+    to become salty in the upcoming dry season" từ một số mặn is_real=False (ước lượng chưa hiệu chỉnh, chỉ 7 ngày).
+    Có mô-đun ước lượng mà câu trả lời không nói "ước lượng"/"estimate", hoặc câu hỏi về mùa/tháng/năm tới → tự thêm ghi chú."""
+    from app.services.copilot_route import asks_long_range
+    low = text.lower()
+    notes = []
+    est = [a.module_name for a in assessed.values() if not a.is_real]
+    if est and "ước lượng" not in low and "estimate" not in low:
+        notes.append(tr(f"Lưu ý: số {', '.join(est)} là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+                        f"Note: the {', '.join(est)} figure is an uncalibrated physical estimate for the next 7 days only — "
+                        f"not enough to be sure."))
+    if asks_long_range(question):
+        notes.append(tr("TerraTwin chỉ có dự báo 7 ngày tới; không có dự báo cho cả mùa hay các tháng sau.",
+                        "TerraTwin only forecasts the next 7 days; it has no forecast for the whole season or later months."))
+    return text + ("\n\n" + " ".join(notes) if notes else "")
 
 
 def _plain(text: str) -> str:
@@ -78,7 +85,11 @@ def _system() -> str:
         "nếu nêu thì nói riêng và gọi đúng tên. Radar không thấy nước thì không được kết luận là không ngập. "
         "Viết văn bản thuần, không định dạng — KHÔNG dùng markdown (không **, __, #, bảng); viết hoa đúng chính tả "
         "(đầu câu, tên riêng như Sentinel-1, ERA5). CHỈ dùng tiếng Việt — không chen từ tiếng Anh nào "
-        "(trừ tên riêng, tên dữ liệu như Sentinel-1, ERA5, TerraScore).",
+        "(trừ tên riêng, tên dữ liệu như Sentinel-1, ERA5, TerraScore). "
+        "Dự báo chỉ có cho 7 NGÀY TỚI: hỏi về mùa, tháng hay năm tới thì nói rõ TerraTwin không có dự báo dài hạn, "
+        "không được suy ra cả mùa từ 7 ngày. Dòng ghi 'ƯỚC LƯỢNG chưa hiệu chỉnh' phải được gọi là ước lượng, "
+        "không khẳng định chắc chắn. Dữ liệu không có trong ngữ cảnh KHÔNG có nghĩa là không tồn tại — "
+        "không được nói nguồn đó 'chưa có' hay 'không có dữ liệu'; chỉ nói câu trả lời này chưa xét tới.",
         "You are TerraTwin's land/farming assistant. Answer BRIEFLY and clearly "
         "in English, based ONLY on the data provided. Never invent numbers. If "
         "the data isn't enough to answer, say so plainly. "
@@ -86,7 +97,11 @@ def _system() -> str:
         "the plot; ERA5 weather-index exceedances are CONDITIONS that can cause flooding, not floods — mention them "
         "separately and by their proper name. Radar seeing no water does not prove the plot never floods. "
         "Write plain text, NO markdown (no **, __, #, tables). Answer ONLY in English — even though some data "
-        "labels are in Vietnamese, translate them; keep proper names (Sentinel-1, ERA5) as they are.",
+        "labels are in Vietnamese, translate them; keep proper names (Sentinel-1, ERA5) as they are. "
+        "Forecasts cover the NEXT 7 DAYS only: if asked about the season, coming months or year, say TerraTwin has no "
+        "long-range forecast and do not extrapolate a whole season from 7 days. A line marked 'uncalibrated ESTIMATE' "
+        "must be called an estimate, never stated as certain. Data missing from the context does NOT mean it does not "
+        "exist — never say a source is 'not available'; say this answer did not consider it.",
     )
 
 
@@ -231,7 +246,7 @@ def _history_facts(loc: Location, routes: list[str]) -> str:
         lines = []
         # Kiểm 20/11/2026: "Thửa này từng ngập chưa?" → trợ lý trả "15 đợt lũ/ngập" = số đợt CHỈ SỐ MƯA ERA5. Ngập quan sát
         # được là radar (chỉ đọc bộ nhớ đệm), đưa lên ĐẦU và gọi đúng tên; ERA5 gọi là chỉ số thời tiết.
-        if "flood" in routes:
+        if True:      # 21/11/2026: luôn nạp tóm tắt radar (chỉ đọc bộ nhớ đệm) dù câu hỏi chọn mô-đun nào
             ws = water_history.summary(loc.lat, loc.lon)
             if ws.get("available"):
                 y0 = (ws.get("first") or "")[:4]
@@ -282,7 +297,8 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
         # và đứng cạnh dòng TerraScore "chưa đủ dữ liệu thật" bên dưới sẽ trông
         # như phần mềm tự mâu thuẫn — trong khi thực ra cả hai đều đang nói
         # đúng MỘT sự thật: lúc này không có dữ liệu thật cho hiểm họa đó.
-        tag = tr("dữ liệu thật", "real data") if a.is_real else tr("mô hình mẫu", "sample model")
+        tag = (tr("dữ liệu thật, dự báo 7 ngày", "real data, 7-day forecast") if a.is_real
+               else tr("ƯỚC LƯỢNG chưa hiệu chỉnh, 7 ngày", "uncalibrated ESTIMATE, 7 days"))
         facts.append(tr(f"- {a.module_name} ({tag}): {a.headline} | Khuyến nghị: {a.recommendation}",
                         f"- {a.module_name} ({tag}): {a.headline} | Recommendation: {a.recommendation}"))
     # Tái dùng assessment đã tính thay vì để terrascore.compute() gọi lại từ
@@ -320,6 +336,7 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
         text = _plain(text)
         if reqlang.cur_lang() != "en":
             text = _viet_hoa(text)
+        text = _han_che(text, question, assessed)
         return CopilotAnswer(answer=text, used_modules=routes,
                              llm=True, knowledge_used=cites)
 
