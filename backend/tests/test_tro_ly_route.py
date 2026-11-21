@@ -106,3 +106,31 @@ def test_loi_dan_cau_ket_7_ngay():
         assert "next 7 days" in copilot._system()
     finally:
         reqlang.set_lang("vi")
+
+
+def test_cau_hien_trang_bi_thay_han():
+    """PR #37 trên bản chính thức: 3/6 câu vẫn kết "hiện tại không có dấu hiệu ngập" — nay THAY câu đó."""
+    from app.services import copilot, reqlang
+    reqlang.set_lang("vi")
+    s = ("Trong 7 ngày tới, thửa đất này có ít nguy cơ ngập (chỉ số 7.9). Radar Sentinel-1 đã quan sát nước phủ thửa 5 đợt. "
+         "Vì vậy, hiện tại không có dấu hiệu ngập, nhưng có tiền sử ngập.")
+    out = copilot._han_che(s, "manh dat nay co bi ngap khong", {})
+    assert "hiện tại không có dấu hiệu ngập" not in out
+    assert "Radar Sentinel-1 đã quan sát nước phủ thửa 5 đợt" in out and "không phải quan sát hiện trạng" in out
+
+
+def test_chu_han_duoc_hoi_lai(monkeypatch):
+    from app.schemas import Location
+    from app.services import copilot, llm, passport, reqlang, water_history
+    reqlang.set_lang("vi")
+    flood = SimpleNamespace(is_real=True, module_name="Cảnh báo lũ/ngập sớm", headline="ít nguy cơ (7.9)",
+                            recommendation="Chưa cần hành động", risk_level="safe", score=8, status="ok",
+                            forecast=[], confidence=None)
+    monkeypatch.setattr("app.modules.registry.get_module", lambda mid: SimpleNamespace(assess=lambda loc: flood))
+    monkeypatch.setattr(passport, "history", lambda lat, lon, years=10: None)
+    monkeypatch.setattr(water_history, "summary", lambda lat, lon: {"cached": False})
+    monkeypatch.setattr(copilot, "_knowledge", lambda q, loc: ([], ""))
+    tra = iter(["Ruộng lúa có 5 đợt nước, nhưng這些 không影響當前的預測.", "Ruộng lúa đã có 5 đợt nước phủ theo radar."])
+    monkeypatch.setattr(llm, "complete", lambda *a, **k: next(tra))
+    a = copilot.answer("Ruộng lúa này có bị ngập không?", Location(lat=20.9716, lon=106.2834))
+    assert not copilot._CJK.search(a.answer) and "5 đợt nước phủ" in a.answer

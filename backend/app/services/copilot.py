@@ -48,16 +48,26 @@ def _viet_hoa(text: str) -> str:
     return text
 
 
+import re as _re
+
+_CJK = _re.compile(r"[぀-ヿ㐀-䶿一-鿿豈-﫿가-힯　-〿＀-￯]+")
+
+
 def _han_che(text: str, question: str, assessed: dict) -> str:
     """Lớp chặn bằng code (kiểm 21/11/2026): "Will this land get salty in the dry season?" → LLM khẳng định "not expected
     to become salty in the upcoming dry season" từ một số mặn is_real=False (ước lượng chưa hiệu chỉnh, chỉ 7 ngày).
     Có mô-đun ước lượng mà câu trả lời không nói "ước lượng"/"estimate", hoặc câu hỏi về mùa/tháng/năm tới → tự thêm ghi chú."""
+    import re
     from app.services.copilot_route import asks_long_range, claims_present_dry
+    # Kiểm PR #37 trên bản chính thức: lời dặn không đủ — 3/6 câu trả lời vẫn kết "hiện tại không có dấu hiệu ngập". THAY
+    # hẳn câu sai bằng câu đúng (dự báo 7 ngày), thay vì chỉ ghi chú bên dưới một câu sai vẫn còn nguyên.
+    cau = re.split(r"(?<=[.!?])\s+", text)
+    dung = tr("Theo dự báo, trong 7 ngày tới ít nguy cơ ngập — đây là dự báo, không phải quan sát hiện trạng của thửa.",
+              "Per the forecast, flood risk is low over the next 7 days — this is a forecast, not an observation of the plot now.")
+    if any(claims_present_dry(c) for c in cau):
+        text = " ".join(dung if claims_present_dry(c) else c for c in cau)
     low = text.lower()
     notes = []
-    if claims_present_dry(text):
-        notes.append(tr("Ghi chú: mức 'ít nguy cơ' là dự báo cho 7 ngày tới, không phải quan sát hiện trạng của thửa.",
-                        "Note: 'low risk' is the forecast for the next 7 days, not an observation of the plot right now."))
     est = [a.module_name for a in assessed.values() if not a.is_real]
     if est and "ước lượng" not in low and "estimate" not in low:
         notes.append(tr(f"Lưu ý: số {', '.join(est)} là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
@@ -335,6 +345,13 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
     )
 
     text = llm.complete(prompt, system=system, max_tokens=600)
+    if text and _CJK.search(text):
+        # Kiểm 21/11/2026: gpt-oss-120b chen chữ Hán ("nhưng這些 không影響當前的預測"). Hỏi lại MỘT lần với lời dặn
+        # thêm; vẫn còn thì gỡ phần chữ đó.
+        lai = llm.complete(prompt, system=system + " " + tr(
+            "TUYỆT ĐỐI không dùng chữ Hán, Nhật, Hàn — chỉ chữ cái tiếng Việt.",
+            "NEVER use Chinese, Japanese or Korean characters — Latin script only."), max_tokens=600)
+        text = lai if lai and not _CJK.search(lai) else _CJK.sub("", text).replace("  ", " ")
     if text:
         # A2 — cưỡng chế "LLM chỉ dịch, không sinh số": ẩn mọi số model bịa ra
         # ngoài dữ liệu thật đã đưa cho nó (facts + lịch sử + kiến thức + system).
