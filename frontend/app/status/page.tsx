@@ -89,6 +89,15 @@ export default function StatusPage() {
                       ? t("✅ hoạt động", "✅ working")
                       : t("❌ lần gửi gần nhất bị lỗi", "❌ last send failed")}</td>
                 </tr>
+                {/* Kiểm A–Z 21/11/2026, P1-2: ghi rõ gói thời tiết đang dùng — gói miễn phí Open-Meteo chỉ cho phi thương mại;
+                    phải có khoá thương mại trước khi thu tiền (chủ dự án hoãn mua — không tự mua). */}
+                <tr>
+                  <td>{t("Gói dữ liệu thời tiết (Open-Meteo)", "Weather data plan (Open-Meteo)")}</td>
+                  <td>{h.weather_data_plan?.plan === "commercial"
+                    ? t("thương mại (có khoá)", "commercial (key set)")
+                    : t("miễn phí, chỉ cho phi thương mại — phải có khoá thương mại trước khi thu tiền",
+                        "free, non-commercial only — a commercial key is required before charging users")}</td>
+                </tr>
                 <tr>
                   <td>{t("Nguồn dữ liệu hết hạn mức", "Data sources over quota")}</td>
                   <td>{h.quota.exhausted.length === 0

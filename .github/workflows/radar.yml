@@ -71,6 +71,15 @@ jobs:
           curl -fsS --max-time 120 -X POST -H "X-Cron-Key: $CRON_KEY" \
             https://terratwin-api.onrender.com/api/water/warm-demo | head -c 600; echo
 
+      # Kiểm A–Z 21/11/2026, P1-2: khí hậu nền 10 năm (ERA5) không có nguồn dự phòng — đọc sẵn cho thửa demo + thửa đã
+      # lưu để bị chặn hạn mức thì vẫn có bản trong bộ nhớ đệm. Đã có thì máy chủ bỏ qua, không gọi ra ngoài.
+      - name: Đọc sẵn khí hậu nền các thửa demo + thửa đã lưu
+        continue-on-error: true
+        env:
+          CRON_KEY: ${{ secrets.TERRATWIN_CRON_KEY }}
+        run: |
+          curl -fsS --max-time 120 -X POST -H "X-Cron-Key: $CRON_KEY" https://terratwin-api.onrender.com/api/climate/warm | head -c 300; echo
+
       - name: Cảnh báo nếu API đang degraded (hạn mức Open-Meteo)
         if: always()
         run: |

@@ -54,6 +54,7 @@ TIMEOUT = float(os.environ.get("TERRATWIN_OVERPASS_TIMEOUT", "30"))  # quận n�
 _COOLDOWN = 600.0
 _down_until: dict[str, float] = {}
 _TTL = 7 * 86400          # hạ tầng không đổi theo giờ
+_STALE = 90 * 86400       # phao cứu sinh khi mọi gương đều không trả lời
 
 # Diện tích sàn trung bình một công trình ở VN khi OSM không vẽ đường bao (chỉ
 # đánh dấu điểm). Con số thô, chỉ dùng để ước lượng bậc độ lớn — luôn công bố.
@@ -112,14 +113,19 @@ def _query(q: str) -> dict | None:
     if hit is not None:
         return hit
 
+    # Kiểm A–Z 21/11/2026, P1-2: cả 3 gương Overpass không trả lời → mỏ cát "need_data" dù tuần trước đã đọc được. Giữ
+    # thêm một bản 90 ngày làm phao: hạ tầng (đường, sông, mỏ) đổi theo tháng chứ không theo ngày.
+    old_key = cache_store.make_key("osm-old", q)
+
     def _work():
         h = cache_store.get(key)
         if h is not None:
             return h
         d = _fetch(q)
         if d is None:
-            return None
+            return cache_store.get(old_key)
         cache_store.put(key, d, _TTL)
+        cache_store.put(old_key, d, _STALE)
         return d
 
     return jobs.single_flight(f"osm:{key}", _work)

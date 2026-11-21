@@ -273,3 +273,35 @@ def listing_check_api(body: ListingIn, request: Request, lang: str = "vi",
     reqlang.set_lang(lang)
     enforce_quota("screen", request, user)
     return listing_check.check(body.text, body.lat, body.lon)
+
+
+@router.post("/api/climate/warm")
+def climate_warm(authorization: str | None = Header(default=None), x_cron_key: str | None = Header(default=None),
+                 db: Session = Depends(get_session)) -> dict:
+    """Đọc sẵn khí hậu nền 10 năm (ERA5) cho thửa demo + thửa người dùng đã lưu (kiểm A–Z 21/11/2026, P1-2).
+
+    Khí hậu nền là thứ duy nhất KHÔNG có nguồn dự phòng: archive-api bị chặn vì hạn mức đúng lúc cache trống thì lũ, hạn,
+    sạt lở, cháy đều "Chưa kết luận được". Cron (radar.yml, 6 giờ/lần) gọi đây để các thửa quan trọng luôn có sẵn bản trong
+    bộ nhớ đệm bền. Gộp theo ô lưới archive (0,1°) — một ô chỉ tải một lần; lượt trúng cache không gọi ra ngoài; lượt gọi
+    thật được giãn nhịp (realdata.ARCHIVE_GAP). Chạy ở luồng nền, trả ngay."""
+    import threading
+
+    from app.db import Plot
+    from app.routes_data import _require_cron_or_admin
+    from app.services import calibration, demo_plots, realdata
+    _require_cron_or_admin(authorization, x_cron_key, db)
+    pts = [(la, lo) for la, lo, _ in demo_plots.DEMO_PLOTS]
+    pts += [(p.lat, p.lon) for p in db.query(Plot).order_by(Plot.id.desc()).limit(50)]
+    todo = list(dict.fromkeys((round(la, 2), round(lo, 2)) for la, lo in pts))
+    cells = {(realdata._snap_clim(la), realdata._snap_clim(lo)) for la, lo in todo}
+
+    def _run():
+        for la, lo in todo:
+            for mid in ("flood", "landslide", "drought", "wildfire", "rain7"):
+                try:
+                    calibration.climatology(mid, la, lo)
+                except Exception:       # một điểm lỗi không được chặn các điểm sau
+                    pass
+
+    threading.Thread(target=_run, name="climate-warm", daemon=True).start()
+    return {"queued_points": len(todo), "archive_cells": len(cells)}
