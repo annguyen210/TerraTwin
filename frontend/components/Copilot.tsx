@@ -13,6 +13,7 @@
 import { useState } from "react";
 import { askCopilot, type CopilotAnswer } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
+import { boldParts } from "@/lib/richtext";
 
 const MOD_NAME: Record<string, [string, string]> = {
   salinity: ["Xâm nhập mặn", "Salinity"],
@@ -79,7 +80,7 @@ export default function Copilot({ lat, lon }: { lat: number; lon: number }) {
 
       {ans && (
         <div className="cresult">
-          <pre className="cans">{ans.answer}</pre>
+          <pre className="cans">{boldParts(ans.answer).map((p, i) => (p.bold ? <b key={i}>{p.text}</b> : <span key={i}>{p.text}</span>))}</pre>
 
           {/* NGUỒN DẪN — làm cái grounding hiện lên */}
           <div className="csrc">

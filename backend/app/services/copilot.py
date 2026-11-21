@@ -45,6 +45,15 @@ def _route(question: str) -> list[str]:
     return ["salinity", "drought", "flood"]
 
 
+def _plain(text: str) -> str:
+    """Kiểm 21/11/2026: LLM vẫn trả "**5 đợt**" dù đã dặn — khung trả lời in nguyên văn nên dấu ** lộ ra. Bỏ markdown thừa
+    (**, __, tiêu đề #) trước khi trả; giao diện vẫn có lớp vẽ chữ đậm an toàn nếu sót."""
+    import re
+    text = re.sub(r"\*\*(.+?)\*\*|__(.+?)__", lambda m: m.group(1) or m.group(2), text)
+    text = text.replace("**", "")
+    return re.sub(r"(?m)^#{1,6}\s+", "", text).strip()
+
+
 def _system() -> str:
     return tr(
         "Bạn là trợ lý nông nghiệp/đất đai của TerraTwin. Trả lời NGẮN GỌN, rõ ràng "
@@ -52,13 +61,15 @@ def _system() -> str:
         "thêm số liệu. Nếu dữ liệu không đủ để trả lời, hãy nói thẳng là chưa đủ. "
         "Hỏi thửa ĐÃ TỪNG NGẬP chưa thì trả lời bằng số đợt nước RADAR Sentinel-1 thấy phủ thửa; "
         "số đợt chỉ số thời tiết ERA5 vượt ngưỡng là ĐIỀU KIỆN có thể gây ngập, không phải lần ngập — "
-        "nếu nêu thì nói riêng và gọi đúng tên. Radar không thấy nước thì không được kết luận là không ngập.",
+        "nếu nêu thì nói riêng và gọi đúng tên. Radar không thấy nước thì không được kết luận là không ngập. "
+        "Viết chữ thường, KHÔNG dùng markdown (không **, __, #, bảng).",
         "You are TerraTwin's land/farming assistant. Answer BRIEFLY and clearly "
         "in English, based ONLY on the data provided. Never invent numbers. If "
         "the data isn't enough to answer, say so plainly. "
         "If asked whether the plot HAS FLOODED, answer with the number of water episodes Sentinel-1 RADAR saw over "
         "the plot; ERA5 weather-index exceedances are CONDITIONS that can cause flooding, not floods — mention them "
-        "separately and by their proper name. Radar seeing no water does not prove the plot never floods.",
+        "separately and by their proper name. Radar seeing no water does not prove the plot never floods. "
+        "Write plain text, NO markdown (no **, __, #, tables).",
     )
 
 
@@ -289,6 +300,7 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
         # ngoài dữ liệu thật đã đưa cho nó (facts + lịch sử + kiến thức + system).
         from app.services import guard
         text, _ = guard.guard_llm(text, system + NL + prompt)
+        text = _plain(text)
         return CopilotAnswer(answer=text, used_modules=routes,
                              llm=True, knowledge_used=cites)
 
