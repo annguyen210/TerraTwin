@@ -239,6 +239,8 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
   const { t } = useLang();
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [r, setR] = useState<WaterHistoryResult | null>(null);
+  // P2-1 (kiểm A–Z 21/11/2026): phần kỹ thuật (dB, phân vị VV, ngưỡng −18, phương pháp) thu gọn, bấm mới mở.
+  const [tech, setTech] = useState(false);
   const [prog, setProg] = useState<{ done: number; total: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -367,6 +369,10 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
       {r && r.available && (
         <>
           {r.plain && <p className={`wh-plain wh-plain-${r.plain.level}`}>{r.plain.text}</p>}
+          {/* P2-1: ba gạch đầu dòng lời thường cho người mua — đã từng có nước mấy lần, lần nặng nhất, nên hỏi ai. */}
+          {r.plain_points && r.plain_points.length > 0 && (
+            <ul className="wh-points">{r.plain_points.map((x, k) => <li key={k}>{x}</li>)}</ul>
+          )}
           {r.press && r.events.length > 0 && !invite && (
             <p className={`wh-press-sum${r.press.n_district ? " has" : ""}`}>{"📰 "}{r.press.text} <small>{r.press.limits}</small></p>
           )}
@@ -377,14 +383,17 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
           {r.water_surface && <p className="wh-surface" role="note"><b>{t("Khung đo có mặt nước thường xuyên.", "The frame contains permanent water.")}</b> {r.water_surface.note}</p>}
           {!!r.n_failed && <p className="wh-surface" role="note"><b>{t("Chưa đọc đủ ảnh radar.", "Not every radar image was read.")}</b> {r.failed_note}</p>}
           {/* có câu lời thường ở trên thì dòng số liệu kỹ thuật lùi xuống cỡ chữ thường */}
-          <p className={r.plain ? "wh-sum wh-sum-tech" : "wh-sum"}>{r.plain ? summary : <b>{summary}</b>}</p>
+          {(!r.plain || tech) && <p className={r.plain ? "wh-sum wh-sum-tech" : "wh-sum"}>{r.plain ? summary : <b>{summary}</b>}</p>}
           <Chart r={r} />
           {onScene && <MapScrubber r={r} lat={lat} lon={lon} onScene={onScene} focus={focus} />}
-          <p className="eu-src">{r.flood_season
+          <button type="button" className="wh-off wh-tech-toggle" aria-expanded={tech} onClick={() => setTech((v) => !v)}>
+            {tech ? t("Ẩn chi tiết kỹ thuật", "Hide technical details")
+                  : t("Chi tiết kỹ thuật (dB, ngưỡng, phương pháp)", "Technical details (dB, threshold, method)")}</button>
+          {tech && <p className="eu-src">{r.flood_season
             ? t(`Đường: trung vị tán xạ VV (dB); vạch đứt: ngưỡng nước −18 dB; khối xanh lam: đợt trong mùa lũ; khối xanh rêu: đợt ngoài mùa lũ. Mùa lũ của điểm: tháng ${r.flood_season.text} — các tháng mưa nhiều nhất (ERA5 ${r.flood_season.window}) cộng tháng liền sau.`,
                 `Line: median VV backscatter (dB); dashed: −18 dB water threshold; blue blocks: flood-season events; olive blocks: out-of-season events. Flood season here: months ${r.flood_season.text} — the wettest months (ERA5 ${r.flood_season.window}) plus the following month.`)
             : t("Đường: trung vị tán xạ VV (dB); vạch đứt: ngưỡng nước −18 dB; khối xanh: đợt nước phủ.",
-                "Line: median VV backscatter (dB); dashed: −18 dB water threshold; blue blocks: water events.")}</p>
+                "Line: median VV backscatter (dB); dashed: −18 dB water threshold; blue blocks: water events.")}</p>}
           {r.events.length > 0 && (
             <p className="wh-cf-note">{getToken()
               ? t("Bạn biết ruộng này? Bấm trả lời từng đợt bên dưới — mỗi câu là sự thật mặt đất để kiểm radar và lớp mùa lũ.",
@@ -399,10 +408,10 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
                 <li key={e.start}>
                   <b>{e.start === e.end ? e.start : `${e.start} → ${e.end}`}</b>
                   {e.season && <span className={`wh-season ${e.season}`}>{e.season === "in" ? t("trong mùa lũ", "flood season") : t("ngoài mùa lũ", "out of season")}</span>}
-                  <span>{t(`phủ ${e.peak_cover} thửa`, `${e.peak_cover} of plot covered`)} · {t(`${e.n_scenes} cảnh`, `${e.n_scenes} scenes`)} · {e.min_flag_db != null && e.flag_pct != null
+                  <span>{t(`phủ ${e.peak_cover} thửa`, `${e.peak_cover} of plot covered`)} · {t(`${e.n_scenes} ảnh radar`, `${e.n_scenes} radar images`)}{tech && <> · {e.min_flag_db != null && e.flag_pct != null
                     ? t(`VV phân vị ${e.flag_pct} thấp nhất ${e.min_flag_db} dB (ngưỡng −18; trung vị ${e.min_p50_db})`,
                         `lowest VV p${e.flag_pct} ${e.min_flag_db} dB (threshold −18; median ${e.min_p50_db})`)
-                    : t(`VV trung vị thấp nhất ${e.min_p50_db} dB`, `lowest median VV ${e.min_p50_db} dB`)}</span>
+                    : t(`VV trung vị thấp nhất ${e.min_p50_db} dB`, `lowest median VV ${e.min_p50_db} dB`)}</>}</span>
                   {!invite && <PressLine m={e.press} />}
                   {onScene && <button type="button" className="wh-off" onClick={() => setFocus({ date: wettestOfEvent(r, e.dates ?? [e.start]), n: Date.now() })}>
                     {t("Xem ảnh radar trên bản đồ", "Show radar image on the map")}</button>}
@@ -412,7 +421,7 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
             </ol>
           )}
           {thanks && <p className="wh-thanks" role="status">{thanks}</p>}
-          <p className="eu-src">{r.method}</p>
+          {tech && <p className="eu-src">{r.method}</p>}
           <p className="doc-note">{r.limits}</p>
         </>
       )}

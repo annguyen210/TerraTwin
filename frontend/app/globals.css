@@ -5383,3 +5383,7 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
   border: 1px solid var(--line-2); box-shadow: var(--shadow); font-size: 14px; line-height: 1.4; }
 .tt-wake-dot { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 50%; background: var(--warn);
   animation: ans-pulse 1.4s ease-in-out infinite; }
+
+/* P2-1: lời thường cho người mua trước, phần kỹ thuật bấm mới mở */
+.wh-points { margin: 6px 0 10px; padding-left: 20px; display: grid; gap: 4px; line-height: 1.5; }
+.wh-tech-toggle { margin: 4px 0; }

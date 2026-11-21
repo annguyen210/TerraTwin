@@ -384,13 +384,25 @@ with sync_playwright() as p:
         assert button == 0, "vẫn còn nút bắt bấm 'Xem lịch sử nước'"
         assert pg.get_by_role("button", name=re.compile("Xem đất có đổi khác")).count() == 0, "ô loại đất vẫn bắt bấm"
         pg.locator(".lc2 .wh-sum, .lc2 .doc-note").first.wait_for(timeout=90_000)   # loại đất tự chạy xong
-        pg.locator(".wh-sum, .wh-prog").first.wait_for(timeout=60_000)
+        pg.locator("section.wh .wh-plain, section.wh .wh-sum, .wh-prog").first.wait_for(timeout=60_000)
         pg.wait_for_timeout(1500)
         pg.screenshot(path=os.path.join(OUT, "18-xem-ngay-hue.png"), full_page=False)
-        state_txt = "đã có kết quả" if pg.locator(".wh-sum").count() else "đang tự đọc (có thanh tiến độ)"
+        co_kq = pg.locator("section.wh .wh-plain, section.wh .wh-sum").count() > 0
+        state_txt = "đã có kết quả" if co_kq else "đang tự đọc (có thanh tiến độ)"
         if pg.locator("section.wh .wh-list li").count():            # có đợt nước → có lời mời xác nhận từng đợt (17/10/2026)
             assert pg.locator("section.wh p.wh-cf-note").count() == 1, "thiếu lời mời 'ruộng có ngập đợt này không'"
             state_txt += " · có lời mời xác nhận từng đợt"
+        if co_kq and pg.locator("section.wh .wh-points li").count():
+            # P2-1 (kiểm A–Z 21/11/2026): lời thường trước — 3 gạch đầu dòng; số kỹ thuật (dB) ẩn tới khi bấm mở
+            assert pg.locator("section.wh .wh-points li").count() == 3
+            sec = pg.locator("section.wh").first
+            so_do = re.compile(r"VV (phân vị \d+|trung vị) thấp nhất")
+            assert not so_do.search(sec.inner_text()), "số đo kỹ thuật (VV … dB) vẫn hiện khi chưa bấm mở"
+            sec.get_by_role("button", name=re.compile("Chi tiết kỹ thuật")).click()
+            pg.wait_for_timeout(300)
+            if sec.locator(".wh-list li").count():
+                assert so_do.search(sec.inner_text()), "bấm 'Chi tiết kỹ thuật' mà không hiện số đo"
+            state_txt += " · 3 gạch lời thường, kỹ thuật thu gọn"
         ctx.close()
         return f"không lớp phủ che · lịch sử nước {state_txt}"
     try_hue()
