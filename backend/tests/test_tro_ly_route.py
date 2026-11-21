@@ -277,3 +277,60 @@ def test_ghi_log_cau_da_sua(caplog):
     with caplog.at_level(logging.INFO, logger="terratwin.copilot"):
         copilot._han_che("Radar thấy 5 đợt. Hiện tại không bị ngập.", "q", {"flood": _lu("safe", "Ít nguy cơ")})
     assert any("gốc='Hiện tại không bị ngập.'" in r.getMessage() for r in caplog.records)
+
+
+# ---- Dọn nốt sau kiểm PR #40 trên 17738d1 ----
+
+def _hh(level, name="Cảnh báo"):
+    return SimpleNamespace(is_real=False, module_name=name, headline="Ít nguy cơ", risk_level=level,
+                           recommendation="", score=10, status="ok", forecast=[], confidence=None)
+
+
+def test_ha_noi_qua_man_va_han():
+    from app.services import copilot, reqlang
+    reqlang.set_lang("vi")
+    a = {"flood": _lu("safe", "Ít nguy cơ"), "salinity": _hh("safe", "Cảnh báo xâm nhập mặn"),
+         "drought": _hh("safe", "Hạn")}
+    s = ("Trong 7 ngày tới khu vực này ít nguy cơ ngập, đủ ẩm và không có nguy cơ xâm nhập mặn, nên điều kiện không "
+         "ngăn cản việc trồng lúa. Không có nguy cơ hạn hán.")
+    out = copilot._han_che(s, "q", a)
+    assert "không có nguy cơ xâm nhập mặn" not in out and "ít nguy cơ xâm nhập mặn" in out
+    assert "Ít nguy cơ hạn hán." in out
+    # mức không phải "safe" → không đụng
+    a["salinity"] = _hh("warning")
+    assert "không có nguy cơ xâm nhập mặn" in copilot._han_che(s, "q", a)
+    reqlang.set_lang("en")
+    try:
+        out = copilot._han_che("No salinity risk and no risk of drought this week.", "q",
+                               {"salinity": _hh("safe"), "drought": _hh("safe")})
+        assert out.startswith("Low salinity risk and a low risk of drought")
+    finally:
+        reqlang.set_lang("vi")
+
+
+def test_tho_huu_thanh_tho_nhuong():
+    from app.services import copilot
+    assert copilot._viet_hoa("cần thêm thông tin về thổ hữu, độ pH") == "cần thêm thông tin về thổ nhưỡng, độ pH"
+    assert copilot._viet_hoa("Thổ hữu ở đây") == "Thổ nhưỡng ở đây"
+
+
+@pytest.mark.parametrize("s,dung", [
+    ("Vì vậy, hiện tại ít nguy cơ ngập, nhưng thửa đã từng ngập trước đó.",
+     "Vì vậy, trong 7 ngày tới ít nguy cơ ngập, nhưng thửa đã từng ngập trước đó."),
+    ("Vì vậy, hiện tại không có nguy cơ ngập cao.", "Vì vậy, trong 7 ngày tới không có nguy cơ ngập cao."),
+    ("Hiện tại nguy cơ ngập thấp.", "Trong 7 ngày tới nguy cơ ngập thấp."),
+    ("Hiện tại, trong 7 ngày tới ít nguy cơ ngập.", "Trong 7 ngày tới ít nguy cơ ngập."),
+])
+def test_hien_tai_thanh_7_ngay_toi(s, dung):
+    from app.services.copilot_route import present_to_forecast
+    assert present_to_forecast(s) == dung
+
+
+@pytest.mark.parametrize("s", [
+    "Dựa trên dữ liệu hiện tại, khu vực này ít nguy cơ ngập.",          # "dữ liệu hiện tại" = dữ liệu đang có
+    "Hiện tại không có rủi ro pháp lý nào được ghi nhận.",               # không phải hiểm hoạ dự báo
+    "Hiện tại radar ghi nhận 5 đợt ngập.",
+])
+def test_hien_tai_khong_doi_sai_cho(s):
+    from app.services.copilot_route import present_to_forecast
+    assert present_to_forecast(s) == s
