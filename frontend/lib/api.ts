@@ -2814,7 +2814,10 @@ export function waterPoll(jobId: string) {
 
 export type ListingClaim = { type: string; label: string; sentence: string;
   verdict: "consistent" | "contradicted" | "insufficient"; evidence: string; source: string };
+// P2-2: câu thổ cư/quy hoạch "Không đủ dữ liệu" → cổng tra quy hoạch chính thức của tỉnh (hoặc hướng dẫn hỏi VP đăng ký đất đai)
+export type ZoningPortal = { province: string | null; portal: { url: string; name: string; checked: string } | null; note: string };
 export type ListingCheckResult = { needs_water?: boolean; claims: ListingClaim[]; counts: Record<string, number>; note: string;
+  zoning?: ZoningPortal | null;
   headline?: { level: "bad" | "wait" | "ok" | "na"; text: string } | null };
 export function listingCheck(text: string, lat: number, lon: number) {
   return postJson<ListingCheckResult>(`/api/listing/check?lang=${curLang()}`, { text, lat, lon }, "Không kiểm được tin đăng");

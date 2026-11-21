@@ -392,8 +392,14 @@ def check(text: str, lat: float, lon: float) -> dict:
     # Câu về ngập/cao ráo cần lịch sử nước radar; chưa đọc thì giao diện mời đọc (~2 phút) rồi tự đối chiếu lại.
     needs_water = any(r["type"] in ("no_flood", "high_ground") for r in rows) and not ev.get("water")
     needs_water = needs_water and not on_water
+    # P2-2 (kiểm A–Z 21/11/2026): câu thổ cư/quy hoạch "Không đủ dữ liệu" → chỉ cổng tra quy hoạch CHÍNH THỨC của tỉnh.
+    # Khoá riêng ở cấp trên — KHÔNG nằm trong từng câu, nên không vào nội dung hồ sơ đã ký (dossier.listing_section).
+    zoning = None
+    if any(r["type"] == "residential" and r["verdict"] == "insufficient" for r in rows):
+        from app.services import zoning_portals
+        zoning = zoning_portals.for_point(lat, lon)
     return {"claims": rows, "counts": count, "location": {"lat": lat, "lon": lon}, "needs_water": needs_water,
-            "on_water": on_water, "headline": headline(rows, ev, needs_water),
+            "on_water": on_water, "headline": headline(rows, ev, needs_water), "zoning": zoning,
             "note": tr("Đối chiếu từ dữ liệu đo, lời văn trung lập — không phải kết luận pháp lý về người bán. "
                        "Nội dung tin đăng không được lưu.",
                        "Compared against measured data, in neutral wording — not a legal finding about the seller. "
