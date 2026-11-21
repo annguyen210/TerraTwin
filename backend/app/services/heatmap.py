@@ -15,12 +15,15 @@ from __future__ import annotations
 
 import math
 
+from datetime import datetime, timezone
+
 from app.services import cache_store, calibration, hazard
 from app.services import datasources as ds
 from app.services import realdata, reqlang
 from app.services.reqlang import tr
 
 _TTL = 3600            # dự báo đổi theo giờ
+_STALE = 24 * 3600     # P1-5: bản cũ tới 24 giờ vẫn trả ngay (kèm "stale") trong lúc tính lại ở nền
 _MAX_SIDE = 11         # trần 121 ô — đủ mượt mà vẫn 1 lượt gọi
 _NATIVE_RES_KM = 11.0  # độ phân giải thật của mô hình thời tiết nền
 
@@ -146,13 +149,19 @@ def build(module_id: str, lat: float, lon: float,
     side = max(3, min(int(side), _MAX_SIDE))
     radius_km = max(1.0, min(float(radius_km), 40.0))
 
-    ckey = cache_store.make_key("heatmap", module_id, round(lat, 3), round(lon, 3),
-                                radius_km, side)
-    cached = cache_store.get(ckey)
-    if cached:
-        cached["cached"] = True
-        return cached
+    # P1-5 (kiểm A–Z 21/11/2026): lần đầu 37 s, và cứ hết 1 giờ là người kế tiếp lại chờ. Giữ bản bền 24 giờ: còn mới (1 giờ)
+    # thì trả; cũ hơn thì trả NGAY bản cũ (ghi rõ "stale" + giờ tính) và tính lại ở nền.
+    ckey = cache_store.make_key("heatmap2", module_id, round(lat, 3), round(lon, 3), radius_km, side)
+    data, state = cache_store.swr(ckey, lambda: _build(module_id, lat, lon, radius_km, side, name, unit), _TTL, _STALE)
+    if data is None:
+        return None
+    out = dict(data)
+    out["cached"] = state != "computed"
+    out["stale"] = state == "stale"
+    return out
 
+
+def _build(module_id: str, lat: float, lon: float, radius_km: float, side: int, name: str, unit: str) -> dict:
     grid = _prepare(module_id, lat, lon, radius_km, side)
     pts, cell_dlat, cell_dlon = grid["pts"], grid["cell_dlat"], grid["cell_dlon"]
     dist = grid["dist"]
@@ -208,8 +217,8 @@ def build(module_id: str, lat: float, lon: float,
         ),
         "method": ("Chạy đúng mô hình cảnh báo trên từng ô lưới; toàn bộ lưới lấy "
                    "trong 1–2 lượt gọi Open-Meteo nhờ truy vấn đa toạ độ."),
+        "computed_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
-    cache_store.put(ckey, result, _TTL)
     return result
 
 

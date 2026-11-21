@@ -204,3 +204,53 @@ def size() -> int:
             return len(s.execute(select(KVCache.key)).scalars().all())
     except Exception:
         return 0
+
+
+# ---------------------------------------------------------------------------
+# TRẢ BẢN CŨ NGAY, TÍNH LẠI Ở NỀN (kiểm A–Z 21/11/2026, P1-5): /api/scorecard?days=90 mất 40 s, /api/heatmap/flood 37 s ở
+# lần gọi đầu — cache RAM mất sau mỗi lần Render khởi động lại/ngủ dậy, cache bền thì hết hạn rồi bắt người kế tiếp chờ tính
+# lại. Nay: còn mới → trả; cũ nhưng còn trong hạn `stale_s` → trả NGAY bản cũ và tính lại ở MỘT luồng nền; chưa từng có →
+# tính tại chỗ (lần duy nhất). Bản lưu bền nên sống qua khởi động lại.
+# ---------------------------------------------------------------------------
+import threading as _threading
+import time as _time
+
+_swr_running: set[str] = set()
+_swr_lock = _threading.Lock()
+
+
+def swr(key: str, compute, fresh_s: float, stale_s: float):
+    """(dữ liệu, trạng thái) — trạng thái: "fresh" | "stale" (đang tính lại ở nền) | "computed"."""
+    row = get(key)
+    now = _time.time()
+    if isinstance(row, dict) and "at" in row and "data" in row:
+        age = now - float(row["at"])
+        if age < fresh_s:
+            return row["data"], "fresh"
+        if age < stale_s:
+            _swr_refresh(key, compute, stale_s)
+            return row["data"], "stale"
+    data = compute()
+    if data is not None:
+        put(key, {"at": now, "data": data}, int(stale_s))
+    return data, "computed"
+
+
+def _swr_refresh(key: str, compute, stale_s: float) -> None:
+    with _swr_lock:
+        if key in _swr_running:            # đã có luồng đang tính lại khoá này
+            return
+        _swr_running.add(key)
+
+    def _run():
+        try:
+            d = compute()
+            if d is not None:
+                put(key, {"at": _time.time(), "data": d}, int(stale_s))
+        except Exception:                  # tính lại hỏng thì giữ bản cũ, lần sau thử lại
+            pass
+        finally:
+            with _swr_lock:
+                _swr_running.discard(key)
+
+    _threading.Thread(target=_run, name=f"swr:{key[:24]}", daemon=True).start()
