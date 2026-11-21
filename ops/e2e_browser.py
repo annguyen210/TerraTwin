@@ -304,6 +304,43 @@ with sync_playwright() as p:
         return f"tab {sel.strip()} · cao {hgt}px · khung 'ngoài phạm vi': {offsite} · đổi tab giữ chữ tin"
     try_now()
 
+    @step("Máy chủ đang thức: 'Đối chiếu với số đo' hỏng 3 lần rồi thông → hiện 'đang đánh thức', ra kết quả demo, không báo lỗi")
+    def wake_then_check():
+        # Kiểm A–Z 21/11/2026, P0-2: API Render ngủ → lần bấm đầu báo "Không kết nối được máy chủ". Giả lập đúng kiểu
+        # Render lúc thức: 503 trang HTML KHÔNG kèm CORS (trình duyệt thấy lỗi mạng) 3 lần, lần 4 cho qua máy chủ thật.
+        # /api/listing/check chỉ tính toán, không ghi — chạy được cả production.
+        ctx = browser.new_context(viewport={"width": 1366, "height": 860})
+        pg = ctx.new_page()
+        hong = {"n": 0}
+
+        def route(r):
+            if r.request.method == "POST" and hong["n"] < 3:
+                hong["n"] += 1
+                return r.fulfill(status=503, content_type="text/html", body="<html>Service waking up</html>")
+            return r.continue_()
+        pg.route("**/api/listing/check**", route)
+        pg.goto(WEB + "/", wait_until="networkidle", timeout=120_000)
+        pg.get_by_role("button", name=re.compile("Kiểm một tin đăng")).first.click()
+        pg.locator(".lc textarea").wait_for(timeout=60_000)
+        skip = pg.get_by_role("button", name="Bỏ qua")
+        if skip.count():
+            skip.first.click()
+        pg.get_by_role("button", name=re.compile("Đối chiếu với số đo")).click()
+        pg.locator(".tt-wake").wait_for(timeout=20_000)                 # thông báo chờ, không phải lỗi
+        pg.locator(".lc .wh-sum").wait_for(timeout=120_000)
+        tong = pg.locator(".lc .wh-sum").inner_text()
+        err = pg.locator(".lc .bat-err").count()
+        pg.wait_for_timeout(500)
+        con_thong_bao = pg.locator(".tt-wake").count()
+        ctx.close()
+        assert hong["n"] == 3, hong
+        assert err == 0, "vẫn báo lỗi dù lần thử sau đã thông"
+        assert con_thong_bao == 0, "thông báo 'đang đánh thức' không tắt"
+        # Kịch bản demo (docs/KICH_BAN_DEMO.md): tin mẫu Yagi phải ra đúng câu này
+        assert "2 mâu thuẫn · 2 khớp · 1 không đủ dữ liệu" in tong, tong
+        return f"hỏng {hong['n']} lần rồi thông · {tong}"
+    wake_then_check()
+
     @step("Trang đầu → 'Xem ngay' (thửa mẫu Tuệ Tĩnh): không lớp phủ nào chặn bấm, lịch sử nước TỰ đọc (không phải bấm nút)")
     def try_hue():   # tên cũ: thửa mẫu trang đầu là Huế tới 29/10/2026
         # Báo cáo kiểm toàn bộ 12/10/2026, mục 3–4: hộp hướng dẫn từng che cả màn sau khi đã chọn thửa; lịch sử
