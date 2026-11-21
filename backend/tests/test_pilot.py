@@ -130,3 +130,11 @@ def test_xoa_tai_khoan_xoa_gop_y_cua_minh_giu_phieu_giay_nhap_ho(c):
     rows = s.execute(select(PilotFeedback)).scalars().all()
     s.close()
     assert [(r.source, r.user_id) for r in rows] == [("paper", None)]
+
+
+@pytest.mark.parametrize("bo", ["would_use", "hardest"])
+def test_thieu_cau_co_dung_hoac_cho_kho_thi_422(c, bo):
+    """Kiểm A–Z 21/11/2026: giao diện cũ chọn sẵn would_use="yes", hardest="none" — nay cả hai bắt buộc, thiếu là 422."""
+    body = {k: v for k, v in OK.items() if k != bo}
+    assert c.post("/api/pilot/feedback", json=body).status_code == 422
+    assert c.post("/api/pilot/feedback", json={**OK, bo: ""}).status_code == 422

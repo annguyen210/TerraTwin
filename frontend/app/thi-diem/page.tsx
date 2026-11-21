@@ -12,6 +12,7 @@ import AppShell from "@/components/AppShell";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getToken, sendPilotFeedback, type PilotFeedbackIn } from "@/lib/api";
+import { blankFeedback, missingFields, missingMessage, toSubmit, type FeedbackDraft } from "@/lib/feedback";
 import { useLang } from "@/lib/i18n";
 
 type Sheet = "all" | "invite" | "farmer" | "staff" | "form";
@@ -203,20 +204,21 @@ function OnlineForm() {
   const { t } = useLang();
   const [signedIn, setSignedIn] = useState(false);
   useEffect(() => { setSignedIn(!!getToken()); }, []);   // đọc sau khi gắn để khỏi lệch lúc hydrate
-  const blank: PilotFeedbackIn = { role: "farmer", ease: 0, trust: 0, would_use: "yes", hardest: "none",
-    minutes: null, region: "", comment: "", contact: "", consent_contact: false, source: "web" };
-  const [f, setF] = useState<PilotFeedbackIn>(blank);
+  // Kiểm A–Z 21/11/2026: không chọn sẵn "có dùng" / "không bước nào" — phiếu chỉ chấm điểm rồi gửi đã ghi lệch số liệu.
+  const blank = blankFeedback("farmer");
+  const [f, setF] = useState<FeedbackDraft>(blank);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
-  const set = <K extends keyof PilotFeedbackIn>(k: K, v: PilotFeedbackIn[K]) => setF((x) => ({ ...x, [k]: v }));
+  const set = <K extends keyof FeedbackDraft>(k: K, v: FeedbackDraft[K]) => setF((x) => ({ ...x, [k]: v }));
 
-  const missing = !f.ease || !f.trust || (f.contact.trim() !== "" && !f.consent_contact);
+  const missing = missingFields(f);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (missing) return;
+    const body = toSubmit(f);
+    if (!body) return;
     setBusy(true); setMsg(null);
     try {
-      const r = await sendPilotFeedback({ ...f, contact: f.consent_contact ? f.contact : "" });
+      const r = await sendPilotFeedback(body);
       setMsg({ ok: true, text: r.message });
       setF({ ...blank, source: f.source, role: f.role, region: f.region });   // nhập phiếu giấy tiếp cho nhanh
     } catch (err) {
@@ -273,10 +275,8 @@ function OnlineForm() {
         <label className="pk-consent"><input type="checkbox" checked={f.consent_contact} onChange={(e) => set("consent_contact", e.target.checked)} />{" "}
           {t("Tôi đồng ý để TerraTwin liên hệ lại về góp ý này. Không đánh dấu thì thông tin liên hệ không được lưu.",
              "I agree that TerraTwin may contact me about this feedback. If unticked, contact details are not stored.")}</label>
-        {missing && <p className="doc-note">{!f.ease || !f.trust
-          ? t("Chọn điểm cho hai câu \"dễ dùng\" và \"tin kết quả\".", "Pick a score for \"easy to use\" and \"trust\".")
-          : t("Có ghi liên hệ thì đánh dấu đồng ý, hoặc xoá ô liên hệ.", "Tick consent, or clear the contact field.")}</p>}
-        <button className="doc-btn" type="submit" disabled={busy || missing}>{busy ? t("Đang gửi…", "Sending…") : t("Gửi góp ý", "Send feedback")}</button>
+        {missing.length > 0 && <p className="doc-note" role="status">{missingMessage(missing, t, ["\"tin kết quả\"", "\"trust\""])}</p>}
+        <button className="doc-btn" type="submit" disabled={busy || missing.length > 0}>{busy ? t("Đang gửi…", "Sending…") : t("Gửi góp ý", "Send feedback")}</button>
         {msg && <p className={msg.ok ? "eu-ok-line" : "bat-err"} role="status">{msg.text}</p>}
       </form>
     </section>
