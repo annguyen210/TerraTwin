@@ -341,7 +341,7 @@ export default function MapView({
     try {
       const r = await autoBoundary(c.lat, c.lng, 500);
       if (!r.available || !r.outline_rows || !r.bbox || !r.grid_size) {
-        setAutoMsg(r.message);
+        setAutoMsg([r.message, r.why, ...(r.next_steps ?? [])].filter(Boolean).join(" "));
         return;
       }
       const [lonMin, latMin, lonMax, latMax] = r.bbox;
@@ -377,8 +377,9 @@ export default function MapView({
       <div className="drawbar">
         <span className="db-hint">
           {count === 0
-            ? t("Kéo & zoom cho ĐÚNG thửa của bạn vào giữa ô ngắm ✛ — rồi bấm nút xanh",
-                "Pan & zoom your exact plot into the ✛ crosshair — then tap the green button")
+            // Kiểm A–Z 21/11/2026, P1-3: tự vẽ ranh đang tắt (ảnh 10 m không thấy bờ ruộng nhỏ) — nói rõ cách vẽ tay.
+            ? t("Đưa ĐÚNG thửa vào giữa ô ngắm ✛ rồi bấm nút xanh — hoặc chạm lần lượt từng góc thửa để vẽ ranh (từ 3 điểm là có diện tích)",
+                "Put your exact plot in the ✛ crosshair and tap the green button — or tap each corner of the plot to draw its boundary (3+ points give an area)")
             : t(`${count} điểm${count >= 3 ? " · đã tạo vùng ruộng" : ""}`,
                 `${count} point(s)${count >= 3 ? " · field area created" : ""}`)}
         </span>

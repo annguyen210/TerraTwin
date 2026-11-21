@@ -1208,8 +1208,24 @@ def auto_boundary_endpoint(location: Location, buffer_m: float = 500.0, lang: st
     reqlang.set_lang(lang)
     from app.services import watershed
 
-    return watershed.extract_boundary(location.lat, location.lon,
-                                      buffer_m=max(100.0, min(buffer_m, 1500.0)))
+    r = watershed.extract_boundary(location.lat, location.lon, buffer_m=max(100.0, min(buffer_m, 1500.0)))
+    if not r.get("available"):
+        # Kiểm A–Z 21/11/2026, P1-3: thửa demo Tuệ Tĩnh → "hit_safety_cap". Ảnh Sentinel-2 có ô 10 m; bờ ruộng đồng bằng
+        # thường hẹp hơn một ô ảnh nên máy KHÔNG thấy được ranh — không vá thuật toán cho qua (hướng "chạm là có ranh"
+        # đã trượt cổng kiểm), mà nói rõ vì sao và chỉ bước tiếp theo. Nút trên giao diện vẫn tắt (MapView).
+        r["why"] = reqlang.tr("Ảnh vệ tinh Sentinel-2 có ô 10 m; bờ ruộng ở đồng bằng thường hẹp hơn một ô ảnh, nên máy không thấy "
+                      "được ranh thửa nhỏ.",
+                      "Sentinel-2 imagery has 10 m pixels; field banks in the delta are usually narrower than one pixel, "
+                      "so small plot edges can't be seen.")
+        r["next_steps"] = [
+            reqlang.tr("Vẽ tay: chạm lần lượt từng góc thửa trên bản đồ — từ 3 điểm trở lên là có diện tích.",
+               "Draw by hand: tap each corner of the plot on the map — 3 or more points give an area."),
+            reqlang.tr("Bấm \"Phân tích điểm/vùng đã chấm\" để phân tích đúng vùng vừa vẽ.",
+               "Tap \"Analyze marked point/area\" to analyze exactly the area you drew."),
+            reqlang.tr("Ở hiện trường: dùng \"Đi bộ quanh vườn (GPS)\" ở trang /eudr — đi quanh bờ thửa, điện thoại ghi toạ độ.",
+               "On site: use \"Walk the boundary (GPS)\" on the /eudr page — walk the plot's edge while the phone records points."),
+        ]
+    return r
 
 
 @app.post("/api/report/sign")

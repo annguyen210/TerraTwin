@@ -261,3 +261,18 @@ def test_extract_boundary_thanh_cong_khi_hai_co_khung_khop_nhau(monkeypatch):
     assert out["available"] is True
     assert 0 < out["area_ha"] < 20.0
     assert out["scene"] == "fake-scene"
+
+
+def test_khong_tach_duoc_ranh_thi_noi_vi_sao_va_buoc_tiep(monkeypatch):
+    """Kiểm A–Z 21/11/2026, P1-3: thửa demo Tuệ Tĩnh → hit_safety_cap. API phải nói vì sao (ảnh 10 m) và chỉ cách vẽ tay."""
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+    from app.services import watershed
+    monkeypatch.setattr(watershed, "extract_boundary", lambda lat, lon, buffer_m=500.0: {
+        "available": False, "reason": "hit_safety_cap", "message": "Không tách được ranh"})
+    with TestClient(app) as c:
+        r = c.post("/api/auto-boundary?lang=vi", json={"lat": 20.9716, "lon": 106.2834}).json()
+    assert r["available"] is False and r["reason"] == "hit_safety_cap"
+    assert "10 m" in r["why"] and len(r["next_steps"]) == 3
+    assert "chạm lần lượt từng góc thửa" in r["next_steps"][0] and "Đi bộ quanh vườn (GPS)" in r["next_steps"][2]
