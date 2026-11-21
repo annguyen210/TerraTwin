@@ -160,6 +160,9 @@ class Plot(Base):
     # Ảnh chụp TerraScore lúc lưu — để so sánh danh mục mà không phải gọi lại API.
     score: Mapped[int | None] = mapped_column(Integer, nullable=True)
     grade: Mapped[str | None] = mapped_column(String(4), nullable=True)
+    # Lúc CHẤM điểm/hạng trên (kiểm A–Z 21/11/2026, P1-6): trước đây chỉ ghi một lần lúc lưu, rà soát nền không cập nhật,
+    # mà giao diện ghi "Hạng A (100/100) — hiểm hoạ 7 ngày tới" như số mới. Nay rà soát nền chấm lại và ghi giờ ở đây.
+    scored_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
     owner: Mapped[User] = relationship(back_populates="plots")
@@ -946,6 +949,8 @@ _ADDED_COLUMNS = [
     ("users", "share_with_coop", "INTEGER DEFAULT 0"),
     # "Rà soát ngay" chạy nền qua bảng jobs — tiến độ từng thửa.
     ("jobs", "progress_json", "TEXT"),
+    # P1-6 (21/11/2026) — giờ chấm hạng thửa; thửa cũ để trống = "chưa chấm lại kể từ khi có cột này".
+    ("plots", "scored_at", "TIMESTAMP"),
 ]
 
 

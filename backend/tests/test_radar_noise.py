@@ -135,3 +135,54 @@ def test_moc_12h_cu_khong_con_ap_dung(db, monkeypatch):
             a.created_at = old
         s.commit()
     assert _sweep(db)["new_alerts"] == 0
+
+
+# ---------------------------------------------------------------- P1-6 (kiểm A–Z 21/11/2026)
+
+def test_ra_soat_cham_lai_hang_thua_va_ghi_gio(db, monkeypatch):
+    """Hạng trong danh sách thửa từng là số lúc LƯU (2 thửa còn hạng 08/11, 8/10 thửa luôn "—"). Rà soát nền phải chấm lại."""
+    from app import db as dbmod
+    _fake_scan(monkeypatch, {"flood": "safe"})              # TerraScore giả: 50/C
+    Session, uid = db
+    with Session() as s:
+        p = s.query(dbmod.Plot).filter_by(user_id=uid).one()
+        assert p.score is None and p.grade is None and p.scored_at is None
+    _sweep(db)
+    with Session() as s:
+        p = s.query(dbmod.Plot).filter_by(user_id=uid).one()
+        assert (p.score, p.grade) == (50, "C") and p.scored_at is not None
+        first = p.scored_at
+    _sweep(db)
+    with Session() as s:
+        assert s.query(dbmod.Plot).filter_by(user_id=uid).one().scored_at >= first
+
+
+def test_chua_cham_duoc_thi_giu_so_cu(db, monkeypatch):
+    from app import db as dbmod
+    from app.schemas import ScanResult, TerraScoreResult
+    from app.services import scan as scan_svc
+    Session, uid = db
+    with Session() as s:
+        p = s.query(dbmod.Plot).filter_by(user_id=uid).one()
+        p.score, p.grade, p.scored_at = 88, "A", datetime(2026, 11, 8, tzinfo=timezone.utc)
+        s.commit()
+    monkeypatch.setattr(scan_svc, "scan", lambda loc, include_heavy=False, deadline=None: ScanResult(
+        location=loc, terrascore=TerraScoreResult(location=loc, score=None, grade="—", summary="chưa đủ"),
+        modules=[], alerts=[], real_data_ratio=0.0, generated_at="2026-11-21T00:00:00"))
+    _sweep(db)
+    with Session() as s:
+        p = s.query(dbmod.Plot).filter_by(user_id=uid).one()
+        assert (p.score, p.grade) == (88, "A") and p.scored_at.date().isoformat() == "2026-11-08"
+
+
+def test_luu_thua_ghi_gio_cham_va_tra_ve_api():
+    from fastapi.testclient import TestClient
+    from app.main import app
+    with TestClient(app) as c:
+        tok = c.post("/api/auth/register", json={"email": "p16@example.com", "password": "matkhau123", "name": "P"}).json()
+        h = {"Authorization": f"Bearer {tok['access_token']}"}
+        r = c.post("/api/plots", json={"name": "Ruộng", "location": {"lat": 20.97, "lon": 106.28}, "score": 90, "grade": "A"},
+                   headers=h).json()
+        assert r["scored_at"] is not None and r["grade"] == "A"
+        r2 = c.post("/api/plots", json={"name": "Chưa chấm", "location": {"lat": 20.98, "lon": 106.29}}, headers=h).json()
+        assert r2["scored_at"] is None and r2["grade"] is None
