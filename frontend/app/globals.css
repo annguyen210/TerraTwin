@@ -3996,7 +3996,7 @@ body {
 .ws-mini{ margin:8px 0 0; font-size:.76rem; color:var(--dim); line-height:1.5 }
 
 /* MyLand: dòng bản tin sáng */
-.ml-brief{ margin:4px 0 2px; font-size:.9rem; color:var(--dim); text-transform:capitalize }
+.ml-brief{ margin:4px 0 2px; font-size:.9rem; color:var(--dim) }
 .ml-brief-sub{ margin:0; font-size:.8rem; color:var(--dim); opacity:.85 }
 
 /* Copilot RAG: gợi ý + nguồn dẫn */

@@ -202,6 +202,19 @@ def _frame_pct(lat: float, lon: float) -> dict[int, float] | None:
     return {k: 100.0 * v / tot for k, v in hist.items()}
 
 
+POND_PCT = 20.0            # WorldCover Mặt nước thường xuyên (80) + Đầm lầy (90) trong khung đo → có ao/đầm/lồng bè
+
+
+def pond(lat: float, lon: float) -> dict | None:
+    """Tỉ lệ MẶT NƯỚC (ao, đầm, kênh nuôi) trong khung đo 100 m — để mô-đun ao nuôi chỉ chạy ở thửa CÓ ao/lồng bè (kiểm A–Z
+    21/11/2026, P1-7: "Hội An — ven sông Thu Bồn" là thửa ĐẤT mà nhận "sóng cao 2.3 m — gia cố lồng bè"). None nếu không đọc
+    được WorldCover (không suy diễn)."""
+    f = _frame_pct(lat, lon)
+    if not f:
+        return None
+    return {"water_pct": round(f.get(80, 0.0) + f.get(90, 0.0), 1)}
+
+
 def canopy(lat: float, lon: float) -> dict | None:
     """Khung đo dưới TÁN CÂY DÀY (rừng, vườn dừa, cà phê, rừng ngập mặn): sóng radar băng C không xuyên tán dày nên
     không thấy nước bên dưới — "0 đợt" ở đây cũng KHÔNG có nghĩa là không ngập (cùng loại sai với đô thị, 17/10/2026)."""
