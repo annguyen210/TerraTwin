@@ -123,6 +123,9 @@ _RAW_FIXED = {
     "landslide": raw_landslide,
     "drought": lambda rows, _: raw_drought(rows),
     "wildfire": lambda rows, _: raw_wildfire(rows),
+    # Tổng mưa 7 ngày (mm) — ngưỡng của lũ thượng nguồn (kiểm A–Z 21/11/2026, P1-1). Cùng bản tải 10 năm ERA5 với các
+    # hiểm hoạ trên (cùng URL archive, đã nhớ đệm bền) → không tốn thêm lượt gọi Open-Meteo.
+    "rain7": lambda rows, _: [(0, rows[-1].get("date", ""), float(sum(r.get("precip") or 0.0 for r in rows)))],
 }
 
 

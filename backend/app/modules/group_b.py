@@ -334,6 +334,7 @@ class UpstreamFloodModule(TwinModule):
     id = "upstream_flood"; name = "Lũ từ thượng nguồn"; name_en = "Upstream flood"; group = "B"; icon = "🏔️"
     status = "active"
     heavy = True
+    slow_because = ("lấy mẫu cao độ và mưa ở 24 điểm quanh thửa", "samples elevation and rain at 24 points around the plot")
     data_sources = ["DEM Copernicus: nan quạt cao độ 8 hướng × 3 vòng",
                     "Open-Meteo: mưa dự báo trên lưới thượng nguồn"]
     data_sources_en = ["Copernicus DEM: 8-bearing × 3-ring elevation fan",

@@ -140,6 +140,16 @@ def _khong_tra_mua_lu_that(monkeypatch, request):
     monkeypatch.setattr(flood_season, "season", lambda lat, lon: None)
 
 
+@pytest.fixture(autouse=True)
+def _khong_tai_khi_hau_mua7(monkeypatch, request):
+    """catchment.rain7_thresholds() tải 10 năm ERA5 — trong test mặc định coi như KHÔNG có khí hậu nền (ngưỡng tuyệt đối
+    100/200 mm như trước). Test về ngưỡng hiệu chuẩn dùng @pytest.mark.khi_hau_mua7 và tự giả lập."""
+    if "khi_hau_mua7" in request.keywords:
+        return
+    from app.services import catchment
+    monkeypatch.setattr(catchment, "rain7_thresholds", lambda lat, lon: None)
+
+
 @pytest.fixture
 def doc_schema():
     """Kiểm một tệp hồ sơ theo lược đồ CÔNG KHAI data/schema/terratwin-document-1.schema.json (17/10/2026).

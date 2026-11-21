@@ -71,8 +71,10 @@ class SolarModule(TwinModule):
         rad, real = ds.solar_radiation(loc.lat, loc.lon)
         annual = round(rad * 365 * 0.8, 0)
         lvl = "safe" if rad >= 4.8 else "warning" if rad >= 4.3 else "danger"
-        quality = (tr("Rất tốt", "Very good") if lvl == "safe"
-                   else tr("Khá", "Fair") if lvl == "warning" else tr("Trung bình", "Average"))
+        # Kiểm A–Z 21/11/2026: risk_level "danger" kèm chữ "Trung bình" → ô lưới (thang thông tin, riskScale.FIT) ghi "Kém"
+        # cạnh tiêu đề "Trung bình". Dùng ĐÚNG ba nhãn của thang đó; số bức xạ đứng ngay sau để tự so.
+        quality = (tr("Phù hợp", "Good fit") if lvl == "safe"
+                   else tr("Trung bình", "Average") if lvl == "warning" else tr("Kém", "Poor"))
         head = tr(f"{quality} — bức xạ ~{rad} kWh/m²/ngày → ~{annual:,.0f} kWh/kWp/năm",
                   f"{quality} — irradiance ~{rad} kWh/m²/day → ~{annual:,.0f} kWh/kWp/yr")
         rec = (tr("Vị trí tốt để lắp điện mặt trời.", "Good location for solar panels.") if lvl == "safe"

@@ -75,3 +75,27 @@ def compute(
         location=loc, score=score, grade=grade, summary=summary,
         breakdown=breakdown, real_data_ratio=ratio, scope=scope,
     )
+
+
+def with_other_threats(ts: TerraScoreResult, alerts) -> TerraScoreResult:
+    """Câu tóm tắt của thẻ thửa phải nói cả mối đe doạ NGOÀI 5 hiểm hoạ thời tiết (kiểm A–Z 21/11/2026, P1-1).
+
+    Quảng Điền: thẻ ghi "100/A — Hiểm hoạ thiên tai 7 ngày tới: thấp" trong khi lũ từ thượng nguồn (mô-đun nặng, lượt
+    quét sâu) báo NGUY HIỂM. Điểm số vẫn chỉ chấm 5 hiểm hoạ thời tiết (định nghĩa dùng chung cho backtest, lịch sử
+    điểm) — nhưng câu chữ không được nói "thấp" khi còn một mối đang cảnh báo: nói mối đó TRƯỚC, và gọi đúng phạm vi
+    của phần "thấp" là 5 hiểm hoạ thời tiết. `alerts` = mô-đun thật, threat=True, mức cảnh báo/nguy hiểm (scan.alerts)."""
+    from app.services.reqlang import tr
+    other = [a for a in alerts if a.id not in _HAZARDS and a.risk_level in ("danger", "warning")]
+    if not other or ts.score is None:
+        return ts
+    muc = {"danger": tr("nguy hiểm", "danger"), "warning": tr("cảnh báo", "warning")}
+    names = ", ".join(f"{a.name[:1].lower() + a.name[1:]} ({muc[a.risk_level]})" for a in other)
+    nguy = any(a.risk_level == "danger" for a in other)
+    lead = (tr(f"Hiểm hoạ 7 ngày tới: có mối NGUY HIỂM — {names}.", f"Next 7 days: a DANGER — {names}.") if nguy else
+            tr(f"Hiểm hoạ 7 ngày tới: còn {len(other)} mối cần theo dõi — {names}.",
+               f"Next 7 days: {len(other)} more threat(s) to watch — {names}."))
+    # phần còn lại của câu cũ: đổi "Hiểm hoạ thiên tai 7 ngày tới: thấp." thành phạm vi đúng của nó
+    rest = ts.summary.replace(tr("Hiểm hoạ thiên tai 7 ngày tới: thấp.", "Natural hazards over the next 7 days: low."),
+                              tr("5 hiểm hoạ thời tiết chính chưa đáng lo", "The 5 main weather hazards are not a concern"))
+    ts.summary = f"{lead} {rest}"
+    return ts

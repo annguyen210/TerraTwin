@@ -241,3 +241,56 @@ def test_module_lu_khong_tu_goi_catchment():
            / "group_b.py").read_text(encoding="utf-8")
     flood = src[src.index("class FloodModule"):src.index("class LandslideModule")]
     assert "catchment" not in flood or "KHÔNG nằm ở đây" in flood
+
+
+# ---------------------------------------------------------------- hiệu chuẩn (kiểm A–Z 21/11/2026, P1-1)
+
+@pytest.mark.khi_hau_mua7
+def test_quang_dien_210mm_khong_con_la_nguy_hiem(no_cache, monkeypatch):
+    """Quảng Điền (Huế): 210 mm thượng nguồn so với 168,7 mm tại chỗ từng ra NGUY HIỂM với ngưỡng cố định 200 mm, trong
+    khi mô-đun Lũ đã hiệu chuẩn ra "ít nguy cơ". ERA5 2015–2024 tại đó: P90 = 122 mm, P97 = 227 mm mưa 7 ngày."""
+    monkeypatch.setattr(realdata, "elevation_multi", _valley)
+    monkeypatch.setattr(realdata, "weather_multi", _rain(210.1))
+    monkeypatch.setattr(realdata, "weather_7d", lambda la, lo: [
+        {"day": i, "date": f"2026-11-{15 + i:02d}", "precip": 168.7 / 7, "et0": 2.0, "tmax": 26.0} for i in range(7)])
+    monkeypatch.setattr(catchment, "rain7_thresholds", lambda la, lo: (122.0, 226.9))
+    r = catchment.upstream(16.5751, 107.4952)
+    assert r["level"] == "warning" and r["calibrated"] is True
+    assert r["warn_mm"] == 122.0 and r["danger_mm"] == 226.9
+    assert "227 mm" in r["method"] or "226.9" in r["method"] or "227" in r["method"]
+
+
+@pytest.mark.khi_hau_mua7
+def test_nguong_hieu_chuan_khong_thap_hon_tuyet_doi(no_cache, monkeypatch):
+    """Vùng khô (P97 chỉ 80 mm): ngưỡng không được tụt dưới 100/200 mm — 150 mm vẫn chỉ là cảnh báo."""
+    monkeypatch.setattr(realdata, "elevation_multi", _valley)
+    monkeypatch.setattr(realdata, "weather_multi", _rain(150.0))
+    monkeypatch.setattr(realdata, "weather_7d", lambda la, lo: [
+        {"day": i, "date": f"2026-08-{20 + i:02d}", "precip": 0.0, "et0": 3.0, "tmax": 30.0} for i in range(7)])
+    monkeypatch.setattr(catchment, "rain7_thresholds", lambda la, lo: (40.0, 80.0))
+    r = catchment.upstream(15.36, 107.90)
+    assert (r["warn_mm"], r["danger_mm"]) == (100.0, 200.0) and r["level"] == "warning"
+
+
+@pytest.mark.khi_hau_mua7
+def test_mua_that_su_bat_thuong_van_nguy_hiem(no_cache, monkeypatch):
+    monkeypatch.setattr(realdata, "elevation_multi", _valley)
+    monkeypatch.setattr(realdata, "weather_multi", _rain(400.0))
+    monkeypatch.setattr(realdata, "weather_7d", lambda la, lo: [
+        {"day": i, "date": f"2026-11-{15 + i:02d}", "precip": 20.0, "et0": 2.0, "tmax": 26.0} for i in range(7)])
+    monkeypatch.setattr(catchment, "rain7_thresholds", lambda la, lo: (122.0, 226.9))
+    assert catchment.upstream(16.5751, 107.4952)["level"] == "danger"
+
+
+def test_khong_co_khi_hau_nen_thi_ghi_ro_nguong_tuyet_doi(no_cache, monkeypatch):
+    monkeypatch.setattr(realdata, "elevation_multi", _valley)
+    monkeypatch.setattr(realdata, "weather_multi", _rain(300.0))
+    monkeypatch.setattr(realdata, "weather_7d", lambda la, lo: None)
+    r = catchment.upstream(15.36, 107.90)
+    assert r["calibrated"] is False and "ngưỡng tuyệt đối" in r["method"]
+
+
+def test_rain7_la_tong_mua_7_ngay():
+    from app.services import calibration
+    rows = [{"date": f"2020-01-{i + 1:02d}", "precip": float(i)} for i in range(7)]
+    assert calibration._RAW_FIXED["rain7"](rows, None) == [(0, "2020-01-07", 21.0)]
