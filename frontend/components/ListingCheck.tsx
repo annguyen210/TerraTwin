@@ -108,6 +108,16 @@ export default function ListingCheck({ lat, lon }: { lat: number; lon: number })
               <li key={i} className={V[c.verdict].cls}>
                 <div><span className="lc-tag">{t(V[c.verdict].vi, V[c.verdict].en)}</span><b>{c.label}</b> — <q>{c.sentence}</q></div>
                 <p>{t("Dữ liệu ghi nhận", "The data shows")}: {c.evidence}{c.source ? ` (${c.source})` : ""}</p>
+                {/* P2-2 — bước tiếp theo cho câu thổ cư/quy hoạch: CHỈ cổng cơ quan nhà nước đã kiểm (.gov.vn). */}
+                {c.type === "residential" && c.verdict === "insufficient" && r.zoning && (
+                  <p className="lc-next">
+                    {r.zoning.portal ? (
+                      <a className="bat-btn ghost" href={r.zoning.portal.url} target="_blank" rel="noopener noreferrer">
+                        {t(`Tra quy hoạch ở cổng chính thức — ${r.zoning.portal.name}`, `Look up zoning on the official portal — ${r.zoning.portal.name}`)}</a>
+                    ) : null}{" "}
+                    <span className="doc-note">{r.zoning.note}</span>
+                  </p>
+                )}
               </li>
             ))}
           </ul>
