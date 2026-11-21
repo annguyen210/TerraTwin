@@ -70,9 +70,20 @@ def uncalibrated_assessment(module, loc: Location) -> Assessment:
                   "Real forecast weather is available, but this point's own 10-year climate hasn't loaded, so what "
                   "counts as unusual here is unknown. The absolute (uncalibrated) scale over-warns in rainy regions, "
                   "so it isn't used for alerts; no alert does NOT mean safe."),
-        recommendation=tr("Thử lại sau ít phút.", "Try again in a few minutes."),
+        recommendation=_retry_hint(),
         confidence=None, data_sources=module.disp_data_sources(),
     )
+
+
+def _retry_hint() -> str:
+    """Kiểm A–Z 21/11/2026, P1-2: archive bị chặn vì hạn mức thì nói thẳng là QUÁ TẢI và bao lâu nữa thử lại — không để
+    người dùng tưởng phần mềm hỏng."""
+    from app.services import realdata
+    n = realdata.blocked_minutes("archive-api.open-meteo.com")
+    if n:
+        return tr(f"Nguồn dữ liệu khí hậu (Open-Meteo) đang quá tải — thử lại sau khoảng {n} phút.",
+                  f"The climate data source (Open-Meteo) is overloaded — try again in about {n} minute(s).")
+    return tr("Thử lại sau ít phút.", "Try again in a few minutes.")
 
 
 def conf_band(confidence: float, is_real: bool) -> tuple[float, float]:

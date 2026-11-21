@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -222,6 +223,9 @@ def quota_status() -> dict:
 # phút không "tươi" hơn cache 3 giờ chút nào, chỉ tốn thêm 6x lượt gọi.
 _TTL_FOREVER = 3650 * 86400   # ~10 năm — cao độ, không đổi theo thời gian
 _TTL_30D = 30 * 86400         # ERA5 lịch sử — dữ liệu quá khứ, không đổi
+# Kiểm A–Z 21/11/2026, P1-2: hết 30 ngày đúng lúc archive bị chặn → không còn bản nào → sạt lở Sa Pa / Mù Cang Chải
+# "Chưa kết luận được". Khí hậu 10 năm đổi rất chậm: bản cũ tới 1 năm vẫn là dữ liệu THẬT, dùng làm phao cứu sinh.
+_STALE_ARCHIVE = 365 * 86400
 # Kiểm 24/10/2026 (việc 4 — 429 lúc vài người mở cùng lúc): dự báo 3 → 6 giờ (ICON, GFS, IFS đều chạy mỗi 6 giờ — bản
 # 3 giờ không mới hơn), sông 6 → 12 giờ (GloFAS cập nhật mỗi ngày), phao cứu sinh 12 → 24 giờ.
 _TTL_6H = 6 * 3600            # dự báo (forecast/marine/ensemble/MET Norway)
@@ -234,7 +238,7 @@ def _ttl_for(url: str) -> tuple[int, int]:
     if "/v1/elevation" in url:
         return _TTL_FOREVER, _TTL_FOREVER
     if "archive-api." in url:
-        return _TTL_30D, _TTL_30D
+        return _TTL_30D, _STALE_ARCHIVE
     if "flood-api." in url:
         return _TTL_12H, _STALE_MAX
     # /v1/forecast (Open-Meteo), marine-api, ensemble-api, api.met.no —
@@ -259,6 +263,34 @@ def call_stats() -> dict:
     }
 
 
+# GIÃN NHỊP lượt gọi archive (kiểm A–Z 21/11/2026, P1-2): một người bấm liên tục 18 mô-đun ở vài thửa mới là đủ đẩy
+# archive-api vào 429 — mỗi lượt 10 năm tính hàng trăm lượt. Giữ tối thiểu ARCHIVE_GAP giây giữa hai lượt ra ngoài (lượt
+# trúng cache không qua đây). Gộp yêu cầu trùng đã có sẵn ở _get (jobs.single_flight).
+ARCHIVE_GAP = float(os.environ.get("TERRATWIN_ARCHIVE_GAP", "1.5"))
+_pace_lock = threading.Lock()
+_pace_last = {"archive": 0.0}
+
+
+def _pace(url: str) -> None:
+    if "archive-api." not in url or ARCHIVE_GAP <= 0:
+        return
+    with _pace_lock:
+        wait = _pace_last["archive"] + ARCHIVE_GAP - time.time()
+        if wait > 0:
+            time.sleep(wait)
+        _pace_last["archive"] = time.time()
+
+
+def blocked_minutes(host: str) -> int | None:
+    """Còn bao nhiêu phút host này bị chặn vì hạn mức (None nếu không bị chặn) — cho câu "thử lại sau N phút"."""
+    from app.services import cache_store
+    row = cache_store.get(_quota_key(host))
+    if not row:
+        return None
+    left = _blocked_until(row) - time.time()
+    return max(1, math.ceil(left / 60.0)) if left > 0 else None
+
+
 def _fetch(url: str, timeout: float, headers: dict | None = None):
     """Gọi mạng thật. Đi qua trần đồng thời để không nã dồn nguồn miễn phí.
 
@@ -276,6 +308,7 @@ def _fetch(url: str, timeout: float, headers: dict | None = None):
     """
     from app.services import jobs
 
+    _pace(url)
     with jobs.upstream() as allowed:
         if not allowed:
             # Hàng đợi ra ngoài tắc quá lâu. Trả None đúng như khi mất mạng —
@@ -314,6 +347,15 @@ def _snap(v: float) -> float:
 
 
 _CELL = 0.05
+
+
+def _snap_clim(v: float) -> float:
+    """Toạ độ cho lượt gọi ERA5 LỊCH SỬ (archive), làm tròn 0,1° (~11 km) — kiểm A–Z 21/11/2026, P1-2.
+
+    Lượt 10 năm là lượt NẶNG NHẤT với hạn mức Open-Meteo (một yêu cầu dài hơn 2 tuần tính thành nhiều lượt — 10 năm ≈
+    hàng trăm lượt, xem historical_weather_stitched). Lưới mưa ERA5 0,25°, ERA5-Land 0,1°: làm tròn 0,01° như dự báo
+    chỉ khiến hai thửa cách nhau 1 km tải lại cùng một ô. 0,1° = dùng chung một bản tải cho cả vùng quanh đó."""
+    return round(round(float(v) * 10.0) / 10.0, 1)
 
 
 def _cell(v: float) -> float:
@@ -876,7 +918,7 @@ def historical_weather(lat: float, lon: float, start: str, end: str):
     """
     url = (
         "https://archive-api.open-meteo.com/v1/archive"
-        f"?latitude={_snap(lat)}&longitude={_snap(lon)}"
+        f"?latitude={_snap_clim(lat)}&longitude={_snap_clim(lon)}"
         f"&start_date={start}&end_date={end}"
         "&daily=precipitation_sum,et0_fao_evapotranspiration,temperature_2m_max"
         "&timezone=auto"
