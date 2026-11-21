@@ -193,8 +193,8 @@ def test_radar_da_thay_nuoc_thi_khong_noi_khong_du():
          "không thể kết luận hiện tại ruộng đang ngập.")
     radar = {"available": True, "n_events": 5, "last_event": "2025-10-01"}
     out = copilot._han_che(s, "Ruộng lúa này có bị ngập không?", {}, radar)
-    assert "không đủ để khẳng định" not in out
-    assert "Thửa đã từng có nước phủ: radar Sentinel-1 thấy 5 đợt, gần nhất 2025-10-01." in out
+    # kiểm PR #39: CHÈN câu radar lên trước, giữ câu gốc
+    assert out.startswith("Thửa đã từng có nước phủ: radar Sentinel-1 thấy 5 đợt, gần nhất 2025-10-01. Tuy nhiên dữ liệu")
     assert "không thể kết luận hiện tại ruộng đang ngập" in out          # câu về HIỆN TRẠNG giữ nguyên
     assert copilot._han_che(s, "q", {}, {"available": True, "n_events": 0}) == s
 
@@ -214,3 +214,66 @@ def test_trong_lua_khong_ket_luan_phu_hop():
 def test_thien_tai_khong_phai_hien_tai():
     from app.services.copilot_route import claims_present_dry
     assert not claims_present_dry("Thiên tai không ngập được vùng cao này.")
+
+
+# ---- Kiểm PR #39 trên 2e02dac ----
+
+@pytest.mark.parametrize("s", [
+    "Hiện chưa đủ dữ liệu để khẳng định thửa này phù hợp trồng lúa, vì còn phải xét nguy cơ ngập và mặn.",
+    "Không thể khẳng định 7 ngày tới có ngập hay không, vì đây chỉ là dự báo.",
+    "Chưa thể xác định mức ngập sâu bao nhiêu vì radar chỉ thấy có nước hay không.",
+    "Not enough data to say whether flooding will happen next season.",
+])
+def test_doubts_past_water_chi_bat_qua_khu(s):
+    from app.services import copilot, reqlang
+    from app.services.copilot_route import doubts_past_water
+    assert not doubts_past_water(s)
+    reqlang.set_lang("vi")
+    radar = {"available": True, "n_events": 5, "last_event": "2025-10-01"}
+    assert copilot._han_che(s, "q", {}, radar).startswith(s)                # ý dè dặt còn nguyên
+
+
+def test_doubts_past_water_bat_dung():
+    from app.services.copilot_route import doubts_past_water
+    assert doubts_past_water("Dữ liệu hiện tại không đủ để khẳng định ruộng lúa đã ngập hay chưa.")
+    assert doubts_past_water("There is not enough data to say whether the plot has flooded.")
+
+
+def test_crop_ghi_chu_van_hien_khi_co_radar():
+    from app.services import copilot, reqlang
+    reqlang.set_lang("vi")
+    s = "Hiện chưa đủ dữ liệu để khẳng định thửa này phù hợp trồng lúa, vì còn phải xét nguy cơ ngập và mặn."
+    out = copilot._han_che(s, "Đất này trồng lúa được không?", {}, {"available": True, "n_events": 5})
+    assert "không cho biết đất có hợp với cây trồng" in out
+
+
+def test_ha_cau_noi_qua():
+    from app.services import copilot, reqlang
+    reqlang.set_lang("vi")
+    it = {"flood": _lu("safe", "Ít nguy cơ ngập (7.9)")}
+    s = "Vì vậy, trong khoảng thời gian dự báo hiện tại, ruộng lúa không có nguy cơ ngập."
+    out = copilot._han_che(s, "Ruộng lúa này có bị ngập không?", it)
+    assert "không có nguy cơ ngập" not in out and "ruộng lúa ít nguy cơ ngập." in out
+    assert copilot._han_che("Không có nguy cơ bị ngập.", "q", it).startswith("Ít nguy cơ bị ngập.")
+    # "không có nguy cơ ngập CAO" là đúng — giữ nguyên
+    s2 = "Trong 7 ngày tới không có nguy cơ ngập cao."
+    assert copilot._han_che(s2, "q", it) == s2
+    # dự báo KHÔNG phải "ít nguy cơ" thì không đụng vào lớp này
+    assert "không có nguy cơ ngập" in copilot._han_che(s, "q", {"flood": _lu("warning", "Cảnh báo")})
+    reqlang.set_lang("en")
+    try:
+        out = copilot._han_che("There is no flood risk over the next 7 days.", "q", it)
+        assert "low flood risk" in out and "no flood risk" not in out
+        assert "a low risk of flooding" in copilot._han_che("No risk of flooding in the next 7 days.", "q", it).lower()
+    finally:
+        reqlang.set_lang("vi")
+    assert "'ít nguy cơ' thì nói 'ít nguy cơ'" in copilot._system()
+
+
+def test_ghi_log_cau_da_sua(caplog):
+    import logging
+    from app.services import copilot, reqlang
+    reqlang.set_lang("vi")
+    with caplog.at_level(logging.INFO, logger="terratwin.copilot"):
+        copilot._han_che("Radar thấy 5 đợt. Hiện tại không bị ngập.", "q", {"flood": _lu("safe", "Ít nguy cơ")})
+    assert any("gốc='Hiện tại không bị ngập.'" in r.getMessage() for r in caplog.records)
