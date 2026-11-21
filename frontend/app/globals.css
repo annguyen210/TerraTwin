@@ -5387,3 +5387,6 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 /* P2-1: lời thường cho người mua trước, phần kỹ thuật bấm mới mở */
 .wh-points { margin: 6px 0 10px; padding-left: 20px; display: grid; gap: 4px; line-height: 1.5; }
 .wh-tech-toggle { margin: 4px 0; }
+
+/* P2-2: bước tiếp theo cho câu thổ cư/quy hoạch — nút cổng tra quy hoạch chính thức + ghi chú */
+.lc-next { margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
