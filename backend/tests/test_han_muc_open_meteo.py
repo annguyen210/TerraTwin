@@ -88,6 +88,11 @@ def test_doc_san_khi_hau_cron(monkeypatch):
     monkeypatch.setenv("TERRATWIN_CRON_KEY", "cron-khi-hau")
     goi = []
     monkeypatch.setattr(calibration, "climatology", lambda mid, la, lo, **k: goi.append((mid, la, lo)) or [1.0])
+    from app import routes_trust
+    from app.services import heatmap
+    monkeypatch.setattr(routes_trust, "scorecard_payload", lambda days, lang: {"days": days})
+    nhiet = []
+    monkeypatch.setattr(heatmap, "build", lambda mid, la, lo, **k: nhiet.append((mid, la, lo)) or {})
     import threading
     monkeypatch.setattr(threading, "Thread", lambda target, **k: type("T", (), {"start": lambda self: target()})())
     with TestClient(app) as c:
@@ -97,3 +102,6 @@ def test_doc_san_khi_hau_cron(monkeypatch):
     assert r["queued_points"] >= len({(round(a, 2), round(b, 2)) for a, b, _ in demo_plots.DEMO_PLOTS})
     assert r["archive_cells"] <= r["queued_points"]
     assert {m for m, _, _ in goi} == {"flood", "landslide", "drought", "wildfire", "rain7"}
+    # kiểm A–Z lần 2: 3 thửa demo × 4 hiểm hoạ bản đồ nhiệt tính sẵn
+    assert len(nhiet) == 12 and {m for m, _, _ in nhiet} == {"flood", "landslide", "drought", "wildfire"}
+    assert len({(la, lo) for _, la, lo in nhiet}) == 3
