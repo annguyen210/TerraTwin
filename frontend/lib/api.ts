@@ -123,6 +123,9 @@ export type TerraScore = { scope?: string;
   real_data_ratio?: number;
   // Mối đe doạ ngoài 5 hiểm hoạ thời tiết (vd lũ từ thượng nguồn), nguy hiểm trước — kiểm A–Z lần 2, 22/11/2026
   other_threats?: { id: string; name: string; risk_level: "danger" | "warning" }[];
+  // Kiểm A–Z lần 3: mối quan sát/cố định (dòng riêng) + hiểm hoạ thời tiết đang cảnh báo (thẻ không được "yên").
+  observed_threats?: { id: string; name: string; risk_level: string; kind: string; headline: string }[];
+  hazard_alerts?: { id: string; name: string; risk_level: string }[];
 };
 
 export type BacktestEvent = {

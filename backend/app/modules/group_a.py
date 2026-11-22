@@ -156,7 +156,13 @@ class PestModule(TwinModule):
         head = (f"{r['verdict'].capitalize()} — NDVI {r['ndvi_now']} "
                 + tr(f"({r['change_pct']:+.1f}% so nền thửa), ảnh ngày {r['observed_on']}",
                      f"({r['change_pct']:+.1f}% vs plot baseline), image {r['observed_on']}"))
-        rec = (r["cause_hint"] + tr(" Ra thăm đúng chỗ; chụp ảnh và kèm vào hồ sơ bằng nút \"Kèm ảnh thực địa\" (tab Hồ sơ) để lưu bằng chứng.",
+        hv = r.get("harvest")
+        rec = (tr(f"Đỉnh vụ NDVI {hv['peak']} ngày {hv['peak_date']}, qua đỉnh {hv['days_since_peak']} ngày rồi giảm dần tới nay: "
+                  "đường cong của ruộng vừa gặt, không phải cây bị hại. Chưa cần hành động — phần mềm theo dõi lại khi xuống vụ mới.",
+                  f"NDVI peaked at {hv['peak']} on {hv['peak_date']}, {hv['days_since_peak']} days ago, then fell steadily: the curve "
+                  "of a freshly harvested field, not damaged plants. No action needed — the app watches again once the next crop is sown.")
+               if hv else
+               r["cause_hint"] + tr(" Ra thăm đúng chỗ; chụp ảnh và kèm vào hồ sơ bằng nút \"Kèm ảnh thực địa\" (tab Hồ sơ) để lưu bằng chứng.",
                                     " Visit the exact spot; take photos and attach them via \"Add field photos\" (Dossier tab) to keep the evidence.")
                if r["cause_hint"] else
                tr("Chưa cần hành động. Phần mềm tiếp tục theo dõi mỗi lần vệ tinh bay qua.",

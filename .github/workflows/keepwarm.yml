@@ -77,7 +77,7 @@ jobs:
           done
           exit $fail
 
-      - name: Đọc sẵn các thửa sẽ trình bày (lịch sử nước, loại đất, ảnh nền)
+      - name: Đọc sẵn các thửa sẽ trình bày (lịch sử nước, lũ thượng nguồn + kế hoạch thửa, loại đất, ảnh nền)
         if: ${{ inputs.thua != '' }}
         env:
           THUA: ${{ inputs.thua }}
@@ -113,6 +113,16 @@ jobs:
               r = j.get("result") or {}
               print(f"{lat},{lon}: lịch sử nước {j.get('state')} · {len(r.get('events') or [])} đợt"
                     + ("" if j.get("state") == "done" else " — vẫn chạy trên máy chủ, mở lại sau vài phút"))
+          # Kiểm A–Z lần 3 (22/11/2026): Hoàn Lão mở lần đầu, kế hoạch thửa 15 s rồi "chưa tính lũ thượng nguồn — đang kiểm"
+          # (trần 8 s). Chạy TRỌN mô-đun lũ thượng nguồn (không trần) rồi /api/plan để lên sân khấu là có ngay.
+          for lat, lon in plots:
+              for path in ("/api/assess/upstream_flood?lang=vi", "/api/plan?lang=vi"):
+                  t = time.time()
+                  try:
+                      call(path, {"lat": lat, "lon": lon}, timeout=180)
+                      print(f"{lat},{lon}: {path.split('?')[0]} {time.time() - t:.1f}s")
+                  except Exception as e:  # noqa: BLE001
+                      print(f"::warning::{lat},{lon}: {path.split('?')[0]} chưa đọc được ({e})")
           for lat, lon in plots:
               for path in (f"/api/landcover/change?lat={lat}&lon={lon}&lang=vi", f"/api/basemap/meta?lat={lat}&lon={lon}&lang=vi",
                            f"/api/water/summary?points={lat},{lon}"):

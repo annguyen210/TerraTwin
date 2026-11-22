@@ -149,5 +149,67 @@ def test_ke_hoach_lu_thuong_nguon_thieu_du_lieu_thi_khong_goi_ngay_nao_an_toan(m
 def test_the_co_other_threats_co_cau_truc():
     alerts = [SimpleNamespace(id="upstream_flood", name="Lũ từ thượng nguồn", risk_level="danger")]
     ts = terrascore.with_other_threats(_ts(), alerts)
-    assert ts.other_threats == [{"id": "upstream_flood", "name": "Lũ từ thượng nguồn", "risk_level": "danger"}]
+    assert ts.other_threats == [{"id": "upstream_flood", "name": "Lũ từ thượng nguồn", "risk_level": "danger", "kind": "forecast"}]
     assert ts.grade == "A"                              # điểm vẫn chỉ chấm 5 hiểm hoạ — chữ to do other_threats quyết
+
+
+# ---- Kiểm A–Z lần 3 (22/11/2026): Huế 16.52,107.59 — chỉ mối DỰ BÁO vào "7 ngày tới" và lịch ngày an toàn ----
+
+def test_sau_benh_quan_sat_khong_vao_7_ngay_toi():
+    alerts = [SimpleNamespace(id="pest", name="Phát hiện sâu bệnh sớm", risk_level="danger",
+                              headline="Sức sống cây giảm mạnh bất thường — NDVI 0.1849, ảnh ngày 2026-11-15"),
+              SimpleNamespace(id="mining", name="An toàn mỏ & công trường", risk_level="warning", headline="mỏ cách 3 km")]
+    ts = terrascore.with_other_threats(_ts(), alerts)
+    assert ts.other_threats == []                                    # không lên chữ to "7 ngày tới"
+    assert ts.summary.startswith("Hiểm hoạ thiên tai 7 ngày tới: thấp.")
+    kinds = {o["id"]: o["kind"] for o in ts.observed_threats}
+    assert kinds == {"pest": "observed", "mining": "fixed"}
+    assert "ảnh ngày 2026-11-15" in ts.observed_threats[0]["headline"]
+
+
+def test_lu_thuong_nguon_van_la_du_bao():
+    alerts = [SimpleNamespace(id="upstream_flood", name="Lũ từ thượng nguồn", risk_level="danger", headline="x"),
+              SimpleNamespace(id="pest", name="Phát hiện sâu bệnh sớm", risk_level="danger", headline="y")]
+    ts = terrascore.with_other_threats(_ts(), alerts)
+    assert [o["id"] for o in ts.other_threats] == ["upstream_flood"] and ts.other_threats[0]["kind"] == "forecast"
+    assert "sâu bệnh" not in ts.summary
+
+
+def test_hang_a_co_hiem_hoa_canh_bao_thi_khong_noi_thap(monkeypatch):
+    """Huế: lũ CẢNH BÁO mà hạng A 89 → "thấp". Điểm giữ nguyên, câu chữ đổi, có hazard_alerts cho giao diện."""
+    reqlang.set_lang("vi")
+    ass = {h: _a(h, "safe") for h in terrascore._HAZARDS}
+    ass["flood"] = _a("flood", "warning")
+    ts = terrascore.compute(LOC, assessments=ass, reassess=False)
+    assert ts.grade == "A" and ts.score >= 80
+    assert "thấp" not in ts.summary and "cần để ý" in ts.summary
+    assert ts.hazard_alerts == [{"id": "flood", "name": registry.get_module("flood").disp_name(), "risk_level": "warning"}]
+    ts2 = terrascore.compute(LOC, assessments={h: _a(h, "safe") for h in terrascore._HAZARDS}, reassess=False)
+    assert ts2.hazard_alerts == [] and "thấp" in ts2.summary
+
+
+def test_ke_hoach_moi_co_dinh_khong_chan_ngay_lam_dong(monkeypatch):
+    """Huế: 'An toàn mỏ & công trường' (nhà máy cách 3,1 km) chặn CẢ 7 ngày làm đồng. Mối cố định/quan sát không vào lịch."""
+    from app.schemas import ScanModule
+    from app.services import advisor, landuse
+    sc = _scan_yen_upstream_pending()
+    sc.modules = [m for m in sc.modules if m.id != "upstream_flood"]
+    mine = ScanModule(id="mining", name="An toàn mỏ & công trường", icon="", group="D", risk_level="warning",
+                      headline="Gần nhất mỏ cách 3,1 km", recommendation="r", is_real=True, threat=True, status="ok")
+    pest = ScanModule(id="pest", name="Phát hiện sâu bệnh sớm", icon="", group="A", risk_level="danger",
+                      headline="ảnh ngày 2026-11-15", recommendation="r", is_real=True, threat=True, status="ok")
+    sc.alerts = [pest, mine]
+    monkeypatch.setattr(scan, "scan", lambda loc, deadline=None: sc)
+    monkeypatch.setattr(landuse, "fetch_raw", lambda la, lo: None)
+    reqlang.set_lang("vi")
+    p = advisor.build(LOC, crop="lua")
+    sw = p["safe_window"]
+    assert len(sw["safe_dates"]) == 7 and all(d["hazards"] == [] for d in sw["days"])
+    assert {a["id"] for a in p["actions"]} == {"pest", "mining"}     # vẫn nằm trong việc cần làm
+
+
+def test_mo_chi_tinh_mo_va_bai_khai_thac_khong_tinh_khu_cong_nghiep():
+    sel = registry.get_module("mining")._SELECTOR
+    assert sel == '[~"^(landuse|industrial)$"~"^(quarry|mine)$"]'        # khoá: landuse=industrial không còn khớp
+    assert '"industrial"' not in sel and "quarry|industrial" not in sel
+

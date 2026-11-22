@@ -112,6 +112,11 @@ class TerraScoreResult(BaseModel):
     # Mối đe doạ NGOÀI 5 hiểm hoạ thời tiết (vd lũ từ thượng nguồn — mô-đun nặng, lượt quét sâu): [{id, name, risk_level}].
     # Kiểm A–Z lần 2 (22/11/2026): trước chỉ đổi câu summary, giao diện chọn chữ to theo grade nên vẫn "7 ngày tới: yên".
     other_threats: list[dict] = []
+    # Kiểm A–Z lần 3 (22/11/2026): other_threats CHỈ còn mối DỰ BÁO. Mối quan sát/cố định (sâu bệnh từ ảnh, mỏ gần thửa):
+    # [{id, name, risk_level, kind, headline}] — dòng riêng, không "7 ngày tới". hazard_alerts: hiểm hoạ thời tiết đang ở mức
+    # cảnh báo/nguy hiểm — thẻ không được ghi "yên" khi có (Huế: lũ CẢNH BÁO mà hạng A).
+    observed_threats: list[dict] = []
+    hazard_alerts: list[dict] = []
 
 
 class KnowledgeCitation(BaseModel):

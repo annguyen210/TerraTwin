@@ -222,6 +222,27 @@ def test_giam_deu_goi_y_nguyen_nhan_toan_vung(with_key, monkeypatch):
     assert "ĐỀU" in r["cause_hint"]
 
 
+def test_ruong_lua_vua_gat_khong_phai_sau_benh(with_key, monkeypatch):
+    """Kiểm A–Z lần 3 (22/11/2026), Huế 16.52,107.59: lúa lên ~0,7 tháng 7 → 0,18 tháng 11, giảm đều. Bản cũ: nền = trung vị
+    4 tháng (gồm đỉnh vụ) → "giảm mạnh bất thường" = NGUY HIỂM, trong khi mô-đun năng suất cùng ảnh ghi "vừa thu hoạch"."""
+    _series(monkeypatch, [(0.62, 0.05), (0.70, 0.05), (0.71, 0.05), (0.66, 0.05), (0.55, 0.05),
+                          (0.42, 0.05), (0.30, 0.05), (0.22, 0.05), (0.18, 0.04)], start_days_ago=120)
+    r = optical.stress(10.0, 106.0)
+    assert r["level"] == "safe" and r["harvest"]["peak"] == 0.71
+    assert "vừa thu hoạch" in r["verdict"] and "không phải dấu hiệu sâu bệnh" in r["verdict"]
+    from app.modules.registry import get_module
+    a = get_module("pest").assess(Location(lat=10.0, lon=106.0))
+    assert a.risk_level == "safe" and "Vừa thu hoạch" in a.headline and "vừa gặt" in a.recommendation
+
+
+def test_vu_moi_len_roi_sup_van_bao_dong(with_key, monkeypatch):
+    # Gặt xong (0,7 → 0,2), xuống vụ mới lên lại 0,6, rồi sụp 0,25 loang lổ → KHÔNG được coi là "vừa gặt".
+    _series(monkeypatch, [(0.70, 0.05), (0.45, 0.05), (0.20, 0.05), (0.35, 0.05), (0.50, 0.05),
+                          (0.60, 0.05), (0.62, 0.05), (0.25, 0.12)], start_days_ago=120)
+    r = optical.stress(10.0, 106.0)
+    assert r["level"] in ("warning", "danger") and r["harvest"] is None
+
+
 def test_stress_can_it_nhat_4_quan_sat(with_key, monkeypatch):
     _series(monkeypatch, [0.70, 0.68])
     assert optical.stress(10.0, 106.0) is None

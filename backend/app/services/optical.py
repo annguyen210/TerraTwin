@@ -28,6 +28,9 @@ NDVI_SPARSE = 0.40      # thưa / mới gieo / vừa thu hoạch
 NDVI_HEALTHY = 0.60     # tán kín, cây khỏe
 
 MIN_COVERAGE = 40.0     # % pixel nhìn thấy đất thì mới coi là một quan sát
+HARVEST_PEAK = 0.50     # đỉnh vụ tối thiểu để coi một lần tụt NDVI là "vừa gặt" (lúa ~0,7)
+HARVEST_MIN_DAYS = 20   # phải qua đỉnh ít nhất ngần này ngày
+HARVEST_RIPEN_DROP = 0.08  # giữa đỉnh và lúc trống phải có ít nhất một ảnh thấp hơn đỉnh ngần này (giai đoạn chín)
 
 
 def _clear(series):
@@ -48,6 +51,43 @@ def cover_label(ndvi: float) -> str:
 
 
 # --------------------------------------------------------------- sâu bệnh
+
+def _harvest_like(lat: float, lon: float, buffer_m: float, latest: dict, patchiness: float | None) -> dict | None:
+    """Cú tụt NDVI có khớp đường cong THU HOẠCH không (kiểm A–Z lần 3, 22/11/2026).
+
+    Huế 16.52,107.59: sâu bệnh báo NGUY HIỂM "NDVI 0.1849 (-29.6% so nền thửa)" trong khi CÙNG ảnh, mô-đun năng suất ghi
+    "đất trống / vừa thu hoạch — đỉnh 0.7136 ngày 23/7". Nền của stress() là trung vị 4 tháng gồm cả đỉnh vụ, nên mọi ruộng
+    vừa gặt đều "giảm ≥25%". Khớp thu hoạch khi: chuỗi 180 ngày (cùng chuỗi mô-đun năng suất dùng — có nhớ đệm) có đỉnh vụ
+    ≥ HARVEST_PEAK, ảnh mới nhất đã qua đỉnh ≥ HARVEST_MIN_DAYS ngày và xuống dưới ngưỡng "thưa", CHƯA xuống vụ mới (sau khi
+    tụt dưới ngưỡng thưa thì không lên lại tán cây), có giai đoạn CHÍN trước khi trống (ít nhất một ảnh thấp hơn đỉnh
+    ≥ HARVEST_RIPEN_DROP — đứng ổn định rồi sụp một lần là phát trụi), và giảm ĐỀU (độ loang lổ ≤ 0,9) hoặc đã thành đất trống (< NDVI_BARE —
+    đúng nhãn "đất trống / vừa thu hoạch" của growth()). Cái giá: cây bị phá trụi hoàn toàn SAU đỉnh vụ cũng bị coi là gặt —
+    ở đó vệ tinh không phân biệt được, và gặt là khả năng lớn hơn rất nhiều."""
+    s = _clear(sentinel.index_series(lat, lon, "NDVI", days=180, interval_days=10, buffer_m=buffer_m))
+    if len(s) < 5:
+        return None
+    peak = max(s, key=lambda r: r["mean"])
+    if peak["mean"] < HARVEST_PEAK or latest["mean"] >= NDVI_SPARSE:
+        return None
+    since = (date.fromisoformat(latest["date"]) - date.fromisoformat(peak["date"])).days
+    if since < HARVEST_MIN_DAYS:
+        return None
+    dropped = ripening = False
+    for r in s:
+        if r["date"] <= peak["date"]:
+            continue
+        if r["mean"] < NDVI_SPARSE:
+            dropped = True
+        elif dropped:
+            return None                     # đã lên lại tán cây = vụ mới; cú tụt sau đó không giải thích bằng vụ cũ
+        elif r["mean"] <= peak["mean"] - HARVEST_RIPEN_DROP:
+            ripening = True                 # có giai đoạn CHÍN (giảm dần) trước khi trống
+    if not ripening:
+        return None                         # đứng ổn định rồi sụp một lần = phát trụi/phá, không phải lúa chín rồi gặt
+    if not (latest["mean"] < NDVI_BARE or (patchiness is not None and patchiness <= 0.9)):
+        return None
+    return {"peak": round(peak["mean"], 4), "peak_date": peak["date"], "days_since_peak": since}
+
 
 def stress(lat: float, lon: float, buffer_m: float = 300.0) -> dict | None:
     """Phát hiện cây stress bất thường, và đoán xem đều hay loang lổ.
@@ -103,6 +143,10 @@ def stress(lat: float, lon: float, buffer_m: float = 300.0) -> dict | None:
     else:
         level, verdict = "safe", tr("sức sống cây trong khoảng bình thường của thửa", "plant vigor within this plot's normal range")
 
+    harvest = _harvest_like(lat, lon, buffer_m, latest, patchiness) if level != "safe" else None
+    if harvest:
+        level, verdict = "safe", tr("vừa thu hoạch — không phải dấu hiệu sâu bệnh", "just harvested — not a sign of pests")
+
     if level == "safe":
         cause = None
     elif patchiness is not None and patchiness >= 1.4:
@@ -123,7 +167,7 @@ def stress(lat: float, lon: float, buffer_m: float = 300.0) -> dict | None:
 
     return {
         "available": True, "applicable": True, "level": level, "verdict": verdict,
-        "cause_hint": cause,
+        "cause_hint": cause, "harvest": harvest,
         "ndvi_now": latest["mean"], "ndvi_baseline": round(base, 4),
         "change_pct": drop_pct, "z_score": round(z, 2),
         "patchiness_ratio": patchiness,

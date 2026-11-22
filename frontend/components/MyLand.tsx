@@ -12,6 +12,7 @@
  * đâu" dẫn người dùng phân tích + lưu trước.
  */
 
+import { isForecast } from "@/lib/terraBadge";
 import { useCallback, useEffect, useState } from "react";
 import {
   ackAlert,
@@ -375,7 +376,7 @@ export default function MyLand({
               >
                 {/* Kiểm A–Z lần 2: thửa đang có cảnh báo (vd lũ từ thượng nguồn NGUY HIỂM) thì ô hạng không được xanh "A". */}
                 {(() => {
-                  const pa = alerts.filter((a) => a.plot_id === p.id && (a.risk_level === "danger" || a.risk_level === "warning"));
+                  const pa = alerts.filter((a) => a.plot_id === p.id && isForecast(a.module_id) && (a.risk_level === "danger" || a.risk_level === "warning"));
                   const worst = pa.find((a) => a.risk_level === "danger") ?? pa[0];
                   return (
                     <span
@@ -392,13 +393,20 @@ export default function MyLand({
                   {/* P1-6 (kiểm A–Z 21/11/2026): hạng là số CHẤM LÚC NÀO — trước đây số lúc lưu (có khi đã 2 tuần) ghi
                       như số mới. Rà soát nền chấm lại; chưa có điểm thì nói "chưa chấm". */}
                   {(() => {
-                    const pa = alerts.filter((a) => a.plot_id === p.id && (a.risk_level === "danger" || a.risk_level === "warning"));
+                    const pa = alerts.filter((a) => a.plot_id === p.id && isForecast(a.module_id) && (a.risk_level === "danger" || a.risk_level === "warning"));
                     const worst = pa.find((a) => a.risk_level === "danger") ?? pa[0];
                     return worst ? (
                       <span className="ml-plot-meta" style={{ color: worst.risk_level === "danger" ? "#C2412E" : "#B07A2E", fontWeight: 600 }}>
                         {worst.risk_level === "danger" ? t("7 ngày tới: có mối NGUY HIỂM — ", "Next 7 days: DANGER — ") : t("7 ngày tới: cần để ý — ", "Next 7 days: watch closely — ")}
                         {worst.headline.replace(/^[^:]*:\s*/, "")}
                       </span>
+                    ) : null;
+                  })()}
+                  {(() => {
+                    // Kiểm A–Z lần 3: sâu bệnh từ ảnh / mỏ gần thửa là QUAN SÁT, không phải "7 ngày tới".
+                    const ob = alerts.filter((a) => a.plot_id === p.id && !isForecast(a.module_id) && (a.risk_level === "danger" || a.risk_level === "warning"));
+                    return ob.length ? (
+                      <span className="ml-plot-meta">{t("Quan sát: ", "Observed: ")}{ob.map((a) => a.headline).join(" · ")}</span>
                     ) : null;
                   })()}
                   <span className="ml-plot-meta">
