@@ -94,28 +94,31 @@ UPSTREAM_TIMEOUT = 8.0
 
 
 def _upstream(loc: Location, sc):
-    """(ScanModule | None, tên mô-đun nếu CHƯA kịp tính) cho lũ từ thượng nguồn. Lượt quét đã có kết quả thì dùng luôn;
-    chưa có thì chạy riêng với trần UPSTREAM_TIMEOUT giây — quá trần thì báo "chưa tính", KHÔNG coi là an toàn."""
+    """(ScanModule | None, tên nếu CHƯA kịp tính, tên nếu tính xong mà THIẾU DỮ LIỆU) cho lũ từ thượng nguồn. Lượt quét đã
+    có kết quả thì dùng luôn; chưa có thì chạy riêng với trần UPSTREAM_TIMEOUT giây — quá trần thì báo "chưa tính", KHÔNG
+    coi là an toàn. Chạy xong mà thiếu dữ liệu (is_real=False / status≠ok) cũng KHÔNG coi là an toàn (kiểm 22/11/2026)."""
     from app.modules.registry import get_module
     from app.schemas import ScanModule
     from app.services import jobs
     have = next((m for m in sc.modules if m.id == "upstream_flood"), None)
     if have is None:                       # lượt quét không có mục này (vd mô-đun tắt) — không tự gọi thêm
-        return None, None
+        return None, None, None
     if have.status != "pending":
-        return (have if have.is_real and have.threat and have.risk_level in ("danger", "warning") else None), None
+        if not have.is_real or have.status != "ok":
+            return None, None, have.name
+        return (have if have.threat and have.risk_level in ("danger", "warning") else None), None, None
     mod = get_module("upstream_flood")
     if mod is None:
-        return None, None
+        return None, None, None
     late = object()
     a = jobs.gather([lambda: mod.assess(loc)], deadline=UPSTREAM_TIMEOUT, late=late)[0]
     if a is late or a is None:
-        return None, mod.disp_name()
+        return None, mod.disp_name(), None
     if not a.is_real or a.status != "ok":
-        return None, None
+        return None, None, mod.disp_name()
     return ScanModule(id="upstream_flood", name=mod.disp_name(), icon=mod.icon, group=mod.group,
                       risk_level=a.risk_level, headline=a.headline, recommendation=a.recommendation,
-                      is_real=True, score=a.score, threat=True, status=a.status, risk_dates=[]), None
+                      is_real=True, score=a.score, threat=True, status=a.status, risk_dates=[]), None, None
 
 
 def build(loc: Location, crop: str | None = None) -> dict:
@@ -145,12 +148,14 @@ def build(loc: Location, crop: str | None = None) -> dict:
 
     # Kiểm A–Z lần 2 (22/11/2026): lượt nhanh bỏ mô-đun NẶNG, nên kế hoạch ghi "mọi ngày đều thuận" trong khi lũ từ thượng
     # nguồn đang NGUY HIỂM. Lũ thượng nguồn là dự báo 7 ngày → chạy riêng, có trần thời gian (catchment/khí hậu có cache).
-    up, up_pending = _upstream(loc, sc)
+    up, up_pending, up_nodata = _upstream(loc, sc)
     if up is not None and up.risk_level in ("danger", "warning"):
         alerts.append(up)
         alerts.sort(key=lambda m: 0 if m.risk_level == "danger" else 1)
     if up_pending:
         unknown = unknown + [up_pending]
+    if up_nodata:                          # tính xong mà thiếu dữ liệu → "chưa kết luận được", không phải "thuận"
+        unknown = unknown + [up_nodata]
 
     # --- Bản đồ NGÀY → hiểm họa (để dựng cả việc cần làm lẫn ngày an toàn) ---
     by_day: dict[str, list[str]] = {d: [] for d in horizon}
