@@ -140,13 +140,22 @@ def test_thieu_cau_co_dung_hoac_cho_kho_thi_422(c, bo):
     assert c.post("/api/pilot/feedback", json={**OK, bo: ""}).status_code == 422
 
 
-def test_admin_xoa_mot_phieu(c):
-    """22/11/2026: lượt kiểm tự động lỡ gửi một phiếu giả lên production — admin phải xoá được, người thường thì không."""
-    r = c.post("/api/pilot/feedback", json=OK)
-    fid = r.json()["id"]
-    assert c.delete(f"/api/admin/pilot/feedback/{fid}").status_code == 401
-    assert c.delete(f"/api/admin/pilot/feedback/{fid}", headers=_login(c, "thuong2@vd.vn")).status_code == 403
-    h = _login(c, "admin2@vd.vn", admin=True)
-    assert c.delete(f"/api/admin/pilot/feedback/{fid}", headers=h).json() == {"ok": True, "deleted": fid}
-    assert c.delete(f"/api/admin/pilot/feedback/{fid}", headers=h).status_code == 404
-    assert all(x["id"] != fid for x in c.get("/api/admin/pilot/feedback", headers=h).json()["latest"])
+def test_admin_loai_phieu_xoa_mem_co_ly_do(c):
+    """Kiểm A–Z lần 2 (22/11/2026): xoá cứng (PR #58) → LOẠI khỏi số liệu, bắt buộc lý do, vẫn còn trong CSV, đếm riêng."""
+    fid = c.post("/api/pilot/feedback", json=OK).json()["id"]
+    c.post("/api/pilot/feedback", json={**OK, "role": "buyer", "hardest": "water"})
+    url = f"/api/admin/pilot/feedback/{fid}/exclude"
+    assert c.post(url, json={"reason": "phiếu thử nội bộ"}).status_code == 401
+    assert c.post(url, json={"reason": "phiếu thử nội bộ"}, headers=_login(c, "thuong3@vd.vn")).status_code == 403
+    h = _login(c, "admin3@vd.vn", admin=True)
+    assert c.post(url, json={"reason": ""}, headers=h).status_code == 422          # lý do bắt buộc
+    r = c.post(url, json={"reason": "phiếu thử nội bộ"}, headers=h).json()
+    assert r == {"ok": True, "excluded": fid, "reason": "phiếu thử nội bộ"}
+    assert c.post(url, json={"reason": "lần hai"}, headers=h).status_code == 409
+    s = c.get("/api/admin/pilot/feedback", headers=h).json()
+    assert s["all"]["n"] == 1 and all(x["id"] != fid for x in s["latest"])     # không vào số đếm
+    assert s["excluded"]["n"] == 1 and "phiếu thử nội bộ" in s["excluded"]["note"]
+    assert s["excluded_latest"][0]["id"] == fid
+    csv_txt = c.get("/api/admin/pilot/feedback.csv", headers=h).text
+    assert "phiếu thử nội bộ" in csv_txt and "exclude_reason" in csv_txt            # vẫn còn để kiểm toán
+    assert c.delete(f"/api/admin/pilot/feedback/{fid}", headers=h).status_code in (404, 405)   # không còn xoá cứng

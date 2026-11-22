@@ -1563,10 +1563,14 @@ export type PilotBlock = { n: number; ease_mean: number | null; trust_mean: numb
   would_use: Record<"yes" | "maybe" | "no", number>; hardest: Record<string, number> };
 export type PilotSummary = { all: PilotBlock; by_role: Record<string, PilotBlock>; note: string;
   latest: { id: number; created_at: string | null; source: string; role: string; region: string; ease: number; trust: number;
-            minutes: number | null; would_use: string; hardest: string; comment: string; contact: string }[] };
+            minutes: number | null; would_use: string; hardest: string; comment: string; contact: string }[];
+  excluded?: { n: number; by_reason: { reason: string; n: number }[]; note: string };
+  excluded_latest?: { id: number; created_at: string | null; excluded_at: string | null; reason: string; role: string }[] };
 
-export function deletePilotFeedback(id: number) {
-  return authed<{ ok: boolean; deleted: number }>(`/api/admin/pilot/feedback/${id}`, { method: "DELETE" }, "Không xoá được phiếu");
+// Kiểm A–Z lần 2: LOẠI khỏi số liệu (xoá mềm, bắt buộc lý do) thay cho xoá cứng.
+export function excludePilotFeedback(id: number, reason: string) {
+  return authed<{ ok: boolean; excluded: number; reason: string }>(`/api/admin/pilot/feedback/${id}/exclude`,
+    { method: "POST", body: JSON.stringify({ reason }) }, "Không loại được phiếu");
 }
 
 export function getPilotSummary() {

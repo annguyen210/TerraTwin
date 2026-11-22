@@ -770,6 +770,10 @@ class PilotFeedback(Base):
     comment: Mapped[str] = mapped_column(Text, default="")
     contact: Mapped[str] = mapped_column(String(120), default="")
     user_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Kiểm A–Z lần 2 (22/11/2026): LOẠI khỏi số liệu thay vì xoá cứng — kiểm toán được (ai, khi nào, vì sao).
+    excluded_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    excluded_by: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    exclude_reason: Mapped[str] = mapped_column(String(200), default="")
 
 
 class LabelV3(Base):
@@ -951,6 +955,10 @@ _ADDED_COLUMNS = [
     ("jobs", "progress_json", "TEXT"),
     # P1-6 (21/11/2026) — giờ chấm hạng thửa; thửa cũ để trống = "chưa chấm lại kể từ khi có cột này".
     ("plots", "scored_at", "TIMESTAMP"),
+    # Kiểm A–Z lần 2 (22/11/2026) — loại phiếu góp ý khỏi số liệu (xoá mềm, có lý do).
+    ("pilot_feedback", "excluded_at", "TIMESTAMP"),
+    ("pilot_feedback", "excluded_by", "INTEGER"),
+    ("pilot_feedback", "exclude_reason", "VARCHAR(200) DEFAULT ''"),
 ]
 
 

@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   fetchMe, getHealth, getFunnel, getBackupStatus, getDrift, getCoopPlots, updateCoop,
-  deletePilotFeedback, getPilotSummary, downloadPilotCsv, adminLabelers, adminAddLabeler, adminRemoveLabeler, adminLabelSummary,
+  excludePilotFeedback, getPilotSummary, downloadPilotCsv, adminLabelers, adminAddLabeler, adminRemoveLabeler, adminLabelSummary,
   adminLabelExport, adminUsers, adminUpdateUser, adminDeleteUser, adminUpgradeRequests, adminDecideUpgrade, adminPayments, type AdminPayment, adminWaterConfirms, adminSeasonCases, adminListingGold, adminListingGoldAdd, adminListingGoldDelete,
   type AdminUser, type UpgradeReq, type AdminWaterConfirms, type AdminSeasonCases, type ListingGoldView,
   type AuthUser, type HealthStatus, type CoopPlot, type PilotSummary, type LabelSummary,
@@ -145,8 +145,10 @@ function FunnelTab() {
 function PilotTab() {
   const [data, setData] = useState<PilotSummary | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  // Xoá phiếu (phiếu thử / rác / lọt vào do lỗi): bấm "Xoá" → hiện xác nhận ngay trên dòng, không dùng hộp thoại trình duyệt.
+  // LOẠI phiếu khỏi số liệu (phiếu thử / rác / lọt vào do lỗi) — xoá MỀM, bắt buộc lý do (kiểm A–Z lần 2). Bấm "Loại khỏi số
+  // liệu" → ô lý do + xác nhận ngay trên dòng, không dùng hộp thoại trình duyệt.
   const [ask, setAsk] = useState<number | null>(null);
+  const [why, setWhy] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const load = () => getPilotSummary().then(setData).catch((e) => setErr(e.message));
 
@@ -156,9 +158,11 @@ function PilotTab() {
     return () => { live = false; };
   }, []);
 
-  async function del(id: number) {
-    try { await deletePilotFeedback(id); setMsg(`Đã xoá phiếu #${id}.`); setAsk(null); await load(); }
-    catch (e) { setErr((e as Error).message); }
+  async function exclude(id: number) {
+    try {
+      await excludePilotFeedback(id, why.trim());
+      setMsg(`Đã loại phiếu #${id} khỏi số liệu (lý do: ${why.trim()}).`); setAsk(null); setWhy(""); await load();
+    } catch (e) { setErr((e as Error).message); }
   }
 
   if (err) return <p className="ws-err">⚠️ {err}</p>;
@@ -182,6 +186,9 @@ function PilotTab() {
         </tbody>
       </table>
       <p className="ws-hint">Bước khó nhất: {Object.entries(data.all.hardest).map(([k, n]) => `${k} ${n}`).join(" · ")}</p>
+      {/* Kiểm toán được: phiếu đã loại không vào số đếm nhưng luôn được kể ra, kèm lý do. */}
+      {data.excluded && data.excluded.n > 0 && <p className="ws-hint">{data.excluded.note}. Phiếu đã loại vẫn có trong CSV (cột excluded_at, exclude_reason).</p>}
+      <p className="ws-hint">Ngày 22/11/2026 đã XOÁ CỨNG 1 phiếu thử (trước khi có chức năng loại) — xem docs/NHAT_KY_SO_LIEU_THI_DIEM.md.</p>
       <button className="doc-btn" onClick={() => downloadPilotCsv().catch((e) => setErr(e.message))}>Tải CSV</button>
       <h4 style={{ marginTop: 18 }}>Góp ý mới nhất</h4>
       {msg && <p className="ws-hint" role="status">{msg}</p>}
@@ -195,12 +202,13 @@ function PilotTab() {
               {r.comment ? `: ${r.comment}` : " (không có lời góp ý)"}{r.contact ? ` (liên hệ: ${r.contact})` : ""}{" "}
               {ask === r.id ? (
                 <>
-                  <b>Xoá hẳn phiếu #{r.id}? Không hoàn tác được.</b>{" "}
-                  <button className="doc-btn" onClick={() => del(r.id)}>Xoá hẳn</button>{" "}
-                  <button className="doc-btn ghost" onClick={() => setAsk(null)}>Huỷ</button>
+                  <input type="text" maxLength={200} placeholder="Lý do (vd: phiếu thử nội bộ)" value={why}
+                         onChange={(e) => setWhy(e.target.value)} aria-label={`Lý do loại phiếu #${r.id}`} />{" "}
+                  <button className="doc-btn" disabled={why.trim().length < 3} onClick={() => exclude(r.id)}>Loại phiếu #{r.id}</button>{" "}
+                  <button className="doc-btn ghost" onClick={() => { setAsk(null); setWhy(""); }}>Huỷ</button>
                 </>
               ) : (
-                <button className="doc-btn ghost" onClick={() => { setAsk(r.id); setMsg(null); }}>Xoá</button>
+                <button className="doc-btn ghost" onClick={() => { setAsk(r.id); setMsg(null); setWhy(""); }}>Loại khỏi số liệu</button>
               )}
             </li>
           ))}
