@@ -262,6 +262,8 @@ export default function Home() {
 
   // CHƯA chọn thửa → trang ĐÓN rộng, phân mục rõ (thay 3 cột chật). Chọn xong
   // (coord có giá trị) mới rơi xuống bố cục app làm việc bên dưới.
+  // Hook phải đứng TRƯỚC mọi lệnh return sớm (E2E #178: đặt sau "if (!coord) return" làm vỡ trang khi mở thửa).
+  useEffect(() => { setThreats([]); }, [coord?.lat, coord?.lon]);   // đổi thửa → bỏ mối đe doạ của thửa cũ
   if (!coord) {
     return (
       <>
@@ -294,7 +296,6 @@ export default function Home() {
   }
 
   const serviceable = terra?.region?.serviceable !== false;
-  useEffect(() => { setThreats([]); }, [coord?.lat, coord?.lon]);   // đổi thửa → bỏ mối đe doạ của thửa cũ
   // GĐ1 kế hoạch tổng — thẻ thửa: Hồ sơ · Canh đất · Kiểm chứng; 18 công cụ lùi vào "Chuyên sâu".
   const CHAPTERS: { id: "plan" | "mine" | "verify" | "tools"; vi: string; en: string }[] = [
     { id: "plan", vi: "Hồ sơ", en: "Dossier" },
