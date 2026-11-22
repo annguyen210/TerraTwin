@@ -373,17 +373,34 @@ export default function MyLand({
                 style={{ flex: 1 }}
                 onClick={() => onOpen(p.lat, p.lon, p.name)}
               >
-                <span
-                  className="ml-grade"
-                  style={{ background: GRADE_COLOR[p.grade ?? ""] ?? "#5a6b73" }}
-                  title={t("Hạng TerraScore: hiểm hoạ 7 ngày tới, không phải lịch sử ngập", "TerraScore grade: next-7-day hazards, not flood history")}
-                >
-                  {p.grade ?? "—"}
-                </span>
+                {/* Kiểm A–Z lần 2: thửa đang có cảnh báo (vd lũ từ thượng nguồn NGUY HIỂM) thì ô hạng không được xanh "A". */}
+                {(() => {
+                  const pa = alerts.filter((a) => a.plot_id === p.id && (a.risk_level === "danger" || a.risk_level === "warning"));
+                  const worst = pa.find((a) => a.risk_level === "danger") ?? pa[0];
+                  return (
+                    <span
+                      className="ml-grade"
+                      style={{ background: worst ? (worst.risk_level === "danger" ? "#C2412E" : "#B07A2E") : (GRADE_COLOR[p.grade ?? ""] ?? "#5a6b73") }}
+                      title={worst ? worst.headline : t("Hạng TerraScore: hiểm hoạ 7 ngày tới, không phải lịch sử ngập", "TerraScore grade: next-7-day hazards, not flood history")}
+                    >
+                      {worst ? "!" : (p.grade ?? "—")}
+                    </span>
+                  );
+                })()}
                 <span className="ml-plot-info">
                   <span className="ml-plot-name">{p.name}</span>
                   {/* P1-6 (kiểm A–Z 21/11/2026): hạng là số CHẤM LÚC NÀO — trước đây số lúc lưu (có khi đã 2 tuần) ghi
                       như số mới. Rà soát nền chấm lại; chưa có điểm thì nói "chưa chấm". */}
+                  {(() => {
+                    const pa = alerts.filter((a) => a.plot_id === p.id && (a.risk_level === "danger" || a.risk_level === "warning"));
+                    const worst = pa.find((a) => a.risk_level === "danger") ?? pa[0];
+                    return worst ? (
+                      <span className="ml-plot-meta" style={{ color: worst.risk_level === "danger" ? "#C2412E" : "#B07A2E", fontWeight: 600 }}>
+                        {worst.risk_level === "danger" ? t("7 ngày tới: có mối NGUY HIỂM — ", "Next 7 days: DANGER — ") : t("7 ngày tới: cần để ý — ", "Next 7 days: watch closely — ")}
+                        {worst.headline.replace(/^[^:]*:\s*/, "")}
+                      </span>
+                    ) : null;
+                  })()}
                   <span className="ml-plot-meta">
                     {p.grade && p.grade !== "—"
                       ? t(`Hạng ${p.grade}${p.score != null ? ` (${p.score}/100)` : ""} — hiểm hoạ 7 ngày tới, không phải lịch sử ngập · ${scoredWhen(p.scored_at, "vi")}`,

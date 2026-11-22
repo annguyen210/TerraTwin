@@ -90,6 +90,34 @@ def _money(v: float) -> str:
     return tr(f"{v:,.0f} đ".replace(",", "."), f"{v:,.0f} ₫")
 
 
+UPSTREAM_TIMEOUT = 8.0
+
+
+def _upstream(loc: Location, sc):
+    """(ScanModule | None, tên mô-đun nếu CHƯA kịp tính) cho lũ từ thượng nguồn. Lượt quét đã có kết quả thì dùng luôn;
+    chưa có thì chạy riêng với trần UPSTREAM_TIMEOUT giây — quá trần thì báo "chưa tính", KHÔNG coi là an toàn."""
+    from app.modules.registry import get_module
+    from app.schemas import ScanModule
+    from app.services import jobs
+    have = next((m for m in sc.modules if m.id == "upstream_flood"), None)
+    if have is None:                       # lượt quét không có mục này (vd mô-đun tắt) — không tự gọi thêm
+        return None, None
+    if have.status != "pending":
+        return (have if have.is_real and have.threat and have.risk_level in ("danger", "warning") else None), None
+    mod = get_module("upstream_flood")
+    if mod is None:
+        return None, None
+    late = object()
+    a = jobs.gather([lambda: mod.assess(loc)], deadline=UPSTREAM_TIMEOUT, late=late)[0]
+    if a is late or a is None:
+        return None, mod.disp_name()
+    if not a.is_real or a.status != "ok":
+        return None, None
+    return ScanModule(id="upstream_flood", name=mod.disp_name(), icon=mod.icon, group=mod.group,
+                      risk_level=a.risk_level, headline=a.headline, recommendation=a.recommendation,
+                      is_real=True, score=a.score, threat=True, status=a.status, risk_dates=[]), None
+
+
 def build(loc: Location, crop: str | None = None) -> dict:
     """crop=None → tự chọn theo loại đất THẬT (ESA WorldCover); chỉ giả định lúa
     khi thửa là đất trồng trọt. crop có giá trị = người dùng chủ động chọn."""
@@ -110,15 +138,25 @@ def build(loc: Location, crop: str | None = None) -> dict:
     fit = landuse.crop_applicability(lu)
     if not explicit:
         crop = fit["default_crop"]
-    alerts = sc.alerts                      # đã lọc: thật + là mối đe doạ, nguy hiểm trước
+    alerts = list(sc.alerts)                # đã lọc: thật + là mối đe doạ, nguy hiểm trước
     unknown = [m.name for m in sc.modules if m.id in _WEATHER_7D and m.status == "need_data"]
     today = date.today()
     horizon = [(today + timedelta(days=i)).isoformat() for i in range(7)]
 
+    # Kiểm A–Z lần 2 (22/11/2026): lượt nhanh bỏ mô-đun NẶNG, nên kế hoạch ghi "mọi ngày đều thuận" trong khi lũ từ thượng
+    # nguồn đang NGUY HIỂM. Lũ thượng nguồn là dự báo 7 ngày → chạy riêng, có trần thời gian (catchment/khí hậu có cache).
+    up, up_pending = _upstream(loc, sc)
+    if up is not None and up.risk_level in ("danger", "warning"):
+        alerts.append(up)
+        alerts.sort(key=lambda m: 0 if m.risk_level == "danger" else 1)
+    if up_pending:
+        unknown = unknown + [up_pending]
+
     # --- Bản đồ NGÀY → hiểm họa (để dựng cả việc cần làm lẫn ngày an toàn) ---
     by_day: dict[str, list[str]] = {d: [] for d in horizon}
     for m in alerts:
-        for d in m.risk_dates:
+        # Mối không có ngày cụ thể (lũ thượng nguồn = tổng mưa 7 ngày) phủ CẢ 7 ngày — không được để ngày nào "thuận".
+        for d in (m.risk_dates or horizon):
             by_day.setdefault(d, []).append(m.name)
 
     # ============ 1. VIỆC CẦN LÀM ============
@@ -149,10 +187,13 @@ def build(loc: Location, crop: str | None = None) -> dict:
     safe_dates = [d["date"] for d in days if d["safe"]]
     if unknown:
         names = ", ".join(n.lower() for n in unknown)
-        sw_headline = tr(f"Chưa nói được ngày nào an toàn — {len(unknown)} hiểm hoạ thời tiết chưa kết luận được "
-                         f"({names}). Thử lại sau ít phút.",
-                         f"Can't call any day safe yet — {len(unknown)} weather hazard(s) not concluded "
-                         f"({names}). Try again in a few minutes.")
+        sw_headline = (tr(f"Chưa nói được ngày nào an toàn — chưa tính {names}: đang kiểm, xem lại sau ít phút.",
+                          f"Can't call any day safe yet — {names} not counted yet: still checking, look again in a few minutes.")
+                       if unknown == [up_pending] else
+                       tr(f"Chưa nói được ngày nào an toàn — {len(unknown)} hiểm hoạ chưa kết luận được "
+                          f"({names}). Thử lại sau ít phút.",
+                          f"Can't call any day safe yet — {len(unknown)} hazard(s) not concluded "
+                          f"({names}). Try again in a few minutes."))
     elif not alerts:
         sw_headline = tr("Không có cảnh báo nào trong 7 ngày tới — mọi ngày đều thuận cho việc đồng áng.",
                          "No alerts in the next 7 days — every day is fine for fieldwork.")

@@ -109,6 +109,9 @@ class TerraScoreResult(BaseModel):
     # Phạm vi của con số, hiện NGAY CẠNH nó (16/10/2026: TerraScore 100 "Đất an toàn" cạnh "Điểm an toàn đất 49" — hai
     # con số đo hai thứ khác nhau mà cùng gọi là "an toàn").
     scope: str = ""
+    # Mối đe doạ NGOÀI 5 hiểm hoạ thời tiết (vd lũ từ thượng nguồn — mô-đun nặng, lượt quét sâu): [{id, name, risk_level}].
+    # Kiểm A–Z lần 2 (22/11/2026): trước chỉ đổi câu summary, giao diện chọn chữ to theo grade nên vẫn "7 ngày tới: yên".
+    other_threats: list[dict] = []
 
 
 class KnowledgeCitation(BaseModel):

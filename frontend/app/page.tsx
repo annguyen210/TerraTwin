@@ -20,6 +20,7 @@ import Link from "next/link";
 import Start from "@/components/Start";
 import Landing from "@/components/Landing";
 import { useLang } from "@/lib/i18n";
+import TerraBadge from "@/components/TerraBadge";
 import ModuleIcon from "@/components/ModuleIcon";
 import { inVietnam, outsideMessage } from "@/lib/geo";
 
@@ -95,38 +96,15 @@ const GROUPS: Record<string, [string, string]> = {
   D: ["Đô thị, mỏ & chuỗi cung ứng", "Urban, mining & supply chain"],
 };
 
-// Kiểm 7/11/2026 mục 4: "TerraScore 100 · Hạng A" to nhất ở đầu thẻ thửa đọc như "đất tốt" — thửa demo ngập 5 lần trong
-// mùa lũ vẫn hiện 100/Hạng A. Con số này chỉ là hiểm hoạ THỜI TIẾT 7 ngày tới, nên nói đúng điều đó bằng chữ, chỉ sang
-// lịch sử nước, và lùi con số về chú thích nhỏ.
-function TerraBadge({ t }: { t: TerraScore }) {
-  const { t: tr } = useLang();
-  // Đúng thang của services/terrascore.py: chỉ A là "thấp"; B = "có vài mối cần theo dõi" — không gọi B là "yên" (kiểm lại 7/11).
-  const [color, head] =
-    t.grade === "A" ? ["#2E9E67", tr("7 ngày tới: yên", "Next 7 days: calm")]
-    : t.grade === "B" ? ["#3aa0a0", tr("7 ngày tới: có vài điều cần theo dõi", "Next 7 days: a few things to watch")]
-    : t.grade === "C" ? ["#B07A2E", tr("7 ngày tới: cần để ý", "Next 7 days: watch closely")]
-    : ["#C2412E", tr("7 ngày tới: nguy cơ cao", "Next 7 days: high risk")];
-  return (
-    <div className="terra terra-7d">
-      <div className="terra-txt">
-        <div className="terra-grade" style={{ color }}>{head}</div>
-        <div className="terra-sum">{tr("Thời tiết sắp tới, KHÔNG phải lịch sử ngập. Thửa từng ngập chưa: xem Lịch sử nước ở tab Hồ sơ.",
-                                       "Upcoming weather, NOT flood history. Has this plot flooded: see Water history in the Dossier tab.")}</div>
-        <div className="terra-real">
-          TerraScore {t.score}/100 · {tr("hạng", "grade")} {t.grade}
-          {t.real_data_ratio != null && ` · 🛰️ ${Math.round(t.real_data_ratio * 100)}% ${tr("hiểm họa dùng dữ liệu thật", "of hazards use real data")}`}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function Home() {
   const { t, lang } = useLang();
   const [modules, setModules] = useState<ModuleInfo[]>([]);
   const [active, setActive] = useState("salinity");
   const [result, setResult] = useState<Assessment | null>(null);
   const [terra, setTerra] = useState<TerraScore | null>(null);
+  // Mối đe doạ ngoài 5 hiểm hoạ thời tiết của lượt QUÉT gần nhất (lượt sâu mới có lũ thượng nguồn). Giữ riêng: run() gọi
+  // /api/terrascore khi đổi mô-đun và ghi đè terra bằng bản KHÔNG có other_threats — thẻ sẽ quay lại "yên" nhầm.
+  const [threats, setThreats] = useState<NonNullable<TerraScore["other_threats"]>>([]);
   const [story, setStory] = useState(false);
   const [coord, setCoord] = useState<{ lat: number; lon: number } | null>(null);
   // Chốt chặn chung: toạ độ ngoài Việt Nam (từ bất kỳ nguồn nào) không được gửi lên API.
@@ -316,6 +294,7 @@ export default function Home() {
   }
 
   const serviceable = terra?.region?.serviceable !== false;
+  useEffect(() => { setThreats([]); }, [coord?.lat, coord?.lon]);   // đổi thửa → bỏ mối đe doạ của thửa cũ
   // GĐ1 kế hoạch tổng — thẻ thửa: Hồ sơ · Canh đất · Kiểm chứng; 18 công cụ lùi vào "Chuyên sâu".
   const CHAPTERS: { id: "plan" | "mine" | "verify" | "tools"; vi: string; en: string }[] = [
     { id: "plan", vi: "Hồ sơ", en: "Dossier" },
@@ -357,7 +336,7 @@ export default function Home() {
               "This is the centre of the area, NOT your plot yet — drag the map so your plot sits in the ✛ crosshair, then tap “Analyze the plot at center”.")}</p>}
             <p className="pw-coord">{coord.lat.toFixed(5)}, {coord.lon.toFixed(5)}{area != null ? ` · ${area} ha` : ""}</p>
             <BasemapInfo lat={coord.lat} lon={coord.lon} />
-            {terra && serviceable && terra.grade !== "—" && <TerraBadge t={terra} />}
+            {terra && serviceable && terra.grade !== "—" && <TerraBadge t={{ ...terra, other_threats: threats }} />}
             <div className="pw-card-actions">
               {/* Trục chính là HỒ SƠ ĐẤT (báo cáo 12/10/2026, mục 9) — EUDR nằm trong mục Doanh nghiệp. */}
               <button className="bat-btn" disabled={!serviceable}
@@ -419,7 +398,7 @@ export default function Home() {
               {serviceable && <PlotPlan lat={coord.lat} lon={coord.lon} area={area} onSelectModule={selectModule} />}
               {serviceable && <h3 className="ev-h">{t("Bằng chứng chi tiết — lưới mũi nhọn", "Detailed evidence — the spearhead grid")}</h3>}
               <Answer lat={coord.lat} lon={coord.lon} area={area} label={placeLabel} modules={modules}
-                      onSelectModule={selectModule} onDetail={() => { setTab("overview"); setChapter("tools"); }} onRisk={setPlotRisk} onTerra={setTerra} />
+                      onSelectModule={selectModule} onDetail={() => { setTab("overview"); setChapter("tools"); }} onRisk={setPlotRisk} onTerra={(x) => { setTerra(x); setThreats(x.other_threats ?? []); }} />
             </>
           )}
 

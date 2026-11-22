@@ -88,6 +88,9 @@ def with_other_threats(ts: TerraScoreResult, alerts) -> TerraScoreResult:
     other = [a for a in alerts if a.id not in _HAZARDS and a.risk_level in ("danger", "warning")]
     if not other or ts.score is None:
         return ts
+    # Có cấu trúc để giao diện dựng chữ to + màu (không phải đoán từ câu chữ) — nguy hiểm trước.
+    ts.other_threats = [{"id": a.id, "name": a.name, "risk_level": a.risk_level}
+                        for a in sorted(other, key=lambda a: 0 if a.risk_level == "danger" else 1)]
     muc = {"danger": tr("nguy hiểm", "danger"), "warning": tr("cảnh báo", "warning")}
     names = ", ".join(f"{a.name[:1].lower() + a.name[1:]} ({muc[a.risk_level]})" for a in other)
     nguy = any(a.risk_level == "danger" for a in other)
