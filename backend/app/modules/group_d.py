@@ -251,10 +251,10 @@ class MiningModule(TwinModule):
     id = "mining"; name = "An toàn mỏ & công trường"; name_en = "Mine & worksite safety"; group = "D"; icon = "⛏️"
     slow_source = True
     status = "active"
-    data_sources = ["OpenStreetMap: mỏ, khu công nghiệp, công trường",
+    data_sources = ["OpenStreetMap: mỏ, bãi khai thác",
                     "DEM: độ dốc thật 4 hướng", "Open-Meteo: mưa dự báo 7 ngày tới",
                     "Sentinel-2: đất trần mở rộng (khi có khóa)"]
-    data_sources_en = ["OpenStreetMap: mines, industrial sites, worksites",
+    data_sources_en = ["OpenStreetMap: mines, quarries",
                        "DEM: real 4-direction slope", "Open-Meteo: 7-day rain forecast",
                        "Sentinel-2: bare-ground expansion (when key is set)"]
     users = ["Chủ mỏ", "Nhà thầu hạ tầng", "Cơ quan an toàn lao động",
@@ -264,7 +264,9 @@ class MiningModule(TwinModule):
                 "Residents near mines"]
     description_en = "Slope-instability risk on excavated ground after rain."
 
-    _SELECTOR = '["landuse"~"quarry|industrial"]'
+    # Kiểm A–Z lần 3 (22/11/2026): landuse=industrial (Huế: nhà máy bia Huda cách 3,1 km) KHÔNG phải nơi đất bị đào bới.
+    # Chỉ mỏ / bãi khai thác thật: landuse=quarry|mine, industrial=quarry|mine.
+    _SELECTOR = '[~"^(landuse|industrial)$"~"^(quarry|mine)$"]'
 
     def assess(self, loc: Location) -> Assessment:
         sites = osm.nearest(loc.lat, loc.lon, self._SELECTOR,
@@ -272,8 +274,8 @@ class MiningModule(TwinModule):
         if sites is None:
             return need_data_assessment(
                 self, loc,
-                needs=tr("dữ liệu OpenStreetMap về mỏ và khu công nghiệp quanh đây",
-                         "OpenStreetMap data on mines and industrial sites nearby"),
+                needs=tr("dữ liệu OpenStreetMap về mỏ và bãi khai thác quanh đây",
+                         "OpenStreetMap data on mines and quarries nearby"),
                 will_do=tr("ghép vị trí khai thác với độ dốc và mưa dồn để cảnh báo "
                            "nguy cơ mất ổn định mái dốc",
                            "combine excavation sites with slope and concentrated rain to "
@@ -325,8 +327,8 @@ class MiningModule(TwinModule):
             return Assessment(
                 module_id=self.id, module_name=self.disp_name(), location=loc,
                 status="out_of_scope", risk_level="unknown", is_real=False,
-                headline=tr("Không áp dụng — không thấy mỏ hay khu công nghiệp nào trong 10 km (OSM)",
-                            "Not applicable — no mine or industrial site within 10 km (OSM)"),
+                headline=tr("Không áp dụng — không thấy mỏ hay bãi khai thác nào trong 10 km (OSM)",
+                            "Not applicable — no mine or quarry within 10 km (OSM)"),
                 detail=tr("An toàn mỏ & công trường chỉ có nghĩa ở nơi đất đã bị đào bới. "
                           "Nguy cơ sạt lở do dốc và mưa ở vị trí này thuộc mô-đun Sạt lở. "
                           "OSM chỉ có những mỏ đã được cộng đồng vẽ; mỏ nhỏ và công trường "
@@ -344,9 +346,9 @@ class MiningModule(TwinModule):
                 data_sources=self.disp_data_sources())
 
         if no_site:
-            head = tr(f"Không thấy mỏ hay khu công nghiệp nào trong 10 km "
+            head = tr(f"Không thấy mỏ hay bãi khai thác nào trong 10 km "
                       f"(OSM) — độ dốc {slope}°, mưa dự báo 7 ngày tới {rain} mm",
-                      f"No mine or industrial site within 10 km (OSM) — "
+                      f"No mine or quarry within 10 km (OSM) — "
                       f"slope {slope}°, 7-day rain forecast {rain} mm")
             rec = tr("Vị trí này không nằm gần khu vực đào bới theo dữ liệu OSM. "
                      "Nếu thực tế có công trường chưa được vẽ lên bản đồ, hãy "
@@ -356,10 +358,10 @@ class MiningModule(TwinModule):
                      "assess by terrain and rain.")
         else:
             what = near[0] if near else sites[0]
-            head = tr(f"{'Có' if near else 'Gần nhất'} khu khai thác/công nghiệp "
+            head = tr(f"{'Có' if near else 'Gần nhất'} mỏ / bãi khai thác "
                       f"cách {str(what['km']).replace('.', ',')} km ({what['name']}) — độ dốc {slope}°, "
                       f"mưa dự báo 7 ngày tới {rain} mm",
-                      f"{'A' if near else 'Nearest'} mining/industrial site "
+                      f"{'A' if near else 'Nearest'} mine/quarry "
                       f"{what['km']} km away ({what['name']}) — slope {slope}°, "
                       f"7-day rain forecast {rain} mm")
             if lvl == "danger":
@@ -382,10 +384,10 @@ class MiningModule(TwinModule):
 
         detail = tr(
             f"Độ dốc {'THẬT ' if slope_real else 'ước lượng '}{slope}° · "
-            f"nền {elev} m · {len(sites)} khu khai thác/công nghiệp trong "
+            f"nền {elev} m · {len(sites)} mỏ / bãi khai thác trong "
             f"15 km theo OSM. ",
             f"Slope {'REAL ' if slope_real else 'estimated '}{slope}° · "
-            f"ground {elev} m · {len(sites)} mining/industrial sites within "
+            f"ground {elev} m · {len(sites)} mine/quarrys within "
             f"15 km per OSM. ")
         if bare is not None:
             detail += tr(f"Ảnh Sentinel: thảm thực vật đổi {bare['delta']:+.3f} so "
@@ -414,7 +416,7 @@ class MiningModule(TwinModule):
             risk_level=lvl, headline=head, score=round(score, 1), detail=detail,
             recommendation=rec, confidence=0.6, confidence_low=0.48,
             confidence_high=0.7, is_real=True, metrics=metrics,
-            data_sources=[tr("OpenStreetMap: mỏ & khu công nghiệp", "OpenStreetMap: mines & industrial sites"),
+            data_sources=[tr("OpenStreetMap: mỏ & bãi khai thác", "OpenStreetMap: mines & quarries"),
                           tr("DEM: độ dốc 4 hướng", "DEM: 4-direction slope"),
                           tr("Open-Meteo: mưa dự báo 7 ngày tới", "Open-Meteo: 7-day rain forecast")]
             + ([tr("Sentinel-2: biến động thảm thực vật", "Sentinel-2: vegetation change")] if bare else []))

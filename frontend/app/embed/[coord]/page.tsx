@@ -9,6 +9,7 @@
  * link về bản đầy đủ. Đây là kênh phân phối: mỗi trang nhúng là một cửa vào.
  * URL chỉ chứa TOẠ ĐỘ (dữ liệu về ĐẤT, không về người) — công khai an toàn.
  */
+import { isForecast } from "@/lib/terraBadge";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { scanAll, type ScanResult } from "@/lib/api";
@@ -75,14 +76,17 @@ export default function EmbedPage() {
   if (err) return <div style={wrap}><b>◵ TerraTwin</b><p style={{ margin: 0, fontSize: 13, color: "#66716a" }}>{err === "coord" ? "Toạ độ không hợp lệ." : "Chưa kết nối được máy chủ — thử tải lại sau ít phút."}</p></div>;
   if (!d) return <div style={wrap}><b>◵ TerraTwin</b><p style={{ margin: 0, fontSize: 13, color: "#66716a" }}>Đang kiểm rủi ro…</p></div>;
 
-  const topRisk = d.alerts.some((a) => a.risk_level === "danger") ? "danger"
-    : d.alerts.some((a) => a.risk_level === "warning") ? "warning" : "safe";
+  // Kiểm A–Z lần 3 (22/11/2026): "… 7 ngày tới" chỉ từ mối DỰ BÁO — sâu bệnh từ ảnh / mỏ gần thửa là quan sát.
+  const fc = d.alerts.filter((a) => isForecast(a.id));
+  const observed = d.alerts.filter((a) => !isForecast(a.id) && (a.risk_level === "danger" || a.risk_level === "warning"));
+  const topRisk = fc.some((a) => a.risk_level === "danger") ? "danger"
+    : fc.some((a) => a.risk_level === "warning") ? "warning" : "safe";
   const [riskLabel, riskColor] = RISK[topRisk];
   const g = d.terrascore.grade;
   // Kiểm 18/11/2026: vòng xanh "89/100 hạng A" đứng cạnh "Rủi ro 7 ngày tới: Cảnh báo" — hai tín hiệu ngược nhau. TerraScore
   // gộp 5 hiểm hoạ (một cảnh báo chỉ trừ 11 điểm, vẫn hạng A). Có cảnh báo thì CẢNH BÁO dẫn đầu, nêu tên, tô vòng theo
   // màu cảnh báo; điểm lùi xuống thành dòng giải thích, không còn "hạng A" màu xanh đứng riêng.
-  const flagged = d.alerts.filter((a) => a.risk_level === topRisk).map((a) => a.name);
+  const flagged = fc.filter((a) => a.risk_level === topRisk).map((a) => a.name);
   const ring = topRisk === "safe" ? (GRADE[g] ?? "#567") : riskColor;
 
   return (
@@ -115,6 +119,9 @@ export default function EmbedPage() {
             </div>
           )}
         </div>
+        {observed.length > 0 && (
+          <div style={{ fontSize: 12, color: "#66716a" }}>Quan sát, không phải dự báo: {observed.map((a) => a.name).join(", ")}</div>
+        )}
         {floods && (
           <div style={{ fontSize: 13, fontWeight: 600, color: (flood?.n_events ?? 0) > 0 ? "#1F5F8B" : "#33403a" }}>
             🌊 {floodLine(flood, vi)}

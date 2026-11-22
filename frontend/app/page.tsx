@@ -104,7 +104,7 @@ export default function Home() {
   const [terra, setTerra] = useState<TerraScore | null>(null);
   // Mối đe doạ ngoài 5 hiểm hoạ thời tiết của lượt QUÉT gần nhất (lượt sâu mới có lũ thượng nguồn). Giữ riêng: run() gọi
   // /api/terrascore khi đổi mô-đun và ghi đè terra bằng bản KHÔNG có other_threats — thẻ sẽ quay lại "yên" nhầm.
-  const [threats, setThreats] = useState<NonNullable<TerraScore["other_threats"]>>([]);
+  const [threats, setThreats] = useState<Pick<TerraScore, "other_threats" | "observed_threats">>({});
   const [story, setStory] = useState(false);
   const [coord, setCoord] = useState<{ lat: number; lon: number } | null>(null);
   // Chốt chặn chung: toạ độ ngoài Việt Nam (từ bất kỳ nguồn nào) không được gửi lên API.
@@ -263,7 +263,7 @@ export default function Home() {
   // CHƯA chọn thửa → trang ĐÓN rộng, phân mục rõ (thay 3 cột chật). Chọn xong
   // (coord có giá trị) mới rơi xuống bố cục app làm việc bên dưới.
   // Hook phải đứng TRƯỚC mọi lệnh return sớm (E2E #178: đặt sau "if (!coord) return" làm vỡ trang khi mở thửa).
-  useEffect(() => { setThreats([]); }, [coord?.lat, coord?.lon]);   // đổi thửa → bỏ mối đe doạ của thửa cũ
+  useEffect(() => { setThreats({}); }, [coord?.lat, coord?.lon]);   // đổi thửa → bỏ mối đe doạ của thửa cũ
   if (!coord) {
     return (
       <>
@@ -337,7 +337,7 @@ export default function Home() {
               "This is the centre of the area, NOT your plot yet — drag the map so your plot sits in the ✛ crosshair, then tap “Analyze the plot at center”.")}</p>}
             <p className="pw-coord">{coord.lat.toFixed(5)}, {coord.lon.toFixed(5)}{area != null ? ` · ${area} ha` : ""}</p>
             <BasemapInfo lat={coord.lat} lon={coord.lon} />
-            {terra && serviceable && terra.grade !== "—" && <TerraBadge t={{ ...terra, other_threats: threats }} />}
+            {terra && serviceable && terra.grade !== "—" && <TerraBadge t={{ ...terra, ...threats }} />}
             <div className="pw-card-actions">
               {/* Trục chính là HỒ SƠ ĐẤT (báo cáo 12/10/2026, mục 9) — EUDR nằm trong mục Doanh nghiệp. */}
               <button className="bat-btn" disabled={!serviceable}
@@ -399,7 +399,7 @@ export default function Home() {
               {serviceable && <PlotPlan lat={coord.lat} lon={coord.lon} area={area} onSelectModule={selectModule} />}
               {serviceable && <h3 className="ev-h">{t("Bằng chứng chi tiết — lưới mũi nhọn", "Detailed evidence — the spearhead grid")}</h3>}
               <Answer lat={coord.lat} lon={coord.lon} area={area} label={placeLabel} modules={modules}
-                      onSelectModule={selectModule} onDetail={() => { setTab("overview"); setChapter("tools"); }} onRisk={setPlotRisk} onTerra={(x) => { setTerra(x); setThreats(x.other_threats ?? []); }} />
+                      onSelectModule={selectModule} onDetail={() => { setTab("overview"); setChapter("tools"); }} onRisk={setPlotRisk} onTerra={(x) => { setTerra(x); setThreats({ other_threats: x.other_threats ?? [], observed_threats: x.observed_threats ?? [] }); }} />
             </>
           )}
 

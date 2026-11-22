@@ -159,9 +159,18 @@ def build(loc: Location, crop: str | None = None) -> dict:
 
     # --- Bản đồ NGÀY → hiểm họa (để dựng cả việc cần làm lẫn ngày an toàn) ---
     by_day: dict[str, list[str]] = {d: [] for d in horizon}
+    from app.services.terrascore import threat_kind
     for m in alerts:
-        # Mối không có ngày cụ thể (lũ thượng nguồn = tổng mưa 7 ngày) phủ CẢ 7 ngày — không được để ngày nào "thuận".
-        for d in (m.risk_dates or horizon):
+        # Mối DỰ BÁO không có ngày cụ thể (lũ thượng nguồn = tổng mưa 7 ngày) phủ CẢ 7 ngày — không để ngày nào "thuận".
+        # Mối quan sát / cố định (sâu bệnh từ ảnh, mỏ gần thửa) KHÔNG vào lịch ngày: Huế, nhà máy cách 3 km từng chặn cả
+        # 7 ngày làm đồng (kiểm A–Z lần 3, 22/11/2026). Chúng vẫn nằm trong "việc cần làm".
+        if m.risk_dates:
+            ds = m.risk_dates
+        elif threat_kind(m.id) == "forecast":
+            ds = horizon
+        else:
+            ds = []
+        for d in ds:
             by_day.setdefault(d, []).append(m.name)
 
     # ============ 1. VIỆC CẦN LÀM ============
