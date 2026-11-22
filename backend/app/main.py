@@ -1209,6 +1209,10 @@ def auto_boundary_endpoint(location: Location, buffer_m: float = 500.0, lang: st
     from app.services import watershed
 
     r = watershed.extract_boundary(location.lat, location.lon, buffer_m=max(100.0, min(buffer_m, 1500.0)))
+    # Kiểm A–Z lần 2 (22/11/2026): vẫn hỏng 2/2 lần ở thửa demo → THỬ NGHIỆM, không phải tính năng chính. Giao diện đã tắt
+    # nút (MapView.AUTO_BOUNDARY_READY = false); ai gọi thẳng API cũng phải thấy rõ điều đó.
+    r["experimental"] = True
+    r["message"] = reqlang.tr("Thử nghiệm — ", "Experimental — ") + (r.get("message") or "")
     if not r.get("available"):
         # Kiểm A–Z 21/11/2026, P1-3: thửa demo Tuệ Tĩnh → "hit_safety_cap". Ảnh Sentinel-2 có ô 10 m; bờ ruộng đồng bằng
         # thường hẹp hơn một ô ảnh nên máy KHÔNG thấy được ranh — không vá thuật toán cho qua (hướng "chạm là có ranh"
