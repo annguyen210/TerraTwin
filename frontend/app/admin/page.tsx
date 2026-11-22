@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   fetchMe, getHealth, getFunnel, getBackupStatus, getDrift, getCoopPlots, updateCoop,
-  getPilotSummary, downloadPilotCsv, adminLabelers, adminAddLabeler, adminRemoveLabeler, adminLabelSummary,
+  deletePilotFeedback, getPilotSummary, downloadPilotCsv, adminLabelers, adminAddLabeler, adminRemoveLabeler, adminLabelSummary,
   adminLabelExport, adminUsers, adminUpdateUser, adminDeleteUser, adminUpgradeRequests, adminDecideUpgrade, adminPayments, type AdminPayment, adminWaterConfirms, adminSeasonCases, adminListingGold, adminListingGoldAdd, adminListingGoldDelete,
   type AdminUser, type UpgradeReq, type AdminWaterConfirms, type AdminSeasonCases, type ListingGoldView,
   type AuthUser, type HealthStatus, type CoopPlot, type PilotSummary, type LabelSummary,
@@ -145,12 +145,21 @@ function FunnelTab() {
 function PilotTab() {
   const [data, setData] = useState<PilotSummary | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  // Xoá phiếu (phiếu thử / rác / lọt vào do lỗi): bấm "Xoá" → hiện xác nhận ngay trên dòng, không dùng hộp thoại trình duyệt.
+  const [ask, setAsk] = useState<number | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+  const load = () => getPilotSummary().then(setData).catch((e) => setErr(e.message));
 
   useEffect(() => {
     let live = true;
     getPilotSummary().then((r) => live && setData(r)).catch((e) => live && setErr(e.message));
     return () => { live = false; };
   }, []);
+
+  async function del(id: number) {
+    try { await deletePilotFeedback(id); setMsg(`Đã xoá phiếu #${id}.`); setAsk(null); await load(); }
+    catch (e) { setErr((e as Error).message); }
+  }
 
   if (err) return <p className="ws-err">⚠️ {err}</p>;
   if (!data) return <p className="ws-hint">Đang tải…</p>;
@@ -175,10 +184,25 @@ function PilotTab() {
       <p className="ws-hint">Bước khó nhất: {Object.entries(data.all.hardest).map(([k, n]) => `${k} ${n}`).join(" · ")}</p>
       <button className="doc-btn" onClick={() => downloadPilotCsv().catch((e) => setErr(e.message))}>Tải CSV</button>
       <h4 style={{ marginTop: 18 }}>Góp ý mới nhất</h4>
+      {msg && <p className="ws-hint" role="status">{msg}</p>}
       {data.latest.length === 0 ? <p className="ws-hint">Chưa có phiếu nào. Gửi thử ở <Link href="/dung-thu">/dung-thu</Link> (người mua đất, môi giới) hoặc <Link href="/thi-diem">/thi-diem</Link> (HTX, EUDR).</p> : (
-        <ul>
-          {data.latest.filter((r) => r.comment).slice(0, 30).map((r) => (
-            <li key={r.id}>{when(r.created_at)} · {ROLE[r.role] ?? r.role}{r.region ? ` · ${r.region}` : ""}{r.source === "paper" ? " · phiếu giấy" : ""}: {r.comment}{r.contact ? ` (liên hệ: ${r.contact})` : ""}</li>
+        <ul className="pilot-latest">
+          {/* MỌI phiếu (trước chỉ hiện phiếu có lời góp ý — phiếu chỉ chấm điểm không thấy được, cũng không xoá được). */}
+          {data.latest.slice(0, 50).map((r) => (
+            <li key={r.id}>
+              #{r.id} · {when(r.created_at)} · {ROLE[r.role] ?? r.role}{r.region ? ` · ${r.region}` : ""}{r.source === "paper" ? " · phiếu giấy" : ""}
+              {` · dễ ${r.ease} · tin ${r.trust} · dùng tiếp: ${r.would_use} · khó nhất: ${r.hardest}`}
+              {r.comment ? `: ${r.comment}` : " (không có lời góp ý)"}{r.contact ? ` (liên hệ: ${r.contact})` : ""}{" "}
+              {ask === r.id ? (
+                <>
+                  <b>Xoá hẳn phiếu #{r.id}? Không hoàn tác được.</b>{" "}
+                  <button className="doc-btn" onClick={() => del(r.id)}>Xoá hẳn</button>{" "}
+                  <button className="doc-btn ghost" onClick={() => setAsk(null)}>Huỷ</button>
+                </>
+              ) : (
+                <button className="doc-btn ghost" onClick={() => { setAsk(r.id); setMsg(null); }}>Xoá</button>
+              )}
+            </li>
           ))}
         </ul>
       )}
