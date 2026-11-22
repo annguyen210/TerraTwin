@@ -307,16 +307,26 @@ def plain_points(r: dict) -> list[str] | None:
                    "Ask the seller and neighbours: how high the water rises in the rainy season, and how long until it drains.")]
     if counted:
         last = max(e["start"] for e in counted)
-        worst = max(counted, key=lambda e: (_COVER_ORDER.get(e.get("peak_cover"), 0), e.get("n_scenes", 0)))
+        top = max(_COVER_ORDER.get(e.get("peak_cover"), 0) for e in counted)
+        tops = sorted((e for e in counted if _COVER_ORDER.get(e.get("peak_cover"), 0) == top), key=lambda e: e["start"])
+        cover = tops[0].get("peak_cover")
+        # Kiểm 22/11/2026: Tuệ Tĩnh có 3 đợt cùng nấc ≥50% (22/7/2018, 12/9/2024, 1/10/2025) — gọi một đợt là "lần nặng nhất"
+        # là chọn bừa. Nhiều đợt cùng nấc cao nhất thì kể đủ.
+        if len(tops) == 1:
+            worst_line = tr(f"Lần nặng nhất: {_vn_date(tops[0]['start'])} — nước phủ {cover} thửa, thấy trên "
+                            f"{tops[0].get('n_scenes', 1)} ảnh radar.",
+                            f"Worst time: {_vn_date(tops[0]['start'])} — water covered {cover} of the plot, seen on "
+                            f"{tops[0].get('n_scenes', 1)} radar image(s).")
+        else:
+            ngay = ", ".join(_vn_date(e["start"]) for e in tops)
+            worst_line = tr(f"Mức nặng nhất — nước phủ {cover} thửa — xảy ra {len(tops)} lần: {ngay}.",
+                            f"Worst level — water over {cover} of the plot — happened {len(tops)} times: {ngay}.")
         return [
             tr(f"Đã từng có nước phủ thửa: {len(counted)} lần từ {y0}{' (trong mùa mưa lũ)' if seasonal else ''}, gần nhất "
                f"{_vn_date(last)}.",
                f"Water has covered this plot {len(counted)} time{'s' if len(counted) > 1 else ''} since {y0}"
                f"{' (in the rainy flood season)' if seasonal else ''}, most recently {_vn_date(last)}."),
-            tr(f"Lần nặng nhất: {_vn_date(worst['start'])} — nước phủ {worst.get('peak_cover')} thửa, thấy trên "
-               f"{worst.get('n_scenes', 1)} ảnh radar.",
-               f"Worst time: {_vn_date(worst['start'])} — water covered {worst.get('peak_cover')} of the plot, seen on "
-               f"{worst.get('n_scenes', 1)} radar image(s)."),
+            worst_line,
             tr("Với người mua: đất này có lịch sử ngập. Hỏi người bán và hàng xóm về các đợt này (nước lên cao bao nhiêu, "
                "mấy ngày thì rút); hỏi UBND xã về lịch sử ngập và kế hoạch đê, kênh trước khi đặt cọc.",
                "For a buyer: this land has a flooding history. Ask the seller and neighbours about these events (how high, "

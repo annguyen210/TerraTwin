@@ -47,3 +47,15 @@ def test_lan_nang_nhat_theo_nac_phu_khong_theo_so_anh():
           {"start": "2025-10-01", "end": "2025-10-01", "n_scenes": 2, "peak_cover": "10–25%", "season": "in"}]
     p = water_history.plain_points(_r(events=ev, n_events=3, n_in=3, n_out=0))
     assert p[1].startswith("Lần nặng nhất: 12/9/2024 — nước phủ ≥50% thửa")
+
+
+def test_nhieu_dot_cung_nac_cao_nhat_thi_ke_du():
+    """Tuệ Tĩnh trên bản chính thức (22/11/2026): 3 đợt cùng ≥50% — không được chọn bừa một đợt làm "lần nặng nhất"."""
+    reqlang.set_lang("vi")
+    ev = [{"start": "2017-07-27", "end": "2017-08-08", "n_scenes": 3, "peak_cover": "25–50%", "season": "in"},
+          {"start": "2018-07-22", "end": "2018-07-22", "n_scenes": 1, "peak_cover": "≥50%", "season": "in"},
+          {"start": "2024-07-26", "end": "2024-08-07", "n_scenes": 2, "peak_cover": "10–25%", "season": "in"},
+          {"start": "2024-09-12", "end": "2024-09-12", "n_scenes": 1, "peak_cover": "≥50%", "season": "in"},
+          {"start": "2025-10-01", "end": "2025-10-01", "n_scenes": 1, "peak_cover": "≥50%", "season": "in"}]
+    p = water_history.plain_points(_r(events=ev, n_events=5, n_in=5, n_out=0))
+    assert p[1] == "Mức nặng nhất — nước phủ ≥50% thửa — xảy ra 3 lần: 22/7/2018, 12/9/2024, 1/10/2025."
