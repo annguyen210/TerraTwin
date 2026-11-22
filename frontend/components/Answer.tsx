@@ -55,7 +55,9 @@ type T = (vi: string, en: string) => string;
 
 function statusLabel(st: string | undefined, t: T): string {
   if (st === "pending") return t("đang chạy…", "running…");
-  if (st === "need_data") return t("chờ ảnh vệ tinh quang mây", "awaiting cloud-free satellite");
+  // Trung tính (22/11/2026): need_data không chỉ do mây — mỏ thiếu OSM, sạt lở/vùng nguyên liệu thiếu khí hậu Open-Meteo…
+  // Lý do cụ thể nằm ở tiêu đề của chính mô-đun.
+  if (st === "need_data") return t("chưa đủ dữ liệu nguồn", "source data not yet available");
   if (st === "out_of_scope") return t("không áp dụng ở đây", "not applicable here");
   return "";
 }

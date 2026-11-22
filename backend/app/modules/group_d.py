@@ -387,7 +387,7 @@ class MiningModule(TwinModule):
             f"nền {elev} m · {len(sites)} mỏ / bãi khai thác trong "
             f"15 km theo OSM. ",
             f"Slope {'REAL ' if slope_real else 'estimated '}{slope}° · "
-            f"ground {elev} m · {len(sites)} mine/quarrys within "
+            f"ground {elev} m · {len(sites)} mines/quarries within "
             f"15 km per OSM. ")
         if bare is not None:
             detail += tr(f"Ảnh Sentinel: thảm thực vật đổi {bare['delta']:+.3f} so "
