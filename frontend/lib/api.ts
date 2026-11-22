@@ -1565,6 +1565,10 @@ export type PilotSummary = { all: PilotBlock; by_role: Record<string, PilotBlock
   latest: { id: number; created_at: string | null; source: string; role: string; region: string; ease: number; trust: number;
             minutes: number | null; would_use: string; hardest: string; comment: string; contact: string }[] };
 
+export function deletePilotFeedback(id: number) {
+  return authed<{ ok: boolean; deleted: number }>(`/api/admin/pilot/feedback/${id}`, { method: "DELETE" }, "Không xoá được phiếu");
+}
+
 export function getPilotSummary() {
   return authed<PilotSummary>("/api/admin/pilot/feedback", { method: "GET" }, "Không tải được góp ý thí điểm");
 }

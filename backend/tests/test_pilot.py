@@ -138,3 +138,15 @@ def test_thieu_cau_co_dung_hoac_cho_kho_thi_422(c, bo):
     body = {k: v for k, v in OK.items() if k != bo}
     assert c.post("/api/pilot/feedback", json=body).status_code == 422
     assert c.post("/api/pilot/feedback", json={**OK, bo: ""}).status_code == 422
+
+
+def test_admin_xoa_mot_phieu(c):
+    """22/11/2026: lượt kiểm tự động lỡ gửi một phiếu giả lên production — admin phải xoá được, người thường thì không."""
+    r = c.post("/api/pilot/feedback", json=OK)
+    fid = r.json()["id"]
+    assert c.delete(f"/api/admin/pilot/feedback/{fid}").status_code == 401
+    assert c.delete(f"/api/admin/pilot/feedback/{fid}", headers=_login(c, "thuong2@vd.vn")).status_code == 403
+    h = _login(c, "admin2@vd.vn", admin=True)
+    assert c.delete(f"/api/admin/pilot/feedback/{fid}", headers=h).json() == {"ok": True, "deleted": fid}
+    assert c.delete(f"/api/admin/pilot/feedback/{fid}", headers=h).status_code == 404
+    assert all(x["id"] != fid for x in c.get("/api/admin/pilot/feedback", headers=h).json()["latest"])

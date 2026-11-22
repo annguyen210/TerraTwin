@@ -110,6 +110,21 @@ def feedback_summary(_: User = Depends(auth.require_admin),
                        for r in rows[:100]]}
 
 
+@router.delete("/api/admin/pilot/feedback/{fid}")
+def feedback_delete(fid: int, admin: User = Depends(auth.require_admin),
+                    db: Session = Depends(get_session)) -> dict:
+    """Quản trị viên xoá MỘT phiếu (phiếu thử, phiếu rác, phiếu lọt vào do lỗi) — 22/11/2026: một lượt kiểm tự động lỡ gửi
+    một phiếu giả lên bản chính thức, mà trước đây không có đường nào xoá ngoài vào thẳng CSDL. Ghi log ai xoá phiếu nào."""
+    row = db.get(PilotFeedback, fid)
+    if row is None:
+        raise HTTPException(404, tr("Không có phiếu này.", "No such feedback."))
+    db.delete(row)
+    db.commit()
+    from app.safelog import log
+    log(f"[TerraTwin] admin #{admin.id} xoa phieu gop y #{fid}")
+    return {"ok": True, "deleted": fid}
+
+
 @router.get("/api/admin/pilot/feedback.csv")
 def feedback_csv(_: User = Depends(auth.require_admin),
                  db: Session = Depends(get_session)) -> Response:
