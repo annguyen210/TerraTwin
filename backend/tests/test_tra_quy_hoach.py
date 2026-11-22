@@ -20,6 +20,13 @@ def test_ha_noi_va_tphcm_co_cong():
     assert hcm["province"] == "TP Hồ Chí Minh" and hcm["portal"]["url"].endswith("hochiminhcity.gov.vn")
 
 
+def test_khanh_hoa_co_cong_gis_cua_tinh():
+    """Kiểm A–Z lần 2 (22/11/2026): thêm đúng một tỉnh đã tự mở kiểm (.gov.vn, có ngày kiểm)."""
+    z = zoning_portals.for_point(12.2388, 109.1967)          # Nha Trang
+    assert z["province"] == "Khánh Hòa" and z["portal"]["url"] == "https://gis.khanhhoa.gov.vn/public/8192/"
+    assert z["portal"]["checked"] == "2026-11-22"
+
+
 def test_tinh_chua_co_cong_thi_huong_dan_hoi_vp_dang_ky():
     z = zoning_portals.for_point(20.9716, 106.2834)           # Tuệ Tĩnh (thửa demo)
     assert z["portal"] is None and "Văn phòng đăng ký đất đai" in z["note"]

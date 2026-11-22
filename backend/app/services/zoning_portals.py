@@ -14,6 +14,10 @@ from app.services.reqlang import tr
 # Đã mở kiểm 22/11/2026 (trình duyệt thật):
 #   · qhkhsdd.hanoi.gov.vn → "Ứng dụng công khai thông tin quy hoạch, kế hoạch sử dụng đất thành phố Hà Nội"
 #   · thongtinquyhoach.hochiminhcity.gov.vn → "Thông tin quy hoạch TP.HCM"
+#   · gis.khanhhoa.gov.vn/public/8192/ → "Cổng Thông Tin GIS - Tỉnh Khánh Hòa | Tra cứu thông tin quy hoạch" (UBND tỉnh,
+#     mục "Tra cứu quy hoạch") — kiểm A–Z lần 2
+# Đã kiểm 22/11/2026 và LOẠI (không mở được): qhkhsdd.binhduong.gov.vn (tên miền không còn — NXDOMAIN),
+#   hph.mplis.gov.vn/og/KhaiThacBanDo (Hải Phòng — 404). Tỉnh khác: chưa kiểm → giữ câu hỏi Văn phòng đăng ký đất đai.
 PORTALS: dict[str, dict] = {
     "Hà Nội": {"url": "https://qhkhsdd.hanoi.gov.vn",
                "name_vi": "Quy hoạch, kế hoạch sử dụng đất TP Hà Nội",
@@ -21,6 +25,9 @@ PORTALS: dict[str, dict] = {
     "TP Hồ Chí Minh": {"url": "https://thongtinquyhoach.hochiminhcity.gov.vn",
                        "name_vi": "Thông tin quy hoạch TP.HCM",
                        "name_en": "Ho Chi Minh City planning information", "checked": "2026-11-22"},
+    "Khánh Hòa": {"url": "https://gis.khanhhoa.gov.vn/public/8192/",
+                  "name_vi": "Cổng thông tin GIS tỉnh Khánh Hòa — Tra cứu thông tin quy hoạch",
+                  "name_en": "Khanh Hoa provincial GIS portal — planning lookup", "checked": "2026-11-22"},
 }
 
 
