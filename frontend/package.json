@@ -9,7 +9,7 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "test": "node scripts/test-csp.mjs && node --no-warnings --experimental-strip-types scripts/test-geo.mjs && node --no-warnings --experimental-strip-types scripts/test-retry.mjs && node --no-warnings --experimental-strip-types scripts/test-richtext.mjs && node --no-warnings --experimental-strip-types scripts/test-feedback.mjs && node --no-warnings --experimental-strip-types scripts/test-terra-badge.mjs",
+    "test": "node scripts/test-csp.mjs && node --no-warnings --experimental-strip-types scripts/test-geo.mjs && node --no-warnings --experimental-strip-types scripts/test-retry.mjs && node --no-warnings --experimental-strip-types scripts/test-richtext.mjs && node --no-warnings --experimental-strip-types scripts/test-feedback.mjs && node --no-warnings --experimental-strip-types scripts/test-terra-badge.mjs && node --no-warnings --experimental-strip-types scripts/test-track.mjs",
     "postinstall": "node scripts/copy-maplibre-worker.mjs"
   },
   "dependencies": {

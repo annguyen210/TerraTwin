@@ -104,6 +104,7 @@ function FunnelTab() {
   return (
     <div>
       <p className="ws-hint">{data.note}</p>
+      {data.filter_note && <p className="ws-hint"><b>{data.filter_note}</b></p>}
       <table className="ws-table">
         <thead><tr><th>Bước</th><th>Số lượt</th><th>% so với "mở app"</th></tr></thead>
         <tbody>
