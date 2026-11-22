@@ -283,11 +283,9 @@ def _annotate(r: dict, lat: float | None = None, lon: float | None = None) -> di
     return r
 
 
-def _pct(s) -> float:
-    try:
-        return float(str(s).replace("%", "").replace(",", ".").strip())
-    except ValueError:
-        return -1.0
+# Mức phủ là NẤC (cùng bảng xếp hạng với bộ dò đợt ở trên), không phải một con số — kiểm 22/11/2026 trên bản chính thức:
+# đọc "25–50%" như số thì hỏng, "lần nặng nhất" bị chọn theo số ảnh radar thay vì mức phủ.
+_COVER_ORDER = {"10–25%": 1, "25–50%": 2, "≥50%": 3}
 
 
 def plain_points(r: dict) -> list[str] | None:
@@ -309,7 +307,7 @@ def plain_points(r: dict) -> list[str] | None:
                    "Ask the seller and neighbours: how high the water rises in the rainy season, and how long until it drains.")]
     if counted:
         last = max(e["start"] for e in counted)
-        worst = max(counted, key=lambda e: (_pct(e.get("peak_cover")), e.get("n_scenes", 0)))
+        worst = max(counted, key=lambda e: (_COVER_ORDER.get(e.get("peak_cover"), 0), e.get("n_scenes", 0)))
         return [
             tr(f"Đã từng có nước phủ thửa: {len(counted)} lần từ {y0}{' (trong mùa mưa lũ)' if seasonal else ''}, gần nhất "
                f"{_vn_date(last)}.",

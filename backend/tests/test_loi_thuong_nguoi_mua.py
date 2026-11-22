@@ -11,13 +11,13 @@ def _r(**k):
 
 def test_co_dot_nuoc():
     reqlang.set_lang("vi")
-    ev = [{"start": "2020-10-12", "end": "2020-10-24", "n_scenes": 2, "peak_cover": "45%", "season": "in"},
-          {"start": "2024-09-12", "end": "2024-09-12", "n_scenes": 1, "peak_cover": "92%", "season": "in"},
-          {"start": "2025-10-01", "end": "2025-10-01", "n_scenes": 1, "peak_cover": "30%", "season": "in"}]
+    ev = [{"start": "2020-10-12", "end": "2020-10-24", "n_scenes": 2, "peak_cover": "25–50%", "season": "in"},
+          {"start": "2024-09-12", "end": "2024-09-12", "n_scenes": 1, "peak_cover": "≥50%", "season": "in"},
+          {"start": "2025-10-01", "end": "2025-10-01", "n_scenes": 1, "peak_cover": "10–25%", "season": "in"}]
     p = water_history.plain_points(_r(events=ev, n_events=3, n_in=3, n_out=0))
     assert len(p) == 3
     assert p[0].startswith("Đã từng có nước phủ thửa: 3 lần từ 2017") and "1/10/2025" in p[0]
-    assert "Lần nặng nhất: 12/9/2024 — nước phủ 92% thửa" in p[1]          # số giữ nguyên
+    assert "Lần nặng nhất: 12/9/2024 — nước phủ ≥50% thửa" in p[1]          # số giữ nguyên
     assert "Hỏi người bán và hàng xóm" in p[2] and "UBND xã" in p[2]
 
 
@@ -36,3 +36,14 @@ def test_do_thi_khong_ket_luan():
 
 def test_khong_co_du_lieu_thi_khong_co_gach():
     assert water_history.plain_points({"available": False}) is None
+
+
+def test_lan_nang_nhat_theo_nac_phu_khong_theo_so_anh():
+    """Kiểm 22/11/2026 trên bản chính thức: mức phủ là nấc "10–25%" / "25–50%" / "≥50%" — đợt ≥50% (1 ảnh) phải nặng hơn
+    đợt 25–50% (3 ảnh)."""
+    reqlang.set_lang("vi")
+    ev = [{"start": "2017-07-27", "end": "2017-08-08", "n_scenes": 3, "peak_cover": "25–50%", "season": "in"},
+          {"start": "2024-09-12", "end": "2024-09-12", "n_scenes": 1, "peak_cover": "≥50%", "season": "in"},
+          {"start": "2025-10-01", "end": "2025-10-01", "n_scenes": 2, "peak_cover": "10–25%", "season": "in"}]
+    p = water_history.plain_points(_r(events=ev, n_events=3, n_in=3, n_out=0))
+    assert p[1].startswith("Lần nặng nhất: 12/9/2024 — nước phủ ≥50% thửa")
