@@ -51,7 +51,14 @@ export default function EmbedPage() {
         }
         return r;
       })
-      .then((r) => live && setD(r))
+      .then((r) => {
+        if (!live) return;
+        setD(r);
+        // Kiểm A–Z lần 2: lượt nhanh bỏ mô-đun nặng (lũ từ thượng nguồn) — chạy tiếp lượt sâu để widget không "yên" nhầm.
+        if (r.skipped_heavy && r.skipped_heavy.length) {
+          scanAll(lat, lon, undefined, true).then((s) => live && setD(s)).catch(() => {});
+        }
+      })
       .catch(() => live && setErr("net"));
     return () => { live = false; };
   }, [lat, lon, valid]);
