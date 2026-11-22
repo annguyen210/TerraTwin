@@ -206,7 +206,7 @@ with sync_playwright() as p:
         page.get_by_role("button", name="Vi phạm EUDR bị phạt bao nhiêu?").click()
         page.locator(".eu-answer").wait_for(timeout=30_000)
         a = page.locator(".eu-answer p").inner_text()
-        assert re.search(r"4s*%", a), a           # trợ lý có lúc viết "4202f%" (dấu cách hẹp) — e2e-prod 20/11, 22/11
+        assert re.search(r"4\s*%", a), a           # trợ lý có lúc viết "4 %" (dấu cách hẹp) — e2e-prod 20/11, 22/11
         return a[:60]
     ask()
 
