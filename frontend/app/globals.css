@@ -5390,3 +5390,6 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 
 /* P2-2: bước tiếp theo cho câu thổ cư/quy hoạch — nút cổng tra quy hoạch chính thức + ghi chú */
 .lc-next { margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* Kiểm A–Z lần 2: bản đồ nhiệt lần đầu — nói đang làm gì + số giây đã chờ, thay vì vòng xoay câm */
+.heat-wait { display: block; margin-top: 6px; font-size: .82rem; color: var(--dim); }

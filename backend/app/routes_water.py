@@ -309,11 +309,17 @@ def climate_warm(authorization: str | None = Header(default=None), x_cron_key: s
             for lg in ("vi", "en"):
                 key = cache_store.make_key("scorecard", 90, lg)
                 cache_store.put(key, {"at": __import__("time").time(), "data": scorecard_payload(90, lg)}, int(_SC_STALE))
-            from app.services import heatmap
-            la, lo, _ = demo_plots.DEMO_PLOTS[0]
-            heatmap.build("flood", la, lo)
         except Exception:
             pass
+        # Kiểm A–Z lần 2: bản đồ nhiệt của 3 thửa demo × 4 hiểm hoạ tính sẵn (lần đầu ở thửa mới ~37 giây). Bản bền 24 giờ,
+        # cron 6 giờ/lần → luôn có sẵn.
+        from app.services import heatmap
+        for la, lo, _ in demo_plots.DEMO_PLOTS[:3]:
+            for mid in ("flood", "landslide", "drought", "wildfire"):
+                try:
+                    heatmap.build(mid, la, lo)
+                except Exception:
+                    pass
 
     threading.Thread(target=_run, name="climate-warm", daemon=True).start()
     return {"queued_points": len(todo), "archive_cells": len(cells)}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { runHeatmap, WHATIF_MODULES, type HeatmapResult } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
@@ -21,6 +21,15 @@ export default function Heatmap({
   const [err, setErr] = useState<string | null>(null);
   const [side, setSide] = useState(7);
   const [radius, setRadius] = useState(8);
+  // Kiểm A–Z lần 2 (22/11/2026): lần đầu ở thửa mới ~37 giây sau một vòng xoay câm. Thời gian nằm ở việc tải mưa cho cả
+  // lưới (1–2 lượt gọi đa toạ độ) + khí hậu 10 năm của tâm lưới, KHÔNG phải tính từng ô — nên không có "n/49 ô" thật để
+  // báo. Báo đúng điều đang xảy ra + số giây đã chờ; 3 thửa demo được tính sẵn (cron /api/climate/warm).
+  const [giay, setGiay] = useState(0);
+  useEffect(() => {
+    if (!loading) { setGiay(0); return; }
+    const id = setInterval(() => setGiay((g) => g + 1), 1000);
+    return () => clearInterval(id);
+  }, [loading]);
 
   const eligible = WHATIF_MODULES.includes(moduleId);
   if (!eligible) return null;
@@ -75,6 +84,12 @@ export default function Heatmap({
         <button onClick={run} disabled={loading}>
           {loading ? t("Đang quét lưới…", "Scanning grid…") : t("Quét vùng", "Scan area")}
         </button>
+        {loading && (
+          <span className="heat-wait" role="status">
+            {t(`Đang tải mưa 7 ngày cho ${side * side} ô và khí hậu 10 năm của vùng · đã chờ ${giay} giây. Lần đầu ở vùng mới thường 30–40 giây; lần sau dưới 1 giây.`,
+               `Loading 7-day rain for ${side * side} cells and this area's 10-year climate · ${giay}s so far. The first time in a new area usually takes 30–40 s; after that under 1 s.`)}
+          </span>
+        )}
         {data && (
           <button className="ghost" onClick={clear}>
             {t("Xóa lớp", "Clear layer")}
