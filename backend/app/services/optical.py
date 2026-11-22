@@ -64,6 +64,12 @@ def _harvest_like(lat: float, lon: float, buffer_m: float, latest: dict, patchin
     đúng nhãn "đất trống / vừa thu hoạch" của growth()). Cái giá: cây bị phá trụi hoàn toàn SAU đỉnh vụ cũng bị coi là gặt —
     ở đó vệ tinh không phân biệt được, và gặt là khả năng lớn hơn rất nhiều."""
     s = _clear(sentinel.index_series(lat, lon, "NDVI", days=180, interval_days=10, buffer_m=buffer_m))
+    return harvest_curve(s, latest, patchiness)
+
+
+def harvest_curve(s: list[dict], latest: dict, patchiness: float | None) -> dict | None:
+    """Phần thuần của _harvest_like trên một chuỗi NDVI đã lọc mây — mô-đun năng suất (growth) dùng chung để hai mô-đun
+    không nói ngược nhau về cùng một ảnh (kiểm A–Z lần 3)."""
     if len(s) < 5:
         return None
     peak = max(s, key=lambda r: r["mean"])
@@ -232,6 +238,9 @@ def growth(lat: float, lon: float, buffer_m: float = 300.0) -> dict | None:
     # Tích phân NDVI ≈ tổng sinh khối tích luỹ — chỉ báo năng suất kinh điển.
     integral = round(sum(r["mean"] for r in s) * 10.0 / 30.0, 2)  # đơn vị "NDVI·tháng"
 
+    # Kiểm A–Z lần 3 (22/11/2026): ruộng vừa gặt (khớp đường cong thu hoạch) KHÔNG phải mất thảm thực vật ngoài dự kiến —
+    # mô-đun năng suất từng gắn "nguy hiểm" cho đúng ruộng mà mô-đun sâu bệnh ghi "vừa thu hoạch".
+    harvest = harvest_curve(s, latest, None) if latest["mean"] < NDVI_BARE else None
     if latest["mean"] < NDVI_BARE:
         stage = tr("đất trống / vừa thu hoạch", "bare / just harvested")
         advice = tr("Chưa có cây trên thửa. Theo dõi lại sau khi xuống giống.",
@@ -263,7 +272,7 @@ def growth(lat: float, lon: float, buffer_m: float = 300.0) -> dict | None:
 
     return {
         "available": True, "applicable": True,
-        "stage": stage, "advice": advice,
+        "stage": stage, "advice": advice, "harvest": harvest,
         "ndvi_now": latest["mean"], "ndvi_peak": peak["mean"],
         "peak_date": peak["date"], "days_since_peak": since_peak,
         "observed_on": latest["date"],

@@ -382,8 +382,9 @@ class YieldModule(TwinModule):
                 data_sources=[sentinel.source_note("NDVI")])
 
         # Giai đoạn sinh trưởng KHÔNG phải hiểm họa: cây chín không phải rủi ro.
-        # Chỉ báo động khi thửa mất thảm thực vật ngoài dự kiến.
-        lvl = "danger" if r["ndvi_now"] < optical.NDVI_BARE else "safe"
+        # Chỉ báo động khi thửa mất thảm thực vật ngoài dự kiến — ruộng VỪA GẶT (khớp đường cong thu hoạch, cùng quy tắc với
+        # mô-đun sâu bệnh) là dự kiến (kiểm A–Z lần 3, Huế: "Đất trống / vừa thu hoạch" mà mức "nguy hiểm").
+        lvl = "danger" if r["ndvi_now"] < optical.NDVI_BARE and not r.get("harvest") else "safe"
         head = (f"{r['stage'].capitalize()} — NDVI {r['ndvi_now']}, "
                 + tr(f"đỉnh {r['ndvi_peak']} ngày {r['peak_date']}",
                      f"peak {r['ndvi_peak']} on {r['peak_date']}"))

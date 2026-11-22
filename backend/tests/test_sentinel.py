@@ -326,6 +326,24 @@ def test_yield_module_o_giua_pho_la_out_of_scope(with_key, monkeypatch):
 
 
 
+def test_yield_ruong_vua_gat_khong_phai_nguy_hiem(with_key, monkeypatch):
+    """Kiểm A–Z lần 3 (Huế): năng suất ghi "Đất trống / vừa thu hoạch" mà mức NGUY HIỂM — cùng ảnh, sâu bệnh ghi "vừa thu
+    hoạch". Cùng quy tắc thu hoạch → an toàn."""
+    from app.modules.group_a import YieldModule
+    _series(monkeypatch, [(0.62, 0.05), (0.70, 0.05), (0.71, 0.05), (0.66, 0.05), (0.55, 0.05),
+                          (0.42, 0.05), (0.30, 0.05), (0.22, 0.05), (0.18, 0.04)], start_days_ago=120)
+    a = YieldModule().assess(Location(lat=10.0, lon=106.0))
+    assert a.risk_level == "safe" and "vừa thu hoạch" in a.headline.lower()
+
+
+def test_yield_dung_on_dinh_roi_sup_van_nguy_hiem(with_key, monkeypatch):
+    # Không có giai đoạn chín: đứng 0,6 rồi sụp 0,15 → mất cây ngoài dự kiến, vẫn NGUY HIỂM.
+    from app.modules.group_a import YieldModule
+    _series(monkeypatch, [0.60, 0.61, 0.59, 0.62, 0.60, 0.15], start_days_ago=120)
+    a = YieldModule().assess(Location(lat=10.0, lon=106.0))
+    assert a.risk_level == "danger"
+
+
 def test_growth_dang_len(with_key, monkeypatch):
     _series(monkeypatch, [0.20, 0.28, 0.38, 0.50, 0.62, 0.72],
             start_days_ago=180, step=30)
