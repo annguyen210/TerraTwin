@@ -133,5 +133,8 @@ def with_other_threats(ts: TerraScoreResult, alerts) -> TerraScoreResult:
     # phần còn lại của câu cũ: đổi "Hiểm hoạ thiên tai 7 ngày tới: thấp." thành phạm vi đúng của nó
     rest = ts.summary.replace(tr("Hiểm hoạ thiên tai 7 ngày tới: thấp.", "Natural hazards over the next 7 days: low."),
                               tr("5 hiểm hoạ thời tiết chính chưa đáng lo", "The 5 main weather hazards are not a concern"))
+    # Kiểm A–Z lần 3 (Huế): có cả mối dự báo lẫn hiểm hoạ thời tiết cảnh báo thì câu cũ lặp "Hiểm hoạ 7 ngày tới:" hai lần.
+    rest = rest.replace(tr("Hiểm hoạ 7 ngày tới: có mối cần để ý — ", "Next 7 days: something to watch — "),
+                        tr("Trong 5 hiểm hoạ thời tiết: cần để ý — ", "Among the 5 weather hazards: watch — "))
     ts.summary = f"{lead} {rest}"
     return ts

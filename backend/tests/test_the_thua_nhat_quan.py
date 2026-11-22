@@ -213,3 +213,16 @@ def test_mo_chi_tinh_mo_va_bai_khai_thac_khong_tinh_khu_cong_nghiep():
     assert sel == '[~"^(landuse|industrial)$"~"^(quarry|mine)$"]'        # khoá: landuse=industrial không còn khớp
     assert '"industrial"' not in sel and "quarry|industrial" not in sel
 
+
+def test_tom_tat_khong_lap_hiem_hoa_7_ngay_toi():
+    """Huế sau PR #66: "Hiểm hoạ 7 ngày tới: còn 1 mối … Hiểm hoạ 7 ngày tới: có mối cần để ý — …" — lặp cụm mở đầu."""
+    reqlang.set_lang("vi")
+    ass = {h: _a(h, "safe") for h in terrascore._HAZARDS}
+    ass["flood"] = _a("flood", "warning")
+    ts = terrascore.compute(LOC, assessments=ass, reassess=False)
+    ts = terrascore.with_other_threats(ts, [SimpleNamespace(id="upstream_flood", name="Lũ từ thượng nguồn",
+                                                            risk_level="warning", headline="x")])
+    assert ts.summary.count("Hiểm hoạ 7 ngày tới") == 1
+    assert ts.summary.startswith("Hiểm hoạ 7 ngày tới: còn 1 mối cần theo dõi — lũ từ thượng nguồn (cảnh báo).")
+    assert "Trong 5 hiểm hoạ thời tiết: cần để ý — " in ts.summary
+
