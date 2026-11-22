@@ -320,6 +320,44 @@ with sync_playwright() as p:
         return f"tab {sel.strip()} · cao {hgt}px · khung 'ngoài phạm vi': {offsite} · đổi tab giữ chữ tin"
     try_now()
 
+    @step("Thẻ thửa sau lượt quét sâu: lũ từ thượng nguồn NGUY HIỂM (giả lập) → không 'yên', có 'NGUY HIỂM'")
+    def badge_upstream_danger():
+        # Kiểm A–Z lần 2 (22/11/2026): 5 hiểm hoạ thời tiết yên + lũ thượng nguồn nguy hiểm mà thẻ vẫn "7 ngày tới: yên".
+        # Giả lập TRONG TRÌNH DUYỆT: lượt quét sâu được thay bằng lượt nhanh (nhanh, cùng thửa) có chèn thêm mối nguy hiểm —
+        # không ghi gì lên máy chủ, chạy được cả production.
+        ctx5 = browser.new_context(viewport={"width": 1366, "height": 860})
+        pg = watch(ctx5.new_page())
+
+        def deep(route):
+            url = route.request.url.replace("deep=true&", "").replace("?deep=true", "?")
+            resp = route.fetch(url=url)
+            j = resp.json()
+            mod = {"id": "upstream_flood", "name": "Lũ từ thượng nguồn", "icon": "🏔️", "group": "B", "risk_level": "danger",
+                   "headline": "Thượng nguồn đang mưa rất lớn và nước sẽ dồn về đây (giả lập E2E)", "recommendation": "Kê cao tài sản",
+                   "is_real": True, "threat": True, "status": "ok", "risk_dates": []}
+            j["modules"] = [m for m in j.get("modules", []) if m.get("id") != "upstream_flood"] + [mod]
+            j["alerts"] = [mod] + [a for a in j.get("alerts", []) if a.get("id") != "upstream_flood"]
+            j["terrascore"]["other_threats"] = [{"id": "upstream_flood", "name": "Lũ từ thượng nguồn", "risk_level": "danger"}]
+            if j["terrascore"].get("grade") in (None, "—"):         # lượt nhanh chưa có điểm → thẻ không hiện; ca cần thử là hạng A
+                j["terrascore"].update(score=100, grade="A", real_data_ratio=1.0)
+            route.fulfill(response=resp, json=j)
+        pg.route("**/api/scan?deep=true*", deep)
+        try:
+            pg.goto(WEB + "/", wait_until="networkidle", timeout=120_000)
+            pg.get_by_role("button", name=re.compile("Xem ngay")).first.click()
+            pg.locator(".terra-7d .terra-grade").first.wait_for(timeout=120_000)
+            pg.wait_for_function("() => /NGUY HIỂM/.test(document.querySelector('.terra-7d .terra-grade')?.textContent || '')",
+                                 timeout=120_000)
+            head = pg.locator(".terra-7d .terra-grade").first.inner_text()
+            small = pg.locator(".terra-7d .terra-real").first.inner_text()
+            pg.locator(".terra-7d").first.screenshot(path=os.path.join(OUT, "20-the-lu-thuong-nguon-nguy-hiem.png"))
+        finally:
+            ctx5.close()
+        assert "yên" not in head and "NGUY HIỂM" in head and "lũ từ thượng nguồn" in head, head
+        assert "5 hiểm hoạ thời tiết" in small, small
+        return f"thẻ: '{head}' · '{small[:60]}'"
+    badge_upstream_danger()
+
     @step("Bước 4 kịch bản demo: tin mẫu → Hồ sơ đất số ký số → 'Bản gốc' → /kiem đạt → sửa 1 chữ số → 'ĐÃ BỊ SỬA'")
     def demo_step4():
         # Kiểm A–Z 21/11/2026, P2-3 (docs/KICH_BAN_DEMO.md 1:45–2:25). CHỈ chạy E2E cục bộ (CSDL mới tinh) — KHÔNG phát hành
