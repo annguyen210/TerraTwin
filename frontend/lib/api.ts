@@ -1,4 +1,5 @@
 import { computeRetry, getRetry, isComputePost, NetworkError, offlineMessage } from "./retry";
+import { browserTrackEnv, rememberRole, shouldTrack } from "./track";
 const BASE = process.env.NEXT_PUBLIC_API ?? "http://localhost:8000";
 
 // Lệnh ghi (POST…) không thử lại (gửi lại có thể làm hai lần) nhưng lỗi mạng vẫn phải là câu người đọc hiểu — trước đây
@@ -39,6 +40,8 @@ const _lp = (extra = ""): string => `${extra ? extra + "&" : "?"}lang=${curLang(
 // mọi lỗi (đo lường KHÔNG bao giờ được làm hỏng luồng chính), không gửi gì định
 // danh. Backend chỉ nhận sáu tên hợp lệ; tên lạ bị bỏ qua.
 export function trackEvent(name: string, meta?: Record<string, unknown>) {
+  // Kiểm A–Z lần 2 (22/11/2026): không đếm máy chạy thử, cờ E2E, tài khoản quản trị (lib/track.ts).
+  if (!shouldTrack(browserTrackEnv())) return;
   try {
     void fetch(`${BASE}/api/events`, {
       method: "POST",
@@ -541,7 +544,8 @@ export function twoFaDisable(password: string, code: string) {
 export function fetchMe(timeoutMs?: number) {
   // timeoutMs: máy chủ đang thức dậy thì /api/auth/me có thể treo cả phút (kiểm 18/11/2026) — cắt để người gọi thử lại.
   return authed<AuthUser>("/api/auth/me",
-    { method: "GET", ...(timeoutMs ? { signal: AbortSignal.timeout(timeoutMs) } : {}) }, "Không lấy được tài khoản");
+    { method: "GET", ...(timeoutMs ? { signal: AbortSignal.timeout(timeoutMs) } : {}) }, "Không lấy được tài khoản")
+    .then((u) => { rememberRole((u as { role?: string }).role); return u; });   // quản trị viên không vào phễu (lib/track.ts)
 }
 
 export function listPlots() {
@@ -1751,7 +1755,8 @@ export function getFunnel(days = 30) {
   return authed<{ window_days: number; counts: Record<string, number>;
     steps: { step: string; count: number; pct_of_open: number | null }[]; note: string;
     sales?: { step: string; count: number; pct_of_open: number | null }[];
-    return_7d?: { cohort: number; returned: number; rate_pct: number | null; note: string } }>(
+    return_7d?: { cohort: number; returned: number; rate_pct: number | null; note: string };
+    filter_since?: string; filter_note?: string }>(
     `/api/admin/funnel?days=${days}`, { method: "GET" }, "Không tải được phễu người dùng");
 }
 export function getBackupStatus() {

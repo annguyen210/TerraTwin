@@ -12,7 +12,7 @@ import io
 import json
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Response
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -548,15 +548,24 @@ class EventIn(BaseModel):
     meta: dict | None = None
 
 
+# Kiểm A–Z lần 2 (22/11/2026): phễu bị thổi phồng bởi máy chạy thử. Từ ngày này mới lọc (trình duyệt tự động, cờ E2E,
+# tài khoản quản trị phía giao diện; User-Agent trình duyệt không giao diện phía máy chủ) — số TRƯỚC đó gồm cả lượt thử.
+EVENT_FILTER_SINCE = "2026-11-22"
+_BOT_UA = ("headlesschrome", "playwright", "puppeteer", "selenium", "phantomjs", "lighthouse")
+
+
 @router.post("/api/events", status_code=204, response_class=Response,
              response_model=None)
-def record_event(body: EventIn, db: Session = Depends(get_session)):
+def record_event(body: EventIn, request: Request, db: Session = Depends(get_session)):
     """Ghi một sự kiện ẨN DANH. KHÔNG đăng nhập, KHÔNG lưu ai gửi, KHÔNG lưu IP.
 
     Chỉ nhận đúng sáu tên đã định; tên lạ thì lặng lẽ bỏ qua và vẫn trả 204 —
     không biến endpoint đo lường thành kênh dò cho kẻ xấu.
     """
     name = body.name.strip()
+    ua = (request.headers.get("user-agent") or "").lower()
+    if any(b in ua for b in _BOT_UA):
+        return                                  # máy chạy thử — không đếm (vẫn 204, không lộ gì)
     if name in _ALLOWED_EVENTS:
         meta = ""
         if body.meta:
@@ -601,6 +610,10 @@ def funnel(days: int = 30, user: User = Depends(auth.require_admin),
         "note": ("Đếm ẩn danh, không id người dùng, không IP. open=mở app · "
                  "scan=chạy quét · save_plot=lưu thửa · view_scorecard=xem sổ "
                  "điểm · tap_open=mở liên kết một chạm · tap_answer=trả lời."),
+        "filter_since": EVENT_FILTER_SINCE,
+        "filter_note": (f"Từ ngày {EVENT_FILTER_SINCE[8:10]}/{EVENT_FILTER_SINCE[5:7]}/{EVENT_FILTER_SINCE[:4]} mới lọc máy "
+                        "chạy thử (trình duyệt tự động, cờ E2E, tài khoản quản trị); số trước đó gồm cả lượt thử — "
+                        "không xoá số cũ."),
     }
 
 
