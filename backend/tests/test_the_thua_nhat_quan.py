@@ -129,6 +129,23 @@ def test_ke_hoach_chua_tinh_kip_lu_thuong_nguon_thi_khong_goi_ngay_nao_an_toan(m
     assert "chưa tính lũ từ thượng nguồn" in sw["headline"] and "đang kiểm" in sw["headline"]
 
 
+def test_ke_hoach_lu_thuong_nguon_thieu_du_lieu_thi_khong_goi_ngay_nao_an_toan(monkeypatch):
+    """Kiểm 22/11/2026 (sau PR #59): mô-đun chạy xong mà THIẾU DỮ LIỆU (is_real=False) trước đây bị coi là "không đe doạ"
+    → vẫn "mọi ngày đều thuận". Nay là "chưa kết luận được"."""
+    import json
+    from app.services import advisor, landuse
+    monkeypatch.setattr(scan, "scan", lambda loc, deadline=None: _scan_yen_upstream_pending())
+    monkeypatch.setattr(landuse, "fetch_raw", lambda la, lo: None)
+    up = registry.get_module("upstream_flood")
+    monkeypatch.setattr(up, "assess", lambda loc: _a("upstream_flood", "unknown", real=False, head="Thiếu dữ liệu mưa"))
+    reqlang.set_lang("vi")
+    p = advisor.build(LOC, crop="lua")
+    sw = p["safe_window"]
+    assert "mọi ngày đều thuận" not in json.dumps(p, ensure_ascii=False)
+    assert sw["safe_dates"] == [] and all(d["unknown"] for d in sw["days"])
+    assert "chưa kết luận được" in sw["headline"]
+
+
 def test_the_co_other_threats_co_cau_truc():
     alerts = [SimpleNamespace(id="upstream_flood", name="Lũ từ thượng nguồn", risk_level="danger")]
     ts = terrascore.with_other_threats(_ts(), alerts)
