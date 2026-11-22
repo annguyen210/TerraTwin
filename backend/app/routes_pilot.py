@@ -88,8 +88,11 @@ def _mean(xs: list[int]) -> float | None:
 @router.get("/api/admin/pilot/feedback")
 def feedback_summary(_: User = Depends(auth.require_admin),
                      db: Session = Depends(get_session)) -> dict:
-    """Tổng hợp thật, không làm tròn cho đẹp: n nhỏ thì nói n nhỏ."""
-    rows = db.execute(select(PilotFeedback).order_by(PilotFeedback.id.desc())).scalars().all()
+    """Tổng hợp thật, không làm tròn cho đẹp: n nhỏ thì nói n nhỏ. Phiếu ĐÃ LOẠI (thử nội bộ, rác) không vào số đếm, nhưng
+    được kể riêng — "đã loại N phiếu (lý do…)" — để ai đọc số cũng kiểm được."""
+    all_rows = db.execute(select(PilotFeedback).order_by(PilotFeedback.id.desc())).scalars().all()
+    rows = [r for r in all_rows if r.excluded_at is None]
+    gone = [r for r in all_rows if r.excluded_at is not None]
 
     def block(sub):
         return {"n": len(sub),
@@ -99,30 +102,49 @@ def feedback_summary(_: User = Depends(auth.require_admin),
                 "would_use": {k: sum(1 for r in sub if r.would_use == k) for k in ("yes", "maybe", "no")},
                 "hardest": {k: sum(1 for r in sub if r.hardest == k) for k in STEPS}}
 
+    reasons: dict[str, int] = {}
+    for r in gone:
+        reasons[r.exclude_reason or "?"] = reasons.get(r.exclude_reason or "?", 0) + 1
     return {"all": block(rows),
             "by_role": {k: block([r for r in rows if r.role == k]) for k in ROLES},
             "note": ("Dưới 30 phiếu thì mọi tỷ lệ chỉ là dấu hiệu, chưa phải kết luận."
                      if len(rows) < 30 else ""),
+            "excluded": {"n": len(gone), "by_reason": [{"reason": k, "n": v} for k, v in reasons.items()],
+                         "note": (f"Đã loại {len(gone)} phiếu khỏi số liệu ("
+                                  + "; ".join(f"{k}: {v}" for k, v in reasons.items()) + ")") if gone else ""},
             "latest": [{"id": r.id, "created_at": r.created_at.isoformat() if r.created_at else None,
                         "source": r.source, "role": r.role, "region": r.region, "ease": r.ease,
                         "trust": r.trust, "minutes": r.minutes, "would_use": r.would_use,
                         "hardest": r.hardest, "comment": r.comment, "contact": r.contact}
-                       for r in rows[:100]]}
+                       for r in rows[:100]],
+            "excluded_latest": [{"id": r.id, "created_at": r.created_at.isoformat() if r.created_at else None,
+                                 "excluded_at": r.excluded_at.isoformat() if r.excluded_at else None,
+                                 "reason": r.exclude_reason, "role": r.role}
+                                for r in gone[:50]]}
 
 
-@router.delete("/api/admin/pilot/feedback/{fid}")
-def feedback_delete(fid: int, admin: User = Depends(auth.require_admin),
-                    db: Session = Depends(get_session)) -> dict:
-    """Quản trị viên xoá MỘT phiếu (phiếu thử, phiếu rác, phiếu lọt vào do lỗi) — 22/11/2026: một lượt kiểm tự động lỡ gửi
-    một phiếu giả lên bản chính thức, mà trước đây không có đường nào xoá ngoài vào thẳng CSDL. Ghi log ai xoá phiếu nào."""
+class ExcludeIn(BaseModel):
+    reason: str = Field(min_length=3, max_length=200)
+
+
+@router.post("/api/admin/pilot/feedback/{fid}/exclude")
+def feedback_exclude(fid: int, body: ExcludeIn, admin: User = Depends(auth.require_admin),
+                     db: Session = Depends(get_session)) -> dict:
+    """LOẠI một phiếu khỏi số liệu (xoá MỀM, kiểm A–Z lần 2): phiếu vẫn còn trong CSDL và CSV, ghi rõ ai loại, khi nào,
+    lý do (bắt buộc, vd "phiếu thử nội bộ"). Thay cho xoá cứng ở PR #58 — số liệu thí điểm phải kiểm toán được."""
+    from datetime import datetime, timezone
     row = db.get(PilotFeedback, fid)
     if row is None:
         raise HTTPException(404, tr("Không có phiếu này.", "No such feedback."))
-    db.delete(row)
+    if row.excluded_at is not None:
+        raise HTTPException(409, tr("Phiếu này đã được loại trước đó.", "This feedback was already excluded."))
+    row.excluded_at = datetime.now(timezone.utc)
+    row.excluded_by = admin.id
+    row.exclude_reason = body.reason.strip()
     db.commit()
     from app.safelog import log
-    log(f"[TerraTwin] admin #{admin.id} xoa phieu gop y #{fid}")
-    return {"ok": True, "deleted": fid}
+    log(f"[TerraTwin] admin #{admin.id} loai phieu gop y #{fid} khoi so lieu")
+    return {"ok": True, "excluded": fid, "reason": row.exclude_reason}
 
 
 @router.get("/api/admin/pilot/feedback.csv")
@@ -132,7 +154,7 @@ def feedback_csv(_: User = Depends(auth.require_admin),
     buf = io.StringIO()
     w = csv.writer(buf)
     w.writerow(["id", "created_at", "source", "role", "region", "ease", "trust", "minutes",
-                "would_use", "hardest", "comment", "contact"])
+                "would_use", "hardest", "comment", "contact", "excluded_at", "exclude_reason"])
 
     def safe(v):
         # Chặn chèn công thức khi mở bằng Excel (=, +, -, @ ở đầu ô).
@@ -141,6 +163,7 @@ def feedback_csv(_: User = Depends(auth.require_admin),
     for r in rows:
         w.writerow([r.id, r.created_at.isoformat() if r.created_at else "", r.source, r.role,
                     safe(r.region), r.ease, r.trust, "" if r.minutes is None else r.minutes,
-                    r.would_use, r.hardest, safe(r.comment), safe(r.contact)])
+                    r.would_use, r.hardest, safe(r.comment), safe(r.contact),
+                    r.excluded_at.isoformat() if r.excluded_at else "", safe(r.exclude_reason or "")])
     return Response("﻿" + buf.getvalue(), media_type="text/csv; charset=utf-8",
                     headers={"Content-Disposition": 'attachment; filename="gop-y-thi-diem.csv"'})
