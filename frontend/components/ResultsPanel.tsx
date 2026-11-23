@@ -40,6 +40,7 @@ const LABELS: Record<string, [string, string]> = {
   suc_song_so_dinh_pct: ["Sức sống so đỉnh (%)", "Vigor vs peak (%)"],
   // carbon
   che_phu_tan_pct: ["Che phủ tán (%)", "Canopy cover (%)"],
+  khung_xet_ha: ["Khung xét (ha)", "Frame considered (ha)"],
   dien_tich_rung_ha: ["Diện tích rừng (ha)", "Forest area (ha)"],
   tru_luong_tco2: ["Trữ lượng (tCO₂)", "Stock (tCO₂)"],
   sai_so_pct: ["Sai số (%)", "Uncertainty (%)"],
