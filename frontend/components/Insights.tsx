@@ -46,11 +46,12 @@ function Unavailable({ msg }: { msg?: string }) {
 function ExplainView({ d }: { d: ExplainResult }) {
   const { t } = useLang();
   if (!d.available) return <Unavailable msg={d.message} />;
-  const max = Math.max(...d.factors.map((f) => f.contribution), 1);
+  const factors = d.factors ?? [];
+  const max = Math.max(...factors.map((f) => f.contribution), 1);
   return (
     <>
       <p className="in-head">{d.headline}</p>
-      {d.factors.map((f) => (
+      {factors.map((f) => (
         <div key={f.factor} className="in-factor">
           <div className="in-factor-top">
             <span>{f.factor}</span>
@@ -83,7 +84,7 @@ function GoalView({ d }: { d: GoalSeekResult }) {
   return (
     <>
       <p className="in-head">{d.headline}</p>
-      {d.levers.map((l) => (
+      {(d.levers ?? []).map((l) => (
         <div
           key={l.lever}
           className="in-lever"
@@ -110,7 +111,8 @@ function GoalView({ d }: { d: GoalSeekResult }) {
 function TimeView({ d }: { d: TimeMachineResult }) {
   const { t } = useLang();
   if (!d.available) return <Unavailable msg={d.message} />;
-  const max = Math.max(...d.members.map((m) => m.peak), d.threshold_warning ?? 70, 1);
+  const members = d.members ?? [];
+  const max = Math.max(...members.map((m) => m.peak), d.threshold_warning ?? 70, 1);
   return (
     <>
       <p className="in-head">{d.headline}</p>
@@ -125,7 +127,7 @@ function TimeView({ d }: { d: TimeMachineResult }) {
         </div>
       </div>
       <div className="in-years">
-        {d.members.map((m) => (
+        {members.map((m) => (
           <div
             key={m.year}
             className="in-year"
@@ -160,7 +162,7 @@ function AnomalyView({ d }: { d: AnomalyResult }) {
   return (
     <>
       <p className="in-head">{d.headline}</p>
-      {d.metrics.map((m) => (
+      {(d.metrics ?? []).map((m) => (
         <div key={m.key} className="in-metric">
           <div className="in-metric-top">
             <span>{m.label}</span>
@@ -240,7 +242,10 @@ export default function Insights({
   const isHazard = WHATIF_MODULES.includes(moduleId);
   const tabs = TABS.filter((tb) => !tb.hazardOnly || isHazard);
   const [tab, setTab] = useState<Tab>(isHazard ? "explain" : "anomaly");
-  const [data, setData] = useState<unknown>(null);
+  // Kiểm 23/11/2026 (P0): bấm tab con → React vẽ lại NGAY với dữ liệu của tab CŨ (loading=false) trước khi useEffect kịp
+  // xoá → AnomalyView nhận ExplainResult (không có metrics) → "Có gì đó trục trặc". Dữ liệu gắn với tab + mô-đun + toạ độ đã
+  // gọi; chỉ vẽ khi khớp đúng cái đang chọn.
+  const [res, setRes] = useState<{ key: string; d: unknown } | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -248,11 +253,12 @@ export default function Insights({
     if (!tabs.some((tb) => tb.id === tab)) setTab(isHazard ? "explain" : "anomaly");
   }, [isHazard]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const key = `${tab}|${moduleId}|${lat}|${lon}`;
   useEffect(() => {
     let alive = true;
     setLoading(true);
     setErr(null);
-    setData(null);
+    setRes(null);
     const call =
       tab === "explain"
         ? runExplain(moduleId, lat, lon)
@@ -262,7 +268,7 @@ export default function Insights({
             ? runTimeMachine(moduleId, lat, lon)
             : runAnomaly(lat, lon);
     call
-      .then((d) => alive && setData(d))
+      .then((d) => alive && setRes({ key: `${tab}|${moduleId}|${lat}|${lon}`, d }))
       .catch((e: Error) => alive && setErr(e.message))
       .finally(() => alive && setLoading(false));
     return () => {
@@ -286,14 +292,14 @@ export default function Insights({
           </button>
         ))}
       </div>
-      {loading && <Loading />}
+      {(loading || (!err && res?.key !== key)) && <Loading />}
       {err && <p className="err">{err}</p>}
-      {!loading && !err && data != null && (
+      {!loading && !err && res != null && res.key === key && (
         <>
-          {tab === "explain" && <ExplainView d={data as ExplainResult} />}
-          {tab === "goal" && <GoalView d={data as GoalSeekResult} />}
-          {tab === "time" && <TimeView d={data as TimeMachineResult} />}
-          {tab === "anomaly" && <AnomalyView d={data as AnomalyResult} />}
+          {tab === "explain" && <ExplainView d={res.d as ExplainResult} />}
+          {tab === "goal" && <GoalView d={res.d as GoalSeekResult} />}
+          {tab === "time" && <TimeView d={res.d as TimeMachineResult} />}
+          {tab === "anomaly" && <AnomalyView d={res.d as AnomalyResult} />}
         </>
       )}
     </div>

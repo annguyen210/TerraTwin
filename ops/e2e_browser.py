@@ -555,6 +555,78 @@ with sync_playwright() as p:
         return f"{page.locator('.pw-mod').count()} công cụ"
     workspace()
 
+    @step("Chuyên sâu → 'Phân tích sâu': 4 tab con đủ 12 cặp chuyển (lũ) + mô-đun không hiểm hoạ + mọi nút chỉ-đọc → không sập")
+    def insights_tabs():
+        # Quét 23/11/2026 (P0): bấm "📈 Bất thường" / "🎯 Cần gì để an toàn" / "⏳ Xác suất từ lịch sử" → "Có gì đó trục trặc"
+        # (TypeError đọc .map của dữ liệu tab CŨ). Lỗi nằm ở từng CẶP chuyển tab → chuỗi 13 lượt bấm phủ đủ 12 cặp có thứ tự
+        # của 4 tab (0→1→2→3→0→2→1→3→2→0→3→1→0) thay vì 24 hoán vị × 4 lượt gọi API. CHỈ ĐỌC: không bấm Góp ý / gửi gì.
+        ctx6 = browser.new_context(viewport={"width": 1366, "height": 860})
+        pg = watch(ctx6.new_page())
+        errs: list[str] = []
+        pg.on("pageerror", lambda e: errs.append(str(e)[:200]))
+        pg.goto(WEB + "/", wait_until="networkidle", timeout=120_000)
+        pg.get_by_role("button", name=re.compile("Xem ngay")).first.click()
+        pg.locator(".pw-tabs").wait_for(timeout=120_000)
+        skip = pg.get_by_role("button", name="Bỏ qua")
+        if skip.count():
+            skip.first.click()
+        pg.get_by_role("tab", name=re.compile("Chuyên sâu")).click()
+        pg.locator(".pw-mod").first.wait_for(timeout=60_000)
+
+        def ok(where):
+            assert not pg.get_by_text("Có gì đó trục trặc").count(), f"SẬP ở {where}: {errs[:2]}"
+            assert not errs, f"lỗi trang ở {where}: {errs[:2]}"
+
+        def open_mod(rx):
+            pg.locator(".pw-mod", has_text=rx).first.click()
+            pg.locator(".insights .in-tabs button").first.wait_for(timeout=180_000)
+            ok(f"mở mô-đun {rx.pattern}")
+
+        tabs = pg.locator(".insights .in-tabs button")
+        done = ".insights .in-head, .insights .in-empty, .insights .err"
+        open_mod(re.compile("lũ/ngập sớm"))
+        assert tabs.count() == 4, [b.inner_text() for b in tabs.all()]
+        for i in (0, 1, 2, 3, 0, 2, 1, 3, 2, 0, 3, 1, 0):
+            tabs.nth(i).click()
+            pg.wait_for_timeout(250)              # lỗi cũ nổ ở lần vẽ NGAY sau khi bấm
+            ok(f"tab {tabs.nth(i).inner_text()}")
+        names = []
+        for i in range(4):                         # từng tab tải xong hẳn, chụp ảnh
+            tabs.nth(i).click()
+            pg.locator(done).first.wait_for(timeout=180_000)
+            pg.wait_for_timeout(400)
+            ok(f"tab {tabs.nth(i).inner_text()} (đã tải)")
+            pg.locator(".insights").screenshot(path=os.path.join(OUT, f"21-phan-tich-sau-{i + 1}.png"))
+            names.append(tabs.nth(i).inner_text().strip())
+        # Đang ở tab hiểm hoạ → sang mô-đun KHÔNG hiểm hoạ (chỉ còn "Bất thường") rồi quay lại
+        tabs.nth(0).click()
+        open_mod(re.compile("năng suất"))
+        assert tabs.count() == 1, [b.inner_text() for b in tabs.all()]
+        pg.locator(done).first.wait_for(timeout=180_000)
+        ok("mô-đun năng suất")
+        pg.locator(".insights").screenshot(path=os.path.join(OUT, "21-phan-tich-sau-5-nang-suat.png"))
+        open_mod(re.compile("lũ/ngập sớm"))
+        tabs.nth(3).click()
+        pg.wait_for_timeout(250)
+        ok("quay lại lũ → Bất thường")
+        # Mọi nút chỉ-đọc còn lại của chương: "Xem sâu hơn" (8 nút) + Toàn cảnh / Chi tiết công cụ
+        deep = pg.locator(".deep-tabs button")
+        n_deep = deep.count()
+        for i in range(n_deep):
+            deep.nth(i).click()
+            pg.wait_for_timeout(1200)
+            ok(f"Xem sâu hơn: {deep.nth(i).inner_text()}")
+            deep.nth(i).click()                    # bấm lại = đóng
+        pg.locator(".tabs button", has_text="Toàn cảnh").first.click()
+        pg.wait_for_timeout(2000)
+        ok("Toàn cảnh")
+        pg.locator(".tabs button", has_text="Chi tiết công cụ").first.click()
+        pg.wait_for_timeout(1000)
+        ok("Chi tiết công cụ")
+        ctx6.close()
+        return f"4 tab ({' · '.join(names)}) × 12 cặp chuyển + năng suất (1 tab) + {n_deep} nút 'Xem sâu hơn' + Toàn cảnh: không sập"
+    insights_tabs()
+
     @step("Canh đất → 'Xem độ ẩm tán lá 10 m' (S10 ①): ảnh 20 m đo gốc cạnh ảnh 10 m làm sắc, hoặc nói rõ vì sao chưa có")
     def moisture():
         # 20/10/2026: NDMI 10 m bật sau phép kiểm Wald đăng ký trước (s2_sharpen_result.json). CHỈ ĐỌC (GET).
