@@ -42,3 +42,11 @@ export const TONE_HEX: Record<string, string> = {
   bad: "#C2412E", warn: "#B07A2E", ok: "#2E9E67", pending: "#3aa0a0", wait: "#5a6b73",
   "fit-good": FIT.safe.color, "fit-mid": FIT.warning.color, "fit-poor": FIT.danger.color,
 };
+
+/** Màu theo XÁC SUẤT chạm mức nguy hiểm (%) — dùng chung cho "Xác suất 7 ngày tới" và "Xác suất từ lịch sử" (Insights).
+ *  23/11/2026: con số lớn "0%" ở tab lịch sử từng luôn đỏ — đọc như báo động dù xác suất bằng 0. */
+export function probTone(pct: number | null | undefined): string {
+  const p = pct ?? 0;
+  return p >= 50 ? "#C2412E" : p >= 20 ? "#B07A2E" : "#2E9E67";
+}
+

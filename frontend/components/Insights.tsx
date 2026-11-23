@@ -15,6 +15,7 @@ import {
   type TimeMachineResult,
 } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
+import { probTone } from "@/lib/riskScale";
 
 type Tab = "explain" | "goal" | "time" | "anomaly";
 
@@ -117,7 +118,7 @@ function TimeView({ d }: { d: TimeMachineResult }) {
     <>
       <p className="in-head">{d.headline}</p>
       <div className="in-prob">
-        <div className="in-prob-big">{d.prob_danger_pct}%</div>
+        <div className="in-prob-big" style={{ color: probTone(d.prob_danger_pct) }}>{d.prob_danger_pct}%</div>
         <div className="in-prob-txt">
           {t("khả năng vượt ngưỡng nguy hiểm", "chance of exceeding the danger threshold")}
           <br />
@@ -202,7 +203,7 @@ function ForecastProbability({ moduleId, lat, lon }: {
   const clamp = (x: number) => Math.max(0, Math.min(100, x));
   const left = clamp(d.p10), right = clamp(d.p90), mid = clamp(d.p50 ?? 0);
   const warn = (d.prob_exceed_warning ?? 0);
-  const tone = warn >= 50 ? "#C2412E" : warn >= 20 ? "#B07A2E" : "#2E9E67";
+  const tone = probTone(warn);
   return (
     <div style={{ margin: "0 0 12px", padding: "11px 14px", borderRadius: 8,
       background: "var(--surface-2, #f8faf7)", border: "1px solid var(--line, #d7ddd8)" }}>

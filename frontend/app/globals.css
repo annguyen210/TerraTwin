@@ -1009,7 +1009,7 @@ body {
 .in-prob-big {
   font-size: 30px;
   font-weight: 800;
-  color: #C2412E;
+  color: #2E9E67;   /* màu thật đặt theo xác suất — lib/riskScale.ts probTone */
   line-height: 1;
 }
 .in-prob-txt {
