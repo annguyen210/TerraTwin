@@ -150,11 +150,19 @@ def today(lang: str = "vi", user: User | None = Depends(auth.optional_user), db:
                                  "Check before/after imagery, documents and field photos, then record why.")})
 
     # 5) Cảnh báo chưa đọc trên thửa đã lưu (tham khảo — nguồn chính thức nchmf.gov.vn).
-    for a in db.execute(select(Alert).where(Alert.user_id == user.id, Alert.acknowledged == 0, Alert.retro == 0)
-                        .order_by(Alert.created_at.desc()).limit(5)).scalars().all():
-        items.append({"kind": "alert", "priority": "urgent" if a.risk_level == "danger" else "info", "link": "/",
-                      "title": alert_text(a.headline), "body": tr("Cảnh báo tham khảo — bản tin chính thức: nchmf.gov.vn.",
-                                                      "Reference alert — official bulletins: nchmf.gov.vn.")})
+    # Quét 23/11/2026: chỉ cảnh báo CÒN HIỆU LỰC, mỗi (thửa, mô-đun) một dòng (Bảo Lộc 17/11 13:59 từng hiện 2 lần).
+    from app.services import alert_current
+    cur = alert_current.current_map(db, user.id)
+    shown: set = set()
+    for a in db.execute(select(Alert).where(Alert.id.in_(list(cur) or [-1]), Alert.acknowledged == 0)
+                        .order_by(Alert.created_at.desc())).scalars().all():
+        head = cur[a.id]["headline"]
+        if head in shown or len(shown) >= 5:
+            continue
+        shown.add(head)
+        items.append({"kind": "alert", "priority": "urgent" if cur[a.id]["level"] == "danger" else "info", "link": "/",
+                      "title": alert_text(head), "body": tr("Cảnh báo tham khảo — bản tin chính thức: nchmf.gov.vn.",
+                                                       "Reference alert — official bulletins: nchmf.gov.vn.")})
     # 6) Thiết bị IoT: im lặng quá lâu / đất khô dưới ngưỡng (tự động hoá).
     from app.routes_iot import today_items as _iot_items
     items.extend(_iot_items(db, user))

@@ -104,6 +104,10 @@ def sweep_user(user_id: int, db: Session, on_progress=None) -> dict:
         if result.terrascore.score is not None:
             p.score, p.grade = result.terrascore.score, result.terrascore.grade
             p.scored_at = datetime.now(timezone.utc)
+        # Quét 23/11/2026: ghi mô-đun nào ĐANG báo (mức + tiêu đề) ở lượt này — danh sách thửa chỉ hiện cảnh báo còn
+        # hiệu lực theo lượt rà soát gần nhất (services/alert_current.py), không phải mọi bản ghi chưa đọc.
+        from app.services import alert_current
+        alert_current.record_sweep(p, result.alerts)
         fsrc = _forecast_source(p.lat, p.lon) if result.alerts else None
         plot_new: list[Alert] = []
         for m in result.alerts:            # scan.alerts đã lọc chỉ dữ liệu thật
