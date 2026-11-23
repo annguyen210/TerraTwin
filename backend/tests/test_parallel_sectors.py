@@ -285,7 +285,8 @@ def test_mining_khong_co_mo_gan_thi_khong_bao_dong(monkeypatch):
     from app.modules.registry import get_module
     from app.services import datasources as ds
 
-    monkeypatch.setattr(osm, "nearest", lambda *a, **k: [])
+    from app.services import quarries
+    monkeypatch.setattr(quarries, "nearest", lambda *a, **k: [])      # danh sách tải sẵn (23/11/2026) — nguồn chính
     monkeypatch.setattr(ds, "slope_context", lambda la, lo: (0.5, True))
     monkeypatch.setattr(ds, "forecast_precip_7d_total", lambda la, lo: (10.0, True))
     monkeypatch.setattr(ds, "elevation_proxy", lambda la, lo: 5.0)
@@ -303,7 +304,8 @@ def test_mining_doc_lon_mua_lon_nhung_khong_co_mo_thi_van_khong_bao(monkeypatch)
     from app.modules.registry import get_module
     from app.services import datasources as ds
 
-    monkeypatch.setattr(osm, "nearest", lambda *a, **k: [])
+    from app.services import quarries
+    monkeypatch.setattr(quarries, "nearest", lambda *a, **k: [])      # danh sách tải sẵn (23/11/2026) — nguồn chính
     monkeypatch.setattr(ds, "slope_context", lambda la, lo: (18.0, True))
     monkeypatch.setattr(ds, "forecast_precip_7d_total", lambda la, lo: (1750.0, True))
     monkeypatch.setattr(ds, "elevation_proxy", lambda la, lo: 300.0)
@@ -316,7 +318,8 @@ def test_mining_doc_lon_mua_lon_gan_mo_thi_bao_dong(monkeypatch):
     from app.modules.registry import get_module
     from app.services import datasources as ds
 
-    monkeypatch.setattr(osm, "nearest", lambda *a, **k: [
+    from app.services import quarries
+    monkeypatch.setattr(quarries, "nearest", lambda *a, **k: [
         {"lat": 21.0, "lon": 107.3, "km": 1.5, "name": "Mỏ thử", "tags": {}}])
     monkeypatch.setattr(ds, "slope_context", lambda la, lo: (18.0, True))
     monkeypatch.setattr(ds, "forecast_precip_7d_total", lambda la, lo: (400.0, True))
@@ -328,8 +331,11 @@ def test_mining_doc_lon_mua_lon_gan_mo_thi_bao_dong(monkeypatch):
 
 
 def test_mining_overpass_hong_thi_noi_that(monkeypatch):
+    """Danh sách tải sẵn thiếu/hỏng VÀ Overpass dự phòng cũng hỏng → nói thật "chưa đủ dữ liệu"."""
     from app.modules.registry import get_module
+    from app.services import quarries
 
+    monkeypatch.setattr(quarries, "nearest", lambda *a, **k: None)
     monkeypatch.setattr(osm, "nearest", lambda *a, **k: None)
     a = get_module("mining").assess(Location(lat=10.0, lon=106.0))
     assert a.status == "need_data"
