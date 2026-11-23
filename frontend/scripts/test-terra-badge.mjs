@@ -1,5 +1,6 @@
 // Thẻ "7 ngày tới" (lib/terraBadge.ts) — kiểm A–Z lần 2, 22/11/2026: lũ thượng nguồn NGUY HIỂM mà thẻ vẫn "yên".
 import assert from "node:assert/strict";
+import { probTone } from "../lib/riskScale.ts";
 import { badgeHead, isForecast, observedLine } from "../lib/terraBadge.ts";
 
 const vi = (v) => v;
@@ -25,3 +26,8 @@ assert.ok(!obs.includes("7 ngày tới"));
 assert.equal(observedLine({}, vi), null);
 assert.ok(isForecast("upstream_flood") && isForecast("flood") && !isForecast("pest") && !isForecast("mining"));
 console.log("OK — thẻ 7 ngày tới: chỉ mối DỰ BÁO; sâu bệnh/mỏ là dòng quan sát riêng; hiểm hoạ cảnh báo thì không 'yên'.");
+// Màu xác suất (Insights): 0% không được đỏ (23/11/2026); cùng ngưỡng với "Xác suất 7 ngày tới".
+assert.equal(probTone(0), "#2E9E67"); assert.equal(probTone(19.9), "#2E9E67");
+assert.equal(probTone(20), "#B07A2E"); assert.equal(probTone(49), "#B07A2E");
+assert.equal(probTone(50), "#C2412E"); assert.equal(probTone(null), "#2E9E67");
+console.log("OK — màu xác suất: 0% xanh, ≥20% cam, ≥50% đỏ.");
