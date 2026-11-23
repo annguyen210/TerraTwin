@@ -1838,6 +1838,7 @@ export function getPlotTimeline(plotId: number, days = 90, limit = 30) {
 // ---- C07 Báo cáo MRV carbon ----
 export type MrvReport = {
   available: boolean;
+  is_forest?: boolean;   // quét 23/11/2026: tán < 10% → không phải rừng (FAO), tiêu đề "Không áp dụng"
   reason?: string;
   message?: string;
   project_name?: string;

@@ -252,6 +252,10 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
   // Thời gian chạy của CHÍNH lượt đọc trên máy chủ (elapsed_s) — mở trang khi lượt đọc đã chạy dở (người khác / tab
   // khác đã bắt đầu) thì đồng hồ của trang này sẽ sai nếu chỉ đếm từ lúc mở.
   const jobEl = useRef<{ el: number; at: number } | null>(null);
+  // Quét 23/11/2026 (P2): thửa ĐÃ CÓ lịch sử vẫn chớp ~2 giây câu "Đang xếp hàng… thửa mới thường mất khoảng 2 phút" khi
+  // quay lại tab. Chỉ hiện câu đó khi việc nền THẬT SỰ chạy (máy chủ trả job chưa xong) hoặc chờ > 3 giây.
+  const [slow, setSlow] = useState(false);
+  const slowTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [, setTick] = useState(0);
   useEffect(() => {
     if (!busy) return;
@@ -266,11 +270,17 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
     if (timer.current) clearTimeout(timer.current);
     started.current = Date.now();
     jobEl.current = null;
-    setBusy(true); setErr(null); setProg(null);
+    setBusy(true); setErr(null); setProg(null); setSlow(false);
+    if (slowTimer.current) clearTimeout(slowTimer.current);
+    slowTimer.current = setTimeout(() => { if (my === gen.current) setSlow(true); }, 3000);
     try {
       const j = await waterStart(lat, lon);
       if (my !== gen.current) return;
-      if (j.state === "done" && j.result) { setR(j.result); setBusy(false); return; }
+      if (j.state === "done" && j.result) {
+        if (slowTimer.current) clearTimeout(slowTimer.current);
+        setR(j.result); setBusy(false); return;
+      }
+      setSlow(true);                                             // việc nền thật sự xếp hàng / chạy
       const id = j.job_id!;
       const tick = async () => {
         try {
@@ -340,7 +350,10 @@ export default function WaterHistory({ lat, lon, onScene }: { lat: number; lon: 
         <h3>{t("Lịch sử nước nhìn xuyên mây", "Water history through clouds")}</h3>
         <span className="wh-badge">{t("radar · đo thật", "radar · measured")}</span>
       </div>
-      {!r && busy && (
+      {!r && busy && !slow && (
+        <div className="wh-start" aria-live="polite"><p>{t("Đang mở lịch sử nước của thửa…", "Opening this plot's water history…")}</p></div>
+      )}
+      {!r && busy && slow && (
         <div className="wh-start" aria-live="polite">
           <p>{t("Đang tự đọc toàn bộ ảnh radar Sentinel-1 từ 2017 của đúng thửa này (radar nhìn xuyên mây). Thửa mới thường mất khoảng 2 phút (đo trên máy chủ 8/11/2026: 461 cảnh trong ~2 phút), lâu hơn khi nguồn ảnh bận — cứ xem các phần khác, xong sẽ tự hiện.",
                 "Reading every Sentinel-1 radar image since 2017 for this exact plot (radar sees through clouds). A new plot usually takes about 2 minutes (measured on the server 8/11/2026: 461 scenes in ~2 min), longer when the image source is busy — keep browsing, it appears by itself.")}</p>
