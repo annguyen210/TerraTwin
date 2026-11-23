@@ -269,8 +269,16 @@ class MiningModule(TwinModule):
     _SELECTOR = '[~"^(landuse|industrial)$"~"^(quarry|mine)$"]'
 
     def assess(self, loc: Location) -> Assessment:
-        sites = osm.nearest(loc.lat, loc.lon, self._SELECTOR,
-                            radius_m=15_000.0, limit=5)
+        # 23/11/2026: tra danh sách OSM tải sẵn trước (services/quarries — < 1 giây, không phụ thuộc Overpass); Overpass chỉ
+        # là dự phòng khi danh sách thiếu/hỏng (Huế từng mất 49 giây; ngày 22/11 Overpass 502 → "chưa đủ dữ liệu nguồn").
+        from app.services import quarries
+        sites = quarries.nearest(loc.lat, loc.lon, radius_m=15_000.0, limit=5)
+        osm_src = (tr(f"OpenStreetMap: mỏ & bãi khai thác (bản tải ngày {quarries.downloaded()}, © OpenStreetMap contributors, ODbL)",
+                      f"OpenStreetMap: mines & quarries (snapshot of {quarries.downloaded()}, © OpenStreetMap contributors, ODbL)")
+                   if sites is not None else None)
+        if sites is None:
+            sites = osm.nearest(loc.lat, loc.lon, self._SELECTOR,
+                                radius_m=15_000.0, limit=5)
         if sites is None:
             return need_data_assessment(
                 self, loc,
@@ -343,7 +351,7 @@ class MiningModule(TwinModule):
                                   "Landslide module to assess by terrain and rain."),
                 metrics={"do_doc_deg": slope, "mua_7ngay_mm": rain,
                          "so_khu_khai_thac_15km": float(len(sites))},
-                data_sources=self.disp_data_sources())
+                data_sources=([osm_src] + self.disp_data_sources()[1:]) if osm_src else self.disp_data_sources())
 
         if no_site:
             head = tr(f"Không thấy mỏ hay bãi khai thác nào trong 10 km "
@@ -416,7 +424,8 @@ class MiningModule(TwinModule):
             risk_level=lvl, headline=head, score=round(score, 1), detail=detail,
             recommendation=rec, confidence=0.6, confidence_low=0.48,
             confidence_high=0.7, is_real=True, metrics=metrics,
-            data_sources=[tr("OpenStreetMap: mỏ & bãi khai thác", "OpenStreetMap: mines & quarries"),
+            data_sources=[osm_src or tr("OpenStreetMap: mỏ & bãi khai thác (Overpass, trực tiếp)",
+                                        "OpenStreetMap: mines & quarries (Overpass, live)"),
                           tr("DEM: độ dốc 4 hướng", "DEM: 4-direction slope"),
                           tr("Open-Meteo: mưa dự báo 7 ngày tới", "Open-Meteo: 7-day rain forecast")]
             + ([tr("Sentinel-2: biến động thảm thực vật", "Sentinel-2: vegetation change")] if bare else []))
