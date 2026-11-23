@@ -181,9 +181,17 @@ def _db_events(db: Session, user_id: int, plot, since: datetime) -> list[dict]:
     from app.services import iot
     out: list[dict] = []
 
+    # Kiểm Chrome 23/11/2026: /hom-nay hiện 2 dòng TRÙNG HỆT "17/11 13:59 Bảo Lộc… Bê tông hoá 69.5%…" (CSDL có 2 bản ghi
+    # cùng phút — hai lượt rà soát chạy chồng). Cùng thửa (nhật ký này đã theo thửa) + cùng câu + cùng phút → một dòng.
+    alert_seen: set = set()
     for a in db.execute(select(Alert).where(Alert.plot_id == plot.id, Alert.retro == 0,
                                             Alert.created_at >= since)).scalars():
-        out.append(_ev(_iso(a.created_at), "alert", True, alert_text(a.headline), "TerraTwin radar",
+        text = alert_text(a.headline)
+        k = (text, a.created_at.strftime("%Y-%m-%d %H:%M"))
+        if k in alert_seen:
+            continue
+        alert_seen.add(k)
+        out.append(_ev(_iso(a.created_at), "alert", True, text, "TerraTwin radar",
                        module_id=a.module_id, risk_level=a.risk_level))
     graded_seen: set = set()      # kiểm 18/11/2026: hàng "bỏ sót" ghi trùng trong CSDL → chỉ hiện một dòng
     for a in db.execute(select(Alert).where(Alert.plot_id == plot.id, Alert.verified_at.is_not(None),
