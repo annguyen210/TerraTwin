@@ -70,7 +70,7 @@ export default function Mrv({ lat, lon }: { lat: number; lon: number }) {
 
       {r?.available && (
         <>
-          <p className="pan-line">{r.headline}</p>
+          <p className="pan-line" style={r.is_forest === false ? { fontWeight: 600 } : undefined}>{r.headline}</p>
 
           <div className="mrv-block measured">
             <div className="mrv-b-h">📡 {t("Đo được từ vệ tinh", "Measured from satellite")}</div>

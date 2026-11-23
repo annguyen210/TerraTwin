@@ -446,6 +446,21 @@ class CarbonModule(TwinModule):
                 next_step=_next_sentinel())
 
         m, e = r["measured"], r["estimated"]
+        if not r.get("is_forest", True):
+            # Quét 23/11/2026: ruộng lúa demo từng ra "PHÙ HỢP … 3134.88 tCO₂". Tán < 10% không phải rừng (FAO) → KHÔNG ÁP
+            # DỤNG, không nhãn phù hợp, không đưa số tCO₂ lên đầu.
+            return Assessment(
+                module_id=self.id, module_name=self.disp_name(), location=loc,
+                status="out_of_scope", risk_level="unknown", is_real=False,
+                headline=r["headline"],
+                detail=tr("Tín chỉ carbon rừng chỉ áp dụng cho đất có rừng. FAO (FRA) định nghĩa rừng là tán che ≥ 10% "
+                          "trên ≥ 0,5 ha. Diện tích xét là khung ảnh quanh điểm đã chọn, không phải ranh thửa.",
+                          "Forest carbon credits only apply to forested land. FAO (FRA) defines forest as canopy cover "
+                          "≥ 10% over ≥ 0.5 ha. The assessed area is an image frame around the chosen point, not the "
+                          "plot boundary."),
+                recommendation="",
+                metrics={"che_phu_tan_pct": m["canopy_pct"], "khung_xet_ha": m["aoi_ha"]},
+                data_sources=self.disp_data_sources())
         # Che phủ giảm so với năm ngoái là RỦI RO (mất rừng); trữ lượng cao
         # không phải rủi ro. Đừng để module carbon báo động vì có nhiều cây.
         ch = r.get("change_vs_last_year")

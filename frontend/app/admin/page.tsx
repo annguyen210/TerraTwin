@@ -761,8 +761,8 @@ export default function AdminPage() {
         {user === null && (
           <div className="adm-note">
             <b>{t("Chưa đăng nhập.", "Not signed in.")}</b>{" "}
-            {t("Bấm nút \"Đăng nhập\" ở góc trên bên phải, dùng email quản trị (email nằm trong TERRATWIN_ADMIN_EMAILS trên máy chủ). Đăng nhập xong trang này tự hiện các mục quản trị.",
-               "Press \"Log in\" at the top right with the admin email (listed in TERRATWIN_ADMIN_EMAILS on the server). The admin sections appear once you are signed in.")}
+            {t("Bấm nút \"Đăng nhập\" ở góc trên bên phải bằng tài khoản quản trị. Đăng nhập xong trang này tự hiện các mục quản trị.",
+               "Press \"Log in\" at the top right with an admin account. The admin sections appear once you are signed in.")}
           </div>
         )}
         {user && (
@@ -770,14 +770,10 @@ export default function AdminPage() {
             {user.totp_enabled ? " · 🔐 " + t("hai lớp: bật", "2FA: on") : " · " + t("hai lớp: chưa bật", "2FA: off")}</p>
         )}
         {user && !isAdmin && !isCoop && (
+          // Quét 23/11/2026 (P2): câu cũ lộ tên biến môi trường + nơi cấu hình trên Render cho MỌI tài khoản thường. Hướng
+          // dẫn cấp quyền để trong docs/QUAN_TRI.md.
           <div className="adm-note adm-warn">
-            <b>{t("Tài khoản này chưa có quyền quản trị.", "This account has no admin rights yet.")}</b>
-            <ul>
-              <li>{t("Quyền quản trị được cấp LÚC ĐĂNG NHẬP cho email nằm trong biến TERRATWIN_ADMIN_EMAILS trên Render (terratwin-api → Environment).",
-                     "Admin rights are granted AT LOGIN to emails listed in TERRATWIN_ADMIN_EMAILS on Render (terratwin-api → Environment).")}</li>
-              <li>{t("Nếu vừa thêm email vào biến đó: Đăng xuất (góc trên phải) rồi đăng nhập lại.", "If the email was just added: log out (top right) and log in again.")}</li>
-              <li>{t("Kiểm email đúng chính tả, không thừa dấu cách.", "Check the email spelling, no stray spaces.")}</li>
-            </ul>
+            <b>{t("Tài khoản này không có quyền quản trị.", "This account doesn't have admin rights.")}</b>
           </div>
         )}
         {user && isAdmin && (

@@ -55,6 +55,11 @@ CO2_PER_C = 44.0 / 12.0   # quy carbon sang CO₂ tương đương
 TIER1_UNCERTAINTY = 0.50  # ±50%
 
 
+# Quét 23/11/2026: ruộng lúa demo (20.9716,106.2834) ra "PHÙ HỢP — che phủ tán 5.7% … 3134.88 tCO₂". FAO (FRA): rừng = tán
+# ≥ 10% trên ≥ 0,5 ha. Dưới ngưỡng thì KHÔNG phải rừng — không phải chỗ đo/bán tín chỉ carbon rừng.
+FAO_FOREST_CANOPY_PCT = 10.0
+
+
 def _round(x, n=2):
     return round(float(x), n)
 
@@ -172,24 +177,37 @@ def build(lat: float, lon: float, buffer_m: float = 600.0,
             f"= {_round(stock_tco2)} tCO₂"),
     }
 
+    is_forest = measured["canopy_pct"] >= FAO_FOREST_CANOPY_PCT
+    frame_vi = f"khung {total_ha} ha quanh điểm (không phải diện tích thửa)"
+    frame_en = f"a {total_ha} ha frame around the point (not the plot's area)"
+    if is_forest:
+        head = tr(
+            f"Che phủ tán {measured['canopy_pct']}% trên {frame_vi} "
+            f"(≈{forest_ha} ha có rừng). Trữ lượng ước tính "
+            f"{estimated['stock_tco2']} tCO₂ "
+            f"(dải {estimated['stock_tco2_low']}–{estimated['stock_tco2_high']}, "
+            f"{estimated['tier_label']}).",
+            f"Canopy cover {measured['canopy_pct']}% over {frame_en} "
+            f"(≈{forest_ha} ha forested). Estimated stock "
+            f"{estimated['stock_tco2']} tCO₂ "
+            f"(range {estimated['stock_tco2_low']}–{estimated['stock_tco2_high']}, "
+            f"{estimated['tier_label']}).")
+    else:
+        head = tr(
+            f"Không áp dụng — không phải rừng theo định nghĩa FAO (tán ≥ {FAO_FOREST_CANOPY_PCT:g}%): che phủ tán đo được "
+            f"{measured['canopy_pct']}% trên {frame_vi}.",
+            f"Not applicable — not forest under the FAO definition (canopy ≥ {FAO_FOREST_CANOPY_PCT:g}%): measured canopy "
+            f"cover {measured['canopy_pct']}% over {frame_en}.")
+
     report = {
         "available": True,
+        "is_forest": is_forest,
         "project_name": project_name or tr("Lô chưa đặt tên", "Unnamed lot"),
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "measured": measured,
         "estimated": estimated,
         "change_vs_last_year": change,
-        "headline": tr(
-            f"Che phủ tán {measured['canopy_pct']}% trên {total_ha} ha "
-            f"(≈{forest_ha} ha có rừng). Trữ lượng ước tính "
-            f"{estimated['stock_tco2']} tCO₂ "
-            f"(dải {estimated['stock_tco2_low']}–{estimated['stock_tco2_high']}, "
-            f"{estimated['tier_label']}).",
-            f"Canopy cover {measured['canopy_pct']}% over {total_ha} ha "
-            f"(≈{forest_ha} ha forested). Estimated stock "
-            f"{estimated['stock_tco2']} tCO₂ "
-            f"(range {estimated['stock_tco2_low']}–{estimated['stock_tco2_high']}, "
-            f"{estimated['tier_label']})."),
+        "headline": head,
         "methodology": {
             "measured_by": tr("Sentinel-2 L2A, NDVI mỗi pixel 10 m, lọc mây bằng "
                               "băng SCL, lấy tổ hợp ít mây nhất trong cửa sổ 60 ngày. "
