@@ -59,6 +59,10 @@ class AlertOut(BaseModel):
     # None = chưa tới hạn chấm. Trả cả bằng chứng chứ không chỉ kết luận, để
     # người dùng đối chiếu được thay vì phải tin.
     outcome: str | None = None
+    # Quét 23/11/2026: còn hiệu lực theo lượt rà soát gần nhất? Hết hiệu lực vẫn giữ trong lịch sử, chỉ được đánh dấu.
+    current: bool = False
+    current_level: str | None = None
+    current_headline: str | None = None
     observed_peak: float | None = None
     verify_source: str = ""
     verify_note: str = ""
@@ -846,19 +850,30 @@ def channels_status() -> dict:
 
 
 @router.get("/api/alerts", response_model=list[AlertOut])
-def list_alerts(unread_only: bool = False, limit: int = 50,
+def list_alerts(unread_only: bool = False, limit: int = 50, current_only: bool = False,
                 user: User = Depends(auth.current_user),
                 db: Session = Depends(get_session)) -> list[AlertOut]:
     # retro == 0: hàng hồi cứu là những đợt phần mềm ĐÃ BỎ SÓT, ghi lại để tính
     # vào sổ điểm. Chúng chưa từng được gửi cho ai, nên hiện chúng ở đây sẽ là
     # nói dối rằng người dùng từng được cảnh báo.
+    # current_only (quét 23/11/2026): mỗi (thửa, mô-đun) chỉ bản MỚI NHẤT còn hiệu lực — không bị trần `limit` cắt mất.
+    from app.services import alert_current
+    cur = alert_current.current_map(db, user.id)
     q = select(Alert).where(Alert.user_id == user.id, Alert.retro == 0)
     if unread_only:
         q = q.where(Alert.acknowledged == 0)
+    if current_only:
+        q = q.where(Alert.id.in_(list(cur) or [-1]))
     rows = db.execute(
         q.order_by(Alert.created_at.desc()).limit(max(1, min(limit, 200)))
     ).scalars().all()
-    return [_alert_out(a) for a in rows]
+    out = []
+    for a in rows:
+        o = _alert_out(a)
+        if a.id in cur:
+            o.current, o.current_level, o.current_headline = True, cur[a.id]["level"], cur[a.id]["headline"]
+        out.append(o)
+    return out
 
 
 @router.post("/api/alerts/{alert_id}/ack", response_model=AlertOut)

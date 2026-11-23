@@ -163,6 +163,8 @@ class Plot(Base):
     # Lúc CHẤM điểm/hạng trên (kiểm A–Z 21/11/2026, P1-6): trước đây chỉ ghi một lần lúc lưu, rà soát nền không cập nhật,
     # mà giao diện ghi "Hạng A (100/100) — hiểm hoạ 7 ngày tới" như số mới. Nay rà soát nền chấm lại và ghi giờ ở đây.
     scored_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    # Trạng thái lượt rà soát gần nhất: {"at", "modules": {id: {level, headline}}} — services/alert_current.py.
+    alert_state: Mapped[str] = mapped_column(Text, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
     owner: Mapped[User] = relationship(back_populates="plots")
@@ -955,6 +957,7 @@ _ADDED_COLUMNS = [
     ("jobs", "progress_json", "TEXT"),
     # P1-6 (21/11/2026) — giờ chấm hạng thửa; thửa cũ để trống = "chưa chấm lại kể từ khi có cột này".
     ("plots", "scored_at", "TIMESTAMP"),
+    ("plots", "alert_state", "TEXT DEFAULT ''"),
     # Kiểm A–Z lần 2 (22/11/2026) — loại phiếu góp ý khỏi số liệu (xoá mềm, có lý do).
     ("pilot_feedback", "excluded_at", "TIMESTAMP"),
     ("pilot_feedback", "excluded_by", "INTEGER"),

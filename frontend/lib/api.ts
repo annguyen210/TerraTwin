@@ -797,6 +797,10 @@ export type AlertRow = {
   recommendation: string;
   created_at: string;
   acknowledged: boolean;
+  // Quét 23/11/2026: còn hiệu lực theo lượt rà soát gần nhất + mức/tiêu đề HIỆN TẠI (bản ghi cũ giữ mức lúc ghi).
+  current?: boolean;
+  current_level?: string | null;
+  current_headline?: string | null;
 };
 
 export type RadarRun = {
@@ -837,8 +841,8 @@ export async function runRadar(onProgress?: (p: RadarProgress) => void): Promise
   throw new Error("Rà soát chạy quá lâu — kết quả vẫn sẽ hiện trong danh sách cảnh báo khi xong.");
 }
 
-export function listAlerts(unreadOnly = false) {
-  return authed<AlertRow[]>(`/api/alerts?unread_only=${unreadOnly}`,
+export function listAlerts(unreadOnly = false, currentOnly = false) {
+  return authed<AlertRow[]>(`/api/alerts?unread_only=${unreadOnly}${currentOnly ? "&current_only=true" : ""}`,
     { method: "GET" }, "Không tải được cảnh báo");
 }
 
