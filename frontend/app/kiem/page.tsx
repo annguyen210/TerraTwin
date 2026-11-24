@@ -20,6 +20,20 @@ export default function OfflineVerify() {
   const [res, setRes] = useState<Result | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [cert, setCert] = useState<DossierFile | null>(null);
+  // Kiểm A–Z 24/11/2026: trang đầu hứa "Kiểm một hồ sơ — mã, QR hoặc tệp JSON" mà trang này chỉ nhận tệp. Dán mã hoặc
+  // đường link (kể cả link đọc từ QR bằng camera điện thoại) → mở trang hồ sơ, giữ nguyên phần sau dấu # nếu có.
+  const [code, setCode] = useState("");
+  const [codeErr, setCodeErr] = useState<string | null>(null);
+  function openCode() {
+    const raw = code.trim();
+    const m = raw.match(/\/h\/([A-Za-z0-9_-]{6,40})(\/the)?([?#].*)?$/) ?? raw.match(/^([A-Za-z0-9_-]{6,40})$/);
+    if (!m) {
+      setCodeErr(t("Không đọc được mã — dán mã hồ sơ (12 ký tự) hoặc cả đường link /h/…", "Can't read that — paste the dossier code (12 characters) or the whole /h/… link"));
+      return;
+    }
+    setCodeErr(null);
+    window.location.href = `/h/${m[1]}${m[3] ?? ""}`;
+  }
 
   async function onFile(f: File | undefined) {
     setErr(null); setRes(null);
@@ -85,6 +99,16 @@ export default function OfflineVerify() {
             <input id="verify-file" type="file" accept="application/json,.json" onChange={(e) => onFile(e.target.files?.[0])} />
           </label>
           {err && <p className="bat-err">{err}</p>}
+          <form className="kv-code" onSubmit={(e) => { e.preventDefault(); openCode(); }}>
+            <label htmlFor="verify-code">{t("Hoặc dán mã hồ sơ / đường link (quét QR bằng camera điện thoại rồi dán link)",
+              "Or paste a dossier code / link (scan the QR with your phone camera, then paste the link)")}</label>
+            <div className="kv-row">
+              <input id="verify-code" value={code} onChange={(e) => setCode(e.target.value)} autoComplete="off" spellCheck={false}
+                     placeholder={t("vd. 7KQ2M9XW4TJA hoặc …/h/7KQ2M9XW4TJA", "e.g. 7KQ2M9XW4TJA or …/h/7KQ2M9XW4TJA")} />
+              <button type="submit" className="bat-btn" disabled={!code.trim()}>{t("Mở hồ sơ", "Open dossier")}</button>
+            </div>
+            {codeErr && <p className="bat-err">{codeErr}</p>}
+          </form>
         </section>
         {res && (
           <section className={`bat-card eu-verify ${allOk ? "ok" : "bad"}`}>

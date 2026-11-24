@@ -267,8 +267,14 @@ def s2_scene(geom, start: date, end: date, prefer: date | None = None) -> dict |
 
 def protected_areas(lat: float, lon: float) -> dict:
     """Tâm thửa có nằm trong khu bảo tồn / vườn quốc gia theo OpenStreetMap không.
-    OSM không phải bản đồ pháp lý — "không thấy" KHÁC "chắc chắn ngoài"."""
-    from app.services import osm
+    OSM không phải bản đồ pháp lý — "không thấy" KHÁC "chắc chắn ngoài".
+
+    Kiểm A–Z 24/11/2026: tra TẠI CHỖ ranh OSM tải sẵn (services/protected_areas.py) — hỏi Overpass mỗi lần thường ra
+    "Chưa kiểm được khu bảo tồn". Overpass chỉ còn là dự phòng khi tệp thiếu/hỏng."""
+    from app.services import osm, protected_areas as pa
+    local = pa.inside(lat, lon)
+    if local is not None:
+        return {"checked": True, "inside": local, "source": f"OpenStreetMap (ranh tải {pa.fetched()})"}
     q = (f"[out:json][timeout:25];is_in({lat:.6f},{lon:.6f})->.a;"
          '(area.a["boundary"="protected_area"];area.a["boundary"="national_park"];'
          'area.a["leisure"="nature_reserve"];);out tags;')

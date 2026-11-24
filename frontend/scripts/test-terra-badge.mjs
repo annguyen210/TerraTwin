@@ -31,3 +31,12 @@ assert.equal(probTone(0), "#2E9E67"); assert.equal(probTone(19.9), "#2E9E67");
 assert.equal(probTone(20), "#B07A2E"); assert.equal(probTone(49), "#B07A2E");
 assert.equal(probTone(50), "#C2412E"); assert.equal(probTone(null), "#2E9E67");
 console.log("OK — màu xác suất: 0% xanh, ≥20% cam, ≥50% đỏ.");
+// Kiểm A–Z 24/11/2026 (Ba Tri): mặn chỉ có ƯỚC LƯỢNG chưa hiệu chỉnh ở mức cảnh báo → không được "yên"; ghi rõ ước lượng.
+const sal = { id: "salinity", name: "Cảnh báo xâm nhập mặn", risk_level: "warning" };
+[color, head] = badgeHead({ grade: "A", estimate_alerts: [sal] }, vi);
+assert.equal(color, "#B07A2E"); assert.equal(head, "7 ngày tới: cần để ý — cảnh báo xâm nhập mặn (ước lượng mô hình)");
+// mối thật đi trước ước lượng
+[color, head] = badgeHead({ grade: "A", estimate_alerts: [sal], hazard_alerts: [{ id: "flood", name: "Cảnh báo lũ/ngập sớm", risk_level: "danger" }] }, vi);
+assert.equal(head, "7 ngày tới: có mối NGUY HIỂM — cảnh báo lũ/ngập sớm");
+assert.equal(badgeHead({ grade: "A", estimate_alerts: [] }, vi)[1], "7 ngày tới: yên");
+console.log("OK — ước lượng mặn cảnh báo: thẻ vàng 'cần để ý … (ước lượng mô hình)', không 'yên'.");

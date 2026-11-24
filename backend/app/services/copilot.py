@@ -164,7 +164,11 @@ def _system() -> str:
         "chữ của mức dự báo — 'ít nguy cơ' thì nói 'ít nguy cơ', không nâng thành 'không có nguy cơ'; KHÔNG được "
         "nói 'hiện tại không ngập' hay 'không có dấu hiệu ngập'. Radar đã thấy nước phủ thửa (số đợt lớn hơn 0) thì phải "
         "nói rõ thửa ĐÃ TỪNG có nước phủ — không được nói 'không đủ để khẳng định đã ngập hay chưa'. Không được kết luận "
-        "đất 'phù hợp' để trồng một loại cây chỉ từ chỉ số hiểm hoạ 7 ngày — việc đó cần thổ nhưỡng, nước tưới, mùa vụ.",
+        "đất 'phù hợp' để trồng một loại cây chỉ từ chỉ số hiểm hoạ 7 ngày — việc đó cần thổ nhưỡng, nước tưới, mùa vụ. "
+        # Kiểm 24/11/2026: 5 đợt nước (3 đợt phủ ≥50% thửa) bị gọi là "rủi ro lịch sử ngập nhẹ… có thể mua".
+        "KHÔNG tự xếp lịch sử ngập là 'nhẹ', 'không đáng kể' hay 'cao' — nêu số đợt, ngày và mức phủ thửa. KHÔNG khuyên "
+        "mua hay không mua — nêu dữ kiện và việc cần tự kiểm (hỏi hàng xóm, UBND xã, quy hoạch, giấy tờ). Hỏi về một năm "
+        "hay một ngày cụ thể thì trả lời theo danh sách từng đợt nước nếu có.",
         "You are TerraTwin's land/farming assistant. Answer BRIEFLY and clearly "
         "in English, based ONLY on the data provided. Never invent numbers. If "
         "the data isn't enough to answer, say so plainly. "
@@ -182,7 +186,11 @@ def _system() -> str:
         "using the forecast's OWN word — 'low risk' stays 'low risk', never upgraded to 'no risk'; "
         "NEVER 'the plot is currently not flooded' or 'no sign of flooding'. If radar saw water over the plot (more than 0 "
         "episodes), say clearly the plot HAS had water over it — never 'not enough to say whether it has flooded'. Never "
-        "conclude the land is 'suitable' for a crop from 7-day hazard indices alone — that needs soil, irrigation, season.",
+        "conclude the land is 'suitable' for a crop from 7-day hazard indices alone — that needs soil, irrigation, season. "
+        "NEVER grade the flood history yourself as 'minor', 'insignificant' or 'high' — state the number of episodes, "
+        "their dates and how much of the plot was covered. NEVER advise buying or not buying — give the facts and what to "
+        "check (neighbours, commune office, zoning, papers). If asked about a specific year or date, answer from the list "
+        "of water episodes when it is given.",
     )
 
 
@@ -338,6 +346,15 @@ def _history_facts(loc: Location, routes: list[str]) -> str:
                     f"- Water over the plot seen by Sentinel-1 radar (observed): {ws['n_events']} episode(s) since {y0}"
                     + (f", latest {ws['last_event']}" if ws.get("last_event") else "")
                     + ("" if ws["n_events"] else " — radar revisits every 6–12 days, so this does not rule out flooding") + "."))
+                evs = (ws.get("events") or [])[-20:]
+                if evs:
+                    def _d(s: str) -> str:
+                        return f"{int(s[8:10])}/{int(s[5:7])}/{s[:4]}"
+                    one = [(_d(e["start"]) + ("" if e["end"] == e["start"] else "–" + _d(e["end"])))
+                           + (f" ({tr('phủ', 'covering')} {e['cover']} {tr('thửa', 'of the plot')})" if e.get("cover") else "")
+                           for e in evs]
+                    lines.append(tr("- Từng đợt nước radar thấy (ngày, mức phủ thửa): ",
+                                    "- Each water episode radar saw (date, share of plot covered): ") + "; ".join(one) + ".")
         h = passport.history(loc.lat, loc.lon, years=10)
         if not h:
             return "\n".join(lines)
@@ -386,6 +403,18 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
     # đầu — trước đây nó luôn tự assess() lại CẢ 5 hiểm họa kể cả khi câu hỏi
     # chỉ hỏi về lũ, nên TerraScore có thể đọc is_real KHÁC với dòng flood vừa
     # in ở trên (mỗi bên tự gọi module một lần, độc lập).
+    # Kiểm 24/11/2026: "Tuần tới có mưa lớn không?" → "không có dữ liệu dự báo mưa" dù mô-đun nào cũng dùng mưa 7 ngày.
+    try:
+        from app.services import realdata
+        w7 = realdata.weather_7d(loc.lat, loc.lon)        # thường đã nằm trong bộ nhớ đệm từ các mô-đun ở trên
+    except Exception:
+        w7 = None
+    if w7:
+        total = sum(d["precip"] for d in w7)
+        top = max(w7, key=lambda d: d["precip"])
+        day = f"{int(top['date'][8:10])}/{int(top['date'][5:7])}"
+        facts.append(tr(f"- Mưa dự báo 7 ngày tới (dữ liệu thật): tổng {total:.0f} mm; ngày mưa nhiều nhất {day}: {top['precip']:.0f} mm.",
+                        f"- Forecast rain for the next 7 days (real data): {total:.0f} mm in total; wettest day {day}: {top['precip']:.0f} mm."))
     ts = terrascore.compute(loc, assessments=assessed)
     facts.append(tr(f"- TerraScore: {ts.score}/100 (hạng {ts.grade}) — {ts.summary}",
                     f"- TerraScore: {ts.score}/100 (grade {ts.grade}) — {ts.summary}"))

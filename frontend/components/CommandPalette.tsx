@@ -25,6 +25,8 @@ const ITEMS: Item[] = [
   { href: "/so-sanh", vi: "So sánh 2–4 thửa đất", en: "Compare 2–4 plots" },
   { href: "/mo-hinh", vi: "Thẻ mô hình AI (kể cả cái trượt)", en: "AI model cards (incl. failures)" },
   { href: "/tai-khoan", vi: "Tài khoản của tôi — thông tin, dữ liệu, lịch sử", en: "My account — details, data, history" },
+  // Kiểm A–Z 24/11/2026: "/admin" từng có HAI mục — khoá React trùng (key=href) để lại mục "bóng ma" khi lọc (gõ "so sanh"
+  // vẫn hiện "Quản trị"). Một mục, và chỉ hiện cho tài khoản quản trị (xem `admin` bên dưới).
   { href: "/admin", vi: "Quản trị (chỉ quản trị viên)", en: "Admin (admins only)" },
   { href: "/thi-diem", vi: "Bộ thí điểm cho hợp tác xã", en: "Pilot kit for co-operatives" },
   { href: "/gan-nhan", vi: "Gán nhãn kiểm định v3", en: "Label validation v3" },
@@ -34,7 +36,6 @@ const ITEMS: Item[] = [
   { href: "/help", vi: "Trợ giúp", en: "Help" },
   { href: "/privacy", vi: "Quyền riêng tư", en: "Privacy" },
   { href: "/status", vi: "Trạng thái hệ thống", en: "System status" },
-  { href: "/admin", vi: "Quản trị", en: "Admin" },
 ];
 
 const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase();
@@ -43,7 +44,7 @@ export function openCommandPalette() {
   window.dispatchEvent(new Event("tt-open-palette"));
 }
 
-export default function CommandPalette() {
+export default function CommandPalette({ admin = false }: { admin?: boolean }) {
   const { t } = useLang();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -80,11 +81,12 @@ export default function CommandPalette() {
     }
     const f = fold(q.trim());
     for (const it of ITEMS) {
+      if (it.href === "/admin" && !admin) continue;
       const label = t(it.vi, it.en);
       if (!f || fold(label).includes(f) || fold(it.vi).includes(f) || fold(it.en).includes(f)) out.push({ href: it.href, label });
     }
     return out;
-  }, [q, t]);
+  }, [q, t, admin]);
 
   const go = (i: number) => {
     const r = results[i];

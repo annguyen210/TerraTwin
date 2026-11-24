@@ -117,6 +117,9 @@ class TerraScoreResult(BaseModel):
     # cảnh báo/nguy hiểm — thẻ không được ghi "yên" khi có (Huế: lũ CẢNH BÁO mà hạng A).
     observed_threats: list[dict] = []
     hazard_alerts: list[dict] = []
+    # Kiểm A–Z 24/11/2026 (Ba Tri): hiểm hoạ chỉ có ƯỚC LƯỢNG chưa hiệu chỉnh (mặn) ở mức cảnh báo — không vào điểm, nhưng
+    # thẻ "7 ngày tới" không được ghi "yên" trong khi lưới ghi "Mặn mức CẢNH BÁO". [{id, name, risk_level}]
+    estimate_alerts: list[dict] = []
 
 
 class KnowledgeCitation(BaseModel):

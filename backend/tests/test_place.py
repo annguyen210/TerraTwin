@@ -126,3 +126,15 @@ def test_moi_ket_qua_deu_du_truong_giao_dien_can(monkeypatch):
     for it in place.search("X")["results"]:
         assert {"label", "lat", "lon", "kind"} <= set(it)
         assert isinstance(it["lat"], float) and isinstance(it["lon"], float)
+
+
+def test_nhan_tinh_co_dau_va_huyen_ghi_cu(monkeypatch):
+    """Kiểm A–Z 24/11/2026: "Ba Tri · Huyện Ba Tri · Vinh Long" — tỉnh mất dấu, cấp huyện đã bỏ từ 1/7/2025."""
+    monkeypatch.setattr(place, "_get", lambda url, timeout=None: {"results": [
+        {"name": "Ba Tri", "admin2": "Huyện Ba Tri", "admin1": "Vinh Long", "country_code": "VN",
+         "latitude": 10.04427, "longitude": 106.5902, "feature_code": "PPLA3"},
+        {"name": "Tuệ Tĩnh", "admin1": "Tỉnh Hải Dương", "country_code": "VN", "latitude": 20.97, "longitude": 106.28}]})
+    r = place._from_open_meteo("Ba Tri")
+    assert r[0]["label"] == "Ba Tri · Huyện Ba Tri (cũ) · Vĩnh Long"
+    assert r[1]["label"] == "Tuệ Tĩnh · Hải Dương"
+    assert place._ten_tinh("Ho Chi Minh City") == "Hồ Chí Minh" and place._ten_tinh("Nơi Lạ") == "Nơi Lạ"

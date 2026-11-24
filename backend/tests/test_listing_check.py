@@ -230,3 +230,34 @@ def test_luoi_song_kenh_tinh_tra_khoang_cach_khong_can_overpass(monkeypatch, tmp
     assert 1.0 <= km <= 1.2
     assert lc._nearest_river_km(10.1, 105.02, radius_m=3000.0) == float("inf")   # ~11 km → ngoài 3 km
     assert river_grid.nearest_km(20.0, 105.1) is None       # ngoài lưới → để Overpass lo
+
+
+# Kiểm A–Z 24/11/2026: khoảng cách GHI trong tin phải được so với số đo — "cách sông 50m" đo 430 m từng chấm KHỚP,
+# "cách biển 2km" đo 12 km từng chỉ "không đủ dữ liệu".
+@pytest.mark.parametrize("text,typ,km", [
+    ("Đất cách biển 2km, cao ráo", "near_sea", 2.0), ("Cách sông 50m, mát mẻ", "near_river", 0.05),
+    ("cách sông 1,2km", "near_river", 1.2), ("cách bãi tắm 1.200m", "near_sea", 1.2),
+    ("Lô 500m2 cách kênh 300 mét", "near_river", 0.3), ("Cách KDL Biển Cửa Việt 4Km", "near_sea", 4.0),
+    ("gần sông mát mẻ", "near_river", None), ("chỉ 5 phút ra biển", "near_sea", None),
+])
+def test_doc_khoang_cach_ghi_trong_tin(text, typ, km):
+    from app.services import listing_check as lc
+    quote = next(c["sentence"] for c in lc.extract(text) if c["type"] == typ)
+    assert lc.stated_km(typ, quote) == km
+
+
+@pytest.mark.parametrize("typ,quote,ev,verdict", [
+    ("near_sea", "Đất cách biển 2km", {"coast_km": 12.0}, "contradicted"),
+    ("near_sea", "Đất cách biển 2km", {"coast_km": 2.8}, "consistent"),
+    ("near_sea", "Đất cách biển 2km", {"coast_km": 5.0}, "insufficient"),
+    ("near_river", "Cách sông 50m", {"river_km": 0.43}, "insufficient"),     # OSM có thể thiếu kênh nhỏ → không chấm KHỚP
+    ("near_river", "Cách sông 100m", {"river_km": 2.0}, "contradicted"),
+    ("near_river", "Cách sông 300m", {"river_km": 0.43}, "consistent"),
+    ("near_river", "gần sông", {"river_km": 0.43}, "consistent"),            # không ghi số → luật cũ giữ nguyên
+])
+def test_doi_chieu_khoang_cach_ghi_voi_so_do(typ, quote, ev, verdict):
+    from app.services import listing_check as lc
+    v, msg, _src = lc.judge(typ, ev, quote)
+    assert v == verdict
+    if lc.stated_km(typ, quote) is not None:
+        assert msg.startswith("Tin ghi")

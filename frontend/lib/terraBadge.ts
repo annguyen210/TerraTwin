@@ -18,13 +18,18 @@ export function isForecast(moduleId: string): boolean {
 
 type Threat = { id: string; name: string; risk_level: string };
 
-export function badgeHead(t: Pick<TerraScore, "grade" | "other_threats" | "hazard_alerts">, tr: Tr): [string, string] {
+export function badgeHead(t: Pick<TerraScore, "grade" | "other_threats" | "hazard_alerts" | "estimate_alerts">, tr: Tr): [string, string] {
   // Lọc lại ở giao diện: bản quét cũ (nhớ đệm) có thể còn sâu bệnh / mỏ trong other_threats.
   const ot: Threat[] = [...(t.other_threats ?? []).filter((x) => isForecast(x.id)), ...(t.hazard_alerts ?? [])];
   const dn = ot.filter((x) => x.risk_level === "danger"), wn = ot.filter((x) => x.risk_level === "warning");
   const ten = (xs: Threat[]) => xs.map((x) => x.name.charAt(0).toLowerCase() + x.name.slice(1)).join(", ");
   if (dn.length) return ["#C2412E", tr(`7 ngày tới: có mối NGUY HIỂM — ${ten(dn)}`, `Next 7 days: DANGER — ${ten(dn)}`)];
   if (wn.length && t.grade !== "D") return ["#B07A2E", tr(`7 ngày tới: cần để ý — ${ten(wn)}`, `Next 7 days: watch closely — ${ten(wn)}`)];
+  // Kiểm A–Z 24/11/2026 (Ba Tri): "7 ngày tới: yên" ngay trên "Mặn mức CẢNH BÁO" — mặn chỉ có ước lượng chưa hiệu chỉnh
+  // nên không vào điểm, nhưng không được nói "yên". Màu vàng, ghi rõ là ước lượng.
+  const est = t.estimate_alerts ?? [];
+  if (est.length && (t.grade === "A" || t.grade === "B"))
+    return ["#B07A2E", tr(`7 ngày tới: cần để ý — ${ten(est)} (ước lượng mô hình)`, `Next 7 days: watch closely — ${ten(est)} (model estimate)`)];
   // Đúng thang của services/terrascore.py: chỉ A là "thấp"; B = "có vài mối cần theo dõi" — không gọi B là "yên" (kiểm lại 7/11).
   if (t.grade === "A") return ["#2E9E67", tr("7 ngày tới: yên", "Next 7 days: calm")];
   if (t.grade === "B") return ["#3aa0a0", tr("7 ngày tới: có vài điều cần theo dõi", "Next 7 days: a few things to watch")];

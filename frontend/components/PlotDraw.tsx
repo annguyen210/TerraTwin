@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import maplibregl from "@/lib/maplibre";
+import maplibregl, { trackReady, whenStyleReady } from "@/lib/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Footprints, LocateFixed, PenLine, RotateCcw, Square, Trash2 } from "lucide-react";
 import type { GeoGeometry } from "@/lib/api";
@@ -88,6 +88,7 @@ export default function PlotDraw({ initial, onChange }: {
       zoom: 14,
       maxZoom: 19,
     });
+    trackReady(map);
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     map.on("click", (e) => {
       if (modeRef.current !== "draw") return;
@@ -134,7 +135,7 @@ export default function PlotDraw({ initial, onChange }: {
     if (pts.length >= 3) feats.push({ type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [[...pts, pts[0]]] } });
     else if (pts.length === 2) feats.push({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: pts } });
     const apply = () => (map?.getSource("plot") as maplibregl.GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: feats });
-    if (map?.isStyleLoaded()) apply(); else map?.once("load", apply);
+    if (map) whenStyleReady(map, apply);
     onChange({
       geometry: pts.length >= 3 ? { type: "Polygon", coordinates: [[...pts, pts[0]]] } : null,
       gpsAccuracy: median(acc),

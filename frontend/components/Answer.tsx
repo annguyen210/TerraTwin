@@ -168,6 +168,20 @@ function headline(d: ScanResult, t: T): { tone: string; big: string; sub: string
     };
   }
 
+  // Kiểm A–Z 24/11/2026 (Ba Tri): "Bảy ngày tới chưa thấy rủi ro nào" ngay trên ô "Mặn mức CẢNH BÁO 2,42 g/L" — mặn chỉ
+  // có ƯỚC LƯỢNG chưa hiệu chỉnh nên không vào d.alerts, nhưng không được nói "chưa thấy rủi ro".
+  const uoc = d.modules.filter((m) => WEATHER_7D.includes(m.id) && !m.is_real && m.status === "ok"
+    && (m.risk_level === "danger" || m.risk_level === "warning"));
+  if (uoc.length) {
+    return {
+      tone: "warn",
+      big: t(`Nên chú ý (ước lượng): ${uoc.map((m) => m.name.toLowerCase()).join(", ")}`,
+             `Worth noting (estimate): ${uoc.map((m) => m.name.toLowerCase()).join(", ")}`),
+      sub: t("Đây là ước lượng mô hình chưa hiệu chỉnh, không phải số đo — đo tại chỗ (máy đo mặn, giếng, kênh) trước khi quyết định. ",
+             "This is an uncalibrated model estimate, not a measurement — measure on site before deciding. ") + duoi,
+    };
+  }
+
   return {
     tone: "ok",
     big: t("Bảy ngày tới chưa thấy rủi ro nào", "No risks in the next 7 days"),

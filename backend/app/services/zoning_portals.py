@@ -46,8 +46,8 @@ def for_point(lat: float, lon: float) -> dict:
                            "location or parcel number, then compare with the land certificate.")}
     return {"province": prov, "portal": None,
             "note": tr("TerraTwin không kiểm quy hoạch và chưa có cổng tra trực tuyến đã kiểm cho tỉnh này. Hỏi Văn phòng "
-                       "đăng ký đất đai (chi nhánh huyện) hoặc UBND xã nơi có thửa: xin thông tin quy hoạch, kế hoạch sử dụng "
+                       "đăng ký đất đai (chi nhánh khu vực) hoặc UBND xã, phường nơi có thửa: xin thông tin quy hoạch, kế hoạch sử dụng "
                        "đất của đúng số thửa trước khi đặt cọc.",
                        "TerraTwin does not check zoning and has no verified online portal for this province yet. Ask the "
-                       "Land Registration Office (district branch) or the commune People's Committee for the zoning and "
+                       "Land Registration Office (area branch) or the commune/ward People's Committee for the zoning and "
                        "land-use plan of that exact parcel before paying a deposit.")}

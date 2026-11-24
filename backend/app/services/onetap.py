@@ -108,26 +108,31 @@ def question(a: Alert, db: Session) -> dict:
     ten = (hazard.name_unit(a.module_id)[0] if hazard.supports(a.module_id)
            else module_label(a.module_id))
     plot = db.get(Plot, a.plot_id) if a.plot_id is not None else None
-    o_dau = f" thửa {plot.name}" if plot is not None else ""
-    # Bỏ tiền tố "Cảnh báo " để câu hỏi đọc xuôi tiếng Việt.
-    viec = ten.replace("Cảnh báo ", "").strip() or "hiện tượng này"
+    from app.services.reqlang import tr
+    # Kiểm A–Z 24/11/2026: bản tiếng Anh vẫn hiện "Ngày 15/11 chúng tôi báo lũ/ngập sớm thửa…" — câu hỏi chỉ viết tiếng Việt.
+    o_dau = tr(f" thửa {plot.name}", f" on plot {plot.name}") if plot is not None else ""
+    # Bỏ tiền tố "Cảnh báo " / "warning" để câu hỏi đọc xuôi.
+    viec = (ten.replace("Cảnh báo ", "").replace(" early warning", "").replace(" warning", "").strip()
+            or tr("hiện tượng này", "this event"))
     viec = viec[:1].lower() + viec[1:]                  # "báo Ngập úng…" → "báo ngập úng…"
     return {
         "alert_id": a.id,
         "module_id": a.module_id,
         "asked_on": ngay,
         "headline": alert_text(a.headline),
-        "question": f"Ngày {ngay} chúng tôi báo {viec}{o_dau}. "
-                    f"Thực tế có xảy ra không?",
+        "question": tr(f"Ngày {ngay} chúng tôi báo {viec}{o_dau}. Thực tế có xảy ra không?",
+                       f"On {ngay} we warned of {viec}{o_dau}. Did it actually happen?"),
         "options": [
-            {"value": "yes", "label": "Có"},
-            {"value": "no", "label": "Không"},
-            {"value": "unsure", "label": "Không rõ"},
+            {"value": "yes", "label": tr("Có", "Yes")},
+            {"value": "no", "label": tr("Không", "No")},
+            {"value": "unsure", "label": tr("Không rõ", "Not sure")},
         ],
         "answered": a.outcome is not None and a.verify_source == "user",
         "outcome": a.outcome,
-        "why": ("Câu trả lời của bác được dùng để chỉnh lại ngưỡng cảnh báo cho "
-                "chính vùng này. Không hiện tên bác ở đâu cả."),
+        "why": tr("Câu trả lời của bác được dùng để chỉnh lại ngưỡng cảnh báo cho "
+                  "chính vùng này. Không hiện tên bác ở đâu cả.",
+                  "Your answer is used to retune the warning threshold for this "
+                  "area. Your name is never shown anywhere."),
     }
 
 
@@ -268,5 +273,12 @@ def pending_questions(db: Session, user_id: int, limit: int = 5) -> list[dict]:
         q = question(a, db)
         q["token"] = make_token(a.id)
         q["ask_value"] = score      # công khai điểm để đo học-chủ-động vs ngẫu nhiên
+        # Kiểm A–Z 24/11/2026: khối "câu hỏi cho bạn" trong trang MỘT thửa hiện cả câu về thửa khác ("đang xem Ba Tri, hỏi
+        # Hội An — Bạn ở trên thửa"). Kèm toạ độ thửa để giao diện chỉ hiện câu của đúng thửa đang xem. Chỉ ở đây (đã đăng
+        # nhập, của chính người dùng) — không đưa vào question(), thứ dùng cho trang /tap công khai qua mã.
+        plot = db.get(Plot, a.plot_id) if a.plot_id is not None else None
+        q["plot_id"] = a.plot_id
+        q["plot_lat"] = round(plot.lat, 5) if plot is not None else None
+        q["plot_lon"] = round(plot.lon, 5) if plot is not None else None
         out.append(q)
     return out

@@ -212,7 +212,9 @@ export default function Start({
       <p className="start-sub">
         {t("Chọn một chỗ: ", "Pick a spot: ")}
         <b>{t("lịch sử nước radar, loại đất, hiểm hoạ 10 năm, kiểm tin đăng", "radar water history, land cover, 10-year hazards, listing check")}</b>{" "}
-        {t("và hồ sơ ký số — chọn tab mở sẵn ở trên.", "and a signed dossier — choose the tab to open above.")}
+        {/* Kiểm A–Z 24/11/2026: /buyer không có hàng tab phía trên — chỉ nhắc tab khi trang có nó (trang đầu, có onListing). */}
+        {onListing ? t("và hồ sơ ký số — chọn tab mở sẵn ở trên.", "and a signed dossier — choose the tab to open above.")
+                   : t("và hồ sơ ký số.", "and a signed dossier.")}
       </p>
 
       {onStory && (
@@ -283,11 +285,12 @@ export default function Start({
         ))}
       </div>
 
+      {/* Kiểm A–Z 24/11/2026: trang này CHƯA có bản đồ — bản đồ ảnh vệ tinh mở ra sau khi chọn một nơi. */}
       <p className="start-foot">
-        {t("Bạn cũng có thể ", "You can also ")}
-        <b>{t("bấm thẳng vào bản đồ", "click directly on the map")}</b>
-        {t(" — hoặc vẽ một vùng để tính theo cả thửa.",
-           " — or draw an area to compute over the whole plot.")}
+        {t("Tới nơi rồi, ", "Once there, ")}
+        <b>{t("bấm thẳng vào đúng thửa trên bản đồ ảnh vệ tinh", "click right on your plot on the satellite map")}</b>
+        {t(" — hoặc chạm lần lượt từng góc để tính theo cả thửa.",
+           " — or tap each corner to compute over the whole plot.")}
       </p>
     </div>
   );

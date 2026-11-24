@@ -49,7 +49,16 @@ type T = (vi: string, en: string) => string;
 const ddmm = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
 
 // Tên đặc trưng cho phần "độ hiếm tổ hợp" — đọc được cho người thường.
+// Phải phủ ĐỦ biến của backend/app/ml/dataset.py FEATURES — kiểm A–Z 24/11/2026: hiện thô "drange, rain_3d, wb_60d".
+// Biến lạ chưa có nhãn thì ẩn, không in tên biến (xem chỗ dùng bên dưới).
 const DRIVER_L: Record<string, [string, string]> = {
+  rain_1d: ["Mưa trong ngày", "Rain today"],
+  rain_3d: ["Mưa dồn 3 ngày", "3-day rain"],
+  rain_15d: ["Mưa dồn 15 ngày", "15-day rain"],
+  wb_7d: ["Cân bằng nước 7 ngày (mưa trừ bốc hơi)", "7-day water balance (rain minus evaporation)"],
+  wb_60d: ["Cân bằng nước 60 ngày", "60-day water balance"],
+  drange: ["Chênh nhiệt ngày–đêm", "Day–night temperature range"],
+  wind_max: ["Gió mạnh nhất", "Strongest wind"],
   tmax: ["Nhiệt tối đa", "Max temp"],
   tmin: ["Nhiệt tối thiểu", "Min temp"],
   rain_7d: ["Mưa 7 ngày", "7-day rain"],
@@ -131,11 +140,24 @@ export default function PlotPlan({
     let live = true;
     setLoading(true);
     setErr(null);
-    getPlan(lat, lon, area ?? undefined, crop)
-      .then((p) => live && (setPlan(p), setLoading(false)))
-      .catch((e) => live && (setErr(e.message), setLoading(false)));
+    // Kiểm A–Z 24/11/2026 (Ba Tri): kế hoạch tải lúc nguồn thời tiết đang bị chặn (429) → "Chưa nói được ngày nào an
+    // toàn — 4 hiểm hoạ chưa kết luận" KẸT nguyên trang, trong khi lưới mũi nhọn quét lại đã có đủ số và thẻ đầu ghi "yên".
+    // Còn ngày "chưa kết luận" thì tự hỏi lại, tối đa 3 lần, cách 45 giây.
+    let tries = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const load = (first: boolean) =>
+      getPlan(lat, lon, area ?? undefined, crop)
+        .then((p) => {
+          if (!live) return;
+          setPlan(p);
+          setLoading(false);
+          if (p.safe_window?.days.some((d) => d.unknown) && ++tries <= 3) timer = setTimeout(() => load(false), 45_000);
+        })
+        .catch((e) => live && first && (setErr(e.message), setLoading(false)));
+    load(true);
     return () => {
       live = false;
+      if (timer) clearTimeout(timer);
     };
   }, [lat, lon, area, crop, lang]);
 
@@ -176,13 +198,17 @@ export default function PlotPlan({
       return;
     }
     let live = true;
-    getMyQuestions(5)
-      .then((r) => live && setQuestions(r.questions))
+    // Chỉ câu hỏi của ĐÚNG thửa đang xem (cách ≤ 300 m) — kiểm A–Z 24/11/2026: đang xem Ba Tri mà hỏi "thửa Hội An … Bạn ở
+    // trên thửa". Câu của mọi thửa đã có ở trang đầu / Hôm nay.
+    const near = (q: TapQuestion) => q.plot_lat != null && q.plot_lon != null
+      && Math.hypot(q.plot_lat - lat, (q.plot_lon - lon) * Math.cos((lat * Math.PI) / 180)) * 111_320 <= 300;
+    getMyQuestions(20)
+      .then((r) => live && setQuestions(r.questions.filter(near).slice(0, 5)))
       .catch(() => {});          // token hết hạn giữa chừng → im lặng bỏ qua
     return () => {
       live = false;
     };
-  }, [lat, lon]);
+  }, [lat, lon, lang]);
 
   useEffect(() => {
     let live = true;
@@ -550,8 +576,8 @@ export default function PlotPlan({
           {aml.top_drivers && aml.top_drivers.length > 0 && (
             <div className="aml-drivers">
               <span>{t("Yếu tố đóng góp:", "Contributing factors:")}</span>
-              {aml.top_drivers.slice(0, 3).map((d) => (
-                <span key={d.feature} className="aml-chip">{DRIVER_L[d.feature] ? t(DRIVER_L[d.feature][0], DRIVER_L[d.feature][1]) : d.feature}</span>
+              {aml.top_drivers.filter((d) => DRIVER_L[d.feature]).slice(0, 3).map((d) => (
+                <span key={d.feature} className="aml-chip">{t(DRIVER_L[d.feature][0], DRIVER_L[d.feature][1])}</span>
               ))}
             </div>
           )}

@@ -11,6 +11,39 @@ from app.services import hazard, optical, sentinel
 from app.services.reqlang import tr
 
 
+# Kiểm A–Z 24/11/2026: giữa thị trấn Ba Tri (WorldCover 97,9% bề mặt xây dựng) vẫn ra "sâu bệnh: bình thường",
+# "năng suất: ổn định", "≈42,48 ha có rừng, 16339,85 tCO₂" — cây sân vườn, cây đường phố đọc thành ruộng/rừng.
+# FAO không tính cây trong đất đô thị là rừng; sâu bệnh/năng suất chỉ có nghĩa ở đất canh tác.
+BUILT_UP_PCT = 60.0
+NDVI_CROP = 0.40        # đỉnh NDVI tối thiểu để coi là ĐÃ có vụ cây rõ trong 180 ngày
+
+
+def _built_up(loc: Location) -> float | None:
+    """% bề mặt xây dựng (WorldCover) trong khung 100 m quanh điểm nếu ≥ BUILT_UP_PCT, ngược lại None.
+    FAIL-OPEN: không đọc được WorldCover → None (không suy diễn là đô thị)."""
+    from app.services import water_history
+    try:
+        f = water_history._frame_pct(loc.lat, loc.lon)
+    except Exception:  # noqa: BLE001
+        return None
+    pct = round((f or {}).get(50, 0.0), 1)
+    return pct if pct >= BUILT_UP_PCT else None
+
+
+def _built_up_assessment(mod, loc: Location, pct: float, what_vi: str, what_en: str) -> Assessment:
+    return Assessment(
+        module_id=mod.id, module_name=mod.disp_name(), location=loc,
+        status="out_of_scope", risk_level="unknown", is_real=False,
+        headline=tr(f"Không áp dụng — khu nhà cửa ({pct:g}% bề mặt xây dựng quanh điểm, ESA WorldCover)",
+                    f"Not applicable — built-up area ({pct:g}% built surface around the point, ESA WorldCover)"),
+        detail=tr(f"{what_vi} Cây sân vườn, cây đường phố giữa nhà cửa không đọc thành ruộng hay rừng được. Nếu đây thật "
+                  "là đất canh tác, hãy chọn đúng giữa thửa ruộng/vườn.",
+                  f"{what_en} Garden and street trees between buildings cannot be read as a field or a forest. If this "
+                  "really is farmland, pick the middle of the field/garden."),
+        recommendation="", metrics={"be_mat_xay_dung_pct": pct},
+        data_sources=["ESA WorldCover 2021 v200 (10 m)"])
+
+
 class DroughtModule(TwinModule):
     id = "drought"; name = "Cảnh báo hạn & thiếu nước"; name_en = "Drought & water-shortage alert"; group = "A"; icon = "🌾"; status = "active"
     data_sources = ["Open-Meteo: lượng mưa & ET₀"]
@@ -111,6 +144,10 @@ class PestModule(TwinModule):
     description_en = "Pinpoints abnormally stressed crops + tells uniform from patchy."
 
     def assess(self, loc: Location) -> Assessment:
+        built = _built_up(loc)
+        if built is not None:
+            return _built_up_assessment(self, loc, built, "Phát hiện sâu bệnh chỉ có nghĩa ở đất canh tác.",
+                                        "Pest detection only makes sense on cultivated land.")
         r = optical.stress(loc.lat, loc.lon)
         if r is None:
             return need_data_assessment(
@@ -347,6 +384,10 @@ class YieldModule(TwinModule):
     description_en = "Which growth stage the crop is in, when it peaks, and how long until harvest."
 
     def assess(self, loc: Location) -> Assessment:
+        built = _built_up(loc)
+        if built is not None:
+            return _built_up_assessment(self, loc, built, "Dự báo năng suất chỉ có nghĩa ở đất canh tác.",
+                                        "Yield forecasting only makes sense on cultivated land.")
         r = optical.growth(loc.lat, loc.lon)
         if r is None:
             return need_data_assessment(
@@ -384,7 +425,24 @@ class YieldModule(TwinModule):
         # Giai đoạn sinh trưởng KHÔNG phải hiểm họa: cây chín không phải rủi ro.
         # Chỉ báo động khi thửa mất thảm thực vật ngoài dự kiến — ruộng VỪA GẶT (khớp đường cong thu hoạch, cùng quy tắc với
         # mô-đun sâu bệnh) là dự kiến (kiểm A–Z lần 3, Huế: "Đất trống / vừa thu hoạch" mà mức "nguy hiểm").
-        lvl = "danger" if r["ndvi_now"] < optical.NDVI_BARE and not r.get("harvest") else "safe"
+        # Kiểm A–Z 24/11/2026, thửa demo Tuệ Tĩnh: đỉnh 180 ngày chỉ 0,245 (mùa mưa nhiều mây, ô đo lẫn bờ/mương) mà vẫn
+        # "nguy hiểm". Chưa từng thấy vụ cây rõ thì không có gì để "mất" — chưa kết luận được, không báo đỏ.
+        bare_now = r["ndvi_now"] < optical.NDVI_BARE and not r.get("harvest")
+        if bare_now and r["ndvi_peak"] < NDVI_CROP:
+            return Assessment(
+                module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
+                risk_level="unknown", is_real=True,
+                headline=tr(f"Chưa kết luận được — 180 ngày qua chưa thấy vụ cây rõ (NDVI đỉnh {r['ndvi_peak']}, nay {r['ndvi_now']})",
+                            f"Inconclusive — no clear crop in the past 180 days (peak NDVI {r['ndvi_peak']}, now {r['ndvi_now']})"),
+                detail=tr(f"Đất trống lúc này là bình thường nếu vừa gặt hoặc đang nghỉ vụ. NDVI đỉnh dưới {NDVI_CROP} "
+                          "thường do mây mùa mưa làm thiếu ảnh, hoặc ô đo lẫn bờ, mương, đường — chưa đủ để nói vụ cây bị mất.",
+                          f"Bare soil now is normal right after harvest or between seasons. A peak NDVI below {NDVI_CROP} is "
+                          "usually due to rainy-season clouds or a frame mixing bunds, ditches or roads — not enough to say a crop was lost."),
+                recommendation=tr("Ra thăm ruộng nếu bạn không vừa gặt.", "Visit the field if you have not just harvested."),
+                confidence=0.5, confidence_low=0.4, confidence_high=0.6,
+                metrics={"ndvi_hien_tai": r["ndvi_now"], "ndvi_dinh": r["ndvi_peak"]},
+                data_sources=[sentinel.source_note("NDVI")])
+        lvl = "danger" if bare_now else "safe"
         head = (f"{r['stage'].capitalize()} — NDVI {r['ndvi_now']}, "
                 + tr(f"đỉnh {r['ndvi_peak']} ngày {r['peak_date']}",
                      f"peak {r['ndvi_peak']} on {r['peak_date']}"))
@@ -432,6 +490,11 @@ class CarbonModule(TwinModule):
     def assess(self, loc: Location) -> Assessment:
         from app.services import mrv
 
+        built = _built_up(loc)
+        if built is not None:
+            return _built_up_assessment(self, loc, built,
+                                        "Tín chỉ carbon rừng chỉ áp dụng cho đất rừng; FAO không tính cây trong đất đô thị là rừng.",
+                                        "Forest carbon credits only apply to forest land; FAO does not count trees on urban land as forest.")
         r = mrv.build(loc.lat, loc.lon)
         if not r.get("available"):
             return need_data_assessment(

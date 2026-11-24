@@ -146,13 +146,15 @@ def send_answer(token: str, body: TapIn,
 
 
 @router.get("/api/questions")
-def my_questions(limit: int = 5, user: User = Depends(auth.current_user),
+def my_questions(limit: int = 5, lang: str = "vi", user: User = Depends(auth.current_user),
                  db: Session = Depends(get_session)) -> dict:
     """Câu hỏi đang chờ chính người này trả lời, để hiện ngay trong app.
 
     Người chưa nối kênh nhận tin vẫn phải có đường đóng vòng lặp — nếu không
     thì kho quan sát chỉ lớn được nhờ những người đã bật thông báo.
     """
+    from app.services import reqlang
+    reqlang.set_lang(lang)
     qs = onetap.pending_questions(db, user.id, max(1, min(limit, 20)))
     return {"questions": qs, "count": len(qs)}
 
