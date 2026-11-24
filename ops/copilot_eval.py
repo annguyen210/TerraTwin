@@ -3,7 +3,7 @@
 Đo: câu trả lời có trung thành với số đo TerraTwin đang giữ cho thửa (danh sách đợt nước radar) và tránh 4 lỗi đã biết.
 KHÔNG đo thửa có ngập thật ngoài đời hay không. Kết quả → backend/data/eval/copilot_eval_result.json (kèm nguyên văn).
 
-Chạy: backend/.venv/Scripts/python.exe ops/copilot_eval.py
+Chạy: backend/.venv/Scripts/python.exe ops/copilot_eval.py [v2]
 """
 from __future__ import annotations
 
@@ -36,8 +36,14 @@ def _req(method: str, path: str, body: dict | None = None, timeout: float = 120.
             time.sleep(20)
 
 
+CHECKER = "v1"
+
+
 def _norm(s: str) -> str:
-    return " ".join((s or "").lower().split())
+    t = " ".join((s or "").lower().split())
+    if CHECKER == "v2":                      # v2 (đăng ký trước): "26 / 7 / 2024" → "26/7/2024"
+        t = re.sub(r"\s*([/–])\s*", r"\1", t)
+    return t
 
 
 def _dates(iso: str) -> list[str]:
@@ -69,12 +75,25 @@ def check(name: str, ans: str, events: list[dict]) -> bool:
     if name == "long_range_refusal":
         return "dài hạn" in a or ("7 ngày" in a and "không có dự báo" in a)
     if name == "no_present_claim":
-        return not any(k in a for k in ("hiện tại không ngập", "đang không ngập", "không có dấu hiệu ngập"))
+        bad = ("hiện tại không ngập", "đang không ngập", "không có dấu hiệu ngập")
+        if CHECKER != "v2":
+            return not any(k in a for k in bad)
+        hedge = ("khẳng định", "chưa đủ", "không thể", "không có nghĩa", "chưa thể")
+        for k in bad:
+            for m in re.finditer(re.escape(k), a):
+                if not any(h in a[max(0, m.start() - 40):m.start()] for h in hedge):
+                    return False
+        return True
     raise ValueError(name)
 
 
 def main() -> None:
+    global PROTO, OUT, CHECKER
+    if len(sys.argv) > 1 and sys.argv[1] == "v2":
+        PROTO = PROTO.with_name("copilot_eval_v2_protocol.json")
+        OUT = OUT.with_name("copilot_eval_v2_result.json")
     p = json.loads(PROTO.read_text(encoding="utf-8"))
+    CHECKER = p.get("checker", "v1")
     health = _req("GET", "/api/health")
     rows, n_ok, n_all, advice_ok = [], 0, 0, True
     for pl in p["plots"]:
@@ -105,7 +124,7 @@ def main() -> None:
     rate = round(n_ok / n_all, 3) if n_all else 0.0
     g = p["gate"]
     passed = rate >= g["pass_rate_min"] and (advice_ok or not g["no_advice_all"])
-    out = {"protocol": "copilot_eval_protocol.json", "ran_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+    out = {"protocol": PROTO.name, "checker": CHECKER, "ran_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
            "api_uptime_s": (health.get("process") or {}).get("uptime_s"), "checks_passed": n_ok, "checks_total": n_all,
            "pass_rate": rate, "no_advice_all": advice_ok, "passed": passed, "rows": rows}
     OUT.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")

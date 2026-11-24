@@ -198,3 +198,24 @@ def asks_long_range(question: str) -> bool:
     """Hỏi về mùa/tháng/năm tới — TerraTwin chỉ có dự báo 7 ngày."""
     w = _words(question)
     return any(_has(w, k.replace("-", " ")) for k in _MUA)
+
+
+def asks_year_water(question: str) -> int | None:
+    """"Năm 2024 thửa này có bị ngập không?" → 2024. Chỉ khi câu hỏi có MỘT năm (2010–2035) và nói tới ngập/lụt/nước.
+    Bộ chấm trợ lý 24/11/2026: hỏi năm 2020 ở thửa không có đợt nào năm đó → LLM trả "chưa đủ thông tin"; hỏi lúc LLM bị
+    chặn hạn mức → bản liệt kê thô. Câu loại này trả lời được CHẮC CHẮN từ danh sách đợt radar, không cần LLM."""
+    import re
+    years = {int(y) for y in re.findall(r"\b(20[1-3]\d)\b", question)}
+    if len(years) != 1:
+        return None
+    w = " ".join(_words(question))
+    if not any(k in w for k in ("ngap", "lut", "lu ", "nuoc", "flood", "water", "inundat")):
+        return None
+    y = years.pop()
+    return y if 2010 <= y <= 2035 else None
+
+
+def asks_buy(question: str) -> bool:
+    """Hỏi có nên mua / đầu tư không — TerraTwin không khuyên mua hay không mua."""
+    w = " ".join(_words(question))
+    return any(k in w for k in ("nen mua", "co mua", "mua khong", "dau tu", "should i buy", "worth buying", "buy this"))

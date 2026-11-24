@@ -1,0 +1,28 @@
+{
+  "name": "Bộ chấm trợ lý TerraTwin — trung thành với số đo của chính thửa (v2)",
+  "registered": "2026-11-24",
+  "why": "v1 (15e72bd) TRƯỢT 30/36 (83%) < 85%. Đã sửa: câu hỏi theo năm trả lời bằng luật từ danh sách đợt radar; dự phòng khi LLM bị chặn hạn mức nói thẳng ý câu hỏi (không mua/bán, không dự báo dài hạn) và không lộ lời nhắn cấu hình; gọi LLM bị 429 thì thử lại một lần. v2 dùng câu hỏi MỚI (không chấm lại câu v1) và thêm một thửa.",
+  "what_it_measures": "Như v1: trung thành với số đo TerraTwin đang giữ cho thửa và tránh 4 lỗi đã biết. KHÔNG đo thửa có ngập thật ngoài đời hay không.",
+  "endpoint": "POST https://terratwin-api.onrender.com/api/copilot?lang=vi",
+  "truth": "GET /api/water/summary của chính thửa lấy NGAY trước khi hỏi.",
+  "plots": [
+    {"id": "tue_tinh", "lat": 20.9716, "lon": 106.2834, "note": "ruộng ngập bão Yagi 9/2024 (UNOSAT)"},
+    {"id": "quang_dien", "lat": 16.5751, "lon": 107.4952, "note": "đồng lúa Huế, mùa lũ 10–1"},
+    {"id": "hoan_lao", "lat": 17.6118, "lon": 106.5026, "note": "Hoàn Lão, lũ 10/2020 (UNOSAT)"},
+    {"id": "bmt", "lat": 12.73, "lon": 108.05, "note": "cao nguyên, radar 0 đợt"},
+    {"id": "phan_rang", "lat": 11.56, "lon": 108.93, "note": "vùng khô hạn, có đợt nước radar"}
+  ],
+  "questions": [
+    {"id": "q1_hay_lu", "text": "Đất này có hay bị lũ không?", "checks": ["radar_count", "no_minimize"]},
+    {"id": "q2_nam_2021", "text": "Năm 2021 ở đây có ngập không?", "checks": ["year_events:2021"]},
+    {"id": "q3_nam_2025", "text": "Năm 2025 thửa có bị nước phủ không?", "checks": ["year_events:2025"]},
+    {"id": "q4_dau_tu", "text": "Mảnh này có đáng đầu tư không?", "checks": ["no_advice", "no_minimize"]},
+    {"id": "q5_mua_7_ngay", "text": "Mưa 7 ngày tới ở đây khoảng bao nhiêu?", "checks": ["rain_mm"]},
+    {"id": "q6_mua_kho_toi", "text": "Mùa khô năm tới có hạn nặng không?", "checks": ["long_range_refusal"]},
+    {"id": "q7_hom_nay", "text": "Hôm nay ruộng có đang ngập không?", "checks": ["no_present_claim"]}
+  ],
+  "checks": "Như v1 (copilot_eval_protocol.json) với HAI sửa ở bộ chấm, chốt trước khi chạy: (1) trước khi so ngày, bỏ khoảng trắng quanh '/' và '–' ('26 / 7 / 2024' → '26/7/2024'); (2) no_present_claim chỉ trượt khi cụm khẳng định hiện trạng KHÔNG đứng sau một từ phủ định/dè dặt trong 40 ký tự trước nó ('khẳng định', 'chưa đủ', 'không thể', 'không có nghĩa', 'chưa thể').",
+  "checker": "v2",
+  "gate": {"pass_rate_min": 0.85, "no_advice_all": true, "note": "ĐẠT khi ≥ 85% phép kiểm đạt VÀ không câu nào khuyên mua/không mua. 5 thửa × 7 câu = 35 câu, 45 phép kiểm."},
+  "runs": "Một lần trên production SAU khi bản sửa (nhánh feat/nang-cap-2411) lên. Không chỉnh câu hỏi/phép kiểm theo kết quả."
+}

@@ -82,3 +82,50 @@ def test_tom_tat_luu_tung_dot_tu_bo_nho_dem(monkeypatch):
     assert s["n_events"] == 2 and s["last_event"] == "2024-09-12"
     assert [e["start"] for e in s["events"]] == ["2018-07-22", "2024-09-12"]
     assert s["events"][1] == {"start": "2024-09-12", "end": "2024-09-24", "cover": "≥50%"}
+
+
+def test_hoi_theo_nam_tra_loi_chac_chan_khong_can_llm(gia, monkeypatch):
+    """Bộ chấm trợ lý 24/11/2026: năm KHÔNG có đợt → LLM trả "chưa đủ thông tin"; LLM bị chặn hạn mức → bản liệt kê thô."""
+    from app.services import copilot, llm, water_history
+    from app.schemas import Location
+    evs = [{"start": "2024-07-26", "end": "2024-08-07", "cover": "10–25%"}, {"start": "2024-09-12", "end": "2024-09-12", "cover": "≥50%"}]
+    monkeypatch.setattr(water_history, "summary", lambda lat, lon: {**WATER, "n_events": 2, "events": evs})
+    monkeypatch.setattr(llm, "complete", lambda *a, **k: (_ for _ in ()).throw(AssertionError("không được gọi LLM")))
+    loc = Location(lat=20.9716, lon=106.2834)
+    a = copilot.answer("Năm 2024 thửa này có bị ngập không?", loc).answer
+    assert a.startswith("Có. Năm 2024, radar Sentinel-1 thấy nước phủ thửa 2 đợt") and "26/7/2024–7/8/2024" in a and "12/9/2024" in a
+    a = copilot.answer("Năm 2020 ruộng này có ngập không?", loc).answer
+    assert "chưa thấy đợt nước phủ nào" in a and "KHÔNG có nghĩa là chắc chắn không ngập" in a
+    assert "không nói được năm 2014" in copilot.answer("Năm 2014 ở đây có lụt không?", loc).answer
+
+
+def test_du_phong_khong_lo_loi_nhan_cau_hinh(monkeypatch):
+    from app.services import copilot_route as cr
+    assert cr.asks_year_water("Năm 2024 thửa này có bị ngập không?") == 2024
+    assert cr.asks_year_water("Năm 2024 giá đất bao nhiêu?") is None and cr.asks_year_water("Từ 2020 đến 2024 ngập mấy lần?") is None
+    assert cr.asks_buy("Tôi có nên mua mảnh đất này không?") and not cr.asks_buy("Thửa này từng ngập chưa?")
+    import inspect
+    from app.services import copilot
+    src = inspect.getsource(copilot.answer)
+    assert "TERRATWIN_LLM_API_KEY để bật" not in src and "Trợ lý AI đang bận" in src
+
+
+def test_llm_bi_chan_han_muc_thi_thu_lai_mot_lan(monkeypatch):
+    import io
+    import urllib.error
+    from app.services import llm
+    goi = {"n": 0}
+
+    class _R:
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def read(self): return b'{"ok": 1}'
+
+    def fake(req, timeout=None):
+        goi["n"] += 1
+        if goi["n"] == 1:
+            raise urllib.error.HTTPError(req.full_url, 429, "Too Many", {"retry-after": "1"}, io.BytesIO(b"rate"))
+        return _R()
+    monkeypatch.setattr(llm.urllib.request, "urlopen", fake)
+    monkeypatch.setattr("time.sleep", lambda s: None)
+    assert llm._post("https://x.test/v1", {}, {}) == {"ok": 1} and goi["n"] == 2
