@@ -377,9 +377,53 @@ def _history_facts(loc: Location, routes: list[str]) -> str:
         return ""
 
 
+def _d(iso: str) -> str:
+    return f"{int(iso[8:10])}/{int(iso[5:7])}/{iso[:4]}"
+
+
+def _year_answer(year: int, radar: dict) -> str:
+    """Trả lời CHẮC CHẮN "năm Y thửa có ngập không" từ danh sách đợt radar đã đọc (không qua LLM)."""
+    first = (radar.get("first") or "")[:10]
+    if first and year < int(first[:4]):
+        return tr(f"Radar Sentinel-1 chỉ có ảnh của thửa từ {_d(first)} — TerraTwin không nói được năm {year}. "
+                  "Hỏi người dân hoặc UBND xã về các lần ngập trước đó.",
+                  f"Sentinel-1 radar only has images of this plot since {first} — TerraTwin cannot say anything about {year}. "
+                  "Ask residents or the commune office about earlier floods.")
+    evs = [e for e in (radar.get("events") or []) if e["start"][:4] == str(year) or (e.get("end") or "")[:4] == str(year)]
+    if evs:
+        def one(e):
+            when = _d(e["start"]) + ("" if (e.get("end") or e["start"]) == e["start"] else "–" + _d(e["end"]))
+            return when + (tr(f" (phủ {e['cover']} thửa)", f" (covering {e['cover']} of the plot)") if e.get("cover") else "")
+        return tr(f"Có. Năm {year}, radar Sentinel-1 thấy nước phủ thửa {len(evs)} đợt: " + "; ".join(one(e) for e in evs) + ". "
+                  "Đây là số đo radar nhìn xuyên mây, không phải số liệu ngập chính thức — hỏi thêm hàng xóm xem nước lên cao "
+                  "bao nhiêu, mấy ngày thì rút.",
+                  f"Yes. In {year}, Sentinel-1 radar saw water over the plot {len(evs)} time(s): " + "; ".join(one(e) for e in evs)
+                  + ". This is a cloud-piercing radar measurement, not official flood records — ask neighbours how high the "
+                  "water rose and how long it stayed.")
+    return tr(f"Năm {year}, radar Sentinel-1 chưa thấy đợt nước phủ nào trên thửa (radar có ảnh của thửa từ "
+              f"{_d(first) if first else '2017'}). Radar chụp 6–12 ngày một lần nên có thể lọt đợt ngập ngắn — chưa thấy "
+              "KHÔNG có nghĩa là chắc chắn không ngập.",
+              f"In {year}, Sentinel-1 radar saw no water episode over the plot (radar images since {first or '2017'}). "
+              "Radar revisits every 6–12 days and can miss short floods — none seen does NOT prove it did not flood.")
+
+
 def answer(question: str, loc: Location) -> CopilotAnswer:
     from app.modules.registry import get_module
     from app.services import terrascore
+    from app.services.copilot_route import asks_buy, asks_long_range, asks_year_water
+
+    # Bộ chấm 24/11/2026: câu hỏi theo NĂM về ngập trả lời chắc chắn từ danh sách đợt radar (chỉ bộ nhớ đệm), không cần LLM
+    # — LLM từng trả "chưa đủ thông tin" cho năm không có đợt nào, và rơi về bản liệt kê thô khi bị chặn hạn mức.
+    year = asks_year_water(question)
+    if year is not None:
+        try:
+            from app.services import water_history
+            radar = water_history.summary(loc.lat, loc.lon)
+        except Exception:
+            radar = None
+        if (radar or {}).get("available"):
+            return CopilotAnswer(answer=_year_answer(year, radar), used_modules=["water_history"], llm=False,
+                                 knowledge_used=[])
 
     routes = _route(question)
     facts = []
@@ -462,22 +506,25 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
         return CopilotAnswer(answer=text, used_modules=routes,
                              llm=True, knowledge_used=cites)
 
-    ans = tr(
-        f"TerraScore {ts.score}/100 (hạng {ts.grade}). {ts.summary}\n{facts_txt}"
-        f"{hist_block}{know_block}\n\n"
-        "[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY để bật trả lời bằng LLM. "
-        "Nhà cung cấp openai-compatible (DeepSeek, Groq, OpenRouter, Together, "
-        "xAI, Qwen, Ollama) chỉ cần thêm TERRATWIN_LLM_BASE_URL. Gemini hoặc "
-        "Anthropic PHẢI đặt thêm TERRATWIN_LLM_PROVIDER=gemini|anthropic — "
-        "thiếu biến đó thì khóa bị gửi sai giao thức và im lặng không chạy.]",
-        f"TerraScore {ts.score}/100 (grade {ts.grade}). {ts.summary}\n{facts_txt}"
-        f"{hist_block}{know_block}\n\n"
-        "[Rule-based assistant. Set TERRATWIN_LLM_API_KEY to enable LLM answers. "
-        "OpenAI-compatible providers (DeepSeek, Groq, OpenRouter, Together, xAI, "
-        "Qwen, Ollama) only need TERRATWIN_LLM_BASE_URL added. Gemini or "
-        "Anthropic MUST also set TERRATWIN_LLM_PROVIDER=gemini|anthropic — "
-        "without it the key is sent with the wrong protocol and silently does "
-        "nothing.]",
-    )
+    # Bộ chấm 24/11/2026: khi LLM bị chặn hạn mức, người dùng từng nhận "[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY…]"
+    # — lời nhắn cho lập trình viên. Nay: câu trả lời thẳng cho loại câu hỏi đã biết, rồi số đo nguyên văn. Lời nhắn cấu
+    # hình chỉ còn trong log máy chủ.
+    lead = []
+    if asks_buy(question):
+        lead.append(tr("TerraTwin không khuyên mua hay không mua — dưới đây là số đo của thửa để bạn tự cân nhắc, kèm việc "
+                       "nên tự kiểm: hỏi hàng xóm về các lần ngập, hỏi UBND xã về quy hoạch, xem giấy tờ đất.",
+                       "TerraTwin does not advise buying or not buying — below are the plot's measurements so you can "
+                       "decide, plus things to check yourself: ask neighbours about past floods, ask the commune about "
+                       "zoning, check the papers."))
+    if asks_long_range(question):
+        lead.append(tr("TerraTwin chỉ có dự báo cho 7 ngày tới, không có dự báo dài hạn cho cả mùa hay năm sau.",
+                       "TerraTwin only has a forecast for the next 7 days — no long-range forecast for a season or next year."))
+    ans = "\n\n".join([*lead, tr(
+        f"(Trợ lý AI đang bận — đây là số đo của thửa, chưa qua diễn giải.)\nTerraScore {ts.score}/100 "
+        f"(hạng {ts.grade}). {ts.summary}\n{facts_txt}{hist_block}{know_block}",
+        f"(The AI assistant is busy — these are the plot's measurements, not yet interpreted.)\nTerraScore "
+        f"{ts.score}/100 (grade {ts.grade}). {ts.summary}\n{facts_txt}{hist_block}{know_block}")])
+    if llm.info().get("provider") is None:
+        log.warning("trợ lý: chưa cấu hình LLM (TERRATWIN_LLM_API_KEY, _BASE_URL, _PROVIDER) — đang trả lời bằng luật")
     return CopilotAnswer(answer=ans, used_modules=routes, llm=False,
                          knowledge_used=cites)

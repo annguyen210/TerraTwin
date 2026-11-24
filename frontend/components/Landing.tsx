@@ -174,15 +174,18 @@ export default function Landing({
   return (
     <AppShell user={user} onAuth={onAuth}>
       <div className="lp lp3">
-        <section className="lp4-hero">
+        {/* Kiểm A–Z 24/11/2026: đã đăng nhập thì cột phải (canh đất, câu hỏi, cảnh báo, các thửa) dài ~5.000 px trong khi cột
+            giới thiệu hết sớm → một khoảng trống tối. Người quay lại cần bảng canh đất trước, không cần đọc lại lời giới thiệu:
+            thu gọn phần giới thiệu (giữ tiêu đề + 2 nút thử) và cho bảng canh đất trải hết chiều ngang. */}
+        <section className={`lp4-hero${user ? " member" : ""}`}>
           <div className="lp3-copy tt-reveal">
             <span className="lp3-badge"><span className="lp3-pulse" aria-hidden="true" /> {t("Đo bằng vệ tinh · ký bằng mật mã · ai cũng kiểm lại được", "Measured by satellite · signed with cryptography · checkable by anyone")}</span>
             <h1 className="lp3-h1">{t("Sự thật về một mảnh đất.", "The truth about a plot of land.")}<br />
               <span>{t("Định mua đất? Kiểm lời rao trước khi xuống tiền.", "Buying land? Check the listing before you pay.")}</span></h1>
-            <p className="lp3-lede">{t(
+            {!user && <p className="lp3-lede">{t(
               "Người bán viết \"cao ráo, không bao giờ ngập\". TerraTwin đặt từng câu đó cạnh số đo của đúng thửa: ảnh radar Sentinel-1 nhìn xuyên mây từ 2017, độ cao địa hình, khoảng cách tới sông và biển. Câu nào trái với dữ liệu thì tô đỏ, kèm ngày và nguồn.",
-              "The seller writes \"high ground, never floods\". TerraTwin puts each claim next to measurements of that exact plot: cloud-piercing Sentinel-1 radar since 2017, terrain height, distance to rivers and the sea. Claims the data contradicts turn red, with dates and sources.")}</p>
-            <ol className="lp4-steps">{STEPS.map((x, n) => <li key={x.vi}><x.icon size={18} aria-hidden="true" /> <b>{n + 1}.</b> {t(x.vi, x.en)}</li>)}</ol>
+              "The seller writes \"high ground, never floods\". TerraTwin puts each claim next to measurements of that exact plot: cloud-piercing Sentinel-1 radar since 2017, terrain height, distance to rivers and the sea. Claims the data contradicts turn red, with dates and sources.")}</p>}
+            {!user && <ol className="lp4-steps">{STEPS.map((x, n) => <li key={x.vi}><x.icon size={18} aria-hidden="true" /> <b>{n + 1}.</b> {t(x.vi, x.en)}</li>)}</ol>}
             <div className="lp3-cta">
               <button type="button" className="lp3-btn" onClick={() => tryNow("verify")}><FileSearch size={18} aria-hidden="true" /> {t("Kiểm một tin đăng mẫu — ruộng ngập bão Yagi", "Check a sample listing — a field flooded by Typhoon Yagi")}</button>
               <button type="button" className="lp3-btn ghost" onClick={() => tryNow("plan")}><Waves size={18} aria-hidden="true" /> {t("Xem ngay: 9 năm nước của thửa đó", "See it now: 9 years of water on that plot")}</button>

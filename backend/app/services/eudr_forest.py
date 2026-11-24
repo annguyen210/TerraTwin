@@ -444,7 +444,8 @@ def screen(plot: dict) -> dict:
     (b0, b1, bp), (a0, a1, ap) = s2_windows()
     # Khoá cache theo SỐ ĐO (không theo quy tắc): kết luận tính lại lúc đọc (_localize), nên
     # đổi quy tắc không bắt đo lại vệ tinh.
-    key = cache_store.make_key("eudr-screen", _CACHE_V, "raw1", gj, a0.isoformat())
+    # raw2 (24/11/2026): số đo có thêm bản đồ rừng 2020 của EU (JRC GFC2020 v4) — kết quả nhớ đệm cũ không có.
+    key = cache_store.make_key("eudr-screen", _CACHE_V, "raw2", gj, a0.isoformat())
     hit = cache_store.get(key)
     if hit is not None:
         return _localize(hit)
@@ -454,6 +455,8 @@ def screen(plot: dict) -> dict:
     tasks += [lambda y=y: class_share(IO[0], y, IO[1], IO[2], IO[3], geom) for y in IO_YEARS]
     tasks += [lambda: s2_scene(geom, b0, b1, prefer=bp), lambda: s2_scene(geom, a0, a1, prefer=ap)]
     c = geom.centroid
+    from app.services import jrc_gfc
+    tasks.append(lambda: jrc_gfc.forest_share(geom))
     tasks.append(lambda: protected_areas(c.y, c.x))
     got = jobs.gather(tasks, timeout=240.0)
 
@@ -461,7 +464,7 @@ def screen(plot: dict) -> dict:
     direct = dict(zip(DIRECT_2020.keys(), got[:nd]))
     wc2021 = got[nd]
     io_raw = dict(zip(IO_YEARS, got[nd + 1: nd + 1 + len(IO_YEARS)]))
-    s2_before, s2_after, prot = got[-3], got[-2], got[-1] or {"checked": False, "inside": []}
+    s2_before, s2_after, eu_ref, prot = got[-4], got[-3], got[-2], got[-1] or {"checked": False, "inside": []}
     traj = {y: (v or {}).get("pct") for y, v in io_raw.items()}
     io_b = io_mean(traj, IO_BEFORE)
 
@@ -485,6 +488,10 @@ def screen(plot: dict) -> dict:
         "s2": {"before": s2_before, "after": s2_after,
                "windows": {"before": [b0.isoformat(), b1.isoformat()], "after": [a0.isoformat(), a1.isoformat()]}},
         "protected": prot, "thresholds": THRESHOLDS,
+        # Bản đồ THAM CHIẾU — không phải phiếu của quy tắc v1 (xem eu_reference_note).
+        "eu_reference": ({"id": "jrc2020", "name": jrc_gfc.NAME, "name_en": jrc_gfc.NAME_EN,
+                          "source": "European Commission, Joint Research Centre — GFC2020 v4", **eu_ref}
+                         if eu_ref else None),
     }
     if sum(f.get("pct") is not None for f in forest) >= THRESHOLDS["min_maps"]:
         cache_store.put(key, raw, ttl_seconds=_TTL_RESULT)
@@ -501,10 +508,39 @@ def _localize(raw: dict, rule: int | None = None, p_forest: float | None = None)
                                       (s2.get("after") or {}).get("ndvi_mean"),
                                       (raw.get("protected") or {}).get("inside") or [], rule=rule,
                                       p_forest=p_forest)
+    eu = raw.get("eu_reference")
+    note = eu_reference_note(level, eu.get("pct") if eu else None)
+    if note:
+        reasons = [*reasons, note]
+    signals = {**signals, "eu_reference_pct": eu.get("pct") if eu else None}
     out = dict(raw)
     out.update(level=level, label=label(level), reasons=reasons, signals=signals, caveats=caveats(raw),
                method=RULES[rule or ACTIVE_RULE])
     return out
+
+
+def eu_reference_note(level: str, eu_pct: float | None) -> str | None:
+    """Câu đối chiếu với bản đồ rừng 2020 của EU (JRC GFC2020 v4). KHÔNG đổi mức kết luận: quy tắc đang dùng (v1) chốt
+    trước kiểm định với ba bản đồ; muốn cho bản đồ EU bỏ phiếu phải qua giao thức kiểm định như v2/v3. Chỉ nói rõ khi
+    hai bên bất đồng — đó đúng là chỗ người giải trình cần (cà phê, cao su bị ba bản đồ kia vẽ thành rừng)."""
+    if eu_pct is None or level == "unknown":
+        return None
+    T = THRESHOLDS["forest_vote_pct"]
+    if level in ("high", "review") and eu_pct < T:
+        return tr(f"Bản đồ rừng 2020 của chính EU (JRC GFC2020 v4) chỉ thấy {eu_pct:g}% rừng trong ranh — trái với các bản "
+                  "đồ trên. Thường gặp ở cà phê, cao su, cây ăn quả, thứ EU không coi là rừng. Kèm đối chiếu này khi giải "
+                  "trình; mức kết luận CHƯA đổi vì quy tắc đang dùng chưa tính bản đồ này.",
+                  f"The EU's own 2020 forest map (JRC GFC2020 v4) sees only {eu_pct:g}% forest inside the boundary — "
+                  "contradicting the maps above. Typical of coffee, rubber and orchards, which the EU does not count as "
+                  "forest. Attach this when justifying; the level is NOT changed because the active rule does not use "
+                  "this map yet.")
+    if level == "low" and eu_pct >= T:
+        return tr(f"Bản đồ rừng 2020 của chính EU (JRC GFC2020 v4) thấy {eu_pct:g}% rừng trong ranh — nên xem lại ảnh và "
+                  "giấy tờ trước khi nộp tờ khai.",
+                  f"The EU's own 2020 forest map (JRC GFC2020 v4) sees {eu_pct:g}% forest inside the boundary — review the "
+                  "imagery and papers before filing the statement.")
+    return tr(f"Bản đồ rừng 2020 của chính EU (JRC GFC2020 v4) cùng chiều: {eu_pct:g}% rừng trong ranh.",
+              f"The EU's own 2020 forest map (JRC GFC2020 v4) agrees: {eu_pct:g}% forest inside the boundary.")
 
 
 def caveats(raw: dict) -> list[str]:
@@ -527,6 +563,9 @@ def caveats(raw: dict) -> list[str]:
         out.append(tr("Thiếu ảnh Sentinel-2 quang mây cùng mùa (tháng 11 – tháng 2) cho một trong hai mốc — chỉ "
                       "dùng bản đồ.",
                       "No cloud-free same-season (Nov–Feb) Sentinel-2 image for one of the two dates — maps only."))
+    if "eu_reference" in raw and raw["eu_reference"] is None:
+        out.append(tr("Chưa đọc được bản đồ rừng 2020 của EU (JRC GFC2020) lúc này — dịch vụ của JRC không phản hồi.",
+                      "Could not read the EU's 2020 forest map (JRC GFC2020) right now — the JRC service did not respond."))
     if not ((raw.get("protected") or {}).get("checked")):
         out.append(tr("Chưa kiểm được khu bảo tồn (OpenStreetMap không phản hồi).",
                       "Protected areas could not be checked (OpenStreetMap did not respond)."))
@@ -534,7 +573,8 @@ def caveats(raw: dict) -> list[str]:
 
 
 def sources() -> list[str]:
-    return [DIRECT_2020[k][5] for k in DIRECT_2020] + [
+    from app.services import jrc_gfc
+    return [DIRECT_2020[k][5] for k in DIRECT_2020] + [jrc_gfc.NAME + " — tham chiếu, không bỏ phiếu"] + [
         "Impact Observatory/Esri Annual Land Cover 2017–2023 (10 m)", WC2021[5],
         "Copernicus Sentinel-2 L2A — Microsoft Planetary Computer",
         "OpenStreetMap — khu bảo tồn, vườn quốc gia",

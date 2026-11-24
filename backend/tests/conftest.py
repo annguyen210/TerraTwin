@@ -88,6 +88,16 @@ init_db()
 
 
 @pytest.fixture(autouse=True)
+def _khong_goi_jrc_that(monkeypatch, request):
+    """Bản đồ rừng 2020 của EU (JRC GFC2020, WMS công khai) — trong test mặc định là "không đọc được" (None), như khi
+    dịch vụ JRC không phản hồi. Test nào cần thì tự monkeypatch `jrc_gfc.forest_share` hoặc đánh dấu `goi_jrc_that`."""
+    if "goi_jrc_that" in request.keywords:
+        return
+    from app.services import jrc_gfc
+    monkeypatch.setattr(jrc_gfc, "forest_share", lambda geom: None)
+
+
+@pytest.fixture(autouse=True)
 def _khong_doc_worldcover_khu_nha_cua(monkeypatch, request):
     """Sâu bệnh / năng suất / carbon hỏi WorldCover "có phải khu nhà cửa không" (kiểm 24/11/2026) — trong test mặc định
     là KHÔNG (như khi không đọc được WorldCover), để test các mô-đun đó không gọi Planetary Computer thật. Test nào cần

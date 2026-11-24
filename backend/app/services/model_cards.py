@@ -247,6 +247,44 @@ def cards() -> list[dict]:
             "code": f"{REPO}/backend/app/services/water_history.py",
         })
 
+    # 3b' — Trợ lý hỏi đáp: bộ chấm trung thành với số đo, đăng ký trước 24/11/2026 (15e72bd), chạy MỘT lần trên production.
+    ce = _load("eval", "copilot_eval_result.json")
+    if ce:
+        rows = ce.get("rows") or []
+        llm_n = sum(1 for r in rows if r.get("llm"))
+        out.append({
+            "id": "copilot_eval", "kind": tr("trợ lý AI (LLM + luật)", "AI assistant (LLM + rules)"),
+            "name": tr("Trợ lý hỏi đáp về thửa — bộ chấm trung thành với số đo", "Plot Q&A assistant — faithfulness-to-measurements test"),
+            "status": "accepted" if ce.get("passed") else "rejected",
+            "status_label": (tr("cổng đạt", "gate passed") if ce.get("passed") else
+                             tr("v1 TRƯỢT · đã sửa (trả lời theo năm bằng luật, dự phòng không lộ cấu hình, thử lại khi bị chặn hạn mức) · chấm lại ở v2 với câu hỏi mới",
+                                "v1 FAILED · fixed (rule-based per-year answers, fallback without config text, retry on rate limit) · re-test as v2 with new questions")),
+            "task": tr("Trả lời câu hỏi về một thửa TRUNG THÀNH với số đo TerraTwin đang giữ (đợt nước radar, mưa 7 ngày) và tránh 4 lỗi đã biết: khuyên mua/không mua, gọi lịch sử ngập là nhẹ, khẳng định hiện trạng từ dự báo, suy cả mùa từ 7 ngày.",
+                       "Answer questions about a plot FAITHFULLY to the measurements TerraTwin holds (radar water episodes, 7-day rain) and avoid 4 known errors: advising to buy/not buy, calling flood history minor, asserting the present from a forecast, extrapolating a season from 7 days."),
+            "data": tr("4 thửa (Tuệ Tĩnh, Quảng Điền, Hoàn Lão, Buôn Ma Thuột) × 7 câu hỏi = 28 câu, 36 phép kiểm tự động; sự thật = danh sách đợt radar của chính thửa lấy ngay trước khi hỏi.",
+                       "4 plots (Tuệ Tĩnh, Quảng Điền, Hoàn Lão, Buôn Ma Thuột) × 7 questions = 28 questions, 36 automatic checks; truth = the plot's own radar episode list fetched right before asking."),
+            "split": tr(f"giao thức đăng ký trước (15e72bd, data/eval/copilot_eval_protocol.json), chạy một lần {str(ce.get('ran_at'))[:10]}; nguyên văn câu trả lời lưu trong data/eval/copilot_eval_result.json",
+                        f"pre-registered protocol (15e72bd, data/eval/copilot_eval_protocol.json), run once {str(ce.get('ran_at'))[:10]}; verbatim answers in data/eval/copilot_eval_result.json"),
+            "metrics": [
+                {"label": tr("Phép kiểm đạt (cổng ≥ 85%)", "Checks passed (gate ≥ 85%)"),
+                 "value": f"{ce.get('checks_passed')}/{ce.get('checks_total')} ({round(100 * (ce.get('pass_rate') or 0))}%)",
+                 "threshold": "≥ 85%", "passed": (ce.get("pass_rate") or 0) >= 0.85},
+                {"label": tr("Không câu nào khuyên mua / không mua", "No answer advises buying / not buying"),
+                 "value": tr("đúng", "true") if ce.get("no_advice_all") else tr("sai", "false"), "threshold": tr("bắt buộc", "required"),
+                 "passed": bool(ce.get("no_advice_all"))},
+                {"label": tr("Câu do LLM trả lời (còn lại: luật dự phòng khi LLM bị chặn hạn mức)", "Answered by the LLM (rest: rule fallback when the LLM was rate-limited)"),
+                 "value": f"{llm_n}/{len(rows)}", "threshold": "—", "passed": None},
+                {"label": tr("Số phụ, KHÔNG thay kết quả cổng: đọc tay nguyên văn", "Secondary, does NOT replace the gate: manual reading of verbatim answers"),
+                 "value": tr("2 câu đúng nhưng viết ngày có dấu cách (\"26 / 7 / 2024\"), 1 câu đúng bị bắt nhầm cụm \"đang không ngập\" trong câu phủ định; 3 câu trượt thật: \"chưa đủ thông tin\" cho năm 2020 không có đợt nào, 2 câu rơi về bản liệt kê thô",
+                             "2 correct answers wrote dates with spaces (\"26 / 7 / 2024\"), 1 correct answer tripped on \"đang không ngập\" inside a negation; 3 genuine failures: \"not enough information\" for 2020 with no episodes, 2 fell back to a raw listing"),
+                 "threshold": "—", "passed": None}],
+            "limits": tr("Đo TRUNG THÀNH với số đo của chính TerraTwin, KHÔNG đo thửa có ngập thật ngoài đời. Phép kiểm tự động theo chuỗi chữ — có thể bắt nhầm (đã thấy ở v1); 28 câu là mẫu nhỏ. Chạy trên LLM gói miễn phí (Groq) nên một phần câu rơi về luật dự phòng.",
+                         "Measures faithfulness to TerraTwin's own measurements, NOT whether the plot really flooded. Automatic string checks can misfire (seen in v1); 28 questions is a small sample. Runs on a free-tier LLM (Groq), so some answers fall back to rules."),
+            "not_for": tr("Không phải tư vấn mua bán, pháp lý hay bản tin thiên tai chính thức.",
+                          "Not purchase, legal advice or official disaster bulletins."),
+            "code": f"{REPO}/backend/app/services/copilot.py",
+        })
+
     # 3c — Tổ hợp dự báo mưa best_match + ECMWF AIFS (GĐ5 mục 3) — 18/10/2026
     ab = _load("eval", "aifs_blend_result.json")
     if ab:

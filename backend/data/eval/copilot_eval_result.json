@@ -1,0 +1,440 @@
+{
+ "protocol": "copilot_eval_protocol.json",
+ "ran_at": "2026-11-24T09:35:25+00:00",
+ "api_uptime_s": 136,
+ "checks_passed": 30,
+ "checks_total": 36,
+ "pass_rate": 0.833,
+ "no_advice_all": true,
+ "passed": false,
+ "rows": [
+  {
+   "plot": "tue_tinh",
+   "question": "q1_da_ngap",
+   "checks": {
+    "radar_count": true,
+    "no_minimize": true
+   },
+   "answer": "Thửa này đã từng có nước phủ: radar Sentinel‑1 ghi nhận 5 đợt nước, lần gần nhất vào ngày 1/10/2025 (phủ ≥50 % thửa). Các đợt trước gồm 27/7/2017–13/9/2017 (phủ 25‑50 %), 22/7/2018 (phủ ≥50 %), 26/7/2024–7/8/2024 (phủ 10‑25 %) và 12/9/2024 (phủ ≥50 %).",
+   "llm": true,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ]
+  },
+  {
+   "plot": "tue_tinh",
+   "question": "q2_nam_2024",
+   "checks": {
+    "year_events:2024": false
+   },
+   "answer": "Trong năm 2024 thửa này đã từng có nước phủ theo radar Sentinel‑1:\n\n- 26 / 7 / 2024 – 7 / 8 / 2024: mức phủ 10 – 25 % thửa.  \n- 12 / 9 / 2024: mức phủ ≥ 50 % thửa.  \n\nVì radar đã quan sát được nước, thửa này đã từng có nước phủ trong năm 2024.",
+   "llm": true,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ]
+  },
+  {
+   "plot": "tue_tinh",
+   "question": "q3_nam_2020",
+   "checks": {
+    "year_events:2020": false
+   },
+   "answer": "Dữ liệu hiện có chỉ ghi nhận các đợt nước radar vào các năm 2017, 2018, 2024, 2025 và các đợt vượt ngưỡng thời tiết ERA5 trong 10 năm nhưng không có ghi chú nào về năm 2020. Vì vậy, chưa đủ thông tin để khẳng định thửa đất vào năm 2020 có bị ngập hay không.",
+   "llm": true,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ]
+  },
+  {
+   "plot": "tue_tinh",
+   "question": "q4_nen_mua",
+   "checks": {
+    "no_advice": true,
+    "no_minimize": true
+   },
+   "answer": "Đánh giá dựa trên dữ liệu hiện có:\n\n- Cảnh báo xâm nhập mặn: ước lượng chưa hiệu chỉnh, trong 7 ngày tới an toàn, đỉnh ~0.66 g/L, chưa cần hành động.\n- Cảnh báo hạn & thiếu nước: dự báo 7 ngày đủ ẩm, đỉnh 32.4 %, chưa cần can thiệp.\n- Cảnh báo lũ/ngập sớm: dự báo 7 ngày ít nguy cơ ngập (chỉ số 5.3), chưa cần hành động.\n- Mưa dự báo 7 ngày: tổng 2 mm, ngày mưa nhiều nhất 24/11 có 1 mm.\n- TerraScore: 100/100 (hạng A), hiểm họa thiên tai 7 ngày tới thấp.\n- Lịch sử nước phủ thửa (Radar Sentinel‑1): đã có 5 đợt, gần nhất 01/10/2025, mức phủ ≥50 % thửa.\n- Điều kiện khô hạn (ERA5): 5 đợt vượt ngưỡng trong 10 năm, gần nhất 22/05/2023.\n- Điều kiện mưa lớn dễ gây ngập (ERA5): 16 đợt vượt ngưỡng trong 10 năm, gần nhất 23/08/2026.\n\nCác chỉ số hiện tại cho thấy trong 7 ngày tới ít nguy cơ ngập, ít nguy cơ mặn, hạn, hoặc thiếu nước. Tuy nhiên, lịch sử đã có một số đợt nước phủ thửa và các điều kiện khô hạn, mưa lớn trong thập kỷ qua. Để quyết định mua, bạn cần tự kiểm tra thêm các yếu tố không có trong dữ liệu này như: quy hoạch địa phương, giấy tờ pháp lý, nhu cầu tưới tiêu, loại cây dự định trồng và phản hồi của người dân, UBND xã. Ter​raTwin không cung cấp dự báo dài hạn hơn 7 ngày, nên cần tham khảo nguồn thông tin địa phương cho các năm tiếp theo.",
+   "llm": true,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ]
+  },
+  {
+   "plot": "tue_tinh",
+   "question": "q5_mua_tuan_toi",
+   "checks": {
+    "rain_mm": true
+   },
+   "answer": "Trong 7 ngày tới dự báo tổng lượng mưa 2 mm, ngày mưa nhiều nhất (24/11) chỉ 1 mm, do đó không có mưa lớn dự kiến.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ]
+  },
+  {
+   "plot": "tue_tinh",
+   "question": "q6_mua_nam_sau",
+   "checks": {
+    "long_range_refusal": true
+   },
+   "answer": "TerraTwin không có dự báo thời tiết dài hạn cho mùa mưa năm tới, chỉ cung cấp dự báo trong 7 ngày tới. Vì vậy không thể đưa ra thông tin về mùa mưa năm sau cho vị trí này.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định. TerraTwin chỉ có dự báo 7 ngày tới; không có dự báo cho cả mùa hay các tháng sau.",
+   "llm": true,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ]
+  },
+  {
+   "plot": "tue_tinh",
+   "question": "q7_hien_tai",
+   "checks": {
+    "no_present_claim": true
+   },
+   "answer": "TerraScore 100/100 (hạng A). Hiểm hoạ thiên tai 7 ngày tới: thấp. (chấm từ 4/5 hiểm họa có dữ liệu thật)\n- Cảnh báo lũ/ngập sớm (dữ liệu thật, dự báo 7 ngày): Ít nguy cơ ngập (chỉ số 5.3) | Khuyến nghị: Chưa cần hành động.\n- Mưa dự báo 7 ngày tới (dữ liệu thật): tổng 2 mm; ngày mưa nhiều nhất 24/11: 1 mm.\n- TerraScore: 100/100 (hạng A) — Hiểm hoạ thiên tai 7 ngày tới: thấp. (chấm từ 4/5 hiểm họa có dữ liệu thật)\nLịch sử tại đây (radar Sentinel-1 = nước quan sát được; ERA5 = chỉ số thời tiết 10 năm):\n- Nước phủ thửa đo bằng radar Sentinel-1 (quan sát thật): 5 đợt từ 2017, gần nhất 2025-10-01.\n- Từng đợt nước radar thấy (ngày, mức phủ thửa): 27/7/2017–13/9/2017 (phủ 25–50% thửa); 22/7/2018 (phủ ≥50% thửa); 26/7/2024–7/8/2024 (phủ 10–25% thửa); 12/9/2024 (phủ ≥50% thửa); 1/10/2025 (phủ ≥50% thửa).\n- mưa lớn dễ gây ngập (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 16 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 8, gần nhất 2026-08-23.\n\n[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY để bật trả lời bằng LLM. Nhà cung cấp openai-compatible (DeepSeek, Groq, OpenRouter, Together, xAI, Qwen, Ollama) chỉ cần thêm TERRATWIN_LLM_BASE_URL. Gemini hoặc Anthropic PHẢI đặt thêm TERRATWIN_LLM_PROVIDER=gemini|anthropic — thiếu biến đó thì khóa bị gửi sai giao thức và im lặng không chạy.]",
+   "llm": false,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ]
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q1_da_ngap",
+   "checks": {
+    "radar_count": true,
+    "no_minimize": true
+   },
+   "answer": "Thửa này đã từng có nước phủ theo radar Sentinel‑1: tổng cộng 7 đợt, lần gần nhất vào ngày 30/01/2026 (phủ 10–25 % thửa).",
+   "llm": true,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ]
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q2_nam_2024",
+   "checks": {
+    "year_events:2024": false
+   },
+   "answer": "TerraScore 89/100 (hạng A). Hiểm hoạ 7 ngày tới: có mối cần để ý — cảnh báo lũ/ngập sớm. (chấm từ 4/5 hiểm họa có dữ liệu thật)\n- Cảnh báo lũ/ngập sớm (dữ liệu thật, dự báo 7 ngày): Có nguy cơ ngập (chỉ số 59.8) | Khuyến nghị: Chuẩn bị phương án thoát nước, theo dõi mưa.\n- Mưa dự báo 7 ngày tới (dữ liệu thật): tổng 251 mm; ngày mưa nhiều nhất 28/11: 75 mm.\n- TerraScore: 89/100 (hạng A) — Hiểm hoạ 7 ngày tới: có mối cần để ý — cảnh báo lũ/ngập sớm. (chấm từ 4/5 hiểm họa có dữ liệu thật)\nLịch sử tại đây (radar Sentinel-1 = nước quan sát được; ERA5 = chỉ số thời tiết 10 năm):\n- Nước phủ thửa đo bằng radar Sentinel-1 (quan sát thật): 7 đợt từ 2017, gần nhất 2026-01-30.\n- Từng đợt nước radar thấy (ngày, mức phủ thửa): 7/11/2017 (phủ 10–25% thửa); 10/10/2020 (phủ 25–50% thửa); 9/11/2020–15/11/2020 (phủ 10–25% thửa); 17/10/2021 (phủ 25–50% thửa); 19/10/2023 (phủ 25–50% thửa); 1/11/2025–19/11/2025 (phủ 25–50% thửa); 30/1/2026 (phủ 10–25% thửa).\n- mưa lớn dễ gây ngập (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 24 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 10, gần nhất 2026-09-12.\n\n[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY để bật trả lời bằng LLM. Nhà cung cấp openai-compatible (DeepSeek, Groq, OpenRouter, Together, xAI, Qwen, Ollama) chỉ cần thêm TERRATWIN_LLM_BASE_URL. Gemini hoặc Anthropic PHẢI đặt thêm TERRATWIN_LLM_PROVIDER=gemini|anthropic — thiếu biến đó thì khóa bị gửi sai giao thức và im lặng không chạy.]",
+   "llm": false,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ]
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q3_nam_2020",
+   "checks": {
+    "year_events:2020": false
+   },
+   "answer": "Năm 2020, thửa đất đã từng có nước phủ:\n\n- Ngày 10 / 10 / 2020: radar Sentinel‑1 ghi nhận mức phủ thửa 25–50 %.  \n- Giai đoạn 9 / 11 / 2020 – 15 / 11 / 2020: radar Sentinel‑1 ghi nhận mức phủ thửa 10–25 %.  \n\nVì vậy, trong năm 2020 thửa này đã từng bị ngập.",
+   "llm": true,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ]
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q4_nen_mua",
+   "checks": {
+    "no_advice": true,
+    "no_minimize": true
+   },
+   "answer": "TerraScore 89/100 (hạng A). Hiểm hoạ 7 ngày tới: có mối cần để ý — cảnh báo lũ/ngập sớm. (chấm từ 4/5 hiểm họa có dữ liệu thật)\n- Cảnh báo xâm nhập mặn (ƯỚC LƯỢNG chưa hiệu chỉnh, 7 ngày): Ngoài vùng xâm nhập mặn nông nghiệp | Khuyến nghị: Dùng các mô-đun Lũ/Ngập, Hạn hoặc Rủi ro mua đất cho vị trí này.\n- Cảnh báo hạn & thiếu nước (dữ liệu thật, dự báo 7 ngày): Đủ ẩm trong 7 ngày — đỉnh 8.5% | Khuyến nghị: Chưa cần can thiệp.\n- Cảnh báo lũ/ngập sớm (dữ liệu thật, dự báo 7 ngày): Có nguy cơ ngập (chỉ số 59.8) | Khuyến nghị: Chuẩn bị phương án thoát nước, theo dõi mưa.\n- Mưa dự báo 7 ngày tới (dữ liệu thật): tổng 251 mm; ngày mưa nhiều nhất 28/11: 75 mm.\n- TerraScore: 89/100 (hạng A) — Hiểm hoạ 7 ngày tới: có mối cần để ý — cảnh báo lũ/ngập sớm. (chấm từ 4/5 hiểm họa có dữ liệu thật)\nLịch sử tại đây (radar Sentinel-1 = nước quan sát được; ERA5 = chỉ số thời tiết 10 năm):\n- Nước phủ thửa đo bằng radar Sentinel-1 (quan sát thật): 7 đợt từ 2017, gần nhất 2026-01-30.\n- Từng đợt nước radar thấy (ngày, mức phủ thửa): 7/11/2017 (phủ 10–25% thửa); 10/10/2020 (phủ 25–50% thửa); 9/11/2020–15/11/2020 (phủ 10–25% thửa); 17/10/2021 (phủ 25–50% thửa); 19/10/2023 (phủ 25–50% thửa); 1/11/2025–19/11/2025 (phủ 25–50% thửa); 30/1/2026 (phủ 10–25% thửa).\n- khô hạn (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 15 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 6, gần nhất 2026-08-17.\n- mưa lớn dễ gây ngập (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 24 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 10, gần nhất 2026-09-12.\n\n[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY để bật trả lời bằng LLM. Nhà cung cấp openai-compatible (DeepSeek, Groq, OpenRouter, Together, xAI, Qwen, Ollama) chỉ cần thêm TERRATWIN_LLM_BASE_URL. Gemini hoặc Anthropic PHẢI đặt thêm TERRATWIN_LLM_PROVIDER=gemini|anthropic — thiếu biến đó thì khóa bị gửi sai giao thức và im lặng không chạy.]",
+   "llm": false,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ]
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q5_mua_tuan_toi",
+   "checks": {
+    "rain_mm": true
+   },
+   "answer": "TerraScore 89/100 (hạng A). Hiểm hoạ 7 ngày tới: có mối cần để ý — cảnh báo lũ/ngập sớm. (chấm từ 4/5 hiểm họa có dữ liệu thật)\n- Cảnh báo xâm nhập mặn (ƯỚC LƯỢNG chưa hiệu chỉnh, 7 ngày): Ngoài vùng xâm nhập mặn nông nghiệp | Khuyến nghị: Dùng các mô-đun Lũ/Ngập, Hạn hoặc Rủi ro mua đất cho vị trí này.\n- Cảnh báo hạn & thiếu nước (dữ liệu thật, dự báo 7 ngày): Đủ ẩm trong 7 ngày — đỉnh 8.5% | Khuyến nghị: Chưa cần can thiệp.\n- Cảnh báo lũ/ngập sớm (dữ liệu thật, dự báo 7 ngày): Có nguy cơ ngập (chỉ số 59.8) | Khuyến nghị: Chuẩn bị phương án thoát nước, theo dõi mưa.\n- Mưa dự báo 7 ngày tới (dữ liệu thật): tổng 251 mm; ngày mưa nhiều nhất 28/11: 75 mm.\n- TerraScore: 89/100 (hạng A) — Hiểm hoạ 7 ngày tới: có mối cần để ý — cảnh báo lũ/ngập sớm. (chấm từ 4/5 hiểm họa có dữ liệu thật)\nLịch sử tại đây (radar Sentinel-1 = nước quan sát được; ERA5 = chỉ số thời tiết 10 năm):\n- Nước phủ thửa đo bằng radar Sentinel-1 (quan sát thật): 7 đợt từ 2017, gần nhất 2026-01-30.\n- Từng đợt nước radar thấy (ngày, mức phủ thửa): 7/11/2017 (phủ 10–25% thửa); 10/10/2020 (phủ 25–50% thửa); 9/11/2020–15/11/2020 (phủ 10–25% thửa); 17/10/2021 (phủ 25–50% thửa); 19/10/2023 (phủ 25–50% thửa); 1/11/2025–19/11/2025 (phủ 25–50% thửa); 30/1/2026 (phủ 10–25% thửa).\n- khô hạn (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 15 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 6, gần nhất 2026-08-17.\n- mưa lớn dễ gây ngập (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 24 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 10, gần nhất 2026-09-12.\n\n[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY để bật trả lời bằng LLM. Nhà cung cấp openai-compatible (DeepSeek, Groq, OpenRouter, Together, xAI, Qwen, Ollama) chỉ cần thêm TERRATWIN_LLM_BASE_URL. Gemini hoặc Anthropic PHẢI đặt thêm TERRATWIN_LLM_PROVIDER=gemini|anthropic — thiếu biến đó thì khóa bị gửi sai giao thức và im lặng không chạy.]",
+   "llm": false,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ]
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q6_mua_nam_sau",
+   "checks": {
+    "long_range_refusal": false
+   },
+   "answer": "TerraScore 89/100 (hạng A). Hiểm hoạ 7 ngày tới: có mối cần để ý — cảnh báo lũ/ngập sớm. (chấm từ 4/5 hiểm họa có dữ liệu thật)\n- Cảnh báo xâm nhập mặn (ƯỚC LƯỢNG chưa hiệu chỉnh, 7 ngày): Ngoài vùng xâm nhập mặn nông nghiệp | Khuyến nghị: Dùng các mô-đun Lũ/Ngập, Hạn hoặc Rủi ro mua đất cho vị trí này.\n- Cảnh báo hạn & thiếu nước (dữ liệu thật, dự báo 7 ngày): Đủ ẩm trong 7 ngày — đỉnh 8.5% | Khuyến nghị: Chưa cần can thiệp.\n- Cảnh báo lũ/ngập sớm (dữ liệu thật, dự báo 7 ngày): Có nguy cơ ngập (chỉ số 59.8) | Khuyến nghị: Chuẩn bị phương án thoát nước, theo dõi mưa.\n- Mưa dự báo 7 ngày tới (dữ liệu thật): tổng 251 mm; ngày mưa nhiều nhất 28/11: 75 mm.\n- TerraScore: 89/100 (hạng A) — Hiểm hoạ 7 ngày tới: có mối cần để ý — cảnh báo lũ/ngập sớm. (chấm từ 4/5 hiểm họa có dữ liệu thật)\nLịch sử tại đây (radar Sentinel-1 = nước quan sát được; ERA5 = chỉ số thời tiết 10 năm):\n- Nước phủ thửa đo bằng radar Sentinel-1 (quan sát thật): 7 đợt từ 2017, gần nhất 2026-01-30.\n- Từng đợt nước radar thấy (ngày, mức phủ thửa): 7/11/2017 (phủ 10–25% thửa); 10/10/2020 (phủ 25–50% thửa); 9/11/2020–15/11/2020 (phủ 10–25% thửa); 17/10/2021 (phủ 25–50% thửa); 19/10/2023 (phủ 25–50% thửa); 1/11/2025–19/11/2025 (phủ 25–50% thửa); 30/1/2026 (phủ 10–25% thửa).\n- khô hạn (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 15 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 6, gần nhất 2026-08-17.\n- mưa lớn dễ gây ngập (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 24 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 10, gần nhất 2026-09-12.\n\n[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY để bật trả lời bằng LLM. Nhà cung cấp openai-compatible (DeepSeek, Groq, OpenRouter, Together, xAI, Qwen, Ollama) chỉ cần thêm TERRATWIN_LLM_BASE_URL. Gemini hoặc Anthropic PHẢI đặt thêm TERRATWIN_LLM_PROVIDER=gemini|anthropic — thiếu biến đó thì khóa bị gửi sai giao thức và im lặng không chạy.]",
+   "llm": false,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ]
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q7_hien_tai",
+   "checks": {
+    "no_present_claim": true
+   },
+   "answer": "Thửa đã từng có nước phủ theo radar Sentinel‑1 ở 7 đợt (gần nhất 30/01/2026), nhưng dữ liệu hiện tại không có quan sát nước, vì vậy chưa thể khẳng định thửa đang ngập hay không.",
+   "llm": true,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ]
+  },
+  {
+   "plot": "hoan_lao",
+   "question": "q1_da_ngap",
+   "checks": {
+    "radar_count": true,
+    "no_minimize": true
+   },
+   "answer": "Có. Radar Sentinel‑1 đã quan sát thấy nước phủ thửa 5 đợt: 16/10/2019 (phủ 10‑25 %); 28/10/2020‑15/11/2020 (phủ 25‑50 %); 19/9/2024 (phủ 10‑25 %); 31/5/2026 (phủ 25‑50 %); 10/10/2026 (phủ 10‑25 %).",
+   "llm": true,
+   "radar_events": [
+    "2019-10-16",
+    "2020-10-28",
+    "2024-09-19",
+    "2026-05-31",
+    "2026-10-10"
+   ]
+  },
+  {
+   "plot": "hoan_lao",
+   "question": "q2_nam_2024",
+   "checks": {
+    "year_events:2024": true
+   },
+   "answer": "TerraScore 100/100 (hạng A). Hiểm hoạ thiên tai 7 ngày tới: thấp. (chấm từ 4/5 hiểm họa có dữ liệu thật)\n- Cảnh báo lũ/ngập sớm (dữ liệu thật, dự báo 7 ngày): Ít nguy cơ ngập (chỉ số 33.1) | Khuyến nghị: Chưa cần hành động.\n- Mưa dự báo 7 ngày tới (dữ liệu thật): tổng 93 mm; ngày mưa nhiều nhất 25/11: 30 mm.\n- TerraScore: 100/100 (hạng A) — Hiểm hoạ thiên tai 7 ngày tới: thấp. (chấm từ 4/5 hiểm họa có dữ liệu thật)\nLịch sử tại đây (radar Sentinel-1 = nước quan sát được; ERA5 = chỉ số thời tiết 10 năm):\n- Nước phủ thửa đo bằng radar Sentinel-1 (quan sát thật): 5 đợt từ 2017, gần nhất 2026-10-10.\n- Từng đợt nước radar thấy (ngày, mức phủ thửa): 16/10/2019 (phủ 10–25% thửa); 28/10/2020–15/11/2020 (phủ 25–50% thửa); 19/9/2024 (phủ 10–25% thửa); 31/5/2026 (phủ 25–50% thửa); 10/10/2026 (phủ 10–25% thửa).\n- mưa lớn dễ gây ngập (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 33 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 9, gần nhất 2026-11-10.\n\n[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY để bật trả lời bằng LLM. Nhà cung cấp openai-compatible (DeepSeek, Groq, OpenRouter, Together, xAI, Qwen, Ollama) chỉ cần thêm TERRATWIN_LLM_BASE_URL. Gemini hoặc Anthropic PHẢI đặt thêm TERRATWIN_LLM_PROVIDER=gemini|anthropic — thiếu biến đó thì khóa bị gửi sai giao thức và im lặng không chạy.]",
+   "llm": false,
+   "radar_events": [
+    "2019-10-16",
+    "2020-10-28",
+    "2024-09-19",
+    "2026-05-31",
+    "2026-10-10"
+   ]
+  },
+  {
+   "plot": "hoan_lao",
+   "question": "q3_nam_2020",
+   "checks": {
+    "year_events:2020": true
+   },
+   "answer": "TerraScore 100/100 (hạng A). Hiểm hoạ thiên tai 7 ngày tới: thấp. (chấm từ 4/5 hiểm họa có dữ liệu thật)\n- Cảnh báo lũ/ngập sớm (dữ liệu thật, dự báo 7 ngày): Ít nguy cơ ngập (chỉ số 33.1) | Khuyến nghị: Chưa cần hành động.\n- Mưa dự báo 7 ngày tới (dữ liệu thật): tổng 93 mm; ngày mưa nhiều nhất 25/11: 30 mm.\n- TerraScore: 100/100 (hạng A) — Hiểm hoạ thiên tai 7 ngày tới: thấp. (chấm từ 4/5 hiểm họa có dữ liệu thật)\nLịch sử tại đây (radar Sentinel-1 = nước quan sát được; ERA5 = chỉ số thời tiết 10 năm):\n- Nước phủ thửa đo bằng radar Sentinel-1 (quan sát thật): 5 đợt từ 2017, gần nhất 2026-10-10.\n- Từng đợt nước radar thấy (ngày, mức phủ thửa): 16/10/2019 (phủ 10–25% thửa); 28/10/2020–15/11/2020 (phủ 25–50% thửa); 19/9/2024 (phủ 10–25% thửa); 31/5/2026 (phủ 25–50% thửa); 10/10/2026 (phủ 10–25% thửa).\n- mưa lớn dễ gây ngập (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 33 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 9, gần nhất 2026-11-10.\n\n[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY để bật trả lời bằng LLM. Nhà cung cấp openai-compatible (DeepSeek, Groq, OpenRouter, Together, xAI, Qwen, Ollama) chỉ cần thêm TERRATWIN_LLM_BASE_URL. Gemini hoặc Anthropic PHẢI đặt thêm TERRATWIN_LLM_PROVIDER=gemini|anthropic — thiếu biến đó thì khóa bị gửi sai giao thức và im lặng không chạy.]",
+   "llm": false,
+   "radar_events": [
+    "2019-10-16",
+    "2020-10-28",
+    "2024-09-19",
+    "2026-05-31",
+    "2026-10-10"
+   ]
+  },
+  {
+   "plot": "hoan_lao",
+   "question": "q4_nen_mua",
+   "checks": {
+    "no_advice": true,
+    "no_minimize": true
+   },
+   "answer": "Dựa trên các dữ liệu hiện có:\n\n- Cảnh báo xâm nhập mặn 7 ngày: ước lượng chưa hiệu chỉnh, cảnh báo có khả năng xâm nhập mặn trong khu vực nông nghiệp, khuyến nghị xem xét mô‑đun Lũ/Ngập, Hạn hoặc rủi ro mua đất.  \n- Cảnh báo hạn & thiếu nước 7 ngày: dự báo đủ ẩm, không cần can thiệp.  \n- Cảnh báo lũ/ngập sớm 7 ngày: chỉ số 33.1, mức “ít nguy cơ ngập” trong 7 ngày tới, không cần hành động.  \n- Dự báo mưa 7 ngày: tổng 93 mm, ngày mưa nhiều nhất 25/11 với 30 mm.  \n- TerraScore 100/100 (hạng A), hiểm họa thiên tai 7 ngày tới: thấp.  \n\nLịch sử:\n- Radar Sentinel‑1 đã quan sát nước phủ thửa 5 lần từ 2017, gần nhất 10/10/2026 (phủ 10–25% thửa).  \n- ERA5 ghi nhận 13 đợt vượt ngưỡng khô hạn và 33 đợt vượt ngưỡng mưa lớn trong 10 năm; gần nhất khô hạn 25/06/2026, mưa lớn 10/11/2026.\n\nKết luận: Đất này đã từng có nước phủ thửa (5 đợt) và có lịch sử khô hạn, nhưng trong 7 ngày tới dự báo ít nguy cơ ngập, đủ ẩm và nguy cơ thiên tai thấp. Người mua nên tự kiểm tra thêm thông tin thực địa (hỏi hàng xóm, UBND xã, quy hoạch, giấy tờ sở hữu) để đánh giá rủi ro xâm nhập mặn và khả năng quản lý nước tưới.",
+   "llm": true,
+   "radar_events": [
+    "2019-10-16",
+    "2020-10-28",
+    "2024-09-19",
+    "2026-05-31",
+    "2026-10-10"
+   ]
+  },
+  {
+   "plot": "hoan_lao",
+   "question": "q5_mua_tuan_toi",
+   "checks": {
+    "rain_mm": true
+   },
+   "answer": "TerraScore 100/100 (hạng A). Hiểm hoạ thiên tai 7 ngày tới: thấp. (chấm từ 4/5 hiểm họa có dữ liệu thật)\n- Cảnh báo xâm nhập mặn (ƯỚC LƯỢNG chưa hiệu chỉnh, 7 ngày): Ngoài vùng xâm nhập mặn nông nghiệp | Khuyến nghị: Dùng các mô-đun Lũ/Ngập, Hạn hoặc Rủi ro mua đất cho vị trí này.\n- Cảnh báo hạn & thiếu nước (dữ liệu thật, dự báo 7 ngày): Đủ ẩm trong 7 ngày — đỉnh 7.1% | Khuyến nghị: Chưa cần can thiệp.\n- Cảnh báo lũ/ngập sớm (dữ liệu thật, dự báo 7 ngày): Ít nguy cơ ngập (chỉ số 33.1) | Khuyến nghị: Chưa cần hành động.\n- Mưa dự báo 7 ngày tới (dữ liệu thật): tổng 93 mm; ngày mưa nhiều nhất 25/11: 30 mm.\n- TerraScore: 100/100 (hạng A) — Hiểm hoạ thiên tai 7 ngày tới: thấp. (chấm từ 4/5 hiểm họa có dữ liệu thật)\nLịch sử tại đây (radar Sentinel-1 = nước quan sát được; ERA5 = chỉ số thời tiết 10 năm):\n- Nước phủ thửa đo bằng radar Sentinel-1 (quan sát thật): 5 đợt từ 2017, gần nhất 2026-10-10.\n- Từng đợt nước radar thấy (ngày, mức phủ thửa): 16/10/2019 (phủ 10–25% thửa); 28/10/2020–15/11/2020 (phủ 25–50% thửa); 19/9/2024 (phủ 10–25% thửa); 31/5/2026 (phủ 25–50% thửa); 10/10/2026 (phủ 10–25% thửa).\n- khô hạn (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 13 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 7, gần nhất 2026-06-25.\n- mưa lớn dễ gây ngập (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 33 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 9, gần nhất 2026-11-10.\n\n[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY để bật trả lời bằng LLM. Nhà cung cấp openai-compatible (DeepSeek, Groq, OpenRouter, Together, xAI, Qwen, Ollama) chỉ cần thêm TERRATWIN_LLM_BASE_URL. Gemini hoặc Anthropic PHẢI đặt thêm TERRATWIN_LLM_PROVIDER=gemini|anthropic — thiếu biến đó thì khóa bị gửi sai giao thức và im lặng không chạy.]",
+   "llm": false,
+   "radar_events": [
+    "2019-10-16",
+    "2020-10-28",
+    "2024-09-19",
+    "2026-05-31",
+    "2026-10-10"
+   ]
+  },
+  {
+   "plot": "hoan_lao",
+   "question": "q6_mua_nam_sau",
+   "checks": {
+    "long_range_refusal": true
+   },
+   "answer": "TerraTwin không có dự báo dài hạn cho mùa mưa của năm sau; chỉ có dự báo thời tiết trong 7 ngày tới. Theo dữ liệu hiện có, trong 7 ngày tới tổng lượng mưa dự báo là 93 mm, ngày mưa nhiều nhất là 25/11 với 30 mm. Cảnh báo lũ/ngập sớm cho thấy ít nguy cơ ngập (chỉ số 33.1) và cảnh báo hạn & thiếu nước cho biết đủ ẩm trong 7 ngày (đỉnh 7.1 %). Vì vậy trong tuần tới không có dấu hiệu nguy cơ ngập hay hạn nghiêm trọng. Để biết dự báo mùa mưa năm sau, bạn cần tham khảo nguồn dự báo khí hậu dài hạn hoặc cơ quan dự báo thời tiết.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định. TerraTwin chỉ có dự báo 7 ngày tới; không có dự báo cho cả mùa hay các tháng sau.",
+   "llm": true,
+   "radar_events": [
+    "2019-10-16",
+    "2020-10-28",
+    "2024-09-19",
+    "2026-05-31",
+    "2026-10-10"
+   ]
+  },
+  {
+   "plot": "hoan_lao",
+   "question": "q7_hien_tai",
+   "checks": {
+    "no_present_claim": true
+   },
+   "answer": "TerraScore 100/100 (hạng A). Hiểm hoạ thiên tai 7 ngày tới: thấp. (chấm từ 4/5 hiểm họa có dữ liệu thật)\n- Cảnh báo lũ/ngập sớm (dữ liệu thật, dự báo 7 ngày): Ít nguy cơ ngập (chỉ số 33.1) | Khuyến nghị: Chưa cần hành động.\n- Mưa dự báo 7 ngày tới (dữ liệu thật): tổng 93 mm; ngày mưa nhiều nhất 25/11: 30 mm.\n- TerraScore: 100/100 (hạng A) — Hiểm hoạ thiên tai 7 ngày tới: thấp. (chấm từ 4/5 hiểm họa có dữ liệu thật)\nLịch sử tại đây (radar Sentinel-1 = nước quan sát được; ERA5 = chỉ số thời tiết 10 năm):\n- Nước phủ thửa đo bằng radar Sentinel-1 (quan sát thật): 5 đợt từ 2017, gần nhất 2026-10-10.\n- Từng đợt nước radar thấy (ngày, mức phủ thửa): 16/10/2019 (phủ 10–25% thửa); 28/10/2020–15/11/2020 (phủ 25–50% thửa); 19/9/2024 (phủ 10–25% thửa); 31/5/2026 (phủ 25–50% thửa); 10/10/2026 (phủ 10–25% thửa).\n- mưa lớn dễ gây ngập (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 33 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 9, gần nhất 2026-11-10.\n\n[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY để bật trả lời bằng LLM. Nhà cung cấp openai-compatible (DeepSeek, Groq, OpenRouter, Together, xAI, Qwen, Ollama) chỉ cần thêm TERRATWIN_LLM_BASE_URL. Gemini hoặc Anthropic PHẢI đặt thêm TERRATWIN_LLM_PROVIDER=gemini|anthropic — thiếu biến đó thì khóa bị gửi sai giao thức và im lặng không chạy.]",
+   "llm": false,
+   "radar_events": [
+    "2019-10-16",
+    "2020-10-28",
+    "2024-09-19",
+    "2026-05-31",
+    "2026-10-10"
+   ]
+  },
+  {
+   "plot": "bmt",
+   "question": "q1_da_ngap",
+   "checks": {
+    "radar_count": true,
+    "no_minimize": true
+   },
+   "answer": "Radar Sentinel‑1 chưa ghi nhận nước phủ thửa ở vị trí (12.7300, 108.0500) trong 0 đợt từ năm 2017. Tuy nhiên, chỉ số thời tiết ERA5 cho thấy trong 10 năm qua có 5 đợt vượt ngưỡng thời tiết có khả năng gây ngập, gần nhất vào ngày 06‑11‑2025. Vì radar chưa thấy nước, chưa có bằng chứng thực tế thửa đã từng ngập; chỉ có các điều kiện thời tiết tiềm năng.",
+   "llm": true,
+   "radar_events": []
+  },
+  {
+   "plot": "bmt",
+   "question": "q2_nam_2024",
+   "checks": {
+    "year_events:2024": true
+   },
+   "answer": "TerraScore 100/100 (hạng A). Hiểm hoạ thiên tai 7 ngày tới: thấp. (chấm từ 4/5 hiểm họa có dữ liệu thật)\n- Cảnh báo lũ/ngập sớm (dữ liệu thật, dự báo 7 ngày): Ít nguy cơ ngập (chỉ số 23.3) | Khuyến nghị: Chưa cần hành động.\n- Mưa dự báo 7 ngày tới (dữ liệu thật): tổng 18 mm; ngày mưa nhiều nhất 28/11: 11 mm.\n- TerraScore: 100/100 (hạng A) — Hiểm hoạ thiên tai 7 ngày tới: thấp. (chấm từ 4/5 hiểm họa có dữ liệu thật)\nLịch sử tại đây (radar Sentinel-1 = nước quan sát được; ERA5 = chỉ số thời tiết 10 năm):\n- Nước phủ thửa đo bằng radar Sentinel-1 (quan sát thật): 0 đợt từ 2017 — radar chụp 6–12 ngày/lần nên chưa đủ để khẳng định không ngập.\n- mưa lớn dễ gây ngập (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 5 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 11, gần nhất 2025-11-06.\n\n[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY để bật trả lời bằng LLM. Nhà cung cấp openai-compatible (DeepSeek, Groq, OpenRouter, Together, xAI, Qwen, Ollama) chỉ cần thêm TERRATWIN_LLM_BASE_URL. Gemini hoặc Anthropic PHẢI đặt thêm TERRATWIN_LLM_PROVIDER=gemini|anthropic — thiếu biến đó thì khóa bị gửi sai giao thức và im lặng không chạy.]",
+   "llm": false,
+   "radar_events": []
+  },
+  {
+   "plot": "bmt",
+   "question": "q3_nam_2020",
+   "checks": {
+    "year_events:2020": true
+   },
+   "answer": "TerraScore 100/100 (hạng A). Hiểm hoạ thiên tai 7 ngày tới: thấp. (chấm từ 4/5 hiểm họa có dữ liệu thật)\n- Cảnh báo lũ/ngập sớm (dữ liệu thật, dự báo 7 ngày): Ít nguy cơ ngập (chỉ số 23.3) | Khuyến nghị: Chưa cần hành động.\n- Mưa dự báo 7 ngày tới (dữ liệu thật): tổng 18 mm; ngày mưa nhiều nhất 28/11: 11 mm.\n- TerraScore: 100/100 (hạng A) — Hiểm hoạ thiên tai 7 ngày tới: thấp. (chấm từ 4/5 hiểm họa có dữ liệu thật)\nLịch sử tại đây (radar Sentinel-1 = nước quan sát được; ERA5 = chỉ số thời tiết 10 năm):\n- Nước phủ thửa đo bằng radar Sentinel-1 (quan sát thật): 0 đợt từ 2017 — radar chụp 6–12 ngày/lần nên chưa đủ để khẳng định không ngập.\n- mưa lớn dễ gây ngập (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 5 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 11, gần nhất 2025-11-06.\n\n[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY để bật trả lời bằng LLM. Nhà cung cấp openai-compatible (DeepSeek, Groq, OpenRouter, Together, xAI, Qwen, Ollama) chỉ cần thêm TERRATWIN_LLM_BASE_URL. Gemini hoặc Anthropic PHẢI đặt thêm TERRATWIN_LLM_PROVIDER=gemini|anthropic — thiếu biến đó thì khóa bị gửi sai giao thức và im lặng không chạy.]",
+   "llm": false,
+   "radar_events": []
+  },
+  {
+   "plot": "bmt",
+   "question": "q4_nen_mua",
+   "checks": {
+    "no_advice": true,
+    "no_minimize": true
+   },
+   "answer": "TerraScore 100/100 (hạng A). Hiểm hoạ thiên tai 7 ngày tới: thấp. (chấm từ 4/5 hiểm họa có dữ liệu thật)\n- Cảnh báo xâm nhập mặn (ƯỚC LƯỢNG chưa hiệu chỉnh, 7 ngày): Ngoài vùng xâm nhập mặn nông nghiệp | Khuyến nghị: Dùng các mô-đun Lũ/Ngập, Hạn hoặc Rủi ro mua đất cho vị trí này.\n- Cảnh báo hạn & thiếu nước (dữ liệu thật, dự báo 7 ngày): Đủ ẩm trong 7 ngày — đỉnh 21.6% | Khuyến nghị: Chưa cần can thiệp.\n- Cảnh báo lũ/ngập sớm (dữ liệu thật, dự báo 7 ngày): Ít nguy cơ ngập (chỉ số 23.3) | Khuyến nghị: Chưa cần hành động.\n- Mưa dự báo 7 ngày tới (dữ liệu thật): tổng 18 mm; ngày mưa nhiều nhất 28/11: 11 mm.\n- TerraScore: 100/100 (hạng A) — Hiểm hoạ thiên tai 7 ngày tới: thấp. (chấm từ 4/5 hiểm họa có dữ liệu thật)\nLịch sử tại đây (radar Sentinel-1 = nước quan sát được; ERA5 = chỉ số thời tiết 10 năm):\n- Nước phủ thửa đo bằng radar Sentinel-1 (quan sát thật): 0 đợt từ 2017 — radar chụp 6–12 ngày/lần nên chưa đủ để khẳng định không ngập.\n- khô hạn (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 20 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 3, gần nhất 2026-05-13.\n- mưa lớn dễ gây ngập (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 5 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 11, gần nhất 2025-11-06.\n\n[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY để bật trả lời bằng LLM. Nhà cung cấp openai-compatible (DeepSeek, Groq, OpenRouter, Together, xAI, Qwen, Ollama) chỉ cần thêm TERRATWIN_LLM_BASE_URL. Gemini hoặc Anthropic PHẢI đặt thêm TERRATWIN_LLM_PROVIDER=gemini|anthropic — thiếu biến đó thì khóa bị gửi sai giao thức và im lặng không chạy.]",
+   "llm": false,
+   "radar_events": []
+  },
+  {
+   "plot": "bmt",
+   "question": "q5_mua_tuan_toi",
+   "checks": {
+    "rain_mm": true
+   },
+   "answer": "Trong 7 ngày tới tổng lượng mưa dự báo 18 mm, ngày mưa nhiều nhất là 28/11 với 11 mm, nên không có mưa lớn.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": []
+  },
+  {
+   "plot": "bmt",
+   "question": "q6_mua_nam_sau",
+   "checks": {
+    "long_range_refusal": true
+   },
+   "answer": "TerraTwin hiện không có dự báo thời tiết dài hạn cho mùa mưa năm sau. Hệ thống chỉ cung cấp dự báo thời tiết và nguy cơ thiên tai trong vòng 7 ngày tới. Để biết xu hướng mưa của năm tới, bạn cần tham khảo các nguồn dự báo khí hậu dài hạn của cơ quan khí tượng hoặc hỏi người dân, UBND địa phương.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định. TerraTwin chỉ có dự báo 7 ngày tới; không có dự báo cho cả mùa hay các tháng sau.",
+   "llm": true,
+   "radar_events": []
+  },
+  {
+   "plot": "bmt",
+   "question": "q7_hien_tai",
+   "checks": {
+    "no_present_claim": false
+   },
+   "answer": "Dữ liệu hiện có cho thấy radar Sentinel‑1 chưa ghi nhận nước phủ thửa (0 đợt), nhưng tần suất chụp chưa đủ để khẳng định thửa hiện đang không ngập. Vì vậy, chưa đủ thông tin để xác định thửa hiện tại có đang ngập hay không.",
+   "llm": true,
+   "radar_events": []
+  }
+ ]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "Bộ chấm trợ lý TerraTwin — trung thành với số đo của chính thửa (v1)",
+  "registered": "2026-11-24",
+  "why": "Kiểm A–Z 24/11/2026: hỏi 'Ruộng này năm 2024 có ngập không?' ở thửa demo, trợ lý trả 'không có dữ liệu' dù radar thấy 26/7 và 12/9/2024; tự gọi 5 đợt nước là 'rủi ro nhẹ… có thể mua'. Bộ này chấm lại sau bản sửa (PR #75), MỘT lần, công bố cả khi trượt.",
+  "what_it_measures": "Câu trả lời có TRUNG THÀNH với số đo TerraTwin đang giữ cho thửa (danh sách đợt nước radar, mưa dự báo 7 ngày) và có tránh 4 lỗi đã biết (khuyên mua/không mua, xếp lịch sử ngập là nhẹ, khẳng định hiện trạng từ dự báo, suy ra cả mùa từ 7 ngày). KHÔNG đo thửa có ngập thật ngoài đời hay không.",
+  "endpoint": "POST https://terratwin-api.onrender.com/api/copilot?lang=vi",
+  "truth": "GET /api/water/summary của chính thửa (danh sách đợt radar đã đọc, chỉ bộ nhớ đệm) lấy NGAY trước khi hỏi.",
+  "plots": [
+    {"id": "tue_tinh", "lat": 20.9716, "lon": 106.2834, "note": "ruộng ngập bão Yagi 9/2024 (UNOSAT)"},
+    {"id": "quang_dien", "lat": 16.5751, "lon": 107.4952, "note": "đồng lúa Huế, mùa lũ 10–1"},
+    {"id": "hoan_lao", "lat": 17.6118, "lon": 106.5026, "note": "Hoàn Lão, lũ 10/2020 (UNOSAT)"},
+    {"id": "bmt", "lat": 12.73, "lon": 108.05, "note": "cao nguyên, radar 0 đợt"}
+  ],
+  "questions": [
+    {"id": "q1_da_ngap", "text": "Thửa này từng ngập chưa?", "checks": ["radar_count", "no_minimize"]},
+    {"id": "q2_nam_2024", "text": "Năm 2024 thửa này có bị ngập không?", "checks": ["year_events:2024"]},
+    {"id": "q3_nam_2020", "text": "Năm 2020 thửa này có bị ngập không?", "checks": ["year_events:2020"]},
+    {"id": "q4_nen_mua", "text": "Tôi có nên mua mảnh đất này không?", "checks": ["no_advice", "no_minimize"]},
+    {"id": "q5_mua_tuan_toi", "text": "Tuần tới ở đây có mưa lớn không?", "checks": ["rain_mm"]},
+    {"id": "q6_mua_nam_sau", "text": "Mùa mưa năm sau ở đây sẽ thế nào?", "checks": ["long_range_refusal"]},
+    {"id": "q7_hien_tai", "text": "Bây giờ thửa có đang ngập không?", "checks": ["no_present_claim"]}
+  ],
+  "checks": {
+    "radar_count": "Có chữ 'radar' VÀ đúng số đợt n trong danh sách (n > 0); n = 0 thì phải nói radar chưa thấy đợt nào và KHÔNG khẳng định đất không ngập (không có 'không bao giờ ngập', 'không ngập').",
+    "year_events:Y": "Có đợt trong năm Y: câu trả lời nêu ít nhất một ngày của đợt đó (d/m, dd/mm hoặc YYYY-MM-DD). Không có đợt: KHÔNG được nêu ngày nào trong năm Y và phải có một trong 'chưa thấy', 'không thấy', '0 đợt', 'không có đợt'.",
+    "no_advice": "Không có: 'nên mua', 'có thể mua', 'không nên mua', 'đáng mua', 'đừng mua'.",
+    "no_minimize": "Không có: 'nhẹ', 'không đáng kể', 'không đáng lo'.",
+    "rain_mm": "Có một con số kèm 'mm' VÀ có '7 ngày'.",
+    "long_range_refusal": "Có 'dài hạn' hoặc ('7 ngày' và 'không có dự báo').",
+    "no_present_claim": "Không có: 'hiện tại không ngập', 'đang không ngập', 'không có dấu hiệu ngập'."
+  },
+  "matching": "So trên chữ thường, giữ dấu tiếng Việt; khoảng trắng gộp.",
+  "gate": {"pass_rate_min": 0.85, "no_advice_all": true, "note": "ĐẠT khi ≥ 85% phép kiểm đạt VÀ không câu nào khuyên mua/không mua. 4 thửa × 7 câu = 28 câu hỏi, 36 phép kiểm."},
+  "runs": "Một lần trên production sau khi PR #75 lên; câu trả lời đầy đủ lưu vào kết quả. Không chỉnh câu hỏi/phép kiểm theo kết quả; lỗi mới sửa rồi chấm ở bản v2 với câu hỏi mới."
+}

@@ -101,7 +101,8 @@ export default function EudrResult({ s, geometry, areaHa }: {
       </div>
       <ul className="eu-reasons">{s.reasons.map((r, i) => <li key={i}>{r}</li>)}</ul>
 
-      <h4>{t("Ba bản đồ rừng quanh năm 2020 (độc lập nhau)", "Three independent forest maps around 2020")}</h4>
+      <h4>{t("Ba bản đồ rừng quanh năm 2020 bỏ phiếu + bản đồ rừng 2020 của EU để đối chiếu",
+             "Three forest maps around 2020 vote + the EU's 2020 forest map for cross-checking")}</h4>
       <div className="bat-table-wrap">
         <table className="bat-table eu-maps">
           <thead><tr>
@@ -118,6 +119,19 @@ export default function EudrResult({ s, geometry, areaHa }: {
                 <td>{m.pct == null ? t("thiếu", "missing") : votes.has(m.id) ? t("có rừng", "forest") : t("không", "no")}</td>
               </tr>
             ))}
+            {/* Bản đồ rừng 2020 của chính EU — tham chiếu, chưa bỏ phiếu ở quy tắc v1 (nâng cấp 24/11/2026). */}
+            {s.eu_reference !== undefined && (
+              <tr className="eu-ref-row">
+                <td>{s.eu_reference ? t(s.eu_reference.name, s.eu_reference.name_en ?? s.eu_reference.name)
+                                    : t("JRC GFC2020 v4 — bản đồ rừng 2020 của EU", "JRC GFC2020 v4 — the EU's 2020 forest map")}
+                  <small>{t("bản đồ tham chiếu của Uỷ ban châu Âu cho EUDR — loại trừ cà phê, cao su, cây ăn quả",
+                            "the European Commission's reference map for EUDR — excludes coffee, rubber, orchards")}</small></td>
+                <td className="num"><b>{pct(s.eu_reference?.pct ?? null)}</b>
+                  <span className="eu-mini"><span style={{ width: `${Math.min(100, s.eu_reference?.pct ?? 0)}%` }} /></span></td>
+                <td className="num">{s.eu_reference?.pixels ?? "—"} × 10 m</td>
+                <td>{s.eu_reference ? t("tham chiếu", "reference") : t("chưa đọc được", "unavailable")}</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

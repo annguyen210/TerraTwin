@@ -5206,7 +5206,13 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .lp4-hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 36px; align-items: start; padding: 44px 0 10px; }
 /* Kiểm A–Z 24/11/2026: đã đăng nhập thì cột phải (canh đất, câu hỏi, cảnh báo, 10 thửa) dài ~5.000 px — cột trái hết sớm,
    để lại khoảng trống tối cả trang. Màn rộng VÀ đủ cao (cột trái ~780 px không bị cắt nút) thì cột trái dính theo khi cuộn. */
-@media (min-width: 961px) and (min-height: 860px) { .lp4-hero > .lp3-copy { position: sticky; top: 76px; } }
+@media (min-width: 961px) and (min-height: 860px) { .lp4-hero:not(.member) > .lp3-copy { position: sticky; top: 76px; } }
+/* Đã đăng nhập: giới thiệu thu gọn ở trên, bảng canh đất trải hết chiều ngang bên dưới (không còn cột trái trống). */
+.lp4-hero.member { grid-template-columns: 1fr; gap: 18px; padding-top: 24px; }
+.lp4-hero.member .lp3-h1 { font-size: clamp(1.6rem, 3.2vw, 2.4rem); }
+.lp4-hero.member .lp3-h1 br { display: none; }
+.lp4-hero.member .lp3-h1 span { margin-left: .35em; }
+.lp4-hero.member .lp3-cta { margin-top: 10px; }
 .lp4-search { padding: 18px; border-radius: 18px; border: 1px solid var(--line-2); background: var(--panel); display: grid; gap: 10px; scroll-margin-top: 80px; }
 .lp4-want { display: flex; gap: 6px; flex-wrap: wrap; }
 .lp4-want button { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line-2); background: transparent; color: var(--dim); font-weight: 700; font-size: .8rem; cursor: pointer; }

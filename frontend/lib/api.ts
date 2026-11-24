@@ -2568,6 +2568,9 @@ export type EudrScreening = {
   io_trajectory: { year: number; tree_pct: number | null; item?: string | null }[];
   s2: { before: EudrS2; after: EudrS2; windows?: { before: string[]; after: string[] } };
   protected: { checked: boolean; inside: string[]; source?: string };
+  // Bản đồ rừng 2020 của chính EU (JRC GFC2020 v4) — THAM CHIẾU, không bỏ phiếu ở quy tắc v1 (nâng cấp 24/11/2026).
+  eu_reference?: { id: string; name: string; name_en?: string; source?: string; pct: number | null; pixels?: number;
+                   layer?: string; buffered_m?: number } | null;
   signals: { votes?: string[]; strong?: string[]; io_before_pct?: number | null; io_after_pct?: number | null;
              io_drop_pts?: number | null; ndvi_drop?: number | null; loss?: boolean; loss_by?: string[] };
   thresholds: Record<string, number>;

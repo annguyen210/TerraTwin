@@ -182,7 +182,7 @@ def vision_available() -> bool:
     return available() and (_env("TERRATWIN_LLM_VISION") or "on").strip().lower() not in ("off", "0", "false", "no", "tat", "tắt")
 
 
-def _post(url: str, payload: dict, headers: dict) -> dict | None:
+def _post(url: str, payload: dict, headers: dict, _retry: bool = True) -> dict | None:
     try:
         req = urllib.request.Request(
             url, data=json.dumps(payload).encode("utf-8"),
@@ -197,6 +197,16 @@ def _post(url: str, payload: dict, headers: dict) -> dict | None:
         except Exception:
             body = ""
         _note(False, f"HTTP {e.code}: {body}")
+        # Bộ chấm trợ lý 24/11/2026: 12/28 câu rơi về trả lời luật vì gói miễn phí chặn theo phút (429). Chờ đúng
+        # Retry-After (tối đa 8 giây) rồi thử lại MỘT lần — người dùng chờ thêm vài giây còn hơn nhận bản liệt kê thô.
+        if _retry and e.code in (429, 503):
+            import time
+            try:
+                wait = float(e.headers.get("retry-after") or 3)
+            except (TypeError, ValueError):
+                wait = 3.0
+            time.sleep(min(8.0, max(1.0, wait)))
+            return _post(url, payload, headers, _retry=False)
         return None
     except Exception as e:
         _note(False, f"{type(e).__name__}: {str(e)[:160]}")
