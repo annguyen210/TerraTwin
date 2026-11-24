@@ -36,7 +36,7 @@ area["ISO3166-1"="VN"]["admin_level"="2"]->.vn;
   way["leisure"="nature_reserve"](area.vn);
   relation["leisure"="nature_reserve"](area.vn);
 );
-out geom tags;"""
+out geom;"""
 SIMPLIFY_DEG = 0.0005        # ~50 m
 
 

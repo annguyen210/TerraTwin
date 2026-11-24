@@ -208,7 +208,7 @@ export default function PlotPlan({
     return () => {
       live = false;
     };
-  }, [lat, lon]);
+  }, [lat, lon, lang]);
 
   useEffect(() => {
     let live = true;

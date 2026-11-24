@@ -2309,7 +2309,7 @@ export function sendTapAnswer(token: string, answer: "yes" | "no" | "unsure") {
 // Câu hỏi đang chờ CHÍNH người này trả lời — để đóng vòng ngay trong app.
 export function getMyQuestions(limit = 5) {
   return authed<{ questions: TapQuestion[]; count: number }>(
-    `/api/questions?limit=${limit}`, { method: "GET" },
+    `/api/questions${_lp(`?limit=${limit}`)}`, { method: "GET" },
     "Không tải được câu hỏi cần bạn xác nhận");
 }
 

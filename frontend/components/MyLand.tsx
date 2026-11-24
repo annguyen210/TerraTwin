@@ -119,7 +119,7 @@ export default function MyLand({
     } finally {
       setLoaded(true);
     }
-  }, [user]);
+  }, [user, lang]);      // đổi ngôn ngữ → tải lại câu hỏi đúng ngôn ngữ (kiểm A–Z 24/11/2026)
 
   // H6 — trả lời câu hỏi chờ NGAY tại đây (đóng vòng lặp tin cậy trong app).
   async function answer(q: TapQuestion, value: "yes" | "no" | "unsure") {

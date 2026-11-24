@@ -89,7 +89,7 @@ export default function AppShell({ children, user: userProp, onAuth, extra, wide
         </div>
       </header>
       <div className="tt-page">{children}</div>
-      <CommandPalette />
+      <CommandPalette admin={user?.role === "admin"} />
       <InstallApp />
       <nav className="tt-tabbar" aria-label={t("Điều hướng", "Navigation")}>
         {NAV.map((n) => (
