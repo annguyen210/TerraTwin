@@ -77,6 +77,9 @@ export default function MapView({
   const [count, setCount] = useState(0);
   const [autoDrawing, setAutoDrawing] = useState(false);   // A8
   const [autoMsg, setAutoMsg] = useState<string | null>(null);
+  // BẢN SAO SỐ 3D (nâng cấp 24/11/2026): địa hình 3D + mô phỏng "nước dâng tới X m" tô theo độ cao.
+  const [is3d, setIs3d] = useState(false);
+  const [level, setLevel] = useState<number | null>(null);
 
   function refresh() {
     const map = mapRef.current;
@@ -183,6 +186,15 @@ export default function MapView({
       map.addSource("dpoly", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
       map.addLayer({ id: "dpoly-fill", type: "fill", source: "dpoly", paint: { "fill-color": "#5fcb8e", "fill-opacity": 0.25 } });
       map.addLayer({ id: "dpoly-line", type: "line", source: "dpoly", paint: { "line-color": "#5fcb8e", "line-width": 2 } });
+      // Độ cao: AWS Terrain Tiles (mã hoá terrarium, ~30 m ở Việt Nam từ SRTM). Hai nguồn riêng: một cho địa hình 3D,
+      // một cho lớp đổ bóng + mô phỏng nước dâng (MapLibre khuyên không dùng chung một nguồn cho terrain và lớp vẽ).
+      // KHÔNG truyền `attribution: undefined` — MapLibre kiểm lược đồ, ném lỗi và dừng cả khối thêm nguồn này (kiểm cục bộ
+      // 24/11/2026: bật 3D làm sập trang, nguồn điểm vẽ ranh phía sau cũng mất).
+      for (const id of ["dem-terrain", "dem-relief"]) {
+        map.addSource(id, { type: "raster-dem", encoding: "terrarium", tileSize: 256, maxzoom: 15,
+                            tiles: ["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"],
+                            ...(id === "dem-relief" ? { attribution: "Độ cao: AWS Terrain Tiles (SRTM, GMTED)" } : {}) });
+      }
       map.addSource("dpts", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
       map.addLayer({ id: "dpts-c", type: "circle", source: "dpts", paint: { "circle-radius": 5, "circle-color": "#2E9E67", "circle-stroke-color": "#fff", "circle-stroke-width": 1.5 } });
     });
@@ -255,6 +267,49 @@ export default function MapView({
     };
     whenStyleReady(map, apply);
   }, [radar]);
+
+  // Địa hình 3D: bật/tắt terrain + đổ bóng, nghiêng camera.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    whenStyleReady(map, () => {
+      if (is3d) {
+        map.setTerrain({ source: "dem-terrain", exaggeration: 1.6 });
+        if (!map.getLayer("hillshade")) {
+          map.addLayer({ id: "hillshade", type: "hillshade", source: "dem-relief",
+                         paint: { "hillshade-exaggeration": 0.35, "hillshade-shadow-color": "#0b1218" } },
+                       map.getLayer("plot-line") ? "plot-line" : undefined);
+        }
+        map.easeTo({ pitch: 60, duration: 900 });
+      } else {
+        map.setTerrain(null);
+        if (map.getLayer("hillshade")) map.removeLayer("hillshade");
+        map.easeTo({ pitch: 0, duration: 600 });
+      }
+    });
+  }, [is3d]);
+
+  // Mô phỏng nước dâng tới `level` m: tô xanh mọi điểm có độ cao ≤ level (mô hình "bồn tắm" tĩnh).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    whenStyleReady(map, () => {
+      if (level == null) {
+        if (map.getLayer("flood-sim")) map.removeLayer("flood-sim");
+        return;
+      }
+      const ramp = ["interpolate", ["linear"], ["elevation"],
+                    -100, "rgba(38,120,220,0.80)", level, "rgba(38,120,220,0.80)",
+                    level + 0.05, "rgba(0,0,0,0)", 9000, "rgba(0,0,0,0)"];
+      if (map.getLayer("flood-sim")) {
+        map.setPaintProperty("flood-sim", "color-relief-color", ramp as never);
+      } else {
+        map.addLayer({ id: "flood-sim", type: "color-relief", source: "dem-relief",
+                       paint: { "color-relief-color": ramp as never, "color-relief-opacity": 0.75 } } as never,
+                     map.getLayer("plot-line") ? "plot-line" : undefined);
+      }
+    });
+  }, [level]);
 
   // Vẽ khung ô vừa phân tích.
   useEffect(() => {
@@ -375,6 +430,26 @@ export default function MapView({
           một tỉnh có hàng nghìn thửa. */}
       <div className="map-cross" aria-hidden>
         <span className="mc-v" /><span className="mc-h" /><span className="mc-o" />
+      </div>
+
+      {/* BẢN SAO SỐ 3D (nâng cấp 24/11/2026) */}
+      <div className="twin-sim" role="group" aria-label={t("Bản sao số 3D", "3D digital twin")}>
+        <button type="button" className={is3d ? "on" : ""} aria-pressed={is3d} onClick={() => setIs3d((v) => !v)}>
+          🏔️ {t("Địa hình 3D", "3D terrain")}
+        </button>
+        <button type="button" className={level != null ? "on" : ""} aria-pressed={level != null}
+                onClick={() => setLevel((v) => (v == null ? 2 : null))}>
+          🌊 {t("Mô phỏng nước dâng", "Water-rise simulation")}
+        </button>
+        {level != null && (
+          <div className="twin-lv">
+            <label htmlFor="twin-level">{t(`Mực nước: ${level.toFixed(1)} m so với mực biển`, `Water level: ${level.toFixed(1)} m above sea level`)}</label>
+            <input id="twin-level" type="range" min={0} max={15} step={0.5} value={level}
+                   onChange={(e) => setLevel(Number(e.target.value))} />
+            <small>{t("Mô phỏng tĩnh theo độ cao (dữ liệu ~30 m, sai số vài mét ở đồng bằng), không tính đê, cống, dòng chảy — để hình dung vùng trũng, KHÔNG phải bản đồ ngập.",
+                      "Static elevation-based simulation (~30 m data, a few metres of error in deltas), ignores dykes, sluices and flow — to visualise low ground, NOT a flood map.")}</small>
+          </div>
+        )}
       </div>
 
       <div className="drawbar">

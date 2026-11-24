@@ -47,10 +47,12 @@ const CSP = [
   //   · server.arcgisonline.com: MapLibre tải TILE bản đồ bằng fetch (không phải
   //     <img>), nên tile dính connect-src — thiếu host này là bản đồ trắng.
   //   · planetarycomputer.microsoft.com: ảnh vệ tinh Sentinel-2 /api/imagery trả về.
+  //   · s3.amazonaws.com (elevation-tiles-prod): tile độ cao Terrain Tiles cho địa hình 3D và mô phỏng nước dâng
+  //     (nâng cấp 24/11/2026) — MapLibre tải bằng fetch như tile ảnh nền.
   // Mọi nguồn khác (Open-Meteo, NASA, Overpass, LLM…) là fetch phía SERVER, không
   // qua trình duyệt nên không cần ở đây.
   ["connect-src 'self'", API_ORIGIN, "https://server.arcgisonline.com",
-   "https://planetarycomputer.microsoft.com"].filter(Boolean).join(" "),
+   "https://planetarycomputer.microsoft.com", "https://s3.amazonaws.com"].filter(Boolean).join(" "),
   "worker-src 'self' blob:",
   "frame-ancestors 'self'",
   "base-uri 'self'",
