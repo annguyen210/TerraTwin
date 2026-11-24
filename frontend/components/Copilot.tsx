@@ -16,6 +16,9 @@ import { useLang } from "@/lib/i18n";
 import { boldParts } from "@/lib/richtext";
 
 const MOD_NAME: Record<string, [string, string]> = {
+  // Nguồn của câu trả lời thẳng từ số đo (nâng cấp 24/11/2026) — không phải mô-đun hiểm hoạ.
+  water_history: ["Lịch sử nước radar Sentinel-1", "Sentinel-1 radar water history"],
+  weather_7d: ["Mưa dự báo 7 ngày", "7-day rain forecast"],
   salinity: ["Xâm nhập mặn", "Salinity"],
   drought: ["Hạn & thiếu nước", "Drought"],
   flood: ["Lũ & ngập", "Flood"],
@@ -88,7 +91,7 @@ export default function Copilot({ lat, lon }: { lat: number; lon: number }) {
               🔎 {t("Dựa trên", "Based on")}
               <span className={`cbadge ${ans.llm ? "llm" : "rule"}`}>
                 {ans.llm ? t("diễn đạt bằng AI · số liệu đo được", "AI-phrased · measured data")
-                         : t("trợ lý luật · số liệu đo được", "rule-based · measured data")}
+                         : t("trả lời thẳng từ số đo (không qua AI)", "answered directly from measurements (no AI)")}
               </span>
             </span>
 

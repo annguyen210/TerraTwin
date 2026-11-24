@@ -175,6 +175,8 @@ def test_cau_tra_loi_llm_duoc_nho_dem(gia, monkeypatch):
         return "Trong 7 ngày tới ít nguy cơ ngập."
     monkeypatch.setattr(llm, "complete", fake)
     monkeypatch.setattr(copilot, "_route", lambda q: [])
+    from app.services import realdata
+    monkeypatch.setattr(realdata, "weather_7d", lambda lat, lon: None)          # không gọi mạng trong test
     loc = Location(lat=20.9716, lon=106.2834)
     a1 = copilot.answer("Đất này trồng lúa có ổn không?", loc)
     a2 = copilot.answer("đất này  trồng lúa có ổn không?", loc)
