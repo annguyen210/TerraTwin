@@ -106,7 +106,7 @@ def test_du_phong_khong_lo_loi_nhan_cau_hinh(monkeypatch):
     assert cr.asks_buy("Tôi có nên mua mảnh đất này không?") and not cr.asks_buy("Thửa này từng ngập chưa?")
     import inspect
     from app.services import copilot
-    src = inspect.getsource(copilot.answer)
+    src = inspect.getsource(copilot)
     assert "TERRATWIN_LLM_API_KEY để bật" not in src and "Trợ lý AI đang bận" in src
 
 
