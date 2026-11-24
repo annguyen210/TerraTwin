@@ -73,6 +73,9 @@ def model_card() -> dict:
 
 
 def _archive(lat: float, lon: float, start: str, end: str):
+    # Kiểm A–Z 24/11/2026: toạ độ thô → mỗi thửa mới một lượt tải 8 năm (đo 19 s), không dùng chung bộ đệm bền với thửa
+    # lân cận, và tốn hạn mức archive-api (hôm đó bị chặn 429). Làm tròn ô ERA5 0,1° như mọi lượt archive khác.
+    lat, lon = realdata._snap_clim(lat), realdata._snap_clim(lon)
     url = ("https://archive-api.open-meteo.com/v1/archive"
            f"?latitude={lat}&longitude={lon}"
            f"&start_date={start}&end_date={end}"
@@ -99,7 +102,7 @@ def _local(lat: float, lon: float):
     Một lượt gọi mạng, giữ 30 ngày. Chuẩn hoá theo chính nơi này là điều kiện để
     mô hình huấn luyện ở 16 điểm dùng được cho cả nước.
     """
-    key = (round(lat, 2), round(lon, 2))
+    key = (realdata._snap_clim(lat), realdata._snap_clim(lon))
     hit = _STATS.get(key)
     if hit and time.time() - hit[3] < _STATS_TTL:
         return hit[0], hit[1], hit[2]
@@ -108,7 +111,15 @@ def _local(lat: float, lon: float):
     if m is None:
         return None, None, None
 
-    end = date.today() - timedelta(days=8)          # ERA5 trễ khoảng một tuần
+    # Nền khí hậu giữ BỀN (CSDL) chứ không chỉ trong tiến trình — Render khởi động lại là mất, phải tải lại 8 năm.
+    from app.services import cache_store
+    d0 = date.today() - timedelta(days=8)           # ERA5 trễ khoảng một tuần
+    end = d0.replace(day=1) - timedelta(days=1)     # neo hết tháng trọn: URL (khoá đệm) giữ nguyên cả tháng
+    ckey = cache_store.make_key("anomaly-local", 1, key[0], key[1], end.isoformat()[:7])
+    got = cache_store.get(ckey)
+    if got:
+        _STATS[key] = (got["mu"], got["sd"], got["reg"], time.time())
+        return got["mu"], got["sd"], got["reg"]
     start = end - timedelta(days=365 * _YEARS)
     rows = _archive(lat, lon, start.isoformat(), end.isoformat())
     if not rows or len(rows) < 365 * 3:
@@ -121,6 +132,7 @@ def _local(lat: float, lon: float):
     mu, sd = model.local_stats(feats)
     reg = m.assign(model.signature(feats))
     _STATS[key] = (mu, sd, reg, time.time())
+    cache_store.put(ckey, {"mu": list(mu), "sd": list(sd), "reg": reg}, ttl_seconds=_STATS_TTL)
     return mu, sd, reg
 
 

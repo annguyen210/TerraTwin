@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { login, register, setToken, type AuthUser, type LoginError } from "@/lib/api";
+import { getToken, login, register, setToken, type AuthUser, type LoginError } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 import { ChevronDown, LayoutDashboard, LogIn, LogOut, UserRound } from "lucide-react";
 
@@ -19,6 +19,13 @@ export default function Account({
   const { t } = useLang();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [open, setOpen] = useState(false);
+  const [checking, setChecking] = useState(false);
+  useEffect(() => {
+    if (user || !getToken()) { setChecking(false); return; }
+    setChecking(true);
+    const tm = setTimeout(() => setChecking(false), 12_000);
+    return () => clearTimeout(tm);
+  }, [user]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -56,6 +63,17 @@ export default function Account({
   }
 
   if (user) return <AccountMenu user={user} onLogout={logout} />;
+
+  // Kiểm A–Z 24/11/2026: có phiên đăng nhập (token) nhưng hồ sơ chưa tải xong → trước đây nháy nút "Đăng nhập" ở MỖI lần
+  // chuyển trang (lâu hơn khi máy chủ đang thức dậy), người dùng tưởng bị đăng xuất. Hiện chỗ giữ chỗ trung tính; quá 12 giây
+  // (phiên hết hạn / máy chủ không trả lời) mới về nút đăng nhập.
+  if (checking && !open) {
+    return (
+      <div className="acct">
+        <span className="acct-in acct-wait" role="status" aria-busy="true">{t("Đang tải tài khoản…", "Loading account…")}</span>
+      </div>
+    );
+  }
 
   if (!open) {
     return (

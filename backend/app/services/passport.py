@@ -155,6 +155,21 @@ def terrain(lat: float, lon: float) -> dict | None:
     }
 
 
+def window_end(today: date | None = None) -> date:
+    """Ngày cuối của khung "10 năm": hết THÁNG TRỌN gần nhất (đã trừ độ trễ ERA5).
+
+    Kiểm A–Z 24/11/2026: cùng thửa Tuệ Tĩnh, Sổ tay thửa ghi "15 đợt mưa lớn", trang So sánh ghi "16" — khung trượt theo
+    NGÀY, mà Sổ tay nhớ đệm 30 ngày còn So sánh 6 giờ, nên hai trang đếm trên hai khung khác nhau. Neo theo tháng và đưa
+    tháng vào khoá nhớ đệm của cả hai: cùng thửa, cùng tháng → cùng một số."""
+    d = (today or date.today()) - timedelta(days=cal._LAG_DAYS)
+    return d.replace(day=1) - timedelta(days=1)
+
+
+def window_tag() -> str:
+    """Nhãn tháng cuối của khung 10 năm, cho khoá nhớ đệm (vd. "2026-10")."""
+    return window_end().isoformat()[:7]
+
+
 def history(lat: float, lon: float, years: int = 10) -> dict | None:
     """Mười năm hiểm hoạ của RIÊNG thửa này.
 
@@ -178,7 +193,7 @@ def history(lat: float, lon: float, years: int = 10) -> dict | None:
     Mùa vụ thì giữ nguyên: tháng nào nguy hiểm nhất là đặc tính thật của một
     nơi, và lịch mùa vụ dạy chung cho cả tỉnh thường không khớp với thửa.
     """
-    end = date.today() - timedelta(days=cal._LAG_DAYS)
+    end = window_end()
     start = end.replace(year=end.year - years)
     # Ghép 10 năm tròn (cache dùng chung) + đoạn đuôi — xem realdata.historical_weather_stitched (18/10/2026).
     rows = realdata.historical_weather_stitched(lat, lon, start.isoformat(), end.isoformat())
@@ -267,7 +282,7 @@ def build(lat: float, lon: float) -> dict:
     from app.services import cache_store, jobs, reqlang
     # Ngôn ngữ vào KHOÁ cache: nếu không, người dùng EN nhận bản tiếng Việt đã cache.
     key = cache_store.make_key("passport", _CACHE_V, reqlang.cur_lang(),
-                               round(lat, 3), round(lon, 3))
+                               round(lat, 3), round(lon, 3), window_tag())
     hit = cache_store.get(key)
     if hit is not None:
         return hit

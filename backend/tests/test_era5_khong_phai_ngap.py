@@ -129,3 +129,14 @@ def test_llm_bi_chan_han_muc_thi_thu_lai_mot_lan(monkeypatch):
     monkeypatch.setattr(llm.urllib.request, "urlopen", fake)
     monkeypatch.setattr("time.sleep", lambda s: None)
     assert llm._post("https://x.test/v1", {}, {}) == {"ok": 1} and goi["n"] == 2
+
+
+def test_so_dot_nuoc_luon_gan_nguon_radar():
+    """Bộ chấm v2 (24/11/2026, Phan Rang): "đã từng có nước phủ thửa 5 đợt (…)" — đúng số nhưng không nói nguồn."""
+    from app.services import copilot, reqlang
+    reqlang.set_lang("vi")
+    t = copilot._han_che("Thửa này đã từng có nước phủ thửa 5 đợt (18/6/2018, 5/8/2018).", "Đất này có hay bị lũ không?",
+                         {}, {"n_events": 5, "last_event": "2026-09-23"})
+    assert "5 đợt (radar Sentinel-1 nhìn xuyên mây)" in t
+    t2 = copilot._han_che("Radar Sentinel-1 thấy 5 đợt nước.", "Đất này có hay bị lũ không?", {}, {"n_events": 5})
+    assert t2.count("radar") == 1 or t2.lower().count("radar") == 1

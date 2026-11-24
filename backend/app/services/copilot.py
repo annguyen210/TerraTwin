@@ -104,6 +104,13 @@ def _han_che(text: str, question: str, assessed: dict, radar: dict | None = None
         if phan[i] != c:
             log.info("trợ lý: sửa câu | gốc=%r | sau=%r", c, phan[i])
     text = "".join(phan)
+    # Bộ chấm v2 (24/11/2026): "Thửa này đã từng có nước phủ 5 đợt (18/6/2018, …)" — đúng số, nhưng không nói số đó từ đâu.
+    # Số đợt nước luôn phải gắn nguồn radar: chèn "(radar Sentinel-1)" vào lần nhắc đầu tiên nếu cả câu trả lời không nói.
+    if n_radar and "radar" not in text.lower():
+        import re as _r
+        m = _r.search(rf"(?<![\d.,]){n_radar} (đợt|lần|episode)", text)
+        if m:
+            text = text[:m.end()] + tr(" (radar Sentinel-1 nhìn xuyên mây)", " (Sentinel-1 cloud-piercing radar)") + text[m.end():]
     an = [h for h in ("flood", "salinity", "drought")
           if str(getattr(assessed.get(h), "risk_level", "")) == "safe"]
     if an:
@@ -166,7 +173,8 @@ def _system() -> str:
         "nói rõ thửa ĐÃ TỪNG có nước phủ — không được nói 'không đủ để khẳng định đã ngập hay chưa'. Không được kết luận "
         "đất 'phù hợp' để trồng một loại cây chỉ từ chỉ số hiểm hoạ 7 ngày — việc đó cần thổ nhưỡng, nước tưới, mùa vụ. "
         # Kiểm 24/11/2026: 5 đợt nước (3 đợt phủ ≥50% thửa) bị gọi là "rủi ro lịch sử ngập nhẹ… có thể mua".
-        "KHÔNG tự xếp lịch sử ngập là 'nhẹ', 'không đáng kể' hay 'cao' — nêu số đợt, ngày và mức phủ thửa. KHÔNG khuyên "
+        "KHÔNG tự xếp lịch sử ngập là 'nhẹ', 'không đáng kể', 'cao', 'thường xuyên' hay 'hiếm' — nêu số đợt, ngày và mức "
+        "phủ thửa, kèm nguồn radar Sentinel-1. KHÔNG khuyên "
         "mua hay không mua — nêu dữ kiện và việc cần tự kiểm (hỏi hàng xóm, UBND xã, quy hoạch, giấy tờ). Hỏi về một năm "
         "hay một ngày cụ thể thì trả lời theo danh sách từng đợt nước nếu có.",
         "You are TerraTwin's land/farming assistant. Answer BRIEFLY and clearly "
@@ -187,7 +195,8 @@ def _system() -> str:
         "NEVER 'the plot is currently not flooded' or 'no sign of flooding'. If radar saw water over the plot (more than 0 "
         "episodes), say clearly the plot HAS had water over it — never 'not enough to say whether it has flooded'. Never "
         "conclude the land is 'suitable' for a crop from 7-day hazard indices alone — that needs soil, irrigation, season. "
-        "NEVER grade the flood history yourself as 'minor', 'insignificant' or 'high' — state the number of episodes, "
+        "NEVER grade the flood history yourself as 'minor', 'insignificant', 'high', 'frequent' or 'rare' — state the "
+        "number of episodes (from Sentinel-1 radar), "
         "their dates and how much of the plot was covered. NEVER advise buying or not buying — give the facts and what to "
         "check (neighbours, commune office, zoning, papers). If asked about a specific year or date, answer from the list "
         "of water episodes when it is given.",

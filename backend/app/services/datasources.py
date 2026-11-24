@@ -111,9 +111,13 @@ def solar_radiation(lat: float, lon: float):
 # vào ruộng lúa" → module trả 'ngoài phạm vi' thay vì áp ngưỡng lúa cho
 # trung tâm Đà Nẵng / bãi biển Nha Trang.
 _SALINITY_ZONES = [
-    # (tên VI, tên EN, lat_min, lat_max, lon_min, lon_max)
-    ("Đồng bằng sông Cửu Long", "Mekong Delta", 8.40, 11.05, 104.40, 106.85),
-    ("Đồng bằng sông Hồng", "Red River Delta", 19.90, 21.20, 105.70, 106.90),
+    # (tên VI, tên EN, lat_min, lat_max, lon_min, lon_max, xa biển tối đa km)
+    # Kiểm A–Z 24/11/2026: khung chữ nhật bao CẢ đồng bằng nên Hà Nội, ruộng Tuệ Tĩnh (cách biển 54 km) cũng thành "vùng
+    # nhiễm mặn ĐBSH". Thêm trần khoảng cách tới biển (xấp xỉ, theo mức mặn vào sâu nhất đã ghi nhận): ĐBSH mặn theo cửa
+    # sông vào ~30 km; ĐBSCL các năm hạn mặn nặng 2016, 2020 vào sâu ~70–90 km trên sông chính. Khoảng cách ở đây là tới
+    # bờ biển GẦN NHẤT (kể cả bờ vịnh Thái Lan) nên lấy 70 km: Châu Đốc, Cần Thơ (~78–84 km) nằm ngoài.
+    ("Đồng bằng sông Cửu Long", "Mekong Delta", 8.40, 11.05, 104.40, 106.85, 70.0),
+    ("Đồng bằng sông Hồng", "Red River Delta", 19.90, 21.20, 105.70, 106.90, 30.0),
 ]
 
 # Đỉnh mùa mặn ~15/3 (ngày thứ 74). Đáy ~giữa tháng 9.
@@ -124,8 +128,8 @@ _SALINITY_FLOOR = 0.12   # mùa lũ vẫn còn nền mặn nhẹ sát cửa sôn
 def salinity_zone(lat: float, lon: float) -> str | None:
     """Tên vùng đồng bằng nhiễm mặn nông nghiệp, hoặc None nếu ngoài phạm vi."""
     from app.services.reqlang import tr
-    for name_vi, name_en, la0, la1, lo0, lo1 in _SALINITY_ZONES:
-        if la0 <= lat <= la1 and lo0 <= lon <= lo1:
+    for name_vi, name_en, la0, la1, lo0, lo1, max_km in _SALINITY_ZONES:
+        if la0 <= lat <= la1 and lo0 <= lon <= lo1 and distance_to_coast_km(lat, lon) <= max_km:
             return tr(name_vi, name_en)
     return None
 

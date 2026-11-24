@@ -16,7 +16,8 @@ _TTL = 6 * 3600
 def one(lat: float, lon: float) -> dict:
     """Một cột so sánh. Mục nào hỏng ghi None (giao diện ghi "không lấy được"), không đoán."""
     from app.services import datasources as ds, jobs, landuse, listing_check as lc, passport
-    key = cache_store.make_key("compare", round(lat, 5), round(lon, 5), "v4")   # v4: + mùa lũ (17/10/2026)
+    # v4: + mùa lũ (17/10/2026). + tháng cuối khung 10 năm (24/11/2026): cùng khung với Sổ tay thửa → cùng số đợt.
+    key = cache_store.make_key("compare", round(lat, 5), round(lon, 5), "v4", passport.window_tag())
     hit = cache_store.get(key)
     if hit is not None:
         return hit
@@ -60,7 +61,8 @@ ROWS = [
     ("water_events", "Số đợt nước phủ trong mùa lũ (radar, 2017→nay)", "Water events in flood season (radar, 2017→now)", "", "low", "Sentinel-1 RTC · ERA5"),
     ("water_events_out", "Đợt nước ngoài mùa lũ (thường là nước tưới, nuôi trồng)", "Out-of-season water events (usually irrigation, aquaculture)", "", None, "Sentinel-1 RTC · ERA5"),
     ("elevation_m", "Cao độ", "Elevation", " m", "high", "Copernicus DEM"),
-    ("lower_than_pct", "Thấp hơn % đất trong 5 km", "Lower than % of land within 5 km", "%", "low", "Copernicus DEM"),
+    # Kiểm A–Z 24/11/2026: nhãn cũ "trong 5 km" — số đo thật lấy 3 vòng 1–3 km (passport.RINGS_KM), như Sổ tay thửa và Kiểm tin rao.
+    ("lower_than_pct", "Thấp hơn % đất trong 3 km", "Lower than % of land within 3 km", "%", "low", "Copernicus DEM"),
     ("slope_deg", "Độ dốc", "Slope", "°", "low", "Copernicus DEM"),
     ("river_km", "Tới sông/kênh gần nhất", "To nearest river/canal", " km", None, "OpenStreetMap"),   # gần sông: dễ ngập NHƯNG có nước tưới — không chấm
     ("coast_km", "Tới bờ biển", "To the coast", " km", "high", "TerraTwin coastline"),
