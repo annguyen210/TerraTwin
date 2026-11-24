@@ -248,23 +248,33 @@ def cards() -> list[dict]:
         })
 
     # 3b' — Trợ lý hỏi đáp: bộ chấm trung thành với số đo, đăng ký trước 24/11/2026 (15e72bd), chạy MỘT lần trên production.
-    ce = _load("eval", "copilot_eval_result.json")
+    ce1 = _load("eval", "copilot_eval_result.json")
+    ce2 = _load("eval", "copilot_eval_v2_result.json")
+    ce = ce2 or ce1
     if ce:
         rows = ce.get("rows") or []
         llm_n = sum(1 for r in rows if r.get("llm"))
+        v1_txt = (f"{ce1.get('checks_passed')}/{ce1.get('checks_total')} ({round(100 * (ce1.get('pass_rate') or 0))}%)" if ce1 else "—")
         out.append({
             "id": "copilot_eval", "kind": tr("trợ lý AI (LLM + luật)", "AI assistant (LLM + rules)"),
             "name": tr("Trợ lý hỏi đáp về thửa — bộ chấm trung thành với số đo", "Plot Q&A assistant — faithfulness-to-measurements test"),
             "status": "accepted" if ce.get("passed") else "rejected",
-            "status_label": (tr("cổng đạt", "gate passed") if ce.get("passed") else
+            "status_label": ((tr(f"v2 cổng ĐẠT (câu hỏi mới) · sau v1 TRƯỢT {v1_txt} → sửa", f"v2 gate PASSED (new questions) · after v1 FAILED {v1_txt} → fixed")
+                              if ce2 else tr("cổng đạt", "gate passed")) if ce.get("passed") else
                              tr("v1 TRƯỢT · đã sửa (trả lời theo năm bằng luật, dự phòng không lộ cấu hình, thử lại khi bị chặn hạn mức) · chấm lại ở v2 với câu hỏi mới",
                                 "v1 FAILED · fixed (rule-based per-year answers, fallback without config text, retry on rate limit) · re-test as v2 with new questions")),
             "task": tr("Trả lời câu hỏi về một thửa TRUNG THÀNH với số đo TerraTwin đang giữ (đợt nước radar, mưa 7 ngày) và tránh 4 lỗi đã biết: khuyên mua/không mua, gọi lịch sử ngập là nhẹ, khẳng định hiện trạng từ dự báo, suy cả mùa từ 7 ngày.",
                        "Answer questions about a plot FAITHFULLY to the measurements TerraTwin holds (radar water episodes, 7-day rain) and avoid 4 known errors: advising to buy/not buy, calling flood history minor, asserting the present from a forecast, extrapolating a season from 7 days."),
-            "data": tr("4 thửa (Tuệ Tĩnh, Quảng Điền, Hoàn Lão, Buôn Ma Thuột) × 7 câu hỏi = 28 câu, 36 phép kiểm tự động; sự thật = danh sách đợt radar của chính thửa lấy ngay trước khi hỏi.",
-                       "4 plots (Tuệ Tĩnh, Quảng Điền, Hoàn Lão, Buôn Ma Thuột) × 7 questions = 28 questions, 36 automatic checks; truth = the plot's own radar episode list fetched right before asking."),
-            "split": tr(f"giao thức đăng ký trước (15e72bd, data/eval/copilot_eval_protocol.json), chạy một lần {str(ce.get('ran_at'))[:10]}; nguyên văn câu trả lời lưu trong data/eval/copilot_eval_result.json",
-                        f"pre-registered protocol (15e72bd, data/eval/copilot_eval_protocol.json), run once {str(ce.get('ran_at'))[:10]}; verbatim answers in data/eval/copilot_eval_result.json"),
+            "data": (tr("v2: 5 thửa (Tuệ Tĩnh, Quảng Điền, Hoàn Lão, Buôn Ma Thuột, Phan Rang) × 7 câu hỏi MỚI = 35 câu, 45 phép kiểm; v1: 4 thửa × 7 câu = 28 câu, 36 phép kiểm. Sự thật = danh sách đợt radar của chính thửa lấy ngay trước khi hỏi.",
+                        "v2: 5 plots (Tuệ Tĩnh, Quảng Điền, Hoàn Lão, Buôn Ma Thuột, Phan Rang) × 7 NEW questions = 35 questions, 45 checks; v1: 4 plots × 7 questions = 28 questions, 36 checks. Truth = the plot's own radar episode list fetched right before asking.")
+                     if ce2 else
+                     tr("4 thửa (Tuệ Tĩnh, Quảng Điền, Hoàn Lão, Buôn Ma Thuột) × 7 câu hỏi = 28 câu, 36 phép kiểm tự động; sự thật = danh sách đợt radar của chính thửa lấy ngay trước khi hỏi.",
+                        "4 plots (Tuệ Tĩnh, Quảng Điền, Hoàn Lão, Buôn Ma Thuột) × 7 questions = 28 questions, 36 automatic checks; truth = the plot's own radar episode list fetched right before asking.")),
+            "split": (tr(f"mỗi bản đăng ký trước rồi chạy MỘT lần trên production: v1 (15e72bd) {str((ce1 or {}).get('ran_at'))[:10]}, v2 (f00aae2) {str(ce2.get('ran_at'))[:10]}; nguyên văn câu trả lời trong data/eval/copilot_eval*_result.json",
+                         f"each version pre-registered then run ONCE on production: v1 (15e72bd) {str((ce1 or {}).get('ran_at'))[:10]}, v2 (f00aae2) {str(ce2.get('ran_at'))[:10]}; verbatim answers in data/eval/copilot_eval*_result.json")
+                      if ce2 else
+                      tr(f"giao thức đăng ký trước (15e72bd, data/eval/copilot_eval_protocol.json), chạy một lần {str(ce.get('ran_at'))[:10]}; nguyên văn câu trả lời lưu trong data/eval/copilot_eval_result.json",
+                         f"pre-registered protocol (15e72bd, data/eval/copilot_eval_protocol.json), run once {str(ce.get('ran_at'))[:10]}; verbatim answers in data/eval/copilot_eval_result.json")),
             "metrics": [
                 {"label": tr("Phép kiểm đạt (cổng ≥ 85%)", "Checks passed (gate ≥ 85%)"),
                  "value": f"{ce.get('checks_passed')}/{ce.get('checks_total')} ({round(100 * (ce.get('pass_rate') or 0))}%)",
@@ -274,10 +284,14 @@ def cards() -> list[dict]:
                  "passed": bool(ce.get("no_advice_all"))},
                 {"label": tr("Câu do LLM trả lời (còn lại: luật dự phòng khi LLM bị chặn hạn mức)", "Answered by the LLM (rest: rule fallback when the LLM was rate-limited)"),
                  "value": f"{llm_n}/{len(rows)}", "threshold": "—", "passed": None},
-                {"label": tr("Số phụ, KHÔNG thay kết quả cổng: đọc tay nguyên văn", "Secondary, does NOT replace the gate: manual reading of verbatim answers"),
-                 "value": tr("2 câu đúng nhưng viết ngày có dấu cách (\"26 / 7 / 2024\"), 1 câu đúng bị bắt nhầm cụm \"đang không ngập\" trong câu phủ định; 3 câu trượt thật: \"chưa đủ thông tin\" cho năm 2020 không có đợt nào, 2 câu rơi về bản liệt kê thô",
-                             "2 correct answers wrote dates with spaces (\"26 / 7 / 2024\"), 1 correct answer tripped on \"đang không ngập\" inside a negation; 3 genuine failures: \"not enough information\" for 2020 with no episodes, 2 fell back to a raw listing"),
-                 "threshold": "—", "passed": None}],
+                {"label": tr("v1 (lịch sử): phép kiểm đạt · đọc tay nguyên văn", "v1 (history): checks passed · manual reading"),
+                 "value": tr(f"{v1_txt} TRƯỢT — 2 câu đúng nhưng viết ngày có dấu cách, 1 câu đúng bị bắt nhầm trong câu phủ định; 3 câu trượt thật: \"chưa đủ thông tin\" cho năm không có đợt, 2 câu rơi về bản liệt kê thô",
+                             f"{v1_txt} FAILED — 2 correct answers wrote dates with spaces, 1 correct answer tripped inside a negation; 3 genuine failures: \"not enough information\" for a year with no episodes, 2 fell back to a raw listing"),
+                 "threshold": "—", "passed": None}] + ([
+                {"label": tr("v2: câu trượt duy nhất (đọc tay)", "v2: the only failure (manual reading)"),
+                 "value": tr("Phan Rang \"Đất này có hay bị lũ không?\": nêu đúng 5 đợt kèm ngày nhưng không ghi nguồn radar, và tự nhận xét \"không phải khu vực có tần suất ngập cao\" — phép kiểm không bắt được câu nhận xét này",
+                             "Phan Rang \"Does this land flood often?\": listed all 5 episodes with dates but did not name the radar source, and added its own judgement \"not an area with high flood frequency\" — the checks did not catch that judgement"),
+                 "threshold": "—", "passed": None}] if ce2 else []),
             "limits": tr("Đo TRUNG THÀNH với số đo của chính TerraTwin, KHÔNG đo thửa có ngập thật ngoài đời. Phép kiểm tự động theo chuỗi chữ — có thể bắt nhầm (đã thấy ở v1); 28 câu là mẫu nhỏ. Chạy trên LLM gói miễn phí (Groq) nên một phần câu rơi về luật dự phòng.",
                          "Measures faithfulness to TerraTwin's own measurements, NOT whether the plot really flooded. Automatic string checks can misfire (seen in v1); 28 questions is a small sample. Runs on a free-tier LLM (Groq), so some answers fall back to rules."),
             "not_for": tr("Không phải tư vấn mua bán, pháp lý hay bản tin thiên tai chính thức.",

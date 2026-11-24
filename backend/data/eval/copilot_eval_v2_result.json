@@ -1,0 +1,555 @@
+{
+ "protocol": "copilot_eval_v2_protocol.json",
+ "checker": "v2",
+ "ran_at": "2026-11-24T10:29:34+00:00",
+ "api_uptime_s": 48,
+ "checks_passed": 44,
+ "checks_total": 45,
+ "pass_rate": 0.978,
+ "no_advice_all": true,
+ "passed": true,
+ "rows": [
+  {
+   "plot": "tue_tinh",
+   "question": "q1_hay_lu",
+   "checks": {
+    "radar_count": true,
+    "no_minimize": true
+   },
+   "answer": "Địa chỉ (20.9716, 106.2834) đã từng có nước phủ thửa theo radar Sentinel‑1 5 đợt trong 10 năm qua (năm 2017, 2018, 2024, 2024 và 2025). Điều kiện thời tiết gây ngập theo chỉ số ERA5 đã vượt ngưỡng 16 đợt trong 10 năm, tập trung vào tháng 8, gần nhất vào ngày 23‑08‑2026. Vì có cả 5 đợt nước radar và 16 đợt điều kiện thời tiết tiềm ẩn, thửa đất này có lịch sử bị ngập tương đối thường xuyên. Tuy nhiên, dự báo 7 ngày tới cho thấy chỉ số nguy cơ ngập là 5.3 (ít nguy cơ) và chưa cần hành động. Bạn nên tự kiểm tra thêm với người dân địa phương, UBND xã hoặc hồ sơ quy hoạch để xác nhận tình hình hiện tại.",
+   "llm": true,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ]
+  },
+  {
+   "plot": "tue_tinh",
+   "question": "q2_nam_2021",
+   "checks": {
+    "year_events:2021": true
+   },
+   "answer": "Năm 2021, radar Sentinel-1 chưa thấy đợt nước phủ nào trên thửa (radar có ảnh của thửa từ 4/1/2017). Radar chụp 6–12 ngày một lần nên có thể lọt đợt ngập ngắn — chưa thấy KHÔNG có nghĩa là chắc chắn không ngập.",
+   "llm": false,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ]
+  },
+  {
+   "plot": "tue_tinh",
+   "question": "q3_nam_2025",
+   "checks": {
+    "year_events:2025": true
+   },
+   "answer": "Có. Năm 2025, radar Sentinel-1 thấy nước phủ thửa 1 đợt: 1/10/2025 (phủ ≥50% thửa). Đây là số đo radar nhìn xuyên mây, không phải số liệu ngập chính thức — hỏi thêm hàng xóm xem nước lên cao bao nhiêu, mấy ngày thì rút.",
+   "llm": false,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ]
+  },
+  {
+   "plot": "tue_tinh",
+   "question": "q4_dau_tu",
+   "checks": {
+    "no_advice": true,
+    "no_minimize": true
+   },
+   "answer": "Đánh giá dựa trên các dữ liệu hiện có:\n\n- Điểm nền đất khi mua 73/100, có rủi ro, cần thương lượng giá và kiểm tra kỹ.\n- Dự báo lũ/ngập trong 7 ngày tới: ít nguy cơ (chỉ số 5.3), chưa cần hành động.\n- Dự báo hạn & thiếu nước trong 7 ngày tới: đủ ẩm, đỉnh 32.4 %, chưa cần can thiệp.\n- Dự báo xâm nhập mặn trong 7 ngày tới: an toàn, đỉnh ~0.66 g/L, chưa cần hành động.\n- Mưa dự báo 7 ngày tổng 2 mm, ngày mưa nhiều nhất 1 mm.\n- TerraScore 100/100, hiểm họa thiên tai 7 ngày tới thấp.\n\nLịch sử:\n- Radar Sentinel‑1 đã ghi nhận 5 đợt nước phủ thửa (2017, 2018, 2024, 2024, 2025), trong đó 3 đợt có mức phủ ≥50 % thửa.\n- ERA5 ghi nhận 16 đợt thời tiết vượt ngưỡng gây ngập và 5 đợt vượt ngưỡng gây khô hạn trong 10 năm.\n\nNhững dữ liệu này cho thấy mảnh đất có tiềm năng nhưng cũng có lịch sử ngập đáng chú ý và một số rủi ro nền đất. Bạn nên kiểm tra chi tiết hơn (hỏi hàng xóm, UBND xã, kiểm tra quy hoạch, giấy tờ) trước khi quyết định đầu tư.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ]
+  },
+  {
+   "plot": "tue_tinh",
+   "question": "q5_mua_7_ngay",
+   "checks": {
+    "rain_mm": true
+   },
+   "answer": "Trong 7 ngày tới, tổng lượng mưa dự báo cho vị trí (20.9716, 106.2834) là 2 mm, trong đó ngày mưa nhiều nhất là ngày 24 /11 với khoảng 1 mm.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ]
+  },
+  {
+   "plot": "tue_tinh",
+   "question": "q6_mua_kho_toi",
+   "checks": {
+    "long_range_refusal": true
+   },
+   "answer": "Dựa trên dữ liệu hiện có, trong 10 năm qua có 5 đợt thời tiết ERA5 vượt ngưỡng khô hạn, cao điểm vào tháng 6 và đợt gần nhất vào ngày 22/05/2023. Tuy nhiên dự báo 7 ngày tới chỉ có thông tin về độ ẩm (đủ ẩm) và không có dự báo về hạn nặng trong mùa khô. Vì TerraTwin không có dự báo dài hạn nên chưa thể khẳng định mùa khô năm tới sẽ có hạn nặng hay không. Bạn nên tham khảo thêm nguồn dự báo thời tiết dài hạn hoặc hỏi cơ quan quản lý địa phương.\n\nTerraTwin chỉ có dự báo 7 ngày tới; không có dự báo cho cả mùa hay các tháng sau.",
+   "llm": true,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ]
+  },
+  {
+   "plot": "tue_tinh",
+   "question": "q7_hom_nay",
+   "checks": {
+    "no_present_claim": true
+   },
+   "answer": "Radar Sentinel‑1 đã ghi nhận 5 đợt nước phủ thửa tại vị trí (20.9716, 106.2834), nhưng không có dữ liệu quan sát hiện tại cho hôm nay. Vì vậy, không thể khẳng định ruộng đang ngập hay không. \n\nĐối với lịch sử, đã có các đợt nước vào:\n- 27/7/2017 – 13/9/2017 (phủ 25‑50 % thửa)  \n- 22/7/2018 (phủ ≥ 50 % thửa)  \n- 26/7/2024 – 7/8/2024 (phủ 10‑25 % thửa)  \n- 12/9/2024 (phủ ≥ 50 % thửa)  \n- 1/10/2025 (phủ ≥ 50 % thửa)  \n\nTrong 7 ngày tới, dự báo nguy cơ ngập là “ít nguy cơ” (chỉ số 5.3). Để biết hiện trạng hôm nay, cần kiểm tra thực địa hoặc dữ liệu quan trắc thời gian thực.",
+   "llm": true,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ]
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q1_hay_lu",
+   "checks": {
+    "radar_count": true,
+    "no_minimize": true
+   },
+   "answer": "Thửa đất đã từng có nước phủ theo radar Sentinel‑1 trong 7 đợt (từ 2017 tới 30/01/2026). Theo chỉ số thời tiết ERA5, trong 10 năm có 24 đợt vượt ngưỡng gây nguy cơ ngập, tập trung vào tháng 10 và gần nhất vào ngày 12/09/2026. Thửa đã từng có nước phủ: radar Sentinel-1 thấy 7 đợt, gần nhất 2026-01-30. Vì vậy, thửa đất đã từng bị ngập và có điều kiện thời tiết tạo ra nguy cơ ngập, nhưng dữ liệu không đủ để khẳng định tần suất “hay” bị lũ. Bạn nên kiểm tra thêm thông tin thực địa (hỏi hàng xóm, UBND xã, quy hoạch) để có cái nhìn toàn diện.",
+   "llm": true,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ]
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q2_nam_2021",
+   "checks": {
+    "year_events:2021": true
+   },
+   "answer": "Có. Năm 2021, radar Sentinel-1 thấy nước phủ thửa 1 đợt: 17/10/2021 (phủ 25–50% thửa). Đây là số đo radar nhìn xuyên mây, không phải số liệu ngập chính thức — hỏi thêm hàng xóm xem nước lên cao bao nhiêu, mấy ngày thì rút.",
+   "llm": false,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ]
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q3_nam_2025",
+   "checks": {
+    "year_events:2025": true
+   },
+   "answer": "Có. Năm 2025, radar Sentinel-1 thấy nước phủ thửa 1 đợt: 1/11/2025–19/11/2025 (phủ 25–50% thửa). Đây là số đo radar nhìn xuyên mây, không phải số liệu ngập chính thức — hỏi thêm hàng xóm xem nước lên cao bao nhiêu, mấy ngày thì rút.",
+   "llm": false,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ]
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q4_dau_tu",
+   "checks": {
+    "no_advice": true,
+    "no_minimize": true
+   },
+   "answer": "Đánh giá vị trí (16.5751, 107.4952) dựa trên dữ liệu hiện có:\n\n- Nền đất khi mua: 56/100, có rủi ro, cần thương lượng giá và kiểm tra kỹ.\n- Cảnh báo lũ/ngập sớm trong 7 ngày tới: chỉ số 59.8, có nguy cơ ngập; khuyến nghị chuẩn bị phương án thoát nước và theo dõi mưa.\n- Dự báo mưa 7 ngày: tổng 251 mm, ngày mưa mạnh nhất 28/11 với 75 mm.\n- Cảnh báo hạn & thiếu nước: đủ ẩm trong 7 ngày tới, không cần can thiệp.\n- Xâm nhập mặn: ước lượng cho thấy vị trí nằm ngoài vùng xâm nhập mặn nông nghiệp.\n- TerraScore: 89/100 (hạng A); hiểm họa 7 ngày tới chỉ ra cảnh báo lũ/ngập sớm.\n- Lịch sử ngập: đã từng có 7 đợt nước phủ thửa được radar Sentinel‑1 quan sát, gần nhất 30/1/2026 (phủ 10–25 % thửa). Các đợt trước có mức phủ 10–25 % hoặc 25–50 % thửa.\n- Điều kiện thời tiết ERA5: trong 10 năm có 24 đợt vượt ngưỡng mưa lớn (có thể gây ngập), cao điểm tháng 10, gần nhất 12/9/2026; có 15 đợt vượt ngưỡng khô hạn, cao điểm tháng 6, gần nhất 17/8/2026.\n\nKết luận: vị trí này có rủi ro ngập nước (có lịch sử ngập, dự báo nguy cơ ngập trong 7 ngày tới) và nền đất không tối ưu. Người mua nên cân nhắc các biện pháp giảm ngập, kiểm tra kỹ nền đất và tham khảo thêm ý kiến của hàng xóm, UBND xã, quy hoạch địa phương trước khi quyết định đầu tư.",
+   "llm": true,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ]
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q5_mua_7_ngay",
+   "checks": {
+    "rain_mm": true
+   },
+   "answer": "Trong 7 ngày tới, tổng lượng mưa dự báo cho vị trí (16.5751, 107.4952) là khoảng 251 mm.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ]
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q6_mua_kho_toi",
+   "checks": {
+    "long_range_refusal": true
+   },
+   "answer": "Dữ liệu hiện có chỉ cho biết trong 10 năm qua có 15 đợt khô hạn vượt ngưỡng (điều kiện ERA5), cao điểm vào tháng 6 và đợt gần nhất là 17‑08‑2026. TerraTwin không có dự báo dài hạn về mùa khô năm tới, vì vậy chưa thể khẳng định mùa khô năm tới sẽ có hạn nặng hay không. Bạn nên theo dõi các dự báo thời tiết ngắn hạn và hỏi địa phương để có thông tin cập nhật.\n\nTerraTwin chỉ có dự báo 7 ngày tới; không có dự báo cho cả mùa hay các tháng sau.",
+   "llm": true,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ]
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q7_hom_nay",
+   "checks": {
+    "no_present_claim": true
+   },
+   "answer": "(Trợ lý AI đang bận — đây là số đo của thửa, chưa qua diễn giải.)\nTerraScore 89/100 (hạng A). Hiểm hoạ 7 ngày tới: có mối cần để ý — cảnh báo lũ/ngập sớm. (chấm từ 4/5 hiểm họa có dữ liệu thật)\n- Cảnh báo lũ/ngập sớm (dữ liệu thật, dự báo 7 ngày): Có nguy cơ ngập (chỉ số 59.8) | Khuyến nghị: Chuẩn bị phương án thoát nước, theo dõi mưa.\n- Mưa dự báo 7 ngày tới (dữ liệu thật): tổng 251 mm; ngày mưa nhiều nhất 28/11: 75 mm.\n- TerraScore: 89/100 (hạng A) — Hiểm hoạ 7 ngày tới: có mối cần để ý — cảnh báo lũ/ngập sớm. (chấm từ 4/5 hiểm họa có dữ liệu thật)\nLịch sử tại đây (radar Sentinel-1 = nước quan sát được; ERA5 = chỉ số thời tiết 10 năm):\n- Nước phủ thửa đo bằng radar Sentinel-1 (quan sát thật): 7 đợt từ 2017, gần nhất 2026-01-30.\n- Từng đợt nước radar thấy (ngày, mức phủ thửa): 7/11/2017 (phủ 10–25% thửa); 10/10/2020 (phủ 25–50% thửa); 9/11/2020–15/11/2020 (phủ 10–25% thửa); 17/10/2021 (phủ 25–50% thửa); 19/10/2023 (phủ 25–50% thửa); 1/11/2025–19/11/2025 (phủ 25–50% thửa); 30/1/2026 (phủ 10–25% thửa).\n- mưa lớn dễ gây ngập (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 24 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 10, gần nhất 2026-09-12.",
+   "llm": false,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ]
+  },
+  {
+   "plot": "hoan_lao",
+   "question": "q1_hay_lu",
+   "checks": {
+    "radar_count": true,
+    "no_minimize": true
+   },
+   "answer": "Thửa đất đã từng có nước phủ theo radar Sentinel‑1 trong 5 đợt (16/10/2019, 28/10/2020‑15/11/2020, 19/9/2024, 31/5/2026, 10/10/2026); mức phủ thửa dao động 10‑25 % hoặc 25‑50 % tùy đợt. Theo chỉ số thời tiết ERA5 có 33 đợt vượt ngưỡng trong 10 năm, tập trung vào tháng 9, gần nhất 10/11/2026. Vì vậy, tại vị trí (17.6118, 106.5026) lịch sử cho thấy có khả năng bị lũ/ngập tương đối thường xuyên, dù trong 7 ngày tới dự báo chỉ ít nguy cơ ngập (chỉ số 33.1). Bạn nên kiểm tra thêm với người dân địa phương, UBND xã và xem quy hoạch đất để có đánh giá chi tiết hơn.",
+   "llm": true,
+   "radar_events": [
+    "2019-10-16",
+    "2020-10-28",
+    "2024-09-19",
+    "2026-05-31",
+    "2026-10-10"
+   ]
+  },
+  {
+   "plot": "hoan_lao",
+   "question": "q2_nam_2021",
+   "checks": {
+    "year_events:2021": true
+   },
+   "answer": "Năm 2021, radar Sentinel-1 chưa thấy đợt nước phủ nào trên thửa (radar có ảnh của thửa từ 11/1/2017). Radar chụp 6–12 ngày một lần nên có thể lọt đợt ngập ngắn — chưa thấy KHÔNG có nghĩa là chắc chắn không ngập.",
+   "llm": false,
+   "radar_events": [
+    "2019-10-16",
+    "2020-10-28",
+    "2024-09-19",
+    "2026-05-31",
+    "2026-10-10"
+   ]
+  },
+  {
+   "plot": "hoan_lao",
+   "question": "q3_nam_2025",
+   "checks": {
+    "year_events:2025": true
+   },
+   "answer": "Năm 2025, radar Sentinel-1 chưa thấy đợt nước phủ nào trên thửa (radar có ảnh của thửa từ 11/1/2017). Radar chụp 6–12 ngày một lần nên có thể lọt đợt ngập ngắn — chưa thấy KHÔNG có nghĩa là chắc chắn không ngập.",
+   "llm": false,
+   "radar_events": [
+    "2019-10-16",
+    "2020-10-28",
+    "2024-09-19",
+    "2026-05-31",
+    "2026-10-10"
+   ]
+  },
+  {
+   "plot": "hoan_lao",
+   "question": "q4_dau_tu",
+   "checks": {
+    "no_advice": true,
+    "no_minimize": true
+   },
+   "answer": "Vị trí (17.6118, 106.5026) có:\n\n- Điểm nền đất khi mua 58/100, có rủi ro; nên thương lượng giá và kiểm tra kỹ.\n- Dự báo 7 ngày tới: ít nguy cơ ngập (chỉ số 33.1) và đủ ẩm (đỉnh 7.1 %); hiểm họa thiên tai 7 ngày thấp.\n- Không nằm trong vùng xâm nhập mặn nông nghiệp.\n- Mưa dự báo 7 ngày tổng 93 mm, ngày mưa nhiều nhất 30 mm (25/11).\n- Lịch sử radar Sentinel‑1 cho thấy thửa đã từng có nước phủ 5 đợt từ 2017, gần nhất 10/10/2026 (phủ 10–25 % thửa). \n- ERA5 ghi nhận 33 đợt điều kiện thời tiết có thể gây ngập trong 10 năm (gần nhất 10/11/2026) và 13 đợt điều kiện khô hạn (gần nhất 25/06/2026).\n\nTóm lại, thửa đất có rủi ro về nền đất, đã từng có nước phủ trong quá khứ, nhưng trong 7 ngày tới dự báo nguy cơ ngập thấp và đủ ẩm. Bạn nên kiểm tra kỹ hồ sơ pháp lý, hỏi hàng xóm, UBND xã và xem quy hoạch địa phương trước khi quyết định đầu tư.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [
+    "2019-10-16",
+    "2020-10-28",
+    "2024-09-19",
+    "2026-05-31",
+    "2026-10-10"
+   ]
+  },
+  {
+   "plot": "hoan_lao",
+   "question": "q5_mua_7_ngay",
+   "checks": {
+    "rain_mm": true
+   },
+   "answer": "Trong 7 ngày tới, lượng mưa dự báo ở vị trí (17.6118, 106.5026) là khoảng 93 mm.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [
+    "2019-10-16",
+    "2020-10-28",
+    "2024-09-19",
+    "2026-05-31",
+    "2026-10-10"
+   ]
+  },
+  {
+   "plot": "hoan_lao",
+   "question": "q6_mua_kho_toi",
+   "checks": {
+    "long_range_refusal": true
+   },
+   "answer": "TerraTwin không có dự báo dài hạn, vì vậy không thể xác định mùa khô năm tới có hạn nặng hay không.\n\nTerraTwin chỉ có dự báo 7 ngày tới; không có dự báo cho cả mùa hay các tháng sau.",
+   "llm": true,
+   "radar_events": [
+    "2019-10-16",
+    "2020-10-28",
+    "2024-09-19",
+    "2026-05-31",
+    "2026-10-10"
+   ]
+  },
+  {
+   "plot": "hoan_lao",
+   "question": "q7_hom_nay",
+   "checks": {
+    "no_present_claim": true
+   },
+   "answer": "Dữ liệu radar Sentinel‑1 chỉ ghi nhận lần cuối thấy nước phủ thửa vào ngày 10/10/2026; không có quan sát nào gần ngày hôm nay. Vì không có dữ liệu radar hiện thời, không thể khẳng định ruộng đang ngập hay không. Vì vậy câu trả lời hiện tại là chưa đủ thông tin để xác định ruộng có đang ngập hay không.",
+   "llm": true,
+   "radar_events": [
+    "2019-10-16",
+    "2020-10-28",
+    "2024-09-19",
+    "2026-05-31",
+    "2026-10-10"
+   ]
+  },
+  {
+   "plot": "bmt",
+   "question": "q1_hay_lu",
+   "checks": {
+    "radar_count": true,
+    "no_minimize": true
+   },
+   "answer": "Theo radar Sentinel‑1, thửa đất này chưa từng có nước phủ trong 0 đợt từ 2017. Theo chỉ số thời tiết ERA5, trong 10 năm đã có 5 đợt thời tiết vượt ngưỡng gây ngập, phần lớn vào tháng 11, gần nhất vào ngày 06‑11‑2025. Vì vậy, lịch sử cho thấy thửa đất không thường xuyên bị lũ, nhưng có một số đợt thời tiết có khả năng gây ngập trong quá khứ. Bạn nên kiểm tra thêm thông tin địa phương (hỏi hàng xóm, UBND xã) để có đánh giá chi tiết hơn.",
+   "llm": true,
+   "radar_events": []
+  },
+  {
+   "plot": "bmt",
+   "question": "q2_nam_2021",
+   "checks": {
+    "year_events:2021": true
+   },
+   "answer": "Năm 2021, radar Sentinel-1 chưa thấy đợt nước phủ nào trên thửa (radar có ảnh của thửa từ 6/1/2017). Radar chụp 6–12 ngày một lần nên có thể lọt đợt ngập ngắn — chưa thấy KHÔNG có nghĩa là chắc chắn không ngập.",
+   "llm": false,
+   "radar_events": []
+  },
+  {
+   "plot": "bmt",
+   "question": "q3_nam_2025",
+   "checks": {
+    "year_events:2025": true
+   },
+   "answer": "Năm 2025, radar Sentinel-1 chưa thấy đợt nước phủ nào trên thửa (radar có ảnh của thửa từ 6/1/2017). Radar chụp 6–12 ngày một lần nên có thể lọt đợt ngập ngắn — chưa thấy KHÔNG có nghĩa là chắc chắn không ngập.",
+   "llm": false,
+   "radar_events": []
+  },
+  {
+   "plot": "bmt",
+   "question": "q4_dau_tu",
+   "checks": {
+    "no_advice": true,
+    "no_minimize": true
+   },
+   "answer": "Đánh giá theo dữ liệu hiện có:\n\n- Điểm nền đất khi mua 96/100, khuyến nghị an toàn để mua/đầu tư.  \n- Cảnh báo lũ/ngập trong 7 ngày tới: ít nguy cơ ngập (chỉ số 23.3).  \n- Cảnh báo hạn & thiếu nước trong 7 ngày tới: đủ ẩm, không cần can thiệp.  \n- Cảnh báo xâm nhập mặn: vị trí này nằm ngoài vùng xâm nhập mặn nông nghiệp.  \n- Mưa dự báo 7 ngày tới tổng 18 mm, ngày mưa lớn nhất 28/11 là 11 mm.  \n- TerraScore 100/100, nguy cơ thiên tai trong 7 ngày tới thấp.  \n\nLịch sử: radar Sentinel‑1 ghi nhận 0 đợt nước phủ thửa từ 2017 (không đủ để khẳng định không ngập), ERA5 cho 5 đợt điều kiện thời tiết có thể gây ngập trong 10 năm (gần nhất 2025‑11‑06) và 20 đợt điều kiện khô hạn (gần nhất 2026‑05‑13).\n\nKết luận: Dữ liệu hiện tại cho thấy mảnh đất này có tiềm năng đầu tư tốt, nhưng nên tự kiểm tra thêm với hàng xóm, UBND xã hoặc cơ quan quy hoạch để xác nhận lịch sử ngập và các yếu tố pháp lý khác.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": []
+  },
+  {
+   "plot": "bmt",
+   "question": "q5_mua_7_ngay",
+   "checks": {
+    "rain_mm": true
+   },
+   "answer": "Trong 7 ngày tới, dự báo tổng lượng mưa ở vị trí (12.7300, 108.0500) là khoảng 18 mm.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": []
+  },
+  {
+   "plot": "bmt",
+   "question": "q6_mua_kho_toi",
+   "checks": {
+    "long_range_refusal": true
+   },
+   "answer": "TerraTwin hiện chưa có dự báo cho mùa khô năm tới; chỉ có dự báo 7 ngày và dữ liệu hiện tại cho thấy không có hạn nặng trong khoảng thời gian ngắn này. Vì vậy chưa thể khẳng định mùa khô năm tới sẽ có hạn nặng hay không. Bạn nên tham khảo thêm thông tin từ cơ quan địa phương hoặc các nguồn dự báo khí hậu dài hạn.\n\nTerraTwin chỉ có dự báo 7 ngày tới; không có dự báo cho cả mùa hay các tháng sau.",
+   "llm": true,
+   "radar_events": []
+  },
+  {
+   "plot": "bmt",
+   "question": "q7_hom_nay",
+   "checks": {
+    "no_present_claim": true
+   },
+   "answer": "Dữ liệu hiện có không cho biết có nước phủ thửa vào hôm nay; radar Sentinel‑1 ghi nhận 0 đợt nước từ 2017, nhưng tần suất chụp chưa đủ để khẳng định không có nước. Vì vậy, dựa trên thông tin hiện có, chưa thể xác định ruộng đang ngập hay không.",
+   "llm": true,
+   "radar_events": []
+  },
+  {
+   "plot": "phan_rang",
+   "question": "q1_hay_lu",
+   "checks": {
+    "radar_count": false,
+    "no_minimize": true
+   },
+   "answer": "Thửa này đã từng có nước phủ thửa 5 đợt (18/6/2018, 5/8/2018, 4/10/2018, 9/2/2022, 23/9/2026), mỗi lần phủ khoảng 10–25 % diện tích. Trong 10 năm, chỉ số thời tiết ERA5 cho thấy 6 đợt vượt ngưỡng gây nguy cơ ngập, cao điểm vào tháng 11, gần nhất 20/11/2022. Vì vậy, thửa đất này đã có lịch sử ngập và có một số điều kiện thời tiết thuận lợi cho lũ, nhưng không phải là khu vực có tần suất ngập cao. Bạn nên kiểm tra thêm thông tin địa phương (hỏi hàng xóm, UBND xã, quy hoạch) để đánh giá rủi ro chi tiết.",
+   "llm": true,
+   "radar_events": [
+    "2018-06-18",
+    "2018-08-05",
+    "2018-10-04",
+    "2022-02-09",
+    "2026-09-23"
+   ]
+  },
+  {
+   "plot": "phan_rang",
+   "question": "q2_nam_2021",
+   "checks": {
+    "year_events:2021": true
+   },
+   "answer": "Năm 2021, radar Sentinel-1 chưa thấy đợt nước phủ nào trên thửa (radar có ảnh của thửa từ 6/1/2017). Radar chụp 6–12 ngày một lần nên có thể lọt đợt ngập ngắn — chưa thấy KHÔNG có nghĩa là chắc chắn không ngập.",
+   "llm": false,
+   "radar_events": [
+    "2018-06-18",
+    "2018-08-05",
+    "2018-10-04",
+    "2022-02-09",
+    "2026-09-23"
+   ]
+  },
+  {
+   "plot": "phan_rang",
+   "question": "q3_nam_2025",
+   "checks": {
+    "year_events:2025": true
+   },
+   "answer": "Năm 2025, radar Sentinel-1 chưa thấy đợt nước phủ nào trên thửa (radar có ảnh của thửa từ 6/1/2017). Radar chụp 6–12 ngày một lần nên có thể lọt đợt ngập ngắn — chưa thấy KHÔNG có nghĩa là chắc chắn không ngập.",
+   "llm": false,
+   "radar_events": [
+    "2018-06-18",
+    "2018-08-05",
+    "2018-10-04",
+    "2022-02-09",
+    "2026-09-23"
+   ]
+  },
+  {
+   "plot": "phan_rang",
+   "question": "q4_dau_tu",
+   "checks": {
+    "no_advice": true,
+    "no_minimize": true
+   },
+   "answer": "Nền đất tại tọa độ (11.5600, 108.9300) có điểm 63/100, được đánh giá có rủi ro; khuyến nghị thương lượng giá và kiểm tra kỹ khi mua.\n\nLịch sử ngập: radar Sentinel‑1 đã quan sát nước phủ thửa 5 đợt (18/6/2018, 5/8/2018, 4/10/2018, 9/2/2022, 23/9/2026), mỗi đợt phủ 10‑25 % thửa. Vì đã từng có nước phủ, thửa đã từng có dấu hiệu ngập, nhưng không thể khẳng định mức độ ngập hay tác động lâu dài chỉ dựa trên dữ liệu này.\n\nCảnh báo lũ/ngập trong 7 ngày tới: chỉ số 39,7 → “ít nguy cơ ngập”. Cảnh báo hạn trong 7 ngày tới: đủ ẩm, đỉnh 10,9 % → không cần can thiệp. Cảnh báo xâm nhập mặn: ngoài vùng xâm nhập mặn nông nghiệp nhưng do gần biển, nước lợ/mặn tự nhiên có thể xuất hiện; cần xem xét các biện pháp phòng ngừa nếu có kế hoạch trồng cây nhạy cảm với mặn.\n\nMưa dự báo 7 ngày: tổng 55 mm, ngày mưa lớn nhất 28/11 là 22 mm. TerraScore 100/100, nguy cơ thiên tai 7 ngày tới thấp.\n\nTóm lại, thửa đất có một số rủi ro: nền đất không hoàn hảo, đã từng có nước phủ 5 đợt (10‑25 % thửa), và có khả năng tiếp xúc với nước lợ/mặn tự nhiên. Tuy nhiên, trong 7 ngày tới dự báo ít nguy cơ ngập, đủ ẩm và nguy cơ thiên tai thấp. Bạn nên kiểm tra thêm: giấy tờ quyền sử dụng đất, quy hoạch địa phương, ý kiến hàng xóm và UBND xã để đánh giá toàn diện trước khi quyết định đầu tư.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [
+    "2018-06-18",
+    "2018-08-05",
+    "2018-10-04",
+    "2022-02-09",
+    "2026-09-23"
+   ]
+  },
+  {
+   "plot": "phan_rang",
+   "question": "q5_mua_7_ngay",
+   "checks": {
+    "rain_mm": true
+   },
+   "answer": "(Trợ lý AI đang bận — đây là số đo của thửa, chưa qua diễn giải.)\nTerraScore 100/100 (hạng A). Hiểm hoạ thiên tai 7 ngày tới: thấp. (chấm từ 4/5 hiểm họa có dữ liệu thật)\n- Cảnh báo xâm nhập mặn (ƯỚC LƯỢNG chưa hiệu chỉnh, 7 ngày): Ngoài vùng xâm nhập mặn nông nghiệp — sát biển nên nước lợ/mặn tự nhiên | Khuyến nghị: Dùng các mô-đun Lũ/Ngập, Hạn hoặc Rủi ro mua đất cho vị trí này.\n- Cảnh báo hạn & thiếu nước (dữ liệu thật, dự báo 7 ngày): Đủ ẩm trong 7 ngày — đỉnh 10.9% | Khuyến nghị: Chưa cần can thiệp.\n- Cảnh báo lũ/ngập sớm (dữ liệu thật, dự báo 7 ngày): Ít nguy cơ ngập (chỉ số 39.7) | Khuyến nghị: Chưa cần hành động.\n- Mưa dự báo 7 ngày tới (dữ liệu thật): tổng 55 mm; ngày mưa nhiều nhất 28/11: 22 mm.\n- TerraScore: 100/100 (hạng A) — Hiểm hoạ thiên tai 7 ngày tới: thấp. (chấm từ 4/5 hiểm họa có dữ liệu thật)\nLịch sử tại đây (radar Sentinel-1 = nước quan sát được; ERA5 = chỉ số thời tiết 10 năm):\n- Nước phủ thửa đo bằng radar Sentinel-1 (quan sát thật): 5 đợt từ 2017, gần nhất 2026-09-23.\n- Từng đợt nước radar thấy (ngày, mức phủ thửa): 18/6/2018 (phủ 10–25% thửa); 5/8/2018 (phủ 10–25% thửa); 4/10/2018 (phủ 10–25% thửa); 9/2/2022 (phủ 10–25% thửa); 23/9/2026 (phủ 10–25% thửa).\n- khô hạn (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 23 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 4, gần nhất 2026-08-26.\n- mưa lớn dễ gây ngập (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 6 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 11, gần nhất 2022-11-20.",
+   "llm": false,
+   "radar_events": [
+    "2018-06-18",
+    "2018-08-05",
+    "2018-10-04",
+    "2022-02-09",
+    "2026-09-23"
+   ]
+  },
+  {
+   "plot": "phan_rang",
+   "question": "q6_mua_kho_toi",
+   "checks": {
+    "long_range_refusal": true
+   },
+   "answer": "Dựa trên dự báo 7 ngày tới, độ ẩm được đánh giá là “đủ ẩm” và mức độ hiểm họa thiên tai trong 7 ngày là thấp, nên trong khoảng thời gian ngắn này không có dấu hiệu hạn nặng. Tuy nhiên TerraTwin không cung cấp dự báo dài hạn cho mùa khô của năm tới; vì vậy hiện chưa thể khẳng định mùa khô năm tới sẽ có hạn nặng hay không. Bạn nên tham khảo thêm nguồn dự báo mùa vụ của cơ quan khí tượng hoặc hỏi ý kiến địa phương để có thông tin chi tiết hơn.\n\nTerraTwin chỉ có dự báo 7 ngày tới; không có dự báo cho cả mùa hay các tháng sau.",
+   "llm": true,
+   "radar_events": [
+    "2018-06-18",
+    "2018-08-05",
+    "2018-10-04",
+    "2022-02-09",
+    "2026-09-23"
+   ]
+  },
+  {
+   "plot": "phan_rang",
+   "question": "q7_hom_nay",
+   "checks": {
+    "no_present_claim": true
+   },
+   "answer": "Dữ liệu hiện có chỉ ghi nhận các đợt nước quan sát được bằng radar Sentinel-1 trong quá khứ và các điều kiện thời tiết ERA5 có thể gây ngập; không có thông tin quan sát hiện tại cho ngày hôm nay. Vì vậy, chưa đủ dữ liệu để xác định ruộng có đang ngập hay không.",
+   "llm": true,
+   "radar_events": [
+    "2018-06-18",
+    "2018-08-05",
+    "2018-10-04",
+    "2022-02-09",
+    "2026-09-23"
+   ]
+  }
+ ]
+}
