@@ -219,3 +219,34 @@ def asks_buy(question: str) -> bool:
     """Hỏi có nên mua / đầu tư không — TerraTwin không khuyên mua hay không mua."""
     w = " ".join(_words(question))
     return any(k in w for k in ("nen mua", "co mua", "mua khong", "dau tu", "should i buy", "worth buying", "buy this"))
+
+
+_BAY_GIO = ("bay gio", "hien tai", "hom nay", "luc nay", "dang ngap", "dang bi", "right now", "currently", "today")
+_SAP_TOI = ("tuan toi", "7 ngay", "bay ngay", "ngay toi", "may ngay", "sap toi", "ngay mai", "tuan nay", "du bao",
+            "next week", "next 7 days", "coming days", "tomorrow", "forecast")
+
+
+def asks_flood_history(question: str) -> bool:
+    """"Thửa này từng ngập chưa?", "Đất này có hay bị lũ không?" — hỏi LỊCH SỬ nước (không năm cụ thể, không hiện tại, không
+    dự báo). Trả lời được CHẮC CHẮN từ danh sách đợt radar (nâng cấp 24/11/2026: bớt phụ thuộc LLM gói miễn phí)."""
+    w = " ".join(_words(question))
+    if not any(k in w for k in ("ngap", "lut", "lu ", "nuoc phu", "flood")) and not w.endswith(" lu"):
+        return False
+    if any(k in w for k in _BAY_GIO + _SAP_TOI) or asks_long_range(question):
+        return False
+    return any(k in w for k in ("tung", "bao gio", "hay bi", "hay ngap", "may lan", "lich su", "thuong", "co hay",
+                                "nhieu khong", "ever", "history", "how often", "often"))
+
+
+def asks_rain_week(question: str) -> bool:
+    """"Tuần tới có mưa lớn không?", "Mưa 7 ngày tới bao nhiêu?" — trả lời thẳng từ mưa dự báo 7 ngày."""
+    w = " ".join(_words(question))
+    return ("mua" in w.split() or "rain" in w) and any(k in w for k in _SAP_TOI) and not asks_long_range(question)
+
+
+def asks_present_water(question: str) -> bool:
+    """"Bây giờ ruộng có đang ngập không?" — hỏi HIỆN TRẠNG nước. TerraTwin không quan sát trực tiếp; trả lời bằng ảnh radar
+    gần nhất (ngày chụp, có thấy nước không) thay vì để LLM đoán (từng khẳng định "hiện tại không ngập")."""
+    w = " ".join(_words(question))
+    return (any(k in w for k in ("ngap", "lut", "nuoc", "flood", "water")) and any(k in w for k in _BAY_GIO)
+            and not any(k in w for k in ("tuan toi", "7 ngay", "ngay mai", "next week", "tomorrow")))

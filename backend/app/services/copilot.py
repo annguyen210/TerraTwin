@@ -8,6 +8,7 @@ tự nhiên.
 from __future__ import annotations
 
 import logging
+from datetime import date
 
 from app.schemas import Assessment, CopilotAnswer, KnowledgeCitation, Location
 from app.services import llm
@@ -416,6 +417,65 @@ def _year_answer(year: int, radar: dict) -> str:
               "Radar revisits every 6–12 days and can miss short floods — none seen does NOT prove it did not flood.")
 
 
+def _cover(e: dict) -> str:
+    return tr(f" (phủ {e['cover']} thửa)", f" (covering {e['cover']} of the plot)") if e.get("cover") else ""
+
+
+def _history_answer(radar: dict, urban_note: str | None) -> str:
+    """"Thửa này từng ngập chưa?" trả lời CHẮC CHẮN từ danh sách đợt radar (nâng cấp 24/11/2026)."""
+    first = (radar.get("first") or "")[:10]
+    evs = radar.get("events") or []
+    since = _d(first) if first else "2017"
+    if evs:
+        ds = "; ".join(_d(e["start"]) + ("" if (e.get("end") or e["start"]) == e["start"] else "–" + _d(e["end"])) + _cover(e)
+                       for e in evs[-12:])
+        more = tr(f" (và {len(evs) - 12} đợt cũ hơn)", f" (and {len(evs) - 12} earlier)") if len(evs) > 12 else ""
+        return tr(f"Có. Từ {since}, radar Sentinel-1 (nhìn xuyên mây) thấy nước phủ thửa {len(evs)} đợt: {ds}{more}. "
+                  "Đây là số đo radar, không phải số liệu ngập chính thức; radar chụp 6–12 ngày một lần nên có thể lọt đợt "
+                  "ngắn. Hỏi hàng xóm xem nước lên cao bao nhiêu, mấy ngày thì rút; xem từng đợt ở tab Hồ sơ → Lịch sử nước.",
+                  f"Yes. Since {first or '2017'}, Sentinel-1 radar (sees through clouds) saw water over the plot {len(evs)} "
+                  f"time(s): {ds}{more}. This is a radar measurement, not official flood records; radar revisits every "
+                  "6–12 days and can miss short floods. Ask neighbours how high the water rose and how long it stayed; see "
+                  "each episode under Dossier → Water history.")
+    base = tr(f"Từ {since}, radar Sentinel-1 chưa thấy đợt nước phủ nào trên thửa. Chưa thấy KHÔNG có nghĩa là chắc chắn "
+              "không ngập: radar chụp 6–12 ngày một lần nên có thể lọt đợt ngắn — hỏi thêm người dân hoặc UBND xã.",
+              f"Since {first or '2017'}, Sentinel-1 radar has seen no water episode over the plot. None seen does NOT prove it "
+              "never floods: radar revisits every 6–12 days and can miss short floods — ask residents or the commune office.")
+    return base + (" " + urban_note if urban_note else "")
+
+
+def _present_answer(radar: dict) -> str:
+    """"Bây giờ có đang ngập không?" — TerraTwin không quan sát trực tiếp; nói đúng ảnh radar gần nhất cho thấy gì."""
+    last = (radar.get("last") or "")[:10]
+    evs = radar.get("events") or []
+    if not last:
+        return tr("TerraTwin không quan sát trực tiếp thửa lúc này và chưa có ảnh radar gần đây — hỏi người ở đó.",
+                  "TerraTwin does not observe the plot live and has no recent radar image — ask someone there.")
+    wet = any((e.get("end") or e["start"]) >= last for e in evs)
+    seen = (tr("THẤY nước phủ thửa", "SAW water over the plot") if wet else tr("không thấy nước phủ thửa", "saw no water over the plot"))
+    return tr(f"TerraTwin không quan sát trực tiếp lúc này. Ảnh radar Sentinel-1 gần nhất của thửa chụp ngày {_d(last)} {seen}; "
+              "radar chụp lại 6–12 ngày một lần nên tình hình hôm nay có thể đã khác. Xem dự báo 7 ngày ở tab Canh đất, và hỏi "
+              "người ở đó nếu cần biết ngay.",
+              f"TerraTwin does not observe the plot live. The latest Sentinel-1 radar image of the plot, taken {last}, {seen}; "
+              "radar revisits every 6–12 days so today may differ. See the 7-day outlook under Watch, and ask someone there if "
+              "you need to know right now.")
+
+
+def _rain_answer(w7: list[dict]) -> str:
+    """"Tuần tới có mưa lớn không?" trả lời thẳng từ mưa dự báo 7 ngày (dữ liệu thật)."""
+    total = sum(d["precip"] for d in w7)
+    top = max(w7, key=lambda d: d["precip"])
+    day = f"{int(top['date'][8:10])}/{int(top['date'][5:7])}"
+    rainy = [f"{int(d['date'][8:10])}/{int(d['date'][5:7])}" for d in w7 if d["precip"] >= 20]
+    lead = (tr(f"Có — mưa dự báo 7 ngày tới tổng khoảng {total:.0f} mm; ngày mưa nhiều nhất {day}: {top['precip']:.0f} mm",
+               f"Yes — forecast rain over the next 7 days is about {total:.0f} mm in total; wettest day {day}: {top['precip']:.0f} mm")
+            if top["precip"] >= 20 or total >= 50 else
+            tr(f"Không thấy mưa lớn — mưa dự báo 7 ngày tới tổng khoảng {total:.0f} mm; ngày nhiều nhất {day}: {top['precip']:.0f} mm",
+               f"No heavy rain expected — forecast rain over the next 7 days is about {total:.0f} mm; wettest day {day}: {top['precip']:.0f} mm"))
+    days = tr(f" (các ngày từ 20 mm trở lên: {', '.join(rainy)})", f" (days with 20 mm or more: {', '.join(rainy)})") if rainy else ""
+    return lead + days + tr(". Dự báo có sai số — bản tin chính thức: nchmf.gov.vn.", ". Forecasts carry error — official bulletins: nchmf.gov.vn.")
+
+
 def answer(question: str, loc: Location) -> CopilotAnswer:
     from app.modules.registry import get_module
     from app.services import terrascore
@@ -433,6 +493,52 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
         if (radar or {}).get("available"):
             return CopilotAnswer(answer=_year_answer(year, radar), used_modules=["water_history"], llm=False,
                                  knowledge_used=[])
+
+    # Nâng cấp 24/11/2026: hai loại câu hay gặp nhất trả lời thẳng từ số đo — tức thì, đúng số, không tốn lượt LLM gói miễn
+    # phí (bộ chấm v2: 12/35 câu rơi về luật vì bị chặn hạn mức).
+    from app.services.copilot_route import asks_flood_history, asks_rain_week
+    if asks_flood_history(question):
+        try:
+            from app.services import water_history
+            radar = water_history.summary(loc.lat, loc.lon)
+        except Exception:
+            radar = None
+        if (radar or {}).get("available"):
+            un = None
+            if not radar.get("events"):
+                try:
+                    u = water_history.urban(loc.lat, loc.lon)
+                    un = u.get("note") if u else None
+                except Exception:
+                    un = None
+            return CopilotAnswer(answer=_history_answer(radar, un), used_modules=["water_history"], llm=False,
+                                 knowledge_used=[])
+    from app.services.copilot_route import asks_present_water
+    if asks_present_water(question):
+        try:
+            from app.services import water_history
+            radar = water_history.summary(loc.lat, loc.lon)
+        except Exception:
+            radar = None
+        if (radar or {}).get("available"):
+            return CopilotAnswer(answer=_present_answer(radar), used_modules=["water_history"], llm=False, knowledge_used=[])
+    if asks_rain_week(question):
+        try:
+            from app.services import realdata
+            w7 = realdata.weather_7d(loc.lat, loc.lon)
+        except Exception:
+            w7 = None
+        if w7:
+            return CopilotAnswer(answer=_rain_answer(w7), used_modules=["weather_7d"], llm=False, knowledge_used=[])
+
+    # Câu trả lời LLM giữ 3 giờ theo (câu hỏi đã chuẩn hoá, thửa, ngày, ngôn ngữ): cùng câu cùng thửa không gọi LLM lần nữa.
+    from app.services import cache_store
+    from app.services.copilot_route import fold as _fold
+    akey = cache_store.make_key("copilot-ans", 1, reqlang.cur_lang(), " ".join(_fold(question).split()),
+                                round(loc.lat, 3), round(loc.lon, 3), date.today().isoformat())
+    hit = cache_store.get(akey)
+    if hit:
+        return CopilotAnswer(**hit)
 
     routes = _route(question)
     facts = []
@@ -512,8 +618,9 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
         except Exception:
             radar = None
         text = _han_che(text, question, assessed, radar if (radar or {}).get("available") else None)
-        return CopilotAnswer(answer=text, used_modules=routes,
-                             llm=True, knowledge_used=cites)
+        out = CopilotAnswer(answer=text, used_modules=routes, llm=True, knowledge_used=cites)
+        cache_store.put(akey, out.model_dump(), ttl_seconds=3 * 3600)
+        return out
 
     # Bộ chấm 24/11/2026: khi LLM bị chặn hạn mức, người dùng từng nhận "[Trợ lý rule-based. Đặt TERRATWIN_LLM_API_KEY…]"
     # — lời nhắn cho lập trình viên. Nay: câu trả lời thẳng cho loại câu hỏi đã biết, rồi số đo nguyên văn. Lời nhắn cấu

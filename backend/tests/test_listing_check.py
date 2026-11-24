@@ -261,3 +261,17 @@ def test_doi_chieu_khoang_cach_ghi_voi_so_do(typ, quote, ev, verdict):
     assert v == verdict
     if lc.stated_km(typ, quote) is not None:
         assert msg.startswith("Tin ghi")
+
+
+# Nâng cấp 24/11/2026: "nước ngọt / không nhiễm mặn" trước đây LUÔN "không đủ dữ liệu".
+@pytest.mark.parametrize("ev,verdict,co", [
+    ({"coast_km": 12.4, "salinity_zone": "Đồng bằng sông Cửu Long"}, "insufficient", "vùng xâm nhập mặn"),
+    ({"coast_km": 54.4, "salinity_zone": None}, "consistent", "Ngoài vùng xâm nhập mặn"),
+    ({"coast_km": 8.0, "salinity_zone": None}, "insufficient", "có thể lợ"),
+    ({}, "insufficient", "Chưa có số đo độ mặn"),
+])
+def test_nuoc_ngot_theo_vung_man_va_khoang_cach_bien(ev, verdict, co):
+    from app.services import listing_check as lc, reqlang
+    reqlang.set_lang("vi")
+    v, msg, _ = lc.judge("fresh_water", ev, "nước ngọt quanh năm")
+    assert v == verdict and co in msg

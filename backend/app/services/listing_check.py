@@ -258,8 +258,10 @@ def evidence(lat: float, lon: float, types: set[str]) -> dict:
             ev["terrain"] = passport.terrain(lat, lon)
         except Exception:               # noqa: BLE001
             ev["terrain"] = None
-    if "near_sea" in types:
+    if types & {"near_sea", "fresh_water"}:
         ev["coast_km"] = ds.distance_to_coast_km(lat, lon)
+    if "fresh_water" in types:
+        ev["salinity_zone"] = ds.salinity_zone(lat, lon)
     if "near_river" in types:
         try:
             ev["river_km"] = _nearest_river_km(lat, lon)
@@ -402,6 +404,27 @@ def _judge(typ: str, ev: dict) -> tuple[str, str, str]:
         return "insufficient", tr("Loại đất PHÁP LÝ (thổ cư, đất ở) chỉ có trên giấy chứng nhận — ảnh vệ tinh không kiểm được. Hãy xem sổ đỏ và tra quy hoạch.",
                                   "LEGAL land category (residential) is only on the land certificate — satellites can't verify it. Check the certificate and zoning."), ""
     if typ == "fresh_water":
+        # Nâng cấp 24/11/2026: trước đây LUÔN "không đủ dữ liệu". Xâm nhập mặn từ biển kiểm được theo vùng + khoảng cách biển;
+        # chất lượng nước giếng (phèn, sắt, mặn ngầm) thì vẫn phải thử tại chỗ — nói rõ cả hai.
+        km, zone = ev.get("coast_km"), ev.get("salinity_zone")
+        if zone:
+            return "insufficient", tr(
+                f"Thửa nằm trong vùng xâm nhập mặn nông nghiệp {zone} (cách biển khoảng {km:.0f} km). Mùa khô (tháng 2–4) "
+                "mặn có thể vào kênh rạch, nặng nhất các năm 2016, 2020 — \"nước ngọt quanh năm\" phải kiểm bằng máy đo độ mặn "
+                "vào mùa khô và hỏi người dân các năm hạn mặn.",
+                f"The plot is inside the {zone} agricultural salinity zone (about {km:.0f} km from the sea). In the dry season "
+                "(Feb–Apr) salt water can enter the canals, worst in 2016 and 2020 — \"fresh water all year\" must be checked with "
+                "a salinity meter in the dry season and by asking residents about drought years."), tr("vùng mặn TerraTwin · đường bờ biển xấp xỉ", "TerraTwin salinity zones · approximate coastline")
+        if km is not None and km >= 30:
+            return "consistent", tr(
+                f"Ngoài vùng xâm nhập mặn nông nghiệp, cách biển khoảng {km:.0f} km — mặn từ biển khó vào tới đây. Chất lượng "
+                "nước giếng (phèn, sắt, nhiễm bẩn) vẫn cần thử tại chỗ.",
+                f"Outside the agricultural salinity zones, about {km:.0f} km from the sea — sea water is unlikely to reach here. "
+                "Well-water quality (alum, iron, contamination) still needs an on-site test."), tr("vùng mặn TerraTwin · đường bờ biển xấp xỉ", "TerraTwin salinity zones · approximate coastline")
+        if km is not None:
+            return "insufficient", tr(
+                f"Cách biển khoảng {km:.0f} km — nước giếng ven biển có thể lợ. Thử nước giếng thực tế, nhất là mùa khô.",
+                f"About {km:.0f} km from the sea — coastal well water can be brackish. Test the well water, especially in the dry season."), tr("đường bờ biển xấp xỉ", "approximate coastline")
         return "insufficient", tr("Chưa có số đo độ mặn tại chỗ — TerraTwin chỉ có ước lượng mô hình, không đủ để xác nhận \"nước ngọt\". Thử nước giếng thực tế.",
                                   "No on-site salinity measurement — TerraTwin only has a model estimate, not enough to confirm \"fresh water\". Test the well water."), ""
     return "insufficient", "", ""

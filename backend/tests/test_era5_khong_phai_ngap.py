@@ -140,3 +140,53 @@ def test_so_dot_nuoc_luon_gan_nguon_radar():
     assert "5 đợt (radar Sentinel-1 nhìn xuyên mây)" in t
     t2 = copilot._han_che("Radar Sentinel-1 thấy 5 đợt nước.", "Đất này có hay bị lũ không?", {}, {"n_events": 5})
     assert t2.count("radar") == 1 or t2.lower().count("radar") == 1
+
+
+def test_cau_hay_gap_tra_loi_bang_so_do_khong_can_llm(gia, monkeypatch):
+    """Nâng cấp 24/11/2026: "từng ngập chưa", "tuần tới có mưa lớn không" trả lời thẳng từ số đo — không tốn lượt LLM."""
+    from app.services import copilot, llm, realdata, water_history
+    from app.schemas import Location
+    evs = [{"start": "2018-07-22", "end": "2018-07-22", "cover": "≥50%"}, {"start": "2024-09-12", "end": "2024-09-12", "cover": "≥50%"}]
+    monkeypatch.setattr(water_history, "summary", lambda lat, lon: {**WATER, "n_events": 2, "events": evs})
+    monkeypatch.setattr(llm, "complete", lambda *a, **k: (_ for _ in ()).throw(AssertionError("không được gọi LLM")))
+    rows = [{"day": i, "date": f"2026-11-{25 + i:02d}" if 25 + i <= 30 else f"2026-12-{25 + i - 30:02d}", "precip": p, "et0": 3.0, "tmax": 30.0}
+            for i, p in enumerate([2.0, 35.5, 60.0, 12.0, 0.0, 0.0, 1.0])]
+    monkeypatch.setattr(realdata, "weather_7d", lambda lat, lon: rows)
+    loc = Location(lat=20.9716, lon=106.2834)
+    a = copilot.answer("Thửa này từng ngập chưa?", loc)
+    assert a.llm is False and a.answer.startswith("Có. Từ 1/1/2017, radar Sentinel-1") and "12/9/2024 (phủ ≥50% thửa)" in a.answer
+    r = copilot.answer("Tuần tới ở đây có mưa lớn không?", loc).answer
+    assert r.startswith("Có — mưa dự báo 7 ngày tới tổng khoảng 110 mm") and "27/11: 60 mm" in r and "26/11, 27/11" in r
+    monkeypatch.setattr(water_history, "summary", lambda lat, lon: {**WATER, "n_events": 0, "events": []})
+    monkeypatch.setattr(water_history, "urban", lambda lat, lon: {"note": "Khu đô thị: radar không thấy ngập giữa nhà cửa."})
+    z = copilot.answer("Đất này có hay bị lũ không?", loc).answer
+    assert "chưa thấy đợt nước phủ nào" in z and "Khu đô thị" in z
+
+
+def test_cau_tra_loi_llm_duoc_nho_dem(gia, monkeypatch):
+    from app.services import cache_store, copilot, llm
+    from app.schemas import Location
+    kho, goi = {}, {"n": 0}
+    monkeypatch.setattr(cache_store, "get", lambda k: kho.get(k))
+    monkeypatch.setattr(cache_store, "put", lambda k, v, ttl_seconds=None: kho.__setitem__(k, v))
+
+    def fake(*a, **k):
+        goi["n"] += 1
+        return "Trong 7 ngày tới ít nguy cơ ngập."
+    monkeypatch.setattr(llm, "complete", fake)
+    monkeypatch.setattr(copilot, "_route", lambda q: [])
+    loc = Location(lat=20.9716, lon=106.2834)
+    a1 = copilot.answer("Đất này trồng lúa có ổn không?", loc)
+    a2 = copilot.answer("đất này  trồng lúa có ổn không?", loc)
+    assert a1.answer == a2.answer and goi["n"] == 1
+
+
+def test_hien_trang_tra_bang_anh_radar_gan_nhat(gia, monkeypatch):
+    from app.services import copilot, copilot_route as cr, llm, water_history
+    from app.schemas import Location
+    assert cr.asks_present_water("Bây giờ thửa có đang ngập không?") and not cr.asks_present_water("Tuần tới có ngập không?")
+    monkeypatch.setattr(llm, "complete", lambda *a, **k: (_ for _ in ()).throw(AssertionError("không được gọi LLM")))
+    monkeypatch.setattr(water_history, "summary", lambda lat, lon: {**WATER, "last": "2026-11-21",
+                        "events": [{"start": "2025-10-01", "end": "2025-10-01", "cover": "≥50%"}]})
+    a = copilot.answer("Hôm nay ruộng có đang ngập không?", Location(lat=20.9716, lon=106.2834)).answer
+    assert "21/11/2026 không thấy nước phủ thửa" in a and "không quan sát trực tiếp" in a and "hiện tại không ngập" not in a
