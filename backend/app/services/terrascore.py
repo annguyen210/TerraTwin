@@ -48,6 +48,7 @@ def compute(
     breakdown: dict[str, int] = {}
     used = 0
     hazard_alerts: list[dict] = []
+    estimate_alerts: list[dict] = []
     for hid in _HAZARDS:
         a = (assessments or {}).get(hid)
         if a is None:
@@ -56,6 +57,9 @@ def compute(
                 continue
             a = module.assess(loc)
         if not a.is_real:
+            # Ước lượng chưa hiệu chỉnh KHÔNG vào điểm — nhưng đang ở mức cảnh báo thì ghi riêng (kiểm A–Z 24/11/2026).
+            if a.status == "ok" and a.risk_level in ("danger", "warning"):
+                estimate_alerts.append({"id": hid, "name": a.module_name, "risk_level": a.risk_level})
             continue  # bỏ qua hiểm họa mock/ước lượng chưa hiệu chỉnh
         p = _PEN.get(a.risk_level, 0)
         penalty += p
@@ -87,6 +91,10 @@ def compute(
         # lịch sử điểm) — chỉ câu chữ không được nói "thấp" khi có một hiểm hoạ đang cảnh báo.
         names = ", ".join(h["name"][:1].lower() + h["name"][1:] for h in hazard_alerts)
         grade, summary = "A", tr(f"Hiểm hoạ 7 ngày tới: có mối cần để ý — {names}.", f"Next 7 days: something to watch — {names}.")
+    elif score >= 80 and estimate_alerts:
+        names = ", ".join(h["name"][:1].lower() + h["name"][1:] for h in estimate_alerts)
+        grade, summary = "A", tr(f"Hiểm hoạ 7 ngày tới theo dữ liệu đo: thấp; ước lượng mô hình (chưa hiệu chỉnh) báo cần để ý — {names}.",
+                                 f"Next 7 days on measured data: low; an uncalibrated model estimate flags — {names}.")
     elif score >= 80:
         grade, summary = "A", tr("Hiểm hoạ thiên tai 7 ngày tới: thấp.", "Natural hazards over the next 7 days: low.")
     elif score >= 60:
@@ -101,6 +109,7 @@ def compute(
     return TerraScoreResult(
         location=loc, score=score, grade=grade, summary=summary,
         breakdown=breakdown, real_data_ratio=ratio, scope=scope, hazard_alerts=hazard_alerts,
+        estimate_alerts=estimate_alerts,
     )
 
 

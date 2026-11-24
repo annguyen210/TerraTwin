@@ -17,6 +17,7 @@ TERRATWIN_RADAR_INTERVAL_H=0 và dùng cron ngoài gọi /api/radar/run.
 """
 from __future__ import annotations
 
+import threading
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
@@ -24,7 +25,7 @@ from sqlalchemy.orm import Session
 
 from app.db import Alert, Job, NotifyChannel, Plot, User
 from app.schemas import Location
-from app.services import jobs_db, notify, verify
+from app.services import jobs_db, notify, terrascore, verify
 from app.services.reqlang import tr
 
 # Cùng (thửa, mô-đun) chỉ báo lại khi mức rủi ro TĂNG (warning → danger), hoặc
@@ -33,6 +34,20 @@ from app.services.reqlang import tr
 # 2 lần/ngày — mỗi lần là một tin đẩy/email cho cùng một sự việc cũ.
 DEDUP_HOURS = 72
 _RISK_RANK = {"warning": 1, "danger": 2}
+
+# Kiểm A–Z 24/11/2026: (1) cùng một cảnh báo ghi HAI lần trong cùng một giây (17/11 20:59:24 Bảo Lộc, 20:58:10 Lai Châu) —
+# hai lượt rà soát của CÙNG người dùng chạy chồng nhau (lịch nền + nút "Quét lại ngay"), cả hai hỏi "đã báo chưa" trước
+# khi lượt kia ghi xong. Khoá theo người dùng: lượt sau chờ lượt trước xong rồi mới đọc. (2) Lai Châu báo lại đúng câu
+# "NDVI 0.5857 …, ảnh ngày 2026-10-19" năm lần trong năm tuần — cùng MỘT ảnh vệ tinh. Câu y hệt trong SAME_TEXT_DAYS
+# ngày thì không báo lại; quan sát mới (ảnh ngày khác, số khác) vẫn báo.
+SAME_TEXT_DAYS = 30
+_USER_LOCKS: dict[int, threading.Lock] = {}
+_USER_LOCKS_GUARD = threading.Lock()
+
+
+def _user_lock(user_id: int) -> threading.Lock:
+    with _USER_LOCKS_GUARD:
+        return _USER_LOCKS.setdefault(user_id, threading.Lock())
 
 
 def _forecast_source(lat: float, lon: float) -> str | None:
@@ -51,6 +66,11 @@ def sweep_user(user_id: int, db: Session, on_progress=None) -> dict:
 
     `on_progress(done, total, current_name)` — gọi trước mỗi thửa và khi xong,
     để việc chạy nền (radar_run) báo tiến độ ra giao diện."""
+    with _user_lock(user_id):
+        return _sweep_user(user_id, db, on_progress)
+
+
+def _sweep_user(user_id: int, db: Session, on_progress=None) -> dict:
     from app.services import scan as scan_svc
 
     plots = db.execute(
@@ -62,6 +82,8 @@ def sweep_user(user_id: int, db: Session, on_progress=None) -> dict:
 
     since = (datetime.now(timezone.utc).replace(tzinfo=None)
              - timedelta(hours=DEDUP_HOURS))
+    same_since = (datetime.now(timezone.utc).replace(tzinfo=None)
+                  - timedelta(days=SAME_TEXT_DAYS))
 
     # U01 — đưa cảnh báo ra khỏi phần mềm. Gửi hỏng không được làm hỏng lượt quét.
     #
@@ -121,9 +143,19 @@ def sweep_user(user_id: int, db: Session, on_progress=None) -> dict:
             if recent and _RISK_RANK.get(m.risk_level, 0) <= max(
                     _RISK_RANK.get(lv, 0) for lv in recent):
                 continue
+            head = f"{p.name}: {m.headline}"
+            # Chỉ mối QUAN SÁT / CỐ ĐỊNH (ảnh vệ tinh đã chụp, mỏ cách 2 km): cùng câu = cùng sự việc. Mối DỰ BÁO vẫn nhắc
+            # lại sau DEDUP_HOURS dù chữ giống — rủi ro còn đó thì người dùng cần được nhắc.
+            same = None if terrascore.threat_kind(m.id) in ("weather", "forecast") else db.execute(
+                select(Alert.id).where(
+                    Alert.user_id == user_id, Alert.plot_id == p.id, Alert.module_id == m.id,
+                    Alert.headline == head, Alert.created_at >= same_since).limit(1)
+            ).first()
+            if same is not None:
+                continue
             a = Alert(user_id=user_id, plot_id=p.id, module_id=m.id,
                       risk_level=m.risk_level,
-                      headline=f"{p.name}: {m.headline}",
+                      headline=head,
                       recommendation=m.recommendation, forecast_source=fsrc)
             db.add(a)
             created.append(a)

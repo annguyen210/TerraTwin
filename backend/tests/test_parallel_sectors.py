@@ -253,6 +253,10 @@ def test_duong_cong_dong_chay_scs():
 def test_urban_do_duoc_be_tong_hoa(fake_osm, monkeypatch):
     from app.modules.registry import get_module
     from app.services import datasources as ds
+    from app.services import landuse
+
+    # 24/11/2026: tỉ lệ bê tông ưu tiên WorldCover (số ổn định); ca này đo nhánh WorldCover KHÔNG đọc được → % theo OSM.
+    monkeypatch.setattr(landuse, "composition", lambda la, lo, radius_m=None: None)
 
     fake_osm["elements"] = [_way({"building": "yes"}, _square(10.0, 106.0, 60))
                             for _ in range(300)]

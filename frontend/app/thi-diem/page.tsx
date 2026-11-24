@@ -187,7 +187,7 @@ function PaperForm() {
       <h2>Bạn thấy công cụ làm hồ sơ vườn thế nào?</h2>
       <p className="pk-small">Không cần ghi tên. Khoanh hoặc đánh dấu vào ô.</p>
       <div className="pk-q"><p>1. Bạn là:</p><p><Box /> Nông hộ <Box /> Cán bộ HTX <Box /> Đơn vị xuất khẩu <Box /> Khác</p></div>
-      <div className="pk-q"><p>2. Huyện, tỉnh (không bắt buộc): <span className="pk-line" /></p></div>
+      <div className="pk-q"><p>2. Xã/phường, tỉnh (không bắt buộc): <span className="pk-line" /></p></div>
       <div className="pk-q"><p>3. Dễ dùng không? (1 = rất khó, 5 = rất dễ)</p><Scale /></div>
       <div className="pk-q"><p>4. Bạn tin kết quả sàng lọc không? (1 = không tin, 5 = rất tin)</p><Scale /></div>
       <div className="pk-q"><p>5. Làm xong một hồ sơ mất khoảng bao nhiêu phút? <span className="pk-line pk-short" /></p></div>
@@ -263,7 +263,7 @@ function OnlineForm() {
           <input type="number" min={0} max={600} inputMode="numeric" value={f.minutes ?? ""}
             onChange={(e) => set("minutes", e.target.value === "" ? null : Math.max(0, Math.min(600, Number(e.target.value))))} />
         </label>
-        <label className="pk-field">{t("Huyện, tỉnh (không bắt buộc)", "District, province (optional)")}
+        <label className="pk-field">{t("Xã/phường, tỉnh (không bắt buộc)", "Commune/ward, province (optional)")}
           <input type="text" maxLength={80} value={f.region} onChange={(e) => set("region", e.target.value)} />
         </label>
         <label className="pk-field">{t("Điều cần sửa nhất", "What most needs fixing")}

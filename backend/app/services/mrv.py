@@ -64,6 +64,18 @@ def _round(x, n=2):
     return round(float(x), n)
 
 
+def _show(x, vi: bool = True) -> str:
+    """Số HIỂN THỊ trên tiêu đề: 3 chữ số có nghĩa — Tier 1 sai số ±50%, "16339.85 tCO₂" là độ chính xác giả (kiểm
+    24/11/2026). Số đầy đủ vẫn nằm trong `estimated` (đã băm), chỉ câu chữ làm tròn."""
+    v = float(x)
+    if v == 0:
+        return "0"
+    from math import floor, log10
+    r = round(v, -int(floor(log10(abs(v)))) + 2)
+    txt = f"{r:,.0f}" if abs(r) >= 100 else f"{r:g}"
+    return txt.replace(",", ".") if vi else txt
+
+
 def build(lat: float, lon: float, buffer_m: float = 600.0,
           agb_t_ha: float | None = None,
           project_name: str = "") -> dict:
@@ -183,14 +195,14 @@ def build(lat: float, lon: float, buffer_m: float = 600.0,
     if is_forest:
         head = tr(
             f"Che phủ tán {measured['canopy_pct']}% trên {frame_vi} "
-            f"(≈{forest_ha} ha có rừng). Trữ lượng ước tính "
-            f"{estimated['stock_tco2']} tCO₂ "
-            f"(dải {estimated['stock_tco2_low']}–{estimated['stock_tco2_high']}, "
+            f"(≈{round(forest_ha, 1):g} ha có tán cây). Trữ lượng ước tính khoảng "
+            f"{_show(estimated['stock_tco2'])} tCO₂ "
+            f"(dải {_show(estimated['stock_tco2_low'])}–{_show(estimated['stock_tco2_high'])}, "
             f"{estimated['tier_label']}).",
             f"Canopy cover {measured['canopy_pct']}% over {frame_en} "
-            f"(≈{forest_ha} ha forested). Estimated stock "
-            f"{estimated['stock_tco2']} tCO₂ "
-            f"(range {estimated['stock_tco2_low']}–{estimated['stock_tco2_high']}, "
+            f"(≈{round(forest_ha, 1):g} ha under tree canopy). Estimated stock about "
+            f"{_show(estimated['stock_tco2'], False)} tCO₂ "
+            f"(range {_show(estimated['stock_tco2_low'], False)}–{_show(estimated['stock_tco2_high'], False)}, "
             f"{estimated['tier_label']}).")
     else:
         head = tr(

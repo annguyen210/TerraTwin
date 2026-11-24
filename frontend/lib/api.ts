@@ -126,6 +126,8 @@ export type TerraScore = { scope?: string;
   // Kiểm A–Z lần 3: mối quan sát/cố định (dòng riêng) + hiểm hoạ thời tiết đang cảnh báo (thẻ không được "yên").
   observed_threats?: { id: string; name: string; risk_level: string; kind: string; headline: string }[];
   hazard_alerts?: { id: string; name: string; risk_level: string }[];
+  // Hiểm hoạ chỉ có ƯỚC LƯỢNG chưa hiệu chỉnh (mặn) đang ở mức cảnh báo — không vào điểm (kiểm A–Z 24/11/2026).
+  estimate_alerts?: { id: string; name: string; risk_level: string }[];
 };
 
 export type BacktestEvent = {
@@ -2277,6 +2279,9 @@ export type TapQuestion = {
   outcome: string | null;
   why: string;
   token?: string;
+  plot_id?: number | null;     // chỉ có ở /api/questions (đã đăng nhập) — để trang thửa lọc câu của đúng thửa
+  plot_lat?: number | null;
+  plot_lon?: number | null;
 };
 export type TapResult = {
   already: boolean;

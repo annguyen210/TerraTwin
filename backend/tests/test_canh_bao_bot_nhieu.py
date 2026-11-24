@@ -78,3 +78,19 @@ def test_pond_doc_ma_mat_nuoc_worldcover(monkeypatch):
     assert water_history.pond(1.0, 2.0) == {"water_pct": 40.0}
     monkeypatch.setattr(landuse, "fetch_raw", lambda la, lo, r: None)
     assert water_history.pond(1.0, 2.0) is None
+
+
+def test_ty_le_be_tong_luon_theo_worldcover_du_overpass_tra_loi(monkeypatch):
+    """Kiểm A–Z 24/11/2026: cùng thửa Hội An hôm "bê tông 24,0%" (Overpass trả lời → % theo nhà OSM vẽ được), hôm "55,3%"
+    (Overpass im → WorldCover). Tỉ lệ bê tông LUÔN theo WorldCover; OSM chỉ còn để đếm công trình, đường."""
+    _wc(monkeypatch, 55.3)
+    monkeypatch.setattr(osm, "built_environment", lambda *a, **k: {
+        "built_fraction": 0.24, "built_pct": 24.0, "buildings": 812, "road_density_km_per_km2": 9.1,
+        "landuse_ha": {}, "area_ha": 314.2, "completeness": "tốt", "completeness_note": "",
+        "source": "OpenStreetMap qua Overpass API"})
+    monkeypatch.setattr(ds, "forecast_precip_7d_total", lambda la, lo: (249.8, True))
+    monkeypatch.setattr(ds, "elevation_proxy", lambda la, lo: 3.0)
+    a = get_module("urban").assess(Location(lat=15.879, lon=108.335))
+    assert a.headline.startswith("Bê tông hoá 55.3% trong bán kính 1 km")
+    assert a.metrics["be_tong_hoa_pct"] == 55.3 and a.metrics["cong_trinh"] == 812.0
+    assert a.data_sources[0].startswith("ESA WorldCover")

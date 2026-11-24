@@ -54,3 +54,31 @@ def test_lich_su_null_thi_noi_ly_do(monkeypatch):
     monkeypatch.setattr(cache_store, "put", lambda k, v, ttl_seconds: None)
     d = passport.build(20.9716, 106.2834)
     assert d["history"] is None and "hết lượt" in d["history_note"]
+
+
+def test_tro_ly_co_tung_dot_nuoc_de_tra_loi_theo_nam(gia, monkeypatch):
+    """Kiểm A–Z 24/11/2026: hỏi "Ruộng này năm 2024 có bị ngập không?" → trợ lý trả "không có dữ liệu" vì ngữ cảnh chỉ có
+    số đợt + đợt gần nhất (2025), dù radar thấy 26/7 và 12/9/2024 (bão Yagi). Ngữ cảnh phải có TỪNG đợt kèm mức phủ."""
+    from app.services import copilot, water_history
+    from app.schemas import Location
+    evs = [{"start": "2018-07-22", "end": "2018-07-22", "cover": "≥50%"},
+           {"start": "2024-07-26", "end": "2024-07-26", "cover": "10–25%"},
+           {"start": "2024-09-12", "end": "2024-09-24", "cover": "≥50%"}]
+    monkeypatch.setattr(water_history, "summary", lambda lat, lon: {**WATER, "n_events": 3, "events": evs})
+    facts = copilot._history_facts(Location(lat=20.9716, lon=106.2834), ["flood"])
+    assert "26/7/2024 (phủ 10–25% thửa)" in facts and "12/9/2024–24/9/2024 (phủ ≥50% thửa)" in facts
+    sysp = copilot._system()
+    assert "KHÔNG khuyên" in sysp and "'nhẹ'" in sysp
+
+
+def test_tom_tat_luu_tung_dot_tu_bo_nho_dem(monkeypatch):
+    from app.services import cache_store, flood_season, water_history
+    monkeypatch.setattr(flood_season, "season_cached", lambda lat, lon: None)
+    hit = {"available": True, "first": "2017-01-01", "last": "2026-11-01",
+           "events": [{"start": "2024-09-12", "end": "2024-09-24", "peak_cover": "≥50%"},
+                      {"start": "2018-07-22", "end": "2018-07-22", "peak_cover": "25–50%"}]}
+    monkeypatch.setattr(cache_store, "get", lambda k: hit)
+    s = water_history.summary(20.9716, 106.2834)
+    assert s["n_events"] == 2 and s["last_event"] == "2024-09-12"
+    assert [e["start"] for e in s["events"]] == ["2018-07-22", "2024-09-12"]
+    assert s["events"][1] == {"start": "2024-09-12", "end": "2024-09-24", "cover": "≥50%"}

@@ -68,6 +68,7 @@ const LABELS: Record<string, [string, string]> = {
   chenh_cao_m: ["Chênh cao (m)", "Relief (m)"],
   // urban
   be_tong_hoa_pct: ["Bê tông hoá (%)", "Built-up (%)"],
+  be_mat_xay_dung_pct: ["Bề mặt xây dựng quanh điểm (%)", "Built surface around the point (%)"],
   cong_trinh: ["Công trình", "Buildings"],
   mat_do_duong_km_km2: ["Mật độ đường (km/km²)", "Road density (km/km²)"],
   mang_xanh_pct: ["Mảng xanh (%)", "Green space (%)"],

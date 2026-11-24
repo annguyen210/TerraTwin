@@ -186,3 +186,54 @@ def test_luu_thua_ghi_gio_cham_va_tra_ve_api():
         assert r["scored_at"] is not None and r["grade"] == "A"
         r2 = c.post("/api/plots", json={"name": "Chưa chấm", "location": {"lat": 20.98, "lon": 106.29}}, headers=h).json()
         assert r2["scored_at"] is None and r2["grade"] is None
+
+
+# ---------------------------------------------------------------- kiểm A–Z 24/11/2026
+
+def test_quan_sat_cung_anh_khong_bao_lai_sau_72h(db, monkeypatch):
+    """Lai Châu: "NDVI 0.5857 … ảnh ngày 2026-10-19" báo lại 5 lần trong 5 tuần — cùng MỘT ảnh. Mối quan sát cùng câu thì
+    không báo lại trong 30 ngày; mối dự báo (test_qua_72h_thi_nhac_lai) vẫn nhắc sau 72 h."""
+    from app.db import Alert
+    Session, _ = db
+    _fake_scan(monkeypatch, {"pest": "warning"})
+    assert _sweep(db)["new_alerts"] == 1
+    with Session() as s:
+        old = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=73)
+        for a in s.query(Alert).all():
+            a.created_at = old
+        s.commit()
+    assert _sweep(db)["new_alerts"] == 0, "cùng ảnh, cùng câu → không báo lại"
+    with Session() as s:
+        old = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=31)
+        for a in s.query(Alert).all():
+            a.created_at = old
+        s.commit()
+    assert _sweep(db)["new_alerts"] == 1, "quá 30 ngày thì nhắc lại"
+
+
+def test_hai_luot_ra_soat_chong_nhau_khong_ghi_trung(db, monkeypatch):
+    """17/11 20:59:24: cùng cảnh báo ghi HAI lần trong cùng một giây — hai lượt rà soát của cùng người dùng chạy chồng."""
+    import threading
+    from app.db import Alert
+    from app.services import scan as scan_svc
+    Session, _ = db
+    _fake_scan(monkeypatch, {"flood": "warning"})
+    inner = scan_svc.scan
+    gate = threading.Barrier(2, timeout=5)
+
+    def slow(loc, include_heavy=False, deadline=None):
+        try:
+            gate.wait()                     # không khoá: cả hai lượt cùng tới đây rồi mới hỏi "đã báo chưa"
+        except threading.BrokenBarrierError:
+            pass                            # có khoá: lượt sau không tới được đây khi lượt trước còn chạy
+        return inner(loc, include_heavy, deadline)
+    monkeypatch.setattr(scan_svc, "scan", slow)
+    out = []
+    ts = [threading.Thread(target=lambda: out.append(_sweep(db)["new_alerts"])) for _ in range(2)]
+    for t in ts:
+        t.start()
+    for t in ts:
+        t.join(30)
+    assert sorted(out) == [0, 1]
+    with Session() as s:
+        assert s.query(Alert).count() == 1

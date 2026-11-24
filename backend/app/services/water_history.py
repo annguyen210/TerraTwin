@@ -453,7 +453,11 @@ def summary(lat: float, lon: float) -> dict:
         return {**base, "cached": True, "available": False}
     ev = hit.get("events") or []
     out = {**base, "cached": True, "available": True, "n_events": len(ev), "first": hit.get("first"),
-           "last": hit.get("last"), "last_event": max((e["start"] for e in ev), default=None)}
+           "last": hit.get("last"), "last_event": max((e["start"] for e in ev), default=None),
+           # Kiểm 24/11/2026: trợ lý chỉ biết số đợt + đợt gần nhất nên hỏi "năm 2024 có ngập không" trả "không có dữ liệu"
+           # dù radar thấy 26/7 và 12/9/2024 — kèm từng đợt (ngày, mức phủ thửa).
+           "events": [{"start": e["start"], "end": e.get("end") or e["start"], "cover": e.get("peak_cover")}
+                      for e in sorted(ev, key=lambda e: e["start"])]}
     s = fs.season_cached(lat, lon) if ev and fs.gate_passed() else None
     if s:
         n_in = sum(1 for e in ev if fs.label(e["start"], s) == "in")

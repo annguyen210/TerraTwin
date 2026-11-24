@@ -80,18 +80,17 @@ class UrbanModule(TwinModule):
 
     def assess(self, loc: Location) -> Assessment:
         env = osm.built_environment(loc.lat, loc.lon, radius_m=1000.0)
-        wc = None
-        if env is None:
-            # DỰ PHÒNG: Overpass công cộng rất chậm từ máy chủ đám mây (đo trên Render
-            # 10/2026: 60–170 giây rồi vẫn không có). Tỉ lệ bê tông hoá — đầu vào chính
-            # của phép tính chảy tràn — lấy được từ bản đồ phủ đất ESA WorldCover 10 m
-            # (lớp "Bề mặt xây dựng"). Không đếm được công trình/đường thì NÓI RÕ.
-            from app.services import landuse
-            wc = landuse.composition(loc.lat, loc.lon, radius_m=1000.0)
-            if wc is not None:
-                gp = wc["group_pct"]
-                env = {"built_fraction": gp.get("built", 0.0) / 100.0,
-                       "built_pct": round(gp.get("built", 0.0), 1), "source": wc["source"]}
+        # Tỉ lệ bê tông hoá — đầu vào chính của phép tính chảy tràn — LUÔN lấy từ ESA WorldCover 10 m (lớp "Bề mặt xây
+        # dựng", gồm cả đường, sân bãi). Kiểm A–Z 24/11/2026: cùng thửa Hội An hôm thì "bê tông 24,0%" (Overpass trả lời →
+        # % theo nhà OSM vẽ được), hôm thì "55,3%" (Overpass không trả lời → WorldCover) — số nhảy theo tình trạng một dịch
+        # vụ công cộng. OSM (khi có) chỉ còn dùng để ĐẾM công trình, mật độ đường.
+        from app.services import landuse
+        wc = landuse.composition(loc.lat, loc.lon, radius_m=1000.0)
+        wc_only = env is None
+        if wc is not None:
+            gp = wc["group_pct"]
+            built = {"built_fraction": gp.get("built", 0.0) / 100.0, "built_pct": round(gp.get("built", 0.0), 1)}
+            env = {**built, "source": wc["source"]} if env is None else {**env, **built, "built_source": wc["source"]}
         if env is None:
             return need_data_assessment(
                 self, loc,
@@ -181,7 +180,7 @@ class UrbanModule(TwinModule):
 
         rain_src = (tr("Mưa dự báo 7 ngày tới (thật)", "7-day rain forecast (real)")
                     if has_rain else tr("Mưa: chưa lấy được", "Rain: not yet available"))
-        if wc is not None:
+        if wc_only:
             return Assessment(
                 module_id=self.id, module_name=self.disp_name(), location=loc, status="ok",
                 risk_level=lvl, headline=head, score=round(score, 1),
@@ -230,7 +229,7 @@ class UrbanModule(TwinModule):
                      "chay_tran_mm": round(q_now, 1),
                      "chay_tran_tu_nhien_mm": round(q_natural, 1),
                      "cao_do_m": elev},
-            data_sources=[env["source"],
+            data_sources=[x for x in (env.get("built_source"), env["source"]) if x] + [
                           tr("Open-Meteo: mưa dự báo 7 ngày tới", "Open-Meteo: 7-day rain forecast")
                           if has_rain else tr("Mưa: chưa lấy được", "Rain: not yet available"),
                           "SCS Curve Number (USDA-NRCS TR-55)"])

@@ -88,6 +88,17 @@ init_db()
 
 
 @pytest.fixture(autouse=True)
+def _khong_doc_worldcover_khu_nha_cua(monkeypatch, request):
+    """Sâu bệnh / năng suất / carbon hỏi WorldCover "có phải khu nhà cửa không" (kiểm 24/11/2026) — trong test mặc định
+    là KHÔNG (như khi không đọc được WorldCover), để test các mô-đun đó không gọi Planetary Computer thật. Test nào cần
+    nhánh khu nhà cửa thì tự monkeypatch `group_a._built_up` hoặc đánh dấu `doc_worldcover_that`."""
+    if "doc_worldcover_that" in request.keywords:
+        return
+    from app.modules import group_a
+    monkeypatch.setattr(group_a, "_built_up", lambda loc: None)
+
+
+@pytest.fixture(autouse=True)
 def _khong_goi_overpass_that(monkeypatch, request):
     """Chặn mọi lời gọi Overpass THẬT trong test.
 

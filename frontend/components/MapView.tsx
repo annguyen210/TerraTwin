@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import maplibregl from "@/lib/maplibre";
+import maplibregl, { trackReady, whenStyleReady } from "@/lib/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useLang } from "@/lib/i18n";
 import { autoBoundary } from "@/lib/api";
@@ -154,6 +154,7 @@ export default function MapView({
       // nhưng KHÔNG bao giờ hiện tile lỗi.
       maxZoom: 19,
     });
+    trackReady(map);
     map.addControl(new maplibregl.NavigationControl(), "top-right");
     map.on("load", () => {
       // Lớp bản đồ nhiệt nằm DƯỚI các lớp vẽ tay để không che điểm người dùng chọn.
@@ -234,8 +235,7 @@ export default function MapView({
         })),
       } as any);
     };
-    if (map.isStyleLoaded()) draw();
-    else map.once("load", draw);
+    whenStyleReady(map, draw);
   }, [heat]);
 
   // GĐ2 — lớp radar: ảnh xám VV + mặt nạ nước, đặt DƯỚI khung thửa và lớp vẽ tay.
@@ -253,14 +253,17 @@ export default function MapView({
       map.addSource("s1-water", { type: "raster", tiles: [radar.water_tiles], tileSize: 256, maxzoom: 14 });
       map.addLayer({ id: "s1-water", type: "raster", source: "s1-water", paint: { "raster-opacity": 0.9 } }, before);
     };
-    if (map.isStyleLoaded()) apply();
-    else map.once("load", apply);
+    whenStyleReady(map, apply);
   }, [radar]);
 
   // Vẽ khung ô vừa phân tích.
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !map.isStyleLoaded()) return;
+    if (!map) return;
+    whenStyleReady(map, () => drawPlot(map));
+  }, [plot]);
+
+  function drawPlot(map: maplibregl.Map) {
     const src = map.getSource("plot") as maplibregl.GeoJSONSource | undefined;
     if (!src) return;
     if (!plot) {
@@ -288,7 +291,7 @@ export default function MapView({
         },
       }],
     });
-  }, [plot]);
+  }
 
   // Bay tới nơi vừa tìm/vị trí — ZOOM SÂU tới mức thấy TỪNG THỬA (z16, ~0.6 m/px)
   // để người dùng nhận ra đúng thửa của mình, không dừng ở mức cả thị trấn.

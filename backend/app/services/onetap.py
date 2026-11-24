@@ -268,5 +268,12 @@ def pending_questions(db: Session, user_id: int, limit: int = 5) -> list[dict]:
         q = question(a, db)
         q["token"] = make_token(a.id)
         q["ask_value"] = score      # công khai điểm để đo học-chủ-động vs ngẫu nhiên
+        # Kiểm A–Z 24/11/2026: khối "câu hỏi cho bạn" trong trang MỘT thửa hiện cả câu về thửa khác ("đang xem Ba Tri, hỏi
+        # Hội An — Bạn ở trên thửa"). Kèm toạ độ thửa để giao diện chỉ hiện câu của đúng thửa đang xem. Chỉ ở đây (đã đăng
+        # nhập, của chính người dùng) — không đưa vào question(), thứ dùng cho trang /tap công khai qua mã.
+        plot = db.get(Plot, a.plot_id) if a.plot_id is not None else None
+        q["plot_id"] = a.plot_id
+        q["plot_lat"] = round(plot.lat, 5) if plot is not None else None
+        q["plot_lon"] = round(plot.lon, 5) if plot is not None else None
         out.append(q)
     return out

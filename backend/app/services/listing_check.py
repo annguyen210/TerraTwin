@@ -98,6 +98,78 @@ def _strip_disclaimers(f: str) -> str:
     return _DISCLAIM.sub(" ", f)
 
 
+# Kiểm A–Z 24/11/2026: "cách sông 50m" đo được 430 m vẫn chấm KHỚP, "cách biển 2km" đo được 12 km chỉ "không đủ dữ liệu" —
+# vì luật chỉ xét "gần" chung chung, bỏ qua CON SỐ người bán ghi. Đọc khoảng cách ghi trong vế câu (số + km/m/mét, gần chữ
+# sông/kênh/biển nhất; bỏ số đi sau chữ bề rộng đường, mặt tiền, diện tích; bỏ m2/m²) rồi so với số đo.
+_DIST = re.compile(r"(\d+(?:[.,]\d+)?)\s?(km|met|m)\b(?![²2])")
+_DIST_NOT = re.compile(r"(rong|ngang|mat tien|dien tich|lo gioi|dai|duong|hem|ngo|cao)\s*$")
+_DIST_KEY = {"near_river": re.compile(r"\b(song|kenh|rach|muong|ben do)\b"),
+             "near_sea": re.compile(r"\b(bien|bai tam|vinh)\b")}
+
+
+def stated_km(typ: str, sentence: str) -> float | None:
+    """Khoảng cách (km) người bán GHI trong vế câu — None nếu không ghi số (vd "gần sông", "5 phút ra biển")."""
+    key = _DIST_KEY.get(typ)
+    if key is None or not sentence:
+        return None
+    f = fold(sentence)
+    keys = [m.start() for m in key.finditer(f)]
+    best = None
+    for m in _DIST.finditer(f):
+        if _DIST_NOT.search(f[max(0, m.start() - 14):m.start()]):
+            continue
+        gap = min((abs(m.start() - k) for k in keys), default=None)
+        if gap is None or gap > 40:
+            continue
+        num = m.group(1)
+        # "1,5km" / "1.5km" = 1,5; "1.200m" = 1.200 (dấu chấm phân nghìn kiểu Việt khi đúng 3 chữ số sau dấu)
+        whole, _sep, frac = num.replace(",", ".").partition(".")
+        v = float(whole + frac) if len(frac) == 3 and m.group(2) != "km" else float(num.replace(",", "."))
+        km = v if m.group(2) == "km" else v / 1000.0
+        if km <= 0 or km > 200:
+            continue
+        if best is None or gap < best[0]:
+            best = (gap, km)
+    return best[1] if best else None
+
+
+def _fmt_dist(km: float) -> str:
+    return f"{round(km * 1000 / 10) * 10:.0f} m" if km < 1 else f"{km:.1f} km".replace(".0 km", " km")
+
+
+def _judge_stated(typ: str, said: float, ev: dict) -> tuple[str, str, str] | None:
+    """Đối chiếu khoảng cách GHI trong tin với số đo. None = không đo được → để luật chung xử lý."""
+    if typ == "near_sea":
+        km = ev.get("coast_km")
+        if km is None:
+            return None
+        src = tr("đường bờ biển xấp xỉ", "approximate coastline")
+        if km <= said + max(1.5, 0.5 * said):
+            return "consistent", tr(f"Tin ghi cách biển {_fmt_dist(said)}; đo được khoảng {_fmt_dist(km)} tới bờ biển gần nhất.",
+                                    f"The listing says {_fmt_dist(said)} from the sea; measured about {_fmt_dist(km)} to the nearest coast."), src
+        if km >= 2 * said + 3:
+            return "contradicted", tr(f"Tin ghi cách biển {_fmt_dist(said)}, nhưng bờ biển gần nhất cách khoảng {_fmt_dist(km)}.",
+                                      f"The listing says {_fmt_dist(said)} from the sea, but the nearest coast is about {_fmt_dist(km)} away."), src
+        return "insufficient", tr(f"Tin ghi cách biển {_fmt_dist(said)}; đo được khoảng {_fmt_dist(km)} — lệch, nhưng đường bờ biển chỉ xấp xỉ.",
+                                  f"The listing says {_fmt_dist(said)} from the sea; measured about {_fmt_dist(km)} — off, but the coastline is approximate."), src
+    km = ev.get("river_km")                                     # near_river
+    if km is None:
+        return None
+    gap_note = tr(" Kênh, rạch nhỏ có thể chưa có trên OpenStreetMap — hãy tự ra xem.",
+                  " Small canals may be missing from OpenStreetMap — go and look.")
+    if km == float("inf"):
+        return "contradicted", tr(f"Tin ghi cách sông/kênh {_fmt_dist(said)}, nhưng OpenStreetMap không có sông/kênh nào trong 3 km.",
+                                  f"The listing says {_fmt_dist(said)} from a river/canal, but OpenStreetMap has none within 3 km.") + gap_note, "OpenStreetMap"
+    if km <= said + max(0.15, 0.5 * said):
+        return "consistent", tr(f"Tin ghi cách sông/kênh {_fmt_dist(said)}; sông/kênh gần nhất cách khoảng {_fmt_dist(km)}.",
+                                f"The listing says {_fmt_dist(said)} from a river/canal; the nearest is about {_fmt_dist(km)} away."), "OpenStreetMap"
+    if km >= 3 * said + 0.5:
+        return "contradicted", tr(f"Tin ghi cách sông/kênh {_fmt_dist(said)}, nhưng sông/kênh gần nhất trên bản đồ cách khoảng {_fmt_dist(km)}.",
+                                  f"The listing says {_fmt_dist(said)} from a river/canal, but the nearest mapped one is about {_fmt_dist(km)} away.") + gap_note, "OpenStreetMap"
+    return "insufficient", tr(f"Tin ghi cách sông/kênh {_fmt_dist(said)}; sông/kênh gần nhất trên bản đồ cách khoảng {_fmt_dist(km)}.",
+                              f"The listing says {_fmt_dist(said)} from a river/canal; the nearest mapped one is about {_fmt_dist(km)} away.") + gap_note, "OpenStreetMap"
+
+
 def sentences(text: str) -> list[str]:
     parts = re.split(r"(?<=[.!?;\n])\s+|\n+|[•\-–]\s+", text)
     return [p.strip(" .;!?") for p in parts if p and len(p.strip()) >= 3]
@@ -107,7 +179,8 @@ def clauses(sentence: str) -> list[str]:
     """Vế câu: tách theo dấu phẩy, chấm phẩy, hai chấm, ngoặc, gạch nối có khoảng trắng — và trước cụm giá không có dấu
     ngăn ("…không bao giờ ngập lụt chỉ 5tr/m2", tin thật Sịa 2/11/2026: đoạn trích dính cả giá). Chỉ đổi ĐOẠN TRÍCH;
     loại câu vẫn dò trên cả câu như cũ."""
-    parts = re.split(r"\s*[,;:()]\s*|\s+[-–—]\s+|\s+(?=(?:chỉ|giá|chi|gia)\s+\d)", sentence, flags=re.I)
+    # Dấu phẩy GIỮA hai chữ số là dấu thập phân ("cách sông 1,2km"), không phải chỗ ngắt vế (kiểm 24/11/2026).
+    parts = re.split(r"\s*(?:(?<!\d),(?!\d)|[;:()])\s*|\s+[-–—]\s+|\s+(?=(?:chỉ|giá|chi|gia)\s+\d)", sentence, flags=re.I)
     return [p.strip(" .!?") for p in parts if p and len(p.strip()) >= 2]
 
 
@@ -195,11 +268,15 @@ def evidence(lat: float, lon: float, types: set[str]) -> dict:
     return ev
 
 
-def judge(typ: str, ev: dict) -> tuple[str, str, str]:
+def judge(typ: str, ev: dict, sentence: str = "") -> tuple[str, str, str]:
     """(verdict, bằng chứng, nguồn). verdict ∈ consistent | contradicted | insufficient.
 
     Khu đô thị (17/10/2026): radar không thấy ngập giữa nhà cửa → "không ngập"/"cao ráo" KHÔNG BAO GIỜ được chấm Khớp
     ở đó — hạ xuống Không đủ dữ liệu kèm lý do. Radar mà VẪN thấy nước (có đợt) thì "mâu thuẫn" vẫn đúng."""
+    said = stated_km(typ, sentence) if typ in _DIST_KEY else None
+    hit = _judge_stated(typ, said, ev) if said is not None else None
+    if hit is not None:
+        return hit
     v, msg, src = _judge(typ, ev)
     u = ev.get("urban") or ev.get("canopy")          # radar mù: giữa nhà cửa, dưới tán cây dày
     crop = ev.get("cropland")
@@ -383,7 +460,7 @@ def check(text: str, lat: float, lon: float) -> dict:
     on_water = region.inland_water(lat, lon) if any(c["type"] in ("no_flood", "high_ground") for c in claims) else None
     rows = []
     for c in claims:
-        verdict, msg, src = judge(c["type"], ev)
+        verdict, msg, src = judge(c["type"], ev, c["sentence"])
         if on_water and c["type"] in ("no_flood", "high_ground"):
             verdict, src = "contradicted", "ESA WorldCover / Sentinel-1"
             msg = tr("Điểm đang chọn nằm trên mặt nước thường xuyên (sông/kênh/ao): ", "The selected point is on permanent water (river/canal/pond): ") + "; ".join(on_water["why"]) + "."

@@ -75,6 +75,41 @@ def _get(url: str, timeout: float = TIMEOUT) -> dict | None:
         return None
 
 
+# Kiểm A–Z 24/11/2026: nhãn "Ba Tri · Huyện Ba Tri · Vinh Long" — GeoNames (qua Open-Meteo) trả tên tỉnh KHÔNG DẤU và cấp
+# huyện đã bỏ từ 1/7/2025. Tên tỉnh/thành (34 đơn vị sau sáp nhập + 63 tên cũ còn gặp trong dữ liệu) đưa về đúng dấu;
+# cấp huyện/quận/thị xã giữ (người dân vẫn quen gọi, giúp phân biệt nơi trùng tên) nhưng ghi "(cũ)".
+_TINH = (
+    "Hà Nội", "Hải Phòng", "Huế", "Đà Nẵng", "Hồ Chí Minh", "Cần Thơ", "Lai Châu", "Điện Biên", "Sơn La", "Lạng Sơn",
+    "Quảng Ninh", "Thanh Hóa", "Nghệ An", "Hà Tĩnh", "Cao Bằng", "Tuyên Quang", "Lào Cai", "Thái Nguyên", "Phú Thọ",
+    "Bắc Ninh", "Hưng Yên", "Ninh Bình", "Quảng Trị", "Quảng Ngãi", "Gia Lai", "Khánh Hòa", "Lâm Đồng", "Đắk Lắk",
+    "Đồng Nai", "Tây Ninh", "Vĩnh Long", "Đồng Tháp", "Cà Mau", "An Giang",
+    # tên cũ (trước 1/7/2025)
+    "Bà Rịa - Vũng Tàu", "Bắc Giang", "Bắc Kạn", "Bạc Liêu", "Bến Tre", "Bình Định", "Bình Dương", "Bình Phước",
+    "Bình Thuận", "Đắk Nông", "Hà Giang", "Hà Nam", "Hải Dương", "Hậu Giang", "Hòa Bình", "Kiên Giang", "Kon Tum",
+    "Long An", "Nam Định", "Ninh Thuận", "Phú Yên", "Quảng Bình", "Quảng Nam", "Sóc Trăng", "Thái Bình",
+    "Thừa Thiên Huế", "Tiền Giang", "Trà Vinh", "Vĩnh Phúc", "Yên Bái",
+)
+_HUYEN_CU = ("huyen ", "quan ", "thi xa ")
+
+
+def _ten_tinh(a1: str | None) -> str | None:
+    if not a1:
+        return a1
+    f = _fold(a1)
+    for pre in ("tinh ", "thanh pho ", "tp "):
+        if f.startswith(pre):
+            f = f[len(pre):]
+    f = f.removesuffix(" province").removesuffix(" city")
+    for n in _TINH:
+        if _fold(n) == f:
+            return n
+    return a1
+
+
+def _cap_huyen(a2: str | None) -> str | None:
+    return f"{a2} (cũ)" if a2 and _fold(a2).startswith(_HUYEN_CU) else a2
+
+
 def _from_open_meteo(q: str) -> list | None:
     d = _get(GEO_OM + "?" + urllib.parse.urlencode(
         {"name": q, "count": _LIMIT, "language": "vi"}))
@@ -86,8 +121,8 @@ def _from_open_meteo(q: str) -> list | None:
             continue
         # admin3 = xã/phường, admin2 = huyện/quận, admin1 = tỉnh — nêu đủ để phân
         # biệt hàng nghìn thửa cùng tên khác xã.
-        phu = " · ".join(x for x in (it.get("admin3"), it.get("admin2"),
-                                     it.get("admin1")) if x)
+        phu = " · ".join(x for x in (it.get("admin3"), _cap_huyen(it.get("admin2")),
+                                     _ten_tinh(it.get("admin1"))) if x)
         try:
             out.append({"label": f"{it['name']}" + (f" · {phu}" if phu else ""),
                         "lat": float(it["latitude"]), "lon": float(it["longitude"]),
