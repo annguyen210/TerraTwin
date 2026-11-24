@@ -5413,3 +5413,11 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 
 /* Kiểm A–Z lần 3: mối QUAN SÁT / CỐ ĐỊNH (sâu bệnh từ ảnh, mỏ gần thửa) — dòng nhỏ riêng, không đỏ, không "7 ngày tới" */
 .terra-obs { margin-top: 4px; font-size: .8rem; color: var(--dim); }
+
+/* Khí hậu 2050 (nâng cấp 24/11/2026) */
+.cl50-sub { margin: 4px 0 8px; color: var(--dim); font-size: .84rem; }
+.cl50-t td small { display: block; color: var(--dim); font-size: .74rem; margin-top: 2px; }
+.cl50-t tr.cl50-unsure td { color: var(--dim); }
+.cl50-sea { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--panel); font-size: .88rem; line-height: 1.5; }
+.cl50-why { margin-top: 8px; font-size: .84rem; color: var(--dim); }
+.cl50-why ul { margin: 6px 0; padding-left: 18px; }

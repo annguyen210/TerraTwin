@@ -853,6 +853,22 @@ export function ackAlert(id: number) {
     "Không đánh dấu được");
 }
 
+// ---- KHÍ HẬU 2050 (nâng cấp 24/11/2026): CMIP6 HighResMIP, 3 mô hình, delta so với 1995–2014 ----
+export type ClimateIndicator = {
+  id: string; name: string; unit: "days" | "mm"; how: "abs" | "pct"; base: number; future: number; delta: number;
+  delta_min: number; delta_max: number; agree: boolean; change: string; trend: string; base_txt: string; future_txt: string;
+};
+export type Climate2050 = {
+  available: boolean; message?: string; cell?: { lat: number; lon: number; size_deg: number };
+  base?: string[]; future?: string[]; scenario?: string; model_names?: string[]; indicators?: ClimateIndicator[];
+  sea_level?: { median_m: number; low_m: number; high_m: number; coast_km: number; elevation_m: number; text: string; source: string };
+  caveats?: string[]; sources?: string[];
+};
+export function climate2050(lat: number, lon: number) {
+  // Vùng mới: hai lượt tải CMIP6 (~15–30 s); vùng đã tính trả ngay.
+  return getJson<Climate2050>(`/api/climate2050?lat=${lat}&lon=${lon}&lang=${curLang()}`, "Không lấy được khí hậu 2050", 90_000);
+}
+
 async function getJson<T>(path: string, err: string, timeoutMs?: number): Promise<T> {
   const r = await getRetry(`${BASE}${path}`, { headers: authHeaders() }, { lang: curLang(), timeoutMs });
   if (!r.ok) throw new Error(await errMessage(r, err));

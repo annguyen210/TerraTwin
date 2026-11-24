@@ -247,6 +247,28 @@ def cards() -> list[dict]:
             "code": f"{REPO}/backend/app/services/water_history.py",
         })
 
+    # 3a' — Khí hậu 2050 của vùng quanh thửa (nâng cấp 24/11/2026): NGUỒN MÔ PHỎNG công khai, không phải mô hình TerraTwin huấn luyện.
+    out.append({
+        "id": "climate_2050", "kind": tr("dữ liệu mô phỏng khí hậu", "climate simulation data"),
+        "name": tr("Khí hậu 2050 của vùng quanh thửa (CMIP6 HighResMIP)", "2050 climate of the area around the plot (CMIP6 HighResMIP)"),
+        "status": "info",
+        "status_label": tr("nguồn mô phỏng công khai · TerraTwin không huấn luyện · báo dải giữa 3 mô hình",
+                           "public simulation source · not trained by TerraTwin · reports the 3-model range"),
+        "task": tr("5 chỉ số 2041–2050 so với 1995–2014: ngày nắng nóng ≥ 35 °C, ngày mưa rất to ≥ 50 mm (ngưỡng Tổng cục KTTV), mưa ngày lớn nhất, chuỗi ngày khô dài nhất, tổng mưa năm; nước biển dâng 2050 cho thửa ven biển thấp.",
+                   "5 indicators for 2041–2050 vs 1995–2014: hot days ≥ 35 °C, very heavy rain days ≥ 50 mm (Viet Nam met-service thresholds), wettest day, longest dry spell, annual rainfall; 2050 sea-level rise for low coastal plots."),
+        "data": tr("Open-Meteo Climate API: EC-Earth3P-HR, MRI-AGCM3-2-S (~20 km), MPI-ESM1-2-XR, hạ quy mô ~10 km; ô 0,5°. Nước biển dâng: IPCC AR6 WG1 bảng 9.9 (SSP5-8.5, 2050: 0,23 m, 0,20–0,29 m).",
+                   "Open-Meteo Climate API: EC-Earth3P-HR, MRI-AGCM3-2-S (~20 km), MPI-ESM1-2-XR, downscaled ~10 km; 0.5° cells. Sea level: IPCC AR6 WG1 table 9.9 (SSP5-8.5, 2050: 0.23 m, 0.20–0.29 m)."),
+        "split": tr("Phương pháp delta: mỗi mô hình so với CHÍNH NÓ thời kỳ 1995–2014; báo trung vị và dải; mô hình không cùng chiều → \"chưa chắc chiều\".",
+                    "Delta method: each model vs ITSELF over 1995–2014; median and range reported; models disagreeing → \"direction uncertain\"."),
+        "metrics": [{"label": tr("Kịch bản", "Scenario"), "value": tr("phát thải cao (≈ SSP5-8.5)", "high emissions (≈ SSP5-8.5)"),
+                     "threshold": "—", "passed": None}],
+        "limits": tr("Khí hậu VÙNG ~55 km, không phải vi khí hậu thửa; ba mô hình là mẫu nhỏ của tập CMIP6; kịch bản cao là trần trên hợp lý. Chưa kiểm ngược với số đo trạm vì đây là tương lai — chỉ báo HIỆU SỐ, không báo giá trị tuyệt đối như số đo.",
+                     "REGIONAL climate (~55 km), not the plot's microclimate; three models are a small sample of CMIP6; the high scenario is a plausible upper bound. Cannot be checked against station data because it is the future — only DIFFERENCES are reported, not absolute values as if measured."),
+        "not_for": tr("Không phải dự báo thời tiết; không vào nội dung hồ sơ ký số (hồ sơ chỉ chứa số đo).",
+                      "Not a weather forecast; not part of signed dossiers (dossiers contain measurements only)."),
+        "code": f"{REPO}/backend/app/services/climate_2050.py",
+    })
+
     # 3b' — Trợ lý hỏi đáp: bộ chấm trung thành với số đo, đăng ký trước 24/11/2026 (15e72bd), chạy MỘT lần trên production.
     ce1 = _load("eval", "copilot_eval_result.json")
     ce2 = _load("eval", "copilot_eval_v2_result.json")

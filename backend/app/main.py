@@ -15,12 +15,12 @@ import time
 from collections import defaultdict, deque
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from app.db import init_db
+from app.db import User, init_db
 from app.modules.registry import get_module, list_modules
 from app.routes_account import router as account_router
 from app.routes_data import router as data_router
@@ -1378,6 +1378,27 @@ def guard_stats() -> dict:
 def copilot_endpoint(req: CopilotRequest, lang: str = "vi") -> CopilotAnswer:
     reqlang.set_lang(lang)
     return copilot.answer(req.question, req.location)
+
+
+@app.get("/api/climate2050")
+def climate2050_endpoint(lat: float, lon: float, request: Request, lang: str = "vi",
+                         user: User | None = Depends(auth.optional_user)) -> dict:
+    """Khí hậu 2050 của vùng quanh thửa (CMIP6 HighResMIP, 3 mô hình, delta so với 1995–2014) + nước biển dâng nếu ven
+    biển và thấp. Xem services/climate_2050.py. Vùng chưa có trong nhớ đệm mới tính hạn mức (mỗi vùng mới ~450 lượt
+    Open-Meteo)."""
+    from app.services import cache_store, climate_2050, quota, plans
+    reqlang.set_lang(lang)
+    if not (8.0 <= lat <= 24.0 and 102.0 <= lon <= 110.0):
+        raise HTTPException(422, reqlang.tr("Toạ độ ngoài Việt Nam.", "Coordinates outside Viet Nam."))
+    key = cache_store.make_key("climate2050", climate_2050._CACHE_V, climate_2050.snap(lat), climate_2050.snap(lon))
+    if cache_store.get(key) is None:
+        who = f"u{user.id}" if user else f"ip{_client_ip(request)}"
+        wait = quota.take("climate", who, user is not None, plans.mult_for(user))
+        if wait is not None:
+            raise HTTPException(429, reqlang.tr("Đã hết lượt tính khí hậu 2050 cho vùng mới trong giờ này — thử lại sau.",
+                                                "The 2050-climate quota for new regions this hour is used up — try later."),
+                                headers={"Retry-After": str(wait)})
+    return climate_2050.assess(lat, lon)
 
 
 @app.get("/api/backtest")

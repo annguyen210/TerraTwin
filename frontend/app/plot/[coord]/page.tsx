@@ -17,6 +17,7 @@ import AppShell from "@/components/AppShell";
 import WaterHistory from "@/components/WaterHistory";
 import ListingCheck from "@/components/ListingCheck";
 import LandChangeAI from "@/components/LandChangeAI";
+import Climate2050 from "@/components/Climate2050";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -107,6 +108,7 @@ export default function PlotPassportPage() {
           <>
             <WaterHistory lat={lat} lon={lon} />
             <LandChangeAI lat={lat} lon={lon} />
+            <Climate2050 lat={lat} lon={lon} />
             <ListingCheck lat={lat} lon={lon} />
           </>
         )}

@@ -47,6 +47,9 @@ LIMITS = {
     "login": (50, 50, 900),
     # Theo email + IP — chặn dò mật khẩu từ một máy (kiểm 25/10/2026: 2 bộ đếm thay cho 1).
     "login_ip": (10, 10, 900),
+    # Khí hậu 2050 (nâng cấp 24/11/2026): mỗi VÙNG mới tốn ~450 lượt Open-Meteo (gói miễn phí 10.000/ngày) — chỉ tính khi
+    # vùng chưa có trong nhớ đệm; vùng đã tính thì đọc tự do.
+    "climate": (12, 60, 3600),
     "feedback": (int(os.environ.get("TERRATWIN_ANON_FEEDBACK_PER_DAY", "10")),
                  int(os.environ.get("TERRATWIN_USER_FEEDBACK_PER_DAY", "300")), 86_400),
 }
