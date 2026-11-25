@@ -62,6 +62,8 @@ const LABELS: Record<string, [string, string]> = {
   xac_suat_hieu_chuan_pct: ["Xác suất đã hiệu chuẩn (%)", "Calibrated probability (%)"],
   chi_so_thuc_do_90_thap: ["Chỉ số thực đo — cận dưới 90%", "Measured index — 90% lower"],
   chi_so_thuc_do_90_cao: ["Chỉ số thực đo — cận trên 90%", "Measured index — 90% upper"],
+  // Mục 6: xếp hạng khả năng ngập theo địa hình (mô hình học máy — chỉ khi đã qua cổng)
+  kha_nang_ngap_dia_hinh_top_pct: ["Nhóm dễ ngập nhất theo địa hình (top %)", "Most water-prone by terrain (top %)"],
   // land risk
   mua_7ngay_mm: ["Mưa 7 ngày (mm)", "7-day rain (mm)"],
   // upstream flood

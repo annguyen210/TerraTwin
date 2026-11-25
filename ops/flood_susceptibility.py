@@ -160,6 +160,8 @@ def run() -> None:
         MODEL.parent.mkdir(parents=True, exist_ok=True)
         MODEL.write_text(json.dumps({"features": ["log1p(elev+5)", "slope_deg", "log1p(relief)", "log1p(coast_km)",
                                                   "log1p(river_km)"], **m, "auc_test": round(auc, 3),
+                                     # điểm số của mọi điểm mẫu đọc được radar — để nói "thuộc nhóm X% dễ ngập nhất"
+                                     "ref_scores": sorted(round(v, 4) for v in _pred(m, [_x(r) for r in ok])),
                                      "auc_baseline": round(auc_b, 3), "protocol": PROTO.name}, indent=1), encoding="utf-8")
     print(f"AUC {auc} vs chỉ độ cao {auc_b} · test {len(te)} điểm ({sum(yte)} dương) → {'ĐẠT' if passed else 'TRƯỢT'} {checks}")
 

@@ -30,6 +30,21 @@ def _with_prob(a: Assessment, s, real: bool) -> Assessment:
     return a
 
 
+def _with_terrain(a: Assessment, loc: Location) -> Assessment:
+    """Mục 6 (25/11/2026): xếp hạng khả năng ngập theo địa hình bằng mô hình học máy — chỉ khi mô hình đã qua cổng
+    (có tệp data/ml/flood_susceptibility.json); không có thì giữ nguyên."""
+    from app.services import flood_susceptibility as fs
+    try:
+        r = fs.assess(loc.lat, loc.lon)
+    except Exception:  # noqa: BLE001 — thiếu DEM thì bỏ qua, không làm hỏng cảnh báo
+        r = None
+    if r is None:
+        return a
+    a.detail = (a.detail + " " + fs.sentence(r)).strip()
+    a.metrics = {**(a.metrics or {}), "kha_nang_ngap_dia_hinh_top_pct": r["top_pct"]}
+    return a
+
+
 class FloodModule(TwinModule):
     id = "flood"; name = "Cảnh báo lũ/ngập sớm"; name_en = "Early flood warning"; group = "B"; icon = "🌊"; status = "active"
     data_sources = ["Open-Meteo: lượng mưa", "Cao độ DEM Copernicus (Open-Meteo, Planetary Computer)",
@@ -116,7 +131,7 @@ class FloodModule(TwinModule):
         a = assessment_from_series(self, loc, s, tr("điểm", "pts"), 40, 70, texts, detail,
                                    confidence=conf, is_real=real, data_sources=src)
         a.metrics = metrics
-        return _with_prob(a, s, real)
+        return _with_terrain(_with_prob(a, s, real), loc)
 
 
 class LandslideModule(TwinModule):
