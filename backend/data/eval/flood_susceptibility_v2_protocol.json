@@ -1,0 +1,14 @@
+{
+  "name": "Khả năng ngập theo ĐỘ CAO (v2) — mẫu MỚI độc lập, đăng ký trước",
+  "registered": "2026-11-25",
+  "why": "v1 (ad4fc55) TRƯỢT: mô hình 5 đặc trưng AUC 0,857 nhưng chỉ độ cao 0,887 trên tỉnh giữ riêng; 7 < 8 điểm dương. Không được đổi sang mô hình chỉ-độ-cao theo kết quả v1 — v2 kiểm lại giả thuyết đó trên mẫu MỚI, lớn hơn, không trùng huyện với v1.",
+  "question": "Chỉ từ độ cao (DEM), mô hình có xếp hạng đúng nơi radar Sentinel-1 từng thấy nước phủ (≥ 1 đợt 2017–2025) ở TỈNH CHƯA THẤY khi huấn luyện không, và xác suất có hiệu chuẩn không?",
+  "sample": "300 huyện chọn ngẫu nhiên (random.Random(20261126)) trong các huyện ranh 2020 KHÔNG có trong mẫu v1 (data/eval/flood_susceptibility_points.json); mỗi huyện 1 điểm ngẫu nhiên trong đa giác. Danh sách điểm ghi ra data/eval/flood_susceptibility_v2_points.json trước khi đọc radar.",
+  "label": "Như v1: water_history.history (hàm production, bán kính 100 m) — 1 nếu ≥ 1 đợt nước; điểm không đọc được radar bị loại (ghi số lượng).",
+  "features": ["log1p(elev_m + 5) — DEM Open-Meteo tại tâm"],
+  "model": "Hồi quy logistic 1 biến (numpy, chuẩn hoá z theo tập huấn luyện, L2 λ=1, 2000 bước). Không chọn thêm đặc trưng.",
+  "split": "Giữ riêng theo TỈNH: tỉnh thứ i (0-based) trong danh sách tên tỉnh (có trong mẫu v2) sắp xếp có i % 5 == 4 → kiểm tra.",
+  "gate": {"auc_min": 0.75, "brier_skill_vs_base_rate_min": 0.0, "min_test_points": 45, "min_test_positives": 12,
+           "note": "ĐẠT khi cả 4 điều kiện đúng trên tập kiểm tra. Đạt → hiện 'khả năng có nước phủ theo độ cao' (xếp hạng + xác suất) cho nơi CHƯA có lịch sử radar; trượt → công bố, không hiện."},
+  "runs": "Một lần. Không chỉnh mẫu, đặc trưng, mô hình, chia tập hay cổng theo kết quả."
+}

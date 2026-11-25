@@ -22,6 +22,13 @@ OUT = ROOT / "backend" / "data" / "eval" / "flood_susceptibility_result.json"
 MODEL = ROOT / "backend" / "data" / "ml" / "flood_susceptibility.json"
 WORK = Path("D:/tt-scratch/fsus")
 SEED, N = 20261125, 200
+# v2 (giao thức flood_susceptibility_v2_protocol.json): mẫu MỚI 300 huyện không trùng v1, mô hình chỉ độ cao.
+V2 = len(sys.argv) > 2 and sys.argv[2] == "v2"
+if V2:
+    PROTO = PROTO.with_name("flood_susceptibility_v2_protocol.json")
+    OUT = OUT.with_name("flood_susceptibility_v2_result.json")
+    WORK = Path("D:/tt-scratch/fsus_v2")
+    SEED, N = 20261126, 300
 
 
 def points() -> None:
@@ -29,7 +36,12 @@ def points() -> None:
     WORK.mkdir(parents=True, exist_ok=True)
     units = json.loads((ROOT / "backend" / "data" / "admin" / "vnm_adm2_2020.json").read_text(encoding="utf-8"))["units"]
     rnd = random.Random(SEED)
-    pick = rnd.sample(range(len(units)), N)
+    pool = range(len(units))
+    if V2:                                    # loại huyện đã có trong mẫu v1
+        v1 = json.loads((ROOT / "backend" / "data" / "eval" / "flood_susceptibility_points.json").read_text(encoding="utf-8"))
+        used = {(p["district"], p["province"]) for p in v1}
+        pool = [i for i in range(len(units)) if (units[i]["name"], units[i]["province"]) not in used]
+    pick = rnd.sample(list(pool), N)
     out = []
     for i in pick:
         u = units[i]
@@ -43,6 +55,9 @@ def points() -> None:
                             "lat": round(p.y, 5), "lon": round(p.x, 5)})
                 break
     (WORK / "points.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+    if V2:
+        (ROOT / "backend" / "data" / "eval" / "flood_susceptibility_v2_points.json").write_text(
+            json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"{len(out)} điểm, {len({p['province'] for p in out})} tỉnh → {WORK / 'points.json'}")
 
 
@@ -129,6 +144,44 @@ def _auc(y, s) -> float | None:
     return win / (len(pos) * len(neg))
 
 
+def run_v2() -> None:
+    """v2: logistic CHỈ độ cao, cổng AUC + Brier skill so với tỉ lệ nền (giao thức v2)."""
+    g = json.loads(PROTO.read_text(encoding="utf-8"))["gate"]
+    rows = [json.loads(l) for l in (WORK / "rows.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+    pts = json.loads((WORK / "points.json").read_text(encoding="utf-8"))
+    if len({r["id"] for r in rows}) < len(pts):
+        sys.exit(f"DỪNG — mới có {len(rows)}/{len(pts)} điểm; chạy harvest trước.")
+    ok = [r for r in rows if r.get("radar_ok") and "elev_m" in r]
+    provs = sorted({p["province"] for p in pts})
+    test_p = {p for i, p in enumerate(provs) if i % 5 == 4}
+    tr_, te = [r for r in ok if r["province"] not in test_p], [r for r in ok if r["province"] in test_p]
+    ytr, yte = [r["label"] for r in tr_], [r["label"] for r in te]
+    m = _fit([_x(r, True) for r in tr_], ytr)
+    pte = _pred(m, [_x(r, True) for r in te])
+    auc = _auc(yte, pte)
+    base = sum(ytr) / max(1, len(ytr))
+    brier = sum((p - y) ** 2 for p, y in zip(pte, yte)) / max(1, len(yte))
+    brier0 = sum((base - y) ** 2 for y in yte) / max(1, len(yte))
+    bss = 1 - brier / brier0 if brier0 else None
+    checks = {"min_test_points": len(te) >= g["min_test_points"], "min_test_positives": sum(yte) >= g["min_test_positives"],
+              "auc": auc is not None and auc >= g["auc_min"],
+              "brier_skill": bss is not None and bss > g["brier_skill_vs_base_rate_min"]}
+    passed = all(checks.values())
+    res = {"protocol": PROTO.name, "ran_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+           "n_points": len(rows), "n_radar_ok": len(ok), "n_train": len(tr_), "n_test": len(te),
+           "pos_rate_train": round(base, 3), "pos_test": sum(yte), "test_provinces": sorted(test_p),
+           "auc": None if auc is None else round(auc, 3), "brier": round(brier, 4), "brier_base_rate": round(brier0, 4),
+           "brier_skill": None if bss is None else round(bss, 3), "weights": m, "checks": checks, "passed": passed,
+           "excluded": [{k: r.get(k) for k in ("id", "province", "why")} for r in rows if not r.get("radar_ok")]}
+    OUT.write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
+    if passed:
+        MODEL.parent.mkdir(parents=True, exist_ok=True)
+        MODEL.write_text(json.dumps({"features": ["log1p(elev+5)"], **m, "auc_test": round(auc, 3), "brier_skill": round(bss, 3),
+                                     "ref_scores": sorted(round(v, 4) for v in _pred(m, [_x(r, True) for r in ok])),
+                                     "protocol": PROTO.name}, indent=1), encoding="utf-8")
+    print(f"v2 AUC {auc} · BSS {bss} · test {len(te)} điểm ({sum(yte)} dương) → {'ĐẠT' if passed else 'TRƯỢT'} {checks}")
+
+
 def run() -> None:
     proto = json.loads(PROTO.read_text(encoding="utf-8"))
     g = proto["gate"]
@@ -167,4 +220,4 @@ def run() -> None:
 
 
 if __name__ == "__main__":
-    {"points": points, "harvest": harvest, "run": run}[sys.argv[1]]()
+    {"points": points, "harvest": harvest, "run": run_v2 if V2 else run}[sys.argv[1]]()
