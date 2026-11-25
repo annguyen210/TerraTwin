@@ -36,6 +36,24 @@ def _season_label(factor: float) -> str:
     return tr("mùa mưa lũ — nước ngọt đẩy mặn ra biển", "rainy/flood season — fresh water pushes salt back to sea")
 
 
+def _mekong_history() -> str:
+    """SỐ ĐO trạm (không phải ước lượng): mặn cực đại năm Trà Vinh & Cầu Quan 1991–2016 tăng rõ (Mann-Kendall + độ dốc
+    Sen, data/salinity_stations.json — CC BY 4.0, nguồn gốc TT Dữ liệu KTTV quốc gia & MRC). Nâng cấp 25/11/2026."""
+    import json
+    from pathlib import Path
+    try:
+        d = json.loads((Path(__file__).resolve().parents[2] / "data" / "salinity_stations.json").read_text(encoding="utf-8"))
+        tv, cq = d["stations"]["tra_vinh"], d["stations"]["cau_quan"]
+    except (OSError, ValueError, KeyError):
+        return ""
+    return tr(f"Số đo trạm (1991–2016): mặn cực đại năm ở Trà Vinh tăng ~{tv['sen_g_l_per_decade']:g} g/L mỗi thập kỷ "
+              f"(Mann-Kendall p < 0,001), ở Cầu Quan ~{cq['sen_g_l_per_decade']:g} g/L (p = {cq['p']:g}); đỉnh mặn theo tháng "
+              "rơi vào tháng 2–4 (Cầu Quan 1998, 2010, 2016). Nguồn: Binh et al. 2019, Mendeley Data (CC BY 4.0).",
+              f"Gauge data (1991–2016): annual maximum salinity at Tra Vinh rose ~{tv['sen_g_l_per_decade']:g} g/L per decade "
+              f"(Mann-Kendall p < 0.001), at Cau Quan ~{cq['sen_g_l_per_decade']:g} g/L (p = {cq['p']:g}); the monthly peak falls "
+              "in Feb–Apr (Cau Quan 1998, 2010, 2016). Source: Binh et al. 2019, Mendeley Data (CC BY 4.0).")
+
+
 class SalinityModule(TwinModule):
     id = "salinity"
     name = "Cảnh báo xâm nhập mặn"
@@ -132,6 +150,7 @@ class SalinityModule(TwinModule):
             f"danger ≥{WARNING} g/L. PHYSICAL ESTIMATE (coast + elevation + season + "
             "tide) — PENDING calibration against MRC / provincial salinity gauges.")
 
+        detail = (detail + " " + (_mekong_history() if "Cửu Long" in zone or "Mekong" in zone else "")).strip()
         return Assessment(
             module_id=self.id, module_name=self.disp_name(), location=location,
             status="ok", risk_level=level, headline=headline, detail=detail,
