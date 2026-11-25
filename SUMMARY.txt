@@ -1,4 +1,4 @@
-46 ngày sống (2026-10-10 → 2026-11-24): 12 sự kiện bật cờ, 0 rác; ngày thiếu nguồn mưa (<5/8 thửa): không
+47 ngày sống (2026-10-10 → 2026-11-25): 13 sự kiện bật cờ, 0 rác; ngày thiếu nguồn mưa (<5/8 thửa): không
    2026-10-28 · Quảng Điền, Huế (lúa): Mưa rất to 59 mm ngày 2026-10-28
    2026-10-29 · Quảng Điền, Huế (lúa): Mưa rất to 58 mm ngày 2026-10-28
    2026-10-29 · Điện Bàn, Quảng Nam: Mưa rất to 66 mm ngày 2026-10-28
@@ -11,4 +11,5 @@
    2026-11-20 · Điện Bàn, Quảng Nam: Mưa rất to 61 mm ngày 2026-11-20
    2026-11-21 · Quảng Điền, Huế (lúa): Mưa rất to 54 mm ngày 2026-11-20
    2026-11-21 · Điện Bàn, Quảng Nam: Mưa rất to 78 mm ngày 2026-11-20
+   2026-11-25 · Điện Bàn, Quảng Nam: Mưa rất to 50 mm ngày 2026-11-25
 CỔNG GĐ6 (7 ngày sống, 0 rác): ĐẠT
