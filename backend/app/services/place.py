@@ -312,6 +312,17 @@ def search(q: str) -> dict:
             return {"query": q, "results": theo_ten[:_LIMIT],
                     "message": f"Không thấy đúng “{q}”; đây là các nơi tên “{ten}” — chọn đúng nơi."}
 
+    if not out:
+        # 25/11/2026: từ điển nội bộ 708 huyện + 63 tỉnh (Trie + Jaro-Winkler/Levenshtein) — bắt gõ không dấu, sai chính tả,
+        # và vẫn chạy khi cả ba dịch vụ ngoài sập. Không cache (dịch vụ ngoài có thể có kết quả tốt hơn ở lần sau).
+        from app.services import gazetteer
+        local = gazetteer.suggest(q, _LIMIT)
+        if local:
+            why = ("ba dịch vụ tra địa danh không phản hồi" if hong == len(_SOURCES)
+                   else f"không thấy đúng “{q}”")
+            return {"query": q, "results": local,
+                    "message": f"Đã tìm trong từ điển 708 huyện, 63 tỉnh ({why}) — có phải bạn muốn tìm một trong các nơi này?"}
+
     if not out and hong == len(_SOURCES):
         return {"query": q, "results": [],
                 "message": ("Chưa tìm được — cả ba dịch vụ tra cứu địa danh đều "

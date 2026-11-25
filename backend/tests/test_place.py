@@ -71,7 +71,11 @@ def test_ca_ba_nguon_hong_thi_noi_ro_va_chi_duong_khac(monkeypatch):
     """Không được im lặng. Người dùng phải biết là dịch vụ hỏng, không phải là
     xã của họ không tồn tại."""
     _nguon(monkeypatch, None, None, None)
+    # 25/11/2026: tên có trong từ điển nội bộ (708 huyện) vẫn tìm được, và vẫn NÓI RÕ dịch vụ ngoài không phản hồi.
     r = place.search("Ba Tri")
+    assert r["results"][0]["source"] == "local-gazetteer" and "không phản hồi" in r["message"]
+    # Tên không có trong từ điển → như cũ: rỗng + chỉ đường khác.
+    r = place.search("Xom Moi Bai Ngang")
     assert r["results"] == []
     assert "bản đồ" in r["message"] and "định vị" in r["message"]
 
