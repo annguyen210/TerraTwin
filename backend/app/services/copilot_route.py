@@ -263,3 +263,19 @@ def asks_present_water(question: str) -> bool:
     w = " ".join(_words(question))
     return (any(k in w for k in ("ngap", "lut", "nuoc", "flood", "water")) and any(k in w for k in _BAY_GIO)
             and not any(k in w for k in ("tuan toi", "7 ngay", "ngay mai", "next week", "tomorrow")))
+
+
+
+_TUONG_LAI = ("giua the ky", "tuong lai", "bien doi khi hau", "khi hau", "nuoc bien dang", "bien dang", "muc nuoc bien",
+              "climate", "sea level", "sea-level", "mid century", "mid-century", "global warming", "nong len")
+
+
+def asks_future_climate(question: str) -> bool:
+    """Câu hỏi về khí hậu TƯƠNG LAI / nước biển dâng ("đến 2050…", "giữa thế kỷ", "biến đổi khí hậu"). Bộ chấm v3
+    (25/11/2026) trượt 138/165 vì LLM chỉ tự gọi công cụ khí hậu 4/35 lần — câu loại này nay luôn được nạp dữ liệu
+    khí hậu 2050 vào dữ kiện, không chờ LLM quyết."""
+    import re
+    if any(2030 <= int(y) <= 2100 for y in re.findall(r"\b(20[3-9]\d|2100)\b", question)):
+        return True
+    w = " ".join(_words(question))
+    return any(k in w for k in _TUONG_LAI)

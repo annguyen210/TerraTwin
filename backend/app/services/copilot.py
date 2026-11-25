@@ -586,6 +586,21 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
         day = f"{int(top['date'][8:10])}/{int(top['date'][5:7])}"
         facts.append(tr(f"- Mưa dự báo 7 ngày tới (dữ liệu thật): tổng {total:.0f} mm; ngày mưa nhiều nhất {day}: {top['precip']:.0f} mm.",
                         f"- Forecast rain for the next 7 days (real data): {total:.0f} mm in total; wettest day {day}: {top['precip']:.0f} mm."))
+    # Bộ chấm v3 (25/11/2026): câu về khí hậu tương lai / nước biển dâng → nạp CHẮC CHẮN dữ liệu khí hậu 2050 (LLM tự
+    # gọi công cụ chỉ 4/35 lần). Ghi vào trace để giao diện hiện "đã tra khí hậu 2050".
+    from app.services.copilot_route import asks_future_climate
+    pre_trace: list[dict] = []
+    if asks_future_climate(question):
+        try:
+            from app.services import copilot_agent
+            ctxt, cmods, _ = copilot_agent._run_tool("khi_hau_2050", {}, loc)
+            facts.append(tr("- Khí hậu 2041–2050 của vùng quanh thửa (mô phỏng CMIP6, so với 1995–2014):\n",
+                            "- 2041–2050 climate of the area (CMIP6 simulation, vs 1995–2014):\n") + ctxt)
+            routes = routes + [m for m in cmods if m not in routes]
+            vi, en = copilot_agent.TOOL_LABEL["khi_hau_2050"]
+            pre_trace.append({"tool": "khi_hau_2050", "label": tr(vi, en), "args": {}, "ok": bool(cmods), "ms": None})
+        except Exception:  # noqa: BLE001 — thiếu khí hậu 2050 thì trả lời như cũ
+            pass
     ts = terrascore.compute(loc, assessments=assessed)
     facts.append(tr(f"- TerraScore: {ts.score}/100 (hạng {ts.grade}) — {ts.summary}",
                     f"- TerraScore: {ts.score}/100 (grade {ts.grade}) — {ts.summary}"))
@@ -611,9 +626,9 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
     # Nâng cấp 25/11/2026: LLM tự gọi công cụ chỉ-đọc khi dữ kiện theo từ khoá chưa đủ (copilot_agent). Hỏng → như cũ.
     from app.services import copilot_agent
     agent = copilot_agent.run(system, prompt, loc) if copilot_agent.enabled() else None
-    tool_ctx, trace = "", []
+    tool_ctx, trace = "", list(pre_trace)
     if agent:
-        text, tool_ctx, trace = agent["text"], agent["context"], agent["trace"]
+        text, tool_ctx, trace = agent["text"], agent["context"], pre_trace + agent["trace"]
         routes = routes + [m for m in agent["modules"] if m not in routes]
         seen = {c.id for c in cites}
         cites = cites + [c for c in agent["cites"] if c.id not in seen]

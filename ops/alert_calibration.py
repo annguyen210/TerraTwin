@@ -10,6 +10,7 @@ dự báo phát hành trước k ngày — đúng tình thế lúc phát cảnh 
 """
 from __future__ import annotations
 
+import http.client
 import json
 import math
 import sys
@@ -55,10 +56,16 @@ def _get(url: str, tries: int = 6) -> dict:
             with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=180) as r:
                 return json.loads(r.read())
         except urllib.error.HTTPError as e:
-            if e.code == 429 and k < tries - 1:
+            if e.code in (429, 502, 503, 504) and k < tries - 1:
                 wait = 65 * (k + 1)
-                print(f"  429 — chờ {wait} s", flush=True)
+                print(f"  {e.code} — chờ {wait} s", flush=True)
                 time.sleep(wait)
+                continue
+            raise
+        except (TimeoutError, urllib.error.URLError, OSError, http.client.HTTPException) as e:   # máy chủ chậm / đứt giữa chừng
+            if k < tries - 1:
+                print(f"  {type(e).__name__} — thử lại sau 30 s", flush=True)
+                time.sleep(30)
                 continue
             raise
     raise RuntimeError("hết lượt thử")

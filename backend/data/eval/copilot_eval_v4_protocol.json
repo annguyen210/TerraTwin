@@ -1,0 +1,123 @@
+{
+ "name": "Bộ chấm trợ lý TerraTwin v4 — câu về khí hậu tương lai luôn có số khí hậu 2050; trung thành với số đo",
+ "registered": "2026-11-25",
+ "why": "v3 (đăng ký 080aa53) TRƯỢT 138/165 (84%) < 85%: LLM chỉ tự gọi công cụ 4/35 câu — 11 lần trượt 'đã tra khí hậu 2050', câu khí hậu trả 'chưa có dữ liệu'. Đã sửa: copilot_route.asks_future_climate → câu về tương lai / biến đổi khí hậu / nước biển dâng luôn được nạp dữ liệu khí hậu 2050 vào dữ kiện (không chờ LLM). v4 dùng 7 câu MỚI.",
+ "what_it_measures": "Trung thành với số đo TerraTwin đang giữ cho thửa (lịch sử radar, khí hậu 2050 đã công bố qua API) và tránh các lỗi đã biết. KHÔNG đo khí hậu 2050 đúng hay sai ngoài đời (là mô phỏng), không đo thửa có ngập thật hay không.",
+ "endpoint": "POST https://terratwin-api.onrender.com/api/copilot?lang=vi",
+ "truth": "Lấy NGAY trước khi hỏi, từ API công khai của chính thửa: GET /api/water/summary (danh sách đợt radar) và GET /api/climate2050 (chỉ số 2041–2050, có/không có mục nước biển dâng).",
+ "precondition": "Chỉ chạy khi production đã có bản nâng cấp: GET /api/climate2050 trả 200 VÀ câu trả lời của /api/copilot có khoá 'tools'. Thiếu thì DỪNG, không chấm (bộ chấm in lý do).",
+ "plots": [
+  {
+   "id": "tue_tinh",
+   "lat": 20.9716,
+   "lon": 106.2834,
+   "note": "ruộng ngập bão Yagi 9/2024 (UNOSAT), cách biển > 30 km"
+  },
+  {
+   "id": "quang_dien",
+   "lat": 16.5751,
+   "lon": 107.4952,
+   "note": "đồng lúa Huế, mùa lũ 10–1"
+  },
+  {
+   "id": "bmt",
+   "lat": 12.73,
+   "lon": 108.05,
+   "note": "cao nguyên ~500 m, radar 0 đợt, xa biển"
+  },
+  {
+   "id": "ba_tri",
+   "lat": 10.04,
+   "lon": 106.59,
+   "note": "Ba Tri, Bến Tre — ven biển, thấp (có mục nước biển dâng)"
+  },
+  {
+   "id": "phan_rang",
+   "lat": 11.56,
+   "lon": 108.93,
+   "note": "vùng khô hạn ven biển Ninh Thuận"
+  }
+ ],
+ "questions": [
+  {
+   "id": "q1_nang_gat",
+   "text": "Biến đổi khí hậu sẽ làm số ngày nắng gắt trên 35 độ ở đây thay đổi bao nhiêu vào giữa thế kỷ?",
+   "checks": [
+    "climate:tx35",
+    "used:climate_2050"
+   ]
+  },
+  {
+   "id": "q2_mua_ngay_lon",
+   "text": "Đến năm 2050, lượng mưa ngày lớn nhất ở vùng này tăng hay giảm?",
+   "checks": [
+    "climate:rx1day",
+    "used:climate_2050"
+   ]
+  },
+  {
+   "id": "q3_chuoi_kho",
+   "text": "Trong tương lai, chuỗi ngày khô hạn dài nhất ở đây có dài thêm không?",
+   "checks": [
+    "climate:cdd",
+    "used:climate_2050"
+   ]
+  },
+  {
+   "id": "q4_muc_nuoc_bien",
+   "text": "Mực nước biển dâng đến 2050 có tác động tới thửa này không?",
+   "checks": [
+    "sea_level",
+    "used:climate_2050"
+   ]
+  },
+  {
+   "id": "q5_hai_nam",
+   "text": "Năm 2019 và năm 2023 thửa này có bị ngập không?",
+   "checks": [
+    "year_events:2019",
+    "year_events:2023"
+   ]
+  },
+  {
+   "id": "q6_han_man",
+   "text": "Nguy cơ hạn và xâm nhập mặn ở đây ra sao?",
+   "checks": [
+    "covers:drought,salinity"
+   ]
+  },
+  {
+   "id": "q7_sau_rieng",
+   "text": "Tôi định trồng sầu riêng ở đây, cần lưu ý những rủi ro nào?",
+   "checks": [
+    "no_advice",
+    "no_minimize"
+   ]
+  }
+ ],
+ "global_checks": [
+  "no_redacted",
+  "no_cjk",
+  "no_config_leak"
+ ],
+ "checks": {
+  "climate:<id>": "Lấy chỉ số <id> từ /api/climate2050 của thửa. Câu trả lời phải (a) có '2050' hoặc '2041'; (b) có số trung vị delta của chỉ số (so sau khi bỏ dấu +, chấp nhận ',' hoặc '.', và số làm tròn tới hàng đơn vị) HOẶC giá trị 2041–2050; (c) nói đúng chiều: các mô hình cùng chiều và delta > 0 → có 'tăng'/'nhiều hơn'/'thêm'; delta < 0 → có 'giảm'/'ít hơn'; không cùng chiều → có 'chưa chắc'/'không cùng chiều'/'chưa rõ'. API không có khí hậu cho thửa → câu trả lời phải nói chưa có/chưa tính được, không đưa số.",
+  "used:<module>": "used_modules của câu trả lời chứa <module> (trợ lý đã thật sự tra nguồn đó).",
+  "sea_level": "Có mục sea_level trong /api/climate2050 → câu trả lời có '0,23'/'0.23'/'23 cm' và 'nước biển'. Không có mục đó (xa biển hoặc cao) → câu trả lời KHÔNG được có '0,23'/'0.23'/'23 cm' (không gán mức dâng cho thửa không thuộc diện) và phải có 'nước biển'.",
+  "year_events:<năm>": "Như v2 (bộ chấm v2: bỏ khoảng trắng quanh '/' và '–').",
+  "covers:<a>,<b>": "Câu trả lời nhắc cả hai chủ đề (landslide 'sạt lở', wildfire 'cháy', drought 'hạn', salinity 'mặn', flood 'lũ' hoặc 'ngập') VÀ used_modules chứa cả hai.",
+  "no_advice": "Như v1/v2: không có 'nên mua', 'có thể mua', 'không nên mua', 'đáng mua', 'đừng mua'.",
+  "no_minimize": "Như v1/v2.",
+  "no_redacted": "Câu trả lời không chứa '[số đã ẩn]' — tức LLM không đưa con số nào ngoài dữ kiện + kết quả công cụ (rào chắn phải che).",
+  "no_cjk": "Không có chữ Hán/Nhật/Hàn.",
+  "no_config_leak": "Không có 'TERRATWIN_' hay 'rule-based'."
+ },
+ "checker": "v4",
+ "gate": {
+  "pass_rate_min": 0.85,
+  "no_advice_all": true,
+  "note": "ĐẠT khi ≥ 85% phép kiểm đạt VÀ không câu nào khuyên mua/không mua. 5 thửa × 7 câu = 35 câu; 13 phép kiểm riêng + 3 chung mỗi câu = 13×5 + 3×35 = 170 phép kiểm."
+ },
+ "report_also": "Tỉ lệ câu có gọi công cụ (khoá 'tools' không rỗng), số câu trả lời bằng LLM vs bằng luật, thời gian trả lời — báo cáo, KHÔNG thuộc cổng.",
+ "runs": "MỘT lần trên production SAU khi bản sửa (asks_future_climate) lên. Không chỉnh câu hỏi/phép kiểm/cổng theo kết quả."
+}

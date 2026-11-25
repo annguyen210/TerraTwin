@@ -384,6 +384,15 @@ def cards() -> list[dict]:
                             "v3 — assistant calls 5 read-only tools: protocol pre-registered, NOT run yet"),
                 "value": tr("chờ bản nâng cấp lên production", "waiting for the upgrade to reach production"),
                 "threshold": "≥ 85%", "passed": None})
+    p4 = _load("eval", "copilot_eval_v4_protocol.json")
+    ce4 = _load("eval", "copilot_eval_v4_result.json")
+    if card is not None and p4:
+        card["metrics"].append({
+            "label": tr("v4 — câu về khí hậu tương lai luôn được nạp số khí hậu 2050 (sửa lỗi v3: LLM chỉ tự gọi công cụ 4/35 câu)",
+                        "v4 — future-climate questions always get 2050 climate figures (fixes v3: the LLM called tools in only 4/35)"),
+            "value": (f"{ce4.get('checks_passed')}/{ce4.get('checks_total')} ({round(100 * (ce4.get('pass_rate') or 0))}%)" if ce4
+                      else tr("giao thức đã đăng ký trước, CHƯA chạy", "protocol pre-registered, NOT run yet")),
+            "threshold": "≥ 85%", "passed": bool(ce4.get("passed")) if ce4 else None})
 
     # 3c — Tổ hợp dự báo mưa best_match + ECMWF AIFS (GĐ5 mục 3) — 18/10/2026
     ab = _load("eval", "aifs_blend_result.json")

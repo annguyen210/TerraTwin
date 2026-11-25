@@ -144,3 +144,23 @@ def test_cau_hoi_nhieu_nam_tra_loi_tung_nam_khong_qua_llm(monkeypatch):
     monkeypatch.setattr(llm, "complete", lambda *a, **k: pytest.fail("không được gọi LLM"))
     out = copilot.answer("Năm 2020 và năm 2024 thửa này có bị nước phủ không?", LOC)
     assert not out.llm and "2020" in out.answer and "12/9/2024" in out.answer
+
+
+def test_cau_khi_hau_tuong_lai_nap_chac_chan_khong_cho_llm(tools_on, monkeypatch):
+    """Bộ chấm v3 TRƯỢT 138/165: LLM chỉ tự gọi công cụ khí hậu 4/35 lần. Câu về tương lai nay luôn có số khí hậu 2050."""
+    from app.services import cache_store, realdata, water_history
+    monkeypatch.setattr(cache_store, "get", lambda k: None)
+    monkeypatch.setattr(cache_store, "put", lambda *a, **k: None)
+    monkeypatch.setattr(copilot, "_history_facts", lambda loc, routes: "")
+    monkeypatch.setattr(copilot, "_knowledge", lambda q, loc: ([], ""))
+    monkeypatch.setattr(realdata, "weather_7d", lambda lat, lon: None)
+    monkeypatch.setattr(water_history, "summary", lambda lat, lon: {"available": False})
+    seen = {}
+
+    def chat(messages, tools=None, tool_choice="auto", max_tokens=700):
+        seen["prompt"] = messages[-1]["content"]
+        return {"role": "assistant", "content": "Đến 2050 thêm khoảng 11.3 ngày nắng nóng."}   # KHÔNG gọi công cụ
+    monkeypatch.setattr(llm, "chat", chat)
+    out = copilot.answer("Mưa và nắng nóng ở đây đến giữa thế kỷ thay đổi thế nào?", LOC)
+    assert "+11.3 ngày" in seen["prompt"] and "11.3" in out.answer
+    assert "climate_2050" in out.used_modules and out.tools[0]["tool"] == "khi_hau_2050"

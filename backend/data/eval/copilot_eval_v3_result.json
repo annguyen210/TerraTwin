@@ -1,0 +1,907 @@
+{
+ "protocol": "copilot_eval_v3_protocol.json",
+ "checker": "v3",
+ "answers_with_tools": 4,
+ "answers_llm": 29,
+ "answers_total": 35,
+ "median_seconds": 6.1,
+ "ran_at": "2026-11-25T04:47:25+00:00",
+ "api_uptime_s": 134,
+ "checks_passed": 138,
+ "checks_total": 165,
+ "pass_rate": 0.836,
+ "no_advice_all": true,
+ "passed": false,
+ "rows": [
+  {
+   "plot": "tue_tinh",
+   "question": "q1_nong_2050",
+   "checks": {
+    "climate:tx35": true,
+    "used:climate_2050": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Đến năm 2050, ngày nắng nóng (nhiệt độ ≥ 35 °C) dự kiến sẽ tăng so với giai đoạn 1995‑2014. Trung bình, ngày nắng nóng mỗi năm tăng từ 7 ngày lên khoảng 19,8 ngày, tức tăng khoảng 12,6 ngày mỗi năm. Các mô hình khí hậu ba mô hình đều cho cùng chiều tăng.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood",
+    "climate_2050"
+   ],
+   "tools": [
+    {
+     "tool": "khi_hau_2050",
+     "label": "khí hậu 2050",
+     "args": {},
+     "ok": true,
+     "ms": 0
+    }
+   ],
+   "seconds": 2.3
+  },
+  {
+   "plot": "tue_tinh",
+   "question": "q2_mua_cuc_doan",
+   "checks": {
+    "climate:r50": false,
+    "used:climate_2050": false,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Dữ liệu hiện có chỉ bao gồm dự báo mưa trong 7 ngày tới (tổng 1 mm) và các thông tin lịch sử quan sát nước, khô hạn, mưa lớn trong 10 năm qua. Không có số liệu nào đề cập đến lượng mưa trên 50 mm/ngày ở khu vực này trong tương lai dài hạn đến giữa thế kỷ. Vì vậy, câu hỏi này chưa có dữ liệu để trả lời.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 10.1
+  },
+  {
+   "plot": "tue_tinh",
+   "question": "q3_tong_mua",
+   "checks": {
+    "climate:prcptot": false,
+    "used:climate_2050": false,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Dữ liệu hiện có không bao gồm dự báo lượng mưa năm tới năm 2050, vì TerraTwin chỉ cung cấp dự báo thời tiết trong vòng 7 ngày và không có thông tin dài hạn. Vì vậy, không thể trả lời câu hỏi này dựa trên dữ liệu đã cho.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 7.6
+  },
+  {
+   "plot": "tue_tinh",
+   "question": "q4_bien_dang",
+   "checks": {
+    "sea_level": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Dữ liệu hiện có không cung cấp thông tin về vị trí địa lý của thửa đất so với mực nước biển, cũng không có mô hình dự báo tăng mực nước biển cho khu vực này. Vì vậy chưa thể xác định được ảnh hưởng của nước biển dâng tới mảnh đất này. Bạn nên tham khảo bản đồ địa hình, độ cao so với mực nước biển và các quy hoạch phát triển ven biển của địa phương để tự kiểm tra.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 7.3
+  },
+  {
+   "plot": "tue_tinh",
+   "question": "q5_hai_nam",
+   "checks": {
+    "year_events:2020": true,
+    "year_events:2024": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Năm 2020, radar Sentinel-1 chưa thấy đợt nước phủ nào trên thửa (radar có ảnh của thửa từ 4/1/2017). Radar chụp 6–12 ngày một lần nên có thể lọt đợt ngập ngắn — chưa thấy KHÔNG có nghĩa là chắc chắn không ngập.\n\nCó. Năm 2024, radar Sentinel-1 thấy nước phủ thửa 2 đợt: 26/7/2024–7/8/2024 (phủ 10–25% thửa); 12/9/2024 (phủ ≥50% thửa). Đây là số đo radar nhìn xuyên mây, không phải số liệu ngập chính thức — hỏi thêm hàng xóm xem nước lên cao bao nhiêu, mấy ngày thì rút.",
+   "llm": false,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ],
+   "used_modules": [
+    "water_history"
+   ],
+   "tools": [],
+   "seconds": 0.3
+  },
+  {
+   "plot": "tue_tinh",
+   "question": "q6_hai_hiem_hoa",
+   "checks": {
+    "covers:landslide,wildfire": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Theo dữ liệu dự báo 7 ngày, nguy cơ sạt lở ở vị trí (20.9716, 106.2834) là 0.0, gần như không có nguy cơ. Nguy cơ cháy rừng là thấp, chỉ số 25.7. Vì vậy trong 7 ngày tới không có nguy cơ sạt lở và nguy cơ cháy rừng chỉ ở mức thấp.",
+   "llm": true,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ],
+   "used_modules": [
+    "landslide",
+    "wildfire"
+   ],
+   "tools": [],
+   "seconds": 6.1
+  },
+  {
+   "plot": "tue_tinh",
+   "question": "q7_chuan_bi",
+   "checks": {
+    "no_advice": true,
+    "no_minimize": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Đối với thửa (20.9716, 106.2834) trong 7 ngày tới dự báo:\n\n- Nguy cơ ngập thấp (chỉ số 3.4, “ít nguy cơ”);  \n- Độ ẩm đủ (đỉnh 33,1 %);  \n- Cảnh báo xâm nhập mặn vẫn còn (ước lượng chưa hiệu chỉnh).  \n\nLịch sử cho thấy thửa đã từng có nước phủ qua radar Sentinel‑1 5 đợt (2017‑2025), trong đó các đợt gần nhất là 26 /7‑7 /8 /2024 (10‑25 % thửa), 12 /9 /2024 và 1 /10 /2025 (≥50 % thửa). Do đó có khả năng xuất hiện nước trong mùa mưa.\n\nBạn có thể chuẩn bị:\n\n1. Kiểm tra và nâng cao hệ thống thoát nước, đồng thời chuẩn bị vật tư chống xâm nhập mặn (ví dụ: chất cải tạo đất, rào chắn mặn) vì cảnh báo xâm nhập mặn vẫn tồn tại.  \n2. Theo dõi dự báo thời tiết hàng ngày và chuẩn bị bạt che, bơm nước dự phòng nếu có hiện tượng nước đột biến.  \n3. Kiểm tra tình trạng đất và hệ thống tưới hiện tại để tránh tình trạng ngập lâu ngày làm giảm năng suất.  \n4. Tham khảo ý kiến hàng xóm, UBND xã và các quy hoạch địa phương để biết thêm thông tin về quản lý lũ và xâm nhập mặn trong khu vực.\n\nTerraTwin chỉ có dự báo 7 ngày tới; không có dự báo cho cả mùa hay các tháng sau.",
+   "llm": true,
+   "radar_events": [
+    "2017-07-27",
+    "2018-07-22",
+    "2024-07-26",
+    "2024-09-12",
+    "2025-10-01"
+   ],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 10.7
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q1_nong_2050",
+   "checks": {
+    "climate:tx35": false,
+    "used:climate_2050": false,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "(Trợ lý AI đang bận — đây là số đo của thửa, chưa qua diễn giải.)\nTerraScore 89/100 (hạng A). Hiểm hoạ 7 ngày tới: có mối cần để ý — cảnh báo lũ/ngập sớm. (chấm từ 4/5 hiểm họa có dữ liệu thật)\n- Cảnh báo xâm nhập mặn (ƯỚC LƯỢNG chưa hiệu chỉnh, 7 ngày): Ngoài vùng xâm nhập mặn nông nghiệp | Khuyến nghị: Dùng các mô-đun Lũ/Ngập, Hạn hoặc Rủi ro mua đất cho vị trí này.\n- Cảnh báo hạn & thiếu nước (dữ liệu thật, dự báo 7 ngày): Đủ ẩm trong 7 ngày — đỉnh 0.0% | Khuyến nghị: Chưa cần can thiệp.\n- Cảnh báo lũ/ngập sớm (dữ liệu thật, dự báo 7 ngày): Có nguy cơ ngập (chỉ số 62.9) | Khuyến nghị: Chuẩn bị phương án thoát nước, theo dõi mưa.\n- Mưa dự báo 7 ngày tới (dữ liệu thật): tổng 223 mm; ngày mưa nhiều nhất 28/11: 86 mm.\n- TerraScore: 89/100 (hạng A) — Hiểm hoạ 7 ngày tới: có mối cần để ý — cảnh báo lũ/ngập sớm. (chấm từ 4/5 hiểm họa có dữ liệu thật)\nLịch sử tại đây (radar Sentinel-1 = nước quan sát được; ERA5 = chỉ số thời tiết 10 năm):\n- Nước phủ thửa đo bằng radar Sentinel-1 (quan sát thật): 7 đợt từ 2017, gần nhất 2026-01-30.\n- Từng đợt nước radar thấy (ngày, mức phủ thửa): 7/11/2017 (phủ 10–25% thửa); 10/10/2020 (phủ 25–50% thửa); 9/11/2020–15/11/2020 (phủ 10–25% thửa); 17/10/2021 (phủ 25–50% thửa); 19/10/2023 (phủ 25–50% thửa); 1/11/2025–19/11/2025 (phủ 25–50% thửa); 30/1/2026 (phủ 10–25% thửa).\n- khô hạn (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 15 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 6, gần nhất 2026-08-17.\n- mưa lớn dễ gây ngập (chỉ số thời tiết ERA5 — điều kiện, KHÔNG phải số lần xảy ra đo được): 25 đợt vượt ngưỡng trong 10 năm, cao điểm tháng 10, gần nhất 2026-09-12.",
+   "llm": false,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 17.4
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q2_mua_cuc_doan",
+   "checks": {
+    "climate:r50": false,
+    "used:climate_2050": false,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "TerraTwin không có dự báo thời tiết dài hạn đến giữa thế kỷ, chỉ cung cấp dự báo trong 7 ngày tới. Vì vậy không thể trả lời câu hỏi về lượng mưa trên 50 mm một ngày trong tương lai xa hơn.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 9.3
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q3_tong_mua",
+   "checks": {
+    "climate:prcptot": false,
+    "used:climate_2050": false,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Dữ liệu hiện có chỉ cung cấp dự báo mưa trong 7 ngày tới và một số chỉ số lịch sử ngắn hạn; không có thông tin về xu hướng lượng mưa đến năm 2050 nên không thể xác định được tổng lượng mưa năm sẽ tăng hay giảm bao nhiêu phần trăm.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 3.1
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q4_bien_dang",
+   "checks": {
+    "sea_level": false,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Dữ liệu hiện có không đề cập tới vị trí địa lý của thửa đất này so với bờ biển, cũng không có thông tin về mức dâng nước biển trong khu vực. Vì vậy chưa thể khẳng định nước biển dâng có ảnh hưởng hay không; cần kiểm tra bản đồ địa hình, khoảng cách tới bờ biển và dự báo dâng nước biển của khu vực để có câu trả lời chính xác.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 8.1
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q5_hai_nam",
+   "checks": {
+    "year_events:2020": true,
+    "year_events:2024": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Có. Năm 2020, radar Sentinel-1 thấy nước phủ thửa 2 đợt: 10/10/2020 (phủ 25–50% thửa); 9/11/2020–15/11/2020 (phủ 10–25% thửa). Đây là số đo radar nhìn xuyên mây, không phải số liệu ngập chính thức — hỏi thêm hàng xóm xem nước lên cao bao nhiêu, mấy ngày thì rút.\n\nNăm 2024, radar Sentinel-1 chưa thấy đợt nước phủ nào trên thửa (radar có ảnh của thửa từ 11/1/2017). Radar chụp 6–12 ngày một lần nên có thể lọt đợt ngập ngắn — chưa thấy KHÔNG có nghĩa là chắc chắn không ngập.",
+   "llm": false,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ],
+   "used_modules": [
+    "water_history"
+   ],
+   "tools": [],
+   "seconds": 0.3
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q6_hai_hiem_hoa",
+   "checks": {
+    "covers:landslide,wildfire": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Có nguy cơ sạt lở hầu như không (chỉ số 39.0, mức độ thấp). Nguy cơ cháy rừng cũng rất thấp (chỉ số 0.0).",
+   "llm": true,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ],
+   "used_modules": [
+    "landslide",
+    "wildfire"
+   ],
+   "tools": [],
+   "seconds": 6.0
+  },
+  {
+   "plot": "quang_dien",
+   "question": "q7_chuan_bi",
+   "checks": {
+    "no_advice": true,
+    "no_minimize": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Theo dự báo 7 ngày tới, thửa đất (16.5751, 107.4952) có nguy cơ ngập cao (chỉ số 62.9). Bạn nên:\n\n- Chuẩn bị và kiểm tra hệ thống thoát nước, rào chắn hoặc bơm nước dự phòng để giảm thiểu ảnh hưởng khi mưa mạnh.\n- Theo dõi lượng mưa hàng ngày, đặc biệt vào ngày 28/11 khi dự báo sẽ có 86 mm mưa.\n- Kiểm tra và củng cố các cấu trúc nông nghiệp (đê, kè) để chịu được lượng nước lớn.\n- Lưu ý rằng thửa này đã từng có 7 đợt nước phủ được radar Sentinel‑1 quan sát (từ 2017 đến 2026), trong đó các đợt gần đây có mức phủ 10‑25 % hoặc 25‑50 % thửa, cho thấy khả năng xuất hiện nước trên bề mặt không hiếm.\n- Đồng thời, hiện ít nguy cơ hạn trong 7 ngày tới (đủ ẩm), vì vậy không cần biện pháp tưới tiêu khẩn cấp.\n\nBạn nên tiếp tục theo dõi dự báo thời tiết và báo cáo tình hình lên cơ quan quản lý nông nghiệp địa phương để được hỗ trợ kịp thời.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định. TerraTwin chỉ có dự báo 7 ngày tới; không có dự báo cho cả mùa hay các tháng sau.",
+   "llm": true,
+   "radar_events": [
+    "2017-11-07",
+    "2020-10-10",
+    "2020-11-09",
+    "2021-10-17",
+    "2023-10-19",
+    "2025-11-01",
+    "2026-01-30"
+   ],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 10.1
+  },
+  {
+   "plot": "bmt",
+   "question": "q1_nong_2050",
+   "checks": {
+    "climate:tx35": false,
+    "used:climate_2050": false,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "TerraTwin không có dự báo khí hậu đến năm 2050, chỉ cung cấp dự báo trong 7 ngày tới. Vì vậy không thể trả lời câu hỏi về sự thay đổi số ngày nắng nóng trên 35 °C vào năm 2050.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 13.1
+  },
+  {
+   "plot": "bmt",
+   "question": "q2_mua_cuc_doan",
+   "checks": {
+    "climate:r50": false,
+    "used:climate_2050": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Dựa trên mô hình khí hậu cho khoảng 2041–2050 (phát thải cao), khu vực này trung bình không có ngày mưa ≥ 50 mm; mô hình dự báo 0 ngày trong năm, trong khi giai đoạn 1995–2014 trung bình có 0,1 ngày. Vì vậy, mưa rất to trên 50 mm một ngày sẽ không xuất hiện nhiều hơn so với hiện tại. Dữ liệu này là ước lượng, không phải dự báo thời tiết chi tiết cho từng ngày.",
+   "llm": true,
+   "radar_events": [],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood",
+    "climate_2050"
+   ],
+   "tools": [
+    {
+     "tool": "khi_hau_2050",
+     "label": "khí hậu 2050",
+     "args": {
+      "": {}
+     },
+     "ok": true,
+     "ms": 0
+    }
+   ],
+   "seconds": 12.4
+  },
+  {
+   "plot": "bmt",
+   "question": "q3_tong_mua",
+   "checks": {
+    "climate:prcptot": true,
+    "used:climate_2050": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Theo mô hình khí hậu 2041‑2050 (phát thải cao), tổng lượng mưa hàng năm dự kiến tăng khoảng 1,4 % so với giai đoạn 1995‑2014. Vì mô hình chỉ cung cấp mức trung bình và các mô hình khác nhau cho thấy biến động từ giảm 35 % tới tăng 23,4 %, nên kết quả này chỉ là ước lượng, chưa chắc chắn.",
+   "llm": true,
+   "radar_events": [],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood",
+    "climate_2050"
+   ],
+   "tools": [
+    {
+     "tool": "khi_hau_2050",
+     "label": "khí hậu 2050",
+     "args": {
+      "": {}
+     },
+     "ok": true,
+     "ms": 0
+    }
+   ],
+   "seconds": 6.1
+  },
+  {
+   "plot": "bmt",
+   "question": "q4_bien_dang",
+   "checks": {
+    "sea_level": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Theo dữ liệu hiện có, vị trí (12.7300, 108.0500) đang có cảnh báo xâm nhập mặn (ước lượng chưa hiệu chỉnh, 7 ngày tới). Radar Sentinel‑1 chưa ghi nhận bất kỳ đợt nước phủ nào từ năm 2017, nên chưa có bằng chứng thực tế về ngập nước biển tại đây. Tuy nhiên, vì có ước lượng xâm nhập mặn trong 7 ngày tới, nước biển dâng có khả năng ảnh hưởng đến mảnh đất này và nên được xem xét khi quyết định mua hoặc sử dụng. Bạn nên kiểm tra thêm với người dân địa phương, UBND xã và các tài liệu quy hoạch để có thông tin chi tiết hơn.",
+   "llm": true,
+   "radar_events": [],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 9.1
+  },
+  {
+   "plot": "bmt",
+   "question": "q5_hai_nam",
+   "checks": {
+    "year_events:2020": true,
+    "year_events:2024": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Năm 2020, radar Sentinel-1 chưa thấy đợt nước phủ nào trên thửa (radar có ảnh của thửa từ 6/1/2017). Radar chụp 6–12 ngày một lần nên có thể lọt đợt ngập ngắn — chưa thấy KHÔNG có nghĩa là chắc chắn không ngập.\n\nNăm 2024, radar Sentinel-1 chưa thấy đợt nước phủ nào trên thửa (radar có ảnh của thửa từ 6/1/2017). Radar chụp 6–12 ngày một lần nên có thể lọt đợt ngập ngắn — chưa thấy KHÔNG có nghĩa là chắc chắn không ngập.",
+   "llm": false,
+   "radar_events": [],
+   "used_modules": [
+    "water_history"
+   ],
+   "tools": [],
+   "seconds": 0.3
+  },
+  {
+   "plot": "bmt",
+   "question": "q6_hai_hiem_hoa",
+   "checks": {
+    "covers:landslide,wildfire": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Theo dự báo 7 ngày tới, nguy cơ sạt lở ở vị trí (12.7300, 108.0500) là thấp (chỉ số 22.2) và nguy cơ cháy rừng cũng thấp (chỉ số 19.2). Cả hai đều chỉ ra “duy trì theo dõi” mà không có cảnh báo cấp bách.",
+   "llm": true,
+   "radar_events": [],
+   "used_modules": [
+    "landslide",
+    "wildfire"
+   ],
+   "tools": [],
+   "seconds": 3.2
+  },
+  {
+   "plot": "bmt",
+   "question": "q7_chuan_bi",
+   "checks": {
+    "no_advice": true,
+    "no_minimize": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Theo dự báo 7 ngày tới:\n\n- Lũ/ngập: ít nguy cơ ngập (chỉ số 21.9). Radar Sentinel‑1 chưa ghi nhận đợt nước nào ở thửa trong 10 năm.\n- Hạn & thiếu nước: đủ ẩm, không cần can thiệp.\n- Xâm nhập mặn: ước lượng chưa hiệu chỉnh, cảnh báo tồn tại.\n\nBạn nên:\n\n1. Theo dõi diễn biến mưa và cảnh báo lũ trong 7 ngày tới, dù nguy cơ thấp.  \n2. Kiểm tra và bảo trì hệ thống thoát nước, rãnh mương để tránh nước dội lại nếu mưa mạnh bất ngờ.  \n3. Đối với xâm nhập mặn, cân nhắc áp dụng các biện pháp giảm mặn (ví dụ: sử dụng mô-đun “Lũ/Ngập, Hạn” hoặc các biện pháp canh tác chịu mặn) vì cảnh báo là ước lượng chưa hiệu chỉnh.  \n4. Thu thập thêm thông tin từ UBND xã, hàng xóm và các nguồn địa phương về tình hình mưa bão và mức độ mặn trong đất để đưa ra quyết định cuối cùng.\n\nTerraTwin chỉ có dự báo 7 ngày tới; không có dự báo cho cả mùa hay các tháng sau.",
+   "llm": true,
+   "radar_events": [],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 2.2
+  },
+  {
+   "plot": "ba_tri",
+   "question": "q1_nong_2050",
+   "checks": {
+    "climate:tx35": true,
+    "used:climate_2050": true,
+    "no_redacted": false,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Đến giai đoạn 2041‑2050, số ngày có nhiệt độ trên 35 °C trung bình mỗi năm tăng từ khoảng 0.7 ngày (giai đoạn 1995‑2014) lên khoảng 4.7 ngày, tức tăng khoảng 4.2 ngày. Đây là ước lượng dựa trên mô hình phát thải cao (SSP5‑[số đã ẩn]).",
+   "llm": true,
+   "radar_events": [],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood",
+    "climate_2050"
+   ],
+   "tools": [
+    {
+     "tool": "khi_hau_2050",
+     "label": "khí hậu 2050",
+     "args": {},
+     "ok": true,
+     "ms": 0
+    }
+   ],
+   "seconds": 5.8
+  },
+  {
+   "plot": "ba_tri",
+   "question": "q2_mua_cuc_doan",
+   "checks": {
+    "climate:r50": false,
+    "used:climate_2050": false,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Dữ liệu hiện có chỉ gồm dự báo mưa 7 ngày tới với tổng 94 mm, trong đó ngày 28/11 có 53 mm. Không có thông tin nào về tần suất mưa > 50 mm/ngày ở khu vực này trong các thập kỷ hay đến giữa thế kỷ. Vì vậy câu hỏi này chưa đủ dữ liệu để trả lời.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 11.4
+  },
+  {
+   "plot": "ba_tri",
+   "question": "q3_tong_mua",
+   "checks": {
+    "climate:prcptot": false,
+    "used:climate_2050": false,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Dữ liệu hiện có chỉ cung cấp dự báo mưa trong 7 ngày tới và một số thông tin lịch sử thời tiết trong 10 năm qua; không có thông tin về xu hướng lượng mưa hàng năm đến năm 2050. Vì vậy câu hỏi này chưa có cơ sở để trả lời.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 16.2
+  },
+  {
+   "plot": "ba_tri",
+   "question": "q4_bien_dang",
+   "checks": {
+    "sea_level": false,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Dữ liệu hiện có không bao gồm thông tin về mức dâng của nước biển tại vị trí (10.0400, 106.5900), vì vậy chưa đủ để đánh giá ảnh hưởng của hiện tượng này tới mảnh đất này. Bạn nên tham khảo nguồn dữ liệu chuyên về biến đổi khí hậu biển hoặc hỏi cơ quan quản lý địa phương để có thông tin chi tiết.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 6.0
+  },
+  {
+   "plot": "ba_tri",
+   "question": "q5_hai_nam",
+   "checks": {
+    "year_events:2020": true,
+    "year_events:2024": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Năm 2020, radar Sentinel-1 chưa thấy đợt nước phủ nào trên thửa (radar có ảnh của thửa từ 5/1/2017). Radar chụp 6–12 ngày một lần nên có thể lọt đợt ngập ngắn — chưa thấy KHÔNG có nghĩa là chắc chắn không ngập.\n\nNăm 2024, radar Sentinel-1 chưa thấy đợt nước phủ nào trên thửa (radar có ảnh của thửa từ 5/1/2017). Radar chụp 6–12 ngày một lần nên có thể lọt đợt ngập ngắn — chưa thấy KHÔNG có nghĩa là chắc chắn không ngập.",
+   "llm": false,
+   "radar_events": [],
+   "used_modules": [
+    "water_history"
+   ],
+   "tools": [],
+   "seconds": 0.3
+  },
+  {
+   "plot": "ba_tri",
+   "question": "q6_hai_hiem_hoa",
+   "checks": {
+    "covers:landslide,wildfire": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Theo dự báo 7 ngày, nguy cơ sạt lở hầu như không (chỉ số 39.0) và không cần lo sạt lở. Nguy cơ cháy rừng thấp (chỉ số 25.6) và chỉ cần duy trì theo dõi thường lệ.",
+   "llm": true,
+   "radar_events": [],
+   "used_modules": [
+    "landslide",
+    "wildfire"
+   ],
+   "tools": [],
+   "seconds": 1.8
+  },
+  {
+   "plot": "ba_tri",
+   "question": "q7_chuan_bi",
+   "checks": {
+    "no_advice": true,
+    "no_minimize": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Dựa vào các dữ liệu hiện có, trong 7 ngày tới thửa đất (10.0400, 106.5900) có:\n\n- Nguy cơ ngập cao từ khoảng 28‑11‑2026 (chỉ số 81.1).  \n- Cảnh báo xâm nhập mặn mức cảnh báo, đỉnh ~2.12 g/L ngày 27‑11‑2026.  \n- Không có dấu hiệu thiếu nước; dự báo đủ ẩm.\n\nVì vậy, trong mùa mưa bão sắp tới bạn nên:\n\n1. Theo dõi chặt chẽ dự báo thời tiết và cảnh báo lũ; chuẩn bị phương án sơ tán tài sản nếu mực nước tăng nhanh.  \n2. Bảo vệ tài sản: nâng cao, di chuyển các vật dụng, máy móc, vật nuôi và vật tư nông nghiệp lên vị trí cao hơn mức ngập dự kiến.  \n3. Chuẩn bị thiết bị thoát nước: bơm, máng dẫn, và làm sạch kênh mương để giảm khả năng tích tụ nước trên thửa.  \n4. Giám sát mặn: vì mặn đang ở mức cảnh báo, hạn chế lấy nước tưới trong thời gian thủy triều cao; nếu có thể, dự trữ nước ngọt để dùng khi cần.  \n5. Kiểm tra và củng cố cấu trúc bảo vệ: tường chắn, rào chắn, hoặc các công trình ngăn nước nếu có.  \n6. Liên hệ với cơ quan địa phương (UBND xã, phòng nông nghiệp) để nhận thông tin cập nhật và hỗ trợ kịp thời.  \n\nCác biện pháp trên giúp giảm thiểu thiệt hại khi mưa bão và nguy cơ ngập, đồng thời chuẩn bị đối phó với xâm nhập mặn có thể xảy ra.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định. TerraTwin chỉ có dự báo 7 ngày tới; không có dự báo cho cả mùa hay các tháng sau.",
+   "llm": true,
+   "radar_events": [],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 3.2
+  },
+  {
+   "plot": "phan_rang",
+   "question": "q1_nong_2050",
+   "checks": {
+    "climate:tx35": false,
+    "used:climate_2050": false,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Dữ liệu hiện có không chứa thông tin về số ngày nắng nóng trên 35 °C và không có dự báo dài hạn tới năm 2050, vì TerraTwin chỉ cung cấp dự báo lên tới 7 ngày tới. Vì vậy câu hỏi này chưa đủ dữ liệu để trả lời.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [
+    "2018-06-18",
+    "2018-08-05",
+    "2018-10-04",
+    "2022-02-09",
+    "2026-09-23"
+   ],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 8.9
+  },
+  {
+   "plot": "phan_rang",
+   "question": "q2_mua_cuc_doan",
+   "checks": {
+    "climate:r50": false,
+    "used:climate_2050": false,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Câu hỏi này yêu cầu dự báo mưa trên 50 mm một ngày ở vị trí (11.5600, 108.9300) trong khoảng thời gian kéo dài tới giữa thế kỷ. Dữ liệu hiện có chỉ bao gồm dự báo mưa 7 ngày tới (tổng 67 mm, ngày mưa lớn nhất 28 mm vào 28/11) và các chỉ số lịch sử ngắn hạn. Vì không có thông tin dự báo dài hạn, nên không thể trả lời câu hỏi này.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định.",
+   "llm": true,
+   "radar_events": [
+    "2018-06-18",
+    "2018-08-05",
+    "2018-10-04",
+    "2022-02-09",
+    "2026-09-23"
+   ],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 5.8
+  },
+  {
+   "plot": "phan_rang",
+   "question": "q3_tong_mua",
+   "checks": {
+    "climate:prcptot": false,
+    "used:climate_2050": false,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Dữ liệu hiện có chỉ cung cấp dự báo mưa trong 7 ngày tới và các chỉ số thời tiết trong 10 năm gần đây; không có thông tin nào về xu hướng lượng mưa hàng năm đến năm 2050. Vì vậy không thể ước lượng được tổng lượng mưa năm ở đây sẽ tăng hay giảm bao nhiêu phần trăm so với hiện tại.",
+   "llm": true,
+   "radar_events": [
+    "2018-06-18",
+    "2018-08-05",
+    "2018-10-04",
+    "2022-02-09",
+    "2026-09-23"
+   ],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 19.7
+  },
+  {
+   "plot": "phan_rang",
+   "question": "q4_bien_dang",
+   "checks": {
+    "sea_level": false,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Có, vị trí (11.5600, 108.9300) nằm trong vùng “ngoài vùng xâm nhập mặn nông nghiệp — sát biển nên nước lợ/mặn tự nhiên”. Theo cảnh báo xâm nhập mặn (ước lượng chưa hiệu chỉnh, 7 ngày) nước biển dâng có thể mang tới nước lợ hoặc mặn tự nhiên, vì vậy nguy cơ ảnh hưởng của mặn tới đất là hiện hữu. Radar Sentinel‑1 chỉ ghi nhận 5 đợt nước phủ (10–25 % thửa) trong 10 năm, nhưng các đợt này không phải do mặn biển mà là hiện tượng ngập nước chung, nên không thể dùng để khẳng định mặn đã ngập. Vì vậy, nước biển dâng có khả năng ảnh hưởng qua xâm nhập mặn, cần chú ý và áp dụng các biện pháp giảm rủi ro như các mô‑đun Lũ/Ngập, Hạn được khuyến nghị.",
+   "llm": true,
+   "radar_events": [
+    "2018-06-18",
+    "2018-08-05",
+    "2018-10-04",
+    "2022-02-09",
+    "2026-09-23"
+   ],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 10.2
+  },
+  {
+   "plot": "phan_rang",
+   "question": "q5_hai_nam",
+   "checks": {
+    "year_events:2020": true,
+    "year_events:2024": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Năm 2020, radar Sentinel-1 chưa thấy đợt nước phủ nào trên thửa (radar có ảnh của thửa từ 6/1/2017). Radar chụp 6–12 ngày một lần nên có thể lọt đợt ngập ngắn — chưa thấy KHÔNG có nghĩa là chắc chắn không ngập.\n\nNăm 2024, radar Sentinel-1 chưa thấy đợt nước phủ nào trên thửa (radar có ảnh của thửa từ 6/1/2017). Radar chụp 6–12 ngày một lần nên có thể lọt đợt ngập ngắn — chưa thấy KHÔNG có nghĩa là chắc chắn không ngập.",
+   "llm": false,
+   "radar_events": [
+    "2018-06-18",
+    "2018-08-05",
+    "2018-10-04",
+    "2022-02-09",
+    "2026-09-23"
+   ],
+   "used_modules": [
+    "water_history"
+   ],
+   "tools": [],
+   "seconds": 0.6
+  },
+  {
+   "plot": "phan_rang",
+   "question": "q6_hai_hiem_hoa",
+   "checks": {
+    "covers:landslide,wildfire": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Theo dữ liệu thực tế dự báo 7 ngày, nguy cơ sạt lở ở vị trí (11.5600, 108.9300) rất thấp (chỉ số 39, địa hình phẳng) và không cần lo ngại. Nguy cơ cháy rừng cũng thấp (chỉ số 15.8) và chỉ cần duy trì theo dõi thường lệ.",
+   "llm": true,
+   "radar_events": [
+    "2018-06-18",
+    "2018-08-05",
+    "2018-10-04",
+    "2022-02-09",
+    "2026-09-23"
+   ],
+   "used_modules": [
+    "landslide",
+    "wildfire"
+   ],
+   "tools": [],
+   "seconds": 3.8
+  },
+  {
+   "plot": "phan_rang",
+   "question": "q7_chuan_bi",
+   "checks": {
+    "no_advice": true,
+    "no_minimize": true,
+    "no_redacted": true,
+    "no_cjk": true,
+    "no_config_leak": true
+   },
+   "answer": "Thửa đất đã từng có nước phủ (5 đợt, mỗi lần phủ 10–25% thửa) theo radar Sentinel‑1; gần nhất vào ngày 23/9/2026. Trong 7 ngày tới dự báo có nguy cơ ngập (chỉ số 50.4) và tổng lượng mưa ước tính 67 mm, ngày mưa lớn nhất 28 mm (28/11). Vì vậy trong 7 ngày tới có nguy cơ ngập cao.\n\nBạn nên:\n- Kiểm tra và bảo trì các kênh, rãnh thoát nước; chuẩn bị bơm hoặc vật liệu chắn nước nếu cần.\n- Theo dõi dự báo mưa và mức nước hằng giờ, đặc biệt vào ngày 28/11.\n- Xem xét các biện pháp giảm xâm nhập mặn (ví dụ dùng mô‑đun Lũ/Ngập, Hạn) do khu vực gần biển và có cảnh báo xâm nhập mặn.\n- Tham khảo thông tin địa phương (hộ dân, UBND xã) để biết tình hình thực tế và quy hoạch vùng ngập.\n\nLưu ý: số Cảnh báo xâm nhập mặn là ước lượng vật lý chưa hiệu chỉnh, chỉ cho 7 ngày tới — chưa đủ để khẳng định. TerraTwin chỉ có dự báo 7 ngày tới; không có dự báo cho cả mùa hay các tháng sau.",
+   "llm": true,
+   "radar_events": [
+    "2018-06-18",
+    "2018-08-05",
+    "2018-10-04",
+    "2022-02-09",
+    "2026-09-23"
+   ],
+   "used_modules": [
+    "salinity",
+    "drought",
+    "flood"
+   ],
+   "tools": [],
+   "seconds": 10.2
+  }
+ ]
+}
