@@ -245,6 +245,47 @@ def _relevance(question: str, note) -> int:
     return (3 * len(q & topic) + 2 * len(q & title) + len(q & body))
 
 
+def _note_terms(note) -> list[str]:
+    """Từ của một ghi chép cho BM25 — chủ đề ×3, tiêu đề ×2, thân ×1 (cô đọng hơn thì nặng hơn, như _relevance)."""
+    return (3 * sorted(_tokens(getattr(note, "topic", ""))) + 2 * sorted(_tokens(getattr(note, "title", "")))
+            + sorted(_tokens(getattr(note, "body", ""))))
+
+
+def bm25(question: str, notes: list, k1: float = 1.2, b: float = 0.75) -> list[float]:
+    """Okapi BM25 của câu hỏi với từng ghi chép (25/11/2026, thay đếm từ trùng): từ HIẾM trong kho ("mặn", "phèn")
+    nặng hơn từ phổ biến, và bài dài không thắng chỉ vì dài. Không gọi API, không cần embedding."""
+    import math
+    q = _tokens(question)
+    docs = [_note_terms(n) for n in notes]
+    if not q or not docs:
+        return [0.0] * len(notes)
+    N = len(docs)
+    avg = sum(len(d) for d in docs) / N or 1.0
+    df = {t: sum(1 for d in docs if t in set(d)) for t in q}
+    out = []
+    for d in docs:
+        tf: dict[str, int] = {}
+        for t in d:
+            tf[t] = tf.get(t, 0) + 1
+        s = 0.0
+        for t in q:
+            f = tf.get(t, 0)
+            if f:
+                idf = math.log(1 + (N - df[t] + 0.5) / (df[t] + 0.5))
+                s += idf * f * (k1 + 1) / (f + k1 * (1 - b + b * len(d) / avg))
+        out.append(s)
+    return out
+
+
+def rrf(*rankings: list[int], k: int = 60) -> dict[int, float]:
+    """Reciprocal Rank Fusion: gộp nhiều thứ hạng (danh sách chỉ số, tốt nhất trước) — điểm = Σ 1/(k + hạng)."""
+    out: dict[int, float] = {}
+    for r in rankings:
+        for pos, i in enumerate(r, 1):
+            out[i] = out.get(i, 0.0) + 1.0 / (k + pos)
+    return out
+
+
 def _knowledge(question: str, loc: Location) -> tuple[list[KnowledgeCitation], str]:
     """Lấy kinh nghiệm thực địa từ vùng có BỘ GEN ĐẤT giống nơi đang hỏi.
 
@@ -297,12 +338,17 @@ def _knowledge(question: str, loc: Location) -> tuple[list[KnowledgeCitation], s
             # nạp một ghi chép về cà phê, chỉ vì nó ở vùng cùng bộ gen. Đưa văn
             # bản lạc đề vào prompt làm loãng chính dữ liệu đo được — thứ duy
             # nhất kiểm chứng được trong câu trả lời.
-            rel = {id(n): _relevance(question, n) for _, _, n in scored}
+            # 25/11/2026: BM25 (thay đếm từ trùng) + gộp với thứ hạng gen đất bằng Reciprocal Rank Fusion.
+            rel_s = bm25(question, [n for _, _, n in scored])
+            rel = {id(t[2]): v for t, v in zip(scored, rel_s)}
             has_relevant = any(v > 0 for v in rel.values())
             if has_relevant:
                 scored = [t for t in scored if rel[id(t[2])] > 0]
-            scored.sort(key=lambda t: (rel[id(t[2])], t[0]), reverse=True)
-            top = scored[:_RAG_K]
+            by_rel = sorted(range(len(scored)), key=lambda i: -rel[id(scored[i][2])])
+            by_sim = sorted(range(len(scored)), key=lambda i: -scored[i][0])
+            fused = rrf(by_rel, by_sim)
+            order = sorted(range(len(scored)), key=lambda i: -fused[i])
+            top = [scored[i] for i in order[:_RAG_K]]
             if not top:
                 return [], ""
 
