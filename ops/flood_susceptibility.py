@@ -61,7 +61,7 @@ def _features(lat: float, lon: float) -> dict:
     river = river_grid.nearest_km(lat, lon)
     return {"elev_m": round(e[0], 1), "slope_deg": round(math.degrees(math.atan(grad)), 2), "relief_m": round(max(e) - min(e), 1),
             "dist_coast_km": round(ds.distance_to_coast_km(lat, lon), 2),
-            "dist_river_km": round(river if river is not None else 3.0, 3)}
+            "dist_river_km": round(min(3.0, river) if river is not None and math.isfinite(river) else 3.0, 3)}
 
 
 def harvest() -> None:
