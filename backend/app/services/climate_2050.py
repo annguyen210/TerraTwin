@@ -160,6 +160,13 @@ def localize(r: dict, lat: float, lon: float) -> dict:
     from app.services import datasources as ds
     items = []
     for row in r["indicators"]:
+        # Bộ chấm trợ lý v4 (25/11/2026): trung vị nền, trung vị tương lai, trung vị thay đổi lấy RIÊNG trên 3 mô hình
+        # nên có thể ngược chiều nhau (BMT: 31.9 → 30.4 mm mà "+8.1%"). Giá trị 2041–2050 hiển thị = nền + thay đổi
+        # trung vị — luôn khớp con số thay đổi; trung vị tương lai thô giữ ở "future_median".
+        row = dict(row)
+        row["future_median"] = row["future"]
+        row["future"] = round(row["base"] + row["delta"] if row["how"] == "abs"
+                              else row["base"] * (1 + row["delta"] / 100.0), 1)
         vi, en = NAMES[row["id"]]
         u_vi, u_en = ("ngày", "days") if row["unit"] == "days" else ("mm", "mm")
         if row["how"] == "abs":

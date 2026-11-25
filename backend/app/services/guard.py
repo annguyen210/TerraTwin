@@ -49,11 +49,20 @@ def _benign(v: float) -> bool:
     return False
 
 
+def _value(m: re.Match) -> float | None:
+    """Giá trị của một số khớp _NUM. Dấu "-" đứng NGAY sau chữ/số là gạch nối, không phải dấu âm: "SSP5-8.5",
+    "2041-2050" (bộ chấm trợ lý v4 25/11/2026: rào chắn che nhầm "8.5" trong "SSP5‑8.5" vì nguồn đọc ra -8.5)."""
+    tok = m.group(0)
+    if tok.startswith("-") and m.start() > 0 and m.string[m.start() - 1].isalnum():
+        tok = tok[1:]
+    return _parse(tok)
+
+
 def numbers_in(text: str) -> set[float]:
     """Tập mọi số xuất hiện trong text (những số model ĐƯỢC PHÉP nhắc lại)."""
     out: set[float] = set()
     for m in _NUM.finditer(text or ""):
-        v = _parse(m.group(0))
+        v = _value(m)
         if v is not None:
             out.add(v)
     return out
@@ -81,7 +90,7 @@ def strip_invented_numbers(
 
     def repl(m: re.Match) -> str:
         raw = m.group(0)
-        v = _parse(raw)
+        v = _value(m)
         if v is None or ok(v):
             return raw
         removed.append(raw)

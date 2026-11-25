@@ -87,3 +87,16 @@ def test_api_ngoai_viet_nam_va_han_muc(monkeypatch):
     monkeypatch.setattr(quota, "take", lambda *a, **k: 120)
     r = cl.get("/api/climate2050?lat=20.97&lon=106.28")
     assert r.status_code == 429 and r.headers.get("Retry-After") == "120"
+
+
+def test_gia_tri_2050_luon_khop_con_so_thay_doi():
+    """Bộ chấm trợ lý v4 25/11/2026: trung vị riêng rẽ có thể ngược chiều (31.9 → 30.4 mm mà +8.1%)."""
+    from app.services import climate_2050 as c
+    r = {"indicators": [{"id": "rx1day", "unit": "mm", "how": "pct", "base": 31.9, "future": 30.4, "delta": 8.1,
+                         "delta_min": -3.0, "delta_max": 12.0, "agree": False},
+                        {"id": "cdd", "unit": "days", "how": "abs", "base": 54.5, "future": 48.9, "delta": 1.2,
+                         "delta_min": -6.0, "delta_max": 4.0, "agree": False}], "models": list(c.MODELS)}
+    out = c.localize(r, 12.73, 108.05)
+    rx, cdd = out["indicators"]
+    assert rx["future"] == 34.5 and rx["future_median"] == 30.4 and "34.5" in rx["future_txt"]
+    assert cdd["future"] == 55.7 and "55.7" in cdd["future_txt"]
