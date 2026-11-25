@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { runAsk, type AskResult } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
+import { getRecognition, type SpeechRecognitionLike } from "@/lib/speech";
 
 /** C09 Field Mode — hỏi bằng GIỌNG NÓI, dùng được ngay ngoài đồng.
  *
@@ -13,29 +14,6 @@ import { useLang } from "@/lib/i18n";
  *  Trình duyệt không hỗ trợ (Firefox, một số WebView) thì vẫn gõ tay được —
  *  tính năng này là lối tắt, không phải điều kiện bắt buộc.
  */
-
-type SpeechRecognitionLike = {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  start: () => void;
-  stop: () => void;
-  onresult: ((e: any) => void) | null;
-  onerror: ((e: any) => void) | null;
-  onend: (() => void) | null;
-};
-
-function getRecognition(): SpeechRecognitionLike | null {
-  if (typeof window === "undefined") return null;
-  const Ctor =
-    (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition;
-  if (!Ctor) return null;
-  const r: SpeechRecognitionLike = new Ctor();
-  r.lang = "vi-VN";
-  r.continuous = false;
-  r.interimResults = true;
-  return r;
-}
 
 const EXAMPLES = [
   "nếu mưa gấp đôi thì ruộng tôi có ngập không",

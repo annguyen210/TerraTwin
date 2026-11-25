@@ -5439,3 +5439,9 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .twin-lv label { font-size: .84rem; font-weight: 700; }
 .twin-lv input { width: 100%; accent-color: #2678dc; }
 .twin-lv small { color: var(--dim); font-size: .72rem; line-height: 1.4; }
+
+/* Copilot — nút hỏi bằng giọng nói (25/11/2026) */
+.crow .cmic { min-width: 42px; }
+.crow .cmic.on { background: rgba(229, 112, 90, .18); border-color: rgba(229, 112, 90, .6); animation: cmicPulse 1.2s ease-in-out infinite; }
+@keyframes cmicPulse { 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { .crow .cmic.on { animation: none; } }

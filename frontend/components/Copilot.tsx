@@ -10,10 +10,11 @@
  * trả lời tựa vào đâu, thay vì tin một hộp đen.
  */
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { askCopilot, type CopilotAnswer } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 import { boldParts } from "@/lib/richtext";
+import { getRecognition, transcriptOf, type SpeechRecognitionLike } from "@/lib/speech";
 
 const MOD_NAME: Record<string, [string, string]> = {
   // Nguồn của câu trả lời thẳng từ số đo (nâng cấp 24/11/2026) — không phải mô-đun hiểm hoạ.
@@ -35,7 +36,27 @@ const MOD_NAME: Record<string, [string, string]> = {
 };
 
 export default function Copilot({ lat, lon }: { lat: number; lon: number }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  // Hỏi bằng giọng nói (25/11/2026) — nhận dạng ngay trong trình duyệt, nói xong tự gửi câu hỏi.
+  const [canTalk, setCanTalk] = useState(false);
+  const [listening, setListening] = useState(false);
+  const rec = useRef<SpeechRecognitionLike | null>(null);
+  useEffect(() => { setCanTalk(getRecognition() !== null); return () => rec.current?.stop(); }, []);
+  function talk() {
+    if (listening) { rec.current?.stop(); return; }
+    const r = getRecognition(lang === "en" ? "en" : "vi");
+    if (!r) return;
+    rec.current = r;
+    r.onresult = (e) => {
+      const { text, final } = transcriptOf(e);
+      setQ(text);
+      if (final && text) { r.stop(); ask(text); }
+    };
+    r.onerror = () => setListening(false);
+    r.onend = () => setListening(false);
+    setListening(true);
+    r.start();
+  }
   const SUGGESTS = [
     t("Ruộng tôi có bị mặn không?", "Is my field at risk of salinity?"),
     t("Tuần tới có nên xuống giống?", "Should I sow next week?"),
@@ -80,6 +101,13 @@ export default function Copilot({ lat, lon }: { lat: number; lon: number }) {
           placeholder={t("VD: ruộng tôi có bị mặn không?", "e.g. is my field at risk of salinity?")}
           onKeyDown={(e) => { if (e.key === "Enter") ask(); }}
         />
+        {canTalk && (
+          <button type="button" className={`cmic${listening ? " on" : ""}`} onClick={talk} disabled={loading}
+                  aria-label={listening ? t("Dừng nghe", "Stop listening") : t("Hỏi bằng giọng nói", "Ask by voice")}
+                  title={listening ? t("Đang nghe… bấm để dừng", "Listening… click to stop") : t("Hỏi bằng giọng nói", "Ask by voice")}>
+            {listening ? "⏺" : "🎤"}
+          </button>
+        )}
         <button onClick={() => ask()} disabled={loading}>
           {loading ? "…" : t("Hỏi", "Ask")}
         </button>
