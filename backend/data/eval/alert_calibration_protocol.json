@@ -1,0 +1,27 @@
+{
+  "name": "Hiệu chuẩn xác suất cảnh báo lũ/sạt lở theo dự báo LƯU TRỮ (Open-Meteo Previous Runs) — đăng ký trước",
+  "registered": "2026-11-25",
+  "why": "Bảng điểm sống mới có 8 cảnh báo đã chấm (25/11/2026) — hiệu chuẩn trên 8 mẫu là độ chính xác giả. Dựng lại đúng quy tắc cảnh báo trên dự báo đã phát hành THẬT trong quá khứ (theo từng độ trễ 0–6 ngày) và chấm bằng ERA5 như verify.py → hàng nghìn cặp (dự báo, thực đo).",
+  "question": "Khi cửa sổ 7 ngày có chỉ số DỰ BÁO đỉnh = x, xác suất chỉ số THỰC ĐO (ERA5) đỉnh ≥ 40 (ngưỡng 'trúng' của verify.py) là bao nhiêu; và dải 90% của chỉ số thực đo đỉnh.",
+  "modules": ["flood", "landslide"],
+  "not_covered": "drought, wildfire (phụ thuộc et0/nhiệt — chưa làm); cảnh báo radar quan sát (không phải dự báo).",
+  "data": {
+    "forecast": "previous-runs-api.open-meteo.com, hourly precipitation (độ trễ 0) và precipitation_previous_day1…6, cộng theo ngày giờ Việt Nam. Ngày thứ k của cửa sổ dùng dự báo phát hành trước k ngày — đúng như dự báo 7 ngày ở thời điểm cảnh báo.",
+    "observed": "Open-Meteo Archive (ERA5) — như verify._observed_peak; et0, tmax lấy từ ERA5 cho cả hai bên (chỉ mưa là dự báo).",
+    "warmup": "30 ngày ERA5 trước cửa sổ cho cả hai bên (như WARMUP_DAYS).",
+    "period": "2024-02-01 → 2025-12-31; cửa sổ bắt đầu mỗi 3 ngày.",
+    "index": "hazard.index_series (thang đã hiệu chuẩn theo khí hậu điểm, đúng luồng production)."
+  },
+  "points": "38 điểm tỉnh lỵ/đô thị trải đủ 7 vùng (danh sách trong ops/alert_calibration.py, cố định trước khi chạy).",
+  "split": "Giữ riêng theo ĐIỂM: điểm thứ i (0-based, theo danh sách) có i % 4 == 3 → tập KIỂM TRA (9 điểm, rải mọi vùng); còn lại → tập HIỆU CHUẨN. Không dùng tập kiểm tra để chọn gì.",
+  "method": "Xác suất: hồi quy đẳng trương (isotonic) P(thực đo ≥ 40 | dự báo đỉnh) trên tập hiệu chuẩn, theo từng module. Dải 90%: split-conformal theo 5 khoảng dự báo [0,20,40,55,70,101) — lượng tử (1−α)(1+1/n) của |thực đo − dự báo| trong mỗi khoảng, α = 0,1.",
+  "gate": {
+    "brier_skill_vs_climatology_min": 0.0,
+    "brier_vs_raw_rule": "Brier(xác suất hiệu chuẩn) < Brier(quy tắc thô: dự báo ≥ 70 → 1, ngược lại 0) trên tập kiểm tra",
+    "reliability_ece_max": 0.05,
+    "conformal_coverage_min": 0.87,
+    "min_test_windows": 500,
+    "note": "ĐẠT (cho từng module) khi cả 5 điều kiện đúng trên TẬP KIỂM TRA. Đạt thì bảng hiệu chuẩn được dùng để hiện 'khả năng thật sự xảy ra' cạnh cảnh báo; trượt thì công bố trượt, KHÔNG hiện xác suất."
+  },
+  "runs": "Một lần. Không chỉnh điểm, chia tập, ngưỡng hay cổng theo kết quả; trượt thì làm v2 với thiết kế mới, đăng ký lại."
+}
