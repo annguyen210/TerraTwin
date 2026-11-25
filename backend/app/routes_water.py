@@ -267,12 +267,18 @@ class ListingIn(BaseModel):
 @router.post("/api/listing/check")
 def listing_check_api(body: ListingIn, request: Request, lang: str = "vi",
                       user: User | None = Depends(auth.optional_user)) -> dict:
-    """Tách câu khẳng định trong tin đăng người dùng TỰ DÁN và đối chiếu với số đo của thửa. Không lưu nội dung."""
+    """Tách câu khẳng định trong tin đăng người dùng TỰ DÁN và đối chiếu với số đo của thửa. Không lưu nội dung — chỉ lưu
+    DẤU VÂN TAY ẩn danh (MinHash) để phát hiện tin bị chép/đăng lại ở nơi khác (services/listing_print.py)."""
     from app.routes_eudr import enforce_quota
-    from app.services import listing_check
+    from app.services import listing_check, listing_print
     reqlang.set_lang(lang)
     enforce_quota("screen", request, user)
-    return listing_check.check(body.text, body.lat, body.lon)
+    out = listing_check.check(body.text, body.lat, body.lon)
+    try:
+        out["fingerprint"] = listing_print.record_and_compare(body.text, body.lat, body.lon, out)
+    except Exception:  # noqa: BLE001 — dấu vân tay là phần thêm, lỗi không làm hỏng phần kiểm chính
+        out["fingerprint"] = None
+    return out
 
 
 @router.post("/api/climate/warm")

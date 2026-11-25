@@ -101,6 +101,17 @@ export default function ListingCheck({ lat, lon }: { lat: number; lon: number })
       ) : (
         <>
           {r.headline && <p className={`lc-head lc-head-${r.headline.level}`} role="status">{r.headline.text}</p>}
+          {/* Dấu vân tay tin rao (25/11/2026): cùng bài đã được kiểm ở NƠI KHÁC → dấu hiệu tin chép / đăng cho nhiều thửa. */}
+          {(r.fingerprint?.reuse?.length ?? 0) > 0 && (
+            <p className="lc-head lc-head-bad" role="alert">
+              {t(`⚠️ Tin này giống ${Math.round(100 * r.fingerprint!.reuse[0].similarity)}% một tin đã được kiểm cho thửa ở ${r.fingerprint!.reuse[0].province || "nơi khác"} (cách ~${r.fingerprint!.reuse[0].km} km, ngày ${r.fingerprint!.reuse[0].date.split("-").reverse().join("/")}) — dấu hiệu cùng một bài rao được dán cho nhiều mảnh đất. Hỏi người bán đúng thửa nào, xem sổ đỏ tận nơi.`,
+                 `⚠️ This listing is ${Math.round(100 * r.fingerprint!.reuse[0].similarity)}% similar to one already checked for a plot in ${r.fingerprint!.reuse[0].province || "another place"} (~${r.fingerprint!.reuse[0].km} km away, ${r.fingerprint!.reuse[0].date}) — a sign the same ad text is pasted for several plots. Ask the seller which plot exactly and see the title deed on site.`)}
+            </p>
+          )}
+          {r.fingerprint?.anomaly?.unusual && (
+            <p className="doc-note">{t(`Tin này KHÁC THƯỜNG so với ${r.fingerprint.anomaly.n} tin đã kiểm (nhiều lời cam kết tuyệt đối / từ hối thúc / mâu thuẫn với số đo) — không có nghĩa là lừa đảo, nhưng nên kiểm kỹ hơn.`,
+                                         `This listing is UNUSUAL compared with ${r.fingerprint.anomaly.n} checked listings (many absolute promises / urgency words / contradictions) — not proof of fraud, but check more carefully.`)}</p>
+          )}
           <p className="wh-sum">{t(`${r.counts.contradicted || 0} mâu thuẫn · ${r.counts.consistent || 0} khớp · ${r.counts.insufficient || 0} không đủ dữ liệu`,
                                    `${r.counts.contradicted || 0} contradicted · ${r.counts.consistent || 0} consistent · ${r.counts.insufficient || 0} not enough data`)}</p>
           {/* P2-1 (kiểm A–Z 21/11/2026): lời thường trước — nên làm gì tiếp với từng nhóm câu; chi tiết số đo ở danh sách dưới. */}

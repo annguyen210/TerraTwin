@@ -833,6 +833,20 @@ class Payment(Base):
     note: Mapped[str] = mapped_column(String(300), default="")
 
 
+class ListingPrint(Base):
+    """Dấu vân tay ẩn danh của tin rao đã kiểm (25/11/2026, services/listing_print.py) — MinHash 64 số + 8 đặc trưng số +
+    tỉnh + toạ độ làm tròn ~1 km. KHÔNG lưu chữ nào của tin, không lưu người dùng."""
+    __tablename__ = "listing_prints"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    sig_json: Mapped[str] = mapped_column(Text)
+    feat_json: Mapped[str] = mapped_column(Text, default="[]")
+    province: Mapped[str] = mapped_column(String(64), default="")
+    lat_r: Mapped[float] = mapped_column(Float)
+    lon_r: Mapped[float] = mapped_column(Float)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
+
+
 class ListingGold(Base):
     """Tập VÀNG cho cổng GĐ3 (kiểm tin đăng): tin đăng THẬT chủ dự án tự thu thập + tự gán nhãn loại câu khẳng định
     (18/10/2026). Chỉ quản trị đọc/ghi. Số điện thoại, email, đường dẫn bị XOÁ trước khi lưu (services/listing_gold.py)."""
