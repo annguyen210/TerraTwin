@@ -125,6 +125,22 @@ def _press_metrics() -> list[dict]:
     ]
 
 
+def _drift_metric() -> dict:
+    """Giám sát trôi xác suất đã hiệu chuẩn trên cảnh báo THẬT (services/calibration_drift.py, 25/11/2026)."""
+    from app.services import calibration_drift as cd
+    st = cd.status()
+    if not st.get("n"):
+        val = tr("chưa có cảnh báo nào mang xác suất được chấm", "no alert carrying a probability has been scored yet")
+    else:
+        val = tr(f"{st['n']} cảnh báo: hứa TB {round(100 * st['expected'])}%, trúng {round(100 * st['observed'])}% (z = {st['z']})",
+                 f"{st['n']} alerts: promised avg {round(100 * st['expected'])}%, hit {round(100 * st['observed'])}% (z = {st['z']})")
+        if not st["enough"]:
+            val += tr(f" — cần ≥ {cd.MIN_N} để kết luận", f" — need ≥ {cd.MIN_N} to conclude")
+    return {"label": tr("Giám sát trôi trên cảnh báo thật (|z| > 2 với ≥ 30 cảnh báo → tự tắt hiển thị xác suất)",
+                        "Drift monitor on real alerts (|z| > 2 with ≥ 30 alerts → probability display switches off)"),
+            "value": val, "threshold": "|z| ≤ 2", "passed": (not st["drift"]) if st.get("enough") else None}
+
+
 def cards() -> list[dict]:
     out: list[dict] = []
 
@@ -431,7 +447,7 @@ def cards() -> list[dict]:
                 {"label": tr("Quy tắc thô (dự báo ≥ 70) trên tập kiểm tra: tỉ lệ phát cảnh báo · trúng khi phát",
                              "Raw rule (forecast ≥ 70) on the test set: alert rate · hit rate when issued"),
                  "value": f"{round(100 * mods['flood']['raw_rule_alert_rate_test'], 1)}% · {round(100 * mods['flood']['p_hit_when_raw_alert_test'], 1)}%",
-                 "threshold": "—", "passed": None}] if "flood" in mods else []),
+                 "threshold": "—", "passed": None}] if "flood" in mods else []) + [_drift_metric()],
             "limits": tr("Đo trên CHỈ SỐ hiểm hoạ (mưa + địa hình), không phải ngập thật tại thửa; ERA5 ~9–25 km làm thước đo; chỉ "
                          "mưa là dự báo (et0, nhiệt lấy ERA5). Sạt lở trượt vì 2 năm gần như không có cửa sổ thực đo ≥ 40 — "
                          "không đủ sự kiện để hiệu chuẩn.",

@@ -31,6 +31,9 @@ def calibrated(module_id: str, forecast_peak: float) -> dict | None:
     m = _table().get(module_id)
     if not m or forecast_peak is None:
         return None
+    from app.services import calibration_drift
+    if calibration_drift.drifted():          # giám sát trôi: thực tế lệch xác suất đã hứa → tự tắt, không hiện số
+        return None
     x = float(forecast_peak)
     p = m["steps"][-1][1]
     for xm, pv in m["steps"]:

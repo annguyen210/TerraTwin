@@ -45,6 +45,15 @@ _USER_LOCKS: dict[int, threading.Lock] = {}
 _USER_LOCKS_GUARD = threading.Lock()
 
 
+
+def _p_cal(m) -> float | None:
+    """Xác suất đã hiệu chuẩn của mối (nếu có) — lưu vào cảnh báo để giám sát trôi (calibration_drift)."""
+    v = getattr(m, "p_calibrated", None)
+    if v is None:
+        v = (getattr(m, "metrics", None) or {}).get("xac_suat_hieu_chuan_pct")
+        v = None if v is None else float(v) / 100.0
+    return v
+
 def _user_lock(user_id: int) -> threading.Lock:
     with _USER_LOCKS_GUARD:
         return _USER_LOCKS.setdefault(user_id, threading.Lock())
@@ -156,7 +165,8 @@ def _sweep_user(user_id: int, db: Session, on_progress=None) -> dict:
             a = Alert(user_id=user_id, plot_id=p.id, module_id=m.id,
                       risk_level=m.risk_level,
                       headline=head,
-                      recommendation=m.recommendation, forecast_source=fsrc)
+                      recommendation=m.recommendation, forecast_source=fsrc,
+                      p_calibrated=_p_cal(m))
             db.add(a)
             created.append(a)
             plot_new.append(a)

@@ -83,6 +83,8 @@ def scan(loc: Location, include_heavy: bool = False,
             peak=(peak_p.value if peak_p else None),
             peak_date=(peak_p.date if peak_p else None),
             risk_dates=risky,
+            p_calibrated=((a.metrics or {}).get("xac_suat_hieu_chuan_pct") / 100.0
+                          if (a.metrics or {}).get("xac_suat_hieu_chuan_pct") is not None else None),
         ))
         real_total += 1
         if a.is_real:

@@ -424,6 +424,9 @@ class Alert(Base):
     # Nguồn MƯA DỰ BÁO lúc phát cảnh báo (18/10/2026): open-meteo | open-meteo-blend (best_match + ECMWF AIFS) | metno
     # (dự phòng). Bằng chứng để sau này tách tỉ lệ đúng theo nguồn; bản ghi bỏ sót (retro) để trống.
     forecast_source: Mapped[str | None] = mapped_column(String(24), nullable=True)
+    # Xác suất ĐÃ HIỆU CHUẨN hứa với người dùng lúc phát (25/11/2026) — để giám sát trôi (services/calibration_drift.py)
+    # so "đã nói 78%" với tỉ lệ trúng thực tế. None = module chưa hiệu chuẩn / dữ liệu không thật.
+    p_calibrated: Mapped[float | None] = mapped_column(Float, nullable=True)
 
 
 Index("ix_alert_user_created", Alert.user_id, Alert.created_at.desc())
@@ -931,6 +934,7 @@ _ADDED_COLUMNS = [
     ("alerts", "window_days", "INTEGER DEFAULT 7"),
     ("alerts", "retro", "INTEGER DEFAULT 0"),
     ("alerts", "forecast_source", "VARCHAR(24)"),
+    ("alerts", "p_calibrated", "FLOAT"),
     ("field_photos", "water_ratio", "FLOAT"),
     # Đường một chạm.
     ("observations", "source", "VARCHAR(16) DEFAULT 'user'"),

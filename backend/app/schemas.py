@@ -170,6 +170,8 @@ class ScanModule(BaseModel):
     # "có rủi ro". Một cảnh báo không kèm ngày thì người dùng vẫn phải tự đoán.
     peak_date: Optional[str] = None      # ngày đạt đỉnh trong 7 ngày tới
     risk_dates: list[str] = []           # các ngày có cảnh báo (warning/danger)
+    # Xác suất ĐÃ HIỆU CHUẨN (0–1) nếu module qua cổng hiệu chuẩn (25/11/2026) — lưu vào cảnh báo để giám sát trôi.
+    p_calibrated: Optional[float] = None
 
 
 class ScanResult(BaseModel):
