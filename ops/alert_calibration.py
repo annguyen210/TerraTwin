@@ -73,6 +73,7 @@ def _get(url: str, tries: int = 6) -> dict:
 
 def fetch() -> None:
     CACHE.mkdir(parents=True, exist_ok=True)
+    geo()
     era_end = min(date.today() - timedelta(days=7), date(2026, 11, 15))
     for i, (pid, lat, lon) in enumerate(POINTS):
         f = CACHE / f"{pid}.json"
@@ -89,6 +90,29 @@ def fetch() -> None:
                     f"&hourly={hv}&timezone=Asia%2FBangkok")
         f.write_text(json.dumps({"era": era["daily"], "prev": prev["hourly"], "era_end": str(era_end)}), encoding="utf-8")
         time.sleep(8)
+
+
+def geo() -> None:
+    """Độ cao + độ dốc từng điểm, MỘT lần (đúng URL và công thức của realdata.elevation_m / slope_deg — DEM Open-Meteo,
+    4 hướng cách 500 m). Bước run dùng lại → không gọi mạng giữa chừng (25/11/2026: API độ cao bị bóp tốc làm treo)."""
+    f = CACHE / "geo.json"
+    got = json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
+    for pid, lat, lon in POINTS:
+        if pid in got:
+            continue
+        step = 500.0
+        dlat = step / 111_320.0
+        dlon = step / (111_320.0 * max(0.1, math.cos(math.radians(lat))))
+        lats = [lat, lat + dlat, lat - dlat, lat, lat]
+        lons = [lon, lon, lon, lon + dlon, lon - dlon]
+        d = _get("https://api.open-meteo.com/v1/elevation?latitude=" + ",".join(f"{v:.5f}" for v in lats)
+                 + "&longitude=" + ",".join(f"{v:.5f}" for v in lons))
+        e = [float(x) for x in d["elevation"]]
+        grad = math.hypot((e[1] - e[2]) / (2 * step), (e[3] - e[4]) / (2 * step))
+        got[pid] = {"elev": round(e[0], 1), "slope": round(math.degrees(math.atan(grad)), 1)}
+        f.write_text(json.dumps(got), encoding="utf-8")
+        print(f"  geo {pid}: {got[pid]}", flush=True)
+        time.sleep(2)
 
 
 def _daily_prev(h: dict) -> dict[int, dict[str, float | None]]:
@@ -118,6 +142,11 @@ def pairs_for(pid: str, lat: float, lon: float) -> dict[str, list[tuple[float, f
     def hist(la, lo, start, end):              # khí hậu nền của calibration.py lấy từ chuỗi đã tải — không gọi mạng
         return [dict(r) for r in rows_all if start <= r["date"] <= end] or None
     realdata.historical_weather = hist
+    g = json.loads((CACHE / "geo.json").read_text(encoding="utf-8"))[pid]
+    realdata.elevation_m = lambda la, lo: g["elev"]
+    realdata.slope_deg = lambda la, lo, step_m=500.0: g["slope"]
+    from app.services import datasources as dsrc
+    assert dsrc.elevation_context(lat, lon) == (g["elev"], True) and dsrc.slope_context(lat, lon) == (g["slope"], True)
     prev = _daily_prev(d["prev"])
     out: dict[str, list[tuple[float, float]]] = {"flood": [], "landslide": []}
     day = P0 + timedelta(days=WARMUP)
@@ -246,4 +275,4 @@ def run() -> None:
 
 
 if __name__ == "__main__":
-    {"fetch": fetch, "run": run}[sys.argv[1] if len(sys.argv) > 1 else "run"]()
+    {"fetch": fetch, "geo": geo, "run": run}[sys.argv[1] if len(sys.argv) > 1 else "run"]()

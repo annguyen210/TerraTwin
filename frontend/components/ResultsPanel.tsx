@@ -58,6 +58,10 @@ const LABELS: Record<string, [string, string]> = {
   luu_luong_dinh_m3s: ["Lưu lượng sông đỉnh (m³/s)", "Peak river discharge (m³/s)"],
   luu_luong_tb_m3s: ["Lưu lượng sông TB (m³/s)", "Mean river discharge (m³/s)"],
   ty_so_so_binh_thuong: ["Tỉ số so bình thường", "Ratio vs normal"],
+  // Mục 7 (25/11/2026): xác suất ĐÃ HIỆU CHUẨN trên dự báo lưu trữ 2024–2025 (chỉ module qua cổng — hiện là lũ)
+  xac_suat_hieu_chuan_pct: ["Xác suất đã hiệu chuẩn (%)", "Calibrated probability (%)"],
+  chi_so_thuc_do_90_thap: ["Chỉ số thực đo — cận dưới 90%", "Measured index — 90% lower"],
+  chi_so_thuc_do_90_cao: ["Chỉ số thực đo — cận trên 90%", "Measured index — 90% upper"],
   // land risk
   mua_7ngay_mm: ["Mưa 7 ngày (mm)", "7-day rain (mm)"],
   // upstream flood

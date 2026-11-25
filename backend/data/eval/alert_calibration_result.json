@@ -1,0 +1,62 @@
+{
+ "protocol": "alert_calibration_protocol.json",
+ "ran_at": "2026-11-25T08:46:27+00:00",
+ "modules": {
+  "flood": {
+   "n_calib": 6438,
+   "n_test": 1998,
+   "base_rate_calib": 0.1417,
+   "brier": 0.0814,
+   "brier_climatology": 0.132,
+   "brier_raw_rule": 0.1386,
+   "brier_skill": 0.3836,
+   "ece": 0.0186,
+   "conformal_coverage": 0.9024,
+   "conformal_halfwidth_by_bin": {
+    "0-20": 15.9,
+    "20-40": 18.5,
+    "40-55": 24.7,
+    "55-70": 31.8,
+    "70-101": 43.1
+   },
+   "raw_rule_alert_rate_test": 0.0205,
+   "p_hit_when_raw_alert_test": 0.9268,
+   "checks": {
+    "min_test_windows": true,
+    "brier_skill_vs_climatology": true,
+    "brier_vs_raw_rule": true,
+    "reliability_ece": true,
+    "conformal_coverage": true
+   },
+   "passed": true
+  },
+  "landslide": {
+   "n_calib": 6438,
+   "n_test": 1998,
+   "base_rate_calib": 0.0073,
+   "brier": 0.0003,
+   "brier_climatology": 0.0001,
+   "brier_raw_rule": 0.0005,
+   "brier_skill": -4.3813,
+   "ece": 0.0044,
+   "conformal_coverage": 0.9184,
+   "conformal_halfwidth_by_bin": {
+    "0-20": 15.1,
+    "20-40": 10.4,
+    "40-55": 21.8,
+    "55-70": 30.6,
+    "70-101": 60.7
+   },
+   "raw_rule_alert_rate_test": 0.0005,
+   "p_hit_when_raw_alert_test": 0.0,
+   "checks": {
+    "min_test_windows": true,
+    "brier_skill_vs_climatology": false,
+    "brier_vs_raw_rule": true,
+    "reliability_ece": true,
+    "conformal_coverage": true
+   },
+   "passed": false
+  }
+ }
+}

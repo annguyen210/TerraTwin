@@ -394,6 +394,55 @@ def cards() -> list[dict]:
                       else tr("giao thức đã đăng ký trước, CHƯA chạy", "protocol pre-registered, NOT run yet")),
             "threshold": "≥ 85%", "passed": bool(ce4.get("passed")) if ce4 else None})
 
+    # 3b''' — Xác suất cảnh báo ĐÃ HIỆU CHUẨN trên dự báo LƯU TRỮ (mục 7, 25/11/2026) — giao thức 29ea52f, chạy một lần.
+    ac = _load("eval", "alert_calibration_result.json")
+    if ac:
+        mods = ac.get("modules") or {}
+        name_m = {"flood": tr("lũ", "flood"), "landslide": tr("sạt lở", "landslide")}
+        ok = [name_m.get(m, m) for m, v in mods.items() if v.get("passed")]
+        bad = [name_m.get(m, m) for m, v in mods.items() if not v.get("passed")]
+        out.append({
+            "id": "alert_calibration", "kind": tr("hiệu chuẩn thống kê", "statistical calibration"),
+            "name": tr("Xác suất cảnh báo đã hiệu chuẩn (dự báo lưu trữ 2024–2025, đối chiếu ERA5)",
+                       "Calibrated alert probability (archived forecasts 2024–2025, checked against ERA5)"),
+            "status": "accepted" if ok else "rejected",
+            "status_label": tr(f"ĐẠT: {', '.join(ok) or '—'} (đang hiện) · TRƯỢT: {', '.join(bad) or '—'} (không hiện số)",
+                               f"PASSED: {', '.join(ok) or '—'} (shown) · FAILED: {', '.join(bad) or '—'} (no number shown)"),
+            "task": tr("Với đỉnh chỉ số DỰ BÁO 7 ngày = x, xác suất chỉ số THỰC ĐO (ERA5) đạt 40 — ngưỡng 'trúng' khi chấm cảnh báo — "
+                       "và dải 90% của chỉ số thực đo. Thay độ tin cậy gán tay (0,68–0,72) bằng tần suất đo được.",
+                       "Given a 7-day FORECAST index peak x, the probability that the MEASURED (ERA5) index reaches 40 — the "
+                       "'hit' threshold used to score alerts — and the 90% range of the measured index. Replaces hand-set "
+                       "confidence (0.68–0.72) with a measured frequency."),
+            "data": tr("38 điểm tỉnh lỵ 7 vùng; dự báo mưa đã phát hành THẬT theo độ trễ 0–6 ngày (Open-Meteo Previous Runs), "
+                       "cửa sổ 7 ngày mỗi 3 ngày, 2/2024–12/2025; chỉ số dựng bằng đúng hàm của production.",
+                       "38 provincial towns in 7 regions; rain forecasts as ACTUALLY issued at lead 0–6 days (Open-Meteo "
+                       "Previous Runs), 7-day windows every 3 days, 2/2024–12/2025; indices built with the production code."),
+            "split": tr("giữ riêng 9/38 điểm (i % 4 = 3, rải mọi vùng) làm tập kiểm tra; hồi quy đẳng trương + split-conformal "
+                        "trên 29 điểm còn lại.",
+                        "9/38 points held out (i % 4 = 3, all regions) as the test set; isotonic regression + split-conformal "
+                        "on the other 29."),
+            "metrics": [
+                {"label": tr(f"{name_m.get(m, m).capitalize()} — Brier (hiệu chuẩn / khí hậu / quy tắc thô) · ECE · phủ dải 90%",
+                             f"{name_m.get(m, m).capitalize()} — Brier (calibrated / climatology / raw rule) · ECE · 90% coverage"),
+                 "value": (f"{v.get('brier')} / {v.get('brier_climatology')} / {v.get('brier_raw_rule')} · {v.get('ece')} · "
+                           f"{round(100 * (v.get('conformal_coverage') or 0), 1)}% · n={v.get('n_test')}"),
+                 "threshold": tr("tốt hơn khí hậu & quy tắc thô · ≤ 0,05 · ≥ 87%", "beat climatology & raw rule · ≤ 0.05 · ≥ 87%"),
+                 "passed": bool(v.get("passed"))} for m, v in mods.items()] + ([
+                {"label": tr("Quy tắc thô (dự báo ≥ 70) trên tập kiểm tra: tỉ lệ phát cảnh báo · trúng khi phát",
+                             "Raw rule (forecast ≥ 70) on the test set: alert rate · hit rate when issued"),
+                 "value": f"{round(100 * mods['flood']['raw_rule_alert_rate_test'], 1)}% · {round(100 * mods['flood']['p_hit_when_raw_alert_test'], 1)}%",
+                 "threshold": "—", "passed": None}] if "flood" in mods else []),
+            "limits": tr("Đo trên CHỈ SỐ hiểm hoạ (mưa + địa hình), không phải ngập thật tại thửa; ERA5 ~9–25 km làm thước đo; chỉ "
+                         "mưa là dự báo (et0, nhiệt lấy ERA5). Sạt lở trượt vì 2 năm gần như không có cửa sổ thực đo ≥ 40 — "
+                         "không đủ sự kiện để hiệu chuẩn.",
+                         "Measured on the hazard INDEX (rain + terrain), not actual flooding at the plot; ERA5 ~9–25 km as the "
+                         "yardstick; only rain is forecast (et0, temperature from ERA5). Landslide failed: in 2 years almost no "
+                         "window measured ≥ 40 — too few events to calibrate."),
+            "not_for": tr("Không phải xác suất ngập tại thửa; không thay cảnh báo chính thức.",
+                          "Not a probability of flooding at the plot; does not replace official warnings."),
+            "code": f"{REPO}/ops/alert_calibration.py",
+        })
+
     # 3c — Tổ hợp dự báo mưa best_match + ECMWF AIFS (GĐ5 mục 3) — 18/10/2026
     ab = _load("eval", "aifs_blend_result.json")
     if ab:
