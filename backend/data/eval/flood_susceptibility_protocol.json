@@ -1,0 +1,14 @@
+{
+  "name": "Mô hình học máy khả năng ngập theo địa hình (nhãn radar Sentinel-1 2017–2025) — đăng ký trước",
+  "registered": "2026-11-25",
+  "why": "Mục 6 của lộ trình. Lớp JRC Global Surface Water bị loại làm nhãn (Quảng Điền: radar thấy ngập nhiều đợt, GSW 37 năm = 0% vì mây). Nhãn duy nhất đo xuyên mây là lịch sử radar của chính TerraTwin — dựng ở các điểm lấy mẫu ngẫu nhiên.",
+  "question": "Chỉ từ địa hình (độ cao, độ dốc, chênh cao cục bộ, khoảng cách biển/sông), mô hình có xếp hạng đúng nơi radar từng thấy nước phủ (≥ 1 đợt 2017–2025) tốt hơn chỉ dùng độ cao không, ở TỈNH CHƯA THẤY khi huấn luyện?",
+  "sample": "200 huyện chọn ngẫu nhiên (random.Random(20261125).sample) trong 708 huyện ranh 2020 (data/admin/vnm_adm2_2020.json); mỗi huyện 1 điểm ngẫu nhiên trong đa giác (cùng hạt giống). Danh sách điểm sinh bằng ops/flood_susceptibility.py và ghi ra tệp trước khi đọc radar.",
+  "label": "water_history.history (đúng hàm production, bán kính 100 m): 1 nếu có ≥ 1 đợt nước, 0 nếu không; điểm radar không đọc được bị loại (ghi số lượng).",
+  "features": ["elev_m (DEM Open-Meteo, tâm)", "slope_deg (4 hướng 500 m, như realdata.slope_deg)", "relief_m (cao nhất − thấp nhất của 5 điểm)", "log1p(dist_coast_km) (datasources.distance_to_coast_km)", "log1p(dist_river_km) (river_grid.nearest_km, trần 3 km)"],
+  "model": "Hồi quy logistic (numpy, chuẩn hoá z theo tập huấn luyện, phạt L2 λ=1, 2000 bước gradient). Đường cơ sở: logistic chỉ log1p(elev_m + 5).",
+  "split": "Giữ riêng theo TỈNH: tỉnh thứ i (0-based) trong danh sách tên tỉnh sắp xếp có i % 5 == 4 → tập kiểm tra; còn lại → huấn luyện.",
+  "gate": {"auc_min": 0.70, "auc_gain_over_baseline_min": 0.03, "min_test_points": 30, "min_test_positives": 8,
+           "note": "ĐẠT khi cả 4 điều kiện đúng trên tập kiểm tra. Đạt thì hiện 'khả năng ngập theo địa hình' (xếp hạng, có ghi giới hạn) cạnh lịch sử radar; trượt thì công bố trượt, không hiện."},
+  "runs": "Một lần. Không chỉnh mẫu, đặc trưng, mô hình, chia tập hay cổng theo kết quả."
+}
