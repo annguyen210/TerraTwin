@@ -85,6 +85,63 @@ function PlotImage({ s2, geometry, areaHa, caption }: {
   );
 }
 
+/** Mất rừng SAU mốc theo năm — JRC TMF (rừng ẩm của EU) + Hansen/GFW (năm mất tán cây). Tham chiếu, không bỏ phiếu
+ *  ở quy tắc v1 (nâng cấp 25/11/2026); câu đối chiếu nằm trong danh sách lý do phía trên. */
+function LossReference({ lr }: { lr: NonNullable<EudrScreening["loss_reference"]> }) {
+  const { t } = useLang();
+  const p1 = (v: number | null | undefined) => (v == null ? "—" : `${v.toFixed(1)}%`);
+  const years = (by: Record<string, number> | undefined) => {
+    const ks = Object.keys(by ?? {}).sort();
+    if (!ks.length) return <span className="eu-yr-none">{t("không năm nào", "none")}</span>;
+    return ks.map((y) => <span key={y} className={`eu-yr${(by![y] ?? 0) >= 1 ? " hit" : ""}`}>{y} · {p1(by![y])}</span>);
+  };
+  const { tmf, hansen: han } = lr;
+  return (
+    <>
+      <h4>{t("Mất rừng SAU mốc 31/12/2020, theo từng năm — hai bản đồ độc lập để đối chiếu",
+             "Forest loss AFTER 31/12/2020, year by year — two independent maps for cross-checking")}</h4>
+      <div className="bat-table-wrap">
+        <table className="bat-table eu-maps eu-loss">
+          <thead><tr>
+            <th>{t("Bản đồ", "Map")}</th><th>{t("Có rừng lúc đầu", "Forest at start")}</th>
+            <th>{t("Mất sau mốc", "Lost after cutoff")}</th><th>{t("Năm", "Year")}</th><th>{t("Điểm ảnh", "Pixels")}</th>
+          </tr></thead>
+          <tbody>
+            <tr className="eu-ref-row">
+              <td>{tmf ? t(tmf.name, tmf.name_en ?? tmf.name) : "JRC TMF"}
+                <small>{t("chỉ vẽ rừng ẨM nhiệt đới — rừng khộp khô thường không có trong bản đồ này",
+                          "moist tropical forest only — dry dipterocarp forest is usually not mapped")}</small></td>
+              {tmf ? (<>
+                <td className="num"><b>{p1(tmf.forest2020_pct)}</b><small>{t("rừng ẩm năm 2020", "moist forest in 2020")}</small>
+                  <span className="eu-mini"><span style={{ width: `${Math.min(100, tmf.forest2020_pct)}%` }} /></span></td>
+                <td className="num"><b>{p1(tmf.lost_after_2020_pct)}</b>
+                  <small>~{tmf.lost_after_2020_ha} ha{tmf.degraded_after_2020_pct > 0
+                    ? t(` · suy thoái ${p1(tmf.degraded_after_2020_pct)}`, ` · degraded ${p1(tmf.degraded_after_2020_pct)}`) : ""}</small></td>
+                <td><span className="eu-yrs">{years(tmf.lost_by_year)}</span></td>
+                <td className="num">{tmf.pixels} × 30 m{tmf.buffered_m ? <small>{t(`ranh nới rộng ${tmf.buffered_m} m`, `boundary widened by ${tmf.buffered_m} m`)}</small> : null}</td>
+              </>) : <td colSpan={4}>{t("chưa đọc được (dịch vụ JRC không phản hồi)", "unavailable (the JRC service did not respond)")}</td>}
+            </tr>
+            <tr className="eu-ref-row">
+              <td>{han ? t(han.name, han.name_en ?? han.name) : "Hansen/GFW"}
+                <small>{t("mất tán cây gồm cả thu hoạch rừng trồng, tái canh vườn — không đồng nghĩa phá rừng",
+                          "tree-cover loss includes plantation harvest and orchard replanting — not the same as deforestation")}</small></td>
+              {han ? (<>
+                <td className="num"><b>{p1(han.treecover2000_pct)}</b>
+                  <small>{t(`tán ≥${han.canopy_min}% năm 2000`, `canopy ≥${han.canopy_min}% in 2000`)}</small>
+                  <span className="eu-mini"><span style={{ width: `${Math.min(100, han.treecover2000_pct)}%` }} /></span></td>
+                <td className="num"><b>{p1(han.loss_after_2020_pct)}</b>
+                  <small>~{han.loss_after_2020_ha} ha · {t(`2001–2020: ${p1(han.loss_2001_2020_pct)}`, `2001–2020: ${p1(han.loss_2001_2020_pct)}`)}</small></td>
+                <td><span className="eu-yrs">{years(han.loss_by_year)}</span></td>
+                <td className="num">{han.pixels} × 30 m{han.buffered_m ? <small>{t(`ranh nới rộng ${han.buffered_m} m`, `boundary widened by ${han.buffered_m} m`)}</small> : null}</td>
+              </>) : <td colSpan={4}>{t("chưa đọc được (Google Storage không phản hồi)", "unavailable (Google Storage did not respond)")}</td>}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
 export default function EudrResult({ s, geometry, areaHa }: {
   s: EudrScreening; geometry?: GeoGeometry | null; areaHa?: number | null;
 }) {
@@ -135,6 +192,8 @@ export default function EudrResult({ s, geometry, areaHa }: {
           </tbody>
         </table>
       </div>
+
+      {s.loss_reference && <LossReference lr={s.loss_reference} />}
 
       {traj.length > 0 && (
         <>

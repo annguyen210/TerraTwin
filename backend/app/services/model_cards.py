@@ -156,6 +156,50 @@ def cards() -> list[dict]:
             "code": f"{REPO}/backend/app/services/eudr_forest.py",
         })
 
+    # 1' — Bản đồ THAM CHIẾU trong sàng lọc EUDR (24–25/11/2026): đọc nguồn công khai của EU/UMD, không bỏ phiếu.
+    out.append({
+        "id": "eudr_reference_maps", "kind": tr("bản đồ tham chiếu", "reference maps"),
+        "name": tr("Ba bản đồ đối chiếu EUDR: rừng 2020 của EU, rừng ẩm từng năm (JRC TMF), năm mất tán cây (Hansen/GFW)",
+                   "Three EUDR cross-check maps: EU 2020 forest, annual moist forest (JRC TMF), tree-cover loss year (Hansen/GFW)"),
+        "status": "info",
+        "status_label": tr("tham chiếu · KHÔNG bỏ phiếu · muốn bỏ phiếu phải qua kiểm định v4 có nhãn người",
+                           "reference · does NOT vote · voting requires a v4 validation with human labels"),
+        "task": tr("Trên đúng ranh thửa: % rừng 2020 theo định nghĩa EU (GFC2020 v4, 10 m); % rừng ẩm 2020 bị MẤT hay SUY THOÁI "
+                   "sau mốc và năm nào (TMF 2021–2025, 30 m); % mất tán cây theo năm 2021–2024 (Hansen GFC v1.12, 30 m, tán "
+                   "năm 2000 ≥30% như Global Forest Watch). Bất đồng với kết luận thì nói thành lời; mức kết luận không đổi.",
+                   "On the exact boundary: % 2020 forest under the EU definition (GFC2020 v4, 10 m); % of 2020 moist forest "
+                   "LOST or DEGRADED after the cutoff and in which year (TMF 2021–2025, 30 m); % tree-cover loss by year "
+                   "2021–2024 (Hansen GFC v1.12, 30 m, year-2000 canopy ≥30% as on Global Forest Watch). Disagreements are "
+                   "spelled out; the level is unchanged."),
+        "data": tr("WMS công khai của JRC (ies-ows.jrc.ec.europa.eu: gfc2020_v4, AnnualChange_2020…2025); GeoTIFF công khai "
+                   "của UMD trên Google Storage (lossyear, treecover2000) — chỉ tải các hàng phủ ranh bằng HTTP Range.",
+                   "JRC public WMS (ies-ows.jrc.ec.europa.eu: gfc2020_v4, AnnualChange_2020…2025); UMD public GeoTIFFs on "
+                   "Google Storage (lossyear, treecover2000) — only the rows covering the boundary, via HTTP Range."),
+        "split": tr("Không huấn luyện gì: đếm điểm ảnh. Ngưỡng câu chữ 1% thửa chốt trước khi chạy trên mẫu nào.",
+                    "Nothing is trained: pixel counts. The 1%-of-plot wording threshold was fixed before running any sample."),
+        "metrics": [
+            {"label": tr("Bộ đọc Hansen khớp GDAL/rasterio từng điểm ảnh (khung 80 × 80, lossyear + treecover2000)",
+                         "Hansen reader matches GDAL/rasterio pixel for pixel (80 × 80 window, lossyear + treecover2000)"),
+             "value": "6400/6400 · 6400/6400", "threshold": tr("khớp 100%", "100% match"), "passed": True},
+            {"label": tr("Ảnh WMS của TMF căn lưới gốc 0,00025° chỉ có đúng màu 6 lớp chuẩn (không nội suy)",
+                         "TMF WMS images on the native 0.00025° grid contain only the 6 standard class colours (no resampling)"),
+             "value": tr("5–6 màu, đều thuộc bảng chuẩn", "5–6 colours, all from the standard legend"),
+             "threshold": tr("không màu lạ", "no stray colours"), "passed": True},
+            {"label": tr("Đo thật 25/11/2026 — Lâm Đồng 11,465/107,505 (1,1 × 1,1 km)", "Measured 25/11/2026 — Lam Dong 11.465/107.505 (1.1 × 1.1 km)"),
+             "value": tr("TMF mất 6,8% rừng ẩm 2020 (2021–2023) · Hansen mất tán 25,2% (2021–2024)",
+                         "TMF lost 6.8% of 2020 moist forest (2021–2023) · Hansen canopy loss 25.2% (2021–2024)"),
+             "threshold": "—", "passed": None},
+        ],
+        "limits": tr("Hansen tính MỌI lần mất cả tán (kể cả thu hoạch keo, tái canh cao su/cà phê); TMF chỉ vẽ rừng ẨM nên rừng "
+                     "khộp khô Tây Nguyên thường ra 0% (Yok Đôn đo 0%); GFC2020 không có giá trị pháp lý. Chưa kiểm định độ "
+                     "chính xác trên nhãn người ở Việt Nam — vì vậy chưa cho bỏ phiếu.",
+                     "Hansen counts EVERY stand-replacing loss (incl. acacia harvest, rubber/coffee replanting); TMF maps MOIST "
+                     "forest only, so Central Highlands dry dipterocarp forest often reads 0% (Yok Don measured 0%); GFC2020 has "
+                     "no legal standing. Accuracy not yet validated on human labels in Viet Nam — hence no vote yet."),
+        "not_for": tr("Không phải chứng nhận EUDR; không tự đổi mức kết luận.", "Not an EUDR certificate; never changes the level by itself."),
+        "code": f"{REPO}/backend/app/services/jrc_tmf.py",
+    })
+
     # 2 — Rừng hay vườn cây (FOC) và AlphaEarth
     foc = (_load("ml", "foc_runs.json") or [None])[-1]
     if foc:

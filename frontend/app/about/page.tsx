@@ -68,8 +68,8 @@ export default function AboutPage() {
 
         <h2>{t("Nguồn dữ liệu", "Data sources")}</h2>
         <p>{t(
-          "Copernicus Sentinel-1 RTC và Sentinel-2, ESA WorldCover 2020/2021, JAXA ALOS PALSAR, Impact Observatory/Esri Annual Land Cover — qua Microsoft Planetary Computer; AlphaEarth Foundations (Google DeepMind); Hansen Global Forest Change (đối chiếu kiểm định); OpenStreetMap (© những người đóng góp, ODbL); Open-Meteo/ERA5, GloFAS.",
-          "Copernicus Sentinel-1 RTC and Sentinel-2, ESA WorldCover 2020/2021, JAXA ALOS PALSAR, Impact Observatory/Esri Annual Land Cover — via Microsoft Planetary Computer; AlphaEarth Foundations (Google DeepMind); Hansen Global Forest Change (validation reference); OpenStreetMap (© contributors, ODbL); Open-Meteo/ERA5, GloFAS.")}</p>
+          "Copernicus Sentinel-1 RTC và Sentinel-2, ESA WorldCover 2020/2021, JAXA ALOS PALSAR, Impact Observatory/Esri Annual Land Cover — qua Microsoft Planetary Computer; AlphaEarth Foundations (Google DeepMind); JRC GFC2020 v4 và JRC Tropical Moist Forest (© Liên minh châu Âu, Trung tâm Nghiên cứu Chung); Hansen/UMD Global Forest Change v1.12 (CC BY 4.0 — tham chiếu EUDR và đối chiếu kiểm định); OpenStreetMap (© những người đóng góp, ODbL); Open-Meteo/ERA5, GloFAS, CMIP6 HighResMIP (Open-Meteo Climate API); IPCC AR6 (nước biển dâng); AWS Terrain Tiles (SRTM, GMTED — địa hình 3D).",
+          "Copernicus Sentinel-1 RTC and Sentinel-2, ESA WorldCover 2020/2021, JAXA ALOS PALSAR, Impact Observatory/Esri Annual Land Cover — via Microsoft Planetary Computer; AlphaEarth Foundations (Google DeepMind); JRC GFC2020 v4 and JRC Tropical Moist Forest (© European Union, Joint Research Centre); Hansen/UMD Global Forest Change v1.12 (CC BY 4.0 — EUDR reference and validation reference); OpenStreetMap (© contributors, ODbL); Open-Meteo/ERA5, GloFAS, CMIP6 HighResMIP (Open-Meteo Climate API); IPCC AR6 (sea-level rise); AWS Terrain Tiles (SRTM, GMTED — 3D terrain).")}</p>
 
         <div className="doc-cta">
           <Link href="/" className="doc-btn">{t("Mở hồ sơ một thửa đất", "Open a land dossier")}</Link>

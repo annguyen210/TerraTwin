@@ -93,8 +93,11 @@ def _khong_goi_jrc_that(monkeypatch, request):
     dịch vụ JRC không phản hồi. Test nào cần thì tự monkeypatch `jrc_gfc.forest_share` hoặc đánh dấu `goi_jrc_that`."""
     if "goi_jrc_that" in request.keywords:
         return
-    from app.services import jrc_gfc
+    from app.services import hansen_gfc, jrc_gfc, jrc_tmf
     monkeypatch.setattr(jrc_gfc, "forest_share", lambda geom: None)
+    # 25/11/2026: hai bản đồ mất rừng theo năm (WMS JRC TMF, GeoTIFF Hansen trên Google Storage) — cùng quy ước.
+    monkeypatch.setattr(jrc_tmf, "change", lambda geom: None)
+    monkeypatch.setattr(hansen_gfc, "loss", lambda geom: None)
 
 
 @pytest.fixture(autouse=True)

@@ -95,7 +95,10 @@ def export_geojson(plots: list[dict], results: dict, which: str = "valid",
 
 CSV_COLUMNS = ["ref", "producer", "kind", "area_ha", "area_source", "lat", "lon", "eu_valid", "eu_issues",
                "level", "label", "wc2020_forest_pct", "alos2020_forest_pct", "io2018_2020_tree_pct",
-               "io2022_2023_tree_pct", "ndvi_before", "ndvi_after", "protected_area", "reasons", "dossier_url"]
+               "io2022_2023_tree_pct", "ndvi_before", "ndvi_after", "protected_area",
+               # Bản đồ THAM CHIẾU (không bỏ phiếu ở quy tắc v1): rừng 2020 của EU + mất rừng theo năm sau mốc.
+               "jrc_gfc2020_forest_pct", "jrc_tmf_forest2020_pct", "jrc_tmf_lost_after_2020_pct",
+               "jrc_tmf_lost_years", "hansen_loss_after_2020_pct", "hansen_loss_years", "reasons", "dossier_url"]
 
 
 def to_csv(plots: list[dict], results: dict, base_url: str = "") -> str:
@@ -109,6 +112,8 @@ def to_csv(plots: list[dict], results: dict, base_url: str = "") -> str:
         maps = {f["id"]: f.get("pct") for f in r.get("forest_2020") or []}
         s2 = r.get("s2") or {}
         sig = r.get("signals") or {}
+        lr = r.get("loss_reference") or {}
+        tmf, han = lr.get("tmf") or {}, lr.get("hansen") or {}
         c = p.get("centroid") or {}
         w.writerow([_cell(x) for x in (
             p.get("ref"), p.get("producer"), p.get("kind"), p.get("area_ha"), p.get("area_source"),
@@ -118,6 +123,9 @@ def to_csv(plots: list[dict], results: dict, base_url: str = "") -> str:
             sig.get("io_after_pct"), (s2.get("before") or {}).get("ndvi_mean"),
             (s2.get("after") or {}).get("ndvi_mean"),
             ", ".join((r.get("protected") or {}).get("inside") or []),
+            (r.get("eu_reference") or {}).get("pct"), tmf.get("forest2020_pct"), tmf.get("lost_after_2020_pct"),
+            " ".join(sorted(tmf.get("lost_by_year") or {})), han.get("loss_after_2020_pct"),
+            " ".join(sorted(han.get("loss_by_year") or {})),
             " ".join(r.get("reasons") or []),
             f"{base_url}/h/{r['dossier_id']}" if r.get("dossier_id") else "")])
     return "﻿" + buf.getvalue()
@@ -152,6 +160,7 @@ def dossier_facts(plot: dict, screening: dict, commodity: str | None = None,
             "plot.geometry": "measured", "eu_format": "derived",
             "screening.forest_2020": "measured", "screening.io_trajectory": "measured",
             "screening.s2": "measured", "screening.level": "derived",
+            "screening.eu_reference": "measured", "screening.loss_reference": "measured",
         },
         "predictions_included": False,
         "sources": eudr_forest.sources(),
@@ -159,11 +168,16 @@ def dossier_facts(plot: dict, screening: dict, commodity: str | None = None,
             "Mọi tỉ lệ rừng là thống kê lớp trên đúng ranh thửa này, tính trên các tấm bản đồ ghi trong "
             "'items' qua API công khai của Microsoft Planetary Computer (/api/data/v1/item/statistics, "
             "categorical=true). Kết luận áp quy tắc công khai terratwin.eudr-screen/1 lên các con số đó — ai "
-            "cũng tự tính lại được.",
+            "cũng tự tính lại được. Bản đồ tham chiếu (không bỏ phiếu): JRC GFC2020 và JRC TMF đếm điểm ảnh trong "
+            "ranh trên ảnh WMS công khai của JRC (ies-ows.jrc.ec.europa.eu, lưới 0,00025° với TMF); Hansen/GFW đọc "
+            "đúng các hàng phủ ranh của tệp GeoTIFF công khai GFC-2024-v1.12 (ngưỡng tán cây năm 2000 ≥30%).",
             "Every forest share is a class statistic over exactly this boundary, on the map tiles listed in "
             "'items', via Microsoft Planetary Computer's public API (/api/data/v1/item/statistics, "
             "categorical=true). The conclusion applies the public rule terratwin.eudr-screen/1 to those "
-            "numbers — anyone can recompute it."),
+            "numbers — anyone can recompute it. Reference maps (no vote): JRC GFC2020 and JRC TMF count pixels "
+            "inside the boundary on JRC's public WMS images (ies-ows.jrc.ec.europa.eu, 0.00025° grid for TMF); "
+            "Hansen/GFW reads exactly the rows covering the boundary from the public GeoTIFF GFC-2024-v1.12 "
+            "(year-2000 tree-cover threshold ≥30%)."),
         "disclaimer": tr(
             "Hồ sơ SÀNG LỌC theo dữ liệu vệ tinh công khai tại thời điểm phát hành — không phải chứng nhận tuân "
             "thủ EUDR, không thay thế giấy chứng nhận quyền sử dụng đất hay kiểm tra thực địa. Ranh thửa do "

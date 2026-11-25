@@ -448,6 +448,10 @@ def screen(plot: dict) -> dict:
     key = cache_store.make_key("eudr-screen", _CACHE_V, "raw2", gj, a0.isoformat())
     hit = cache_store.get(key)
     if hit is not None:
+        if "loss_reference" not in hit:
+            # Kết quả nhớ đệm trước 25/11/2026 chưa có hai bản đồ mất rừng — đọc thêm (mỗi bản đồ có nhớ đệm riêng 1
+            # năm), KHÔNG đo lại cả 14 nguồn và không kéo dài hạn của kết quả cũ.
+            hit["loss_reference"] = loss_reference(geom)
         return _localize(hit)
 
     tasks = [lambda d=d: class_share(d[0], d[1], d[2], d[3], d[4], geom) for d in DIRECT_2020.values()]
@@ -455,10 +459,13 @@ def screen(plot: dict) -> dict:
     tasks += [lambda y=y: class_share(IO[0], y, IO[1], IO[2], IO[3], geom) for y in IO_YEARS]
     tasks += [lambda: s2_scene(geom, b0, b1, prefer=bp), lambda: s2_scene(geom, a0, a1, prefer=ap)]
     c = geom.centroid
-    from app.services import jrc_gfc
+    from app.services import hansen_gfc, jrc_gfc, jrc_tmf
     tasks.append(lambda: jrc_gfc.forest_share(geom))
     tasks.append(lambda: protected_areas(c.y, c.x))
+    tasks += [lambda: jrc_tmf.change(geom), lambda: hansen_gfc.loss(geom)]
     got = jobs.gather(tasks, timeout=240.0)
+    tmf, hansen = got[-2], got[-1]
+    got = got[:-2]
 
     nd = len(DIRECT_2020)
     direct = dict(zip(DIRECT_2020.keys(), got[:nd]))
@@ -492,10 +499,28 @@ def screen(plot: dict) -> dict:
         "eu_reference": ({"id": "jrc2020", "name": jrc_gfc.NAME, "name_en": jrc_gfc.NAME_EN,
                           "source": "European Commission, Joint Research Centre — GFC2020 v4", **eu_ref}
                          if eu_ref else None),
+        # Hai bản đồ MẤT RỪNG SAU MỐC theo năm (25/11/2026) — cũng là tham chiếu, xem loss_reference_note.
+        "loss_reference": loss_reference(geom, (tmf, hansen)),
     }
     if sum(f.get("pct") is not None for f in forest) >= THRESHOLDS["min_maps"]:
         cache_store.put(key, raw, ttl_seconds=_TTL_RESULT)
     return _localize(raw)
+
+
+def loss_reference(geom, got: tuple | None = None) -> dict:
+    """JRC TMF (rừng ẩm 2020 → mất/suy thoái theo năm) + Hansen/GFW (năm mất tán cây). Mỗi bên None nếu chưa đọc được."""
+    from app.services import hansen_gfc, jobs, jrc_tmf
+    if got is None:
+        got = jobs.gather([lambda: jrc_tmf.change(geom), lambda: hansen_gfc.loss(geom)], timeout=180.0)
+    tmf, han = got
+    return {
+        "tmf": ({"id": "jrc_tmf", "name": jrc_tmf.NAME, "name_en": jrc_tmf.NAME_EN,
+                 "source": "European Commission, Joint Research Centre — Tropical Moist Forest (Vancutsem et al. 2021)",
+                 **tmf} if tmf else None),
+        "hansen": ({"id": "hansen_gfc", "name": hansen_gfc.NAME, "name_en": hansen_gfc.NAME_EN,
+                    "source": "Hansen et al. 2013, University of Maryland — Global Forest Change " + hansen_gfc.VERSION,
+                    **han} if han else None),
+    }
 
 
 def _localize(raw: dict, rule: int | None = None, p_forest: float | None = None) -> dict:
@@ -512,7 +537,14 @@ def _localize(raw: dict, rule: int | None = None, p_forest: float | None = None)
     note = eu_reference_note(level, eu.get("pct") if eu else None)
     if note:
         reasons = [*reasons, note]
-    signals = {**signals, "eu_reference_pct": eu.get("pct") if eu else None}
+    lr = raw.get("loss_reference")
+    lnote = loss_reference_note(level, lr)
+    if lnote:
+        reasons = [*reasons, lnote]
+    tmf, han = (lr or {}).get("tmf"), (lr or {}).get("hansen")
+    signals = {**signals, "eu_reference_pct": eu.get("pct") if eu else None,
+               "tmf_lost_after_2020_pct": tmf.get("lost_after_2020_pct") if tmf else None,
+               "hansen_loss_after_2020_pct": han.get("loss_after_2020_pct") if han else None}
     out = dict(raw)
     out.update(level=level, label=label(level), reasons=reasons, signals=signals, caveats=caveats(raw),
                method=RULES[rule or ACTIVE_RULE])
@@ -543,6 +575,80 @@ def eu_reference_note(level: str, eu_pct: float | None) -> str | None:
               f"The EU's own 2020 forest map (JRC GFC2020 v4) agrees: {eu_pct:g}% forest inside the boundary.")
 
 
+# Phần thửa (%) mất sau mốc để câu đối chiếu nói thành lời — dưới mức này là nhiễu mép ranh/điểm ảnh lẻ. Chốt TRƯỚC khi
+# chạy trên mẫu nào (25/11/2026) và chỉ quyết định CÂU CHỮ, không quyết định mức kết luận.
+LOSS_NOTE_PCT = 1.0
+
+
+def _years(by_year: dict | None) -> str:
+    return ", ".join(sorted((by_year or {}).keys()))
+
+
+def _ha(v: float) -> str:
+    return f"{v:.3g}"
+
+
+def loss_reference_note(level: str, lr: dict | None) -> str | None:
+    """Câu đối chiếu với hai bản đồ mất rừng theo năm. Như eu_reference_note: KHÔNG đổi mức (quy tắc v1 chốt trước
+    kiểm định với ba bản đồ), chỉ nói rõ hai bản đồ thấy gì — nhất là khi trái với kết luận. "Mất" (TMF rời lớp rừng,
+    Hansen mất cả tán) và "suy thoái" (TMF: rừng nguyên vẹn → suy thoái) là hai chuyện khác nhau, nói riêng."""
+    if not lr or level == "unknown":
+        return None
+    tmf, han = lr.get("tmf"), lr.get("hansen")
+    if not tmf and not han:
+        return None
+    T = LOSS_NOTE_PCT
+    t_lost = bool(tmf) and tmf.get("lost_after_2020_pct", 0) >= T
+    h_lost = bool(han) and han.get("loss_after_2020_pct", 0) >= T
+    deg = bool(tmf) and tmf.get("degraded_after_2020_pct", 0) >= T
+    names = " và ".join(n for n, x in (("JRC TMF", tmf), ("Hansen/GFW", han)) if x)
+    names_en = " and ".join(n for n, x in (("JRC TMF", tmf), ("Hansen/GFW", han)) if x)
+    deg_vi = deg_en = ""
+    if deg:
+        deg_vi = (f"JRC TMF thấy {tmf['degraded_after_2020_pct']:g}% thửa là rừng nguyên vẹn năm 2020 bị suy thoái (chặt "
+                  f"chọn, cháy) sau mốc (năm {_years(tmf.get('degraded_by_year'))})")
+        deg_en = (f"JRC TMF sees {tmf['degraded_after_2020_pct']:g}% of the plot as undisturbed 2020 forest degraded "
+                  f"(selective logging, fire) after the cutoff (year {_years(tmf.get('degraded_by_year'))})")
+    vi, en = [], []
+    if t_lost:
+        vi.append(f"JRC TMF của EU thấy {tmf['lost_after_2020_pct']:g}% thửa (~{_ha(tmf['lost_after_2020_ha'])} ha) là "
+                  f"rừng ẩm năm 2020 đã bị mất sau mốc (năm {_years(tmf.get('lost_by_year'))})")
+        en.append(f"the EU's JRC TMF sees {tmf['lost_after_2020_pct']:g}% of the plot (~{_ha(tmf['lost_after_2020_ha'])} "
+                  f"ha) as 2020 moist forest lost after the cutoff (year {_years(tmf.get('lost_by_year'))})")
+    if h_lost:
+        vi.append(f"Hansen/GFW thấy {han['loss_after_2020_pct']:g}% thửa (~{_ha(han['loss_after_2020_ha'])} ha) mất tán "
+                  f"cây trong 2021–{han.get('last_year', 2024)} (năm {_years(han.get('loss_by_year'))})")
+        en.append(f"Hansen/GFW sees {han['loss_after_2020_pct']:g}% of the plot (~{_ha(han['loss_after_2020_ha'])} ha) "
+                  f"losing tree cover in 2021–{han.get('last_year', 2024)} (year {_years(han.get('loss_by_year'))})")
+    keep_vi = " Mức kết luận CHƯA đổi vì quy tắc đang dùng chưa tính hai bản đồ này."
+    keep_en = " The level is NOT changed because the active rule does not use these maps yet."
+    if vi:
+        harvest_vi = (" Mất tán cây theo Hansen cũng có thể là thu hoạch rừng trồng hoặc tái canh vườn." if h_lost else "")
+        harvest_en = (" Hansen tree-cover loss can also be a plantation harvest or orchard replanting." if h_lost else "")
+        more_vi, more_en = (f" Ngoài ra, {deg_vi}.", f" Also, {deg_en}.") if deg else ("", "")
+        if level == "low":
+            return tr(f"Bản đồ mất rừng theo năm: {'; '.join(vi)} — trái với kết luận trên.{more_vi}{harvest_vi} Xem hai "
+                      f"ảnh Sentinel-2 bên dưới và giấy tờ trước khi nộp tờ khai.{keep_vi}",
+                      f"Annual forest-loss maps: {'; '.join(en)} — contradicting the conclusion above.{more_en}"
+                      f"{harvest_en} Check the two Sentinel-2 images below and the papers before filing.{keep_en}")
+        return tr(f"Bản đồ mất rừng theo năm: {'; '.join(vi)}.{more_vi}{harvest_vi} Đối chiếu ảnh và giấy tờ.",
+                  f"Annual forest-loss maps: {'; '.join(en)}.{more_en}{harvest_en} Compare with imagery and papers.")
+    agree = level == "low"                    # "Đạt" + không thấy mất = cùng chiều
+    none_vi = (f"{names} {'cùng ' if agree else ''}không thấy mất rừng hay mất tán cây đáng kể (dưới {T:g}% thửa) sau "
+               "31/12/2020 trong ranh")
+    none_en = (f"{names_en} {'also ' if agree else ''}see no significant forest or tree-cover loss (under {T:g}% of the "
+               "plot) after 31/12/2020 inside the boundary")
+    if deg:
+        none_vi += f"; riêng {deg_vi}"
+        none_en += f"; however, {deg_en}"
+    if level in ("high", "review"):
+        return tr(f"{none_vi} — kèm đối chiếu này khi giải trình.{keep_vi}", f"{none_en} — attach this when justifying.{keep_en}")
+    if deg:
+        return tr(f"{none_vi} — nên xem ảnh trước khi nộp tờ khai.{keep_vi}",
+                  f"{none_en} — review the imagery before filing.{keep_en}")
+    return tr(f"{none_vi}.", f"{none_en}.")
+
+
 def caveats(raw: dict) -> list[str]:
     out = [tr("Đây là SÀNG LỌC từ bản đồ vệ tinh công khai, không phải chứng nhận tuân thủ EUDR. Định nghĩa "
               "rừng của EU loại trừ đất nông nghiệp có cây (cà phê che bóng, cao su) — bản đồ không phân biệt "
@@ -566,6 +672,19 @@ def caveats(raw: dict) -> list[str]:
     if "eu_reference" in raw and raw["eu_reference"] is None:
         out.append(tr("Chưa đọc được bản đồ rừng 2020 của EU (JRC GFC2020) lúc này — dịch vụ của JRC không phản hồi.",
                       "Could not read the EU's 2020 forest map (JRC GFC2020) right now — the JRC service did not respond."))
+    if "loss_reference" in raw:
+        lr = raw.get("loss_reference") or {}
+        miss = [n for n, k in (("JRC TMF", "tmf"), ("Hansen/GFW", "hansen")) if not lr.get(k)]
+        if miss:
+            out.append(tr(f"Chưa đọc được bản đồ mất rừng theo năm ({', '.join(miss)}) lúc này — nguồn không phản hồi.",
+                          f"Could not read the annual forest-loss map ({', '.join(miss)}) right now — the source did not "
+                          "respond."))
+        tmf = lr.get("tmf")
+        if tmf and tmf.get("forest2020_pct", 0) < LOSS_NOTE_PCT:
+            out.append(tr("JRC TMF chỉ vẽ rừng ẨM nhiệt đới: rừng khộp khô (Tây Nguyên) thường bị xếp “đất khác” — 0% rừng "
+                          "ẩm ở đây không có nghĩa là không có rừng.",
+                          "JRC TMF maps only MOIST tropical forest: dry dipterocarp forest (Central Highlands) is often "
+                          "classed as “other land” — 0% moist forest here does not mean no forest."))
     if not ((raw.get("protected") or {}).get("checked")):
         out.append(tr("Chưa kiểm được khu bảo tồn (OpenStreetMap không phản hồi).",
                       "Protected areas could not be checked (OpenStreetMap did not respond)."))
@@ -574,7 +693,10 @@ def caveats(raw: dict) -> list[str]:
 
 def sources() -> list[str]:
     from app.services import jrc_gfc
-    return [DIRECT_2020[k][5] for k in DIRECT_2020] + [jrc_gfc.NAME + " — tham chiếu, không bỏ phiếu"] + [
+    from app.services import hansen_gfc, jrc_tmf
+    return [DIRECT_2020[k][5] for k in DIRECT_2020] + [jrc_gfc.NAME + " — tham chiếu, không bỏ phiếu",
+                                                       jrc_tmf.NAME + " — tham chiếu, không bỏ phiếu",
+                                                       hansen_gfc.NAME + " — tham chiếu, không bỏ phiếu"] + [
         "Impact Observatory/Esri Annual Land Cover 2017–2023 (10 m)", WC2021[5],
         "Copernicus Sentinel-2 L2A — Microsoft Planetary Computer",
         "OpenStreetMap — khu bảo tồn, vườn quốc gia",

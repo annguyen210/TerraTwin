@@ -4379,6 +4379,12 @@ a.plan-print{ text-decoration:none; display:inline-flex; align-items:center }
 .eu-caveats { margin: 0; padding-left: 18px; display: grid; gap: 3px; font-size: .76rem; color: var(--dim); line-height: 1.5; }
 .eu-mini { display: block; height: 5px; margin-top: 4px; border-radius: 999px; background: var(--line); overflow: hidden; min-width: 60px; }
 .eu-mini > span { display: block; height: 100%; background: var(--terra); }
+/* Mất rừng sau mốc theo năm (JRC TMF + Hansen/GFW) — 25/11/2026 */
+.eu-yrs { display: flex; flex-wrap: wrap; gap: 4px; }
+.eu-yr { font-size: .72rem; padding: 1px 7px; border-radius: 6px; border: 1px solid var(--line-2); background: var(--card);
+  color: var(--dim); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.eu-yr.hit { color: var(--bad); border-color: rgba(229, 112, 90, .5); background: rgba(229, 112, 90, .1); font-weight: 600; }
+.eu-yr-none { font-size: .76rem; color: var(--ok); }
 .eu-traj { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; max-width: 520px; }
 .eu-traj > div { display: grid; justify-items: center; gap: 2px; }
 .eu-traj-bar { display: flex; align-items: flex-end; width: 100%; max-width: 34px; height: 64px; background: var(--card);

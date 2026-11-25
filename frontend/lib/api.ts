@@ -2575,6 +2575,17 @@ export type EudrMap = { id: string; name: string; collection: string; res_m: num
                         pixels?: number; items?: string[]; buffered_m?: number; years?: number[] };
 export type EudrS2 = { item: string; date: string; clear_pct: number; ndvi_mean: number;
                        processing_baseline: string | null; image: { url: string; bbox: number[] } } | null;
+export type EudrTmf = {
+  id: string; name: string; name_en?: string; source?: string; pixels: number; base_year: number; last_year: number;
+  forest2020_pct: number; undisturbed2020_pct: number; lost_after_2020_pct: number; lost_after_2020_ha: number;
+  degraded_after_2020_pct: number; lost_by_year: Record<string, number>; degraded_by_year: Record<string, number>;
+  buffered_m?: number;
+};
+export type EudrHansen = {
+  id: string; name: string; name_en?: string; source?: string; pixels: number; version: string; canopy_min: number;
+  treecover2000_pct: number; loss_2001_2020_pct: number; loss_after_2020_pct: number; loss_after_2020_ha: number;
+  loss_by_year: Record<string, number>; last_year: number; buffered_m?: number;
+};
 export type EudrScreening = {
   method: string; cutoff: string; computed_at: string; level: EudrLevel; label: string; reasons: string[];
   plot: { area_ha: number | null; kind: string | null; geometry_used: "polygon" | "circle_from_point";
@@ -2587,6 +2598,8 @@ export type EudrScreening = {
   // Bản đồ rừng 2020 của chính EU (JRC GFC2020 v4) — THAM CHIẾU, không bỏ phiếu ở quy tắc v1 (nâng cấp 24/11/2026).
   eu_reference?: { id: string; name: string; name_en?: string; source?: string; pct: number | null; pixels?: number;
                    layer?: string; buffered_m?: number } | null;
+  // Hai bản đồ MẤT RỪNG SAU MỐC theo năm — THAM CHIẾU, không bỏ phiếu ở quy tắc v1 (nâng cấp 25/11/2026).
+  loss_reference?: { tmf: EudrTmf | null; hansen: EudrHansen | null };
   signals: { votes?: string[]; strong?: string[]; io_before_pct?: number | null; io_after_pct?: number | null;
              io_drop_pts?: number | null; ndvi_drop?: number | null; loss?: boolean; loss_by?: string[] };
   thresholds: Record<string, number>;
