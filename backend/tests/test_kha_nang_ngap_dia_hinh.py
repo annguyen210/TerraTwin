@@ -32,3 +32,17 @@ def test_xep_hang_va_gan_vao_module(monkeypatch, tmp_path):
                                  headline="h", detail="d.", recommendation="r"), loc)
     assert a.metrics["kha_nang_ngap_dia_hinh_top_pct"] == 17 and "17%" in a.detail and "AUC 0.78" in a.detail
     fs._model.cache_clear()
+
+
+def test_mo_hinh_v2_chi_do_cao(monkeypatch, tmp_path):
+    f = tmp_path / "m2.json"
+    f.write_text(json.dumps({"w": [0.0, -1.0], "mu": [2.0], "sd": [1.0], "ref_scores": [0.1, 0.5, 0.9], "auc_test": 0.8}),
+                 encoding="utf-8")
+    monkeypatch.setattr(fs, "MODEL", f)
+    fs._model.cache_clear()
+    monkeypatch.setattr(fs, "features", lambda lat, lon: [0.0, 9, 9, 9, 9])     # chỉ dùng đặc trưng đầu
+    r = fs.assess(10.0, 106.0)
+    assert r["elev_only"] and r["score"] == 0.881
+    reqlang.set_lang("vi")
+    assert fs.sentence(r).startswith("Theo độ cao")
+    fs._model.cache_clear()

@@ -57,14 +57,23 @@ def assess(lat: float, lon: float) -> dict | None:
     x = features(lat, lon)
     if x is None:
         return None
+    x = x[:len(m["mu"])]                     # v2 (25/11/2026): mô hình chỉ độ cao — đặc trưng đầu là log1p(độ cao + 5)
     z = m["w"][0] + sum(w * (v - mu) / sd for w, v, mu, sd in zip(m["w"][1:], x, m["mu"], m["sd"]))
     p = 1 / (1 + math.exp(-z))
     ref = m["ref_scores"]
     top_pct = max(1, round(100 * (1 - bisect.bisect_left(ref, p) / len(ref))))
-    return {"score": round(p, 3), "top_pct": top_pct, "auc_test": m.get("auc_test"), "n_ref": len(ref)}
+    return {"score": round(p, 3), "top_pct": top_pct, "auc_test": m.get("auc_test"), "n_ref": len(ref),
+            "elev_only": len(m["mu"]) == 1}
 
 
 def sentence(r: dict) -> str:
+    if r.get("elev_only"):
+        return tr(f"Theo độ cao (mô hình học máy, AUC {r['auc_test']} trên các tỉnh giữ riêng), thửa thuộc nhóm {r['top_pct']}% "
+                  f"dễ có nước phủ nhất trong {r['n_ref']} điểm mẫu toàn quốc — không biết đê, kênh, san lấp; lịch sử radar "
+                  "của chính thửa đáng tin hơn.",
+                  f"By elevation (machine-learning model, AUC {r['auc_test']} on held-out provinces), the plot is in the top "
+                  f"{r['top_pct']}% most water-prone of {r['n_ref']} nationwide sample points — dykes, canals and fill are "
+                  "unknown; the plot's own radar history is more reliable.")
     return tr(f"Theo địa hình (mô hình học máy, AUC {r['auc_test']} trên các tỉnh giữ riêng), thửa thuộc nhóm {r['top_pct']}% dễ "
               f"có nước phủ nhất trong {r['n_ref']} điểm mẫu toàn quốc — không biết đê, kênh, san lấp; lịch sử radar của chính "
               "thửa đáng tin hơn.",
