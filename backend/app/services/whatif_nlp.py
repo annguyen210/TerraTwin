@@ -137,6 +137,10 @@ _LLM_SYSTEM = (
 
 
 def parse_llm(question: str, fallback_module: str) -> dict | None:
+    from app.services import ai_guard
+    question = ai_guard.screen(question)[0]   # rào chắn đầu vào (25/11/2026)
+    if not question:
+        return None
     raw = llm.complete(
         f"Question: {question}\nModule in view: {fallback_module}\nJSON:",
         system=_LLM_SYSTEM, max_tokens=150)

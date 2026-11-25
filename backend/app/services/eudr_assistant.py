@@ -107,6 +107,8 @@ SYSTEM = ("Bạn là trợ lý pháp lý về Quy định chống phá rừng c�
 
 
 def ask(q: str) -> dict:
+    from app.services import ai_guard
+    q = ai_guard.screen(q or "")[0]          # rào chắn đầu vào (25/11/2026): che dữ liệu cá nhân, bỏ câu chèn lệnh
     from app.services import llm
 
     q = (q or "").strip()[:500]

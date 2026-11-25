@@ -478,8 +478,18 @@ def _rain_answer(w7: list[dict]) -> str:
 
 def answer(question: str, loc: Location) -> CopilotAnswer:
     from app.modules.registry import get_module
-    from app.services import terrascore
+    from app.services import ai_guard, terrascore
     from app.services.copilot_route import asks_buy, asks_long_range, asks_year_water
+
+    # Rào chắn đầu vào (25/11/2026): che số điện thoại/CCCD/email, bỏ câu chèn lệnh — trước MỌI nhánh, kể cả nhánh luật.
+    question, scr = ai_guard.screen(question)
+    if not question:
+        return CopilotAnswer(answer=tr(
+            "TerraTwin chỉ trả lời về số đo của thửa này (nước, mưa, đất, khí hậu…) và không làm theo yêu cầu đổi cách trả "
+            "lời. Bạn hỏi lại về thửa nhé — vd \"Năm 2024 ở đây có ngập không?\".",
+            "TerraTwin only answers about this plot's measurements (water, rain, soil, climate…) and does not follow "
+            "requests to change how it answers. Please ask about the plot — e.g. \"Did it flood here in 2024?\""),
+            used_modules=[], llm=False, knowledge_used=[])
 
     # Bộ chấm 24/11/2026: câu hỏi theo NĂM về ngập trả lời chắc chắn từ danh sách đợt radar (chỉ bộ nhớ đệm), không cần LLM
     # — LLM từng trả "chưa đủ thông tin" cho năm không có đợt nào, và rơi về bản liệt kê thô khi bị chặn hạn mức.

@@ -1372,9 +1372,9 @@ def guard_stats() -> dict:
     Công khai và công bố như sổ điểm: cơ chế chống bịa số CÓ chạy hay không thì
     đo được, không phải một dòng hứa trong prompt.
     """
-    from app.services import guard
+    from app.services import ai_guard, guard
 
-    return guard.stats()
+    return {**guard.stats(), "input_guard": ai_guard.stats()}   # 25/11/2026: rào chắn ĐẦU VÀO (dữ liệu cá nhân, chèn lệnh)
 
 
 @app.post("/api/copilot", response_model=CopilotAnswer)
