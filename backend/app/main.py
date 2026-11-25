@@ -307,15 +307,18 @@ async def lifespan(_app: FastAPI):
 
     jobs_task = None
     if _JOBS_POLL_INTERVAL_S > 0:
-        # Lô thẩm định bị bỏ dở vì tiến trình cũ chết (Render free ngủ sau 15
-        # phút không có request) → chạy tiếp từ thửa dở, không bắt gửi lại.
+        # Việc dài bị bỏ dở vì tiến trình cũ chết (Render free ngủ sau 15 phút không có request, deploy, hết RAM):
+        # lô thẩm định/EUDR chạy tiếp từ thửa dở; lịch sử nước, radar một người, nạp gen đất làm lại an toàn (nhớ đệm +
+        # cảnh báo có khử trùng); quét toàn bộ → báo lỗi "Restarted" (cron tự chạy lại) — không việc nào kẹt 'running'.
         try:
             from app.db import SessionLocal
             from app.services import batch as _batch, eudr as _eudr, jobs_db as _jobs_db
+            from app.services import radar as _radar, water_history as _wh
             with SessionLocal() as _s:
-                n = _jobs_db.requeue_running(_s, (_batch.JOB_KIND, _eudr.JOB_KIND))
-            if n:
-                log(f"[TerraTwin] Chạy tiếp {n} lô thẩm định bị bỏ dở.")
+                n = _jobs_db.recover_orphans(_s, (_batch.JOB_KIND, _eudr.JOB_KIND, _wh.JOB_KIND, _radar.RADAR_JOB_KIND,
+                                                  "genome_warm"))
+            if n["resumed"] or n["failed"]:
+                log(f"[TerraTwin] Việc dở từ tiến trình cũ: chạy tiếp {n['resumed']}, báo lỗi {n['failed']}.")
         except Exception as e:      # không được chặn khởi động
             log(f"[TerraTwin] Không khôi phục được lô dở: {type(e).__name__}")
         jobs_task = asyncio.create_task(_jobs_poll_loop())

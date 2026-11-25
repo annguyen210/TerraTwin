@@ -273,9 +273,9 @@ def stats() -> dict:
         "by_state": by,
         "coalesced_in_flight": in_flight,
         "job_ttl_s": JOB_TTL,
-        "note": ("Hàng đợi nằm TRONG tiến trình: restart là mất việc đang chờ, "
-                 "và gộp việc trùng chỉ gộp trong cùng tiến trình. Đủ cho quy mô "
-                 "hiện tại; muốn phân tán thật thì cần hàng đợi bền bên ngoài."),
+        "note": ("Bể luồng này chỉ chạy việc NGẮN trong một request (gọi song song nguồn dữ liệu, gộp việc trùng). "
+                 "Việc dài — lô thẩm định, lô EUDR, lịch sử nước, radar, quét toàn bộ — nằm trong bảng jobs "
+                 "(services/jobs_db.py): restart thì chạy tiếp hoặc báo lỗi để gửi lại, không mất, không kẹt."),
     }
 
 

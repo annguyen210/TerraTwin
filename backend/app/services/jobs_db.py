@@ -168,6 +168,25 @@ def requeue_running(db: Session, kinds: tuple[str, ...]) -> int:
     return len(rows)
 
 
+def recover_orphans(db: Session, resume: tuple[str, ...]) -> dict:
+    """Lúc khởi động (nâng cấp 25/11/2026): MỌI việc 'running' là của tiến trình cũ đã chết — không ai ghi kết quả cho
+    nó nữa. Kind trong `resume` (hàm xử lý đi tiếp từ chỗ dở, hoặc làm lại an toàn: chỉ đọc nguồn ngoài + ghi nhớ đệm,
+    cảnh báo có khử trùng) → 'queued' để worker mới chạy. Kind khác → 'error' "Restarted" để giao diện THÔI CHỜ và cho
+    người dùng gửi lại. Trước đây chỉ lô thẩm định/EUDR được xếp lại; việc radar, lịch sử nước dở dang kẹt 'running'
+    mãi và trang cứ hỏi tiến độ. Trả {"resumed": n, "failed": m}."""
+    rows = db.execute(select(Job).where(Job.state == "running")).scalars().all()
+    out = {"resumed": 0, "failed": 0}
+    for j in rows:
+        if j.kind in resume:
+            j.state, j.started_at = "queued", None
+            out["resumed"] += 1
+        else:
+            j.state, j.error, j.finished_at = "error", "Restarted", _utcnow()
+            out["failed"] += 1
+    db.commit()
+    return out
+
+
 def poll_and_run_one(db: Session) -> bool:
     """Giành một việc (nếu có) và chạy nó NGAY trong luồng gọi. Trả True nếu
     có việc để chạy — dùng làm nhịp cho vòng lặp worker nền (xem main.py)."""
@@ -204,6 +223,12 @@ def status(db: Session, job_id: str) -> dict | None:
     elif job.state == "error":
         out["error"] = job.error
         from app.services.reqlang import tr
+        if job.error == "Restarted":            # recover_orphans: máy chủ khởi động lại giữa chừng
+            out["message"] = tr("Máy chủ vừa khởi động lại giữa chừng nên việc này dừng. Bấm chạy lại — phần đã đọc "
+                                "xong được giữ trong bộ nhớ đệm nên lần sau nhanh hơn.",
+                                "The server restarted midway, so this job stopped. Run it again — what was already "
+                                "read is cached, so the next run is faster.")
+            return out
         out["message"] = tr("Việc chạy nền gặp lỗi. Thử lại; nếu vẫn hỏng thì "
                             "nhiều khả năng nguồn dữ liệu ngoài đang không phản hồi.",
                             "The background job failed. Try again; if it keeps failing, "
