@@ -141,6 +141,26 @@ def _drift_metric() -> dict:
             "value": val, "threshold": "|z| ≤ 2", "passed": (not st["drift"]) if st.get("enough") else None}
 
 
+def _fs_v2_metrics() -> list[dict]:
+    """Mục 6 v2 — chỉ độ cao, mẫu MỚI 300 huyện (giao thức 6e7c43c), chạy một lần 26/11/2026."""
+    r = _load("eval", "flood_susceptibility_v2_result.json")
+    if not r:
+        return []
+    return [
+        {"label": tr(f"v2 (chỉ độ cao, 300 huyện mới) — AUC · kỹ năng Brier trên 12 tỉnh giữ riêng ({r.get('n_test')} điểm)",
+                     f"v2 (elevation only, 300 new districts) — AUC · Brier skill on 12 held-out provinces ({r.get('n_test')} points)"),
+         "value": f"{r.get('auc')} · {r.get('brier_skill')}", "threshold": "≥ 0,75 · > 0",
+         "passed": (r.get("auc") or 0) >= 0.75 and (r.get("brier_skill") or 0) > 0},
+        {"label": tr("v2 — số điểm từng có nước trong tập kiểm tra", "v2 — positives in the test set"),
+         "value": str(r.get("pos_test")), "threshold": "≥ 12", "passed": (r.get("pos_test") or 0) >= 12},
+        {"label": tr("v2 — kết luận", "v2 — verdict"),
+         "value": (tr("ĐẠT — đang hiện", "PASSED — shown") if r.get("passed") else
+                   tr("TRƯỢT vì thiếu ca dương (10 < 12) dù AUC 0,93 — không nới cổng sau khi thấy số; cần v3 mẫu lớn hơn",
+                      "FAILED on too few positives (10 < 12) despite AUC 0.93 — gate not relaxed after seeing results; needs a larger v3")),
+         "threshold": "—", "passed": bool(r.get("passed"))},
+    ]
+
+
 def cards() -> list[dict]:
     out: list[dict] = []
 
@@ -467,7 +487,8 @@ def cards() -> list[dict]:
             "name": tr("Khả năng ngập theo địa hình (nhãn radar Sentinel-1 2017–2025)", "Terrain flood susceptibility (Sentinel-1 radar labels 2017–2025)"),
             "status": "accepted" if fsr.get("passed") else "rejected",
             "status_label": (tr("ĐẠT · đang hiện cạnh cảnh báo lũ", "PASSED · shown with flood alerts") if fsr.get("passed") else
-                             tr("v1 TRƯỢT — chỉ độ cao đã tốt hơn mô hình 5 đặc trưng; KHÔNG hiện", "v1 FAILED — elevation alone beat the 5-feature model; NOT shown")),
+                             tr("v1 TRƯỢT (độ cao một mình tốt hơn) · v2 chỉ độ cao AUC 0,93 nhưng TRƯỢT vì 10 < 12 ca dương; KHÔNG hiện",
+                                "v1 FAILED (elevation alone better) · v2 elevation-only AUC 0.93 but FAILED on 10 < 12 positives; NOT shown")),
             "task": tr("Xếp hạng nơi radar từng thấy nước phủ (≥ 1 đợt) chỉ từ địa hình — cho nơi chưa có lịch sử radar.",
                        "Rank where radar has seen water (≥ 1 episode) from terrain alone — for places without radar history."),
             "data": tr(f"{fsr.get('n_points')} điểm ngẫu nhiên trong 200 huyện / 61 tỉnh; {fsr.get('n_radar_ok')} đọc được radar; nhãn = water_history (hàm production); "
@@ -481,7 +502,7 @@ def cards() -> list[dict]:
                  "value": f"{fsr.get('auc')} / {fsr.get('auc_baseline_elev')}", "threshold": tr("≥ 0,70 và hơn cơ sở ≥ 0,03", "≥ 0.70 and ≥ 0.03 over baseline"),
                  "passed": bool(fsr.get("passed"))},
                 {"label": tr("Số điểm từng có nước trong tập kiểm tra", "Positives in the test set"),
-                 "value": str(fsr.get("pos_test")), "threshold": "≥ 8", "passed": (fsr.get("pos_test") or 0) >= 8}],
+                 "value": str(fsr.get("pos_test")), "threshold": "≥ 8", "passed": (fsr.get("pos_test") or 0) >= 8}] + _fs_v2_metrics(),
             "limits": tr("Mẫu nhỏ (199 điểm, 27% từng có nước); địa hình không biết đê, kênh, san lấp. Bài học: độ cao một mình đã xếp hạng "
                          "tốt (AUC 0,89) — muốn dùng phải đăng ký v2 riêng với mẫu lớn hơn, không chỉnh theo kết quả này.",
                          "Small sample (199 points, 27% with water); terrain knows nothing of dykes, canals, fill. Lesson: elevation alone ranks "

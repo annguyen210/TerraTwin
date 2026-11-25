@@ -1,0 +1,54 @@
+{
+ "protocol": "flood_susceptibility_v2_protocol.json",
+ "ran_at": "2026-11-25T16:13:29+00:00",
+ "n_points": 300,
+ "n_radar_ok": 299,
+ "n_train": 248,
+ "n_test": 51,
+ "pos_rate_train": 0.194,
+ "pos_test": 10,
+ "test_provinces": [
+  "Bình Thuận",
+  "Bắc Ninh",
+  "Gia Lai",
+  "Hòa Bình",
+  "Khánh Hòa",
+  "Lào Cai",
+  "Ninh Bình",
+  "Quảng Nam",
+  "Sơn La",
+  "Thừa Thiên Huế",
+  "Vĩnh Long",
+  "Đắk Lắk"
+ ],
+ "auc": 0.934,
+ "brier": 0.1137,
+ "brier_base_rate": 0.1576,
+ "brier_skill": 0.278,
+ "weights": {
+  "mu": [
+   3.8723163556558045
+  ],
+  "sd": [
+   1.7126945619470373
+  ],
+  "w": [
+   -1.7035449694839242,
+   -0.9899883729099868
+  ]
+ },
+ "checks": {
+  "min_test_points": true,
+  "min_test_positives": false,
+  "auc": true,
+  "brier_skill": true
+ },
+ "passed": false,
+ "excluded": [
+  {
+   "id": "p086",
+   "province": "Khánh Hòa",
+   "why": "Không tìm thấy cảnh Sentinel-1 nào trên thửa này."
+  }
+ ]
+}
