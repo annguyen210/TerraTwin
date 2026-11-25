@@ -24,11 +24,100 @@ WORK = Path("D:/tt-scratch/fsus")
 SEED, N = 20261125, 200
 # v2 (giao thức flood_susceptibility_v2_protocol.json): mẫu MỚI 300 huyện không trùng v1, mô hình chỉ độ cao.
 V2 = len(sys.argv) > 2 and sys.argv[2] == "v2"
+V3 = len(sys.argv) > 2 and sys.argv[2] == "v3"
+if V3:
+    PROTO = PROTO.with_name("flood_susceptibility_v3_protocol.json")
+    OUT = OUT.with_name("flood_susceptibility_v3_result.json")
+    WORK = Path("D:/tt-scratch/fsus_v3")
+    SEED, N = 20261127, 600
 if V2:
     PROTO = PROTO.with_name("flood_susceptibility_v2_protocol.json")
     OUT = OUT.with_name("flood_susceptibility_v2_result.json")
     WORK = Path("D:/tt-scratch/fsus_v2")
     SEED, N = 20261126, 300
+
+
+def _km(a, b, c, d) -> float:
+    r = math.radians
+    x = math.sin(r(c - a) / 2) ** 2 + math.cos(r(a)) * math.cos(r(c)) * math.sin(r(d - b) / 2) ** 2
+    return 12742.0 * math.asin(math.sqrt(x))
+
+
+def points_v3() -> None:
+    """v3: chọn huyện ngẫu nhiên (có thể lặp) rồi điểm ngẫu nhiên; mỗi điểm cách mọi điểm v1, v2, v3 khác ≥ 5 km."""
+    from shapely.geometry import Point, shape
+    WORK.mkdir(parents=True, exist_ok=True)
+    units = json.loads((ROOT / "backend" / "data" / "admin" / "vnm_adm2_2020.json").read_text(encoding="utf-8"))["units"]
+    ev = ROOT / "backend" / "data" / "eval"
+    prior = [(p["lat"], p["lon"]) for f in ("flood_susceptibility_points.json", "flood_susceptibility_v2_points.json")
+             for p in json.loads((ev / f).read_text(encoding="utf-8"))]
+    rnd = random.Random(SEED)
+    geoms: dict[int, object] = {}
+    out: list[dict] = []
+    tries = 0
+    while len(out) < N and tries < 200_000:
+        tries += 1
+        i = rnd.randrange(len(units))
+        if i not in geoms:
+            u = units[i]
+            geoms[i] = shape({"type": u["type"], "coordinates": json.loads(u["coordinates"]) if isinstance(u["coordinates"], str)
+                              else u["coordinates"]})
+        g = geoms[i]
+        x0, y0, x1, y1 = g.bounds
+        p = Point(rnd.uniform(x0, x1), rnd.uniform(y0, y1))
+        if not g.contains(p):
+            continue
+        lat, lon = round(p.y, 5), round(p.x, 5)
+        if any(_km(lat, lon, a, b) < 5.0 for a, b in prior):
+            continue
+        prior.append((lat, lon))
+        out.append({"id": f"q{len(out):03d}", "district": units[i]["name"], "province": units[i]["province"], "lat": lat, "lon": lon})
+    (WORK / "points.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+    (ev / "flood_susceptibility_v3_points.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(f"{len(out)} điểm, {len({p['province'] for p in out})} tỉnh → {WORK / 'points.json'}")
+
+
+def run_v3() -> None:
+    """v3: huấn luyện = v3 + v1 + v2 ngoài tỉnh kiểm tra; kiểm tra CHỈ điểm v3 trong tỉnh i % 5 == 2 (giao thức v3)."""
+    g = json.loads(PROTO.read_text(encoding="utf-8"))["gate"]
+    rows = [json.loads(l) for l in (WORK / "rows.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+    pts = json.loads((WORK / "points.json").read_text(encoding="utf-8"))
+    if len({r["id"] for r in rows}) < len(pts):
+        sys.exit(f"DỪNG — mới có {len(rows)}/{len(pts)} điểm; chạy harvest trước.")
+    ev = ROOT / "backend" / "data" / "eval"
+    old = [json.loads(l) for f in ("flood_susceptibility_rows.jsonl", "flood_susceptibility_v2_rows.jsonl")
+           for l in (ev / f).read_text(encoding="utf-8").splitlines() if l.strip()]
+    ok = [r for r in rows if r.get("radar_ok") and "elev_m" in r]
+    ok_old = [r for r in old if r.get("radar_ok") and "elev_m" in r]
+    provs = sorted({p["province"] for p in pts})
+    test_p = {p for i, p in enumerate(provs) if i % 5 == 2}
+    tr_ = [r for r in ok + ok_old if r["province"] not in test_p]
+    te = [r for r in ok if r["province"] in test_p]
+    ytr, yte = [r["label"] for r in tr_], [r["label"] for r in te]
+    m = _fit([_x(r, True) for r in tr_], ytr)
+    pte = _pred(m, [_x(r, True) for r in te])
+    auc = _auc(yte, pte)
+    base = sum(ytr) / max(1, len(ytr))
+    brier = sum((p - y) ** 2 for p, y in zip(pte, yte)) / max(1, len(yte))
+    brier0 = sum((base - y) ** 2 for y in yte) / max(1, len(yte))
+    bss = 1 - brier / brier0 if brier0 else None
+    checks = {"min_test_points": len(te) >= g["min_test_points"], "min_test_positives": sum(yte) >= g["min_test_positives"],
+              "auc": auc is not None and auc >= g["auc_min"],
+              "brier_skill": bss is not None and bss > g["brier_skill_vs_base_rate_min"]}
+    passed = all(checks.values())
+    res = {"protocol": PROTO.name, "ran_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+           "n_points": len(rows), "n_radar_ok": len(ok), "n_train": len(tr_), "n_train_from_v1_v2": len([r for r in ok_old if r["province"] not in test_p]),
+           "n_test": len(te), "pos_rate_train": round(base, 3), "pos_test": sum(yte), "test_provinces": sorted(test_p),
+           "auc": None if auc is None else round(auc, 3), "brier": round(brier, 4), "brier_base_rate": round(brier0, 4),
+           "brier_skill": None if bss is None else round(bss, 3), "weights": m, "checks": checks, "passed": passed,
+           "excluded": [{k: r.get(k) for k in ("id", "province", "why")} for r in rows if not r.get("radar_ok")]}
+    OUT.write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
+    if passed:
+        MODEL.parent.mkdir(parents=True, exist_ok=True)
+        MODEL.write_text(json.dumps({"features": ["log1p(elev+5)"], **m, "auc_test": round(auc, 3), "brier_skill": round(bss, 3),
+                                     "ref_scores": sorted(round(v, 4) for v in _pred(m, [_x(r, True) for r in ok + ok_old])),
+                                     "protocol": PROTO.name}, indent=1), encoding="utf-8")
+    print(f"v3 AUC {auc} · BSS {bss} · test {len(te)} điểm ({sum(yte)} dương) → {'ĐẠT' if passed else 'TRƯỢT'} {checks}")
 
 
 def points() -> None:
@@ -220,4 +309,5 @@ def run() -> None:
 
 
 if __name__ == "__main__":
-    {"points": points, "harvest": harvest, "run": run_v2 if V2 else run}[sys.argv[1]]()
+    {"points": points_v3 if V3 else points, "harvest": harvest,
+     "run": run_v3 if V3 else run_v2 if V2 else run}[sys.argv[1]]()
