@@ -115,7 +115,7 @@ function LossReference({ lr }: { lr: NonNullable<EudrScreening["loss_reference"]
                 <td className="num"><b>{p1(tmf.forest2020_pct)}</b><small>{t("rừng ẩm năm 2020", "moist forest in 2020")}</small>
                   <span className="eu-mini"><span style={{ width: `${Math.min(100, tmf.forest2020_pct)}%` }} /></span></td>
                 <td className="num"><b>{p1(tmf.lost_after_2020_pct)}</b>
-                  <small>~{tmf.lost_after_2020_ha} ha{tmf.degraded_after_2020_pct > 0
+                  <small>~{Number(tmf.lost_after_2020_ha.toPrecision(3))} ha{tmf.degraded_after_2020_pct > 0
                     ? t(` · suy thoái ${p1(tmf.degraded_after_2020_pct)}`, ` · degraded ${p1(tmf.degraded_after_2020_pct)}`) : ""}</small></td>
                 <td><span className="eu-yrs">{years(tmf.lost_by_year)}</span></td>
                 <td className="num">{tmf.pixels} × 30 m{tmf.buffered_m ? <small>{t(`ranh nới rộng ${tmf.buffered_m} m`, `boundary widened by ${tmf.buffered_m} m`)}</small> : null}</td>
@@ -130,7 +130,7 @@ function LossReference({ lr }: { lr: NonNullable<EudrScreening["loss_reference"]
                   <small>{t(`tán ≥${han.canopy_min}% năm 2000`, `canopy ≥${han.canopy_min}% in 2000`)}</small>
                   <span className="eu-mini"><span style={{ width: `${Math.min(100, han.treecover2000_pct)}%` }} /></span></td>
                 <td className="num"><b>{p1(han.loss_after_2020_pct)}</b>
-                  <small>~{han.loss_after_2020_ha} ha · {t(`2001–2020: ${p1(han.loss_2001_2020_pct)}`, `2001–2020: ${p1(han.loss_2001_2020_pct)}`)}</small></td>
+                  <small>~{Number(han.loss_after_2020_ha.toPrecision(3))} ha · {t(`2001–2020: ${p1(han.loss_2001_2020_pct)}`, `2001–2020: ${p1(han.loss_2001_2020_pct)}`)}</small></td>
                 <td><span className="eu-yrs">{years(han.loss_by_year)}</span></td>
                 <td className="num">{han.pixels} × 30 m{han.buffered_m ? <small>{t(`ranh nới rộng ${han.buffered_m} m`, `boundary widened by ${han.buffered_m} m`)}</small> : null}</td>
               </>) : <td colSpan={4}>{t("chưa đọc được (Google Storage không phản hồi)", "unavailable (Google Storage did not respond)")}</td>}
