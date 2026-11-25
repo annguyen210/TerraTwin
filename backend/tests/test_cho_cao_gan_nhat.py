@@ -43,8 +43,11 @@ def test_cau_chu_va_thieu_do_cao(monkeypatch):
     reqlang.set_lang("vi")
     e = _flat()
     e[(C + 4) * N + C - 4] = 7.0             # Tây Nam
-    monkeypatch.setattr(realdata, "elevation_multi", lambda pts: list(e))
+    monkeypatch.setattr(h, "terrarium_elev", lambda pts: list(e))
     r = h.find(16.5, 107.5)
     assert r["found"] and "Tây Nam" in r["text"] and "sơ tán" in r["caveat"] and len(r["path"]) >= 2
+    monkeypatch.setattr(h, "terrarium_elev", lambda pts: [None] * len(pts))
     monkeypatch.setattr(realdata, "elevation_multi", lambda pts: [None] * len(pts))
     assert h.find(16.5, 107.5)["available"] is False
+    monkeypatch.setattr(realdata, "elevation_multi", lambda pts: list(e))     # ô địa hình hỏng → Open-Meteo dự phòng
+    assert h.find(16.5, 107.5)["found"]

@@ -1,6 +1,7 @@
 """CHỖ CAO GẦN NHẤT — khi nước lên, đi hướng nào để tới chỗ cao hơn mà ít phải lội qua vùng trũng (nâng cấp 25/11/2026).
 
-Lưới độ cao 25 × 25 ô, cách nhau 125 m quanh thửa (±1,5 km, DEM ~30 m qua Open-Meteo, 625 điểm trong 7 lượt gọi). Thuật
+Lưới độ cao 25 × 25 ô, cách nhau 125 m quanh thửa (±1,5 km). Độ cao đọc từ ô AWS Terrain Tiles (cùng nguồn bản đồ 3D,
+1–4 ô PNG mỗi thửa); hỏng thì lùi về API độ cao Open-Meteo. Thuật
 toán Dijkstra trên đồ thị 8 hướng: chi phí một bước = quãng đường × (1 + 3 nếu ô đến THẤP HƠN thửa) — vùng trũng hơn thửa
 ngập trước, nên đường đi tránh nó khi có thể. Đích = ô gần nhất (theo chi phí) cao hơn thửa ≥ `rise` mét.
 
@@ -72,6 +73,40 @@ def route(elev: list[float | None], rise: float) -> dict | None:
     return None
 
 
+TERRARIUM = "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"
+TILE_Z = 13               # ~19 m/điểm ảnh ở xích đạo — mịn hơn lưới 125 m
+
+
+def terrarium_elev(points: list[tuple[float, float]], z: int = TILE_Z) -> list[float | None]:
+    """Độ cao từ ô AWS Terrain Tiles (terrarium PNG: h = R·256 + G + B/256 − 32768) — CÙNG nguồn với bản đồ 3D, miễn phí,
+    không giới hạn lượt (25/11/2026: API độ cao Open-Meteo chặn IP máy chủ theo hạn mức → nút "chỗ cao" báo lỗi)."""
+    import io
+    import urllib.request
+    from PIL import Image
+    n = 2 ** z
+    tiles: dict[tuple[int, int], object] = {}
+    out: list[float | None] = []
+    for lat, lon in points:
+        fx = (lon + 180.0) / 360.0 * n * 256
+        lr = math.radians(lat)
+        fy = (1 - math.log(math.tan(lr) + 1 / math.cos(lr)) / math.pi) / 2 * n * 256
+        tx, ty = int(fx // 256), int(fy // 256)
+        if (tx, ty) not in tiles:
+            try:
+                req = urllib.request.Request(TERRARIUM.format(z=z, x=tx, y=ty), headers={"User-Agent": "TerraTwin/1.0"})
+                with urllib.request.urlopen(req, timeout=20) as r:
+                    tiles[(tx, ty)] = Image.open(io.BytesIO(r.read())).convert("RGB")
+            except Exception:  # noqa: BLE001
+                tiles[(tx, ty)] = None
+        im = tiles[(tx, ty)]
+        if im is None:
+            out.append(None)
+            continue
+        R, G, B = im.getpixel((min(255, int(fx) - tx * 256), min(255, int(fy) - ty * 256)))
+        out.append(round(R * 256 + G + B / 256 - 32768, 1))
+    return out
+
+
 def _bearing_idx(r: int, c: int) -> int:
     h = N // 2
     ang = (math.degrees(math.atan2(c - h, h - r)) + 360) % 360      # 0 = Bắc, theo chiều kim đồng hồ
@@ -80,13 +115,15 @@ def _bearing_idx(r: int, c: int) -> int:
 
 def find(lat: float, lon: float, rise: float = 3.0) -> dict:
     rise = max(1.0, min(15.0, float(rise)))
-    key = cache_store.make_key("high-ground", 1, round(lat, 4), round(lon, 4), rise)
+    key = cache_store.make_key("high-ground", 2, round(lat, 4), round(lon, 4), rise)
     hit = cache_store.get(key)
     if hit is not None:
         return _texts(hit)
-    from app.services import realdata
     pts = grid(lat, lon)
-    elev = realdata.elevation_multi(pts)
+    elev = terrarium_elev(pts)
+    if sum(v is not None for v in elev) < 0.8 * len(elev):      # ô địa hình hỏng → Open-Meteo dự phòng
+        from app.services import realdata
+        elev = realdata.elevation_multi(pts)
     if sum(v is not None for v in elev) < 0.8 * len(elev):
         return {"available": False, "message": tr("Chưa lấy được độ cao quanh thửa (dịch vụ độ cao không phản hồi) — thử lại sau.",
                                                   "Could not read elevations around the plot (elevation service did not respond) — try later.")}
