@@ -443,6 +443,37 @@ def cards() -> list[dict]:
             "code": f"{REPO}/ops/alert_calibration.py",
         })
 
+    # 3b'''' — Mục 6: khả năng ngập theo địa hình (học máy, nhãn radar), giao thức ad4fc55 — chạy một lần 25/11/2026.
+    fsr = _load("eval", "flood_susceptibility_result.json")
+    if fsr:
+        out.append({
+            "id": "flood_susceptibility", "kind": tr("mô hình học máy", "machine-learning model"),
+            "name": tr("Khả năng ngập theo địa hình (nhãn radar Sentinel-1 2017–2025)", "Terrain flood susceptibility (Sentinel-1 radar labels 2017–2025)"),
+            "status": "accepted" if fsr.get("passed") else "rejected",
+            "status_label": (tr("ĐẠT · đang hiện cạnh cảnh báo lũ", "PASSED · shown with flood alerts") if fsr.get("passed") else
+                             tr("v1 TRƯỢT — chỉ độ cao đã tốt hơn mô hình 5 đặc trưng; KHÔNG hiện", "v1 FAILED — elevation alone beat the 5-feature model; NOT shown")),
+            "task": tr("Xếp hạng nơi radar từng thấy nước phủ (≥ 1 đợt) chỉ từ địa hình — cho nơi chưa có lịch sử radar.",
+                       "Rank where radar has seen water (≥ 1 episode) from terrain alone — for places without radar history."),
+            "data": tr(f"{fsr.get('n_points')} điểm ngẫu nhiên trong 200 huyện / 61 tỉnh; {fsr.get('n_radar_ok')} đọc được radar; nhãn = water_history (hàm production); "
+                       "đặc trưng: độ cao, độ dốc, chênh cao, khoảng cách biển, khoảng cách sông.",
+                       f"{fsr.get('n_points')} random points in 200 districts / 61 provinces; {fsr.get('n_radar_ok')} with radar; label = water_history "
+                       "(production code); features: elevation, slope, relief, distance to sea, distance to river."),
+            "split": tr(f"giữ riêng 12 tỉnh ({fsr.get('n_test')} điểm, {fsr.get('pos_test')} từng có nước); logistic L2, đường cơ sở = chỉ độ cao",
+                        f"12 provinces held out ({fsr.get('n_test')} points, {fsr.get('pos_test')} with water); L2 logistic, baseline = elevation only"),
+            "metrics": [
+                {"label": tr("AUC tỉnh giữ riêng — mô hình / chỉ độ cao", "Held-out AUC — model / elevation only"),
+                 "value": f"{fsr.get('auc')} / {fsr.get('auc_baseline_elev')}", "threshold": tr("≥ 0,70 và hơn cơ sở ≥ 0,03", "≥ 0.70 and ≥ 0.03 over baseline"),
+                 "passed": bool(fsr.get("passed"))},
+                {"label": tr("Số điểm từng có nước trong tập kiểm tra", "Positives in the test set"),
+                 "value": str(fsr.get("pos_test")), "threshold": "≥ 8", "passed": (fsr.get("pos_test") or 0) >= 8}],
+            "limits": tr("Mẫu nhỏ (199 điểm, 27% từng có nước); địa hình không biết đê, kênh, san lấp. Bài học: độ cao một mình đã xếp hạng "
+                         "tốt (AUC 0,89) — muốn dùng phải đăng ký v2 riêng với mẫu lớn hơn, không chỉnh theo kết quả này.",
+                         "Small sample (199 points, 27% with water); terrain knows nothing of dykes, canals, fill. Lesson: elevation alone ranks "
+                         "well (AUC 0.89) — using it needs a separately pre-registered v2 with a larger sample, not a tweak after this result."),
+            "not_for": tr("Không thay lịch sử radar của chính thửa.", "Does not replace the plot's own radar history."),
+            "code": f"{REPO}/ops/flood_susceptibility.py",
+        })
+
     # 3c — Tổ hợp dự báo mưa best_match + ECMWF AIFS (GĐ5 mục 3) — 18/10/2026
     ab = _load("eval", "aifs_blend_result.json")
     if ab:

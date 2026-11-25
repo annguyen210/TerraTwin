@@ -1,0 +1,64 @@
+{
+ "protocol": "flood_susceptibility_protocol.json",
+ "ran_at": "2026-11-25T13:35:13+00:00",
+ "n_points": 200,
+ "n_radar_ok": 199,
+ "n_train": 158,
+ "n_test": 41,
+ "pos_rate_train": 0.272,
+ "pos_test": 7,
+ "test_provinces": [
+  "Bình Thuận",
+  "Bắc Ninh",
+  "Gia Lai",
+  "Hòa Bình",
+  "Khánh Hòa",
+  "Lâm Đồng",
+  "Ninh Thuận",
+  "Quảng Ngãi",
+  "Thanh Hóa",
+  "Trà Vinh",
+  "Yên Bái",
+  "Đồng Nai"
+ ],
+ "auc": 0.857,
+ "auc_baseline_elev": 0.887,
+ "weights": {
+  "mu": [
+   3.7959774349277544,
+   3.391962025316457,
+   2.7920935590899254,
+   4.200238522950874,
+   0.8343168132307156
+  ],
+  "sd": [
+   1.8006892443317886,
+   5.948600778808829,
+   1.7345239786670006,
+   0.9242100656739609,
+   0.5014008880130961
+  ],
+  "w": [
+   -2.1747066903896983,
+   -1.6273215191965134,
+   0.02332772232543175,
+   -1.2307629062489875,
+   0.2517422705647588,
+   0.17341878999171398
+  ]
+ },
+ "checks": {
+  "min_test_points": true,
+  "min_test_positives": false,
+  "auc": true,
+  "gain_over_baseline": false
+ },
+ "passed": false,
+ "excluded": [
+  {
+   "id": "p127",
+   "province": "Đà Nẵng",
+   "why": "Quá ít cảnh radar đọc được để dựng nền của thửa."
+  }
+ ]
+}
