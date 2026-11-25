@@ -48,3 +48,11 @@ def test_module_gan_xac_suat_chi_khi_du_lieu_that(monkeypatch, tmp_path):
     b = _with_prob(mk(), s, False)                                    # ước lượng (không thật) → không gắn
     assert "xac_suat_hieu_chuan_pct" not in (b.metrics or {}) and b.detail == "d."
     alert_prob._table.cache_clear()
+
+
+def test_hai_dau_khong_noi_0_hay_100():
+    reqlang.set_lang("vi")
+    base = {"lo": 0.0, "hi": 19.0, "hit_threshold": 40.0, "n_test": 1998}
+    assert "dưới 1%" in alert_prob.sentence({**base, "p_hit": 0.0}) and " 0% " not in alert_prob.sentence({**base, "p_hit": 0.0})
+    assert "trên 99%" in alert_prob.sentence({**base, "p_hit": 1.0})
+    assert "78%" in alert_prob.sentence({**base, "p_hit": 0.784})

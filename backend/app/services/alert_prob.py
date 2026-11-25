@@ -48,7 +48,9 @@ def calibrated(module_id: str, forecast_peak: float) -> dict | None:
 
 
 def sentence(c: dict) -> str:
-    pct = round(100 * c["p_hit"])
+    # Mẫu hữu hạn: chưa thấy lần nào ≠ không thể — hai đầu nói "dưới 1%" / "trên 99%", không nói 0% / 100%.
+    p = c["p_hit"]
+    pct = (tr("dưới 1", "under 1") if p < 0.01 else tr("trên 99", "over 99") if p > 0.99 else str(round(100 * p)))
     return tr(f"Xác suất đã hiệu chuẩn: với mức dự báo này, {pct}% lần chỉ số thực đo đạt ngưỡng {c['hit_threshold']:g} "
               f"(kiểm trên {c['n_test']} cửa sổ ở các tỉnh giữ riêng, dự báo lưu trữ 2024–2025); chỉ số thực đo 7 ngày tới "
               f"90% nằm trong {c['lo']:g}–{c['hi']:g}.",
