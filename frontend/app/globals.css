@@ -4013,6 +4013,8 @@ body {
 .csrc-mods{ display:flex; flex-wrap:wrap; gap:6px; margin-top:9px }
 .csrc-chip{ font-size:.74rem; padding:3px 9px; border-radius:999px; background:rgba(95,203,142,.1);
   border:1px solid rgba(95,203,142,.3); color:var(--text) }
+.csrc-chip.off{ opacity:.55; text-decoration: line-through; }
+.csrc-tools{ align-items:center; }
 .csrc-cites{ margin-top:10px; display:flex; flex-direction:column; gap:5px }
 .csrc-sub{ font-size:.74rem; color:var(--dim) }
 .csrc-cite{ font-size:.78rem; color:var(--text); line-height:1.4 }

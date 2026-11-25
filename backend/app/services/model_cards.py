@@ -365,6 +365,26 @@ def cards() -> list[dict]:
             "code": f"{REPO}/backend/app/services/copilot.py",
         })
 
+    # 3b'' — Trợ lý TỰ GỌI CÔNG CỤ (25/11/2026): bộ chấm v3 đăng ký trước, chạy MỘT lần trên production khi bản đã lên.
+    p3 = _load("eval", "copilot_eval_v3_protocol.json")
+    ce3 = _load("eval", "copilot_eval_v3_result.json")
+    card = next((c for c in out if c["id"] == "copilot_eval"), None)
+    if card is not None and p3:
+        if ce3:
+            card["metrics"].append({
+                "label": tr("v3 — trợ lý tự gọi 5 công cụ chỉ-đọc (khí hậu 2050, nước biển dâng, nhiều năm, hai hiểm hoạ)",
+                            "v3 — assistant calls 5 read-only tools (2050 climate, sea level, several years, two hazards)"),
+                "value": (f"{ce3.get('checks_passed')}/{ce3.get('checks_total')} ({round(100 * (ce3.get('pass_rate') or 0))}%) · "
+                          + tr(f"{ce3.get('answers_with_tools')}/{ce3.get('answers_total')} câu có gọi công cụ",
+                               f"{ce3.get('answers_with_tools')}/{ce3.get('answers_total')} answers used tools")),
+                "threshold": "≥ 85%", "passed": bool(ce3.get("passed"))})
+        else:
+            card["metrics"].append({
+                "label": tr("v3 — trợ lý tự gọi 5 công cụ chỉ-đọc: giao thức đã đăng ký trước, CHƯA chạy",
+                            "v3 — assistant calls 5 read-only tools: protocol pre-registered, NOT run yet"),
+                "value": tr("chờ bản nâng cấp lên production", "waiting for the upgrade to reach production"),
+                "threshold": "≥ 85%", "passed": None})
+
     # 3c — Tổ hợp dự báo mưa best_match + ECMWF AIFS (GĐ5 mục 3) — 18/10/2026
     ab = _load("eval", "aifs_blend_result.json")
     if ab:

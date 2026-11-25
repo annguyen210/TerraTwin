@@ -190,6 +190,8 @@ export type CopilotAnswer = {
   used_modules: string[];
   llm?: boolean;
   knowledge_used?: KnowledgeCitation[];
+  // Công cụ trợ lý tự gọi (nâng cấp 25/11/2026).
+  tools?: { tool: string; label: string; args?: Record<string, unknown>; ok: boolean; ms?: number | null }[];
 };
 
 export async function getModules(): Promise<ModuleInfo[]> {
@@ -871,7 +873,9 @@ export function climate2050(lat: number, lon: number) {
 
 async function getJson<T>(path: string, err: string, timeoutMs?: number): Promise<T> {
   const r = await getRetry(`${BASE}${path}`, { headers: authHeaders() }, { lang: curLang(), timeoutMs });
-  if (!r.ok) throw new Error(await errMessage(r, err));
+  // Kèm mã HTTP: thẻ nào gọi endpoint mới có thể tự ẩn khi máy chủ đang chạy bản CŨ chưa có endpoint đó (404) — web
+  // (Vercel) và API (Render) triển khai riêng, có lúc lệch nhau (24/11/2026: web lên, API kẹt bản cũ).
+  if (!r.ok) throw Object.assign(new Error(await errMessage(r, err)), { status: r.status });
   return r.json();
 }
 

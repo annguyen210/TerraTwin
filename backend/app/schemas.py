@@ -136,6 +136,8 @@ class CopilotAnswer(BaseModel):
     used_modules: list[str] = []
     llm: bool = False
     knowledge_used: list[KnowledgeCitation] = []
+    # Công cụ trợ lý TỰ gọi (25/11/2026): [{tool, label, args, ok, ms}] — hiện cho người dùng thấy đã tra gì.
+    tools: list[dict] = []
 
 
 class ScanModule(BaseModel):

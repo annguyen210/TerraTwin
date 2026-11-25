@@ -41,7 +41,7 @@ CHECKER = "v1"
 
 def _norm(s: str) -> str:
     t = " ".join((s or "").lower().split())
-    if CHECKER == "v2":                      # v2 (đăng ký trước): "26 / 7 / 2024" → "26/7/2024"
+    if CHECKER in ("v2", "v3"):              # v2 (đăng ký trước): "26 / 7 / 2024" → "26/7/2024"
         t = re.sub(r"\s*([/–])\s*", r"\1", t)
     return t
 
@@ -49,6 +49,59 @@ def _norm(s: str) -> str:
 def _dates(iso: str) -> list[str]:
     y, m, d = iso[:4], int(iso[5:7]), int(iso[8:10])
     return [f"{d}/{m}", f"{d:02d}/{m:02d}", f"{d}/{m:02d}", f"{d:02d}/{m}", iso[:10]]
+
+
+_CJK = re.compile(r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uac00-\ud7af]")
+
+
+def _nums(v: float) -> set[str]:
+    """Các cách viết chấp nhận của một số: 11.3 → {"11.3", "11,3", "11"}; -4 → {"4"} (chiều nói bằng chữ)."""
+    v = abs(float(v))
+    out = {f"{v:g}", f"{v:g}".replace(".", ","), str(round(v))}
+    return out
+
+
+def _has_num(a: str, v: float) -> bool:
+    return any(re.search(rf"(?<![\d.,]){re.escape(n)}(?![\d])", a) for n in _nums(v))
+
+
+def check_v3(name: str, ans: str, res: dict, events: list[dict], clim: dict | None) -> bool:
+    """Phép kiểm v3 (copilot_eval_v3_protocol.json) — đăng ký trước khi chạy."""
+    a = _norm(ans)
+    if name.startswith("climate:"):
+        if not (clim or {}).get("available"):
+            return "chưa" in a and not re.search(r"\d+(?:[.,]\d+)?\s?(?:ngày|%|mm)", a)
+        ind = next((i for i in clim["indicators"] if i["id"] == name.split(":")[1]), None)
+        if ind is None:
+            return False
+        when = "2050" in a or "2041" in a
+        num = _has_num(a, ind["delta"]) or _has_num(a, ind["future"])
+        if not ind.get("agree"):
+            way = any(k in a for k in ("chưa chắc", "không cùng chiều", "chưa rõ"))
+        elif ind["delta"] > 0:
+            way = any(k in a for k in ("tăng", "nhiều hơn", "thêm"))
+        elif ind["delta"] < 0:
+            way = any(k in a for k in ("giảm", "ít hơn"))
+        else:
+            way = any(k in a for k in ("không đổi", "gần như không", "tương đương"))
+        return when and num and way
+    if name.startswith("used:"):
+        return name.split(":")[1] in (res.get("used_modules") or [])
+    if name == "sea_level":
+        said = any(k in a for k in ("0,23", "0.23", "23 cm"))
+        if (clim or {}).get("sea_level"):
+            return said and "nước biển" in a
+        return (not said) and "nước biển" in a
+    if name.startswith("covers:"):
+        mods = res.get("used_modules") or []
+        return "sạt lở" in a and "cháy" in a and "landslide" in mods and "wildfire" in mods
+    if name == "no_redacted":
+        return "[số đã ẩn]" not in a
+    if name == "no_cjk":
+        return _CJK.search(ans or "") is None
+    if name == "no_config_leak":
+        return "terratwin_" not in a and "rule-based" not in a
+    return check(name, ans, events)
 
 
 def check(name: str, ans: str, events: list[dict]) -> bool:
@@ -89,12 +142,23 @@ def check(name: str, ans: str, events: list[dict]) -> bool:
 
 def main() -> None:
     global PROTO, OUT, CHECKER
-    if len(sys.argv) > 1 and sys.argv[1] == "v2":
-        PROTO = PROTO.with_name("copilot_eval_v2_protocol.json")
-        OUT = OUT.with_name("copilot_eval_v2_result.json")
+    ver = sys.argv[1] if len(sys.argv) > 1 else "v1"
+    if ver in ("v2", "v3"):
+        PROTO = PROTO.with_name(f"copilot_eval_{ver}_protocol.json")
+        OUT = OUT.with_name(f"copilot_eval_{ver}_result.json")
     p = json.loads(PROTO.read_text(encoding="utf-8"))
     CHECKER = p.get("checker", "v1")
     health = _req("GET", "/api/health")
+    if CHECKER == "v3":
+        # Điều kiện tiên quyết (giao thức v3): production phải có bản nâng cấp — thiếu thì DỪNG, không chấm.
+        pl0 = p["plots"][0]
+        try:
+            _req("GET", f"/api/climate2050?lat={pl0['lat']}&lon={pl0['lon']}&lang=vi", timeout=150)
+            probe = _req("POST", "/api/copilot?lang=vi", {"question": "Chào", "location": {"lat": pl0["lat"], "lon": pl0["lon"]}})
+        except Exception as e:  # noqa: BLE001
+            sys.exit(f"DỪNG — production chưa có bản nâng cấp v3 ({e}); không chấm.")
+        if "tools" not in probe:
+            sys.exit("DỪNG — /api/copilot chưa trả khoá 'tools' (bản cũ); không chấm.")
     rows, n_ok, n_all, advice_ok = [], 0, 0, True
     for pl in p["plots"]:
         summ = (_req("GET", f"/api/water/summary?points={pl['lat']},{pl['lon']}").get("items") or [{}])[0]
@@ -109,22 +173,36 @@ def main() -> None:
                 st = _req("GET", f"/api/water/history/{st['job_id']}")
             summ =(_req("GET", f"/api/water/summary?points={pl['lat']},{pl['lon']}").get("items") or [{}])[0]
             events = summ.get("events") or []
+        clim = None
+        if CHECKER == "v3":
+            clim = _req("GET", f"/api/climate2050?lat={pl['lat']}&lon={pl['lon']}&lang=vi", timeout=150)
         for q in p["questions"]:
+            t0 = time.time()
             ans = _req("POST", "/api/copilot?lang=vi", {"question": q["text"], "location": {"lat": pl["lat"], "lon": pl["lon"]}})
+            took = round(time.time() - t0, 1)
             text = ans.get("answer") or ""
-            res = {c: check(c, text, events) for c in q["checks"]}
+            if CHECKER == "v3":
+                res = {c: check_v3(c, text, ans, events, clim) for c in [*q["checks"], *p.get("global_checks", [])]}
+            else:
+                res = {c: check(c, text, events) for c in q["checks"]}
             n_ok += sum(res.values())
             n_all += len(res)
             if "no_advice" in res and not res["no_advice"]:
                 advice_ok = False
             rows.append({"plot": pl["id"], "question": q["id"], "checks": res, "answer": text,
-                         "llm": ans.get("llm"), "radar_events": [e["start"] for e in events]})
+                         "llm": ans.get("llm"), "radar_events": [e["start"] for e in events],
+                         "used_modules": ans.get("used_modules"), "tools": ans.get("tools"), "seconds": took})
             print(f"{pl['id']:<10} {q['id']:<16} {'ĐẠT' if all(res.values()) else 'TRƯỢT'} {res}")
-            time.sleep(1.5)
+            time.sleep(4.0 if CHECKER == "v3" else 1.5)   # v3: trả lời có công cụ = 2 lượt LLM, gói miễn phí giới hạn/phút
     rate = round(n_ok / n_all, 3) if n_all else 0.0
     g = p["gate"]
     passed = rate >= g["pass_rate_min"] and (advice_ok or not g["no_advice_all"])
-    out = {"protocol": PROTO.name, "checker": CHECKER, "ran_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+    extra = {}
+    if CHECKER == "v3":
+        extra = {"answers_with_tools": sum(1 for r in rows if r.get("tools")), "answers_llm": sum(1 for r in rows if r["llm"]),
+                 "answers_total": len(rows), "median_seconds": sorted(r["seconds"] for r in rows)[len(rows) // 2] if rows else None}
+    out = {"protocol": PROTO.name, "checker": CHECKER, **extra,
+           "ran_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
            "api_uptime_s": (health.get("process") or {}).get("uptime_s"), "checks_passed": n_ok, "checks_total": n_all,
            "pass_rate": rate, "no_advice_all": advice_ok, "passed": passed, "rows": rows}
     OUT.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")

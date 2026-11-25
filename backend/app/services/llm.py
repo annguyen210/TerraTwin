@@ -223,6 +223,34 @@ def _dig(d, *path):
     return d
 
 
+def tools_available() -> bool:
+    """Gọi công cụ (function calling) — chỉ nhà cung cấp kiểu OpenAI (Groq, OpenAI, DeepSeek…)."""
+    return _detect()[0] == "openai"
+
+
+def chat(messages: list[dict], tools: list[dict] | None = None, tool_choice: str = "auto",
+         max_tokens: int = 700) -> dict | None:
+    """Một lượt chat có công cụ, chuẩn OpenAI /chat/completions. Trả `message` của lựa chọn đầu (có thể chứa
+    `tool_calls`), hoặc None nếu chưa cấu hình / không phải kiểu OpenAI / lỗi."""
+    provider, key, base, model = _detect()
+    if provider != "openai":
+        return None
+    payload: dict = {"model": model, "messages": messages, "max_tokens": max_tokens}
+    if tools:
+        payload.update(tools=tools, tool_choice=tool_choice, parallel_tool_calls=True)
+    if _reasoning(model):
+        payload.update({"max_tokens": max(max_tokens * 4, 2400), "reasoning_effort": "low"})
+    d = _post(f"{base}/chat/completions", payload, {"Authorization": f"Bearer {key}"} if key else {})
+    msg = _dig(d, "choices", 0, "message")
+    if not isinstance(msg, dict):
+        return None
+    if not (msg.get("content") or "").strip() and not msg.get("tool_calls"):
+        _note(False, f"trả lời rỗng (finish_reason={_dig(d, 'choices', 0, 'finish_reason')})")
+        return None
+    _note(True)
+    return msg
+
+
 def complete(prompt: str, system: str | None = None,
              max_tokens: int = 600) -> str | None:
     """Gọi LLM. Trả văn bản, hoặc None nếu chưa cấu hình / lỗi mạng / hỏng."""

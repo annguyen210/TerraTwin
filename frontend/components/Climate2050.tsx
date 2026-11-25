@@ -16,6 +16,7 @@ export default function Climate2050({ lat, lon }: { lat: number; lon: number }) 
   const [r, setR] = useState<C | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [gone, setGone] = useState(false);     // máy chủ chưa có endpoint này (bản cũ) → ẩn thẻ, không hiện lỗi đỏ
   const gen = useRef(0);
 
   async function run() {
@@ -25,7 +26,10 @@ export default function Climate2050({ lat, lon }: { lat: number; lon: number }) 
       const x = await climate2050(lat, lon);
       if (my === gen.current) setR(x);
     } catch (e) {
-      if (my === gen.current) setErr((e as Error).message);
+      if (my === gen.current) {
+        if ((e as { status?: number }).status === 404) setGone(true);
+        else setErr((e as Error).message);
+      }
     } finally {
       if (my === gen.current) setBusy(false);
     }
@@ -39,6 +43,7 @@ export default function Climate2050({ lat, lon }: { lat: number; lon: number }) 
   }, [lat, lon, lang]);
 
   const ok = r?.available && r.indicators?.length;
+  if (gone) return null;
   return (
     <section className="lc2 cl50">
       <div className="wh-head">

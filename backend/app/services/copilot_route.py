@@ -215,6 +215,19 @@ def asks_year_water(question: str) -> int | None:
     return y if 2010 <= y <= 2035 else None
 
 
+def asks_years_water(question: str) -> list[int]:
+    """"Năm 2020 và năm 2024 có ngập không?" → [2020, 2024] (2–5 năm, 2010–2035, có nói tới ngập/nước). Nâng cấp
+    25/11/2026: trước đây câu nhiều năm rơi khỏi nhánh trả lời chắc chắn theo năm và chỉ còn trông vào LLM."""
+    import re
+    years = sorted({int(y) for y in re.findall(r"\b(20[1-3]\d)\b", question)})
+    if not 2 <= len(years) <= 5 or not all(2010 <= y <= 2035 for y in years):
+        return []
+    w = " ".join(_words(question))
+    if not any(k in w for k in ("ngap", "lut", "lu ", "nuoc", "flood", "water", "inundat")):
+        return []
+    return years
+
+
 def asks_buy(question: str) -> bool:
     """Hỏi có nên mua / đầu tư không — TerraTwin không khuyên mua hay không mua."""
     w = " ".join(_words(question))

@@ -494,6 +494,18 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
             return CopilotAnswer(answer=_year_answer(year, radar), used_modules=["water_history"], llm=False,
                                  knowledge_used=[])
 
+    from app.services.copilot_route import asks_years_water
+    years = asks_years_water(question)
+    if years:
+        try:
+            from app.services import water_history
+            radar = water_history.summary(loc.lat, loc.lon)
+        except Exception:
+            radar = None
+        if (radar or {}).get("available"):
+            return CopilotAnswer(answer="\n\n".join(_year_answer(y, radar) for y in years), used_modules=["water_history"],
+                                 llm=False, knowledge_used=[])
+
     # Nâng cấp 24/11/2026: hai loại câu hay gặp nhất trả lời thẳng từ số đo — tức thì, đúng số, không tốn lượt LLM gói miễn
     # phí (bộ chấm v2: 12/35 câu rơi về luật vì bị chặn hạn mức).
     from app.services.copilot_route import asks_flood_history, asks_rain_week
@@ -596,8 +608,20 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
         f"{tr('Trả lời', 'Answer')}:"
     )
 
-    text = llm.complete(prompt, system=system, max_tokens=600)
-    if text and _CJK.search(text):
+    # Nâng cấp 25/11/2026: LLM tự gọi công cụ chỉ-đọc khi dữ kiện theo từ khoá chưa đủ (copilot_agent). Hỏng → như cũ.
+    from app.services import copilot_agent
+    agent = copilot_agent.run(system, prompt, loc) if copilot_agent.enabled() else None
+    tool_ctx, trace = "", []
+    if agent:
+        text, tool_ctx, trace = agent["text"], agent["context"], agent["trace"]
+        routes = routes + [m for m in agent["modules"] if m not in routes]
+        seen = {c.id for c in cites}
+        cites = cites + [c for c in agent["cites"] if c.id not in seen]
+        if _CJK.search(text):                     # hỏi lại sẽ mất kết quả công cụ — gỡ phần chữ lạ
+            text = _CJK.sub("", text).replace("  ", " ")
+    else:
+        text = llm.complete(prompt, system=system, max_tokens=600)
+    if text and not agent and _CJK.search(text):
         # Kiểm 21/11/2026: gpt-oss-120b chen chữ Hán ("nhưng這些 không影響當前的預測"). Hỏi lại MỘT lần với lời dặn
         # thêm; vẫn còn thì gỡ phần chữ đó.
         lai = llm.complete(prompt, system=system + " " + tr(
@@ -608,7 +632,7 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
         # A2 — cưỡng chế "LLM chỉ dịch, không sinh số": ẩn mọi số model bịa ra
         # ngoài dữ liệu thật đã đưa cho nó (facts + lịch sử + kiến thức + system).
         from app.services import guard
-        text, _ = guard.guard_llm(text, system + NL + prompt)
+        text, _ = guard.guard_llm(text, system + NL + prompt + NL + tool_ctx)
         text = _plain(text)
         if reqlang.cur_lang() != "en":
             text = _viet_hoa(text)
@@ -618,7 +642,7 @@ def answer(question: str, loc: Location) -> CopilotAnswer:
         except Exception:
             radar = None
         text = _han_che(text, question, assessed, radar if (radar or {}).get("available") else None)
-        out = CopilotAnswer(answer=text, used_modules=routes, llm=True, knowledge_used=cites)
+        out = CopilotAnswer(answer=text, used_modules=routes, llm=True, knowledge_used=cites, tools=trace)
         cache_store.put(akey, out.model_dump(), ttl_seconds=3 * 3600)
         return out
 

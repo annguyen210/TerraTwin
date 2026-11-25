@@ -28,6 +28,10 @@ const MOD_NAME: Record<string, [string, string]> = {
   solar: ["Điện mặt trời", "Solar"],
   pest: ["Sâu bệnh", "Pest & disease"],
   yield: ["Năng suất", "Yield"],
+  climate_2050: ["Khí hậu 2050 (CMIP6)", "2050 climate (CMIP6)"],
+  upstream_flood: ["Lũ thượng nguồn", "Upstream flood"],
+  urban: ["Ngập úng đô thị", "Urban flooding"],
+  aquaculture: ["Ao nuôi", "Aquaculture"],
 };
 
 export default function Copilot({ lat, lon }: { lat: number; lon: number }) {
@@ -99,6 +103,21 @@ export default function Copilot({ lat, lon }: { lat: number; lon: number }) {
               <div className="csrc-mods">
                 {ans.used_modules.map((m) => (
                   <span key={m} className="csrc-chip">🛰️ {MOD_NAME[m] ? t(MOD_NAME[m][0], MOD_NAME[m][1]) : m}</span>
+                ))}
+              </div>
+            )}
+
+            {/* Công cụ trợ lý TỰ gọi thêm (nâng cấp 25/11/2026) — để thấy nó đã tra gì, không chỉ đọc dữ kiện có sẵn. */}
+            {(ans.tools?.length ?? 0) > 0 && (
+              <div className="csrc-mods csrc-tools">
+                <span className="csrc-sub">🧰 {t("Trợ lý đã tự tra thêm:", "The assistant also looked up:")}</span>
+                {ans.tools!.map((x, i) => (
+                  <span key={`${x.tool}-${i}`} className={`csrc-chip${x.ok ? "" : " off"}`}
+                        title={x.ms != null ? `${x.ms} ms` : undefined}>
+                    {x.label}{x.tool === "danh_gia_hiem_hoa" && x.args?.hazard
+                      ? ` · ${MOD_NAME[String(x.args.hazard)] ? t(MOD_NAME[String(x.args.hazard)][0], MOD_NAME[String(x.args.hazard)][1]) : String(x.args.hazard)}`
+                      : ""}{x.ok ? "" : t(" (không tra được)", " (unavailable)")}
+                  </span>
                 ))}
               </div>
             )}
