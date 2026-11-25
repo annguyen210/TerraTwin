@@ -10,12 +10,13 @@
     "build": "next build --webpack",
     "start": "next start",
     "test": "node scripts/test-csp.mjs && node --no-warnings --experimental-strip-types scripts/test-geo.mjs && node --no-warnings --experimental-strip-types scripts/test-retry.mjs && node --no-warnings --experimental-strip-types scripts/test-richtext.mjs && node --no-warnings --experimental-strip-types scripts/test-feedback.mjs && node --no-warnings --experimental-strip-types scripts/test-terra-badge.mjs && node --no-warnings --experimental-strip-types scripts/test-track.mjs && node --no-warnings --experimental-strip-types scripts/test-plot-alerts.mjs",
-    "postinstall": "node scripts/copy-maplibre-worker.mjs"
+    "postinstall": "node scripts/copy-maplibre-worker.mjs && node scripts/copy-ort.mjs"
   },
   "dependencies": {
     "lucide-react": "0.544.0",
     "maplibre-gl": "^6.11.2",
     "next": "^16.4.6",
+    "onnxruntime-web": "^1.20.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },

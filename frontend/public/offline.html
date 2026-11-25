@@ -55,6 +55,26 @@
         đưa ra một cảnh báo thiên tai đã lỗi thời còn nguy hiểm hơn là báo mất mạng.
       </p>
       <button onclick="location.reload()">Thử lại</button>
+      <hr style="border:none;border-top:1px solid #23313d;margin:22px 0" />
+      <h1 style="font-size:17px">📷 Kiểm ảnh ruộng — không cần mạng</h1>
+      <p>Chụp ảnh ruộng: AI chạy ngay trên máy (ảnh không rời máy), cho biết bao nhiêu phần ảnh là nước. Chỉ dùng được nếu
+        trước đó bạn đã bấm "Tải AI về máy" trong ứng dụng lúc có mạng.</p>
+      <input id="tt-photo" type="file" accept="image/*" capture="environment" style="margin-top:8px;color:#e7eef3" />
+      <p id="tt-out" role="status"></p>
     </div>
+    <script src="/fieldcheck.js"></script>
+    <script>
+      document.getElementById("tt-photo").addEventListener("change", function (e) {
+        var f = e.target.files && e.target.files[0], out = document.getElementById("tt-out");
+        if (!f) return;
+        out.textContent = "Đang phân tích trên máy…";
+        window.ttFieldCheck(f).then(function (r) {
+          out.innerHTML = "<b>" + Math.round(r.ratio * 100) + "%</b> diện tích ảnh là nước (AI trên máy, " + r.ms +
+            " ms). Đây là tín hiệu tham khảo, không phải kết luận ngập — ghi lại để đối chiếu khi có mạng.";
+        }).catch(function (err) {
+          out.textContent = "Chưa chạy được: " + err.message + " Khi có mạng, mở ứng dụng và bấm \"Tải AI về máy\" một lần.";
+        });
+      });
+    </script>
   </body>
 </html>

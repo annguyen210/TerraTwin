@@ -13,6 +13,10 @@ const OFFLINE_URL = "/offline.html";
 const TILE_CACHE = "terratwin-tiles-v1";
 const TILE_MAX = 300;
 const TILE_HOSTS = ["server.arcgisonline.com"];
+// Kiểm ảnh ruộng NGAY TRÊN MÁY (25/11/2026): mô hình + runtime AI lưu sau lần dùng đầu → chạy được khi mất sóng.
+// Tên tệp cố định theo phiên bản (đổi mô hình → đổi tên tệp), nên cache-first an toàn. Không phải dữ liệu cảnh báo.
+const AI_CACHE = "terratwin-ai-v1";
+const AI_PATHS = ["/models/", "/ort/", "/fieldcheck.js"];
 
 async function _cap(cacheName, max) {
   const c = await caches.open(cacheName);
@@ -23,13 +27,13 @@ async function _cap(cacheName, max) {
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll([OFFLINE_URL, "/manifest.webmanifest"])),
+    caches.open(CACHE).then((c) => c.addAll([OFFLINE_URL, "/manifest.webmanifest", "/fieldcheck.js"])),
   );
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  const keep = new Set([CACHE, TILE_CACHE]);
+  const keep = new Set([CACHE, TILE_CACHE, AI_CACHE]);
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((k) => !keep.has(k)).map((k) => caches.delete(k))),
@@ -73,6 +77,18 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (url.origin !== self.location.origin) return;
+
+  if (AI_PATHS.some((p) => url.pathname.startsWith(p))) {
+    event.respondWith(
+      caches.open(AI_CACHE).then((c) =>
+        c.match(req).then((hit) => hit || fetch(req).then((res) => {
+          if (res.ok) c.put(req, res.clone());
+          return res;
+        }).catch(() => caches.match(req, { ignoreSearch: true }))),
+      ),
+    );
+    return;
+  }
 
   // Chỉ tệp tĩnh KHÔNG ĐỔI theo tên (chunk có mã băm của Next, ảnh, phông) mới cache-first. Mọi thứ khác cùng nguồn —
   // manifest, dữ liệu trang khi chuyển trang (?_rsc=), sitemap… — đi mạng trước (2/11/2026: trước đây cache-first cả

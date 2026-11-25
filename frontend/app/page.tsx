@@ -34,6 +34,7 @@ const ListingCheck = dynamic(() => import("@/components/ListingCheck"));
 const WaterHistory = dynamic(() => import("@/components/WaterHistory"));
 const LandChangeAI = dynamic(() => import("@/components/LandChangeAI"));
 const Climate2050 = dynamic(() => import("@/components/Climate2050"));
+const PhotoCheckLocal = dynamic(() => import("@/components/PhotoCheckLocal"), { ssr: false });
 const PlotPlan = dynamic(() => import("@/components/PlotPlan"));
 const Story = dynamic(() => import("@/components/Story"));
 const MyLand = dynamic(() => import("@/components/MyLand"));
@@ -399,6 +400,7 @@ export default function Home() {
               {serviceable && <WaterHistory lat={coord.lat} lon={coord.lon} onScene={setRadar} />}
               {serviceable && <LandChangeAI lat={coord.lat} lon={coord.lon} />}
               {serviceable && <Climate2050 lat={coord.lat} lon={coord.lon} />}
+              <PhotoCheckLocal />
               {serviceable && <PlotPlan lat={coord.lat} lon={coord.lon} area={area} onSelectModule={selectModule} />}
               {serviceable && <h3 className="ev-h">{t("Bằng chứng chi tiết — lưới mũi nhọn", "Detailed evidence — the spearhead grid")}</h3>}
               <Answer lat={coord.lat} lon={coord.lon} area={area} label={placeLabel} modules={modules}

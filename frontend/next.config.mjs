@@ -36,7 +36,8 @@ const IS_DEV = process.env.NODE_ENV !== "production";
 
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${IS_DEV ? " 'unsafe-eval'" : ""}`,
+  // 'wasm-unsafe-eval' (25/11/2026): chỉ cho biên dịch WebAssembly (onnxruntime-web — kiểm ảnh ruộng trên máy), KHÔNG mở eval JS.
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${IS_DEV ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   // API_ORIGIN: ảnh thực địa thu nhỏ phục vụ từ API (dev là http://localhost:8000,
   // không lọt "https:").

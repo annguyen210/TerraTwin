@@ -5445,3 +5445,7 @@ label.bat-btn { display: inline-flex; align-items: center; gap: 6px; cursor: poi
 .crow .cmic.on { background: rgba(229, 112, 90, .18); border-color: rgba(229, 112, 90, .6); animation: cmicPulse 1.2s ease-in-out infinite; }
 @keyframes cmicPulse { 50% { opacity: .55; } }
 @media (prefers-reduced-motion: reduce) { .crow .cmic.on { animation: none; } }
+
+/* Kiểm ảnh ruộng ngay trên máy (25/11/2026) */
+.pcl-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+.pcl-row label.bat-btn { cursor: pointer; }

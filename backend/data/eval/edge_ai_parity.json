@@ -1,0 +1,10 @@
+{
+ "what": "So AI nhận diện nước trong ảnh thực địa chạy TRÊN MÁY (onnxruntime-web 1.20.1, WASM, Chromium) với máy chủ (onnxruntime Python, services/field_water.py) — cùng mô hình field_water_segformer (bản gộp 1 tệp, chênh 0,0 so với bản gốc).",
+ "ran_at": "2026-11-25",
+ "images": 4,
+ "logit_margin_correlation": [1.0, 0.9994, 0.9936, 0.9951],
+ "mean_abs_margin_diff": [0.0, 0.014, 0.187, 0.02],
+ "pixel_label_agreement": [1.0, 1.0, 1.0, 1.0],
+ "ms_on_device": [5669, 2555, 1923, 1868],
+ "note": "Lệch nhỏ đến từ đổi cỡ ảnh (canvas trình duyệt vs Pillow BILINEAR). Chạy lại: ops/edge_ai_parity.py (cần thư mục site dựng từ frontend/public)."
+}
