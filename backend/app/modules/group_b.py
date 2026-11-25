@@ -11,6 +11,25 @@ from app.services import hazard, optical, sentinel
 from app.services.reqlang import tr
 
 
+def _with_prob(a: Assessment, s, real: bool) -> Assessment:
+    """Mục 7 (25/11/2026): gắn xác suất ĐÃ HIỆU CHUẨN trên dự báo lưu trữ nếu module qua cổng (services/alert_prob.py);
+    module trượt hoặc dữ liệu không thật → giữ nguyên, không hiện con số nào."""
+    if not real or not s:
+        return a
+    from app.services import alert_prob
+    try:
+        peak = max(float(v[2]) for v in s)
+    except (TypeError, ValueError, IndexError):
+        return a
+    c = alert_prob.calibrated(a.module_id, peak)
+    if c is None:
+        return a
+    a.detail = (a.detail + " " + alert_prob.sentence(c)).strip()
+    a.metrics = {**(a.metrics or {}), "xac_suat_hieu_chuan_pct": round(100 * c["p_hit"]),
+                 "chi_so_thuc_do_90_thap": c["lo"], "chi_so_thuc_do_90_cao": c["hi"]}
+    return a
+
+
 class FloodModule(TwinModule):
     id = "flood"; name = "Cảnh báo lũ/ngập sớm"; name_en = "Early flood warning"; group = "B"; icon = "🌊"; status = "active"
     data_sources = ["Open-Meteo: lượng mưa", "Cao độ DEM Copernicus (Open-Meteo, Planetary Computer)",
@@ -97,7 +116,7 @@ class FloodModule(TwinModule):
         a = assessment_from_series(self, loc, s, tr("điểm", "pts"), 40, 70, texts, detail,
                                    confidence=conf, is_real=real, data_sources=src)
         a.metrics = metrics
-        return a
+        return _with_prob(a, s, real)
 
 
 class LandslideModule(TwinModule):
@@ -153,8 +172,9 @@ class LandslideModule(TwinModule):
                   + hazard.scale_note(real, calibrated))
         src = [hazard.source_label(source, "lượng mưa", "rainfall"), slope_txt] \
             if real else self.disp_data_sources()
-        return assessment_from_series(self, loc, s, tr("điểm", "pts"), 40, 70, texts, detail,
-                                      confidence=0.7 if real else 0.6, is_real=real, data_sources=src)
+        a = assessment_from_series(self, loc, s, tr("điểm", "pts"), 40, 70, texts, detail,
+                                   confidence=0.7 if real else 0.6, is_real=real, data_sources=src)
+        return _with_prob(a, s, real)
 
 
 class StormDamageModule(TwinModule):
