@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import maplibregl, { trackReady, whenStyleReady } from "@/lib/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useLang } from "@/lib/i18n";
-import { autoBoundary } from "@/lib/api";
+import { autoBoundary, highGround, type HighGround } from "@/lib/api";
 
 type Pt = [number, number]; // [lng, lat]
 
@@ -80,6 +80,17 @@ export default function MapView({
   // BẢN SAO SỐ 3D (nâng cấp 24/11/2026): địa hình 3D + mô phỏng "nước dâng tới X m" tô theo độ cao.
   const [is3d, setIs3d] = useState(false);
   const [level, setLevel] = useState<number | null>(null);
+  // Chỗ cao gần nhất (25/11/2026): Dijkstra trên lưới độ cao quanh thửa — services/high_ground.py.
+  const [hg, setHg] = useState<HighGround | null>(null);
+  const [hgBusy, setHgBusy] = useState(false);
+  async function findHigh() {
+    if (!plot || hgBusy) return;
+    setHgBusy(true);
+    try { setHg(await highGround(plot.lat, plot.lon)); }
+    catch (e) { setHg({ available: false, message: (e as Error).message }); }
+    finally { setHgBusy(false); }
+  }
+  useEffect(() => { setHg(null); }, [plot?.lat, plot?.lon]);
 
   function refresh() {
     const map = mapRef.current;
@@ -311,6 +322,25 @@ export default function MapView({
     });
   }, [level]);
 
+  // Vẽ đường tới chỗ cao gần nhất.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    whenStyleReady(map, () => {
+      for (const id of ["hg-line", "hg-dot"]) if (map.getLayer(id)) map.removeLayer(id);
+      if (map.getSource("hg")) map.removeSource("hg");
+      if (!hg?.found || !hg.path || !hg.target) return;
+      map.addSource("hg", { type: "geojson", data: { type: "FeatureCollection", features: [
+        { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: hg.path } },
+        { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [hg.target.lon, hg.target.lat] } },
+      ] } });
+      map.addLayer({ id: "hg-line", type: "line", source: "hg", filter: ["==", ["geometry-type"], "LineString"],
+                     paint: { "line-color": "#ffd23f", "line-width": 4, "line-dasharray": [1.5, 1] } });
+      map.addLayer({ id: "hg-dot", type: "circle", source: "hg", filter: ["==", ["geometry-type"], "Point"],
+                     paint: { "circle-radius": 8, "circle-color": "#3ecb83", "circle-stroke-color": "#fff", "circle-stroke-width": 2 } });
+    });
+  }, [hg]);
+
   // Vẽ khung ô vừa phân tích.
   useEffect(() => {
     const map = mapRef.current;
@@ -441,6 +471,17 @@ export default function MapView({
                 onClick={() => setLevel((v) => (v == null ? 2 : null))}>
           🌊 {t("Mô phỏng nước dâng", "Water-rise simulation")}
         </button>
+        {plot && (
+          <button type="button" className={hg?.found ? "on" : ""} onClick={findHigh} disabled={hgBusy}>
+            ⛰️ {hgBusy ? t("Đang tìm…", "Searching…") : t("Chỗ cao gần nhất", "Nearest high ground")}
+          </button>
+        )}
+        {hg && (
+          <div className="twin-lv">
+            <span>{hg.available ? hg.text : hg.message}</span>
+            {hg.caveat && <small>{hg.caveat}</small>}
+          </div>
+        )}
         {level != null && (
           <div className="twin-lv">
             <label htmlFor="twin-level">{t(`Mực nước: ${level.toFixed(1)} m so với mực biển`, `Water level: ${level.toFixed(1)} m above sea level`)}</label>

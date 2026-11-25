@@ -866,6 +866,15 @@ export type Climate2050 = {
   sea_level?: { median_m: number; low_m: number; high_m: number; coast_km: number; elevation_m: number; text: string; source: string };
   caveats?: string[]; sources?: string[];
 };
+export type HighGround = {
+  available: boolean; found?: boolean; message?: string; text?: string; caveat?: string; rise_m?: number; dist_m?: number;
+  plot_elev?: number; target_elev?: number; target?: { lat: number; lon: number }; path?: [number, number][];
+};
+export function highGround(lat: number, lon: number, rise = 3) {
+  // Chỗ cao gần nhất (25/11/2026): lưới 25×25 độ cao quanh thửa + Dijkstra; thửa mới ~2–5 s, đã tính thì trả ngay.
+  return getJson<HighGround>(`/api/high-ground?lat=${lat}&lon=${lon}&rise=${rise}&lang=${curLang()}`, "Không tìm được chỗ cao gần nhất", 60_000);
+}
+
 export function climate2050(lat: number, lon: number) {
   // Vùng mới: hai lượt tải CMIP6 (~15–30 s); vùng đã tính trả ngay.
   return getJson<Climate2050>(`/api/climate2050?lat=${lat}&lon=${lon}&lang=${curLang()}`, "Không lấy được khí hậu 2050", 90_000);

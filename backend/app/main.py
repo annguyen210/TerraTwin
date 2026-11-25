@@ -1404,6 +1404,17 @@ def climate2050_endpoint(lat: float, lon: float, request: Request, lang: str = "
     return climate_2050.assess(lat, lon)
 
 
+@app.get("/api/high-ground")
+def high_ground_endpoint(lat: float, lon: float, rise: float = 3.0, lang: str = "vi") -> dict:
+    """Chỗ cao gần nhất quanh thửa (Dijkstra trên lưới độ cao 25×25, ±1,5 km; tránh vùng thấp hơn thửa) — xem
+    services/high_ground.py. Địa hình không đổi nên nhớ đệm 90 ngày; mỗi thửa mới 7 lượt gọi độ cao."""
+    from app.services import high_ground
+    reqlang.set_lang(lang)
+    if not (8.0 <= lat <= 24.0 and 102.0 <= lon <= 110.0):
+        raise HTTPException(422, reqlang.tr("Toạ độ ngoài Việt Nam.", "Coordinates outside Viet Nam."))
+    return high_ground.find(lat, lon, rise)
+
+
 @app.get("/api/backtest")
 def backtest_list(lang: str = "vi") -> list[dict]:
     """Danh sách sự kiện thiên tai lịch sử THẬT để kiểm chứng 'biết trước'."""
