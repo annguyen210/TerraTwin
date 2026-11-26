@@ -582,6 +582,14 @@ def record_event(body: EventIn, request: Request, db: Session = Depends(get_sess
                 meta = ""
         db.add(Event(name=name, meta_json=meta))
         db.commit()
+        if name == "open":
+            # Số NGƯỜI khác nhau (HyperLogLog, 26/11/2026): chỉ cập nhật thanh ghi từ băm có muối-theo-ngày — IP không lưu.
+            try:
+                from app.main import _client_ip
+                from app.services import sketches
+                sketches.visit(_client_ip(request), request.headers.get("user-agent") or "")
+            except Exception:  # noqa: BLE001 — đo lường không được làm hỏng gì
+                pass
 
 
 @router.get("/api/admin/funnel")
@@ -608,9 +616,13 @@ def funnel(days: int = 30, user: User = Depends(auth.require_admin),
              for k in _FUNNEL]
     sales = [{"step": k, "count": counts[k],
               "pct_of_open": round(100.0 * counts[k] / base, 1) if base else None} for k in _SALES]
+    from app.services import sketches
     return {
         "window_days": days, "counts": counts, "steps": steps, "sales": sales,
         "return_7d": return_7d(db, days),
+        # 26/11/2026: số người khác nhau (HyperLogLog, không IP) + nơi được tìm nhiều nhất tháng này (Count-Min Sketch).
+        "unique_visitors": sketches.visitors(min(days, 30)),
+        "top_places": sketches.top_places(),
         "note": ("Đếm ẩn danh, không id người dùng, không IP. open=mở app · "
                  "scan=chạy quét · save_plot=lưu thửa · view_scorecard=xem sổ "
                  "điểm · tap_open=mở liên kết một chạm · tap_answer=trả lời."),

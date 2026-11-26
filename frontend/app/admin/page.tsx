@@ -139,6 +139,17 @@ function FunnelTab() {
           <b>Quay lại trong 7 ngày:</b> {data.return_7d.rate_pct != null ? `${data.return_7d.rate_pct}%` : "—"} ({data.return_7d.returned}/{data.return_7d.cohort} tài khoản) — {data.return_7d.note}
         </p>
       )}
+      {data.unique_visitors && (
+        <p className="ws-hint">
+          <b>Người khác nhau (HyperLogLog, không lưu IP):</b> 7 ngày ≈ {data.unique_visitors.unique_7d} · 30 ngày ≈ {String(data.unique_visitors["unique_30d"] ?? "—")}
+          {" "}(sai số ±{data.unique_visitors.std_error_pct}%) · theo ngày: {data.unique_visitors.daily.map((d) => `${d.date.slice(8, 10)}/${d.date.slice(5, 7)}: ${d.unique}`).join(" · ") || "chưa có"}
+        </p>
+      )}
+      {(data.top_places?.length ?? 0) > 0 && (
+        <p className="ws-hint">
+          <b>Nơi được tìm nhiều nhất tháng này (Count-Min Sketch):</b> {data.top_places!.map((x) => `${x.place} (${x.searches})`).join(" · ")}
+        </p>
+      )}
     </div>
   );
 }

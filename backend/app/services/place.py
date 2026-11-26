@@ -339,4 +339,9 @@ def search(q: str) -> dict:
                 "message": f"Không tìm thấy “{q}” ở Việt Nam. Thử tên xã hoặc huyện."}
 
     cache_store.put(key, out, ttl_seconds=_TTL)
+    try:                                       # nơi được tìm nhiều nhất (Count-Min Sketch, 26/11/2026) — chỉ tên đã chuẩn hoá
+        from app.services import sketches
+        sketches.search_hit(_fold(q))
+    except Exception:  # noqa: BLE001
+        pass
     return {"query": q, "results": out}

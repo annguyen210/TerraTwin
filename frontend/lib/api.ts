@@ -1800,6 +1800,9 @@ export function getFunnel(days = 30) {
     steps: { step: string; count: number; pct_of_open: number | null }[]; note: string;
     sales?: { step: string; count: number; pct_of_open: number | null }[];
     return_7d?: { cohort: number; returned: number; rate_pct: number | null; note: string };
+    // 26/11/2026: số người khác nhau (HyperLogLog, không IP) + nơi được tìm nhiều nhất tháng (Count-Min Sketch).
+    unique_visitors?: { daily: { date: string; unique: number }[]; unique_7d: number; std_error_pct: number; [k: string]: unknown };
+    top_places?: { place: string; searches: number }[];
     filter_since?: string; filter_note?: string }>(
     `/api/admin/funnel?days=${days}`, { method: "GET" }, "Không tải được phễu người dùng");
 }
