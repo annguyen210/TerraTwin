@@ -141,6 +141,20 @@ def _drift_metric() -> dict:
             "value": val, "threshold": "|z| ≤ 2", "passed": (not st["drift"]) if st.get("enough") else None}
 
 
+def _fs_v3_metrics() -> list[dict]:
+    """Mục 6 v3 — chỉ độ cao, 600 điểm mới, tỉnh kiểm tra khác v1/v2 (giao thức e7acd54), chạy một lần 26/11/2026."""
+    r = _load("eval", "flood_susceptibility_v3_result.json")
+    if not r:
+        return []
+    return [
+        {"label": tr(f"v3 (chỉ độ cao, 600 điểm mới; huấn luyện {r.get('n_train')} điểm) — AUC · kỹ năng Brier trên 13 tỉnh giữ riêng "
+                     f"({r.get('n_test')} điểm, {r.get('pos_test')} từng có nước)",
+                     f"v3 (elevation only, 600 new points; trained on {r.get('n_train')}) — AUC · Brier skill on 13 held-out provinces "
+                     f"({r.get('n_test')} points, {r.get('pos_test')} with water)"),
+         "value": f"{r.get('auc')} · {r.get('brier_skill')}", "threshold": tr("≥ 0,75 · > 0 · ≥ 15 dương", "≥ 0.75 · > 0 · ≥ 15 positives"),
+         "passed": bool(r.get("passed"))}]
+
+
 def _fs_v2_metrics() -> list[dict]:
     """Mục 6 v2 — chỉ độ cao, mẫu MỚI 300 huyện (giao thức 6e7c43c), chạy một lần 26/11/2026."""
     r = _load("eval", "flood_susceptibility_v2_result.json")
@@ -485,8 +499,11 @@ def cards() -> list[dict]:
         out.append({
             "id": "flood_susceptibility", "kind": tr("mô hình học máy", "machine-learning model"),
             "name": tr("Khả năng ngập theo địa hình (nhãn radar Sentinel-1 2017–2025)", "Terrain flood susceptibility (Sentinel-1 radar labels 2017–2025)"),
-            "status": "accepted" if fsr.get("passed") else "rejected",
-            "status_label": (tr("ĐẠT · đang hiện cạnh cảnh báo lũ", "PASSED · shown with flood alerts") if fsr.get("passed") else
+            "status": "accepted" if (fsr.get("passed") or (_load("eval", "flood_susceptibility_v3_result.json") or {}).get("passed")) else "rejected",
+            "status_label": (tr("v3 ĐẠT (chỉ độ cao, AUC 0,82 trên 13 tỉnh giữ riêng) · đang hiện cạnh cảnh báo lũ · v1, v2 trượt (công bố)",
+                                "v3 PASSED (elevation only, AUC 0.82 on 13 held-out provinces) · shown with flood alerts · v1, v2 failed (published)")
+                             if (_load("eval", "flood_susceptibility_v3_result.json") or {}).get("passed") else
+                             tr("ĐẠT · đang hiện cạnh cảnh báo lũ", "PASSED · shown with flood alerts") if fsr.get("passed") else
                              tr("v1 TRƯỢT (độ cao một mình tốt hơn) · v2 chỉ độ cao AUC 0,93 nhưng TRƯỢT vì 10 < 12 ca dương; KHÔNG hiện",
                                 "v1 FAILED (elevation alone better) · v2 elevation-only AUC 0.93 but FAILED on 10 < 12 positives; NOT shown")),
             "task": tr("Xếp hạng nơi radar từng thấy nước phủ (≥ 1 đợt) chỉ từ địa hình — cho nơi chưa có lịch sử radar.",
@@ -502,7 +519,7 @@ def cards() -> list[dict]:
                  "value": f"{fsr.get('auc')} / {fsr.get('auc_baseline_elev')}", "threshold": tr("≥ 0,70 và hơn cơ sở ≥ 0,03", "≥ 0.70 and ≥ 0.03 over baseline"),
                  "passed": bool(fsr.get("passed"))},
                 {"label": tr("Số điểm từng có nước trong tập kiểm tra", "Positives in the test set"),
-                 "value": str(fsr.get("pos_test")), "threshold": "≥ 8", "passed": (fsr.get("pos_test") or 0) >= 8}] + _fs_v2_metrics(),
+                 "value": str(fsr.get("pos_test")), "threshold": "≥ 8", "passed": (fsr.get("pos_test") or 0) >= 8}] + _fs_v2_metrics() + _fs_v3_metrics(),
             "limits": tr("Mẫu nhỏ (199 điểm, 27% từng có nước); địa hình không biết đê, kênh, san lấp. Bài học: độ cao một mình đã xếp hạng "
                          "tốt (AUC 0,89) — muốn dùng phải đăng ký v2 riêng với mẫu lớn hơn, không chỉnh theo kết quả này.",
                          "Small sample (199 points, 27% with water); terrain knows nothing of dykes, canals, fill. Lesson: elevation alone ranks "

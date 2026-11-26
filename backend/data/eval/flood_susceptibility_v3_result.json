@@ -1,0 +1,50 @@
+{
+ "protocol": "flood_susceptibility_v3_protocol.json",
+ "ran_at": "2026-11-26T02:44:29+00:00",
+ "n_points": 600,
+ "n_radar_ok": 600,
+ "n_train": 872,
+ "n_train_from_v1_v2": 394,
+ "n_test": 122,
+ "pos_rate_train": 0.213,
+ "pos_test": 38,
+ "test_provinces": [
+  "Bình Dương",
+  "Bắc Giang",
+  "Cà Mau",
+  "Hà Nội",
+  "Hải Phòng",
+  "Lai Châu",
+  "Nam Định",
+  "Phú Yên",
+  "Quảng Trị",
+  "Thái Bình",
+  "Tuyên Quang",
+  "Điện Biên",
+  "Đồng Tháp"
+ ],
+ "auc": 0.82,
+ "brier": 0.1622,
+ "brier_base_rate": 0.2241,
+ "brier_skill": 0.276,
+ "weights": {
+  "mu": [
+   4.2991072178433
+  ],
+  "sd": [
+   1.8541181091606451
+  ],
+  "w": [
+   -2.038458975985051,
+   -1.6868048152935256
+  ]
+ },
+ "checks": {
+  "min_test_points": true,
+  "min_test_positives": true,
+  "auc": true,
+  "brier_skill": true
+ },
+ "passed": true,
+ "excluded": []
+}

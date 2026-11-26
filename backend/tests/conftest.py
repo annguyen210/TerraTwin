@@ -98,6 +98,10 @@ def _khong_goi_jrc_that(monkeypatch, request):
     # 25/11/2026: hai bản đồ mất rừng theo năm (WMS JRC TMF, GeoTIFF Hansen trên Google Storage) — cùng quy ước.
     monkeypatch.setattr(jrc_tmf, "change", lambda geom: None)
     monkeypatch.setattr(hansen_gfc, "loss", lambda geom: None)
+    # 26/11/2026: mô hình khả năng ngập theo độ cao (v3 qua cổng) cần độ cao thật — trong test mặc định tắt, test riêng
+    # (test_kha_nang_ngap_dia_hinh.py) tự đặt mô hình giả.
+    from app.services import flood_susceptibility
+    monkeypatch.setattr(flood_susceptibility, "_model", lambda: None)
 
 
 @pytest.fixture(autouse=True)

@@ -3,8 +3,13 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from app.schemas import Assessment, Location
 from app.services import flood_susceptibility as fs, reqlang
+
+# Dùng mô hình thật/giả của chính tệp này — bỏ qua phần chặn mặc định trong conftest.
+pytestmark = pytest.mark.goi_jrc_that
 
 M = {"w": [0.0, -1.0, 0.0, 0.0, 0.0, 0.0], "mu": [2.0, 0, 0, 0, 0], "sd": [1.0, 1, 1, 1, 1],
      "ref_scores": [0.1, 0.2, 0.3, 0.5, 0.7, 0.9], "auc_test": 0.78}
@@ -40,9 +45,13 @@ def test_mo_hinh_v2_chi_do_cao(monkeypatch, tmp_path):
                  encoding="utf-8")
     monkeypatch.setattr(fs, "MODEL", f)
     fs._model.cache_clear()
-    monkeypatch.setattr(fs, "features", lambda lat, lon: [0.0, 9, 9, 9, 9])     # chỉ dùng đặc trưng đầu
+    import math
+    from app.services import realdata
+    monkeypatch.setattr(realdata, "elevation_m", lambda lat, lon: -5.0)          # log1p(-5 + 5) = 0 → z = +2
     r = fs.assess(10.0, 106.0)
     assert r["elev_only"] and r["score"] == 0.881
+    monkeypatch.setattr(realdata, "elevation_m", lambda lat, lon: None)
+    assert fs.assess(10.0, 106.0) is None
     reqlang.set_lang("vi")
     assert fs.sentence(r).startswith("Theo độ cao")
     fs._model.cache_clear()

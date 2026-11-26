@@ -54,10 +54,18 @@ def assess(lat: float, lon: float) -> dict | None:
     m = _model()
     if m is None:
         return None
-    x = features(lat, lon)
-    if x is None:
-        return None
-    x = x[:len(m["mu"])]                     # v2 (25/11/2026): mô hình chỉ độ cao — đặc trưng đầu là log1p(độ cao + 5)
+    if len(m["mu"]) == 1:
+        # Mô hình chỉ độ cao (v3 qua cổng 26/11/2026): realdata.elevation_m — Open-Meteo, dự phòng Copernicus GLO-90 (CÙNG
+        # DEM gốc với dữ liệu huấn luyện; KHÔNG dùng ô AWS — lệch vài mét ở đồng bằng sẽ làm sai xác suất).
+        from app.services import realdata
+        e = realdata.elevation_m(lat, lon)
+        if e is None:
+            return None
+        x = [math.log1p(max(0.0, float(e) + 5))]
+    else:
+        x = features(lat, lon)
+        if x is None:
+            return None
     z = m["w"][0] + sum(w * (v - mu) / sd for w, v, mu, sd in zip(m["w"][1:], x, m["mu"], m["sd"]))
     p = 1 / (1 + math.exp(-z))
     ref = m["ref_scores"]
