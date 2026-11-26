@@ -51,3 +51,15 @@ def test_cau_chu_va_thieu_do_cao(monkeypatch):
     assert h.find(16.5, 107.5)["available"] is False
     monkeypatch.setattr(realdata, "elevation_multi", lambda pts: list(e))     # ô địa hình hỏng → Open-Meteo dự phòng
     assert h.find(16.5, 107.5)["found"]
+
+
+def test_astar_cung_ket_qua_dijkstra_nhung_duyet_it_hon():
+    import random
+    rnd = random.Random(5)
+    for _ in range(30):
+        e = [rnd.uniform(0, 6) for _ in range(N * N)]
+        e[C * N + C] = 2.0
+        a, d = h.route(e, 3.0, astar=True), h.route(e, 3.0, astar=False)
+        assert (a is None) == (d is None)
+        if a:
+            assert a["cost_m"] == d["cost_m"] and a["expanded"] <= d["expanded"]

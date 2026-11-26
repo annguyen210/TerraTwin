@@ -33,20 +33,32 @@ def grid(lat: float, lon: float) -> list[tuple[float, float]]:
     return [(lat + (h - r) * dlat, lon + (c - h) * dlon) for r in range(N) for c in range(N)]
 
 
-def route(elev: list[float | None], rise: float) -> dict | None:
-    """Dijkstra trên lưới (thuần, không mạng). → {path: [(r,c)…], dist_m, cost_m, target_elev, low_steps} hoặc None."""
+def route(elev: list[float | None], rise: float, astar: bool = True) -> dict | None:
+    """Tìm đường (thuần, không mạng). → {path: [(r,c)…], dist_m, cost_m, target_elev, low_steps, expanded} hoặc None.
+
+    A* (26/11/2026) với heuristic = khoảng cách đường chim bay tới ô đích GẦN NHẤT — chấp nhận được vì mỗi bước tốn ít nhất
+    bằng quãng đường (hệ số phạt vùng trũng ≥ 1) → cho ĐÚNG đường tối ưu như Dijkstra (astar=False) nhưng duyệt ít ô hơn."""
     h = N // 2
     e0 = elev[h * N + h]
     if e0 is None:
         return None
     goal = e0 + rise
+    goals = [(i // N, i % N) for i, v in enumerate(elev) if v is not None and v >= goal and i != h * N + h]
+    if not goals:
+        return None
+
+    def hval(r: int, c: int) -> float:
+        return STEP_M * min(math.hypot(r - gr, c - gc) for gr, gc in goals) if astar else 0.0
+
     best = {(h, h): 0.0}
     prev: dict[tuple[int, int], tuple[int, int]] = {}
-    pq = [(0.0, h, h)]
+    pq = [(hval(h, h), 0.0, h, h)]
+    expanded = 0
     while pq:
-        cost, r, c = heapq.heappop(pq)
+        _, cost, r, c = heapq.heappop(pq)
         if cost > best.get((r, c), math.inf):
             continue
+        expanded += 1
         e = elev[r * N + c]
         if (r, c) != (h, h) and e is not None and e >= goal:
             path = [(r, c)]
@@ -56,7 +68,7 @@ def route(elev: list[float | None], rise: float) -> dict | None:
             dist = sum(STEP_M * math.hypot(a[0] - b[0], a[1] - b[1]) for a, b in zip(path, path[1:]))
             low = sum(1 for (pr, pc) in path[1:] if (elev[pr * N + pc] or e0) < e0)
             return {"path": path, "dist_m": round(dist), "cost_m": round(cost), "target_elev": e, "plot_elev": e0,
-                    "low_steps": low}
+                    "low_steps": low, "expanded": expanded}
         for dr, dc in _DIRS:
             rr, cc = r + dr, c + dc
             if not (0 <= rr < N and 0 <= cc < N):
@@ -69,7 +81,7 @@ def route(elev: list[float | None], rise: float) -> dict | None:
             if nc < best.get((rr, cc), math.inf):
                 best[(rr, cc)] = nc
                 prev[(rr, cc)] = (r, c)
-                heapq.heappush(pq, (nc, rr, cc))
+                heapq.heappush(pq, (nc + hval(rr, cc), nc, rr, cc))
     return None
 
 
