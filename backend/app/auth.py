@@ -1,4 +1,4 @@
-"""Xác thực — băm mật khẩu bcrypt + JWT, và API key cho Twin API (C12).
+"""Xác thực — băm mật khẩu Argon2id (bcrypt cũ tự chuyển) + JWT, và API key cho Twin API (C12).
 
 Nguyên tắc bảo mật đã áp dụng:
   - Mật khẩu băm bcrypt (có salt), KHÔNG bao giờ lưu bản rõ.
@@ -40,15 +40,45 @@ def _prehash(password: str) -> bytes:
     return raw
 
 
+# Argon2id (26/11/2026) — thuật toán thắng Password Hashing Competition, chống bẻ khoá bằng GPU/ASIC nhờ TỐN BỘ NHỚ.
+# Tham số theo khuyến nghị tối thiểu của OWASP (m = 19 MiB, t = 2, p = 1) — vừa máy chủ miễn phí 512 MB. Hash bcrypt cũ
+# vẫn kiểm được và TỰ băm lại sang Argon2id ở lần đăng nhập đúng kế tiếp (needs_rehash) — người dùng không phải làm gì.
+_ARGON = None
+
+
+def _argon():
+    global _ARGON
+    if _ARGON is None:
+        from argon2 import PasswordHasher
+        _ARGON = PasswordHasher(time_cost=2, memory_cost=19_456, parallelism=1)
+    return _ARGON
+
+
 def hash_password(password: str) -> str:
-    return bcrypt.hashpw(_prehash(password), bcrypt.gensalt()).decode("ascii")
+    return _argon().hash(password)
 
 
 def verify_password(password: str, hashed: str) -> bool:
-    try:
+    if (hashed or "").startswith("$argon2"):
+        from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatchError
+        try:
+            return _argon().verify(hashed, password)
+        except (VerifyMismatchError, VerificationError, InvalidHashError):
+            return False
+    try:                                       # hash bcrypt cũ ($2b$…)
         return bcrypt.checkpw(_prehash(password), hashed.encode("ascii"))
     except (ValueError, TypeError):
         return False
+
+
+def needs_rehash(hashed: str) -> bool:
+    """True nếu nên băm lại (bcrypt cũ, hoặc Argon2 với tham số yếu hơn hiện hành) — gọi SAU khi mật khẩu đã đúng."""
+    if not (hashed or "").startswith("$argon2"):
+        return True
+    try:
+        return _argon().check_needs_rehash(hashed)
+    except Exception:  # noqa: BLE001
+        return True
 
 
 # Băm giả để CÂN BẰNG THỜI GIAN khi đăng nhập với email KHÔNG tồn tại. Nếu nhánh

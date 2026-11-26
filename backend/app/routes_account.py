@@ -303,6 +303,9 @@ def login(body: LoginIn, request: Request, db: Session = Depends(get_session)) -
     if not auth.verify_password(body.password, user.password_hash):
         quota.login_failed(lk, ip)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Email hoặc mật khẩu không đúng.")
+    if auth.needs_rehash(user.password_hash):          # bcrypt cũ → Argon2id, trong suốt với người dùng (26/11/2026)
+        user.password_hash = auth.hash_password(body.password)
+        db.commit()
     if getattr(user, "totp_enabled", 0):
         _check_second_factor(db, user, body.otp)       # mã hai lớp có hạn mức riêng ("otp")
     quota.login_ok(lk, ip)                             # đăng nhập đúng → xoá cả hai bộ đếm lượt sai

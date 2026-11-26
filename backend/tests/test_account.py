@@ -66,7 +66,7 @@ def test_password_never_returned_or_stored_plaintext(client, tmp_path):
     with dbmod.SessionLocal() as s:
         u = s.query(dbmod.User).first()
     assert GOOD_PW not in u.password_hash
-    assert u.password_hash.startswith("$2")          # bcrypt
+    assert u.password_hash.startswith("$argon2id$")  # Argon2id (26/11/2026; trước là bcrypt "$2")
 
 
 def test_duplicate_email_rejected(client):
@@ -646,3 +646,18 @@ def test_bo_dem_dang_nhap_khong_phinh_bo_nho():
     finally:
         quota.time.time = real
         quota.reset()
+
+
+def test_bcrypt_cu_tu_chuyen_argon2id_khi_dang_nhap(client):
+    """26/11/2026: người dùng cũ (hash bcrypt) đăng nhập đúng → hash tự đổi sang Argon2id, mật khẩu không đổi."""
+    import bcrypt
+    from app import db as dbmod
+    _register(client)
+    with dbmod.SessionLocal() as s:
+        u = s.query(dbmod.User).first()
+        u.password_hash = bcrypt.hashpw(GOOD_PW.encode(), bcrypt.gensalt()).decode()
+        s.commit()
+    assert client.post("/api/auth/login", json={"email": "a@x.com", "password": GOOD_PW}).status_code == 200
+    with dbmod.SessionLocal() as s:
+        assert s.query(dbmod.User).first().password_hash.startswith("$argon2id$")
+    assert client.post("/api/auth/login", json={"email": "a@x.com", "password": GOOD_PW}).status_code == 200
