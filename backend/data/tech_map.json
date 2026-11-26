@@ -1,0 +1,3320 @@
+{
+ "source": "Danh sách 'terratwin full upgrade' của chủ dự án (26/11/2026) — 413 mục, đối chiếu từng mục với mã nguồn.",
+ "updated": "2026-11-26",
+ "legend": {
+  "used": "Đang dùng trong TerraTwin",
+  "platform": "Có sẵn trong nền tảng/thư viện (không tự cài)",
+  "no": "Không dùng — kèm lý do"
+ },
+ "counts": {
+  "platform": 42,
+  "used": 104,
+  "no": 267
+ },
+ "items": [
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cơ bản & Tuyến tính",
+   "item": "Array",
+   "status": "platform",
+   "note": "Cấu trúc nền của Python (list, collections.deque) — dùng khắp mã, vd hàng đợi đếm tần suất truy cập (deque) ở main.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cơ bản & Tuyến tính",
+   "item": "Dynamic Array",
+   "status": "platform",
+   "note": "Cấu trúc nền của Python (list, collections.deque) — dùng khắp mã, vd hàng đợi đếm tần suất truy cập (deque) ở main.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cơ bản & Tuyến tính",
+   "item": "Linked List (Singly/Doubly)",
+   "status": "platform",
+   "note": "Cấu trúc nền của Python (list, collections.deque) — dùng khắp mã, vd hàng đợi đếm tần suất truy cập (deque) ở main.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cơ bản & Tuyến tính",
+   "item": "Stack",
+   "status": "platform",
+   "note": "Cấu trúc nền của Python (list, collections.deque) — dùng khắp mã, vd hàng đợi đếm tần suất truy cập (deque) ở main.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cơ bản & Tuyến tính",
+   "item": "Queue",
+   "status": "platform",
+   "note": "Cấu trúc nền của Python (list, collections.deque) — dùng khắp mã, vd hàng đợi đếm tần suất truy cập (deque) ở main.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cơ bản & Tuyến tính",
+   "item": "Deque",
+   "status": "platform",
+   "note": "Cấu trúc nền của Python (list, collections.deque) — dùng khắp mã, vd hàng đợi đếm tần suất truy cập (deque) ở main.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cơ bản & Tuyến tính",
+   "item": "Priority Queue (Binary Heap, Fibonacci Heap)",
+   "status": "used",
+   "note": "Hàng đợi ưu tiên (heapq) cho A*/Dijkstra tìm 'Chỗ cao gần nhất' — services/high_ground.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Bảng băm & Xác suất",
+   "item": "Hash Table (Open Addressing, Chaining)",
+   "status": "used",
+   "note": "Bộ nhớ đệm 2 tầng (dict trong RAM + bảng kv_cache) cho mọi nguồn dữ liệu — services/cache_store.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Bảng băm & Xác suất",
+   "item": "Bloom Filter",
+   "status": "used",
+   "note": "Chặn 10 000 mật khẩu phổ biến khi đăng ký/đổi mật khẩu — services/pw_bloom.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Bảng băm & Xác suất",
+   "item": "Cuckoo Filter",
+   "status": "no",
+   "note": "Bloom filter đã đủ (danh sách mật khẩu không cần xoá phần tử) — Cuckoo chỉ hơn khi cần xoá."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Bảng băm & Xác suất",
+   "item": "Count-Min Sketch",
+   "status": "used",
+   "note": "Đếm nơi được tìm nhiều nhất tháng (ẩn danh) — services/sketches.py, hiện ở /admin."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Bảng băm & Xác suất",
+   "item": "HyperLogLog",
+   "status": "used",
+   "note": "Đếm số NGƯỜI khác nhau mở app mà không lưu IP (sai số 1,6%) — services/sketches.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cấu trúc Cây (Trees)",
+   "item": "Binary Search Tree (BST)",
+   "status": "platform",
+   "note": "Cây cân bằng nằm trong thư viện (sorted container, chỉ mục CSDL); TerraTwin không tự cài."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cấu trúc Cây (Trees)",
+   "item": "AVL Tree",
+   "status": "platform",
+   "note": "Cây cân bằng nằm trong thư viện (sorted container, chỉ mục CSDL); TerraTwin không tự cài."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cấu trúc Cây (Trees)",
+   "item": "Red-Black Tree",
+   "status": "platform",
+   "note": "Cây cân bằng nằm trong thư viện (sorted container, chỉ mục CSDL); TerraTwin không tự cài."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cấu trúc Cây (Trees)",
+   "item": "B-Tree",
+   "status": "platform",
+   "note": "Chỉ mục B+Tree của PostgreSQL (Neon) cho bảng thửa, cảnh báo, hàng đợi việc."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cấu trúc Cây (Trees)",
+   "item": "B+ Tree (Database Indexing)",
+   "status": "platform",
+   "note": "Chỉ mục B+Tree của PostgreSQL (Neon) cho bảng thửa, cảnh báo, hàng đợi việc."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cấu trúc Cây (Trees)",
+   "item": "LSM-Tree (Log-Structured Merge-Tree)",
+   "status": "no",
+   "note": "Lượng ghi nhỏ; PostgreSQL (B+Tree + WAL) đủ — LSM hợp kho ghi hàng triệu sự kiện/giây."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cấu trúc Cây (Trees)",
+   "item": "Segment Tree",
+   "status": "no",
+   "note": "Không có truy vấn khoảng động cần cập nhật O(log n); thống kê theo năm tính trực tiếp."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cấu trúc Cây (Trees)",
+   "item": "Fenwick Tree (Binary Indexed Tree)",
+   "status": "no",
+   "note": "Không có truy vấn khoảng động cần cập nhật O(log n); thống kê theo năm tính trực tiếp."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cấu trúc Cây (Trees)",
+   "item": "Trie (Prefix Tree)",
+   "status": "used",
+   "note": "Gợi ý địa danh theo tiền tố (gõ không dấu) — services/gazetteer.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cấu trúc Cây (Trees)",
+   "item": "Radix Tree (Compressed Trie)",
+   "status": "no",
+   "note": "Trie thường đủ cho 771 địa danh; Radix chỉ tiết kiệm bộ nhớ khi hàng triệu chuỗi."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cấu trúc Cây (Trees)",
+   "item": "Suffix Tree / Suffix Array",
+   "status": "no",
+   "note": "Phát hiện tin chép dùng MinHash (nhanh, ẩn danh) thay cho so chuỗi đầy đủ."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cấu trúc Không gian & Đồ thị",
+   "item": "Graph (Adjacency Matrix/List)",
+   "status": "used",
+   "note": "Đồ thị lưới 8 hướng trên ô độ cao cho tìm đường lên chỗ cao — services/high_ground.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cấu trúc Không gian & Đồ thị",
+   "item": "Disjoint Set Union (Union-Find)",
+   "status": "no",
+   "note": "Chưa có bài toán gom nhóm liên thông cần nó (gộp đợt nước radar dùng quét tuần tự theo ngày)."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cấu trúc Không gian & Đồ thị",
+   "item": "KD-Tree",
+   "status": "no",
+   "note": "R-tree (STRtree) đã phủ tra cứu không gian 2D; không có dữ liệu 3D/đám mây điểm."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cấu trúc Không gian & Đồ thị",
+   "item": "R-Tree",
+   "status": "used",
+   "note": "STRtree (R-tree) của Shapely tra khu bảo tồn / ranh hành chính chứa điểm — services/protected_areas.py, flood_reports.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cấu trúc Không gian & Đồ thị",
+   "item": "Quadtree",
+   "status": "no",
+   "note": "R-tree (STRtree) đã phủ tra cứu không gian 2D; không có dữ liệu 3D/đám mây điểm."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cấu trúc Không gian & Đồ thị",
+   "item": "Octree",
+   "status": "no",
+   "note": "R-tree (STRtree) đã phủ tra cứu không gian 2D; không có dữ liệu 3D/đám mây điểm."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cấu trúc Không gian & Đồ thị",
+   "item": "Ball Tree",
+   "status": "no",
+   "note": "R-tree (STRtree) đã phủ tra cứu không gian 2D; không có dữ liệu 3D/đám mây điểm."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "1. Cấu trúc dữ liệu (Data Structures)",
+   "category": "Cấu trúc Không gian & Đồ thị",
+   "item": "VP-Tree",
+   "status": "no",
+   "note": "R-tree (STRtree) đã phủ tra cứu không gian 2D; không có dữ liệu 3D/đám mây điểm."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Sắp xếp & Tìm kiếm",
+   "item": "QuickSort",
+   "status": "platform",
+   "note": "TimSort của Python (sorted) dùng khắp nơi; không tự cài thuật toán sắp xếp."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Sắp xếp & Tìm kiếm",
+   "item": "MergeSort",
+   "status": "platform",
+   "note": "TimSort của Python (sorted) dùng khắp nơi; không tự cài thuật toán sắp xếp."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Sắp xếp & Tìm kiếm",
+   "item": "HeapSort",
+   "status": "platform",
+   "note": "TimSort của Python (sorted) dùng khắp nơi; không tự cài thuật toán sắp xếp."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Sắp xếp & Tìm kiếm",
+   "item": "TimSort",
+   "status": "platform",
+   "note": "TimSort của Python (sorted) dùng khắp nơi; không tự cài thuật toán sắp xếp."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Sắp xếp & Tìm kiếm",
+   "item": "Radix Sort",
+   "status": "platform",
+   "note": "TimSort của Python (sorted) dùng khắp nơi; không tự cài thuật toán sắp xếp."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Sắp xếp & Tìm kiếm",
+   "item": "Counting Sort",
+   "status": "platform",
+   "note": "TimSort của Python (sorted) dùng khắp nơi; không tự cài thuật toán sắp xếp."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Sắp xếp & Tìm kiếm",
+   "item": "Binary Search",
+   "status": "used",
+   "note": "Tra bảng hiệu chuẩn bậc thang và xếp hạng 'nhóm X% dễ ngập' (bisect) — services/flood_susceptibility.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Sắp xếp & Tìm kiếm",
+   "item": "Ternary Search",
+   "status": "no",
+   "note": "Không có hàm đơn đỉnh cần tối ưu bằng nó; bisect đủ."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Sắp xếp & Tìm kiếm",
+   "item": "Interpolation Search",
+   "status": "no",
+   "note": "Không có hàm đơn đỉnh cần tối ưu bằng nó; bisect đủ."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Thuật toán Đồ thị",
+   "item": "BFS",
+   "status": "no",
+   "note": "Đã dùng Dijkstra/A* có trọng số cho lưới; BFS/DFS không đủ (không có trọng số)."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Thuật toán Đồ thị",
+   "item": "DFS",
+   "status": "no",
+   "note": "Đã dùng Dijkstra/A* có trọng số cho lưới; BFS/DFS không đủ (không có trọng số)."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Thuật toán Đồ thị",
+   "item": "Dijkstra",
+   "status": "used",
+   "note": "Đường đi ít lội qua vùng trũng nhất — services/high_ground.py (route(astar=False))."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Thuật toán Đồ thị",
+   "item": "Bellman-Ford",
+   "status": "no",
+   "note": "Không có cạnh âm / không cần mọi cặp đỉnh; A* một nguồn đủ."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Thuật toán Đồ thị",
+   "item": "Floyd-Warshall",
+   "status": "no",
+   "note": "Không có cạnh âm / không cần mọi cặp đỉnh; A* một nguồn đủ."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Thuật toán Đồ thị",
+   "item": "A* Search",
+   "status": "used",
+   "note": "A* với heuristic chấp nhận được — duyệt ít hơn 48% ô so Dijkstra, cùng đường tối ưu — services/high_ground.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Thuật toán Đồ thị",
+   "item": "Bidirectional Search",
+   "status": "no",
+   "note": "Không có cạnh âm / không cần mọi cặp đỉnh; A* một nguồn đủ."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Thuật toán Đồ thị",
+   "item": "Kruskal & Prim (Minimum Spanning Tree)",
+   "status": "no",
+   "note": "Không có bài toán cây khung nhỏ nhất."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Thuật toán Đồ thị",
+   "item": "Tarjan & Kosaraju (Strongly Connected Components)",
+   "status": "no",
+   "note": "Chuỗi việc nền đơn giản (hàng đợi bền), không có đồ thị phụ thuộc cần sắp xếp."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Thuật toán Đồ thị",
+   "item": "Topological Sort",
+   "status": "no",
+   "note": "Chuỗi việc nền đơn giản (hàng đợi bền), không có đồ thị phụ thuộc cần sắp xếp."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Thuật toán Đồ thị",
+   "item": "Ford-Fulkerson / Dinic (Max Flow)",
+   "status": "no",
+   "note": "Không có bài toán luồng cực đại."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Thuật toán Đồ thị",
+   "item": "PageRank",
+   "status": "no",
+   "note": "Không có mạng người dùng/bài viết để xếp hạng hay tìm cộng đồng."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Thuật toán Đồ thị",
+   "item": "Louvain / Leiden (Community Detection)",
+   "status": "no",
+   "note": "Không có mạng người dùng/bài viết để xếp hạng hay tìm cộng đồng."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Quy hoạch động & Tối ưu",
+   "item": "Dynamic Programming (Knapsack, LIS, LCS, Edit Distance, Matrix Chain)",
+   "status": "used",
+   "note": "Khoảng cách Levenshtein (quy hoạch động) bắt lỗi gõ địa danh — services/gazetteer.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Quy hoạch động & Tối ưu",
+   "item": "Greedy Algorithms",
+   "status": "used",
+   "note": "Gom cảnh radar có nước thành 'đợt' theo khe ≤ 24 ngày (tham lam theo thời gian) — services/water_history.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Quy hoạch động & Tối ưu",
+   "item": "Backtracking",
+   "status": "no",
+   "note": "Không có bài toán tối ưu tổ hợp; các mô hình học bằng gradient."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Quy hoạch động & Tối ưu",
+   "item": "Branch and Bound",
+   "status": "no",
+   "note": "Không có bài toán tối ưu tổ hợp; các mô hình học bằng gradient."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Quy hoạch động & Tối ưu",
+   "item": "Divide and Conquer",
+   "status": "platform",
+   "note": "Trong thuật toán của thư viện (sắp xếp, FFT…); không tự cài."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Quy hoạch động & Tối ưu",
+   "item": "Simulated Annealing",
+   "status": "no",
+   "note": "Không có bài toán tối ưu tổ hợp; các mô hình học bằng gradient."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Quy hoạch động & Tối ưu",
+   "item": "Genetic Algorithms",
+   "status": "no",
+   "note": "Không có bài toán tối ưu tổ hợp; các mô hình học bằng gradient."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Quy hoạch động & Tối ưu",
+   "item": "Particle Swarm Optimization (PSO)",
+   "status": "no",
+   "note": "Không có bài toán tối ưu tổ hợp; các mô hình học bằng gradient."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Quy hoạch động & Tối ưu",
+   "item": "Ant Colony Optimization",
+   "status": "no",
+   "note": "Không có bài toán tối ưu tổ hợp; các mô hình học bằng gradient."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Xử lý chuỗi & Nén dữ liệu",
+   "item": "KMP",
+   "status": "no",
+   "note": "Tìm mẫu chuỗi dùng regex (DFA) của Python; tin rao so bằng MinHash."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Xử lý chuỗi & Nén dữ liệu",
+   "item": "Rabin-Karp",
+   "status": "no",
+   "note": "Tìm mẫu chuỗi dùng regex (DFA) của Python; tin rao so bằng MinHash."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Xử lý chuỗi & Nén dữ liệu",
+   "item": "Boyer-Moore",
+   "status": "no",
+   "note": "Tìm mẫu chuỗi dùng regex (DFA) của Python; tin rao so bằng MinHash."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Xử lý chuỗi & Nén dữ liệu",
+   "item": "Z-Algorithm",
+   "status": "no",
+   "note": "Tìm mẫu chuỗi dùng regex (DFA) của Python; tin rao so bằng MinHash."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Xử lý chuỗi & Nén dữ liệu",
+   "item": "Aho-Corasick",
+   "status": "no",
+   "note": "Tìm mẫu chuỗi dùng regex (DFA) của Python; tin rao so bằng MinHash."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Xử lý chuỗi & Nén dữ liệu",
+   "item": "Levenshtein Distance",
+   "status": "used",
+   "note": "Bắt lỗi gõ địa danh (cap 3, dừng sớm) — services/gazetteer.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Xử lý chuỗi & Nén dữ liệu",
+   "item": "Jaro-Winkler",
+   "status": "used",
+   "note": "Xếp hạng địa danh giống chuỗi gõ (ưu tiên đầu chuỗi) — services/gazetteer.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Xử lý chuỗi & Nén dữ liệu",
+   "item": "Huffman Coding",
+   "status": "platform",
+   "note": "Mã Huffman nằm trong nén Deflate/gzip mà Vercel và trình duyệt dùng; TerraTwin không tự cài."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Xử lý chuỗi & Nén dữ liệu",
+   "item": "LZW",
+   "status": "used",
+   "note": "Giải nén dải/ô GeoTIFF LZW của Hansen GFC (đọc bằng HTTP Range + Pillow) — services/hansen_gfc.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Xử lý chuỗi & Nén dữ liệu",
+   "item": "LZ4",
+   "status": "no",
+   "note": "Không có nhu cầu nén thời gian thực riêng; gzip/Brotli của nền tảng đủ."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "2. Thuật toán (Algorithms)",
+   "category": "Xử lý chuỗi & Nén dữ liệu",
+   "item": "Zstandard (Zstd)",
+   "status": "no",
+   "note": "Không có nhu cầu nén riêng; gzip/Brotli của nền tảng đủ."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Đồng thời & Song song",
+   "item": "Process",
+   "status": "platform",
+   "note": "uvicorn chạy một tiến trình; song song bằng luồng (xem Thread)."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Đồng thời & Song song",
+   "item": "Thread",
+   "status": "used",
+   "note": "Luồng + khoá (threading.Lock) cho bộ nhớ đệm, giới hạn đồng thời nguồn ngoài (Semaphore) — services/jobs.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Đồng thời & Song song",
+   "item": "Coroutine (Async/Await)",
+   "status": "used",
+   "note": "FastAPI/uvicorn async — middleware và vòng lặp nền (radar, hàng đợi) — main.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Đồng thời & Song song",
+   "item": "Event Loop",
+   "status": "used",
+   "note": "FastAPI/uvicorn async — middleware và vòng lặp nền (radar, hàng đợi) — main.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Đồng thời & Song song",
+   "item": "Non-blocking I/O",
+   "status": "used",
+   "note": "FastAPI/uvicorn async — middleware và vòng lặp nền (radar, hàng đợi) — main.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Đồng thời & Song song",
+   "item": "Mutex",
+   "status": "used",
+   "note": "Luồng + khoá (threading.Lock) cho bộ nhớ đệm, giới hạn đồng thời nguồn ngoài (Semaphore) — services/jobs.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Đồng thời & Song song",
+   "item": "Semaphore",
+   "status": "used",
+   "note": "Luồng + khoá (threading.Lock) cho bộ nhớ đệm, giới hạn đồng thời nguồn ngoài (Semaphore) — services/jobs.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Đồng thời & Song song",
+   "item": "Spinlock",
+   "status": "no",
+   "note": "Python không cần spinlock; dùng khoá thường (Mutex)."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Đồng thời & Song song",
+   "item": "Read-Write Lock",
+   "status": "no",
+   "note": "Khoá thường đủ (vùng găng rất ngắn)."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Đồng thời & Song song",
+   "item": "Lock-free / Wait-free Data Structures",
+   "status": "no",
+   "note": "Một tiến trình, tải nhỏ; khoá thường đủ và dễ kiểm chứng hơn."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Đồng thời & Song song",
+   "item": "Actor Model",
+   "status": "no",
+   "note": "Một tiến trình, tải nhỏ; khoá thường đủ và dễ kiểm chứng hơn."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Đồng thời & Song song",
+   "item": "MapReduce",
+   "status": "no",
+   "note": "Dữ liệu vừa một máy; xử lý song song bằng bể luồng (jobs.gather)."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Hệ thống phân tán",
+   "item": "Định lý CAP",
+   "status": "used",
+   "note": "Chọn nhất QUÁN (một nút PostgreSQL) thay vì sẵn sàng khi phân vùng — quyết định thiết kế ghi trong DEPLOY.md, jobs_db.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Hệ thống phân tán",
+   "item": "Định lý PACELC",
+   "status": "used",
+   "note": "Khi không phân vùng: ưu tiên nhất quán hơn độ trễ (đọc/ghi một CSDL, không bản sao) — như trên."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Hệ thống phân tán",
+   "item": "Consistent Hashing",
+   "status": "no",
+   "note": "Hệ một máy chủ (Render free); chưa có nhiều nút cần đồng thuận/phân mảnh. Hàng đợi bền dùng SELECT … FOR UPDATE SKIP LOCKED."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Hệ thống phân tán",
+   "item": "Raft",
+   "status": "no",
+   "note": "Hệ một máy chủ (Render free); chưa có nhiều nút cần đồng thuận/phân mảnh. Hàng đợi bền dùng SELECT … FOR UPDATE SKIP LOCKED."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Hệ thống phân tán",
+   "item": "Paxos",
+   "status": "no",
+   "note": "Hệ một máy chủ (Render free); chưa có nhiều nút cần đồng thuận/phân mảnh. Hàng đợi bền dùng SELECT … FOR UPDATE SKIP LOCKED."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Hệ thống phân tán",
+   "item": "Byzantine Fault Tolerance (BFT)",
+   "status": "no",
+   "note": "Hệ một máy chủ (Render free); chưa có nhiều nút cần đồng thuận/phân mảnh. Hàng đợi bền dùng SELECT … FOR UPDATE SKIP LOCKED."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Hệ thống phân tán",
+   "item": "Vector Clocks",
+   "status": "no",
+   "note": "Hệ một máy chủ (Render free); chưa có nhiều nút cần đồng thuận/phân mảnh. Hàng đợi bền dùng SELECT … FOR UPDATE SKIP LOCKED."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Hệ thống phân tán",
+   "item": "Lamport Timestamps",
+   "status": "no",
+   "note": "Hệ một máy chủ (Render free); chưa có nhiều nút cần đồng thuận/phân mảnh. Hàng đợi bền dùng SELECT … FOR UPDATE SKIP LOCKED."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Hệ thống phân tán",
+   "item": "Two-Phase Commit (2PC)",
+   "status": "no",
+   "note": "Hệ một máy chủ (Render free); chưa có nhiều nút cần đồng thuận/phân mảnh. Hàng đợi bền dùng SELECT … FOR UPDATE SKIP LOCKED."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Hệ thống phân tán",
+   "item": "Saga Pattern",
+   "status": "no",
+   "note": "Hệ một máy chủ (Render free); chưa có nhiều nút cần đồng thuận/phân mảnh. Hàng đợi bền dùng SELECT … FOR UPDATE SKIP LOCKED."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Hệ thống phân tán",
+   "item": "Distributed Lock (Redlock)",
+   "status": "no",
+   "note": "Hệ một máy chủ (Render free); chưa có nhiều nút cần đồng thuận/phân mảnh. Hàng đợi bền dùng SELECT … FOR UPDATE SKIP LOCKED."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Hệ thống phân tán",
+   "item": "Gossip Protocol",
+   "status": "no",
+   "note": "Hệ một máy chủ (Render free); chưa có nhiều nút cần đồng thuận/phân mảnh. Hàng đợi bền dùng SELECT … FOR UPDATE SKIP LOCKED."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Mạng & Truyền tải",
+   "item": "TCP/IP",
+   "status": "platform",
+   "note": "Giao thức nền của Internet — do hạ tầng (Render, Vercel, Cloudflare) đảm nhận."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Mạng & Truyền tải",
+   "item": "UDP",
+   "status": "platform",
+   "note": "Giao thức nền của Internet — do hạ tầng (Render, Vercel, Cloudflare) đảm nhận."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Mạng & Truyền tải",
+   "item": "HTTP/1.1",
+   "status": "platform",
+   "note": "Vercel phục vụ web qua HTTP/2–3 + CDN toàn cầu; API qua HTTPS (Render + Cloudflare)."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Mạng & Truyền tải",
+   "item": "HTTP/2",
+   "status": "platform",
+   "note": "Vercel phục vụ web qua HTTP/2–3 + CDN toàn cầu; API qua HTTPS (Render + Cloudflare)."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Mạng & Truyền tải",
+   "item": "HTTP/3 (QUIC)",
+   "status": "platform",
+   "note": "Vercel phục vụ web qua HTTP/2–3 + CDN toàn cầu; API qua HTTPS (Render + Cloudflare)."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Mạng & Truyền tải",
+   "item": "gRPC (Protocol Buffers)",
+   "status": "no",
+   "note": "API công khai cho trình duyệt/đối tác dùng REST + JSON; gRPC không chạy thẳng trong trình duyệt."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Mạng & Truyền tải",
+   "item": "WebSockets",
+   "status": "no",
+   "note": "Thông báo đi qua Web Push / ntfy / Telegram; chưa cần kênh hai chiều liên tục."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Mạng & Truyền tải",
+   "item": "Server-Sent Events (SSE)",
+   "status": "no",
+   "note": "Không dùng cho câu trả lời AI: rào chắn phải đọc TRỌN câu trả lời trước khi hiện. Tiến độ việc dài dùng hỏi định kỳ."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Mạng & Truyền tải",
+   "item": "WebRTC",
+   "status": "no",
+   "note": "Không có gọi video/âm thanh."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Mạng & Truyền tải",
+   "item": "DNS",
+   "status": "platform",
+   "note": "Giao thức nền của Internet — do hạ tầng (Render, Vercel, Cloudflare) đảm nhận."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Mạng & Truyền tải",
+   "item": "BGP",
+   "status": "platform",
+   "note": "Giao thức nền của Internet — do hạ tầng (Render, Vercel, Cloudflare) đảm nhận."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Mạng & Truyền tải",
+   "item": "CDN",
+   "status": "platform",
+   "note": "Vercel phục vụ web qua HTTP/2–3 + CDN toàn cầu; API qua HTTPS (Render + Cloudflare)."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Trình biên dịch & Ngôn ngữ",
+   "item": "Lexical Analysis (Lexer)",
+   "status": "platform",
+   "note": "Nằm trong trình thông dịch Python / V8 và thư viện; TerraTwin không tự cài."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Trình biên dịch & Ngôn ngữ",
+   "item": "Parsing (LL, LR)",
+   "status": "platform",
+   "note": "Nằm trong trình thông dịch Python / V8 và thư viện; TerraTwin không tự cài."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Trình biên dịch & Ngôn ngữ",
+   "item": "Abstract Syntax Tree (AST)",
+   "status": "platform",
+   "note": "Nằm trong trình thông dịch Python / V8 và thư viện; TerraTwin không tự cài."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Trình biên dịch & Ngôn ngữ",
+   "item": "Regular Expressions (NFA/DFA)",
+   "status": "used",
+   "note": "Regex tách câu khẳng định trong tin rao, rào chắn đầu vào (chèn lệnh, SĐT/CCCD), định tuyến câu hỏi — services/listing_check.py, ai_guard.py."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Trình biên dịch & Ngôn ngữ",
+   "item": "Garbage Collection (Mark-and-Sweep, Reference Counting)",
+   "status": "platform",
+   "note": "Nằm trong trình thông dịch Python / V8 và thư viện; TerraTwin không tự cài."
+  },
+  {
+   "part": "PHẦN I: KHOA HỌC MÁY TÍNH (COMPUTER SCIENCE)",
+   "section": "3. Hệ điều hành, Mạng & Hệ thống phân tán",
+   "category": "Trình biên dịch & Ngôn ngữ",
+   "item": "JIT Compilation",
+   "status": "platform",
+   "note": "Nằm trong trình thông dịch Python / V8 và thư viện; TerraTwin không tự cài."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Đại số tuyến tính",
+   "item": "Vector",
+   "status": "used",
+   "note": "numpy: chuẩn hoá z, logistic, đồng phương sai Mahalanobis (anomaly_ml), tensor ảnh CHW cho SegFormer."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Đại số tuyến tính",
+   "item": "Matrix Operations",
+   "status": "used",
+   "note": "Đại số ma trận tự cài (trung bình, hiệp phương sai, nghịch đảo có ridge) cho bất thường khí tượng Mahalanobis — app/ml/linalg.py."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Đại số tuyến tính",
+   "item": "Eigenvalues & Eigenvectors",
+   "status": "no",
+   "note": "Không cần phân rã trị riêng; nghịch đảo hiệp phương sai có ridge là đủ."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Đại số tuyến tính",
+   "item": "Singular Value Decomposition (SVD)",
+   "status": "no",
+   "note": "Không cần: mô hình bất thường chỉ cần nghịch đảo hiệp phương sai có ridge, không cần phân rã SVD."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Đại số tuyến tính",
+   "item": "Matrix Factorization",
+   "status": "no",
+   "note": "Không có bài toán phân rã ma trận."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Đại số tuyến tính",
+   "item": "Tensor Calculus",
+   "status": "platform",
+   "note": "Tensor ảnh CHW cho ONNX; phép tính tensor nằm trong ONNX Runtime, không tự cài."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Giải tích & Tối ưu hóa",
+   "item": "Partial Derivatives",
+   "status": "used",
+   "note": "Gradient descent tự cài cho hồi quy logistic khả năng ngập — ops/flood_susceptibility.py; backprop khi huấn luyện U-Net/SegFormer."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Giải tích & Tối ưu hóa",
+   "item": "Jacobian",
+   "status": "no",
+   "note": "Chỉ cần gradient bậc một."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Giải tích & Tối ưu hóa",
+   "item": "Hessian",
+   "status": "no",
+   "note": "Không dùng phương pháp bậc hai (Newton)."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Giải tích & Tối ưu hóa",
+   "item": "Chain Rule",
+   "status": "used",
+   "note": "Gradient descent tự cài cho hồi quy logistic khả năng ngập — ops/flood_susceptibility.py; backprop khi huấn luyện U-Net/SegFormer."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Giải tích & Tối ưu hóa",
+   "item": "Gradient Descent (SGD, Momentum, Adam, AdamW, RMSprop, L-BFGS)",
+   "status": "used",
+   "note": "Gradient descent tự cài cho hồi quy logistic khả năng ngập — ops/flood_susceptibility.py; backprop khi huấn luyện U-Net/SegFormer."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Giải tích & Tối ưu hóa",
+   "item": "Lagrange Multipliers",
+   "status": "no",
+   "note": "Phạt L2 thay ràng buộc tường minh."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Giải tích & Tối ưu hóa",
+   "item": "Convex Optimization",
+   "status": "used",
+   "note": "Hồi quy logistic + L2 là bài toán lồi (nghiệm duy nhất) — ops/flood_susceptibility.py."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Xác suất & Thống kê",
+   "item": "Bayes' Theorem",
+   "status": "no",
+   "note": "Chưa có mô hình Bayes; xác suất cảnh báo hiệu chuẩn bằng tần suất (isotonic)."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Xác suất & Thống kê",
+   "item": "Probability Distributions (Normal, Bernoulli, Binomial, Poisson, Exponential, Dirichlet)",
+   "status": "used",
+   "note": "Bernoulli/nhị thức trong giám sát trôi (z-test) — services/calibration_drift.py; chuẩn trong kiểm định Mann-Kendall."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Xác suất & Thống kê",
+   "item": "Maximum Likelihood Estimation (MLE)",
+   "status": "used",
+   "note": "Hồi quy logistic ước lượng hợp lý cực đại (+ L2 = MAP) — ops/flood_susceptibility.py."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Xác suất & Thống kê",
+   "item": "Maximum A Posteriori (MAP)",
+   "status": "used",
+   "note": "L2 trong logistic tương đương MAP với tiên nghiệm Gauss — ops/flood_susceptibility.py."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Xác suất & Thống kê",
+   "item": "Hypothesis Testing (T-test, Chi-square, ANOVA, A/B Testing, P-value)",
+   "status": "used",
+   "note": "Mann-Kendall (xu thế mặn), z-test giám sát trôi, cổng kiểm định ĐĂNG KÝ TRƯỚC (AUC/Brier/ECE) — không dùng t-test/ANOVA/A-B."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Xác suất & Thống kê",
+   "item": "Markov Chains",
+   "status": "no",
+   "note": "Chưa có mô phỏng ngẫu nhiên cần MCMC; khoảng tin cậy dùng conformal."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "1. Toán học & Thống kê nền tảng",
+   "category": "Xác suất & Thống kê",
+   "item": "Monte Carlo Simulation (MCMC)",
+   "status": "no",
+   "note": "Chưa có mô phỏng ngẫu nhiên cần MCMC; khoảng tin cậy dùng conformal."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Thu thập & Tích hợp",
+   "item": "Web Scraping (Playwright, Scrapy)",
+   "status": "used",
+   "note": "Playwright cho kiểm thử E2E và đối chiếu sổ lũ (đọc báo công khai) — ops/e2e_browser.py."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Thu thập & Tích hợp",
+   "item": "Change Data Capture (CDC - Debezium)",
+   "status": "no",
+   "note": "Không có kho dữ liệu thứ hai cần đồng bộ thay đổi."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Thu thập & Tích hợp",
+   "item": "API Ingestion",
+   "status": "used",
+   "note": "Kéo dữ liệu từ 20+ API công khai (Open-Meteo, Planetary Computer, JRC, GloFAS…) có nhớ đệm + dự phòng — services/realdata.py."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Thu thập & Tích hợp",
+   "item": "Webhook Processing",
+   "status": "used",
+   "note": "Webhook thanh toán/thông báo (SePay, ntfy) — routes_billing.py, services/notify.py."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Đường ống dữ liệu (Pipelines)",
+   "item": "ETL vs ELT",
+   "status": "used",
+   "note": "Đường ống lô bằng cron GitHub Actions (quét radar 6 giờ/lần, sao lưu đêm) — .github/workflows/."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Đường ống dữ liệu (Pipelines)",
+   "item": "Batch Processing (Apache Spark, PySpark, Polars, Dask, Ray)",
+   "status": "used",
+   "note": "Xử lý lô bằng cron GitHub Actions (quét radar 6 giờ/lần, sao lưu đêm) — KHÔNG dùng Spark/Dask/Ray (dữ liệu vừa một máy)."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Đường ống dữ liệu (Pipelines)",
+   "item": "Stream Processing (Apache Kafka, Apache Flink, Redpanda)",
+   "status": "no",
+   "note": "Không có luồng sự kiện liên tục quy mô lớn; máy chủ 512 MB không chạy nổi Kafka."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Đường ống dữ liệu (Pipelines)",
+   "item": "Workflow Orchestration (Apache Airflow, Prefect, Dagster)",
+   "status": "used",
+   "note": "Điều phối bằng GitHub Actions cron thay Airflow/Prefect/Dagster — không cần máy chủ điều phối riêng."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Đường ống dữ liệu (Pipelines)",
+   "item": "Data Transformation (dbt)",
+   "status": "no",
+   "note": "Không có kho phân tích cần dbt."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Kiến trúc Lưu trữ & Định dạng",
+   "item": "Data Warehouse",
+   "status": "no",
+   "note": "Kho vận hành PostgreSQL đủ; chưa có khối dữ liệu phân tích cần kho riêng."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Kiến trúc Lưu trữ & Định dạng",
+   "item": "Data Lake",
+   "status": "no",
+   "note": "Kho vận hành PostgreSQL đủ; chưa có khối dữ liệu phân tích cần kho riêng."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Kiến trúc Lưu trữ & Định dạng",
+   "item": "Data Lakehouse (Delta Lake, Apache Iceberg, Apache Hudi)",
+   "status": "no",
+   "note": "Kho vận hành PostgreSQL đủ; chưa có khối dữ liệu phân tích cần kho riêng."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Kiến trúc Lưu trữ & Định dạng",
+   "item": "Columnar Formats (Apache Parquet, Apache Arrow, ORC)",
+   "status": "used",
+   "note": "Parquet: bộ ảnh huấn luyện SegFormer (Hugging Face) đọc khi kiểm định; GeoTIFF/COG cho raster."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Relational (OLTP)",
+   "item": "PostgreSQL",
+   "status": "used",
+   "note": "CSDL chính (Neon, PostgreSQL 18) — app/db.py."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Relational (OLTP)",
+   "item": "MySQL",
+   "status": "no",
+   "note": "Một CSDL PostgreSQL đủ cho quy mô hiện tại; thêm CSDL là thêm điểm hỏng và chi phí."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Relational (OLTP)",
+   "item": "CockroachDB",
+   "status": "no",
+   "note": "Một CSDL PostgreSQL đủ cho quy mô hiện tại; thêm CSDL là thêm điểm hỏng và chi phí."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Analytical (OLAP)",
+   "item": "ClickHouse",
+   "status": "no",
+   "note": "Một CSDL PostgreSQL đủ cho quy mô hiện tại; thêm CSDL là thêm điểm hỏng và chi phí."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Analytical (OLAP)",
+   "item": "DuckDB",
+   "status": "no",
+   "note": "Một CSDL PostgreSQL đủ cho quy mô hiện tại; thêm CSDL là thêm điểm hỏng và chi phí."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Analytical (OLAP)",
+   "item": "Apache Druid",
+   "status": "no",
+   "note": "Một CSDL PostgreSQL đủ cho quy mô hiện tại; thêm CSDL là thêm điểm hỏng và chi phí."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Analytical (OLAP)",
+   "item": "BigQuery",
+   "status": "no",
+   "note": "Một CSDL PostgreSQL đủ cho quy mô hiện tại; thêm CSDL là thêm điểm hỏng và chi phí."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "NoSQL (Document/Key-Value/Wide-Column)",
+   "item": "MongoDB",
+   "status": "no",
+   "note": "Một CSDL PostgreSQL đủ cho quy mô hiện tại; thêm CSDL là thêm điểm hỏng và chi phí."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "NoSQL (Document/Key-Value/Wide-Column)",
+   "item": "Cassandra",
+   "status": "no",
+   "note": "Một CSDL PostgreSQL đủ cho quy mô hiện tại; thêm CSDL là thêm điểm hỏng và chi phí."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "NoSQL (Document/Key-Value/Wide-Column)",
+   "item": "ScyllaDB",
+   "status": "no",
+   "note": "Một CSDL PostgreSQL đủ cho quy mô hiện tại; thêm CSDL là thêm điểm hỏng và chi phí."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "NoSQL (Document/Key-Value/Wide-Column)",
+   "item": "DynamoDB",
+   "status": "no",
+   "note": "Một CSDL PostgreSQL đủ cho quy mô hiện tại; thêm CSDL là thêm điểm hỏng và chi phí."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "In-Memory",
+   "item": "Redis",
+   "status": "no",
+   "note": "Bộ nhớ đệm hai tầng (RAM + bảng kv_cache) thay Redis — gói miễn phí không có Redis bền."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "In-Memory",
+   "item": "DragonflyDB",
+   "status": "no",
+   "note": "Bộ nhớ đệm hai tầng (RAM + bảng kv_cache) thay Redis — gói miễn phí không có Redis bền."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "In-Memory",
+   "item": "Memcached",
+   "status": "no",
+   "note": "Bộ nhớ đệm hai tầng (RAM + bảng kv_cache) thay Redis — gói miễn phí không có Redis bền."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Vector DB",
+   "item": "Qdrant",
+   "status": "no",
+   "note": "Kho kinh nghiệm vài chục mẩu: BM25 + RRF đủ và không tốn lượt gọi embedding; vector DB khi lên hàng nghìn."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Vector DB",
+   "item": "Milvus",
+   "status": "no",
+   "note": "Kho kinh nghiệm vài chục mẩu: BM25 + RRF đủ và không tốn lượt gọi embedding; vector DB khi lên hàng nghìn."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Vector DB",
+   "item": "Pinecone",
+   "status": "no",
+   "note": "Kho kinh nghiệm vài chục mẩu: BM25 + RRF đủ và không tốn lượt gọi embedding; vector DB khi lên hàng nghìn."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Vector DB",
+   "item": "Weaviate",
+   "status": "no",
+   "note": "Kho kinh nghiệm vài chục mẩu: BM25 + RRF đủ và không tốn lượt gọi embedding; vector DB khi lên hàng nghìn."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Vector DB",
+   "item": "pgvector",
+   "status": "no",
+   "note": "Kho kinh nghiệm vài chục mẩu: BM25 + RRF đủ và không tốn lượt gọi embedding; vector DB khi lên hàng nghìn."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Vector DB",
+   "item": "FAISS",
+   "status": "no",
+   "note": "Kho kinh nghiệm vài chục mẩu: BM25 + RRF đủ và không tốn lượt gọi embedding; vector DB khi lên hàng nghìn."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Graph DB",
+   "item": "Neo4j",
+   "status": "no",
+   "note": "Một CSDL PostgreSQL đủ cho quy mô hiện tại; thêm CSDL là thêm điểm hỏng và chi phí."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Graph DB",
+   "item": "Memgraph",
+   "status": "no",
+   "note": "Một CSDL PostgreSQL đủ cho quy mô hiện tại; thêm CSDL là thêm điểm hỏng và chi phí."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "2. Kỹ thuật Dữ liệu & Big Data (Data Engineering)",
+   "category": "Graph DB",
+   "item": "ArangoDB",
+   "status": "no",
+   "note": "Một CSDL PostgreSQL đủ cho quy mô hiện tại; thêm CSDL là thêm điểm hỏng và chi phí."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "3. Khai phá & Tiền xử lý Dữ liệu (Data Mining & Preprocessing)",
+   "category": "Làm sạch & Chuẩn hóa",
+   "item": "Missing Value Imputation (KNN Imputer, MICE)",
+   "status": "no",
+   "note": "CỐ Ý không điền giá trị thiếu: thiếu số đo thì ghi 'chưa đủ dữ liệu' (nguyên tắc trung thực)."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "3. Khai phá & Tiền xử lý Dữ liệu (Data Mining & Preprocessing)",
+   "category": "Làm sạch & Chuẩn hóa",
+   "item": "Outlier Detection (IQR, Z-Score)",
+   "status": "used",
+   "note": "Isolation Forest chấm tin rao khác thường (services/listing_print.py); bất thường khí tượng Mahalanobis (anomaly_ml)."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "3. Khai phá & Tiền xử lý Dữ liệu (Data Mining & Preprocessing)",
+   "category": "Làm sạch & Chuẩn hóa",
+   "item": "Min-Max Scaling",
+   "status": "no",
+   "note": "Dùng chuẩn hoá z (Standard Scaling)."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "3. Khai phá & Tiền xử lý Dữ liệu (Data Mining & Preprocessing)",
+   "category": "Làm sạch & Chuẩn hóa",
+   "item": "Standard Scaling",
+   "status": "used",
+   "note": "Chuẩn hoá z đặc trưng theo tập huấn luyện — ops/flood_susceptibility.py, app/ml/model.py."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "3. Khai phá & Tiền xử lý Dữ liệu (Data Mining & Preprocessing)",
+   "category": "Làm sạch & Chuẩn hóa",
+   "item": "Robust Scaling",
+   "status": "no",
+   "note": "Dùng chuẩn hoá z (Standard Scaling)."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "3. Khai phá & Tiền xử lý Dữ liệu (Data Mining & Preprocessing)",
+   "category": "Làm sạch & Chuẩn hóa",
+   "item": "Log/Box-Cox Transformation",
+   "status": "used",
+   "note": "log1p(độ cao + 5), log1p(khoảng cách) — ops/flood_susceptibility.py."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "3. Khai phá & Tiền xử lý Dữ liệu (Data Mining & Preprocessing)",
+   "category": "Kỹ thuật Đặc trưng (Feature Engineering)",
+   "item": "One-Hot Encoding",
+   "status": "no",
+   "note": "Đặc trưng hiện là số liên tục; chưa có biến phân loại nhiều mức."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "3. Khai phá & Tiền xử lý Dữ liệu (Data Mining & Preprocessing)",
+   "category": "Kỹ thuật Đặc trưng (Feature Engineering)",
+   "item": "Target Encoding",
+   "status": "no",
+   "note": "Đặc trưng hiện là số liên tục; chưa có biến phân loại nhiều mức."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "3. Khai phá & Tiền xử lý Dữ liệu (Data Mining & Preprocessing)",
+   "category": "Kỹ thuật Đặc trưng (Feature Engineering)",
+   "item": "Frequency Encoding",
+   "status": "no",
+   "note": "Đặc trưng hiện là số liên tục; chưa có biến phân loại nhiều mức."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "3. Khai phá & Tiền xử lý Dữ liệu (Data Mining & Preprocessing)",
+   "category": "Kỹ thuật Đặc trưng (Feature Engineering)",
+   "item": "Feature Hashing",
+   "status": "no",
+   "note": "Đặc trưng hiện là số liên tục; chưa có biến phân loại nhiều mức."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "3. Khai phá & Tiền xử lý Dữ liệu (Data Mining & Preprocessing)",
+   "category": "Kỹ thuật Đặc trưng (Feature Engineering)",
+   "item": "Polynomial Features",
+   "status": "no",
+   "note": "Đặc trưng hiện là số liên tục; chưa có biến phân loại nhiều mức."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "3. Khai phá & Tiền xử lý Dữ liệu (Data Mining & Preprocessing)",
+   "category": "Kỹ thuật Đặc trưng (Feature Engineering)",
+   "item": "Principal Component Analysis (PCA)",
+   "status": "no",
+   "note": "Chưa cần giảm chiều; 'gen đất' so khoảng cách chuẩn hoá trực tiếp."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "3. Khai phá & Tiền xử lý Dữ liệu (Data Mining & Preprocessing)",
+   "category": "Kỹ thuật Đặc trưng (Feature Engineering)",
+   "item": "Linear Discriminant Analysis (LDA)",
+   "status": "no",
+   "note": "Chưa cần giảm chiều; 'gen đất' so khoảng cách chuẩn hoá trực tiếp."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "3. Khai phá & Tiền xử lý Dữ liệu (Data Mining & Preprocessing)",
+   "category": "Kỹ thuật Đặc trưng (Feature Engineering)",
+   "item": "t-SNE",
+   "status": "no",
+   "note": "Chưa cần giảm chiều; 'gen đất' so khoảng cách chuẩn hoá trực tiếp."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "3. Khai phá & Tiền xử lý Dữ liệu (Data Mining & Preprocessing)",
+   "category": "Kỹ thuật Đặc trưng (Feature Engineering)",
+   "item": "UMAP",
+   "status": "no",
+   "note": "Chưa cần giảm chiều; 'gen đất' so khoảng cách chuẩn hoá trực tiếp."
+  },
+  {
+   "part": "PHẦN II: KHOA HỌC DỮ LIỆU (DATA SCIENCE & DATA ENGINEERING)",
+   "section": "3. Khai phá & Tiền xử lý Dữ liệu (Data Mining & Preprocessing)",
+   "category": "Kỹ thuật Đặc trưng (Feature Engineering)",
+   "item": "Feature Store (Feast)",
+   "status": "no",
+   "note": "Đặc trưng tính cùng một hàm cho huấn luyện và chạy thật (services/flood_susceptibility.features) — đủ đảm bảo nhất quán."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Hồi quy & Phân loại",
+   "item": "Linear Regression",
+   "status": "no",
+   "note": "Không cần: bài toán chính là phân loại có xác suất hiệu chuẩn → logistic + isotonic."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Hồi quy & Phân loại",
+   "item": "Logistic Regression",
+   "status": "used",
+   "note": "Mô hình khả năng ngập theo độ cao (AUC 0,82, đạt cổng v3) — ops/flood_susceptibility.py."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Hồi quy & Phân loại",
+   "item": "Ridge",
+   "status": "used",
+   "note": "Phạt L2 (ridge) trong logistic — ops/flood_susceptibility.py."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Hồi quy & Phân loại",
+   "item": "Lasso",
+   "status": "no",
+   "note": "Không cần: bài toán chính là phân loại có xác suất hiệu chuẩn → logistic + isotonic."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Hồi quy & Phân loại",
+   "item": "ElasticNet",
+   "status": "no",
+   "note": "Không cần: bài toán chính là phân loại có xác suất hiệu chuẩn → logistic + isotonic."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Hồi quy & Phân loại",
+   "item": "Naive Bayes (Gaussian, Multinomial)",
+   "status": "no",
+   "note": "Chưa có mô hình Bayes; xác suất cảnh báo hiệu chuẩn bằng tần suất (isotonic)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Hồi quy & Phân loại",
+   "item": "K-Nearest Neighbors (KNN)",
+   "status": "no",
+   "note": "Không cần: bài toán chính là phân loại có xác suất hiệu chuẩn → logistic + isotonic."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Hồi quy & Phân loại",
+   "item": "Support Vector Machine (SVM - Linear, RBF Kernel)",
+   "status": "no",
+   "note": "Không cần: bài toán chính là phân loại có xác suất hiệu chuẩn → logistic + isotonic."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Cây quyết định & Ensemble",
+   "item": "Decision Tree (CART, ID3)",
+   "status": "no",
+   "note": "Với 1 đặc trưng mạnh (độ cao), logistic đạt AUC 0,82; v1 thử 5 đặc trưng còn kém hơn — chưa có lợi để dùng ensemble cây."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Cây quyết định & Ensemble",
+   "item": "Random Forest",
+   "status": "no",
+   "note": "Với 1 đặc trưng mạnh (độ cao), logistic đạt AUC 0,82; v1 thử 5 đặc trưng còn kém hơn — chưa có lợi để dùng ensemble cây."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Cây quyết định & Ensemble",
+   "item": "Extra Trees",
+   "status": "no",
+   "note": "Với 1 đặc trưng mạnh (độ cao), logistic đạt AUC 0,82; v1 thử 5 đặc trưng còn kém hơn — chưa có lợi để dùng ensemble cây."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Cây quyết định & Ensemble",
+   "item": "AdaBoost",
+   "status": "no",
+   "note": "Với 1 đặc trưng mạnh (độ cao), logistic đạt AUC 0,82; v1 thử 5 đặc trưng còn kém hơn — chưa có lợi để dùng ensemble cây."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Cây quyết định & Ensemble",
+   "item": "Gradient Boosting Machines (GBM)",
+   "status": "no",
+   "note": "Với 1 đặc trưng mạnh (độ cao), logistic đạt AUC 0,82; v1 thử 5 đặc trưng còn kém hơn — chưa có lợi để dùng ensemble cây."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Cây quyết định & Ensemble",
+   "item": "XGBoost",
+   "status": "no",
+   "note": "Với 1 đặc trưng mạnh (độ cao), logistic đạt AUC 0,82; v1 thử 5 đặc trưng còn kém hơn — chưa có lợi để dùng ensemble cây."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Cây quyết định & Ensemble",
+   "item": "LightGBM",
+   "status": "no",
+   "note": "Với 1 đặc trưng mạnh (độ cao), logistic đạt AUC 0,82; v1 thử 5 đặc trưng còn kém hơn — chưa có lợi để dùng ensemble cây."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Cây quyết định & Ensemble",
+   "item": "CatBoost",
+   "status": "no",
+   "note": "Với 1 đặc trưng mạnh (độ cao), logistic đạt AUC 0,82; v1 thử 5 đặc trưng còn kém hơn — chưa có lợi để dùng ensemble cây."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Cây quyết định & Ensemble",
+   "item": "Voting/Stacking Classifiers",
+   "status": "no",
+   "note": "Với 1 đặc trưng mạnh (độ cao), logistic đạt AUC 0,82; v1 thử 5 đặc trưng còn kém hơn — chưa có lợi để dùng ensemble cây."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Phân cụm & Luật kết hợp",
+   "item": "K-Means",
+   "status": "used",
+   "note": "Phân vùng khí hậu cho mô hình bất thường đa biến — app/ml/model.py."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Phân cụm & Luật kết hợp",
+   "item": "K-Means++",
+   "status": "used",
+   "note": "Khởi tạo k-means++ tự cài, hạt giống cố định — app/ml/model.py."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Phân cụm & Luật kết hợp",
+   "item": "Mini-Batch K-Means",
+   "status": "no",
+   "note": "k-means đủ cho 4 vùng khí hậu; không có bài toán luật kết hợp."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Phân cụm & Luật kết hợp",
+   "item": "DBSCAN",
+   "status": "no",
+   "note": "k-means đủ cho 4 vùng khí hậu; không có bài toán luật kết hợp."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Phân cụm & Luật kết hợp",
+   "item": "HDBSCAN",
+   "status": "no",
+   "note": "k-means đủ cho 4 vùng khí hậu; không có bài toán luật kết hợp."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Phân cụm & Luật kết hợp",
+   "item": "OPTICS",
+   "status": "no",
+   "note": "k-means đủ cho 4 vùng khí hậu; không có bài toán luật kết hợp."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Phân cụm & Luật kết hợp",
+   "item": "Agglomerative Hierarchical Clustering",
+   "status": "no",
+   "note": "k-means đủ cho 4 vùng khí hậu; không có bài toán luật kết hợp."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Phân cụm & Luật kết hợp",
+   "item": "Gaussian Mixture Models (GMM)",
+   "status": "no",
+   "note": "k-means đủ cho 4 vùng khí hậu; không có bài toán luật kết hợp."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Phân cụm & Luật kết hợp",
+   "item": "Spectral Clustering",
+   "status": "no",
+   "note": "k-means đủ cho 4 vùng khí hậu; không có bài toán luật kết hợp."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Phân cụm & Luật kết hợp",
+   "item": "Apriori",
+   "status": "no",
+   "note": "k-means đủ cho 4 vùng khí hậu; không có bài toán luật kết hợp."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Phân cụm & Luật kết hợp",
+   "item": "FP-Growth",
+   "status": "no",
+   "note": "k-means đủ cho 4 vùng khí hậu; không có bài toán luật kết hợp."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Phát hiện bất thường & Chuỗi thời gian",
+   "item": "Isolation Forest",
+   "status": "used",
+   "note": "Chấm tin rao khác thường (tự cài numpy, 100 cây) — services/listing_print.py."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Phát hiện bất thường & Chuỗi thời gian",
+   "item": "Local Outlier Factor (LOF)",
+   "status": "no",
+   "note": "Isolation Forest đã đảm nhận phát hiện bất thường tin rao."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Phát hiện bất thường & Chuỗi thời gian",
+   "item": "One-Class SVM",
+   "status": "no",
+   "note": "Isolation Forest đã đảm nhận phát hiện bất thường tin rao."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Phát hiện bất thường & Chuỗi thời gian",
+   "item": "ARIMA",
+   "status": "no",
+   "note": "Thử cho dự báo mặn: chỉ có 26 năm số cực đại + 3 năm số theo tháng → không kiểm định được, nên KHÔNG dựng (dùng Mann-Kendall cho xu thế)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Phát hiện bất thường & Chuỗi thời gian",
+   "item": "SARIMA",
+   "status": "no",
+   "note": "Thử cho dự báo mặn: chỉ có 26 năm số cực đại + 3 năm số theo tháng → không kiểm định được, nên KHÔNG dựng (dùng Mann-Kendall cho xu thế)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Phát hiện bất thường & Chuỗi thời gian",
+   "item": "SARIMAX",
+   "status": "no",
+   "note": "Thử cho dự báo mặn: chỉ có 26 năm số cực đại + 3 năm số theo tháng → không kiểm định được, nên KHÔNG dựng (dùng Mann-Kendall cho xu thế)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Phát hiện bất thường & Chuỗi thời gian",
+   "item": "Holt-Winters",
+   "status": "no",
+   "note": "Thử cho dự báo mặn: chỉ có 26 năm số cực đại + 3 năm số theo tháng → không kiểm định được, nên KHÔNG dựng (dùng Mann-Kendall cho xu thế)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "1. Học máy Cổ điển (Machine Learning)",
+   "category": "Phát hiện bất thường & Chuỗi thời gian",
+   "item": "Facebook Prophet",
+   "status": "no",
+   "note": "Thử cho dự báo mặn: chỉ có 26 năm số cực đại + 3 năm số theo tháng → không kiểm định được, nên KHÔNG dựng (dùng Mann-Kendall cho xu thế)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Kiến trúc Mạng Nơ-ron",
+   "item": "Perceptron",
+   "status": "platform",
+   "note": "Đơn vị cơ bản bên trong các mạng nơ-ron đã dùng."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Kiến trúc Mạng Nơ-ron",
+   "item": "Multi-Layer Perceptron (MLP)",
+   "status": "used",
+   "note": "Bộ giải mã toàn-MLP của SegFormer (nhận diện nước trong ảnh)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Kiến trúc Mạng Nơ-ron",
+   "item": "Backpropagation",
+   "status": "used",
+   "note": "Nằm trong U-Net (radar) và SegFormer (ảnh) đã huấn luyện/tinh chỉnh — app/dl/, data/ml/."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Kiến trúc Mạng Nơ-ron",
+   "item": "Activation Functions (ReLU, GELU, SiLU, Swish, Softmax)",
+   "status": "used",
+   "note": "Nằm trong U-Net (radar) và SegFormer (ảnh) đã huấn luyện/tinh chỉnh — app/dl/, data/ml/."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Kiến trúc Mạng Nơ-ron",
+   "item": "Normalization (BatchNorm, LayerNorm, RMSNorm)",
+   "status": "used",
+   "note": "Nằm trong U-Net (radar) và SegFormer (ảnh) đã huấn luyện/tinh chỉnh — app/dl/, data/ml/."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Kiến trúc Mạng Nơ-ron",
+   "item": "Regularization (Dropout, Weight Decay, Early Stopping)",
+   "status": "used",
+   "note": "Nằm trong U-Net (radar) và SegFormer (ảnh) đã huấn luyện/tinh chỉnh — app/dl/, data/ml/."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Backbones",
+   "item": "ResNet",
+   "status": "no",
+   "note": "Dùng SegFormer-b0 (MiT) cho phân đoạn ảnh — nhẹ hơn, đủ chạy trên điện thoại."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Backbones",
+   "item": "DenseNet",
+   "status": "no",
+   "note": "Dùng SegFormer-b0 (MiT) cho phân đoạn ảnh — nhẹ hơn, đủ chạy trên điện thoại."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Backbones",
+   "item": "EfficientNet",
+   "status": "no",
+   "note": "Dùng SegFormer-b0 (MiT) cho phân đoạn ảnh — nhẹ hơn, đủ chạy trên điện thoại."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Backbones",
+   "item": "MobileNetV3",
+   "status": "no",
+   "note": "Dùng SegFormer-b0 (MiT) cho phân đoạn ảnh — nhẹ hơn, đủ chạy trên điện thoại."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Backbones",
+   "item": "ConvNeXt",
+   "status": "no",
+   "note": "Dùng SegFormer-b0 (MiT) cho phân đoạn ảnh — nhẹ hơn, đủ chạy trên điện thoại."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Backbones",
+   "item": "Vision Transformer (ViT)",
+   "status": "used",
+   "note": "SegFormer dùng bộ mã hoá Transformer phân cấp (MiT-b0) — nhận diện nước trong ảnh thực địa."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Backbones",
+   "item": "Swin Transformer",
+   "status": "no",
+   "note": "SegFormer dùng MiT (Mix Transformer), không phải Swin."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Object Detection",
+   "item": "YOLOv8 / v10 / v11",
+   "status": "no",
+   "note": "Bài toán là PHÂN ĐOẠN vùng nước, không phải phát hiện vật thể."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Object Detection",
+   "item": "RT-DETR",
+   "status": "no",
+   "note": "Bài toán là PHÂN ĐOẠN vùng nước, không phải phát hiện vật thể."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Object Detection",
+   "item": "Faster R-CNN",
+   "status": "no",
+   "note": "Bài toán là PHÂN ĐOẠN vùng nước, không phải phát hiện vật thể."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Segmentation",
+   "item": "U-Net",
+   "status": "used",
+   "note": "U-Net radar Sentinel-1 nhận diện nước (bản 3 đạt kiểm định) — data/ml/s1_water_unet_vn.onnx."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Segmentation",
+   "item": "Mask R-CNN",
+   "status": "no",
+   "note": "SegFormer-b0 đạt cổng với 16 MB; SAM 2 nặng hàng trăm MB, không chạy được trên điện thoại/máy chủ 512 MB."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Segmentation",
+   "item": "DeepLabV3",
+   "status": "no",
+   "note": "SegFormer-b0 đạt cổng với 16 MB; SAM 2 nặng hàng trăm MB, không chạy được trên điện thoại/máy chủ 512 MB."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Segmentation",
+   "item": "Segment Anything Model (SAM 2)",
+   "status": "no",
+   "note": "SegFormer-b0 đạt cổng với 16 MB; SAM 2 nặng hàng trăm MB, không chạy được trên điện thoại/máy chủ 512 MB."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "OCR, Face & Tracking",
+   "item": "PaddleOCR",
+   "status": "no",
+   "note": "Thay bằng mô hình thị giác-ngôn ngữ đọc sổ đỏ (services/landdoc.py) — hiểu bố cục tốt hơn OCR thuần."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "OCR, Face & Tracking",
+   "item": "EasyOCR",
+   "status": "no",
+   "note": "Như trên — dùng mô hình thị giác-ngôn ngữ."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "OCR, Face & Tracking",
+   "item": "TrOCR",
+   "status": "no",
+   "note": "Như trên — dùng mô hình thị giác-ngôn ngữ."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "OCR, Face & Tracking",
+   "item": "ArcFace",
+   "status": "no",
+   "note": "Không nhận diện khuôn mặt/bám theo người — rủi ro quyền riêng tư, không có nhu cầu."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "OCR, Face & Tracking",
+   "item": "InsightFace",
+   "status": "no",
+   "note": "Không nhận diện khuôn mặt/bám theo người — rủi ro quyền riêng tư, không có nhu cầu."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "OCR, Face & Tracking",
+   "item": "DeepSORT",
+   "status": "no",
+   "note": "Không nhận diện khuôn mặt/bám theo người — rủi ro quyền riêng tư, không có nhu cầu."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "OCR, Face & Tracking",
+   "item": "ByteTrack",
+   "status": "no",
+   "note": "Không nhận diện khuôn mặt/bám theo người — rủi ro quyền riêng tư, không có nhu cầu."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Xử lý Chuỗi, Đồ thị & Âm thanh",
+   "item": "RNN",
+   "status": "no",
+   "note": "Chuỗi thời gian ngắn và cần giải thích được; dùng chỉ số khí hậu + hiệu chuẩn thống kê."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Xử lý Chuỗi, Đồ thị & Âm thanh",
+   "item": "LSTM",
+   "status": "no",
+   "note": "Chuỗi thời gian ngắn và cần giải thích được; dùng chỉ số khí hậu + hiệu chuẩn thống kê."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Xử lý Chuỗi, Đồ thị & Âm thanh",
+   "item": "Bi-LSTM",
+   "status": "no",
+   "note": "Chuỗi thời gian ngắn và cần giải thích được; dùng chỉ số khí hậu + hiệu chuẩn thống kê."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Xử lý Chuỗi, Đồ thị & Âm thanh",
+   "item": "GRU",
+   "status": "no",
+   "note": "Chuỗi thời gian ngắn và cần giải thích được; dùng chỉ số khí hậu + hiệu chuẩn thống kê."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Xử lý Chuỗi, Đồ thị & Âm thanh",
+   "item": "Temporal Fusion Transformer (TFT)",
+   "status": "no",
+   "note": "Chuỗi thời gian ngắn và cần giải thích được; dùng chỉ số khí hậu + hiệu chuẩn thống kê."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Xử lý Chuỗi, Đồ thị & Âm thanh",
+   "item": "Graph Convolutional Network (GCN)",
+   "status": "no",
+   "note": "Không có dữ liệu đồ thị (mạng sông chưa đủ nhãn)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Xử lý Chuỗi, Đồ thị & Âm thanh",
+   "item": "GraphSAGE",
+   "status": "no",
+   "note": "Không có dữ liệu đồ thị (mạng sông chưa đủ nhãn)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Xử lý Chuỗi, Đồ thị & Âm thanh",
+   "item": "Graph Attention Network (GAT)",
+   "status": "no",
+   "note": "Không có dữ liệu đồ thị (mạng sông chưa đủ nhãn)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Xử lý Chuỗi, Đồ thị & Âm thanh",
+   "item": "Whisper (ASR)",
+   "status": "no",
+   "note": "Nhận giọng nói bằng Web Speech API của trình duyệt (miễn phí, âm thanh không tới máy chủ TerraTwin) thay Whisper."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Xử lý Chuỗi, Đồ thị & Âm thanh",
+   "item": "Wav2Vec 2.0",
+   "status": "no",
+   "note": "Như trên — Web Speech API."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Xử lý Chuỗi, Đồ thị & Âm thanh",
+   "item": "VITS / XTTS / F5-TTS (TTS)",
+   "status": "no",
+   "note": "Chưa cần đọc to câu trả lời; có thể thêm bằng giọng đọc của trình duyệt."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Mạng Tạo sinh (Generative DL)",
+   "item": "Autoencoders",
+   "status": "no",
+   "note": "Ảnh tạo sinh không giải bài toán đất đai và làm giảm độ tin cậy của ảnh làm bằng chứng."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Mạng Tạo sinh (Generative DL)",
+   "item": "Variational Autoencoders (VAE)",
+   "status": "no",
+   "note": "Ảnh tạo sinh không giải bài toán đất đai và làm giảm độ tin cậy của ảnh làm bằng chứng."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Mạng Tạo sinh (Generative DL)",
+   "item": "GANs (StyleGAN, CycleGAN, ESRGAN)",
+   "status": "no",
+   "note": "Ảnh tạo sinh không giải bài toán đất đai và làm giảm độ tin cậy của ảnh làm bằng chứng."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "2. Học sâu (Deep Learning)",
+   "category": "Mạng Tạo sinh (Generative DL)",
+   "item": "Diffusion Models (DDPM, Latent Diffusion, Stable Diffusion, Flux, ControlNet, LoRA for Vision)",
+   "status": "no",
+   "note": "Ảnh tạo sinh không giải bài toán đất đai và làm giảm độ tin cậy của ảnh làm bằng chứng."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "NLP Nền tảng",
+   "item": "Tokenization (BPE, WordPiece, SentencePiece)",
+   "status": "used",
+   "note": "Tách từ + bỏ dấu tiếng Việt cho BM25/định tuyến/so tin rao (không dùng BPE tự huấn luyện)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "NLP Nền tảng",
+   "item": "Stemming/Lemmatization",
+   "status": "no",
+   "note": "Tiếng Việt đơn lập không cần; chỉ bỏ dấu + tách từ."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "NLP Nền tảng",
+   "item": "TF-IDF",
+   "status": "used",
+   "note": "BM25 (họ TF-IDF có bão hoà tần suất + chuẩn hoá độ dài) — services/copilot.py."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "NLP Nền tảng",
+   "item": "BM25",
+   "status": "used",
+   "note": "BM25 xếp hạng kho kinh nghiệm trợ lý (services/copilot.py) và kho quy định EUDR (eudr_assistant.py)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "NLP Nền tảng",
+   "item": "Word2Vec",
+   "status": "no",
+   "note": "Trích câu khẳng định trong tin rao bằng quy tắc có kiểm định (nhãn người); chưa đủ nhãn để học NER."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "NLP Nền tảng",
+   "item": "GloVe",
+   "status": "no",
+   "note": "Trích câu khẳng định trong tin rao bằng quy tắc có kiểm định (nhãn người); chưa đủ nhãn để học NER."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "NLP Nền tảng",
+   "item": "FastText",
+   "status": "no",
+   "note": "Trích câu khẳng định trong tin rao bằng quy tắc có kiểm định (nhãn người); chưa đủ nhãn để học NER."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "NLP Nền tảng",
+   "item": "CRF",
+   "status": "no",
+   "note": "Trích câu khẳng định trong tin rao bằng quy tắc có kiểm định (nhãn người); chưa đủ nhãn để học NER."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "NLP Nền tảng",
+   "item": "Named Entity Recognition (NER)",
+   "status": "no",
+   "note": "Trích câu khẳng định trong tin rao bằng quy tắc có kiểm định (nhãn người); chưa đủ nhãn để học NER."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "NLP Nền tảng",
+   "item": "Sentiment Analysis",
+   "status": "no",
+   "note": "Phiếu góp ý còn rất ít; chưa có gì để phân tích cảm xúc."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Kiến trúc Nền tảng Hiện đại",
+   "item": "Transformer (Encoder-Decoder, Decoder-only)",
+   "status": "used",
+   "note": "SegFormer (Transformer mã hoá) chạy trên máy chủ và điện thoại; LLM decoder-only qua API."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Kiến trúc Nền tảng Hiện đại",
+   "item": "Self-Attention",
+   "status": "used",
+   "note": "Trong bộ mã hoá SegFormer (MiT-b0)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Kiến trúc Nền tảng Hiện đại",
+   "item": "Multi-Head Attention",
+   "status": "used",
+   "note": "Trong bộ mã hoá SegFormer (MiT-b0)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Kiến trúc Nền tảng Hiện đại",
+   "item": "FlashAttention",
+   "status": "platform",
+   "note": "Có thể nằm trong hạ tầng suy luận của nhà cung cấp LLM; TerraTwin không tự cài."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Kiến trúc Nền tảng Hiện đại",
+   "item": "Rotary Position Embedding (RoPE)",
+   "status": "platform",
+   "note": "Nằm trong kiến trúc LLM của nhà cung cấp; không tự cài."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Kiến trúc Nền tảng Hiện đại",
+   "item": "Mixture of Experts (MoE)",
+   "status": "platform",
+   "note": "gpt-oss-120b là mô hình MoE (của OpenAI, chạy trên Groq) — TerraTwin gọi qua API."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Kiến trúc Nền tảng Hiện đại",
+   "item": "State Space Models (Mamba)",
+   "status": "no",
+   "note": "Không dùng: LLM gọi qua API là Transformer; không có chuỗi rất dài cần kiến trúc Mamba."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Mô hình Ngôn ngữ Lớn & Đa phương thức (LLMs & VLMs)",
+   "item": "GPT-4o/o3",
+   "status": "no",
+   "note": "Đang dùng gpt-oss-120b (mã nguồn mở của OpenAI) qua Groq; đổi được bằng biến môi trường."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Mô hình Ngôn ngữ Lớn & Đa phương thức (LLMs & VLMs)",
+   "item": "Claude 3.7",
+   "status": "no",
+   "note": "Có sẵn đường gọi Anthropic trong services/llm.py nhưng không bật trên production."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Mô hình Ngôn ngữ Lớn & Đa phương thức (LLMs & VLMs)",
+   "item": "Gemini 2.5",
+   "status": "no",
+   "note": "Có sẵn đường gọi Gemini trong services/llm.py nhưng không bật trên production."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Mô hình Ngôn ngữ Lớn & Đa phương thức (LLMs & VLMs)",
+   "item": "Llama 3/4",
+   "status": "no",
+   "note": "Không dùng: đang dùng gpt-oss-120b qua Groq (OpenAI-compatible); đổi sang Llama được bằng biến môi trường nếu cần."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Mô hình Ngôn ngữ Lớn & Đa phương thức (LLMs & VLMs)",
+   "item": "Qwen 2.5/3",
+   "status": "no",
+   "note": "Không dùng (bản thị giác-ngôn ngữ, xem Qwen-VL)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Mô hình Ngôn ngữ Lớn & Đa phương thức (LLMs & VLMs)",
+   "item": "DeepSeek-V3/R1",
+   "status": "no",
+   "note": "Có thể đổi sang qua giao diện OpenAI-compatible; không bật."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Mô hình Ngôn ngữ Lớn & Đa phương thức (LLMs & VLMs)",
+   "item": "Mistral/Mixtral",
+   "status": "no",
+   "note": "Không dùng: đang dùng gpt-oss-120b qua Groq; đổi được bằng biến môi trường, chưa có lý do đổi."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Mô hình Ngôn ngữ Lớn & Đa phương thức (LLMs & VLMs)",
+   "item": "Gemma",
+   "status": "no",
+   "note": "Không dùng: mô hình nhỏ chạy cục bộ cần máy chủ mạnh hơn 512 MB; đang dùng LLM qua API."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Mô hình Ngôn ngữ Lớn & Đa phương thức (LLMs & VLMs)",
+   "item": "Qwen-VL",
+   "status": "used",
+   "note": "LLM qua giao diện OpenAI-compatible (đang dùng Groq gpt-oss-120b; đổi nhà cung cấp bằng biến môi trường) — services/llm.py."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Mô hình Ngôn ngữ Lớn & Đa phương thức (LLMs & VLMs)",
+   "item": "LLaVA",
+   "status": "no",
+   "note": "Không dùng: đọc ảnh sổ đỏ bằng mô hình thị giác-ngôn ngữ qua Groq (services/landdoc.py)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Embedding Models",
+   "item": "BGE-M3",
+   "status": "no",
+   "note": "Chưa cần embedding (kho nhỏ, BM25 đủ, không tốn lượt gọi)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Embedding Models",
+   "item": "E5-Mistral",
+   "status": "no",
+   "note": "Chưa cần embedding (kho nhỏ, BM25 đủ)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Embedding Models",
+   "item": "OpenAI text-embedding-3",
+   "status": "no",
+   "note": "Chưa cần embedding (kho nhỏ, BM25 đủ, không tốn lượt gọi)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Embedding Models",
+   "item": "Jina Embeddings",
+   "status": "no",
+   "note": "Chưa cần embedding (kho nhỏ, BM25 đủ, không tốn lượt gọi)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Vector Indexing",
+   "item": "HNSW",
+   "status": "no",
+   "note": "Không có kho vector lớn."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Vector Indexing",
+   "item": "IVF-Flat",
+   "status": "no",
+   "note": "Không có kho vector lớn."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Vector Indexing",
+   "item": "IVF-PQ",
+   "status": "no",
+   "note": "Không có kho vector lớn."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Vector Indexing",
+   "item": "DiskANN",
+   "status": "no",
+   "note": "Không có kho vector lớn."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Vector Indexing",
+   "item": "ScaNN",
+   "status": "no",
+   "note": "Không có kho vector lớn."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Kỹ thuật nâng cao",
+   "item": "Semantic Chunking",
+   "status": "no",
+   "note": "Kho kinh nghiệm là ghi chép ngắn, không cần chia đoạn/mở rộng truy vấn."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Kỹ thuật nâng cao",
+   "item": "Hybrid Search (BM25 + Dense Vector)",
+   "status": "used",
+   "note": "Lai BM25 (từ khoá) với vector 'gen đất' (tương đồng thổ nhưỡng-khí hậu, không phải embedding văn bản) — services/copilot.py."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Kỹ thuật nâng cao",
+   "item": "Reciprocal Rank Fusion (RRF)",
+   "status": "used",
+   "note": "Gộp thứ hạng BM25 và gen đất bằng RRF — services/copilot.py."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Kỹ thuật nâng cao",
+   "item": "Cross-Encoder Reranking (BGE-Reranker, Cohere Rerank)",
+   "status": "no",
+   "note": "RRF đủ với vài chục ghi chép; reranker cần thêm lượt gọi mô hình."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Kỹ thuật nâng cao",
+   "item": "HyDE",
+   "status": "no",
+   "note": "Kho kinh nghiệm là ghi chép ngắn, không cần chia đoạn/mở rộng truy vấn."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Kỹ thuật nâng cao",
+   "item": "Query Expansion",
+   "status": "no",
+   "note": "Kho kinh nghiệm là ghi chép ngắn, không cần chia đoạn/mở rộng truy vấn."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Kỹ thuật nâng cao",
+   "item": "GraphRAG",
+   "status": "no",
+   "note": "Kho kinh nghiệm là ghi chép ngắn, không cần chia đoạn/mở rộng truy vấn."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Kỹ thuật nâng cao",
+   "item": "Agentic RAG",
+   "status": "used",
+   "note": "Trợ lý tự gọi công cụ tra dữ liệu thửa (radar, mưa, khí hậu 2050, sổ tay) — services/copilot_agent.py."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Tinh chỉnh, Căn chỉnh & Nén mô hình",
+   "item": "Supervised Fine-Tuning (SFT)",
+   "status": "no",
+   "note": "Không tinh chỉnh LLM: cần GPU + dữ liệu đối thoại riêng; dùng rào chắn + công cụ thay vào."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Tinh chỉnh, Căn chỉnh & Nén mô hình",
+   "item": "LoRA",
+   "status": "no",
+   "note": "Không tinh chỉnh LLM: cần GPU + dữ liệu đối thoại riêng; dùng rào chắn + công cụ thay vào."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Tinh chỉnh, Căn chỉnh & Nén mô hình",
+   "item": "QLoRA",
+   "status": "no",
+   "note": "Không tinh chỉnh LLM: cần GPU + dữ liệu đối thoại riêng; dùng rào chắn + công cụ thay vào."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Tinh chỉnh, Căn chỉnh & Nén mô hình",
+   "item": "DoRA",
+   "status": "no",
+   "note": "Không tinh chỉnh LLM: cần GPU + dữ liệu đối thoại riêng; dùng rào chắn + công cụ thay vào."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Tinh chỉnh, Căn chỉnh & Nén mô hình",
+   "item": "RLHF",
+   "status": "no",
+   "note": "Không tinh chỉnh LLM: cần GPU + dữ liệu đối thoại riêng; dùng rào chắn + công cụ thay vào."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Tinh chỉnh, Căn chỉnh & Nén mô hình",
+   "item": "DPO (Direct Preference Optimization)",
+   "status": "no",
+   "note": "Không tinh chỉnh LLM: cần GPU + dữ liệu đối thoại riêng; dùng rào chắn + công cụ thay vào."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Tinh chỉnh, Căn chỉnh & Nén mô hình",
+   "item": "GRPO",
+   "status": "no",
+   "note": "Không tinh chỉnh LLM: cần GPU + dữ liệu đối thoại riêng; dùng rào chắn + công cụ thay vào."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Tinh chỉnh, Căn chỉnh & Nén mô hình",
+   "item": "Knowledge Distillation",
+   "status": "no",
+   "note": "Không tinh chỉnh LLM: cần GPU + dữ liệu đối thoại riêng; dùng rào chắn + công cụ thay vào."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Tinh chỉnh, Căn chỉnh & Nén mô hình",
+   "item": "Pruning",
+   "status": "no",
+   "note": "Không tinh chỉnh LLM: cần GPU + dữ liệu đối thoại riêng; dùng rào chắn + công cụ thay vào."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "Tinh chỉnh, Căn chỉnh & Nén mô hình",
+   "item": "Quantization (FP8, INT8, INT4, AWQ, GPTQ, GGUF)",
+   "status": "no",
+   "note": "Mô hình ảnh trên điện thoại giữ FP32 (16 MB) để khớp máy chủ 100% nhãn; lượng tử hoá cần kiểm định lại."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "AI Agents & Suy luận",
+   "item": "Prompt Engineering",
+   "status": "used",
+   "note": "Lời nhắc hệ thống ràng buộc 'chỉ dùng số đo', mức suy luận thấp (reasoning low) — services/copilot.py."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "AI Agents & Suy luận",
+   "item": "Chain-of-Thought (CoT)",
+   "status": "platform",
+   "note": "Mô hình suy luận (gpt-oss, mức reasoning thấp) tự suy nghĩ từng bước; TerraTwin không hiện chuỗi suy nghĩ."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "AI Agents & Suy luận",
+   "item": "Tree-of-Thoughts (ToT)",
+   "status": "no",
+   "note": "Tốn nhiều lượt gọi; không cần cho câu hỏi tra số đo."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "AI Agents & Suy luận",
+   "item": "ReAct",
+   "status": "used",
+   "note": "Vòng suy nghĩ → gọi công cụ → quan sát kết quả (tối đa 2 vòng) — services/copilot_agent.py."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "AI Agents & Suy luận",
+   "item": "Reflection",
+   "status": "no",
+   "note": "Thay bằng rào chắn tất định (che số bịa) — rẻ và kiểm chứng được hơn để mô hình tự soát."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "AI Agents & Suy luận",
+   "item": "Function Calling / Tool Use",
+   "status": "used",
+   "note": "5 công cụ chỉ-đọc cho trợ lý (khí hậu, radar, mưa, hiểm hoạ, sổ tay) — services/copilot_agent.py."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "AI Agents & Suy luận",
+   "item": "Model Context Protocol (MCP)",
+   "status": "no",
+   "note": "Chưa có máy chủ MCP; Twin API REST có khoá đã cho bên ngoài tra dữ liệu."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "3. Xử lý Ngôn ngữ Tự nhiên & AI Tạo sinh (NLP & GenAI)",
+   "category": "AI Agents & Suy luận",
+   "item": "Multi-Agent Systems (LangGraph, CrewAI, AutoGen)",
+   "status": "no",
+   "note": "Một trợ lý + công cụ đủ; nhiều agent tăng lượt gọi LLM (gói miễn phí giới hạn theo phút)."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "4. Học tăng cường & Hệ thống Gợi ý (RL & RecSys)",
+   "category": "Reinforcement Learning",
+   "item": "Markov Decision Process (MDP)",
+   "status": "no",
+   "note": "Chưa có đủ lượt tương tác người dùng để học tăng cường; quyết định cảnh báo cần giải thích được."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "4. Học tăng cường & Hệ thống Gợi ý (RL & RecSys)",
+   "category": "Reinforcement Learning",
+   "item": "Q-Learning",
+   "status": "no",
+   "note": "Chưa có đủ lượt tương tác người dùng để học tăng cường; quyết định cảnh báo cần giải thích được."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "4. Học tăng cường & Hệ thống Gợi ý (RL & RecSys)",
+   "category": "Reinforcement Learning",
+   "item": "SARSA",
+   "status": "no",
+   "note": "Chưa có đủ lượt tương tác người dùng để học tăng cường; quyết định cảnh báo cần giải thích được."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "4. Học tăng cường & Hệ thống Gợi ý (RL & RecSys)",
+   "category": "Reinforcement Learning",
+   "item": "Deep Q-Network (DQN)",
+   "status": "no",
+   "note": "Chưa có đủ lượt tương tác người dùng để học tăng cường; quyết định cảnh báo cần giải thích được."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "4. Học tăng cường & Hệ thống Gợi ý (RL & RecSys)",
+   "category": "Reinforcement Learning",
+   "item": "Policy Gradient",
+   "status": "no",
+   "note": "Chưa có đủ lượt tương tác người dùng để học tăng cường; quyết định cảnh báo cần giải thích được."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "4. Học tăng cường & Hệ thống Gợi ý (RL & RecSys)",
+   "category": "Reinforcement Learning",
+   "item": "Actor-Critic (A2C/A3C)",
+   "status": "no",
+   "note": "Chưa có đủ lượt tương tác người dùng để học tăng cường; quyết định cảnh báo cần giải thích được."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "4. Học tăng cường & Hệ thống Gợi ý (RL & RecSys)",
+   "category": "Reinforcement Learning",
+   "item": "PPO",
+   "status": "no",
+   "note": "Chưa có đủ lượt tương tác người dùng để học tăng cường; quyết định cảnh báo cần giải thích được."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "4. Học tăng cường & Hệ thống Gợi ý (RL & RecSys)",
+   "category": "Reinforcement Learning",
+   "item": "SAC",
+   "status": "no",
+   "note": "Chưa có đủ lượt tương tác người dùng để học tăng cường; quyết định cảnh báo cần giải thích được."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "4. Học tăng cường & Hệ thống Gợi ý (RL & RecSys)",
+   "category": "Reinforcement Learning",
+   "item": "Multi-Armed Bandits",
+   "status": "no",
+   "note": "Chưa có đủ lượt tương tác người dùng để học tăng cường; quyết định cảnh báo cần giải thích được."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "4. Học tăng cường & Hệ thống Gợi ý (RL & RecSys)",
+   "category": "Reinforcement Learning",
+   "item": "Contextual Bandits (LinUCB, Thompson Sampling)",
+   "status": "no",
+   "note": "Chưa có đủ lượt tương tác người dùng để học tăng cường; quyết định cảnh báo cần giải thích được."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "4. Học tăng cường & Hệ thống Gợi ý (RL & RecSys)",
+   "category": "Recommendation Systems",
+   "item": "Content-Based Filtering",
+   "status": "no",
+   "note": "TerraTwin không gợi ý nội dung để giữ chân người dùng; nó trả lời về MỘT thửa cụ thể."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "4. Học tăng cường & Hệ thống Gợi ý (RL & RecSys)",
+   "category": "Recommendation Systems",
+   "item": "Collaborative Filtering (User-based, Item-based)",
+   "status": "no",
+   "note": "TerraTwin không gợi ý nội dung để giữ chân người dùng; nó trả lời về MỘT thửa cụ thể."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "4. Học tăng cường & Hệ thống Gợi ý (RL & RecSys)",
+   "category": "Recommendation Systems",
+   "item": "Matrix Factorization (SVD, ALS)",
+   "status": "no",
+   "note": "Không có bài toán phân rã ma trận."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "4. Học tăng cường & Hệ thống Gợi ý (RL & RecSys)",
+   "category": "Recommendation Systems",
+   "item": "Wide & Deep",
+   "status": "no",
+   "note": "TerraTwin không gợi ý nội dung để giữ chân người dùng; nó trả lời về MỘT thửa cụ thể."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "4. Học tăng cường & Hệ thống Gợi ý (RL & RecSys)",
+   "category": "Recommendation Systems",
+   "item": "DeepFM",
+   "status": "no",
+   "note": "TerraTwin không gợi ý nội dung để giữ chân người dùng; nó trả lời về MỘT thửa cụ thể."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "4. Học tăng cường & Hệ thống Gợi ý (RL & RecSys)",
+   "category": "Recommendation Systems",
+   "item": "Two-Tower Neural Networks",
+   "status": "no",
+   "note": "TerraTwin không gợi ý nội dung để giữ chân người dùng; nó trả lời về MỘT thửa cụ thể."
+  },
+  {
+   "part": "PHẦN III: TRÍ TUỆ NHÂN TẠO (AI / ML / DL / GENAI)",
+   "section": "4. Học tăng cường & Hệ thống Gợi ý (RL & RecSys)",
+   "category": "Recommendation Systems",
+   "item": "Sequential Recommendation (SASRec, BERT4Rec)",
+   "status": "no",
+   "note": "TerraTwin không gợi ý nội dung để giữ chân người dùng; nó trả lời về MỘT thửa cụ thể."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Frontend Engineering",
+   "item": "HTML5/CSS3",
+   "status": "used",
+   "note": "Next.js 16 + React + TypeScript — frontend/."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Frontend Engineering",
+   "item": "TypeScript",
+   "status": "used",
+   "note": "Next.js 16 + React + TypeScript — frontend/."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Frontend Engineering",
+   "item": "React / Next.js",
+   "status": "used",
+   "note": "Next.js 16 + React + TypeScript — frontend/."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Frontend Engineering",
+   "item": "State Management (Zustand, Redux Toolkit, State Machines - XState)",
+   "status": "no",
+   "note": "Trạng thái React cục bộ đủ; không cần Zustand/Redux/XState."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Frontend Engineering",
+   "item": "Web Workers",
+   "status": "platform",
+   "note": "MapLibre tự chạy Web Worker vẽ bản đồ."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Frontend Engineering",
+   "item": "Service Workers (PWA)",
+   "status": "used",
+   "note": "Service Worker: cài như app, lưu mô hình AI để chạy khi mất mạng — public/sw.js; Web Worker của MapLibre."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Frontend Engineering",
+   "item": "WebAssembly (WASM)",
+   "status": "used",
+   "note": "onnxruntime-web (WASM) chạy AI kiểm ảnh ruộng trên điện thoại — public/fieldcheck.js."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Frontend Engineering",
+   "item": "Edge AI (ONNX Runtime Web, TensorFlow.js, WebLLM)",
+   "status": "used",
+   "note": "AI kiểm ảnh ruộng NGAY TRÊN MÁY, không cần mạng, khớp máy chủ 100% nhãn — components/PhotoCheckLocal.tsx."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Frontend Engineering",
+   "item": "Data Visualization (D3.js, ECharts, Three.js/WebGL)",
+   "status": "used",
+   "note": "MapLibre GL (WebGL): bản đồ 3D, mô phỏng nước dâng, lớp radar — components/MapView.tsx."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Backend Engineering",
+   "item": "Python (FastAPI, Litestar)",
+   "status": "used",
+   "note": "FastAPI — backend/app/."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Backend Engineering",
+   "item": "Go / Rust / Node.js",
+   "status": "no",
+   "note": "Python đủ nhanh cho nghiệp vụ; phần nặng nằm trong numpy/ONNX (C/C++)."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Backend Engineering",
+   "item": "RESTful API",
+   "status": "used",
+   "note": "REST API công khai + Twin API có khoá — backend/app/routes_*.py."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Backend Engineering",
+   "item": "GraphQL",
+   "status": "no",
+   "note": "REST đủ đơn giản cho đối tác; GraphQL tăng bề mặt tấn công."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Backend Engineering",
+   "item": "Webhooks",
+   "status": "used",
+   "note": "Webhook thanh toán/thông báo (SePay, ntfy) — routes_billing.py, services/notify.py."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Backend Engineering",
+   "item": "Background Jobs (Celery, BullMQ, Temporal)",
+   "status": "used",
+   "note": "Hàng đợi việc BỀN trong PostgreSQL (SKIP LOCKED, tự phục hồi việc dở khi khởi động lại) — services/jobs_db.py."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Kiến trúc & Mẫu thiết kế",
+   "item": "Clean Architecture",
+   "status": "no",
+   "note": "Dùng nguyên khối mô-đun thực dụng (xem Modular Monolith)."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Kiến trúc & Mẫu thiết kế",
+   "item": "Hexagonal Architecture",
+   "status": "no",
+   "note": "Không dùng nguyên mẫu: tách lớp vừa đủ (routes → services → nguồn dữ liệu) trong nguyên khối mô-đun."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Kiến trúc & Mẫu thiết kế",
+   "item": "Domain-Driven Design (DDD)",
+   "status": "no",
+   "note": "Không dùng đầy đủ: miền nghiệp vụ nhỏ (thửa, cảnh báo, hồ sơ) — mô-đun hoá theo hiểm hoạ là đủ."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Kiến trúc & Mẫu thiết kế",
+   "item": "Microservices",
+   "status": "no",
+   "note": "Một nhóm nhỏ, một máy chủ — vi dịch vụ chỉ thêm độ trễ và điểm hỏng."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Kiến trúc & Mẫu thiết kế",
+   "item": "Modular Monolith",
+   "status": "used",
+   "note": "Nguyên khối mô-đun: 18 mô-đun hiểm hoạ cùng giao diện TwinModule, dịch vụ tách lớp — app/modules/, app/services/."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Kiến trúc & Mẫu thiết kế",
+   "item": "Event-Driven Architecture",
+   "status": "no",
+   "note": "Một nhóm nhỏ, một máy chủ — vi dịch vụ chỉ thêm độ trễ và điểm hỏng."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Kiến trúc & Mẫu thiết kế",
+   "item": "Design Patterns (Singleton, Factory, Strategy, Observer, Decorator, Adapter, Proxy, Dependency Injection)",
+   "status": "used",
+   "note": "Strategy (mô-đun hiểm hoạ), Adapter (nhà cung cấp LLM), Decorator (jobs_db.register), Registry, Singleton (phiên ONNX)."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Đảm bảo chất lượng (QA & Testing)",
+   "item": "Unit Testing",
+   "status": "used",
+   "note": "~1 600 test pytest chạy trên SQLite và PostgreSQL ở CI — backend/tests/."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Đảm bảo chất lượng (QA & Testing)",
+   "item": "Integration Testing",
+   "status": "used",
+   "note": "~1 600 test pytest chạy trên SQLite và PostgreSQL ở CI — backend/tests/."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Đảm bảo chất lượng (QA & Testing)",
+   "item": "End-to-End Testing (Playwright/Cypress)",
+   "status": "used",
+   "note": "E2E Playwright trên local đầy đủ + production hằng ngày — ops/e2e_browser.py, .github/workflows/e2e-*.yml."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "1. Phát triển Phần mềm & Kiến trúc Ứng dụng",
+   "category": "Đảm bảo chất lượng (QA & Testing)",
+   "item": "Load & Stress Testing (k6, Locust, JMeter)",
+   "status": "no",
+   "note": "Chưa chạy kiểm tải có hệ thống (máy chủ miễn phí 0,1 CPU — kết quả sẽ phản ánh gói, không phản ánh mã)."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "2. Bảo mật Thông tin & Mật mã học (Cybersecurity)",
+   "category": "Mật mã học",
+   "item": "Symmetric Encryption (AES-256-GCM, ChaCha20)",
+   "status": "no",
+   "note": "Mật khẩu băm Argon2id, khoá ký trong biến môi trường; chưa lưu trường nhạy cảm cần mã hoá đối xứng."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "2. Bảo mật Thông tin & Mật mã học (Cybersecurity)",
+   "category": "Mật mã học",
+   "item": "Asymmetric Encryption (RSA, ECC/Ed25519)",
+   "status": "used",
+   "note": "Ed25519 ký Hồ sơ đất số / hồ sơ EUDR — ai cũng kiểm lại được bằng khoá công khai."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "2. Bảo mật Thông tin & Mật mã học (Cybersecurity)",
+   "category": "Mật mã học",
+   "item": "Hashing (SHA-256, BLAKE3)",
+   "status": "used",
+   "note": "SHA-256 cho cây Merkle sổ minh bạch; blake2b cho Bloom/MinHash/HyperLogLog."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "2. Bảo mật Thông tin & Mật mã học (Cybersecurity)",
+   "category": "Mật mã học",
+   "item": "Password Hashing (Argon2id, bcrypt)",
+   "status": "used",
+   "note": "Mật khẩu băm Argon2id (OWASP), hash bcrypt cũ tự chuyển — app/auth.py."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "2. Bảo mật Thông tin & Mật mã học (Cybersecurity)",
+   "category": "Mật mã học",
+   "item": "Digital Signatures",
+   "status": "used",
+   "note": "Chữ ký Ed25519 trên mọi hồ sơ phát hành + nhân chứng minh bạch hằng ngày."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "2. Bảo mật Thông tin & Mật mã học (Cybersecurity)",
+   "category": "Mật mã học",
+   "item": "TLS 1.3 / mTLS",
+   "status": "platform",
+   "note": "HTTPS/TLS 1.3 do Vercel, Render, Cloudflare đảm nhận."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "2. Bảo mật Thông tin & Mật mã học (Cybersecurity)",
+   "category": "Bảo mật Ứng dụng & AI",
+   "item": "OAuth 2.0",
+   "status": "no",
+   "note": "Đăng nhập email + mật khẩu + 2FA TOTP; OAuth (Google/Zalo) cần đăng ký ứng dụng với nhà cung cấp."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "2. Bảo mật Thông tin & Mật mã học (Cybersecurity)",
+   "category": "Bảo mật Ứng dụng & AI",
+   "item": "OpenID Connect (OIDC)",
+   "status": "no",
+   "note": "Đăng nhập email + mật khẩu + 2FA TOTP; OAuth (Google/Zalo) cần đăng ký ứng dụng với nhà cung cấp."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "2. Bảo mật Thông tin & Mật mã học (Cybersecurity)",
+   "category": "Bảo mật Ứng dụng & AI",
+   "item": "JWT",
+   "status": "used",
+   "note": "Phiên đăng nhập bằng JWT có hạn — app/auth.py."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "2. Bảo mật Thông tin & Mật mã học (Cybersecurity)",
+   "category": "Bảo mật Ứng dụng & AI",
+   "item": "Passkeys (WebAuthn)",
+   "status": "no",
+   "note": "Chưa có; đăng nhập có 2FA TOTP cho quản trị."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "2. Bảo mật Thông tin & Mật mã học (Cybersecurity)",
+   "category": "Bảo mật Ứng dụng & AI",
+   "item": "RBAC / ABAC",
+   "status": "used",
+   "note": "Vai trò user/admin/người gán nhãn + quyền theo HTX — app/auth.py, routes_admin.py."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "2. Bảo mật Thông tin & Mật mã học (Cybersecurity)",
+   "category": "Bảo mật Ứng dụng & AI",
+   "item": "Rate Limiting (Token Bucket, Sliding Window)",
+   "status": "used",
+   "note": "Cửa sổ trượt theo IP + hạn mức theo loại việc + khoá đăng nhập sai — main.py, services/quota.py."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "2. Bảo mật Thông tin & Mật mã học (Cybersecurity)",
+   "category": "Bảo mật Ứng dụng & AI",
+   "item": "WAF",
+   "status": "platform",
+   "note": "Cloudflare trước API Render; CSP chặt ở web."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "2. Bảo mật Thông tin & Mật mã học (Cybersecurity)",
+   "category": "Bảo mật Ứng dụng & AI",
+   "item": "Chống OWASP Top 10 (SQLi, XSS, CSRF, SSRF)",
+   "status": "used",
+   "note": "Chặn SQLi (ORM), XSS (CSP), CSRF (JWT header), SSRF (danh sách host), CSV injection, giới hạn kích thước gói — có test xâm nhập (tests/test_security_pentest.py)."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "2. Bảo mật Thông tin & Mật mã học (Cybersecurity)",
+   "category": "Bảo mật Ứng dụng & AI",
+   "item": "AI Guardrails (chống Prompt Injection, Jailbreak, PII Data Masking)",
+   "status": "used",
+   "note": "Rào chắn đầu vào (chèn lệnh, che SĐT/CCCD) + đầu ra (che số bịa) — services/ai_guard.py, guard.py."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "AI Inference & Serving",
+   "item": "vLLM",
+   "status": "no",
+   "note": "Không tự phục vụ LLM (không GPU); dùng nhà cung cấp."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "AI Inference & Serving",
+   "item": "TensorRT-LLM",
+   "status": "no",
+   "note": "Không tự phục vụ LLM (không GPU); dùng nhà cung cấp."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "AI Inference & Serving",
+   "item": "NVIDIA Triton Inference Server",
+   "status": "no",
+   "note": "Không tự phục vụ LLM (không GPU); dùng nhà cung cấp."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "AI Inference & Serving",
+   "item": "ONNX Runtime",
+   "status": "used",
+   "note": "Chạy U-Net radar, SegFormer ảnh trên máy chủ (CPU) và trình duyệt (WASM)."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "AI Inference & Serving",
+   "item": "llama.cpp",
+   "status": "no",
+   "note": "Không chạy LLM cục bộ trên máy chủ 512 MB."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "AI Inference & Serving",
+   "item": "Ollama",
+   "status": "no",
+   "note": "Không chạy LLM cục bộ trên máy chủ 512 MB."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "AI Inference & Serving",
+   "item": "TGI (Text Generation Inference)",
+   "status": "no",
+   "note": "Không tự phục vụ LLM (không GPU); dùng nhà cung cấp."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "AI Inference & Serving",
+   "item": "Dynamic Batching",
+   "status": "no",
+   "note": "Không tự phục vụ LLM (không GPU); dùng nhà cung cấp."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "AI Inference & Serving",
+   "item": "KV-Cache Optimization",
+   "status": "no",
+   "note": "Không tự phục vụ LLM (không GPU); dùng nhà cung cấp."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "AI Inference & Serving",
+   "item": "Speculative Decoding",
+   "status": "no",
+   "note": "Không tự phục vụ LLM (không GPU); dùng nhà cung cấp."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "Container & Điều phối",
+   "item": "Docker",
+   "status": "used",
+   "note": "Dockerfile backend + frontend — tự cài trên máy chủ riêng (tỉnh, HTX)."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "Container & Điều phối",
+   "item": "Docker Compose",
+   "status": "used",
+   "note": "docker-compose.yml dựng đủ backend + frontend + PostgreSQL một lệnh."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "Container & Điều phối",
+   "item": "Kubernetes (K8s)",
+   "status": "no",
+   "note": "Một máy chủ Render; Kubernetes cần cụm máy và chi phí — chưa có tải cần tự giãn."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "Container & Điều phối",
+   "item": "Helm",
+   "status": "no",
+   "note": "Một máy chủ Render; Kubernetes cần cụm máy và chi phí — chưa có tải cần tự giãn."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "Container & Điều phối",
+   "item": "Auto-scaling (HPA, KEDA)",
+   "status": "no",
+   "note": "Một máy chủ Render; Kubernetes cần cụm máy và chi phí — chưa có tải cần tự giãn."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "Container & Điều phối",
+   "item": "GPU Virtualization / MIG",
+   "status": "no",
+   "note": "Một máy chủ Render; Kubernetes cần cụm máy và chi phí — chưa có tải cần tự giãn."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "CI/CD & Quản lý mã nguồn",
+   "item": "Git (Trunk-based Development)",
+   "status": "used",
+   "note": "Trunk-based trên main + GitHub Actions: CI (SQLite + PostgreSQL), E2E, cron radar/sao lưu."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "CI/CD & Quản lý mã nguồn",
+   "item": "GitHub Actions / GitLab CI",
+   "status": "used",
+   "note": "Trunk-based trên main + GitHub Actions: CI (SQLite + PostgreSQL), E2E, cron radar/sao lưu."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "CI/CD & Quản lý mã nguồn",
+   "item": "Infrastructure as Code (Terraform, Ansible)",
+   "status": "used",
+   "note": "Hạ tầng dạng mã bằng render.yaml (Render Blueprint) thay Terraform — cùng ý tưởng, đúng nền tảng đang dùng."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "Giám sát & Tự tiến hóa (Observability & CT)",
+   "item": "Prometheus",
+   "status": "used",
+   "note": "/metrics định dạng Prometheus (request, độ trễ, rào chắn, 429) — services/metrics.py; Grafana kéo được."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "Giám sát & Tự tiến hóa (Observability & CT)",
+   "item": "Grafana",
+   "status": "no",
+   "note": "/metrics định dạng Prometheus đã sẵn để Grafana kéo; chưa dựng bảng Grafana."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "Giám sát & Tự tiến hóa (Observability & CT)",
+   "item": "OpenTelemetry",
+   "status": "no",
+   "note": "Dùng /metrics Prometheus tự cài; chưa gắn OpenTelemetry."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "Giám sát & Tự tiến hóa (Observability & CT)",
+   "item": "ELK/Loki Stack (Logging)",
+   "status": "no",
+   "note": "Nhật ký của Render đủ cho quy mô hiện tại."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "Giám sát & Tự tiến hóa (Observability & CT)",
+   "item": "MLflow",
+   "status": "no",
+   "note": "Thay bằng sổ mô hình công khai /mo-hinh + kết quả kiểm định đăng ký trước trong data/eval (kể cả bản trượt)."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "Giám sát & Tự tiến hóa (Observability & CT)",
+   "item": "Weights & Biases",
+   "status": "no",
+   "note": "Không dùng: thay bằng sổ mô hình công khai /mo-hinh + kết quả kiểm định đăng ký trước trong data/eval."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "Giám sát & Tự tiến hóa (Observability & CT)",
+   "item": "Langfuse / Arize Phoenix (LLM Tracing & Evaluation)",
+   "status": "no",
+   "note": "Thay bằng bộ chấm trợ lý v1–v4 đăng ký trước, lưu nguyên văn từng câu trả lời (data/eval/copilot_eval_*)."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "Giám sát & Tự tiến hóa (Observability & CT)",
+   "item": "Data/Concept Drift Detection (Evidently AI)",
+   "status": "used",
+   "note": "Giám sát trôi xác suất cảnh báo trên cảnh báo thật, tự tắt khi lệch — services/calibration_drift.py."
+  },
+  {
+   "part": "PHẦN IV: CNTT, KỸ THUẬT PHẦN MỀM & MLOPS",
+   "section": "3. Hạ tầng, DevOps & MLOps (Production Scale)",
+   "category": "Giám sát & Tự tiến hóa (Observability & CT)",
+   "item": "Automated Retraining Pipelines",
+   "status": "no",
+   "note": "Cố ý KHÔNG tự huấn luyện lại: mọi bản mô hình mới phải qua cổng đăng ký trước rồi mới bật."
+  }
+ ]
+}

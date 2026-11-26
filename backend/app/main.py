@@ -1420,6 +1420,15 @@ def climate2050_endpoint(lat: float, lon: float, request: Request, lang: str = "
     return climate_2050.assess(lat, lon)
 
 
+@app.get("/api/tech-map")
+def tech_map() -> dict:
+    """Bản đồ công nghệ (26/11/2026): đủ 413 mục trong danh sách nâng cấp của chủ dự án — mục nào đang dùng ở đâu trong
+    TerraTwin, mục nào có sẵn trong nền tảng, mục nào không dùng và vì sao. Đọc thẳng data/tech_map.json."""
+    import json as _json
+    from pathlib import Path as _P
+    return _json.loads((_P(__file__).resolve().parents[1] / "data" / "tech_map.json").read_text(encoding="utf-8"))
+
+
 @app.get("/metrics", include_in_schema=False)
 def prometheus_metrics(authorization: str | None = Header(default=None), x_cron_key: str | None = Header(default=None),
                        db: Session = Depends(get_session)):

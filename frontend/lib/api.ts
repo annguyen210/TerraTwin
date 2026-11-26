@@ -3096,6 +3096,14 @@ export type AiModelCard = { id: string; kind: string; name: string; status: stri
   data: string | null; split: string; limits: string | null; not_for: string; code: string;
   metrics: { label: string; value: string | null; threshold: string; passed: boolean | null }[] };
 export type AiModelCards = { cards: AiModelCard[]; rule: string };
+export type TechMapItem = { part: string; section: string; category: string; item: string;
+                            status: "used" | "platform" | "no"; note: string };
+export type TechMap = { source: string; updated: string; legend: Record<string, string>; counts: Record<string, number>;
+                        items: TechMapItem[] };
+export function getTechMap() {
+  return getJson<TechMap>(`/api/tech-map`, "Không tải được bản đồ công nghệ");
+}
+
 export function getModelCards() {
   return getJson<AiModelCards>(`/api/models/cards?lang=${curLang()}`, "Không tải được thẻ mô hình");
 }

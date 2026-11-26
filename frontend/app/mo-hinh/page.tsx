@@ -24,6 +24,8 @@ export default function ModelCardsPage() {
         <p className="dos-eyebrow">{t("THẺ MÔ HÌNH · TERRATWIN", "MODEL CARDS · TERRATWIN")}</p>
         <h1>{t("Mọi mô hình AI, kể cả cái đã trượt", "Every AI model, including the ones that failed")}</h1>
         {d && <p className="cmp-lede">{d.rule}</p>}
+        <p className="doc-note"><a href="/cong-nghe">{t("Xem bản đồ công nghệ: 413 mục khoa học máy tính, dữ liệu, AI — dùng ở đâu, hay vì sao không dùng →",
+                                                      "See the technology map: 413 CS, data and AI items — where used, or why not →")}</a></p>
         {err && <p className="bat-err">{err}</p>}
         {!d && !err && <p className="doc-note">{t("Đang tải…", "Loading…")}</p>}
         <div className="mc-grid">
