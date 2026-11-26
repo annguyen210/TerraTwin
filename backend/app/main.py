@@ -15,12 +15,13 @@ import time
 from collections import defaultdict, deque
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, Request, Depends
+from fastapi import FastAPI, HTTPException, Request, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from app.db import User, init_db
+from app.db import User, get_session, init_db
+from sqlalchemy.orm import Session
 from app.modules.registry import get_module, list_modules
 from app.routes_account import router as account_router
 from app.routes_data import router as data_router
@@ -438,6 +439,21 @@ async def set_request_lang(request: Request, call_next):
     """
     reqlang.set_lang(request.query_params.get("lang"))
     return await call_next(request)
+
+
+@app.middleware("http")
+async def prometheus_observe(request: Request, call_next):
+    """Số đo Prometheus (26/11/2026, services/metrics.py) — theo MẪU route, không theo URL thật."""
+    from app.services import metrics
+    t0 = time.perf_counter()
+    status_code = 500
+    try:
+        resp = await call_next(request)
+        status_code = resp.status_code
+        return resp
+    finally:
+        route = request.scope.get("route")
+        metrics.observe(getattr(route, "path", "unmatched"), request.method, status_code, time.perf_counter() - t0)
 
 
 # GIỚI HẠN KÍCH THƯỚC GÓI GỬI LÊN — đếm byte NGAY KHI NHẬN (tự kiểm thử xâm nhập 4/10/2026).
@@ -1402,6 +1418,17 @@ def climate2050_endpoint(lat: float, lon: float, request: Request, lang: str = "
                                                 "The 2050-climate quota for new regions this hour is used up — try later."),
                                 headers={"Retry-After": str(wait)})
     return climate_2050.assess(lat, lon)
+
+
+@app.get("/metrics", include_in_schema=False)
+def prometheus_metrics(authorization: str | None = Header(default=None), x_cron_key: str | None = Header(default=None),
+                       db: Session = Depends(get_session)):
+    """Số đo vận hành định dạng Prometheus (26/11/2026). Cần X-Cron-Key hoặc JWT admin — số đo vận hành không công khai."""
+    from fastapi.responses import PlainTextResponse
+    from app.routes_data import _require_cron_or_admin
+    from app.services import metrics
+    _require_cron_or_admin(authorization, x_cron_key, db)
+    return PlainTextResponse(metrics.render(), media_type="text/plain; version=0.0.4; charset=utf-8")
 
 
 @app.get("/api/high-ground")
