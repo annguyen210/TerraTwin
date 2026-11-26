@@ -223,7 +223,7 @@ with sync_playwright() as p:
 
     @step("Đăng nhập → /lo ghép lô → phát hành chứng thư")
     def lots():
-        tok = api("POST", "/api/auth/register", {"email": f"e2e{int(time.time())}@terratwin.vn", "password": "MatKhau123", "name": "E2E"})["access_token"]
+        tok = api("POST", "/api/auth/register", {"email": f"e2e{int(time.time())}@terratwin.vn", "password": "RuongLua#2026x", "name": "E2E"})["access_token"]
         page.goto(WEB + "/")
         page.evaluate(f"localStorage.setItem('terratwin_token', '{tok}')")
         page.goto(WEB + "/lo", wait_until="networkidle")

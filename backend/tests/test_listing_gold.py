@@ -23,7 +23,7 @@ def test_chi_quan_tri_va_luu_da_an_danh():
     from app import auth
     from app.main import app
     with TestClient(app) as c:
-        tok = c.post("/api/auth/register", json={"email": "lg-1@nong.vn", "password": "MatKhau123", "name": "N"}).json()["access_token"]
+        tok = c.post("/api/auth/register", json={"email": "lg-1@nong.vn", "password": "RuongLua#2026x", "name": "N"}).json()["access_token"]
         h = {"Authorization": f"Bearer {tok}"}
         assert c.get("/api/admin/listing-gold", headers=h).status_code == 403
         app.dependency_overrides[auth.require_admin] = lambda: None

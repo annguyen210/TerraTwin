@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-PW = "MatKhau123"
+PW = "RuongLua#2026x"
 
 
 def test_vector_rfc6238_sha1():

@@ -10,7 +10,7 @@ def test_mac_dinh_tat_thu_tien(monkeypatch):
     monkeypatch.delenv("TERRATWIN_BILLING", raising=False)
     assert plans.billing_on() is False
     with TestClient(app) as c:
-        tok = c.post("/api/auth/register", json={"email": "bill-off@nong.vn", "password": "MatKhau123", "name": "N"}).json()["access_token"]
+        tok = c.post("/api/auth/register", json={"email": "bill-off@nong.vn", "password": "RuongLua#2026x", "name": "N"}).json()["access_token"]
         h = {"Authorization": f"Bearer {tok}"}
         me = c.get("/api/account/plan", headers=h).json()
         assert me["billing"] is False and me["limits"]["dossier_per_day"] > 0

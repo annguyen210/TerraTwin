@@ -62,8 +62,8 @@ def test_run_all_dedups_by_day():
 
 def test_toggle_and_status_endpoints():
     with TestClient(app) as c:
-        c.post("/api/auth/register", json={"email": "brief_t@x.com", "password": "Passw0rd1", "name": "T"})
-        tok = c.post("/api/auth/login", json={"email": "brief_t@x.com", "password": "Passw0rd1"}).json()["access_token"]
+        c.post("/api/auth/register", json={"email": "brief_t@x.com", "password": "DongBang#2026y", "name": "T"})
+        tok = c.post("/api/auth/login", json={"email": "brief_t@x.com", "password": "DongBang#2026y"}).json()["access_token"]
         H = {"Authorization": f"Bearer {tok}"}
         assert c.get("/api/brief/status", headers=H).json()["enabled"] is False
         assert c.post("/api/brief/toggle?on=true", headers=H).json()["enabled"] is True
@@ -72,8 +72,8 @@ def test_toggle_and_status_endpoints():
 
 def test_run_requires_admin():
     with TestClient(app) as c:
-        c.post("/api/auth/register", json={"email": "brief_u@x.com", "password": "Passw0rd1", "name": "U"})
-        tok = c.post("/api/auth/login", json={"email": "brief_u@x.com", "password": "Passw0rd1"}).json()["access_token"]
+        c.post("/api/auth/register", json={"email": "brief_u@x.com", "password": "DongBang#2026y", "name": "U"})
+        tok = c.post("/api/auth/login", json={"email": "brief_u@x.com", "password": "DongBang#2026y"}).json()["access_token"]
         assert c.post("/api/brief/run", headers={"Authorization": f"Bearer {tok}"}).status_code == 403
 
 

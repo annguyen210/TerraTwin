@@ -12,7 +12,7 @@ from app.db import Alert, Plot, SessionLocal, User
 from app.main import app
 from app.services import alert_current
 
-PW = "MatKhau123"
+PW = "RuongLua#2026x"
 
 
 def _now():

@@ -7,8 +7,8 @@ from app.services import push
 
 
 def _token(c, email):
-    c.post("/api/auth/register", json={"email": email, "password": "Passw0rd1", "name": "P"})
-    return c.post("/api/auth/login", json={"email": email, "password": "Passw0rd1"}).json()["access_token"]
+    c.post("/api/auth/register", json={"email": email, "password": "DongBang#2026y", "name": "P"})
+    return c.post("/api/auth/login", json={"email": email, "password": "DongBang#2026y"}).json()["access_token"]
 
 
 def test_key_endpoint_unconfigured_by_default(monkeypatch):

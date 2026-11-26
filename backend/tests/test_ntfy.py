@@ -37,7 +37,7 @@ def test_tao_kenh_ntfy_qua_api():
     from fastapi.testclient import TestClient
     from app.main import app
     with TestClient(app) as c:
-        tok = c.post("/api/auth/register", json={"email": "ntfy-1@nong.vn", "password": "MatKhau123", "name": "N"}).json()["access_token"]
+        tok = c.post("/api/auth/register", json={"email": "ntfy-1@nong.vn", "password": "RuongLua#2026x", "name": "N"}).json()["access_token"]
         h = {"Authorization": f"Bearer {tok}"}
         assert c.post("/api/channels", json={"kind": "ntfy", "target": "ngan"}, headers=h).status_code == 422
         r = c.post("/api/channels", json={"kind": "ntfy", "target": "tt-a8f3c9e1b2d4f6a7"}, headers=h)

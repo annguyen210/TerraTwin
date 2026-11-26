@@ -143,6 +143,9 @@ def _check_password_strength(pw: str) -> None:
         raise HTTPException(422, f"Mật khẩu cần tối thiểu {_MIN_PW} ký tự.")
     if not re.search(r"[A-Za-z]", pw) or not re.search(r"\d", pw):
         raise HTTPException(422, "Mật khẩu cần có cả chữ và số.")
+    from app.services import pw_bloom
+    if pw_bloom.is_common(pw):                         # Bloom filter 10 000 mật khẩu hay bị lộ (26/11/2026)
+        raise HTTPException(422, "Mật khẩu này nằm trong danh sách mật khẩu phổ biến hay bị lộ — chọn mật khẩu khác.")
 
 
 # Đ11 sửa sau kiểm toán — trước đây role="admin" CHỈ gán được bằng cách sửa

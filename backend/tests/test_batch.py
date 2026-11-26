@@ -79,7 +79,7 @@ def test_tong_hop_danh_muc():
 
 # ---------------------------------------------------------------- API
 
-PW = "MatKhau123"
+PW = "RuongLua#2026x"
 
 
 @pytest.fixture

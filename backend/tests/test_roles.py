@@ -13,7 +13,7 @@ ADMIN_GET = ["/api/admin/funnel", "/api/admin/drift", "/api/admin/backup-status"
 
 
 def _login(c, email, role="user"):
-    c.post("/api/auth/register", json={"email": email, "password": "Passw0rd1", "name": "X"})
+    c.post("/api/auth/register", json={"email": email, "password": "DongBang#2026y", "name": "X"})
     if role != "user":
         db = SessionLocal()
         try:
@@ -21,7 +21,7 @@ def _login(c, email, role="user"):
             u.role = role; db.commit()
         finally:
             db.close()
-    return c.post("/api/auth/login", json={"email": email, "password": "Passw0rd1"}).json()["access_token"]
+    return c.post("/api/auth/login", json={"email": email, "password": "DongBang#2026y"}).json()["access_token"]
 
 
 def test_admin_routes_401_without_login():
@@ -80,8 +80,8 @@ def test_coop_thay_ma_khong_tu_dong_lo_thua():
 
     with TestClient(app) as c:
         # Thành viên A: cùng mã nhóm, CHƯA bật chia sẻ.
-        c.post("/api/auth/register", json={"email": "coop_a@x.com", "password": "Passw0rd1", "name": "A"})
-        tok_a = c.post("/api/auth/login", json={"email": "coop_a@x.com", "password": "Passw0rd1"}).json()["access_token"]
+        c.post("/api/auth/register", json={"email": "coop_a@x.com", "password": "DongBang#2026y", "name": "A"})
+        tok_a = c.post("/api/auth/login", json={"email": "coop_a@x.com", "password": "DongBang#2026y"}).json()["access_token"]
         c.put("/api/account/coop", json={"coop_code": "HTX01", "share_with_coop": False},
               headers={"Authorization": f"Bearer {tok_a}"})
 
@@ -118,8 +118,8 @@ def test_coop_khac_ma_khong_thay_nhau():
     from sqlalchemy import select
 
     with TestClient(app) as c:
-        c.post("/api/auth/register", json={"email": "coop_b@x.com", "password": "Passw0rd1", "name": "B"})
-        tok_b = c.post("/api/auth/login", json={"email": "coop_b@x.com", "password": "Passw0rd1"}).json()["access_token"]
+        c.post("/api/auth/register", json={"email": "coop_b@x.com", "password": "DongBang#2026y", "name": "B"})
+        tok_b = c.post("/api/auth/login", json={"email": "coop_b@x.com", "password": "DongBang#2026y"}).json()["access_token"]
         c.put("/api/account/coop", json={"coop_code": "HTX-KHAC", "share_with_coop": True},
               headers={"Authorization": f"Bearer {tok_b}"})
         with SessionLocal() as db:
@@ -206,7 +206,7 @@ def test_dang_ky_bang_email_trong_danh_sach_tu_dong_thanh_admin(monkeypatch):
     monkeypatch.setenv("TERRATWIN_ADMIN_EMAILS", "chu@x.com, khac@x.com")
     with TestClient(app) as c:
         r = c.post("/api/auth/register",
-                   json={"email": "Chu@X.com", "password": "Passw0rd1", "name": "Chu"})
+                   json={"email": "Chu@X.com", "password": "DongBang#2026y", "name": "Chu"})
         assert r.status_code == 201
         assert r.json()["user"]["role"] == "admin", (
             "email trong TERRATWIN_ADMIN_EMAILS phải tự thành admin lúc đăng ký "
@@ -217,7 +217,7 @@ def test_dang_ky_email_ngoai_danh_sach_van_la_user(monkeypatch):
     monkeypatch.setenv("TERRATWIN_ADMIN_EMAILS", "chu@x.com")
     with TestClient(app) as c:
         r = c.post("/api/auth/register",
-                   json={"email": "nguoi_thuong@x.com", "password": "Passw0rd1", "name": "X"})
+                   json={"email": "nguoi_thuong@x.com", "password": "DongBang#2026y", "name": "X"})
         assert r.status_code == 201
         assert r.json()["user"]["role"] == "user"
 
@@ -238,12 +238,12 @@ def test_tai_khoan_cu_duoc_nang_admin_khi_dang_nhap_sau_khi_them_vao_danh_sach(m
     monkeypatch.delenv("TERRATWIN_ADMIN_EMAILS", raising=False)
     with TestClient(app) as c:
         r = c.post("/api/auth/register",
-                   json={"email": "sau_nay_len_admin@x.com", "password": "Passw0rd1", "name": "X"})
+                   json={"email": "sau_nay_len_admin@x.com", "password": "DongBang#2026y", "name": "X"})
         assert r.json()["user"]["role"] == "user"
 
         monkeypatch.setenv("TERRATWIN_ADMIN_EMAILS", "sau_nay_len_admin@x.com")
         r2 = c.post("/api/auth/login",
-                    json={"email": "sau_nay_len_admin@x.com", "password": "Passw0rd1"})
+                    json={"email": "sau_nay_len_admin@x.com", "password": "DongBang#2026y"})
         assert r2.json()["user"]["role"] == "admin"
 
         tok = r2.json()["access_token"]
@@ -257,10 +257,10 @@ def test_rut_khoi_danh_sach_khong_tu_dong_ha_quyen(monkeypatch):
     monkeypatch.setenv("TERRATWIN_ADMIN_EMAILS", "van_con_admin@x.com")
     with TestClient(app) as c:
         c.post("/api/auth/register",
-              json={"email": "van_con_admin@x.com", "password": "Passw0rd1", "name": "X"})
+              json={"email": "van_con_admin@x.com", "password": "DongBang#2026y", "name": "X"})
 
         monkeypatch.delenv("TERRATWIN_ADMIN_EMAILS", raising=False)
         r = c.post("/api/auth/login",
-                   json={"email": "van_con_admin@x.com", "password": "Passw0rd1"})
+                   json={"email": "van_con_admin@x.com", "password": "DongBang#2026y"})
         assert r.json()["user"]["role"] == "admin", (
             "rút khỏi danh sách không được tự động hạ quyền admin đã cấp")

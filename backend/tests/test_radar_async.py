@@ -14,7 +14,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-PW = "MatKhau123"
+PW = "RuongLua#2026x"
 
 
 @pytest.fixture

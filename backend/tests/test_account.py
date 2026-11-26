@@ -10,7 +10,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 BEN_TRE = {"lat": 10.19, "lon": 106.70}
-GOOD_PW = "MatKhau123"
+GOOD_PW = "RuongLua#2026x"
 
 
 @pytest.fixture

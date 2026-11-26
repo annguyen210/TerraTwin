@@ -28,7 +28,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.services import hazard, notify, onetap, scorecard, verify
 
-GOOD_PW = "MatKhau123"
+GOOD_PW = "RuongLua#2026x"
 BEN_TRE = (10.19, 106.70)
 HA_NOI = (21.03, 105.85)
 

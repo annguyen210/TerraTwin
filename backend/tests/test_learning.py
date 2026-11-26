@@ -17,7 +17,7 @@ from app.services import federated
 
 BEN_TRE = {"lat": 10.19, "lon": 106.70}
 FAR_AWAY = {"lat": 21.03, "lon": 105.85}
-GOOD_PW = "MatKhau123"
+GOOD_PW = "RuongLua#2026x"
 YESTERDAY = (date.today() - timedelta(days=1)).isoformat()
 
 

@@ -194,7 +194,7 @@ def _auth(c, email="chu-dat@vd.vn"):
     """Tải ảnh cần đăng nhập (ảnh nằm trong CSDL có trần dung lượng)."""
     key = (id(c), email)
     if key not in _TOKENS:
-        r = c.post("/api/auth/register", json={"email": email, "password": "MatKhau123", "name": "A"})
+        r = c.post("/api/auth/register", json={"email": email, "password": "RuongLua#2026x", "name": "A"})
         _TOKENS[key] = {"Authorization": f"Bearer {r.json()['access_token']}"}
     return _TOKENS[key]
 

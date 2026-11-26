@@ -140,7 +140,7 @@ def test_so_sanh_giam_sat():
 
 # ---------------------------------------------------------------- API
 
-PW = "MatKhau123"
+PW = "RuongLua#2026x"
 
 
 def sq(lat, lon, d=0.0005):

@@ -53,7 +53,7 @@ def test_endpoint_owner_only():
     with TestClient(app) as c:
         assert c.get(f"/api/explain/{aid}/lineage").status_code == 401
         # người KHÁC không xem được cảnh báo này.
-        c.post("/api/auth/register", json={"email": "other@x.com", "password": "Passw0rd1", "name": "O"})
-        tok = c.post("/api/auth/login", json={"email": "other@x.com", "password": "Passw0rd1"}).json()["access_token"]
+        c.post("/api/auth/register", json={"email": "other@x.com", "password": "DongBang#2026y", "name": "O"})
+        tok = c.post("/api/auth/login", json={"email": "other@x.com", "password": "DongBang#2026y"}).json()["access_token"]
         r = c.get(f"/api/explain/{aid}/lineage", headers={"Authorization": f"Bearer {tok}"})
         assert r.status_code == 404

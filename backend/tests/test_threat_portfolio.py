@@ -243,7 +243,7 @@ def test_khoa_api_dem_luot_va_chan_khi_vuot(monkeypatch):
     with TestClient(app) as c:
         em = f"quota{int(time.time() * 1000)}@example.com"
         tok = c.post("/api/auth/register",
-                     json={"email": em, "password": "MatKhau123!",
+                     json={"email": em, "password": "RuongLua#2026x!",
                            "name": "Q"}).json()["access_token"]
         h = {"Authorization": "Bearer " + tok}
         k = c.post("/api/keys?label=Thu", headers=h).json()
@@ -270,7 +270,7 @@ def test_khoa_api_khong_gioi_han_khi_dat_0(monkeypatch):
     with TestClient(app) as c:
         em = f"unl{int(time.time() * 1000)}@example.com"
         tok = c.post("/api/auth/register",
-                     json={"email": em, "password": "MatKhau123!",
+                     json={"email": em, "password": "RuongLua#2026x!",
                            "name": "U"}).json()["access_token"]
         h = {"Authorization": "Bearer " + tok}
         k = c.post("/api/keys", headers=h).json()

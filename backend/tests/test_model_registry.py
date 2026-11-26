@@ -40,14 +40,14 @@ def test_data_hash_recorded():
 def _admin_token(c, email):
     from app.db import SessionLocal, User
     from sqlalchemy import select
-    c.post("/api/auth/register", json={"email": email, "password": "Passw0rd1", "name": "A"})
+    c.post("/api/auth/register", json={"email": email, "password": "DongBang#2026y", "name": "A"})
     db = SessionLocal()
     try:
         u = db.execute(select(User).where(User.email == email)).scalar_one()
         u.role = "admin"; db.commit()
     finally:
         db.close()
-    return c.post("/api/auth/login", json={"email": email, "password": "Passw0rd1"}).json()["access_token"]
+    return c.post("/api/auth/login", json={"email": email, "password": "DongBang#2026y"}).json()["access_token"]
 
 
 def test_endpoints_auth_and_switch():
@@ -59,8 +59,8 @@ def test_endpoints_auth_and_switch():
         assert c.post("/api/models/1/activate").status_code == 401
 
         # Đ11 — người thường bị 403 khi đăng ký/kích hoạt mô hình.
-        c.post("/api/auth/register", json={"email": "plainreg@x.com", "password": "Passw0rd1", "name": "P"})
-        ptok = c.post("/api/auth/login", json={"email": "plainreg@x.com", "password": "Passw0rd1"}).json()["access_token"]
+        c.post("/api/auth/register", json={"email": "plainreg@x.com", "password": "DongBang#2026y", "name": "P"})
+        ptok = c.post("/api/auth/login", json={"email": "plainreg@x.com", "password": "DongBang#2026y"}).json()["access_token"]
         assert c.post("/api/models", json={"kind": "k", "version": "v"},
                       headers={"Authorization": f"Bearer {ptok}"}).status_code == 403
 

@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 pytestmark = pytest.mark.mua_lu_that
 LAT, LON = 16.5201, 107.5902
-PW = "MatKhau123"
+PW = "RuongLua#2026x"
 
 
 @pytest.fixture

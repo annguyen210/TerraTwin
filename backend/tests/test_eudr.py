@@ -278,7 +278,7 @@ def test_ho_so_dat_so_khong_ky_du_bao(monkeypatch):
 
 # ---------------------------------------------------------------- API
 
-PW = "MatKhau123"
+PW = "RuongLua#2026x"
 
 
 @pytest.fixture

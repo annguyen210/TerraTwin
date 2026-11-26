@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
-PW = "MatKhau123"
+PW = "RuongLua#2026x"
 OK = {"role": "farmer", "ease": 4, "trust": 5, "would_use": "yes", "hardest": "boundary",
       "minutes": 12, "region": "Krông Năng, Đắk Lắk", "comment": "Đi bộ quanh vườn dễ"}
 

@@ -26,7 +26,7 @@ def test_webhook_cap_goi_mot_lan(monkeypatch):
     monkeypatch.setenv("TERRATWIN_SEPAY_API_KEY", KEY)
     monkeypatch.setenv("TERRATWIN_BILLING", "1")
     with TestClient(app) as c:
-        tok = c.post("/api/auth/register", json={"email": "sepay-1@nong.vn", "password": "MatKhau123", "name": "N"}).json()["access_token"]
+        tok = c.post("/api/auth/register", json={"email": "sepay-1@nong.vn", "password": "RuongLua#2026x", "name": "N"}).json()["access_token"]
         h = {"Authorization": f"Bearer {tok}"}
         req = c.post("/api/account/upgrade-request", json={"plan_wanted": "pro"}, headers=h).json()
         assert req["payment"]["memo"] == f"TT{req['id']} PRO"
